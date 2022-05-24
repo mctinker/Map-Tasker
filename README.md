@@ -1,4 +1,4 @@
-# MapTasker
+# MapTasker version 1.0
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
 
 This is an application in support of Tasker that is intended to run on a MAC.
