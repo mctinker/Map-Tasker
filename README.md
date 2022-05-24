@@ -10,10 +10,10 @@ A portion/example of the results can be found here.
 Program dependencies:
 •	Python version 3
 •	easygui: 
-  install from Terminal using the command: **pip3 install --upgrade easygui**
+  install from Terminal using the command: '''pip3 install --upgrade easygui'''
 •	input Tasker backup.xml (anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6. 
 
-To run the program from the directory in which MapTasker.py resides, enter: **python3 MapTasker.py**
+To run the program from the directory in which MapTasker.py resides, enter: '''python3 MapTasker.py'''
  
 Program out: the file “MapTasker.html”, which can be opened in any browser.
  
