@@ -1,4 +1,4 @@
-# MapTasker version 1.0
+# MapTasker version 1.1
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
 
 This is an application in support of Tasker that is intended to run on a MAC.
@@ -24,5 +24,5 @@ If you make changes and think they may benefit others, feel free to forward them
  
 While not tested, I don't see why this shouldn't work on Windows or Linux.
  
-Future enhancements:
--	List all Tasks not called by a Profile
+Change list:
+-	Version 1.1: Added list all Tasks not called by a Profile
