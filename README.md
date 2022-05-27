@@ -1,4 +1,4 @@
-# MapTasker version 1.1
+# MapTasker version 1.2
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
 
 This is an application in support of Tasker that is intended to run on a MAC.
@@ -16,7 +16,7 @@ Program dependencies:
 
 To run the program from the directory in which MapTasker.py resides, enter: ```python3 MapTasker.py```
  
-Program out: the file “MapTasker.html”, which can be opened in any browser.
+Program out: the file “MapTasker.html”, which can will be opened in your default browser as a new tab.  
  
 I have only been able to test this on my own backup file. If you try it out and find an error and are willing to share your backup.xml file, please send a copy to mikrubin@gmail.com 
  
@@ -25,4 +25,6 @@ If you make changes and think they may benefit others, feel free to forward them
 While not tested, I don't see why this shouldn't work on Windows or Linux.
  
 Change list:
+-	Version 1.2 Added -v and -h arguments to display the program version and help                  
+-	Version 1.2 launch browser to display results                                                    
 -	Version 1.1: Added list all Tasks not called by a Profile
