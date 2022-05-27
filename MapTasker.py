@@ -4,8 +4,10 @@
 #                                                                                            #
 # MapTasker: read the Tasker backup file to map out the configuration                        #
 #                                                                                            #
-# Version 1.1                                                                                #
+# Version 1.2                                                                                #
 #                                                                                            #
+# - 1.2 Added -v and -h arguments to display the program version and help                    #
+# - 1.2 launch browser to display results                                                    #
 # - 1.1 Added list of Tasks for which there is no Profile                                    #
 #                                                                                            #
 # ########################################################################################## #
@@ -13,14 +15,19 @@
 import easygui as g
 import xml.etree.ElementTree as ET
 import os
-import sys, getopt
+import sys
+import webbrowser
 
 #  Global constants
 project_color = 'Black'
 profile_color = 'Blue'
 task_color = 'Green'
 scene_color = 'Purple'
+browser = 'Google Chrome.app'
+
 unknown_task_name = 'Unnamed or Anonymous!!!'
+my_version = '1.2'
+my_file_name = '/MapTasker.html'
 
 
 def ulify(element, lvl=int):
@@ -53,6 +60,16 @@ def main():
     task_list = []
     all_tasks = []
 
+    # Get any arguments passed to program
+    for i, arg in enumerate(sys.argv):
+        # print(f"Argument {i:>6}: {arg}")
+        if arg == '-v':
+            g.textbox(msg="MapTasker Version", title="MapTasker", text="Version " + my_version)
+            sys.exit()
+        elif arg == '-h':
+            g.textbox(msg="MapTasker Help", title="MapTasker", text="This program reads a Tasker backup file and displays the configuration of Profiles/Tasks/Scenes")
+            sys.exit()
+
     # Find the Tasker backup.xml
     msg = 'Locate the Tasker backup xml file to use to map your Tasker environment'
     title = 'MapTasker'
@@ -66,7 +83,7 @@ def main():
     if my_output_dir is None:
         g.textbox(msg="MapTasker cancelled", title="MapTasker", text="An error occurred.  Program cancelled.")
         exit(1)
-    out_file = open("MapTasker.html", "w")
+    out_file = open(my_output_dir + my_file_name, "w")
 
     # Import xml
     tree = ET.parse(filename)
@@ -196,8 +213,11 @@ def main():
 
     my_output(out_file, 3, '')  # Close out the list
     out_file.close()
+
+    # Display final output
+    webbrowser.open('file://' + my_output_dir + my_file_name, new=2)
     g.textbox(msg="MapTasker Done", title="MapTasker",
-              text="You can find 'MapTasker.html' in the same folder as the backup.xml file is located.  Open it with a browser.")
+              text="You can find 'MapTasker.html' in the same folder as your backup xml file.  Your browser has displayed it in a new tab.  Program end.")
 
 
 # Main call
