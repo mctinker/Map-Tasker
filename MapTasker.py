@@ -9,8 +9,11 @@
 #      2- Python version 3.9 or higher                                                       #
 #                                                                                            #
 #                                                                                            #
-# Version 2.0                                                                                #
+# Version 2.1                                                                                #
 #                                                                                            #
+# - 2.1 Fixed: actions were not sorted properly                                              #
+#       Fixed: Stop action improperly reported as Else action                                #
+#       Added: Support for more Task Action codes                                            #
 # - 2.0 Added output style (linear or bullet), bullet_color as global var                    #
 #       Added detail mode (default) which can be turned off with option -s                   #
 #        displaying unnamed Task's Actions                                                   #
@@ -43,10 +46,9 @@ help_text2 = 'Runtime options...\n  -h for this help\n  -s for no Task action de
 
 caveat1 = 'CAVEATS:\n'
 caveat2 = '1- Not all Task actions have been mapped and will display as such.\n'
-caveat3 = '2- Actions listed are not necessarily in the precise order as they appear in the Task, and should\n'
-caveat4 = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;only be used to assist in identifying the Unnamed/Anonymous Task.'
+
 unknown_task_name = 'Unnamed/Anonymous.'
-my_version = '2.0'
+my_version = '2.1'
 my_file_name = '/MapTasker.html'
 
 
@@ -92,7 +94,7 @@ def getcode(code_child, code_action):
                             var3 = ' is set '
                         else:
                             var3 = ' ? '
-                            print('var2.text:',var2.text)
+                            # print('var2.text:',var2.text)
                         var4 = children.find('rhs')
                         return "If " + var1.text + var3 + var4.text
     elif taskcode == '38':
@@ -113,6 +115,10 @@ def getcode(code_child, code_action):
         return "End For or Stop"
     elif taskcode == '43':
         return "Else/Else If"
+    elif taskcode == '47':
+        for cchild in code_action:
+            if cchild.tag == 'Str':
+                return "Show Scene " + cchild.text
     elif taskcode == '49':
         for cchild in code_action:
             if cchild.tag == 'Str':
@@ -135,24 +141,42 @@ def getcode(code_child, code_action):
         for cchild in code_action:
             if cchild.tag == 'Str' and cchild.text != None:
                 return "Open Map, Navigate to " + cchild.text
+    elif taskcode == '130':
+        for cchild in code_action:
+            if cchild.tag == 'Str' and cchild.text != None:
+                return "Perform Task " + cchild.text
     elif taskcode == '135':
         for cchild in code_action:
             if cchild.tag == 'Str' and cchild.text != None:
                 return "Go To " + cchild.text
     elif taskcode == '137':
-        return "Else"
+        return "Stop"
     elif taskcode == '173':
         return "Network Access "
     elif taskcode == '193':
         for cchild in code_action:
             if cchild.tag == 'Str' and cchild.text != None:
                 return "Set Clipboard to " + cchild.text
+    elif taskcode == '235':
+        var1 = 'Custom Settings'
+        for cchild in code_action:
+            if cchild.tag == 'Str' and cchild.text != None:
+                var1 = var1 + ' ' + cchild.text
+        return var1
+    elif taskcode == '248':
+        return "Turn Off"
     elif taskcode == '307':
         for cchild in code_action:
             if cchild.tag == 'Int':
                 return "Media Volume to  " + cchild.attrib.get('val')
     elif taskcode == '331':
         return "Auto-Sync"
+    elif taskcode == '335':
+        return "App Info"
+    elif taskcode == '348':
+        for cchild in code_action:
+            if cchild.tag == 'Str' and cchild.text != None:
+                return "Test Display " + cchild.text
     elif taskcode == '355':
         for cchild in code_action:
             if cchild.tag == 'Str' and cchild.text != None:
@@ -165,14 +189,24 @@ def getcode(code_child, code_action):
         for cchild in code_action:
             if cchild.tag == 'Str' and cchild.text != None:
                 return "Array Process " + cchild.text
+    elif taskcode == '358':
+        for cchild in code_action:
+            if cchild.tag == 'Str' and cchild.text != None:
+                return "Bluetooth Info " + cchild.text
     elif taskcode == '373':
         for cchild in code_action:
             if cchild.tag == 'Str' and cchild.text != None:
                 return "Test Sensor " + cchild.text
-            elif taskcode == '378':
-                for cchild in code_action:
-                    if cchild.tag == 'Str' and cchild.text != None:
-                        return "List Dialog " + cchild.text
+    elif taskcode == '378':
+        for cchild in code_action:
+            if cchild.tag == 'Str' and cchild.text != None:
+                return "List Dialog " + cchild.text
+    elif taskcode == '389':
+        var1 = 'Multiple Variables Set'
+        for cchild in code_action:
+            if cchild.tag == 'Str' and cchild.text != None:
+                var1 = var1 + ' ' + cchild.text
+        return var1
     elif taskcode == '410':
         for cchild in code_action:
             if cchild.tag == 'Str' and cchild.text != None:
@@ -302,6 +336,39 @@ def build_action(alist, tcode, achild):
     return
 
 
+# Shell sort for Action list
+def shellSort(arr, n):
+    # code here
+    gap = n // 2
+    attr1 = ET.Element
+    attr2 = ET.Element
+    while gap > 0:
+        j = gap
+        # Check the array in from left to right
+        # Till the last possible index of j
+        while j < n:
+            i = j - gap  # This will keep help in maintain gap value
+            while i >= 0:
+                # Get the n from <Action sr="actn" ve="7"> as a number for comparison purposes
+                # act2 = get_action_number(arr[i+gap])
+                attr1 = arr[i]
+                attr2 = arr[i+gap]
+                val1 = attr1.attrib['sr']
+                val2 = attr2.attrib['sr']
+                comp1 = val1[3:len(val1)]
+                comp2 = val2[3:len(val2)]
+                # If value on right side is already greater than left side value
+                # We don't do swap else we swap
+                if int(comp2) > int(comp1):
+                    break
+                else:
+                    arr[i + gap], arr[i] = arr[i], arr[i + gap]
+                i = i - gap  # To check left side also
+                # If the element present is greater than current element
+            j += 1
+        gap = gap // 2
+
+
 # Navigate through Task's Actions and identify each
 # Return a list of Task's actions for the given Task
 def get_actions(current_task):
@@ -312,12 +379,20 @@ def get_actions(current_task):
         print('No action found!!!')
         return []
     if task_actions:
+        count_of_actions = 0
+        for action in task_actions:
+            count_of_actions += 1
+        # sort the Actions by attrib sr (e.g. sr='act0', act1, act2, etc.)
+        shellSort(task_actions,count_of_actions)
+        #reorder_attributes(task_actions)
         for action in task_actions:
             for child in action:
+                #action_number = child.attrib['sr'] != '0'
                 try:
                     # Check for Task's "code"
                     if 'code' == child.tag:  # Get the specific Task Action code
                         task_code = getcode(child, action)
+                        # print('Task ID:',current_task.attrib['sr'],' Code:',child.text,' task_code:',task_code,'Action attr:',action.attrib)
                         build_action(tasklist, task_code, child)
                     else:
                         pass
@@ -592,8 +667,7 @@ def main():
         my_output(out_file, 0, output_style, False, '<hr>')  # line
         my_output(out_file, 0, output_style, False, caveat1)  # caveat
         my_output(out_file, 0, output_style, False, caveat2)  # caveat
-        my_output(out_file, 0, output_style, False, caveat3)  # caveat
-        my_output(out_file, 0, output_style, False, caveat4)  # caveat
+
     out_file.close()
 
     for elem in tree.iter():
