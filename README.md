@@ -1,4 +1,4 @@
-# MapTasker version 2.0
+# MapTasker version 2.1
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
 
 This is an application in support of Tasker that is intended to run on a MAC.
@@ -29,7 +29,11 @@ Runtime: python3 MapTasker.py -option1 -option2 ...
 Runtime options: -h for help, -l for linear output rather than list, -s for silent mode (no Action details)
  
 Change list:
--   Version 2.0 Major rewrite:
+- Version 2.1:
+    - Fixed: actions were not sorted properly
+    - Fixed: Stop action improperly reported as Else action
+    - Added: Support for more Task Action codes
+- Version 2.0 Major rewrite:
     1- Added "-l" runtime option to display in a linear fashion
     2- Added detail mode, which displays the Task's actions for unnamed/anonymous Tasks
        (Use "-s" runtime option to not display this detail)
