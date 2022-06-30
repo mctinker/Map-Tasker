@@ -1,4 +1,4 @@
-# MapTasker version 2.1
+# MapTasker version 3.0
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
 
 This is an application in support of Tasker that is intended to run on a MAC.
@@ -8,7 +8,7 @@ I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable
 A portion/example of the results can be found here.
  
 Program dependencies:
--	Python version 3
+-	Python version 3 (v3.9 or higher preferrably)
 -	easygui: 
   install from Terminal using the command: ```pip3 install --upgrade easygui```
   
@@ -26,9 +26,18 @@ While not tested, I don't see why this shouldn't work on Windows or Linux.
  
 Runtime: python3 MapTasker.py -option1 -option2 ...
  
-Runtime options: -h for help, -l for linear output rather than list, -s for silent mode (no Action details)
+Runtime options: -h for help, -l for linear output rather than list, -d0 for silent mode (no Action details), -d1 to display Action list if Task is unnamed or anonymous (default), -d2 to display Action list for all Tasks
  
 Change list:
+- Version 3.0 
+    - Added: display label if found for Task action(s)                                     
+    - Added: Display entry vs exit Task type                                               
+    - Added: Support for many more Task Action codes                                                                                          
+    - Added: Support for 3 levels of detail: none, unnamed Tasks only, all Tasks           
+             Replaced argument -s with -d0 (no actions) and -d2 (all Task actions          
+             Default is -d1: actions for unnamed/anonymous Tasks only                      
+    - Fixed: Some Scenes with Long Tap were not capturing the Task                         
+    - Fixed: Project with no Tasks was showing incorrect Project name                      
 - Version 2.1:
     - Fixed: actions were not sorted properly
     - Fixed: Stop action improperly reported as Else action
