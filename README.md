@@ -10,13 +10,13 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep
 Program dependencies:
 -	Python version 3 (v3.9 or higher preferrably)
 -	easygui: 
-  install from Terminal using the command: pip3 install --upgrade easygui
--	python-tk@3.9: brew install python-tk@3.9
+  install from Terminal using the command: `pip3 install --upgrade easygui`
+-	python-tk@3.9: `brew install python-tk@3.9`
 -	input Tasker backup.xml (anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6. 
 
-To run the program from the directory in which MapTasker.py resides, enter: python3 MapTasker.py
+To run the program from the directory in which MapTasker.py resides, enter: `python3 MapTasker.py`
  
-Program out: the file “MapTasker.html”, which can will be opened in your default browser as a new tab.  
+Program out: the file “MapTasker.html”, which will be opened in your default browser as a new tab.  
  
 I have only been able to test this on my own backup file. If you try it out and find an error and are willing to share your backup.xml file, please send a copy to mikrubin@gmail.com 
  
@@ -24,14 +24,14 @@ If you make changes and think they may benefit others, feel free to forward them
  
 While not tested, I don't see why this shouldn't work on Windows or Linux.
  
-Runtime: python3 MapTasker.py -option1 -option2 ...
+Runtime: `python3 MapTasker.py -option1 -option2` ...
  
-Runtime options: -h for help, -l for linear output rather than list, -d0 for silent mode (no Action details), -d1 to display Action list if Task is unnamed or anonymous (default), -d2 to display Action list for all Tasks
+Runtime options: `-h` for help, `-l` for linear output rather than list, `-d0` for silent mode (no Action details), `-d1` to display Action list if Task is unnamed or anonymous (default), `-d2` to display Action list for all Tasks
  
 Additonally, an optional OS X compiled version of this program has been provided via the dist.zip:
 - download the dist.zip
 - unzip dist.zip
-- To run MapTAsker, simply double-click on /dist/MapTasker/Maptasker
+- To run MapTAsker, simply double-click on `/dist/MapTasker/Maptasker`
  
 Note: this has not been tested on other MACs and I would be interested in hearing feedback (mikrubin@gmail.com) as to whether or not this is working. 
  
@@ -57,9 +57,9 @@ Change list:
     - Fixed: Stop action improperly reported as Else action
     - Added: Support for more Task Action codes
 - Version 2.0 Major rewrite:
-    1- Added "-l" runtime option to display in a linear fashion
+    1- Added `-l` runtime option to display in a linear fashion
     2- Added detail mode, which displays the Task's actions for unnamed/anonymous Tasks
-       (Use "-s" runtime option to not display this detail)
--	Version 1.2 Added -v and -h arguments to display the program version and help                  
+       (Use `-s` runtime option to not display this detail)
+-	Version 1.2 Added `-v` and `-h` arguments to display the program version and help                  
 -	Version 1.2 launch browser to display results                                                    
 -	Version 1.1: Added list all Tasks not called by a Profile
