@@ -9,12 +9,15 @@
 #      2- Python version 3.9 or higher                                                       #
 #                                                                                            #
 #                                                                                            #
-# Version 3.0                                                                                #
+# Version 4.0                                                                                #
 #                                                                                            #
+# - 4.0 Added: indentation support for if/then sequences                                     #
+#       Fixed: Action "End For or Stop" is just "End For"                                    #
+#       Added: Support for more Task Action codes                                            #
+#       Added: Action numbers                                                                #
 # - 3.0 Added: display label if found for Task action(s)                                     #
 #       Added: Display entry vs exit Task type                                               #
 #       Added: Support for many more Task Action codes                                       #
-#       Added: Support for Action labels                                                     #
 #       Added: Support for 3 levels of detail: none, unnamed Tasks only, all Tasks           #
 #              Replaced argument -s with -d0 (no actions) and -d2 (all Task actions          #
 #              Default is -d1: actions for unnamed/anonymous Tasks only                      #
@@ -52,29 +55,39 @@ browser = 'Google Chrome.app'
 line_spacing = '0.0001em'
 
 help_text1 = 'This program reads a Tasker backup file and displays the configuration of Profiles/Tasks/Scenes\n\n'
-help_text2 = 'Runtime options...\n\n  -h for this help\n\n  -d0 for no Task action details (silent)\n\n  -d1 display Task action details for unknown Tasks only (this is the default)\n\n ' \
-             "-d2 for full Task action details on every Task\n\n -l for list style output\n\n  -v for this program's version."
+help_text2 = 'Runtime options...\n\n  -h  for this help\n  -d0 for no Task action details (silent)\n  '  \
+             '-d1 display Task action details for unknown Tasks only (this is the default)\n  ' \
+             "-d2 for full Task action details on every Task\n  -l  for list style output\n  -v  for this program's version."
+help_text3 = '\n\nExit codes...\n  exit 1- no or improper filename selected\n  exit 2- output file failure\n ' \
+             ' exit 3- file selected is not a valid Tasker backup file\n  exit 4- output text box error'
 
 caveat1 = 'CAVEATS:\n'
 caveat2 = '- Most but not all Task actions have been mapped and will display as such.\n'
-caveat3 = '- Some actions, variables and/or labels may display content in a different.  These colors are typically imbedded in the content as native html.'
-caveat4 = '- This has only been tested on my own backup.xml file.  For problems, email mikrubin@gmail.com and attach your backup.xml file .'
+caveat3 = '- Some actions, variables and/or labels may display content in a different.' \
+          '  These colors are typically embedded in the content as native html.'
+caveat4 = '- This has only been tested on my own backup.xml file.' \
+          '  For problems, email mikrubin@gmail.com and attach your backup.xml file .'
 
 unknown_task_name = 'Unnamed/Anonymous.'
-my_version = '3.0'
+my_version = '4.0'
 my_file_name = '/MapTasker.html'
 debug = False
+debug_out = False
 
+
+# Strip all html style code from string (e.g. <h1> &lt)
+def strip_string(the_string):
+    stripped = the_string.replace('&lt', '')
+    stripped = stripped.replace('&gt', '')
+    stripped = stripped.replace('&gt', '')
+    p = re.compile(r'<.*?>')
+    stripped = p.sub('', stripped)
+    return stripped
 
 # Get rid of embedded html that changes the font in any fashion
 def get_label(the_label):
-    lbl = the_label.replace('&lt', '')
-    lbl = lbl.replace('&gt', '')
-    p = re.compile(r'<.*?>')
-    lbl = p.sub('', lbl)
-    lbl = ' <span style = "color:' + action_label_color + '"</span>...with label: ' + lbl
-    return lbl
-
+    label_with_color = ' <span style = "color:' + action_label_color + '"</span>...with label: ' + strip_string(the_label)
+    return label_with_color
 
 # Chase after relevant data after <code> Task action
 def get_action_detail(code_flag,code_child):
@@ -82,8 +95,6 @@ def get_action_detail(code_flag,code_child):
         lbl = ''
         for child in code_child:
             if child.tag == 'label' and child.text is not None:
-                if debug and 'FILTER FOR' in child.text:
-                    print('kaka')
                 lbl = get_label(child.text)
                 return lbl
         return lbl
@@ -93,7 +104,7 @@ def get_action_detail(code_flag,code_child):
             if child.tag == 'label' and child.text is not None:
                 lbl = get_label(child.text)
             elif child.tag == 'Str' and child.text is not None:
-                return child.text + lbl
+                return strip_string(child.text) + lbl
         return ''
     elif code_flag == 2:  # Get first two string values
         count = 0
@@ -105,9 +116,9 @@ def get_action_detail(code_flag,code_child):
                 lbl = get_label(child.text)
             elif child.tag == 'Str' and child.text is not None and count == 0:
                 count = 1
-                var1 = child.text
+                var1 = strip_string(child.text)
             elif child.tag == 'Str' and child.text is not None and count == 1:
-                var2 = child.text
+                var2 = strip_string(child.text)
             else:
                 pass
         return var1, var2 + lbl
@@ -121,7 +132,7 @@ def get_action_detail(code_flag,code_child):
             else:
                 for dchild in child:
                     if dchild.tag == 'var' and dchild.text is not None:
-                        return dchild.text + lbl
+                        return strip_string(dchild.text) + lbl
         return lbl
     elif code_flag == 4: # Get unlimited number of Str values
         var1 = []
@@ -131,7 +142,7 @@ def get_action_detail(code_flag,code_child):
                 lbl = get_label(child.text)
             elif child.tag == 'Str' and child.text is not None:
                 var1.append(child.text)
-        return var1, lbl
+        return strip_string(var1), lbl
     elif code_flag == 5:   # Get Application info
         lbl = ''
         for child in code_child:
@@ -177,7 +188,10 @@ def getcode(code_child, code_action):
         return "Wait" + get_action_detail(0, code_action)
 
     elif taskcode == '37':
+        lbl = ''
         for cchild in code_action:
+            if cchild.tag == 'label' and cchild.text is not None:
+                lbl = get_label(cchild.text)
             if 'ConditionList' == cchild.tag:  # If statement...
                 for children in cchild:
                     if 'Condition' == children.tag:
@@ -204,7 +218,7 @@ def getcode(code_child, code_action):
                         var4 = children.find('rhs')
                         if var4.text == None:
                             var4.text = ''
-                        return "If " + var1.text + var3 + var4.text
+                        return "If " + var1.text + var3 + var4.text + lbl
 
     elif taskcode == '38':
         return "End If" + get_action_detail(0, code_action)
@@ -214,7 +228,7 @@ def getcode(code_child, code_action):
         return "For " + detail1 + ' to ' + detail2
 
     elif taskcode == '40':
-        return "End For or Stop" + get_action_detail(0, code_action)
+        return "End For" + get_action_detail(0, code_action)
 
     elif taskcode == '43':
         return "Else/Else If" + get_action_detail(0, code_action)
@@ -230,6 +244,10 @@ def getcode(code_child, code_action):
 
     elif taskcode == '49':
         return "Destroy Scene " + get_action_detail(1, code_action)
+
+    elif taskcode == '50':
+        det1, det2 = get_action_detail(2,code_action)
+        return "Element Value " + det1 + ' Element: ' + det2
 
     elif taskcode == '51':
         return "Element Text " + get_action_detail(1, code_action)
@@ -250,11 +268,22 @@ def getcode(code_child, code_action):
     elif taskcode == '62':
         return "Vibrate Pattern of " + get_action_detail(1, code_action)
 
+    elif taskcode == '65':
+        det1, det2 = get_action_detail(2,code_action)
+        return "Element Visibility " + det1 + ' to element match of ' + det2
+
     elif taskcode == '66':
         return "Element Image " + get_action_detail(1, code_action)
 
+    elif taskcode == '68':
+        det1, det2 = get_action_detail(2,code_action)
+        return "Element Focus for scene: " + det1 + ' element: ' + det2
+
     elif taskcode == '71':
         return "Element Text Size " + get_action_detail(1, code_action)
+
+    elif taskcode == '100':
+        return "Search " + get_action_detail(1, code_action)
 
     elif taskcode == '101':
         return "Take Photo filename " + get_action_detail(1, code_action)
@@ -305,6 +334,9 @@ def getcode(code_child, code_action):
     elif taskcode == '162':
             return "Setup Quick Setting for name " + get_action_detail(1, code_action)
 
+    if taskcode == '165':
+        return 'Cancel Alarm' + get_action_detail(0, code_action)
+
     elif taskcode == '171':
         return 'Beep' + get_action_detail(0, code_action)
 
@@ -324,6 +356,10 @@ def getcode(code_child, code_action):
         detail1, detail2 = get_action_detail(2, code_action)
         return "Test Scene " + detail1 + ' store in ' + detail2
 
+    elif taskcode == '195':
+        det1, det2 = get_action_detail(2,code_action)
+        return "Test Element scene:  " + det1 + ' element: ' + det2
+
     elif taskcode == '216':
         return "App Settings " + get_action_detail(1, code_action)
 
@@ -339,6 +375,9 @@ def getcode(code_child, code_action):
         for item in detail1:
             detail2 = detail2 + ' ' + item + ' '
         return 'Custom Settings' + detail2 + ' ' + lbl
+
+    if taskcode == '245':
+        return 'Back Button' + get_action_detail(0, code_action)
 
     elif taskcode == '248':
         return "Turn Off" + get_action_detail(0, code_action)
@@ -369,8 +408,24 @@ def getcode(code_child, code_action):
     elif taskcode == '312':
         return "Do Not Disturb" + get_action_detail(0, code_action)
 
+    elif taskcode == '313':
+        return "Sound Mode" + get_action_detail(0, code_action)
+
+    elif taskcode == '316':
+        return "Display Size" + get_action_detail(0, code_action)
+
+    elif taskcode == '319':
+        return "Ask Permissions " + get_action_detail(1, code_action)
+
+    elif taskcode == '328':
+        return "Keyboard " + get_action_detail(0, code_action)
+
     elif taskcode == '331':
         return "Auto-Sync" + get_action_detail(0, code_action)
+
+    elif taskcode == '334':
+        detail1, detail2 = get_action_detail(2, code_action)
+        return "Save WaveNet " + detail1 + ' Voice: ' + detail2
 
     elif taskcode == '335':
         return "App Info" + get_action_detail(0, code_action)
@@ -466,12 +521,26 @@ def getcode(code_child, code_action):
         detail1, detail2 = get_action_detail(2, code_action)
         return "Set Variable Structure Type name " + detail1 + ' with structure type ' + detail2
 
+    elif taskcode == '393':
+        return "Array Merge " + get_action_detail(1, code_action)
+
     elif taskcode == '394':
         return "Parse/Format DateTime " + get_action_detail(0, code_action)
+
+    elif taskcode == '396':
+        detail1, detail2 = get_action_detail(2, code_action)
+        return "Simple Match/Regex " + detail1 + ' with regex ' + detail2
+
+    elif taskcode == '399':
+        return "Variable Map " + get_action_detail(1, code_action)
 
     elif taskcode == '400':
         detail1, detail2 = get_action_detail(2, code_action)
         return "Move (file) from " + detail1 + ' to ' + detail2
+
+    elif taskcode == '404':
+        detail1, detail2 = get_action_detail(2, code_action)
+        return "Copy File " + detail1 + ' to ' + detail2
 
     elif taskcode == '406':
         return "Delete File " + get_action_detail(1, code_action)
@@ -481,6 +550,9 @@ def getcode(code_child, code_action):
 
     elif taskcode == '410':
         return "Write File " + get_action_detail(1, code_action)
+
+    elif taskcode == '412':
+        return "List Files " + get_action_detail(1, code_action)
 
     elif taskcode == '417':
         detail1, detail2 = get_action_detail(2, code_action)
@@ -494,6 +566,9 @@ def getcode(code_child, code_action):
 
     elif taskcode == '433':
         return 'Mobile Data' + get_action_detail(0, code_action)
+
+    if taskcode == '443':
+        return 'Media Control' + get_action_detail(0, code_action)
 
     elif taskcode == '445':
         return "Music Play " + get_action_detail(1, code_action)
@@ -523,10 +598,17 @@ def getcode(code_child, code_action):
     elif taskcode == '538':
         return "Notification Sound with title " + get_action_detail(1, code_action)
 
+    elif taskcode == '550':
+        detail1, detail2 = get_action_detail(2, code_action)
+        return "Popup title " + detail1 + ' with message: ' + detail2
+
+    elif taskcode == '543':
+        return "Start System Timer " + get_action_detail(1, code_action)
+
     elif taskcode == '545':
         return "Variable Randomize " + get_action_detail(1, code_action)
 
-    elif taskcode == '547':   # HERE
+    elif taskcode == '547':
         detail1, detail2 = get_action_detail(2, code_action)
         return "Variable Set " + detail1 + ' to ' + detail2
 
@@ -542,6 +624,17 @@ def getcode(code_child, code_action):
 
     elif taskcode == '559':
         return "Say " + get_action_detail(1, code_action)
+
+    elif taskcode == '566':
+        detail1, lbl = get_action_detail(4, code_action)
+        detail2 = ''
+        for item in detail1:
+            detail2 = detail2 + ' ' + item + ' '
+        return 'Set Alarm ' + detail2 + ' ' + lbl
+
+    elif taskcode == '567':
+        detail1, detail2 = get_action_detail(2, code_action)
+        return "Calendar Insert " + detail1 + ' with description: ' + detail2
 
     elif taskcode == '590':
         return "Variable Split " + get_action_detail(1, code_action)
@@ -565,6 +658,17 @@ def getcode(code_child, code_action):
         detail1, detail2 = get_action_detail(2, code_action)
         return "Java Function return object " + detail1 + ' , ' + detail2
 
+    elif taskcode == '667':
+        detail1, detail2 = get_action_detail(2, code_action)
+        return "SQL Query " + detail1 + ' to ' + detail2
+
+    elif taskcode == '697':
+        return "Shut Up" + get_action_detail(0, code_action)
+
+    elif taskcode == '775':
+        detail1, detail2 = get_action_detail(2, code_action)
+        return "Write Binary " + detail1 + ' file: ' + detail2
+
     elif taskcode == '779':
         return "Notify Cancel " + get_action_detail(1, code_action)
 
@@ -586,8 +690,14 @@ def getcode(code_child, code_action):
     elif taskcode == '888':
         return "Variable Add " + get_action_detail(3, code_action)
 
+    elif taskcode == '890':
+        return "Variable Subtract " + get_action_detail(1, code_action)
+
     elif taskcode == '902':
         return "Get Locations " + get_action_detail(1, code_action)
+
+    elif taskcode == '987':
+        return "Soft Keyboard" + get_action_detail(0, code_action)
 
 # Plugins start here
 
@@ -755,17 +865,27 @@ def my_output(out_file, list_level, style, unknown, out_string):
         out_file.write(ulify(out_string, style, unknown, list_level))
         out_string = temp_element
     out_file.write(ulify(out_string, style, unknown, list_level))
-    if debug:
+    if debug_out:
         print('out_string:',ulify(out_string, style, unknown, list_level))
     return
 
 
 # Construct Task Action output line
-def build_action(alist, tcode, achild):
+def build_action(alist, tcode, achild, indent, indent_amt):
+    # Calculate total indentation to put in front of action
+    count = indent
+    if count != 0:
+        tcode = indent_amt + tcode
+        count = 0
+    if count < 0:
+        indent_len = len(indent_amt)
+        tcode = indent_amt + tcode
+        count = 0
+    # Break-up very long actions at new line
     if tcode != '':
         newline = tcode.find('\n')  # Break-up new line breaks
         tcode_len = len(tcode)
-        if newline == -1 or tcode_len < 200:
+        if newline == -1 or tcode_len < 200:  # If no new line break or line break less than 200 chars long, just put it as is
             alist.append(tcode)
         else:
             array_of_lines = tcode.split('\n')
@@ -775,7 +895,8 @@ def build_action(alist, tcode, achild):
                     alist.append(item)
                 else:
                     alist.append('...' + item)
-                count =+ 1
+                count += 1
+    # Unknown action...we have yet to identify it in our code.
     else:
         alist.append('Action ' + achild.text + ': not yet mapped')
     return
@@ -823,6 +944,8 @@ def get_actions(current_task):
         return []
     if task_actions:
         count_of_actions = 0
+        indentation_amount = ''
+        indentation = 0
         for action in task_actions:
             count_of_actions += 1
         # sort the Actions by attrib sr (e.g. sr='act0', act1, act2, etc.) to get them in true order
@@ -836,7 +959,15 @@ def get_actions(current_task):
                         task_code = getcode(child, action)
                         if debug:
                             print('Task ID:',current_task.attrib['sr'],' Code:',child.text,' task_code:',task_code,'Action attr:',action.attrib)
-                        build_action(tasklist, task_code, child)
+                        if 'End If' == task_code[0:6] or 'Else' == task_code[0:4] or 'End For' == task_code[0:7]:  # Do we un-indent?
+                            indentation -= 1
+                            length_indent = len(indentation_amount)
+                            indentation_amount = indentation_amount[24:length_indent]
+                        build_action(tasklist, task_code, child, indentation, indentation_amount)
+                        if 'If' == task_code[0:2] or 'Else' == task_code[0:4] or 'For' == task_code[0:3]:  # Do we indent?
+                            indentation += 1
+                            indentation_amount = indentation_amount + '&nbsp;&nbsp;&nbsp;&nbsp;'
+                        break
                     else:
                         pass
                 except Exception as e:
@@ -851,17 +982,21 @@ def get_task_name(the_task_id, all_the_tasks, found_tasks, the_task_list, task_t
     for task in all_the_tasks:
         if the_task_id == task.find('id').text:
             found_tasks.append(the_task_id)
+            if debug:
+                extra = '&nbsp;&nbsp;Task ID: ' + the_task_id
+            else:
+                extra = ''
             try:
                 task_name = task.find('nme').text
                 if task_type == 'Exit':
-                    the_task_list.append(task_name + '&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task&nbsp;&nbsp;Task ID: ' + the_task_id)
+                    the_task_list.append(task_name + '&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task' + extra)
                 else:
-                    the_task_list.append(task_name + '&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task&nbsp;&nbsp;Task ID: ' + the_task_id)
+                    the_task_list.append(task_name + '&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task' + extra)
             except Exception as e:
                 if task_type == 'Exit':
-                    the_task_list.append(unknown_task_name + '&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task&nbsp;&nbsp;Task ID: ' + the_task_id)
+                    the_task_list.append(unknown_task_name + '&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task' + extra)
                 else:
-                    the_task_list.append(unknown_task_name + '&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task&nbsp;&nbsp;Task ID: ' + the_task_id)
+                    the_task_list.append(unknown_task_name + '&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task' + extra)
             break
     return task, task_name
 
@@ -880,11 +1015,10 @@ def process_list(list_type, the_output, the_list, all_task_list, all_scene_list,
         else:
             my_output(the_output, 2, the_style, the_unknown, list_type + '&nbsp;' + the_item)
             my_count += 1
-        # Output Actions for this Task if displaying detail and Task is unknown
+        # Output Actions for this Task if displaying detail and/or Task is unknown
         # Do we get the Task's Actions?
         if ('Task:' in list_type and (detail > 0 and (the_unknown > 0 or unknown_task_name in the_item))) or ('Task:' in list_type and detail == 2):
             if unknown_task_name in the_item or detail > 0:  # If Unknown task, then "the_task" is not valid, and we have to find it.
-            # if unknown_task_name in the_item or detail == 1:   # If Unknown task, then "the_task" is not valid, and we have to find it.
                 if '⎯Task:' in list_type:   # -Task: = Scene rather than a Task
                     temp = ["x", the_item]
                 else:
@@ -893,19 +1027,24 @@ def process_list(list_type, the_output, the_list, all_task_list, all_scene_list,
                     the_task, kaka = get_task_name(temp[1], all_task_list, tasks_found, [temp[1]], '')
             alist = get_actions(the_task)  # Get the Task's Actions
             if alist:
+                action_count = 1
                 my_output(the_output, 1, the_style, False, '')  # Start Action list
                 for taction in alist:
                     if taction is not None:
                         if 'Label for' in taction:
                             my_output(the_output, 2, the_style, False, taction)
                         else:
-                            my_output(the_output, 2, the_style, False, 'Action: ' + taction)
+                            if '...' == taction[0:3]:
+                                my_output(the_output, 2, the_style, False, 'Action: ' + taction)
+                            else:
+                                my_output(the_output, 2, the_style, False, 'Action: ' + str(action_count).zfill(2) + ' ' + taction)
+                                action_count += 1
                 my_output(the_output, 3, the_style, False, '')  # Close Action list
         # Must be a Scene.  Look for all "Tap" Tasks for Scene
-        elif 'Scene:' == list_type:
+        elif 'Scene:' == list_type:  # HERE  ...not displaying the scene's actions
             scene_task_list = []
-            getout = 0
             for my_scene in the_list:   # Go through each Scene to find TAP and Long TAP Tasks
+                getout = 0
                 for scene in all_scene_list:
                     for child in scene:
                         if child.tag == 'nme' and child.text == my_scene:  # Is this our Scene?
@@ -955,12 +1094,13 @@ def process_list(list_type, the_output, the_list, all_task_list, all_scene_list,
 # Main program here >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # Main program here >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>        
 def main():
+    # Set local variables
     task_list = []
     found_tasks = []
     display_detail = 1     # Default display detail: unknown Tasks actions only
 
-    output_style = 'L'  # L=linear, default=bullet
-    help_text = help_text1 + help_text2
+    output_style = ''  # L=linear, default=bullet
+    help_text = help_text1 + help_text2 + help_text3
     # Get any arguments passed to program
     for i, arg in enumerate(sys.argv):
         if arg == '-v':  # Version
@@ -978,7 +1118,7 @@ def main():
         elif arg == '-l':
             output_style = 'L'
         else:
-            if 'MapTasker.py' not in arg:
+            if 'MapTasker' not in arg:
                 if g.textbox(msg='MapTasker', title="MapTasker", text="Argument " + arg + " is invalid!"):
                     pass
                 else:
@@ -1110,7 +1250,10 @@ def main():
             except Exception as e:  # Task name not found!
                 unnamed_tasks += 1
                 # Unknown Task.  Display details if requested
-                task_name = unknown_task_name + '&nbsp;&nbsp;Task ID: ' + task_id
+                if debug:
+                    task_name = unknown_task_name + '&nbsp;&nbsp;Task ID: ' + task_id
+                else:
+                    task_name = unknown_task_name
                 unknown_task = 1
                 if  display_detail > 0:
                     action_list = []
@@ -1155,7 +1298,7 @@ def main():
     my_output(out_file, 4, output_style, False, caveat3)  # caveat
     my_output(out_file, 4, output_style, False, caveat4)  # caveat
 
-    out_file.close()
+    out_file.close()  # Close our output file
 
     for elem in tree.iter():
         elem.clear()
