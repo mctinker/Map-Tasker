@@ -5,7 +5,7 @@ This is an application in support of Tasker that is intended to run on a MAC.
  
 I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, so I wrote a Python program for my MAC to provide an indented list of my entire configuration based on my Tasker backup XML file that I save to my Google Drive.
  
-A portion/example of the results can be found here.
+A portion/example of the results can be found at https://imgur.com/a/KIR7Vep
  
 Program dependencies:
 -	Python version 3 (v3.9 or higher preferrably)
