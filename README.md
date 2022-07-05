@@ -10,12 +10,11 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep
 Program dependencies:
 -	Python version 3 (v3.9 or higher preferrably)
 -	easygui: 
-  install from Terminal using the command: ```pip3 install --upgrade easygui```
--	python-tk@3.9: 
-  brew install python-tk@3.9
+  install from Terminal using the command: pip3 install --upgrade easygui
+-	python-tk@3.9: brew install python-tk@3.9
 -	input Tasker backup.xml (anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6. 
 
-To run the program from the directory in which MapTasker.py resides, enter: ```python3 MapTasker.py```
+To run the program from the directory in which MapTasker.py resides, enter: python3 MapTasker.py
  
 Program out: the file “MapTasker.html”, which can will be opened in your default browser as a new tab.  
  
