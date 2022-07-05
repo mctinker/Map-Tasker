@@ -11,7 +11,8 @@ Program dependencies:
 -	Python version 3 (v3.9 or higher preferrably)
 -	easygui: 
   install from Terminal using the command: ```pip3 install --upgrade easygui```
-  
+-	python-tk@3.9: 
+  brew install python-tk@3.9
 -	input Tasker backup.xml (anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6. 
 
 To run the program from the directory in which MapTasker.py resides, enter: ```python3 MapTasker.py```
