@@ -32,7 +32,7 @@ Additonally, an OS X compiled version of this program has been provided via the 
 - download the dist.zip
 - unzip dist.zip
 - Double-click on /dist/MapTasker/Maptasker
-Note: this has not been tested on other MACs and I would be interested in hearing feedback (mikrubin@gmail.com) as to whether or not this is working. 
+\nNote: this has not been tested on other MACs and I would be interested in hearing feedback (mikrubin@gmail.com) as to whether or not this is working. 
  
 Change list:
 - Version 4.0
