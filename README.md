@@ -1,4 +1,4 @@
-# MapTasker version 3.0
+# MapTasker version 4.0
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
 
 This is an application in support of Tasker that is intended to run on a MAC.
@@ -28,7 +28,19 @@ Runtime: python3 MapTasker.py -option1 -option2 ...
  
 Runtime options: -h for help, -l for linear output rather than list, -d0 for silent mode (no Action details), -d1 to display Action list if Task is unnamed or anonymous (default), -d2 to display Action list for all Tasks
  
+Additonally, an OS X compiled version of this program has been provided via the dist.zip:
+- download the dist.zip
+- unzip dist.zip
+- Double-click on /dist/MapTasker/Maptasker
+Note: this has not been tested on other MACs and I would be interested in hearing feedback (mikrubin@gmail.com) as to whether or not this is working. 
+ 
 Change list:
+- Version 4.0
+    - Added: indentation support for if/then sequences                                     
+    - Fixed: Action "End For or Stop" is just "End For"                                    
+    - Added: Support for more Task Action codes                                            
+    - Added: Action numbers
+    - Added: compiled distribution library                                                                
 - Version 3.0 
     - Added: display label if found for Task action(s)                                     
     - Added: Display entry vs exit Task type                                               
