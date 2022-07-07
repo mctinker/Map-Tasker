@@ -11,10 +11,9 @@
 #                                                                                            #
 # Version 4.1                                                                                #
 #                                                                                            #
-# - 4.1 Added: options to set the various colors                                             #
-#       Fixed: Location of output file corrected to be the current folder in msg box         #
+# - 4.1 Fixed: Location of output file corrected to be the current folder in msg box         #
 #       Fixed: If set / not set were reversed                                                #
-#       Added: Support for disabled Actions                                                  #
+#       Added: Support for disabled Actions and Action conditions (if ...                    #
 # - 4.0 Added: indentation support for if/then sequences                                     #
 #       Fixed: Action "End For or Stop" is just "End For"                                    #
 #       Added: Support for more Task Action codes                                            #
