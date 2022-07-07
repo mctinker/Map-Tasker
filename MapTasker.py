@@ -5,8 +5,9 @@
 # MapTasker: read the Tasker backup file to map out the configuration                        #
 #                                                                                            #
 # Requirements                                                                               #
-#      1- easygui API : pip install easygui                                                  #
-#      2- Python version 3.9 or higher                                                       #
+#      1- easygui API : pip3 install easygui                                                 #
+#      2- python-tk@3.9 : brew install python-tk@3.9 or sudo apt-get install python3-tk      #
+#      3- Python version 3.9 or higher                                                       #
 #                                                                                            #
 #                                                                                            #
 # Version 4.1                                                                                #
