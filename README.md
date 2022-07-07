@@ -1,4 +1,4 @@
-# MapTasker version 4.0
+# MapTasker version 4.1
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
 
 This is an application in support of Tasker that is intended to run on a MAC.
@@ -30,12 +30,15 @@ Runtime options: `-h` for help, `-l` for linear output rather than list, `-d0` f
 Additonally, an optional OS X compiled version of this program has been provided via the dist.zip:
 - download the dist.zip
 - unzip dist.zip
-- To run MapTAaker, simply double-click on `/dist/MapTasker/Maptasker`
+- To run MapTasker, simply double-click on `/dist/MapTasker/Maptasker`
  
 Note: this has not been tested on other MACs and I would be interested in hearing feedback (mikrubin@gmail.com) as to whether or not this is working. 
  
   
 Change list:
+- 4.1 Fixed: Location of output file corrected to be the current folder in msg box         #
+    - Fixed: If set / not set were reversed                                                #
+    - Added: Support for disabled Actions and action conditions (if ...                    #
 - Version 4.0
     - Added: indentation support for if/then sequences                                     
     - Fixed: Action "End For or Stop" is just "End For"                                    
