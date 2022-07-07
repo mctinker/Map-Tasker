@@ -9,8 +9,12 @@
 #      2- Python version 3.9 or higher                                                       #
 #                                                                                            #
 #                                                                                            #
-# Version 4.0                                                                                #
+# Version 4.1                                                                                #
 #                                                                                            #
+# - 4.1 Added: options to set the various colors                                             #
+#       Fixed: Location of output file corrected to be the current folder in msg box         #
+#       Fixed: If set / not set were reversed                                                #
+#       Added: Support for disabled Actions                                                  #
 # - 4.0 Added: indentation support for if/then sequences                                     #
 #       Fixed: Action "End For or Stop" is just "End For"                                    #
 #       Added: Support for more Task Action codes                                            #
@@ -34,12 +38,11 @@
 # - 1.1 Added list of Tasks for which there is no Profile                                    #
 #                                                                                            #
 # ########################################################################################## #
-# import xml.etree.ElementTree
-import easygui as g
+import easygui as g  # easygui dependency
 import xml.etree.ElementTree as ET
 import os
 import sys
-import webbrowser
+import webbrowser   # python-tk@3.9 dependency
 import re
 
 #  Global constants
@@ -51,6 +54,9 @@ scene_color = 'Purple'
 bullet_color = 'Black'
 action_color = 'Orange'
 action_label_color = 'Magenta'
+action_condition_color = 'Coral'
+disabled_task_color = 'Crimson'
+disabled_task = ' <span style = "color:' + disabled_task_color + '"</span>[DISABLED]'
 browser = 'Google Chrome.app'
 line_spacing = '0.0001em'
 
@@ -60,6 +66,7 @@ help_text2 = 'Runtime options...\n\n  -h  for this help\n  -d0 for no Task actio
              "-d2 for full Task action details on every Task\n  -l  for list style output\n  -v  for this program's version."
 help_text3 = '\n\nExit codes...\n  exit 1- no or improper filename selected\n  exit 2- output file failure\n ' \
              ' exit 3- file selected is not a valid Tasker backup file\n  exit 4- output text box error'
+help_text4 = '\n\nThe output HTML file is saved in your current folder/directory'
 
 caveat1 = 'CAVEATS:\n'
 caveat2 = '- Most but not all Task actions have been mapped and will display as such.\n'
@@ -68,8 +75,34 @@ caveat3 = '- Some actions, variables and/or labels may display content in a diff
 caveat4 = '- This has only been tested on my own backup.xml file.' \
           '  For problems, email mikrubin@gmail.com and attach your backup.xml file .'
 
+# HTML Valid Color Names
+red_color_names = ['IndianRed', 'LightCoral', 'Salmon', 'DarkSalmon', 'LightSalmon', 'Crimson', 'Red', 'FireBrick', 'DarkRed']
+pink_color_names = ['Pink', 'LightPink', 'HotPink', 'DeepPink', 'MediumVioletRed', 'PaleVioletRed']
+orange_color_names = ['LightSalmon', 'Coral', 'Tomato', 'OrangeRed', 'DarkOrange', 'Orange']
+yellow_color_names = ['Gold', 'Yellow', 'LightYellow', 'LemonChiffon', 'LightGoldenrodYellow', 'PapayaWhip', 'Moccasin',
+                      'PeachPuff', 'PaleGoldenrod', 'Khaki', 'DarkKhaki']
+purple_color_names = ['Lavender', 'Thistle', 'Plum', 'Violet', 'Orchid', 'Fuchsia', 'Magenta', 'MediumOrchid',
+                      'MediumPurple', 'RebeccaPurple', 'BlueViolet', 'DarkViolet', 'DarkOrchid', 'DarkMagenta',
+                      'Purple', 'Indigo', 'SlateBlue', 'DarkSlateBlue', 'MediumSlateBlue']
+green_color_names = ['GreenYellow', 'Chartreuse', 'LawnGreen', 'Lime', 'LimeGreen', 'PaleGreen', 'LightGreen',
+                     'MediumSpringGreen', 'SpringGreen', 'MediumSeaGreen', 'SeaGreen', 'ForestGreen', 'Green',
+                     'DarkGreen', 'YellowGreen', 'OliveDrab', 'Olive', 'DarkOliveGreen', 'MediumAquamarine', 'DarkSeaGreen',
+                     'LightSeaGreen', 'DarkCyan', 'Teal']
+blue_color_names = ['Aqua', 'Cyan', 'LightCyan', 'PaleTurquoise', 'Aquamarine', 'Turquoise', 'MediumTurquoise',
+                    'DarkTurquoise', 'CadetBlue', 'SteelBlue', 'LightSteelBlue', 'PowderBlue', 'LightBlue', 'SkyBlue',
+                    'LightSkyBlue', 'DeepSkyBlue', 'DodgerBlue', 'CornflowerBlue', 'MediumSlateBlue', 'RoyalBlue',
+                    'Blue', 'MediumBlue', 'DarkBlue', 'Navy', 'MidnightBlue']
+brown_color_names = ['Cornsilk', 'BlanchedAlmond', 'Bisque', 'NavajoWhite', 'Wheat', 'BurlyWood', 'Tan', 'RosyBrown',
+                     'SandyBrown', 'Goldenrod', 'DarkGoldenrod', 'Peru', 'Chocolate', 'SaddleBrown',
+                     'Sienna', 'Brown', 'Maroon']
+white_color_names = ['White', 'Snow', 'HoneyDew', 'MintCream', 'Azure', 'AliceBlue', 'GhostWhite', 'WhiteSmoke',
+                     'SeaShell', 'Beige', 'OldLace', 'FloralWhite', 'Ivory', 'AntiqueWhite', 'Linen',
+                     'LavenderBlush', 'MistyRose']
+gray_color_names = ['Gainsboro', 'LightGray', 'Silver', 'DarkGray', 'Gray', 'DimGray', 'LightSlateGray', 'SlateGray',
+                    'DarkSlateGray', 'Black']
+
 unknown_task_name = 'Unnamed/Anonymous.'
-my_version = '4.0'
+my_version = '4.1'
 my_file_name = '/MapTasker.html'
 debug = False
 debug_out = False
@@ -84,71 +117,102 @@ def strip_string(the_string):
     stripped = p.sub('', stripped)
     return stripped
 
-# Get rid of embedded html that changes the font in any fashion
-def get_label(the_label):
-    label_with_color = ' <span style = "color:' + action_label_color + '"</span>...with label: ' + strip_string(the_label)
-    return label_with_color
+
+# Evaluate the If operation
+def evaluate_condition(child):
+    first_string = child.find('lhs').text
+    operation = child.find('op').text
+    if operation == '0':
+        the_operation = ' = '
+    elif operation == '1':
+        the_operation = ' != '
+    elif operation == '2':
+        the_operation = ' ~ '
+    elif operation == '3':
+        the_operation = ' !~ '
+    elif operation == '6':
+        the_operation = ' < '
+    elif operation == '7':
+        the_operation = ' > '
+    elif operation == '12':
+        the_operation = ' is set'
+    elif operation == '13':
+        the_operation = ' not set'
+    else:
+        the_operation = ' ? '
+    if 'set' not in the_operation and child.find('rhs').text is not None:   #  No second string fort set/not set
+        second_string = child.find('rhs').text
+    else:
+        second_string = ''
+    return first_string, the_operation, second_string
+
+# Get Task's label, disabled flag and any conditions
+def get_label_disabled_condition(child):
+    task_extras = ''
+    booleans = []
+    the_action_code = child.find('code').text
+    if child.find('label') is not None:
+        task_extras = ' <span style = "color:' + action_label_color + '"</span>...with label: ' + strip_string(child.find('label').text)
+    if child.find('on') is not None:  # disabled action?
+        task_extras = disabled_task + task_extras
+    if child.find('ConditionList')  is not None:  # If condition on Action?
+        condition_count = 0
+        boolean_to_inject = ''
+        for children in child.find('ConditionList'):
+            if 'bool' in children.tag:
+                booleans.append(children.text)
+            elif 'Condition' == children.tag and the_action_code != '37':
+                for baby in children:
+                    string1, operator, string2 = evaluate_condition(children)
+                    if condition_count != 0:
+                        boolean_to_inject = booleans[condition_count-1].upper() + ' '
+                    task_extras = task_extras + ' <span style = "color:' + action_condition_color + '"</span> (' + boolean_to_inject + 'condition:  If ' + string1 + operator + string2 + ')'
+                    condition_count += 1
+                    break
+    return task_extras
 
 # Chase after relevant data after <code> Task action
 def get_action_detail(code_flag,code_child):
+    extra_stuff = get_label_disabled_condition(code_child)  # Look for extra Task stiff: label, disabled, conditions
     if code_flag == 0:  # Just check for a label
-        lbl = ''
-        for child in code_child:
-            if child.tag == 'label' and child.text is not None:
-                lbl = get_label(child.text)
-                return lbl
-        return lbl
+        return extra_stuff
     elif code_flag == 1:  # Get first Str value
-        lbl = ''
         for child in code_child:
-            if child.tag == 'label' and child.text is not None:
-                lbl = get_label(child.text)
-            elif child.tag == 'Str' and child.text is not None:
-                return strip_string(child.text) + lbl
+            if child.tag == 'Str' and child.text is not None:
+                return strip_string(child.text) + extra_stuff
         return ''
     elif code_flag == 2:  # Get first two string values
         count = 0
         var1 = ''
         var2 = ''
-        lbl = ''
         for child in code_child:
-            if child.tag == 'label' and child.text is not None:
-                lbl = get_label(child.text)
-            elif child.tag == 'Str' and child.text is not None and count == 0:
+            if child.tag == 'Str' and child.text is not None and count == 0:
                 count = 1
                 var1 = strip_string(child.text)
             elif child.tag == 'Str' and child.text is not None and count == 1:
                 var2 = strip_string(child.text)
             else:
                 pass
-        return var1, var2 + lbl
+        return var1, var2 + extra_stuff
     elif code_flag == 3:  # Return first Int attrib
-        lbl = ''
         for child in code_child:
-            if child.tag == 'label' and child.text is not None:
-                lbl = get_label(child.text)
-            elif child.tag == 'Int' and child.attrib.get('val') is not None:
-                return child.attrib.get('val') + lbl
+            if child.tag == 'Int' and child.attrib.get('val') is not None:
+                return child.attrib.get('val') + extra_stuff
             else:
                 for dchild in child:
                     if dchild.tag == 'var' and dchild.text is not None:
-                        return strip_string(dchild.text) + lbl
-        return lbl
+                        return strip_string(dchild.text) + extra_stuff
+        return extra_stuff
     elif code_flag == 4: # Get unlimited number of Str values
         var1 = []
-        lbl = ''
         for child in code_child:
-            if child.tag == 'label' and child.text is not None:
-                lbl = get_label(child.text)
-            elif child.tag == 'Str' and child.text is not None:
+            if child.tag == 'Str' and child.text is not None:
                 var1.append(child.text)
-        return strip_string(var1), lbl
+        return strip_string(var1), extra_stuff
     elif code_flag == 5:   # Get Application info
         lbl = ''
         for child in code_child:
-            if child.tag == 'label' and child.text is not None:
-                lbl = get_label(child.text)
-            elif child.tag == 'App':
+            if child.tag == 'App':
                 if child.find('appClass').text is not None:
                     app = child.find('appClass').text
                 else:
@@ -157,8 +221,8 @@ def get_action_detail(code_flag,code_child):
                     lbl1 = child.find('label').text
                 else:
                     lbl1 = ''
-                return app, lbl1 + lbl
-        return '', lbl
+                return app, lbl1 + extra_stuff
+        return '', extra_stuff
     else:
         return '???'
 
@@ -188,37 +252,13 @@ def getcode(code_child, code_action):
         return "Wait" + get_action_detail(0, code_action)
 
     elif taskcode == '37':
-        lbl = ''
+        extra_stuff = get_label_disabled_condition(code_action)  # Look for extra Task stiff: label, disabled, conditions
         for cchild in code_action:
-            if cchild.tag == 'label' and cchild.text is not None:
-                lbl = get_label(cchild.text)
             if 'ConditionList' == cchild.tag:  # If statement...
                 for children in cchild:
                     if 'Condition' == children.tag:
-                        var1 = children.find('lhs')
-                        var2 = children.find('op')
-                        if var2.text == '0':
-                            var3 = ' = '
-                        elif var2.text == '1':
-                            var3 = ' != '
-                        elif var2.text == '2':
-                            var3 = ' ~ '
-                        elif var2.text == '3':
-                            var3 = ' !~ '
-                        elif var2.text == '6':
-                            var3 = ' < '
-                        elif var2.text == '7':
-                            var3 = ' > '
-                        elif var2.text == '12':
-                            var3 = ' not set '
-                        elif var2.text == '13':
-                            var3 = ' is set '
-                        else:
-                            var3 = ' ? '
-                        var4 = children.find('rhs')
-                        if var4.text == None:
-                            var4.text = ''
-                        return "If " + var1.text + var3 + var4.text + lbl
+                        first_string, operator, second_string = evaluate_condition(children)
+                        return "If " + first_string + operator + second_string + extra_stuff
 
     elif taskcode == '38':
         return "End If" + get_action_detail(0, code_action)
@@ -878,7 +918,7 @@ def build_action(alist, tcode, achild, indent, indent_amt):
         tcode = indent_amt + tcode
         count = 0
     if count < 0:
-        indent_len = len(indent_amt)
+        # indent_len = len(indent_amt)
         tcode = indent_amt + tcode
         count = 0
     # Break-up very long actions at new line
@@ -949,7 +989,8 @@ def get_actions(current_task):
         for action in task_actions:
             count_of_actions += 1
         # sort the Actions by attrib sr (e.g. sr='act0', act1, act2, etc.) to get them in true order
-        shellSort(task_actions,count_of_actions)
+        if count_of_actions > 1:
+            shellSort(task_actions,count_of_actions)
         #reorder_attributes(task_actions)
         for action in task_actions:
             for child in action:
@@ -1041,7 +1082,7 @@ def process_list(list_type, the_output, the_list, all_task_list, all_scene_list,
                                 action_count += 1
                 my_output(the_output, 3, the_style, False, '')  # Close Action list
         # Must be a Scene.  Look for all "Tap" Tasks for Scene
-        elif 'Scene:' == list_type:  # HERE  ...not displaying the scene's actions
+        elif 'Scene:' == list_type:  # We have a Scene: get its actions
             scene_task_list = []
             for my_scene in the_list:   # Go through each Scene to find TAP and Long TAP Tasks
                 getout = 0
@@ -1100,7 +1141,7 @@ def main():
     display_detail = 1     # Default display detail: unknown Tasks actions only
 
     output_style = ''  # L=linear, default=bullet
-    help_text = help_text1 + help_text2 + help_text3
+    help_text = help_text1 + help_text2 + help_text3 + help_text4
     # Get any arguments passed to program
     for i, arg in enumerate(sys.argv):
         if arg == '-v':  # Version
@@ -1184,7 +1225,7 @@ def main():
                                     task_type = 'Exit'
                                 task_id = child.text
                                 task_id_list.append(task_id)
-                                if debug and task_id == '100':
+                                if debug and task_id == '141':
                                     print('====================================',task_id,'====================================')
                                 our_task_element, our_task_name = get_task_name(task_id, all_tasks, found_tasks, task_list, task_type)
                             elif 'nme' == child.tag:  # If hit Profile's name, we've passed all of the Task ids.
@@ -1221,6 +1262,8 @@ def main():
     for task in all_tasks:  # Get a/next Task
         unknown_task = 0
         task_id = task.find('id').text
+        if debug and task_id == '141':
+            print('No Profile ==========================', task_id, '====================================')
         if task_id not in found_tasks:  # We have a solo Task
             # project_name = ''  # Find the Project it belongs to
             for project in root.findall('Project'):
@@ -1311,7 +1354,7 @@ def main():
     # Display final output
     webbrowser.open('file://' + my_output_dir + my_file_name, new=2)
     g.textbox(msg="MapTasker Done", title="MapTasker",
-              text="You can find 'MapTasker.html' in the same folder as your backup xml file.  Your browser has displayed it in a new tab.  Program end.")
+              text="You can find 'MapTasker.html' in the current folder.  Your browser has displayed it in a new tab.  Program end.")
 
 
 # Main call
