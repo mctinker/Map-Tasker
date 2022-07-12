@@ -10,11 +10,17 @@
 #      3- Python version 3.9 or higher                                                       #
 #                                                                                            #
 #                                                                                            #
-# Version 4.1                                                                                #
+# Version 4.2                                                                                #
 #                                                                                            #
+# - 4.2 Fixed: Only display Scene Action detail for option -d2                               #
+#       Added: Support for single Task detail only (option -t='Task Name Here')              #
+#       Fixed: missing detail in Actions Notify, Custom Settings, Input Dialog & Set Alarm   #
+#       Added: Details for plugin Actions                                                    #
+#       Fixed: Unnamed/Anonymous Tasks output in wrong (Green) color when should be Red      #
+#       Fixed: Remove 'Task ID: nnn' from output (of no benefit)                             #
 # - 4.1 Fixed: Location of output file corrected to be the current folder in msg box         #
 #       Fixed: If set / not set were reversed                                                #
-#       Added: Support for disabled Actions and Action conditions (if ...                    #
+#       Added: Support for disabled Actions and Action conditions (If...                     #
 # - 4.0 Added: indentation support for if/then sequences                                     #
 #       Fixed: Action "End For or Stop" is just "End For"                                    #
 #       Added: Support for more Task Action codes                                            #
@@ -57,52 +63,31 @@ action_label_color = 'Magenta'
 action_condition_color = 'Coral'
 disabled_task_color = 'Crimson'
 disabled_task = ' <span style = "color:' + disabled_task_color + '"</span>[DISABLED]'
-browser = 'Google Chrome.app'
+browser_width = 200
 line_spacing = '0.0001em'
 
 help_text1 = 'This program reads a Tasker backup file and displays the configuration of Profiles/Tasks/Scenes\n\n'
 help_text2 = 'Runtime options...\n\n  -h  for this help\n  -d0 for no Task action details (silent)\n  '  \
              '-d1 display Task action details for unknown Tasks only (this is the default)\n  ' \
-             "-d2 for full Task action details on every Task\n  -l  for list style output\n  -v  for this program's version."
+             "-d2 for full Task action details on every Task\n  " \
+             "-t='a valid Task name'   ...to display the details for a single Task only (automatically sets -d option to -d2)\n  " \
+             "-l  for list style output\n  -v  for this program's version."
+
+
 help_text3 = '\n\nExit codes...\n  exit 1- no or improper filename selected\n  exit 2- output file failure\n ' \
-             ' exit 3- file selected is not a valid Tasker backup file\n  exit 4- output text box error'
+             ' exit 3- file selected is not a valid Tasker backup file\n  exit 4- output text box error\n ' \
+             ' exit 5- requested single Task not found.'
 help_text4 = '\n\nThe output HTML file is saved in your current folder/directory'
 
-caveat1 = 'CAVEATS:\n'
+caveat1 = '<span style = "color:Black"</span>CAVEATS:\n'
 caveat2 = '- Most but not all Task actions have been mapped and will display as such.\n'
-caveat3 = '- Some actions, variables and/or labels may display content in a different.' \
-          '  These colors are typically embedded in the content as native html.'
-caveat4 = '- This has only been tested on my own backup.xml file.' \
+caveat3 = '- This has only been tested on my own backup.xml file.' \
           '  For problems, email mikrubin@gmail.com and attach your backup.xml file .'
+caveat4 = '- Tasks that are identified as "Unnamed/Anonymous/Scene" have no name and can possibly\n' \
+          '  be associated with a Scene (e.g. Tap / Long Tap Task actions).'
 
-# HTML Valid Color Names
-red_color_names = ['IndianRed', 'LightCoral', 'Salmon', 'DarkSalmon', 'LightSalmon', 'Crimson', 'Red', 'FireBrick', 'DarkRed']
-pink_color_names = ['Pink', 'LightPink', 'HotPink', 'DeepPink', 'MediumVioletRed', 'PaleVioletRed']
-orange_color_names = ['LightSalmon', 'Coral', 'Tomato', 'OrangeRed', 'DarkOrange', 'Orange']
-yellow_color_names = ['Gold', 'Yellow', 'LightYellow', 'LemonChiffon', 'LightGoldenrodYellow', 'PapayaWhip', 'Moccasin',
-                      'PeachPuff', 'PaleGoldenrod', 'Khaki', 'DarkKhaki']
-purple_color_names = ['Lavender', 'Thistle', 'Plum', 'Violet', 'Orchid', 'Fuchsia', 'Magenta', 'MediumOrchid',
-                      'MediumPurple', 'RebeccaPurple', 'BlueViolet', 'DarkViolet', 'DarkOrchid', 'DarkMagenta',
-                      'Purple', 'Indigo', 'SlateBlue', 'DarkSlateBlue', 'MediumSlateBlue']
-green_color_names = ['GreenYellow', 'Chartreuse', 'LawnGreen', 'Lime', 'LimeGreen', 'PaleGreen', 'LightGreen',
-                     'MediumSpringGreen', 'SpringGreen', 'MediumSeaGreen', 'SeaGreen', 'ForestGreen', 'Green',
-                     'DarkGreen', 'YellowGreen', 'OliveDrab', 'Olive', 'DarkOliveGreen', 'MediumAquamarine', 'DarkSeaGreen',
-                     'LightSeaGreen', 'DarkCyan', 'Teal']
-blue_color_names = ['Aqua', 'Cyan', 'LightCyan', 'PaleTurquoise', 'Aquamarine', 'Turquoise', 'MediumTurquoise',
-                    'DarkTurquoise', 'CadetBlue', 'SteelBlue', 'LightSteelBlue', 'PowderBlue', 'LightBlue', 'SkyBlue',
-                    'LightSkyBlue', 'DeepSkyBlue', 'DodgerBlue', 'CornflowerBlue', 'MediumSlateBlue', 'RoyalBlue',
-                    'Blue', 'MediumBlue', 'DarkBlue', 'Navy', 'MidnightBlue']
-brown_color_names = ['Cornsilk', 'BlanchedAlmond', 'Bisque', 'NavajoWhite', 'Wheat', 'BurlyWood', 'Tan', 'RosyBrown',
-                     'SandyBrown', 'Goldenrod', 'DarkGoldenrod', 'Peru', 'Chocolate', 'SaddleBrown',
-                     'Sienna', 'Brown', 'Maroon']
-white_color_names = ['White', 'Snow', 'HoneyDew', 'MintCream', 'Azure', 'AliceBlue', 'GhostWhite', 'WhiteSmoke',
-                     'SeaShell', 'Beige', 'OldLace', 'FloralWhite', 'Ivory', 'AntiqueWhite', 'Linen',
-                     'LavenderBlush', 'MistyRose']
-gray_color_names = ['Gainsboro', 'LightGray', 'Silver', 'DarkGray', 'Gray', 'DimGray', 'LightSlateGray', 'SlateGray',
-                    'DarkSlateGray', 'Black']
-
-unknown_task_name = 'Unnamed/Anonymous.'
-my_version = '4.1'
+unknown_task_name = 'Unnamed/Anonymous/Scene.'
+my_version = '4.2'
 my_file_name = '/MapTasker.html'
 debug = False
 debug_out = False
@@ -148,13 +133,18 @@ def evaluate_condition(child):
 
 # Get Task's label, disabled flag and any conditions
 def get_label_disabled_condition(child):
-    task_extras = ''
+    task_label = ''
+    task_disabled = ''
+    task_conditions = ''
     booleans = []
     the_action_code = child.find('code').text
     if child.find('label') is not None:
-        task_extras = ' <span style = "color:' + action_label_color + '"</span>...with label: ' + strip_string(child.find('label').text)
+        lbl = strip_string(child.find('label').text)
+        if lbl != '' and lbl != '\n':
+            lbl.replace('\n','')
+            task_label = ' <span style = "color:' + action_label_color + '"</span>...with label: ' + lbl
     if child.find('on') is not None:  # disabled action?
-        task_extras = disabled_task + task_extras
+        task_disabled = disabled_task
     if child.find('ConditionList')  is not None:  # If condition on Action?
         condition_count = 0
         boolean_to_inject = ''
@@ -162,14 +152,12 @@ def get_label_disabled_condition(child):
             if 'bool' in children.tag:
                 booleans.append(children.text)
             elif 'Condition' == children.tag and the_action_code != '37':
-                for baby in children:
-                    string1, operator, string2 = evaluate_condition(children)
-                    if condition_count != 0:
-                        boolean_to_inject = booleans[condition_count-1].upper() + ' '
-                    task_extras = task_extras + ' <span style = "color:' + action_condition_color + '"</span> (' + boolean_to_inject + 'condition:  If ' + string1 + operator + string2 + ')'
-                    condition_count += 1
-                    break
-    return task_extras
+                string1, operator, string2 = evaluate_condition(children)
+                if condition_count != 0:
+                    boolean_to_inject = booleans[condition_count-1].upper() + ' '
+                task_conditions = task_conditions + ' <span style = "color:' + action_condition_color + '"</span> (' + boolean_to_inject + 'condition:  If ' + string1 + operator + string2 + ')'
+                condition_count += 1
+    return task_conditions + task_disabled + task_label
 
 # Chase after relevant data after <code> Task action
 def get_action_detail(code_flag,code_child):
@@ -208,7 +196,9 @@ def get_action_detail(code_flag,code_child):
         for child in code_child:
             if child.tag == 'Str' and child.text is not None:
                 var1.append(child.text)
-        return strip_string(var1), extra_stuff
+        for item in var1:
+            strip_string(item)
+        return var1, extra_stuff
     elif code_flag == 5:   # Get Application info
         lbl = ''
         for child in code_child:
@@ -223,6 +213,14 @@ def get_action_detail(code_flag,code_child):
                     lbl1 = ''
                 return app, lbl1 + extra_stuff
         return '', extra_stuff
+    elif code_flag == 6:   # Get Plugin parameters
+        child1 = code_child.find('Bundle')
+        child2 = child1.find('Vals')
+        child3 = child2.find('com.twofortyfouram.locale.intent.extra.BLURB')
+        if child3 is not None:
+            return child3.text + extra_stuff
+        else:
+            return extra_stuff
     else:
         return '???'
 
@@ -296,7 +294,8 @@ def getcode(code_child, code_action):
         return "Element Text Colour " + get_action_detail(1, code_action)
 
     elif taskcode == '55':
-        return "Element Back Colour " + get_action_detail(1, code_action)
+        det1, det2 = get_action_detail(2, code_action)
+        return "Element Back Colour of screen " + det1 + ' Element: ' + det2
 
     elif taskcode == '58':
         det1, det2 = get_action_detail(2,code_action)
@@ -354,7 +353,7 @@ def getcode(code_child, code_action):
         return "JavaScriptlet " + get_action_detail(1, code_action)
 
     elif taskcode == '130':
-        return "Perform Task " + get_action_detail(1, code_action)
+        return "Perform Task: " + get_action_detail(1, code_action)
 
     elif taskcode == '131':
         return "JavaScript " + get_action_detail(1, code_action)
@@ -629,7 +628,8 @@ def getcode(code_child, code_action):
         detail1, lbl = get_action_detail(4, code_action)
         detail2 = ''
         for item in detail1:
-            detail2 = detail2 + ' , ' + item
+            if item is not None:
+                detail2 = detail2 + ' , ' + item
         return 'Notify ' + detail2 + ' ' + lbl
 
     elif taskcode == '536':
@@ -742,88 +742,95 @@ def getcode(code_child, code_action):
 # Plugins start here
 
     elif taskcode == '117240295':
-        return "AutoWear Input" + get_action_detail(0, code_action)
+        return "AutoWear Input " + get_action_detail(6, code_action)
 
     elif taskcode == '140618776':
-        return "AutoWear Toast" + get_action_detail(0, code_action)
+        return "AutoWear Toast " + get_action_detail(6, code_action)
+
+
+    elif taskcode == '166160670':
+        return "AutoNotification " + get_action_detail(6, code_action)
 
     elif taskcode == '191971507':
-        return "AutoWear ADB Wifi" + get_action_detail(0, code_action)
+        return "AutoWear ADB Wifi " + get_action_detail(6, code_action)
 
     elif taskcode == '234244923':
         return "AutoInput Unlock Screen" + get_action_detail(0, code_action)
 
     elif taskcode == '268157305':
-        return "AutoNotification Tiles" + get_action_detail(0, code_action)
+        return "AutoNotification Tiles " + get_action_detail(6, code_action)
 
     elif taskcode == '319692633':
-        return "AutoShare Process Text" + get_action_detail(0, code_action)
+        return "AutoShare Process Text " + get_action_detail(6, code_action)
 
     elif taskcode == '344636446':
-        return "AutoVoice Trigger Alexa Routine" + get_action_detail(0, code_action)
+        return "AutoVoice Trigger Alexa Routine " + get_action_detail(6, code_action)
 
     elif taskcode == '557649458':
-        return "AutoWear Time" + get_action_detail(0, code_action)
+        return "AutoWear Time " + get_action_detail(6, code_action)
 
-    elif taskcode == '565385068' or taskcode == '166160670':
-        return "AutoNotification " + get_action_detail(0, code_action)
+    elif taskcode == '565385068':
+        return "AutoWear Input " + get_action_detail(6, code_action)
 
     elif taskcode == '774351906':
-        return "Join Action" + get_action_detail(0, code_action)
+        return "Join Action " + get_action_detail(6, code_action)
 
     elif taskcode == '778682267':
-        return "AutoInput Gestures" + get_action_detail(0, code_action)
+        return "AutoInput Gestures " + get_action_detail(6, code_action)
 
     elif taskcode == '811079103':
-        return "AutoInput Action" + get_action_detail(0, code_action)
+        return "AutoInput Global Action " + get_action_detail(6, code_action)
 
     elif taskcode == '906355163':
-        return "AutoWear Voice Screen" + get_action_detail(0, code_action)
+        return "AutoWear Voice Screen " + get_action_detail(6, code_action)
 
     elif taskcode == '1099157652':
-        return "AutoTools Json Write" + get_action_detail(0, code_action)
+        return "AutoTools Json Write " + get_action_detail(6, code_action)
 
     elif taskcode == '1040876951':
-        return "AutoInput UI Query" + get_action_detail(0, code_action)
+        return "AutoInput UI Query " + get_action_detail(6, code_action)
 
     elif taskcode == '1165325195':
-        return "AutoTools Web Screen" + get_action_detail(0, code_action)
+        return "AutoTools Web Screen " + get_action_detail(6, code_action)
 
     elif taskcode == '1250249549':
-        return "AutoInput Screen Off/On" + get_action_detail(0, code_action)
+        return "AutoInput Screen Off/On " + get_action_detail(6, code_action)
 
     elif taskcode == '1246578872':
-        return "AutoWear Notification" + get_action_detail(0, code_action)
+        return "AutoWear Notification " + get_action_detail(6, code_action)
 
     elif taskcode == '1304982781':
-        return "AutoTools Dialog" + get_action_detail(0, code_action)
+        return "AutoTools Dialog " + get_action_detail(6, code_action)
 
     elif taskcode == '1410790256':
-        return "AutoWear Floating Icon" + get_action_detail(0, code_action)
+        return "AutoWear Floating Icon " + get_action_detail(6, code_action)
 
     elif taskcode == '1830829821':
-        return "AutoWear 4 Screen" + get_action_detail(0, code_action)
+        return "AutoWear 4 Screen " + get_action_detail(6, code_action)
 
     elif taskcode == '1957670352':
-        return "AutoWear App" + get_action_detail(0, code_action)
+        return "AutoWear App " + get_action_detail(6, code_action)
 
-    elif taskcode == '1339942270' or taskcode == '1620773086':
-        return "SharpTools" + get_action_detail(0, code_action)
+    elif taskcode == '1339942270':
+        return "SharpTools Thing " + get_action_detail(6, code_action)
+
+    elif taskcode == '1620773086':
+        return "SharpTools A Thing " + get_action_detail(6, code_action)
 
     elif taskcode == '1447159672':
-        return "AutoTools Text" + get_action_detail(0, code_action)
+        return "AutoTools Text " + get_action_detail(6, code_action)
 
     elif taskcode == '1508929357':
-        return "AutoTools" + get_action_detail(0, code_action)
+        return "AutoTools " + get_action_detail(6, code_action)
 
     elif taskcode == '1830656901':
-        return "AutoWear List Screens" + get_action_detail(0, code_action)
+        return "AutoWear List Screens " + get_action_detail(6, code_action)
 
     elif taskcode == '1732635924':
-        return "AutoInput Gestures" + get_action_detail(0, code_action)
+        return "AutoInput Action " + get_action_detail(6, code_action)
 
     elif 1000 < int(taskcode):
-        return "Call to Plugin" + get_action_detail(0, code_action)
+        return "Call to Plugin " + get_action_detail(6, code_action)
 
     else:
         return "Code " + taskcode + " not yet mapped"
@@ -857,14 +864,14 @@ def ulify(element, out_style, out_unknown, lvl=int):   # lvl=0=heading 1=start l
                 string = '<p style = "color:' + profile_color + ';line-height:' + line_spacing + '"> ├⎯' + element + '</p>\n'
             else:
                 string = '<li style="color:' + bullet_color + '" ><span style="color:' + profile_color + ';">' + element + '</span></li>\n'
-        elif 'Task:' in element:  # Task ========================
+        elif 'Task:' in element and 'Perform Task:' not in element:  # Task ========================
             if out_style == 'L':
-                if out_unknown == 1:
+                if out_unknown == 1 or unknown_task_name in element:
                     string = '<p style = "color:' + unknown_task_color + ';line-height:' + line_spacing + '">&nbsp;&nbsp;&nbsp;&nbsp;├⎯' + element + '\n'
                 else:
                     string = '<p style = "color:' + task_color + ';line-height:' + line_spacing + '">&nbsp;&nbsp;&nbsp;&nbsp;├⎯' + element + '\n'
             else:
-                if out_unknown == 1:
+                if out_unknown == 1 or unknown_task_name in element:
                     string = '<li style="color:' + bullet_color + '" ><span style="color:' + unknown_task_color + ';">' + element + '</span></li>\n'
                 else:
                     string = '<li style="color:' + bullet_color + '" ><span style="color:' + task_color + ';">' + element + '</span></li>\n'
@@ -875,7 +882,10 @@ def ulify(element, out_style, out_unknown, lvl=int):   # lvl=0=heading 1=start l
                 string = '<li style="color:' + bullet_color + '" ><span style="color:' + scene_color + ';">' + element + '</span></li>\n'
         elif 'Action:' in element:  # Action
             if 'Action: ...' in element:
-                tmp = element.replace('Action: ...','Action continued:')
+                if '' == element[11:len(element)]:
+                    string = ''
+                    return string
+                tmp = element.replace('Action: ...','Action continued >>> ')
                 element = tmp
             if out_style == 'L':
                 string = '<p style = "color:' + action_color + ';line-height:' + line_spacing + '">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├⎯⎯' + element + '\n'
@@ -898,13 +908,16 @@ def ulify(element, out_style, out_unknown, lvl=int):   # lvl=0=heading 1=start l
 
 
 # Write line of output
-def my_output(out_file, list_level, style, unknown, out_string):
+def my_output(output_list, list_level, style, unknown, out_string):
     if 'Scene:' in out_string and 'L' == style:  # Handle special condition for Scenes in Linear mode.
         temp_element = out_string
         out_string = '<p style = "color:' + scene_color + ';line-height:' + line_spacing + '"'
-        out_file.write(ulify(out_string, style, unknown, list_level))
+        output_list.append(ulify(out_string, style, unknown, list_level))
         out_string = temp_element
-    out_file.write(ulify(out_string, style, unknown, list_level))
+    if 'Task ID:' in out_string and debug is False:   # Drop ID: nnn since we don't need it anymore
+        temp_element = out_string.split('Task ID:')
+        out_string = temp_element[0]
+    output_list.append(ulify(out_string, style, unknown, list_level))
     if debug_out:
         print('out_string:',ulify(out_string, style, unknown, list_level))
     return
@@ -925,7 +938,9 @@ def build_action(alist, tcode, achild, indent, indent_amt):
     if tcode != '':
         newline = tcode.find('\n')  # Break-up new line breaks
         tcode_len = len(tcode)
-        if newline == -1 or tcode_len < 200:  # If no new line break or line break less than 200 chars long, just put it as is
+        # If no new line break or line break less than width set for browser, just put it as is
+        # Otherwise, make it a continuation line using '...' has the continuation flag
+        if newline == -1 or tcode_len < browser_width:
             alist.append(tcode)
         else:
             array_of_lines = tcode.split('\n')
@@ -942,7 +957,7 @@ def build_action(alist, tcode, achild, indent, indent_amt):
     return
 
 
-# Shell sort for Action list
+# Shell sort for Action list (Actions are not necessarily in numeric order in XML backup file.
 def shellSort(arr, n):
     gap = n // 2
     attr1 = ET.Element
@@ -991,28 +1006,19 @@ def get_actions(current_task):
         # sort the Actions by attrib sr (e.g. sr='act0', act1, act2, etc.) to get them in true order
         if count_of_actions > 1:
             shellSort(task_actions,count_of_actions)
-        #reorder_attributes(task_actions)
         for action in task_actions:
-            for child in action:
-                try:
-                    # Check for Task's "code"
-                    if 'code' == child.tag:  # Get the specific Task Action code
-                        task_code = getcode(child, action)
-                        if debug:
-                            print('Task ID:',current_task.attrib['sr'],' Code:',child.text,' task_code:',task_code,'Action attr:',action.attrib)
-                        if 'End If' == task_code[0:6] or 'Else' == task_code[0:4] or 'End For' == task_code[0:7]:  # Do we un-indent?
-                            indentation -= 1
-                            length_indent = len(indentation_amount)
-                            indentation_amount = indentation_amount[24:length_indent]
-                        build_action(tasklist, task_code, child, indentation, indentation_amount)
-                        if 'If' == task_code[0:2] or 'Else' == task_code[0:4] or 'For' == task_code[0:3]:  # Do we indent?
-                            indentation += 1
-                            indentation_amount = indentation_amount + '&nbsp;&nbsp;&nbsp;&nbsp;'
-                        break
-                    else:
-                        pass
-                except Exception as e:
-                    pass
+            child = action.find('code')   # Get the <code> element
+            task_code = getcode(child, action)
+            if debug:
+                print('Task ID:',current_task.attrib['sr'],' Code:',child.text,' task_code:',task_code,'Action attr:',action.attrib)
+            if 'End If' == task_code[0:6] or 'Else' == task_code[0:4] or 'End For' == task_code[0:7]:  # Do we un-indent?
+                indentation -= 1
+                length_indent = len(indentation_amount)
+                indentation_amount = indentation_amount[24:length_indent]
+            build_action(tasklist, task_code, child, indentation, indentation_amount)
+            if 'If' == task_code[0:2] or 'Else' == task_code[0:4] or 'For' == task_code[0:3]:  # Do we indent?
+                indentation += 1
+                indentation_amount = indentation_amount + '&nbsp;&nbsp;&nbsp;&nbsp;'
     return tasklist
 
 
@@ -1023,10 +1029,7 @@ def get_task_name(the_task_id, all_the_tasks, found_tasks, the_task_list, task_t
     for task in all_the_tasks:
         if the_task_id == task.find('id').text:
             found_tasks.append(the_task_id)
-            if debug:
-                extra = '&nbsp;&nbsp;Task ID: ' + the_task_id
-            else:
-                extra = ''
+            extra = '&nbsp;&nbsp;Task ID: ' + the_task_id
             try:
                 task_name = task.find('nme').text
                 if task_type == 'Exit':
@@ -1043,7 +1046,8 @@ def get_task_name(the_task_id, all_the_tasks, found_tasks, the_task_list, task_t
 
 
 # Process Task/Scene text/line item: call recursively for Tasks within Scenes
-def process_list(list_type, the_output, the_list, all_task_list, all_scene_list, the_task, the_style, the_unknown, tasks_found, detail):
+def process_list(list_type, the_output, the_list, all_task_list, all_scene_list, the_task, the_style, the_unknown,
+                 tasks_found, detail):
     my_count = 0
     if the_style != 'L':
         my_output(the_output, 1, the_style, the_unknown, '')  # Start list_type list
@@ -1082,7 +1086,7 @@ def process_list(list_type, the_output, the_list, all_task_list, all_scene_list,
                                 action_count += 1
                 my_output(the_output, 3, the_style, False, '')  # Close Action list
         # Must be a Scene.  Look for all "Tap" Tasks for Scene
-        elif 'Scene:' == list_type:  # We have a Scene: get its actions
+        elif 'Scene:' == list_type and detail == 2:  # We have a Scene: get its actions
             scene_task_list = []
             for my_scene in the_list:   # Go through each Scene to find TAP and Long TAP Tasks
                 getout = 0
@@ -1101,7 +1105,6 @@ def process_list(list_type, the_output, the_list, all_task_list, all_scene_list,
                                             if subchild.tag == 'itemclickTask' or subchild.tag == 'clickTask':
                                                 task_type = '⎯Task: TAP&nbsp;&nbsp;ID:'
                                             elif 'long' in subchild.tag:
-                                            # elif subchild.tag == 'itemlongclickTask':
                                                 task_type = '⎯Task: LONG TAP&nbsp;&nbsp;ID:'
                                             process_list(task_type, the_output, temp_task_list, all_task_list,
                                                          all_scene_list, task_element, the_style,
@@ -1138,12 +1141,29 @@ def main():
     # Set local variables
     task_list = []
     found_tasks = []
+    output_list = []
+    single_task = ''
+    single_task_found = ''
+    single_task_nme_name = ''
     display_detail = 1     # Default display detail: unknown Tasks actions only
 
     output_style = ''  # L=linear, default=bullet
+
     help_text = help_text1 + help_text2 + help_text3 + help_text4
     # Get any arguments passed to program
+    if debug:
+        print('sys.argv:',sys.argv)
+    # First, let's look to see if this run is for a single Task
+    for item in sys.argv:
+        if '-t=' == item[0:3]:
+            single_task = item[3:len(item)]
+            display_detail = 2  # Force detailed output
+            break
+
+    # Now go through the rest of the arguments
     for i, arg in enumerate(sys.argv):
+        if debug:
+            print('arg:',arg[0:4])
         if arg == '-v':  # Version
             g.textbox(msg="MapTasker Version", title="MapTasker", text="Version " + my_version)
             sys.exit()
@@ -1158,6 +1178,8 @@ def main():
             display_detail = 2
         elif arg == '-l':
             output_style = 'L'
+        elif arg[0:3] == '-t=':
+            pass
         else:
             if 'MapTasker' not in arg:
                 if g.textbox(msg='MapTasker', title="MapTasker", text="Argument " + arg + " is invalid!"):
@@ -1173,46 +1195,45 @@ def main():
         g.textbox(msg="MapTasker cancelled", title="MapTasker", text="Backup selection cancelled.  Program ended.")
         exit(1)
 
-    # Store the output in the same directory
-    my_output_dir = os.getcwd()
-    if my_output_dir is None:
-        g.textbox(msg="MapTasker cancelled", title="MapTasker", text="An error occurred.  Program cancelled.")
-        exit(2)
-    out_file = open(my_output_dir + my_file_name, "w")
-
     # Import xml
     tree = ET.parse(filename)
     root = tree.getroot()
+    all_projects = root.findall('Project')
+    all_profiles = root.findall('Profile')
     all_scenes = root.findall('Scene')
     all_tasks = root.findall('Task')
+
     if 'TaskerData' != root.tag:
-        my_output(out_file, 0, output_style, False, 'You did not select a Tasker backup XML file...exit 2')
+        my_output(output_list, 0, output_style, False, 'You did not select a Tasker backup XML file...exit 2')
         exit(3)
 
-    my_output(out_file, 0, output_style, False, 'Tasker Mapping................')
-    my_output(out_file, 1, output_style, False, '')  # Start Project list
+    my_output(output_list, 0, output_style, False, 'Tasker Mapping................')
+    my_output(output_list, 1, output_style, False, '')  # Start Project list
 
     # Traverse the xml
 
     # Start with Projects <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    for project in root.findall('Project'):
+    for project in all_projects:
+        if single_task_found == '1':   # Don't bother with another Project if we've done a single task only
+            break
         project_name = project.find('name').text
         project_pids = ''
-        my_output(out_file, 2, output_style, False, 'Project: ' + project_name)
+        my_output(output_list, 2, output_style, False, 'Project: ' + project_name)
 
         # Get Profiles and it's Project and Tasks
-        my_output(out_file, 1, output_style, False, '')  # Start Profile list
+        my_output(output_list, 1, output_style, False, '')  # Start Profile list
         try:
             project_pids = project.find('pids').text  # Project has no Profiles
         # except xml.etree.ElementTree.ParseError doesn't compile:
         except Exception:
-            my_output(out_file, 2, output_style, False, 'Profile: none or unnamed!')
+            my_output(output_list, 2, output_style, False, 'Profile: none or unnamed!')
         if project_pids != '':  # Project has Profiles?
             profile_id = project_pids.split(',')
+            unknown_task = 0
 
-            # Now find the Profile's Tasks for this Project <<<<<<<<<<<<<<<<<<<<<
+            # Now go through all the Profiles for this Project <<<<<<<<<<<<<<<<<<<<<
             for item in profile_id:
-                for profile in root.findall('Profile'):
+                for profile in all_profiles:
                     # XML search order: id, mid"n", nme = Profile id, task list, Profile name
                     # Get the Tasks for this Profile
                     if item == profile.find('id').text:  # Is this the Profile we want?
@@ -1234,12 +1255,21 @@ def main():
                             profile_name = profile.find('nme').text  # Get Profile's name
                         except Exception as e:  # no Profile name
                             profile_name = 'None or unnamed!'
-                        my_output(out_file, 2, output_style, False, 'Profile: ' + profile_name)
+                        my_output(output_list, 2, output_style, False, 'Profile: ' + profile_name)
 
                 # We have the Tasks.  Now let's output them.
-                if task_list:
-                    unknown_task = 0
-                    process_list('Task:', out_file, task_list, all_tasks, all_scenes, our_task_element, output_style, unknown_task, found_tasks, display_detail)
+                if single_task:   # Are we mapping just a single Task?
+                    if single_task == our_task_name:
+                        output_list = output_list[len(output_list)-3:len(output_list)]
+                        single_task_found = '1'
+                        print(output_list[1])
+                        #unknown_task = 0
+                        process_list('Task:', output_list, task_list, all_tasks, all_scenes, our_task_element,
+                                     output_style, unknown_task, found_tasks, display_detail)
+                elif task_list:
+                    #unknown_task = 0
+                    process_list('Task:', output_list, task_list, all_tasks, all_scenes, our_task_element, output_style,
+                                 unknown_task, found_tasks, display_detail)
 
         # Find the Scenes for this Project <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         scene_names = ''
@@ -1249,23 +1279,26 @@ def main():
             pass
         if scene_names != '':
             scene_list = scene_names.split(',')
-            process_list('Scene:', out_file, scene_list, all_tasks, all_scenes, our_task_element, output_style, unknown_task, found_tasks, display_detail)
+            process_list('Scene:', output_list, scene_list, all_tasks, all_scenes, our_task_element, output_style,
+                         unknown_task, found_tasks, display_detail)
 
-        my_output(out_file, 3, output_style, False, '')  # Close Profile list
-    my_output(out_file, 3, output_style, False, '')  # Close Project list
+        my_output(output_list, 3, output_style, False, '')  # Close Profile list
+    my_output(output_list, 3, output_style, False, '')  # Close Project list
 
+    # #######################################################################################
     # Now let's look for Tasks that are not referenced by Profiles and display a total count
     task_name = ''
     unnamed_tasks = 0
     have_heading = 0
     projects_with_no_tasks = []
     for task in all_tasks:  # Get a/next Task
+        if single_task_found == '1':  # If we just processed a single task only, then bail out.
+            break
         unknown_task = 0
         task_id = task.find('id').text
-        if debug and task_id == '141':
+        if debug and task_id == '9':
             print('No Profile ==========================', task_id, '====================================')
         if task_id not in found_tasks:  # We have a solo Task
-            # project_name = ''  # Find the Project it belongs to
             for project in root.findall('Project'):
                 project_name = project.find('name').text
                 project_tasks = ''
@@ -1277,79 +1310,112 @@ def main():
                     project_name = '-none found'
                     pass
                 if task_id in project_tasks:
-                    # project_name = project.find('name').text
                     break
 
             # At this point, we've found the Project this Task belongs to, or it doesn't belong to any Task
             if have_heading == 0:
-                my_output(out_file, 0, output_style, False, '<hr>') # blank line
-                my_output(out_file, 0, output_style, False, 'Tasks that are not in any Profile (may be a desktop Tasker Task/widget or Task in a Scene)...')
-                my_output(out_file, 1, output_style, False, '')  # Start Task list
+                my_output(output_list, 0, output_style, False, '<hr>')  # blank line
+                my_output(output_list, 0, output_style, False,
+                          'Tasks that are not in any Profile (may be a desktop Tasker Task/widget or Task in a Scene)...')
+                my_output(output_list, 1, output_style, False, '')  # Start Task list
                 have_heading = 1
 
             # Get the Task's name
             try:
                 task_name = task.find('nme').text
+                single_task_nme_name = task_name
             except Exception as e:  # Task name not found!
                 unnamed_tasks += 1
                 # Unknown Task.  Display details if requested
-                if debug:
-                    task_name = unknown_task_name + '&nbsp;&nbsp;Task ID: ' + task_id
-                else:
-                    task_name = unknown_task_name
+                task_name = unknown_task_name + '&nbsp;&nbsp;Task ID: ' + task_id
                 unknown_task = 1
-                if  display_detail > 0:
-                    action_list = []
-                    action_list = get_actions(task)
 
             # Identify which Project Task belongs to
             if unknown_task == 0 and project_name:
-                task_name += ' with Task ID ' + task_id + ' ...in Project ' + project_name
+                if debug:
+                    task_name += ' with Task ID ' + task_id + ' ...in Project ' + project_name
+                else:   # Drop Task ID nnn since we don't need it
+                    task_name += ' ...in Project ' + project_name
                 project_name = ''
 
-            # Output the unknown Task's details
+            # Output the (possible unknown) Task's details
             if unknown_task == 0 or display_detail > 0:  # Only list named Tasks or if details are wanted
                 task_list = [task_name]
                 # This will output the task and it's Actions if displaying details
-                process_list('Task:', out_file, task_list, all_tasks, all_scenes, task, output_style, unknown_task, found_tasks, display_detail)
+                if (single_task and single_task == single_task_nme_name) or single_task == '':
+                    if single_task != '' and single_task == single_task_nme_name:
+                        single_task_found = '1'
+                        # output_list = output_list[len(output_list) - 4:len(output_list)]
+                        output_list.clear()
+                        output_list = ['<b>MapTasker ...</b>' ]
+                    process_list('Task:', output_list, task_list, all_tasks, all_scenes, task, output_style, unknown_task,
+                                 found_tasks, display_detail)
             unknown_task = 0
 
     # Provide total number of unnamed Tasks
     if unnamed_tasks > 0:
         if output_style == 'L' or display_detail > 0:
-            my_output(out_file, 0, output_style, False, '')  # line
+            my_output(output_list, 0, output_style, False, '')  # line
             if output_style == 'L':
-                my_output(out_file, 4, output_style, False, '<p style = "color:' + profile_color + ';line-height:normal"></p>\n')  # line spacing back to normal
-        my_output(out_file, 3, output_style, False, '')  # Close Task list
-        my_output(out_file, 0, output_style, False, '<font color=' + unknown_task_color +'>There are a total of ' + str(unnamed_tasks) + ' unnamed Tasks!!!')
+                my_output(output_list, 4, output_style, False,
+                          '<p style = "color:' + profile_color + ';line-height:normal"></p>\n')  # line spacing back to normal
+        my_output(output_list, 3, output_style, False, '')  # Close Task list
+        if single_task_found == '':   # If we don't have a single Task only, display total count of unnamed Tasks
+            my_output(output_list, 0, output_style, False,
+                      '<font color=' + unknown_task_color + '>There are a total of ' + str(
+                          unnamed_tasks) + ' unnamed Tasks!!!')
     if task_name is True:
-        my_output(out_file, 3, output_style, False, '')  # Close Task list
-    my_output(out_file, 3, output_style, False, '')  # Close out the list
+        my_output(output_list, 3, output_style, False, '')  # Close Task list
+
+    my_output(output_list, 3, output_style, False, '')  # Close out the list
 
     # List Projects with no Tasks
     if len(projects_with_no_tasks) > 0:
-        my_output(out_file, 0, output_style, False, '<hr><font color=Black>')  # line
+        my_output(output_list, 0, output_style, False, '<hr><font color=Black>')  # line
         for item in projects_with_no_tasks:
-            my_output(out_file, 4, output_style, False, 'Project ' + item + ' has no Tasks')
+            my_output(output_list, 4, output_style, False, 'Project ' + item + ' has no Tasks')
+
+    # Requested single Task but invalid Task name provided (i.e. no Task found)?
+    if single_task != '' and single_task_found == '':
+        output_list.clear()
+        g.textbox(msg="MapTasker", title="MapTasker", text="Task " + single_task + ' not found!!')
+        exit(5)
 
     # Let's wrap things up...
+
     # Output caveats if we are displaying the Actions
-    my_output(out_file, 0, output_style, False, '<hr>')  # line
-    my_output(out_file, 4, output_style, False, caveat1)  # caveat
+    my_output(output_list, 0, output_style, False, '<hr>')  # line
+    my_output(output_list, 4, output_style, False, caveat1)  # caveat
     if display_detail > 0:  # Caveat about Actions
-        my_output(out_file, 4, output_style, False, caveat2)  # caveat
-    my_output(out_file, 4, output_style, False, caveat3)  # caveat
-    my_output(out_file, 4, output_style, False, caveat4)  # caveat
+        my_output(output_list, 4, output_style, False, caveat2)  # caveat
+    my_output(output_list, 4, output_style, False, caveat3)  # caveat
+    my_output(output_list, 4, output_style, False, caveat4)  # caveat
+
+    # Okay, lets generate the actual output file.
+    # Store the output in the current  directory
+    my_output_dir = os.getcwd()
+    if my_output_dir is None:
+        g.textbox(msg="MapTasker cancelled", title="MapTasker", text="An error occurred.  Program cancelled.")
+        exit(2)
+    out_file = open(my_output_dir + my_file_name, "w")
+
+    # Output the generated html
+    for item in output_list:
+        out_file.write(item)
 
     out_file.close()  # Close our output file
 
+    # Clean up memory
     for elem in tree.iter():
         elem.clear()
+    all_projects.clear()
+    all_profiles.clear()
     all_tasks.clear()
     all_scenes.clear()
     project.clear()
     profile.clear()
     root.clear()
+    output_list.clear()
 
     # Display final output
     webbrowser.open('file://' + my_output_dir + my_file_name, new=2)
