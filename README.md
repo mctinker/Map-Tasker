@@ -1,4 +1,4 @@
-# MapTasker version 4.2
+# MapTasker version 4.3
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
 
 This is an application in support of Tasker that is intended to run on a MAC.
@@ -13,6 +13,8 @@ Program dependencies:
 -	python-tk@3.9: install from Terminal using the command: `brew install python-tk@3.9`
 -	input Tasker backup.xml (anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6. 
 
+To install, simply download MapTasker.py or dist.zip (see below for dist.zip)
+ 
 To run the program from the directory in which MapTasker.py resides, enter: `python3 MapTasker.py`
  
 Program out: the file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.  
@@ -36,6 +38,7 @@ Note: this has not been tested on other MACs and I would be interested in hearin
  
   
 Change list:
+- 4.3 Bug fixes and support for a few additoinal Task actions (see code comments for details)
 - 4.2 Added: Support for single Task detail only (option -t='Task Name Here')                           
 - 4.1 Fixed: Location of output file corrected to be the current folder in msg box         
     - Fixed: If set / not set were reversed                                                
