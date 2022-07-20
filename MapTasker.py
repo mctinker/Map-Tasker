@@ -17,7 +17,7 @@
 #       Added: Display Profile's condition (Time, State, Event, etc.) with option -p         #
 #       Added: If Task is Unnamed, display just the first Task for -d0 option (like Tasker)  #
 #       Added: identify disabled Profiles                                                    #
-#       Fixed: exit code 1 is due to an program error...corrected and added exit 6           #
+#       Fixed: exit code 1 is due to an program error...replaced with exit 6                 #
 #       Fixed: some Scene-related Tasks wre not being listed                                 #
 #       Fixed: Listing total unknown Tasks included those associated with Scenes             #
 #       Fixed: Changed 'Action: nn' to 'Action nn:'   (moved then colon)                     #
