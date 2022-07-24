@@ -6,18 +6,18 @@
 #                                                                                            #
 # Requirements                                                                               #
 #      1- easygui API : pip3 install easygui                                                 #
-#      2- python-tk@3.9 : brew install python-tk@3.9 or sudo apt-get install python3-tk      #
-#      3- Python version 3.9 or higher                                                       #
+#      2- Python version 3.9 or higher                                                       #
 #                                                                                            #
 #                                                                                            #
-# Version 5.0                                                                                #
+# Version 5.1                                                                                #
 #                                                                                            #
+# - 5.1 Added: additional Task actions and Profile configurations recognized                 #
 # - 5.0 Added: Changed default font to monospace: Courier                                    #
 #       Added: Action details for Power Mode, Mobile Data, Autosync and Setup Quick Setting  #
 #       Added: Display Profile's condition (Time, State, Event, etc.) with option -p         #
 #       Added: If Task is Unnamed, display just the first Task for -d0 option (like Tasker)  #
 #       Added: identify disabled Profiles                                                    #
-#       Fixed: exit code 1 is due to an program error...replaced with exit 6                 #
+#       Fixed: exit code 1 is due to an program error...corrected and added exit 6           #
 #       Fixed: some Scene-related Tasks wre not being listed                                 #
 #       Fixed: Listing total unknown Tasks included those associated with Scenes             #
 #       Fixed: Changed 'Action: nn' to 'Action nn:'   (moved then colon)                     #
@@ -58,13 +58,13 @@
 # - 1.1 Added list of Tasks for which there is no Profile                                    #
 #                                                                                            #
 # ########################################################################################## #
-import easygui as g  # easygui dependency
+import easygui as g  # easygui dependency (requires tkinter)
+import tkinter  # python-tk dependency
 import xml.etree.ElementTree as ET
 import os
 import sys
 import webbrowser   # python-tk@3.9 dependency
 import re
-import tkinter
 
 #  START User-modifiable global constants
 project_color = 'Black'   # Refer to the following for valid names: https://en.wikipedia.org/wiki/Web_colors
@@ -116,7 +116,7 @@ caveat5 = '- For option -d0, Tasks that are identified as "Unnamed/Anonymous" wi
 unknown_task_name = 'Unnamed/Anonymous.'
 no_project = '-none found.'
 no_profile = 'None or unnamed!'
-my_version = '5.0'
+my_version = '5.1'
 my_file_name = '/MapTasker.html'
 paragraph_color = '<p style = "color:'
 list_color = '<li style="color:'
@@ -198,8 +198,11 @@ def get_label_disabled_condition(child):
 
 # Chase after relevant data after <code> Task action
 # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
-def get_action_detail(code_flag,code_child):
-    extra_stuff = get_label_disabled_condition(code_child)  # Look for extra Task stiff: label, disabled, conditions
+def get_action_detail(code_flag, code_child, action_type):
+    if action_type:    # Only get extras if this is a Task action (vs. a Profile condition)
+        extra_stuff = get_label_disabled_condition(code_child)  # Look for extra Task stiff: label, disabled, conditions
+    else:
+        extra_stuff = ''
     if code_flag == 0:  # Just check for a label
         return extra_stuff
     elif code_flag == 1:  # Get first Str value
@@ -239,9 +242,11 @@ def get_action_detail(code_flag,code_child):
             strip_string(item)
         return var1, extra_stuff
     elif code_flag == 5:   # Get Application info
-        lbl = ''
+        lbl1 = ''
         for child in code_child:
             if child.tag == 'App':
+                if child.find('appClass') == None:
+                    return '', ''
                 if child.find('appClass').text is not None:
                     app = child.find('appClass').text
                 else:
@@ -273,35 +278,44 @@ def get_action_detail(code_flag,code_child):
             else:
                 continue
         return extra_stuff
+    elif code_flag == 8:  # Return all Int attrib
+        my_int = []
+        for child in code_child:
+            if child.tag == 'Int' and child.attrib.get('val') is not None:
+                my_int.append(child.attrib.get('val'))
+        return my_int, extra_stuff
+
     else:
         return '???'
 
 #
-# Returns the action's name and associated variables depending on the input xml code
+# Returns the Task-action's/Profile-condition's name and associated variables depending on the input xml code
 # <code>nn</code>  ...translate the nn into it's Action name
 #
-def getcode(code_child, code_action):
+def getcode(code_child, code_action, type_action):
     taskcode = code_child.text
 
     if taskcode == '16':
-        return 'System Lock' + get_action_detail(0, code_action)
+        return 'System Lock' + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '18':
-        detail1, detail2 = get_action_detail(5, code_action)
+        detail1, detail2 = get_action_detail(5, code_action, type_action)
         return 'Kill App package ' + detail1 + ' for app ' + detail2
 
     if taskcode == '20':
-        detail1, detail2 = get_action_detail(5, code_action)
+        detail1, detail2 = get_action_detail(5, code_action, type_action)
         return 'Tasker widget for ' + detail1 + ' with label ' + detail2
 
     elif taskcode == '30':
-        return "Wait for " + get_action_detail(3, code_action)
+        return "Wait for " + get_action_detail(3, code_action, type_action)
 
     elif taskcode == '35':
-        return "Wait" + get_action_detail(0, code_action)
+        return "Wait" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '37':
-        extra_stuff = get_label_disabled_condition(code_action)  # Look for extra Task stiff: label, disabled, conditions
+        extra_stuff = ''
+        if type_action:
+            extra_stuff = get_label_disabled_condition(code_action)  # Look for extra Task stiff: label, disabled, conditions
         for cchild in code_action:
             if 'ConditionList' == cchild.tag:  # If statement...
                 for children in cchild:
@@ -310,129 +324,139 @@ def getcode(code_child, code_action):
                         return "If " + first_string + operator + second_string + extra_stuff
 
     elif taskcode == '38':
-        return "End If" + get_action_detail(0, code_action)
+        return "End If" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '39':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "For " + detail1 + ' to ' + detail2
 
     elif taskcode == '40':
-        return "End For" + get_action_detail(0, code_action)
+        return "End For" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '41':
-        det1, det2 = get_action_detail(2,code_action)
+        det1, det2 = get_action_detail(2,code_action, type_action)
         return "Send SMS " + det1 + ' message: ' + det2
 
     elif taskcode == '43':
-        return "Else/Else If" + get_action_detail(0, code_action)
+        return "Else/Else If" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '46':
-        return "Create Scene " + get_action_detail(1,code_action)
+        return "Create Scene " + get_action_detail(1,code_action, type_action)
 
     elif taskcode == '47':
-        return "Show Scene " + get_action_detail(1,code_action)
+        return "Show Scene " + get_action_detail(1,code_action, type_action)
 
     elif taskcode == '48':
-        return "Hide Scene " + get_action_detail(1, code_action)
+        return "Hide Scene " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '49':
-        return "Destroy Scene " + get_action_detail(1, code_action)
+        return "Destroy Scene " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '50':
-        det1, det2 = get_action_detail(2,code_action)
+        det1, det2 = get_action_detail(2,code_action, type_action)
         return "Element Value " + det1 + ' Element: ' + det2
 
     elif taskcode == '51':
-        return "Element Text " + get_action_detail(1, code_action)
+        return "Element Text " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '54':
-        return "Element Text Colour " + get_action_detail(1, code_action)
+        return "Element Text Colour " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '55':
-        det1, det2 = get_action_detail(2, code_action)
+        det1, det2 = get_action_detail(2, code_action, type_action)
         return "Element Back Colour of screen " + det1 + ' Element: ' + det2
 
     elif taskcode == '58':
-        det1, det2 = get_action_detail(2,code_action)
+        det1, det2 = get_action_detail(2,code_action, type_action)
         return "Element Size for Scene " + det1 + ' to ' + det2
 
     elif taskcode == '61':
-        return "Vibrate time at  " + get_action_detail(3,code_action)
+        return "Vibrate time at  " + get_action_detail(3,code_action, type_action)
 
     elif taskcode == '62':
-        return "Vibrate Pattern of " + get_action_detail(1, code_action)
+        return "Vibrate Pattern of " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '65':
-        det1, det2 = get_action_detail(2,code_action)
+        det1, det2 = get_action_detail(2,code_action, type_action)
         return "Element Visibility " + det1 + ' to element match of ' + det2
 
     elif taskcode == '66':
-        return "Element Image " + get_action_detail(1, code_action)
+        return "Element Image " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '68':
-        det1, det2 = get_action_detail(2,code_action)
+        det1, det2 = get_action_detail(2,code_action, type_action)
         return "Element Focus for scene: " + det1 + ' element: ' + det2
 
     elif taskcode == '71':
-        return "Element Text Size " + get_action_detail(1, code_action)
+        return "Element Text Size " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '100':
-        return "Search " + get_action_detail(1, code_action)
+        return "Search " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '101':
-        return "Take Photo filename " + get_action_detail(1, code_action)
+        return "Take Photo filename " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '102':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Open File " + detail1 + ' ' + detail2
 
     elif taskcode == '104':
-        return "Browse URL " + get_action_detail(1, code_action)
+        return "Browse URL " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '105':
-        return "Set Clipboard To " + get_action_detail(1, code_action)
+        return "Set Clipboard To " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '109':
-        return "Set Wallpaper " + get_action_detail(1, code_action)
+        return "Set Wallpaper " + get_action_detail(1, code_action, type_action)
+
+    elif taskcode == '113':
+        return "Wifi Tether " + get_action_detail(7, code_action, type_action)
 
     elif taskcode == '118':
-        return "HTTP Get " + get_action_detail(1, code_action)
+        return "HTTP Get " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '119':
-        return "Open Map, Navigate to " + get_action_detail(1, code_action)
+        return "Open Map, Navigate to " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '123':
-        return "Run Shell " + get_action_detail(1, code_action)
+        return "Run Shell " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '126':
-        return "Return" + get_action_detail(0, code_action)
+        return "Return" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '129':
-        return "JavaScriptlet " + get_action_detail(1, code_action)
+        return "JavaScriptlet " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '130':
-        return "Perform Task: " + get_action_detail(1, code_action)
+        return "Perform Task: " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '131':
-        return "JavaScript " + get_action_detail(1, code_action)
+        return "JavaScript " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '133':
-        return "Set Tasker Pref" + get_action_detail(0, code_action)
+        return "Set Tasker Pref" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '135':
-        return "Go To " + get_action_detail(1, code_action)
+        return "Go To " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '137':
-        return "Stop" + get_action_detail(0, code_action)
+        return "Stop" + get_action_detail(0, code_action, type_action)
+
+    elif taskcode == '140':
+        battery_levels, xtra = get_action_detail(8, code_action, type_action)
+        if battery_levels:
+            return "Battery Level from " + battery_levels[0] + ' to ' + battery_levels[1]
+        else:
+            return 'Battery Level'
 
     elif taskcode == '159':
-        return "Profile Status for " + get_action_detail(1, code_action)
+        return "Profile Status for " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '160':
-        return "Wifi Connected " + get_action_detail(1, code_action)
+        return "Wifi Connected " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '162':
-            detail1 = get_action_detail(1, code_action)
+            detail1 = get_action_detail(1, code_action, type_action)
             state_flag = False
             for child in code_action:   # Get whether active or inactive
                 if 'Int' == child.tag:
@@ -449,20 +473,20 @@ def getcode(code_child, code_action):
                         state_flag = True
 
     if taskcode == '165':
-        return 'Cancel Alarm' + get_action_detail(0, code_action)
+        return 'Cancel Alarm' + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '171':
-        return 'Beep' + get_action_detail(0, code_action)
+        return 'Beep' + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '173':
-        return "Network Access" + get_action_detail(0, code_action)
+        return "Network Access" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '171':
-        var1 = 'Power Mode' + get_action_detail(0, code_action)
+        var1 = 'Power Mode' + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '175':
-        detail1 = get_action_detail(0, code_action)  # Get label etc.
-        detail2 = get_action_detail(3, code_action)  # Get int
+        detail1 = get_action_detail(0, code_action, type_action)  # Get label etc.
+        detail2 = get_action_detail(3, code_action, type_action)  # Get int
         temp = detail2[0]
         if temp == '0':
             detail2 = 'Normal'
@@ -473,252 +497,259 @@ def getcode(code_child, code_action):
         return "Power Mode set to " + detail2 + ' ' + detail1
 
     elif taskcode == '193':
-        return "Set Clipboard to " + get_action_detail(1, code_action)
+        return "Set Clipboard to " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '194':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Test Scene " + detail1 + ' store in ' + detail2
 
     elif taskcode == '195':
-        det1, det2 = get_action_detail(2,code_action)
+        det1, det2 = get_action_detail(2,code_action, type_action)
         return "Test Element scene:  " + det1 + ' element: ' + det2
 
     elif taskcode == '216':
-        return "App Settings " + get_action_detail(1, code_action)
+        return "App Settings " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '203':
-        return "Date Settings " + get_action_detail(0, code_action)
+        return "Date Settings " + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '214':
-        return "Wireless Settings" + get_action_detail(0, code_action)
+        return "Wireless Settings" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '235':
-        detail1, lbl = get_action_detail(4,code_action)
+        detail1, lbl = get_action_detail(4,code_action, type_action)
         detail2 = ''
         for item in detail1:
             detail2 = detail2 + ' ' + item + ' '
         return 'Custom Settings' + detail2 + ' ' + lbl
 
     if taskcode == '245':
-        return 'Back Button' + get_action_detail(0, code_action)
+        return 'Back Button' + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '248':
-        return "Turn Off" + get_action_detail(0, code_action)
+        return "Turn Off" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '294':
-        return "Bluetooth " + get_action_detail(7, code_action)
+        return "Bluetooth " + get_action_detail(7, code_action, type_action)
 
     elif taskcode == '295':
-        return "Bluetooth ID " + get_action_detail(1, code_action)
+        return "Bluetooth ID " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '296':
-        return "Bluetooth Voice " + get_action_detail(7, code_action)
+        return "Bluetooth Voice " + get_action_detail(7, code_action, type_action)
 
     elif taskcode == '300':
-        return "Anchor" + get_action_detail(0, code_action)
+        return "Anchor" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '304':
-        return "Ringer Volume to  " + get_action_detail(3, code_action)
+        return "Ringer Volume to  " + get_action_detail(3, code_action, type_action)
 
     elif taskcode == '305':
-        detail1 = get_action_detail(3, code_action)
+        detail1 = get_action_detail(3, code_action, type_action)
         if detail1 != '':
-            return "Notification Volume to  " + get_action_detail(3, code_action)
+            return "Notification Volume to  " + get_action_detail(3, code_action, type_action)
         else:
-            return "Notification Volume" + get_action_detail(0, code_action)
+            return "Notification Volume" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '307':
-        detail1 = get_action_detail(3, code_action)
+        detail1 = get_action_detail(3, code_action, type_action)
         if detail1 != '':
-            return "Media Volume to  " + get_action_detail(3, code_action)
+            return "Media Volume to  " + get_action_detail(3, code_action, type_action)
         else:
-            return "Media Volume" + get_action_detail(0, code_action)
+            return "Media Volume" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '311':
-        return "BT Voice Volume to " + get_action_detail(3, code_action)
+        return "BT Voice Volume to " + get_action_detail(3, code_action, type_action)
 
     elif taskcode == '312':
-        return "Do Not Disturb" + get_action_detail(0, code_action)
+        return "Do Not Disturb" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '313':
-        return "Sound Mode" + get_action_detail(0, code_action)
+        return "Sound Mode" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '316':
-        return "Display Size" + get_action_detail(0, code_action)
+        return "Display Size" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '319':
-        return "Ask Permissions " + get_action_detail(1, code_action)
+        return "Ask Permissions " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '328':
-        return "Keyboard " + get_action_detail(0, code_action)
+        return "Keyboard " + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '331':
-        return "Auto-Sync set to " + get_action_detail(7, code_action)
+        return "Auto-Sync set to " + get_action_detail(7, code_action, type_action)
 
     elif taskcode == '334':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Save WaveNet " + detail1 + ' Voice: ' + detail2
 
     elif taskcode == '335':
-        return "App Info" + get_action_detail(0, code_action)
+        return "App Info" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '339':
-        return "HTTP Request " + get_action_detail(1, code_action)
+        return "HTTP Request " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '340':
-        return "Bluetooth Connection for device " + get_action_detail(1, code_action)
+        return "Bluetooth Connection for device " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '341':
-        return "Test Net " + get_action_detail(1, code_action)
+        return "Test Net " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '342':
-        det1, det2 = get_action_detail(2,code_action)
+        det1, det2 = get_action_detail(2,code_action, type_action)
         return "Test File with data " + det1 + ' store in ' + det2
 
     elif taskcode == '344':
-        det1, det2 = get_action_detail(2,code_action)
+        det1, det2 = get_action_detail(2,code_action, type_action)
         return "Test App " + det1 + ' store in ' + det2
 
     elif taskcode == '345':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Test Variable " + detail1 + ' and store into ' + detail2
 
     elif taskcode == '347':
-        t = "Test Tasker and store results into " + get_action_detail(1, code_action)
-        return "Test Tasker and store results into " + get_action_detail(1, code_action)
+        t = "Test Tasker and store results into " + get_action_detail(1, code_action, type_action)
+        return "Test Tasker and store results into " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '348':
-        return "Test Display " + get_action_detail(1, code_action)
+        return "Test Display " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '354':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Array Set for array " + detail1 + ' with values ' + detail2
 
     elif taskcode == '355':
-        return "Array Push " + get_action_detail(1, code_action)
+        return "Array Push " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '357':
-        return "Array Clear " + get_action_detail(1, code_action)
+        return "Array Clear " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '356':
-        return "Array Pop " + get_action_detail(1, code_action)
+        return "Array Pop " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '358':
-        return "Bluetooth Info " + get_action_detail(0, code_action)
+        return "Bluetooth Info " + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '360':
-        detail1, lbl = get_action_detail(4, code_action)
+        detail1, lbl = get_action_detail(4, code_action, type_action)
         detail2 = ''
         for item in detail1:
             detail2 = detail2 + ' , ' + item
         return 'Input Dialog ' + detail2 + ' ' + lbl
 
     elif taskcode == '365':
-        return "Tasker Function " + get_action_detail(1, code_action)
+        return "Tasker Function " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '366':
-        return "Get Location V2" + get_action_detail(0, code_action)
+        return "Get Location V2" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '367':
-        return "Camera " + get_action_detail(7, code_action)
+        return "Camera " + get_action_detail(7, code_action, type_action)
 
     elif taskcode == '369':
-        return "Array Process " + get_action_detail(1, code_action)
+        return "Array Process " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '373':
-        return "Test Sensor " + get_action_detail(1, code_action)
+        return "Test Sensor " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '377':
-        detail1, lbl = get_action_detail(4, code_action)
+        detail1, lbl = get_action_detail(4, code_action, type_action)
         detail2 = ''
         for item in detail1:
             detail2 = detail2 + ' , ' + item
         return 'Text/Image Dialog ' + detail2 + ' ' + lbl
 
     elif taskcode == '378':
-        return "List Dialog " + get_action_detail(1, code_action)
+        return "List Dialog " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '383':
-        return "Settings Panel" + get_action_detail(0, code_action)
+        return "Settings Panel" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '389':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Multiple Variables Set " + detail1 + ' to ' + detail2
 
     elif taskcode == '390':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Pick Input Dialog " + detail1 + ' with structure type ' + detail2
 
     elif taskcode == '392':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Set Variable Structure Type name " + detail1 + ' with structure type ' + detail2
 
     elif taskcode == '393':
-        return "Array Merge " + get_action_detail(1, code_action)
+        return "Array Merge " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '394':
-        return "Parse/Format DateTime " + get_action_detail(0, code_action)
+        return "Parse/Format DateTime " + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '396':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Simple Match/Regex " + detail1 + ' with regex ' + detail2
 
     elif taskcode == '399':
-        return "Variable Map " + get_action_detail(1, code_action)
+        return "Variable Map " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '400':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Move (file) from " + detail1 + ' to ' + detail2
 
     elif taskcode == '404':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Copy File " + detail1 + ' to ' + detail2
 
     elif taskcode == '406':
-        return "Delete File " + get_action_detail(1, code_action)
+        return "Delete File " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '409':
-        return "Create Directory " + get_action_detail(1, code_action)
+        return "Create Directory " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '410':
-        return "Write File " + get_action_detail(1, code_action)
+        return "Write File " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '412':
-        return "List Files " + get_action_detail(1, code_action)
+        return "List Files " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '417':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Read File " + detail1 + ' into ' + detail2
 
     elif taskcode == '425':
-        return "Turn Wifi" + get_action_detail(0, code_action)
+        return "Turn Wifi" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '430':
-        return "Restart Tasker" + get_action_detail(0, code_action)
+        return "Restart Tasker" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '433':
-        return 'Mobile Data set to ' + get_action_detail(7, code_action)
+        return 'Mobile Data set to ' + get_action_detail(7, code_action, type_action)
 
     if taskcode == '443':
-        return 'Media Control' + get_action_detail(0, code_action)
+        return 'Media Control' + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '445':
-        return "Music Play " + get_action_detail(1, code_action)
+        return "Music Play " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '449':
-        return "Music Stop" + get_action_detail(0, code_action)
+        return "Music Stop" + get_action_detail(0, code_action, type_action)
+
+    elif taskcode == '461':
+        detail1, detail2 = get_action_detail(5, code_action, False)
+        if detail2 == '':
+            return "Notification"
+        else:
+            return "Notification for app " + detail2
 
     elif taskcode == '511':
-        return 'Torch' + get_action_detail(0, code_action)
+        return 'Torch' + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '512':
-        return 'Status Bar' + get_action_detail(0, code_action)
+        return 'Status Bar' + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '513':
-        return "Close System Dialogs" + get_action_detail(0, code_action)
+        return "Close System Dialogs" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '523':
-        detail1, lbl = get_action_detail(4, code_action)
+        detail1, lbl = get_action_detail(4, code_action, type_action)
         detail2 = ''
         for item in detail1:
             if item is not None:
@@ -726,222 +757,222 @@ def getcode(code_child, code_action):
         return 'Notify ' + detail2 + ' ' + lbl
 
     elif taskcode == '536':
-        return "Notification Vibrate with title " + get_action_detail(1, code_action)
+        return "Notification Vibrate with title " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '538':
-        return "Notification Sound with title " + get_action_detail(1, code_action)
+        return "Notification Sound with title " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '550':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Popup title " + detail1 + ' with message: ' + detail2
 
     elif taskcode == '543':
-        return "Start System Timer " + get_action_detail(1, code_action)
+        return "Start System Timer " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '545':
-        return "Variable Randomize " + get_action_detail(1, code_action)
+        return "Variable Randomize " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '547':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Variable Set " + detail1 + ' to ' + detail2
 
     elif taskcode == '548':
-        return "Flash " + get_action_detail(1, code_action)
+        return "Flash " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '549':
-        return "Variable Clear " + get_action_detail(1, code_action)
+        return "Variable Clear " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '550':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Popup title " + detail1 + ' with text ' + detail2
 
     elif taskcode == '559':
-        return "Say " + get_action_detail(1, code_action)
+        return "Say " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '566':
-        detail1, lbl = get_action_detail(4, code_action)
+        detail1, lbl = get_action_detail(4, code_action, type_action)
         detail2 = ''
         for item in detail1:
             detail2 = detail2 + ' ' + item + ' '
         return 'Set Alarm ' + detail2 + ' ' + lbl
 
     elif taskcode == '567':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Calendar Insert " + detail1 + ' with description: ' + detail2
 
     elif taskcode == '590':
-        return "Variable Split " + get_action_detail(1, code_action)
+        return "Variable Split " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '592':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Variable Join " + detail1 + ' to ' + detail2
 
     elif taskcode == '596':
-        return "Variable Convert " + get_action_detail(1, code_action)
+        return "Variable Convert " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '597':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Variable Section " + detail1 + ' from ' + detail2
 
     elif taskcode == '598':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Variable Search Replace " + detail1 + ' search for ' + detail2
 
     elif taskcode == '664':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Java Function return object " + detail1 + ' , ' + detail2
 
     elif taskcode == '667':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "SQL Query " + detail1 + ' to ' + detail2
 
     elif taskcode == '697':
-        return "Shut Up" + get_action_detail(0, code_action)
+        return "Shut Up" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '775':
-        detail1, detail2 = get_action_detail(2, code_action)
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
         return "Write Binary " + detail1 + ' file: ' + detail2
 
     elif taskcode == '779':
-        return "Notify Cancel " + get_action_detail(1, code_action)
+        return "Notify Cancel " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '806':
-        return "Notify Cancel " + get_action_detail(3, code_action)
+        return "Notify Cancel " + get_action_detail(3, code_action, type_action)
 
     elif taskcode == '810':
-        return "Display Brightness to " + get_action_detail(3, code_action)
+        return "Display Brightness to " + get_action_detail(3, code_action, type_action)
 
     elif taskcode == '812':
-        return "Display Timeout " + get_action_detail(3, code_action)
+        return "Display Timeout " + get_action_detail(3, code_action, type_action)
 
     elif taskcode == '815':
-        return "List Apps into " + get_action_detail(1, code_action)
+        return "List Apps into " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '877':
-        return "Send Intent " + get_action_detail(1, code_action)
+        return "Send Intent " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '888':
-        return "Variable Add " + get_action_detail(3, code_action)
+        return "Variable Add " + get_action_detail(3, code_action, type_action)
 
     elif taskcode == '890':
-        return "Variable Subtract " + get_action_detail(1, code_action)
+        return "Variable Subtract " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '902':
-        return "Get Locations " + get_action_detail(1, code_action)
+        return "Get Locations " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '987':
-        return "Soft Keyboard" + get_action_detail(0, code_action)
+        return "Soft Keyboard" + get_action_detail(0, code_action, type_action)
 
 # Plugins start here
 
     elif taskcode == '117240295':
-        return "AutoWear Input " + get_action_detail(6, code_action)
+        return "AutoWear Input " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '140618776':
-        return "AutoWear Toast " + get_action_detail(6, code_action)
+        return "AutoWear Toast " + get_action_detail(6, code_action, type_action)
 
 
     elif taskcode == '166160670':
-        return "AutoNotification " + get_action_detail(6, code_action)
+        return "AutoNotification " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '191971507':
-        return "AutoWear ADB Wifi " + get_action_detail(6, code_action)
+        return "AutoWear ADB Wifi " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '234244923':
-        return "AutoInput Unlock Screen" + get_action_detail(0, code_action)
+        return "AutoInput Unlock Screen" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '268157305':
-        return "AutoNotification Tiles " + get_action_detail(6, code_action)
+        return "AutoNotification Tiles " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '319692633':
-        return "AutoShare Process Text " + get_action_detail(6, code_action)
+        return "AutoShare Process Text " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '344636446':
-        return "AutoVoice Trigger Alexa Routine " + get_action_detail(6, code_action)
+        return "AutoVoice Trigger Alexa Routine " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '557649458':
-        return "AutoWear Time " + get_action_detail(6, code_action)
+        return "AutoWear Time " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '565385068':
-        return "AutoWear Input " + get_action_detail(6, code_action)
+        return "AutoWear Input " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '774351906':
-        return " " + get_action_detail(6, code_action) # Join Action (contained in get_action_detail)
+        return " " + get_action_detail(6, code_action, type_action) # Join Action (contained in get_action_detail)
 
     elif taskcode == '778682267':
-        return "AutoInput Gestures " + get_action_detail(6, code_action)
+        return "AutoInput Gestures " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '811079103':
-        return "AutoInput Global Action " + get_action_detail(6, code_action)
+        return "AutoInput Global Action " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '906355163':
-        return "AutoWear Voice Screen " + get_action_detail(6, code_action)
+        return "AutoWear Voice Screen " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '940160580':
-        return "AutoShare " + get_action_detail(6, code_action)
+        return "AutoShare " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1027911289':
-        return "AutoVoice Set Cmd Id " + get_action_detail(6, code_action)
+        return "AutoVoice Set Cmd Id " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1099157652':
-        return "AutoTools Json Write " + get_action_detail(6, code_action)
+        return "AutoTools Json Write " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1040876951':
-        return "AutoInput UI Query " + get_action_detail(6, code_action)
+        return "AutoInput UI Query " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1165325195':
-        return "AutoTools Web Screen " + get_action_detail(6, code_action)
+        return "AutoTools Web Screen " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1250249549':
-        return "AutoInput Screen Off/On " + get_action_detail(6, code_action)
+        return "AutoInput Screen Off/On " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1246578872':
-        return "AutoWear Notification " + get_action_detail(6, code_action)
+        return "AutoWear Notification " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1304982781':
-        return "AutoTools Dialog " + get_action_detail(6, code_action)
+        return "AutoTools Dialog " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1410790256':
-        return "AutoWear Floating Icon " + get_action_detail(6, code_action)
+        return "AutoWear Floating Icon " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1644316156':
-        return "AutoNotification Reply " + get_action_detail(6, code_action)
+        return "AutoNotification Reply " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1754437993':
-        return "AutoVoice Recognize " + get_action_detail(6, code_action)
+        return "AutoVoice Recognize " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1830829821':
-        return "AutoWear 4 Screen " + get_action_detail(6, code_action)
+        return "AutoWear 4 Screen " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1957670352':
-        return "AutoWear App " + get_action_detail(6, code_action)
+        return "AutoWear App " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1339942270':
-        return "SharpTools Thing " + get_action_detail(6, code_action)
+        return "SharpTools Thing " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1452528931':
-        return "AutoContacts Query 2.0 " + get_action_detail(6, code_action)
+        return "AutoContacts Query 2.0 " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1620773086':
-        return "SharpTools A Thing " + get_action_detail(6, code_action)
+        return "SharpTools A Thing " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1447159672':
-        return "AutoTools Text " + get_action_detail(6, code_action)
+        return "AutoTools Text " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1508929357':
-        return "AutoTools " + get_action_detail(6, code_action)
+        return "AutoTools " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1732635924':
-        return "AutoInput Action " + get_action_detail(6, code_action)
+        return "AutoInput Action " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '1830656901':
-        return "AutoWear List Screens " + get_action_detail(6, code_action)
+        return "AutoWear List Screens " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '2046367074':
-        return "AutoNotification Cancel " + get_action_detail(6, code_action)
+        return "AutoNotification Cancel " + get_action_detail(6, code_action, type_action)
 
     elif 1000 < int(taskcode):
-        return "Call to Plugin " + get_action_detail(6, code_action)
+        return "Call to Plugin " + get_action_detail(6, code_action, type_action)
 
     else:
         return "Code " + taskcode + " not yet mapped"
@@ -1119,7 +1150,7 @@ def get_actions(current_task):
             shellSort(task_actions,count_of_actions)
         for action in task_actions:
             child = action.find('code')   # Get the <code> element
-            task_code = getcode(child, action)
+            task_code = getcode(child, action, True)
             if debug:
                 print('Task ID:',current_task.attrib['sr'],' Code:',child.text,' task_code:',task_code,'Action attr:',action.attrib)
             # Calculate the amount of indention required
@@ -1296,6 +1327,170 @@ def task_in_scene(the_task_id, all_of_the_scenes):
                         continue
     return False
 
+# Profile condition: Time
+def condition_time(the_item, cond_string):
+    to_hour, to_minute, from_hour, from_minute, rep, rep_type, from_variable, to_variable, = '', '', '', '', '', '', '', ''
+    for child in the_item:
+        if 'fh' == child.tag:
+            from_hour = child.text
+        elif 'fm' == child.tag:
+            from_minute = child.text
+        elif 'th' == child.tag:
+            to_hour = child.text
+        elif 'tm' == child.tag:
+            to_minute = child.text
+        elif 'rep' == child.tag:
+            if '2' == child.text:
+                rep_type = ' minutes '
+            else:
+                rep_type = ' hours '
+        elif 'repval' == child.tag:
+            rep = ' repeat every ' + child.text + rep_type
+        elif 'fromvar' == child.tag:
+            from_variable = child.text
+        elif 'tovar' == child.tag:
+            to_variable = child.text
+    if from_hour or from_minute:
+        cond_string = cond_string + 'Time: from ' + from_hour + ':' + from_minute.zfill(2) + rep
+    if to_hour or to_minute:
+        cond_string = cond_string + ' to ' + to_hour + ':' + to_minute.zfill(2)
+    elif from_variable or to_variable:
+        cond_string = cond_string + 'Time: from ' + from_variable + ' to ' + to_variable + ' ' + rep
+    else:
+        cond_string = cond_string + child.text + ' not yet mapped'
+    return cond_string
+
+# Profile condition: Day
+def condition_day(the_item, cond_string):
+    the_days_of_week = ''
+    days_of_month = ''
+    the_months = ''
+    for child in the_item:
+        if 'wday' in child.tag:
+            the_days_of_week = the_days_of_week + weekdays[int(child.text) - 1] + ' '
+        elif 'mday' in child.tag:
+            days_of_month = days_of_month + child.text + ' '
+        elif 'mnth' in child.tag:
+            the_months = the_months + months[int(child.text)] + ' '
+        else:
+            break
+    if the_days_of_week:
+        cond_string = cond_string + 'Days of Week: ' + the_days_of_week
+    if days_of_month:
+        cond_string = cond_string + 'Days of Month: ' + days_of_month + ' '
+    if the_months:
+        cond_string = cond_string + 'Months: ' + the_months + ' '
+    return cond_string
+
+def condition_state(the_item, cond_string):
+    state = ''
+    for child in the_item:
+        if child.tag == 'code':
+            if '2' == child.text:
+                state = 'BT Status'
+            elif '3' == child.text:
+                state = 'BT Connected'
+            elif '10' == child.text:
+                state = 'Power'
+            elif '30' == child.text:
+                state = 'Headset Plugged'
+            elif '37' == child.text:  # Variable Set
+                state = getcode(child, the_item, False)
+            elif '40' == child.text:
+                state = 'Call'
+            elif '165' == child.text:  # State code 165 = action code 37
+                child.text = '37'
+                state = getcode(child, the_item, False)
+            elif '122' == child.text:
+                state = 'Display Orientation'
+            elif '123' == child.text:
+                state = 'Display State'
+            elif '125' == child.text:
+                state = 'Proximity Sensor'
+            elif '140' == child.text:
+                state = getcode(child, the_item, False)
+            elif '160' == child.text:
+                state = 'WiFi Connected'
+            elif '186' == child.text:
+                child.text = '235'  # Custom Setting
+                state = getcode(child, the_item, False)
+            elif '235' == child.text:  # Custom Setting
+                state = getcode(child, the_item, False)
+            elif '1138194991' == child.text:
+                state = 'AutoWear'
+            else:
+                state = child.text + ' not yet mapped'
+            cond_string = cond_string + 'State ' + state
+            if debug:
+                cond_string = cond_string + ' (' + child.text + ')'
+        return cond_string
+
+# Profile condition: Event
+def condition_event(the_item, cond_string):
+    event = ''
+    the_event_code = the_item.find('code')
+    if '4' == the_event_code.text:
+        event = 'Phone Idle'
+    elif '7' == the_event_code.text:
+        event = 'Received Text'
+    elif '203' == the_event_code.text:
+        battery_levels = ['highest', 'high', 'normal', 'low', 'lowest']
+        pri = the_item.find('pri')
+        the_battery_level = battery_levels[(int(pri.text)-1)]
+        event = 'Battery Changed to ' + the_battery_level
+    elif '210' == the_event_code.text:
+        event = 'Display Off'
+    elif '307' == the_event_code.text:
+        event = 'Monitor Start'
+    elif '411' == the_event_code.text:
+        event = 'Device Boots'
+    elif '450' == the_event_code.text:
+        event = 'New Package'
+    elif '451' == the_event_code.text:
+        event = 'Package Updated'
+    elif '453' == the_event_code.text:
+        event = 'Package Removed'
+    elif '461' == the_event_code.text:
+        event = getcode(the_event_code, the_item, False)
+    elif '464' == the_event_code.text:
+        event = 'Notification Removed'
+    elif '1000' == the_event_code.text:
+        event = 'Display Unlocked'
+    elif '2075' == the_event_code.text:  # Custom Settings
+        the_event_code.text = '235'
+        event = getcode(the_event_code, the_item, False)
+    elif '2078' == the_event_code.text:
+        event = 'App Changed'
+    elif '2080' == the_event_code.text:  # BT Connected
+        the_event_code.text = '340'
+        event = getcode(the_event_code, the_item, False)
+    elif '2081' == the_event_code.text:
+        event = 'Music Track Changed'
+    elif '2085' == the_event_code.text:
+        event = 'Logcat Entry'
+    elif '2091' == the_event_code.text:
+        event = 'Logcat Entry'
+    elif '3001' == the_event_code.text:
+        event = 'Shake'
+    elif '3050' == the_event_code.text:  # Variable set
+        the_event_code.text = '547'
+        event = getcode(the_event_code, the_item, False)
+    elif '580953799' == the_event_code.text:
+        event = 'AutoShare'
+    elif '1691829355' == the_event_code.text:
+        event = 'SharpTools Thing'
+    elif '1861978578' == the_event_code.text:
+        event = 'AutoWear Command/Command Filter'
+    else:
+        event = the_event_code.text + ' not yet mapped'
+
+    if cond_string:
+        cond_string = cond_string + ' and '
+    cond_string = cond_string + 'Event ' + event
+    if debug:
+        cond_string = cond_string + ' (' + the_event_code.text + ')'
+    return cond_string
+
 # Given a Profile, return its list of conditions
 def parse_profile_condition(the_profile):
     cond_title = 'condition '
@@ -1304,133 +1499,23 @@ def parse_profile_condition(the_profile):
     for item in the_profile:
         if item.tag in ignore_items or 'mid' in item.tag:  # Bypass junk we don't care about
             continue
-        if condition:   # If we already have a condition, add 'and' (italisized)
+        if condition:   # If we already have a condition, add 'and' (italicized)
             condition = condition + ' <em>and</em> '
     # Condition = Time
         if 'Time' == item.tag:
-            to_hour, to_minute, from_hour, from_minute, rep, rep_type, from_variable, to_variable, = '', '', '', '', '', '', '', ''
-            for child in item:
-                if 'fh' == child.tag:
-                    from_hour = child.text
-                elif 'fm' == child.tag:
-                    from_minute = child.text
-                elif 'th' == child.tag:
-                    to_hour = child.text
-                elif 'tm' == child.tag:
-                    to_minute = child.text
-                elif 'rep' == child.tag:
-                    if '2' == child.text:
-                        rep_type  = ' minutes '
-                    else:
-                        rep_type = ' hours '
-                elif 'repval' == child.tag:
-                    rep = ' repeat every ' + child.text + rep_type
-                elif 'fromvar'  == child.tag:
-                    from_variable = child.text
-                elif 'tovar' == child.tag:
-                    to_variable = child.text
-            if from_hour or from_minute:
-                condition = condition + 'Time: from ' + from_hour + ':' + from_minute.zfill(2) + rep
-            if to_hour or to_minute:
-                condition = condition + ' to ' + to_hour + ':' + to_minute.zfill(2)
-            elif from_variable or to_variable:
-                condition = condition + 'Time: from ' + from_variable + ' to ' + to_variable + ' ' + rep
+            condition = condition_time(item, condition) # Get the Time condition
 
         # Condition = Day of week
         elif 'Day' == item.tag:
-            the_days_of_week = ''
-            days_of_month = ''
-            the_months = ''
-            for child in item:
-                if 'wday' in child.tag:
-                    the_days_of_week = the_days_of_week + weekdays[int(child.text)-1] + ' '
-                elif 'mday' in child.tag:
-                    days_of_month = days_of_month + child.text + ' '
-                elif 'mnth' in child.tag:
-                    the_months = the_months + months[int(child.text)] + ' '
-                else:
-                    break
-            if the_days_of_week:
-                condition = condition + 'Days of Week: ' + the_days_of_week
-            if days_of_month:
-                condition = condition + 'Days of Month: ' + days_of_month + ' '
-            if the_months:
-                condition = condition + 'Months: ' + the_months + ' '
-
+            condition = condition_day(item, condition)
 
         # Condition = State
         elif 'State' == item.tag:
-            state = ''
-            for child in item:
-                if child.tag == 'code':
-                    if '3' == child.text:
-                        state = 'BT Connected'
-                    elif '10' == child.text:
-                        state = 'Power'
-                    elif '165' == child.text:   # State code 165 = action code 37
-                        child.text = '37'
-                        state = getcode(child, item)
-                    elif '123' == child.text:
-                        state = 'Display State'
-                    elif '140' == child.text:
-                        state = 'Battery Level'
-                    elif '160' == child.text:
-                        state = 'WiFi Connected'
-                    elif '1138194991' == child.text:
-                        state = 'AutoWear'
-                    condition  = condition + 'State ' + state
-                    break
-            continue
+            condition = condition_state(item, condition)
 
         # Condition = Event
         elif 'Event' == item.tag:
-            event = ''
-            the_event_code = item.find('code')
-            if '7' == the_event_code.text:
-                event = 'Received Text'
-            elif '203' == the_event_code.text:
-                event = 'Battery Changed'
-            elif '307' == the_event_code.text:
-                event = 'Monitor Start'
-            elif '411' == the_event_code.text:
-                event = 'Device Boots'
-            elif '450' == the_event_code.text:
-                event = 'New Package'
-            elif '451' == the_event_code.text:
-                event = 'Package Updated'
-            elif '453' == the_event_code.text:
-                event = 'Package Removed'
-            elif '461' == the_event_code.text:
-                event = 'Notification'
-            elif '464' == the_event_code.text:
-                event = 'Notification Removed'
-            elif '1000' == the_event_code.text:
-                event = 'Display Unlocked'
-            elif '2070' == the_event_code.text:   # Custom Settings
-                the_event_code.text = '235'
-                event = getcode(the_event_code, item)
-            elif '2078' == the_event_code.text:
-                event = 'App Changed'
-            elif '2080' == the_event_code.text:   # BT Connected
-                the_event_code.text = '340'
-                event = getcode(the_event_code, item)
-            elif '2085' == the_event_code.text:
-                event = 'Logcat Entry'
-            elif '2091' == the_event_code.text:
-                event = 'Logcat Entry'
-            elif '3050' == the_event_code.text:   # Variable set
-                the_event_code.text = '547'
-                event = getcode(the_event_code, item)
-            elif '580953799' == the_event_code.text:
-                event = 'AutoShare'
-            elif '1691829355' == the_event_code.text:
-                event = 'SharpTools Thing'
-            elif '1861978578' == the_event_code.text:
-                event = 'AutoWear Command/Command Filter'
-            if condition:
-                condition = condition + ' and '
-            condition = condition + 'Event ' + event
-            continue
+            condition = condition_event(item, condition)
 
         # Condition = App
         elif 'App' == item.tag:
