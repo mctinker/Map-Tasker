@@ -1,4 +1,4 @@
-# MapTasker version 5.0
+# MapTasker
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
 
 This is an application in support of Tasker that is intended to run on a MAC.
@@ -37,37 +37,3 @@ Additonally, an optional OS X compiled version of this program has been provided
 Note: this has not been tested on other MACs and I would be interested in hearing feedback (mikrubin@gmail.com) as to whether or not this is working. 
  
   
-Change list:
-- 5.0 Added -p runtime option to display Profile's condition(s)
--     Fixed numerous bugs (see MapTasker.py)
-- 4.3 Bug fixes and support for a few additoinal Task actions (see code comments for details)
-- 4.2 Added: Support for single Task detail only (option -t='Task Name Here')                           
-- 4.1 Fixed: Location of output file corrected to be the current folder in msg box         
-    - Fixed: If set / not set were reversed                                                
-    - Added: Support for disabled Actions and action conditions (if ...                    
-- Version 4.0
-    - Added: indentation support for if/then sequences                                     
-    - Fixed: Action "End For or Stop" is just "End For"                                    
-    - Added: Support for more Task Action codes                                            
-    - Added: Action numbers
-    - Added: compiled distribution library                                                                
-- Version 3.0 
-    - Added: display label if found for Task action(s)                                     
-    - Added: Display entry vs exit Task type                                               
-    - Added: Support for many more Task Action codes                                                                                          
-    - Added: Support for 3 levels of detail: none, unnamed Tasks only, all Tasks           
-             Replaced argument -s with -d0 (no actions) and -d2 (all Task actions          
-             Default is -d1: actions for unnamed/anonymous Tasks only                      
-    - Fixed: Some Scenes with Long Tap were not capturing the Task                         
-    - Fixed: Project with no Tasks was showing incorrect Project name                      
-- Version 2.1:
-    - Fixed: actions were not sorted properly
-    - Fixed: Stop action improperly reported as Else action
-    - Added: Support for more Task Action codes
-- Version 2.0 Major rewrite:
-    1- Added "-l" runtime option to display in a linear fashion
-    2- Added detail mode, which displays the Task's actions for unnamed/anonymous Tasks
-       (Use "-s" runtime option to not display this detail)
--	Version 1.2 Added -v and -h arguments to display the program version and help                  
--	Version 1.2 launch browser to display results                                                    
--	Version 1.1: Added list all Tasks not called by a Profile
