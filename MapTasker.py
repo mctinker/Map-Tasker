@@ -6,11 +6,19 @@
 #                                                                                            #
 # Requirements                                                                               #
 #      1- easygui API : pip3 install easygui                                                 #
-#      2- Python version 3.9 or higher                                                       #
+#      2- python-tk@3.9 : brew install python-tk@3.9 or sudo apt-get install python3-tk      #
+#      3- Python version 3.9 or higher                                                       #
 #                                                                                            #
 #                                                                                            #
-# Version 5.1                                                                                #
+# Version 5.2                                                                                #
 #                                                                                            #
+# - 5.2 Added: additional Task actions and Profile configurations recognized                 #
+#       Added: If Profile condition is displayed, identify inverted conditions               #
+#       Added: Summary at end of all Projects with no Profiles                               #
+#       Added: Recognition of the existence of a Launcher Task                               #
+#       Fixed: Scene details not displaying for runtime option -d1 (default)                 #
+#       Fixed: Eliminated Profile & Task ID numbers...only needed for debug                  #
+#       Fixed: code with name of 'Task:' incorrectly caused Task color                       #
 # - 5.1 Added: additional Task actions and Profile configurations recognized                 #
 # - 5.0 Added: Changed default font to monospace: Courier                                    #
 #       Added: Action details for Power Mode, Mobile Data, Autosync and Setup Quick Setting  #
@@ -70,6 +78,7 @@ import re
 project_color = 'Black'   # Refer to the following for valid names: https://en.wikipedia.org/wiki/Web_colors
 profile_color = 'Blue'
 disabled_profile_color = 'Red'
+launcher_task_color = 'Chartreuse'
 task_color = 'Green'
 unknown_task_color = 'Red'
 scene_color = 'Purple'
@@ -88,6 +97,7 @@ browser_width = 200  # If text wraps over existing line, increase this number to
 profile_color_html = '<span style = "color:' + profile_color + '"</span>'
 disabled_action_html = ' <span style = "color:' + disabled_action_color + '"</span>[DISABLED]'
 disabled_profile_html = ' <span style = "color:' + disabled_profile_color + '"</span>[DISABLED] ' + profile_color_html
+launcher_task_html = ' <span style = "color:' + launcher_task_color + '"</span>[Launcher Task] ' + profile_color_html
 condition_color_html = ' <span style = "color:' + profile_condition_color + '"</span>'
 
 line_spacing = '0.0001em'
@@ -116,7 +126,7 @@ caveat5 = '- For option -d0, Tasks that are identified as "Unnamed/Anonymous" wi
 unknown_task_name = 'Unnamed/Anonymous.'
 no_project = '-none found.'
 no_profile = 'None or unnamed!'
-my_version = '5.1'
+my_version = '5.2'
 my_file_name = '/MapTasker.html'
 paragraph_color = '<p style = "color:'
 list_color = '<li style="color:'
@@ -242,10 +252,9 @@ def get_action_detail(code_flag, code_child, action_type):
             strip_string(item)
         return var1, extra_stuff
     elif code_flag == 5:   # Get Application info
-        lbl1 = ''
         for child in code_child:
             if child.tag == 'App':
-                if child.find('appClass') == None:
+                if child.find('appClass') is None:
                     return '', ''
                 if child.find('appClass').text is not None:
                     app = child.find('appClass').text
@@ -306,6 +315,9 @@ def getcode(code_child, code_action, type_action):
         detail1, detail2 = get_action_detail(5, code_action, type_action)
         return 'Tasker widget for ' + detail1 + ' with label ' + detail2
 
+    if taskcode == '25':
+        return 'Go Home'
+
     elif taskcode == '30':
         return "Wait for " + get_action_detail(3, code_action, type_action)
 
@@ -334,17 +346,17 @@ def getcode(code_child, code_action, type_action):
         return "End For" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '41':
-        det1, det2 = get_action_detail(2,code_action, type_action)
+        det1, det2 = get_action_detail(2, code_action, type_action)
         return "Send SMS " + det1 + ' message: ' + det2
 
     elif taskcode == '43':
         return "Else/Else If" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '46':
-        return "Create Scene " + get_action_detail(1,code_action, type_action)
+        return "Create Scene " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '47':
-        return "Show Scene " + get_action_detail(1,code_action, type_action)
+        return "Show Scene " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '48':
         return "Hide Scene " + get_action_detail(1, code_action, type_action)
@@ -353,7 +365,7 @@ def getcode(code_child, code_action, type_action):
         return "Destroy Scene " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '50':
-        det1, det2 = get_action_detail(2,code_action, type_action)
+        det1, det2 = get_action_detail(2, code_action, type_action)
         return "Element Value " + det1 + ' Element: ' + det2
 
     elif taskcode == '51':
@@ -367,24 +379,24 @@ def getcode(code_child, code_action, type_action):
         return "Element Back Colour of screen " + det1 + ' Element: ' + det2
 
     elif taskcode == '58':
-        det1, det2 = get_action_detail(2,code_action, type_action)
+        det1, det2 = get_action_detail(2, code_action, type_action)
         return "Element Size for Scene " + det1 + ' to ' + det2
 
     elif taskcode == '61':
-        return "Vibrate time at  " + get_action_detail(3,code_action, type_action)
+        return "Vibrate time at  " + get_action_detail(3, code_action, type_action)
 
     elif taskcode == '62':
         return "Vibrate Pattern of " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '65':
-        det1, det2 = get_action_detail(2,code_action, type_action)
+        det1, det2 = get_action_detail(2, code_action, type_action)
         return "Element Visibility " + det1 + ' to element match of ' + det2
 
     elif taskcode == '66':
         return "Element Image " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '68':
-        det1, det2 = get_action_detail(2,code_action, type_action)
+        det1, det2 = get_action_detail(2, code_action, type_action)
         return "Element Focus for scene: " + det1 + ' element: ' + det2
 
     elif taskcode == '71':
@@ -456,21 +468,21 @@ def getcode(code_child, code_action, type_action):
         return "Wifi Connected " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '162':
-            detail1 = get_action_detail(1, code_action, type_action)
-            state_flag = False
-            for child in code_action:   # Get whether active or inactive
-                if 'Int' == child.tag:
-                    if state_flag and child.attrib.get('val') is not None:  # We need the 2nd Int
-                        int_val =  child.attrib.get('val')
-                        if int_val == '1':
-                            detail2 = 'inactive'
-                        elif int_val == '0':
-                            detail2 = 'active'
-                        else:
-                            detail2 = 'disabled'
-                        return 'Setup Quick Setting set to ' + detail2 + ' for name ' + detail1
+        detail1 = get_action_detail(1, code_action, type_action)
+        state_flag = False
+        for child in code_action:   # Get whether active or inactive
+            if 'Int' == child.tag:
+                if state_flag and child.attrib.get('val') is not None:  # We need the 2nd Int
+                    int_val = child.attrib.get('val')
+                    if int_val == '1':
+                        detail2 = 'inactive'
+                    elif int_val == '0':
+                        detail2 = 'active'
                     else:
-                        state_flag = True
+                        detail2 = 'disabled'
+                    return 'Setup Quick Setting set to ' + detail2 + ' for name ' + detail1
+                else:
+                    state_flag = True
 
     if taskcode == '165':
         return 'Cancel Alarm' + get_action_detail(0, code_action, type_action)
@@ -482,7 +494,7 @@ def getcode(code_child, code_action, type_action):
         return "Network Access" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '171':
-        var1 = 'Power Mode' + get_action_detail(0, code_action, type_action)
+        return 'Power Mode' + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '175':
         detail1 = get_action_detail(0, code_action, type_action)  # Get label etc.
@@ -504,7 +516,7 @@ def getcode(code_child, code_action, type_action):
         return "Test Scene " + detail1 + ' store in ' + detail2
 
     elif taskcode == '195':
-        det1, det2 = get_action_detail(2,code_action, type_action)
+        det1, det2 = get_action_detail(2, code_action, type_action)
         return "Test Element scene:  " + det1 + ' element: ' + det2
 
     elif taskcode == '216':
@@ -517,11 +529,18 @@ def getcode(code_child, code_action, type_action):
         return "Wireless Settings" + get_action_detail(0, code_action, type_action)
 
     elif taskcode == '235':
-        detail1, lbl = get_action_detail(4,code_action, type_action)
-        detail2 = ''
+        detail2 = get_action_detail(3, code_action, type_action)
+        detail1, lbl = get_action_detail(4, code_action, type_action)
+        if detail2 == '0':
+            detail2 = 'Global'
+        elif detail2 == '1':
+            detail2 = 'Secure'
+        else:
+            detail2 = 'System'
+        detail3 = ''
         for item in detail1:
-            detail2 = detail2 + ' ' + item + ' '
-        return 'Custom Settings' + detail2 + ' ' + lbl
+            detail3 = detail3 + ' ' + item + ' '
+        return 'Custom Settings type ' + detail2 + ' ' + detail3 + lbl
 
     if taskcode == '245':
         return 'Back Button' + get_action_detail(0, code_action, type_action)
@@ -596,11 +615,11 @@ def getcode(code_child, code_action, type_action):
         return "Test Net " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '342':
-        det1, det2 = get_action_detail(2,code_action, type_action)
+        det1, det2 = get_action_detail(2, code_action, type_action)
         return "Test File with data " + det1 + ' store in ' + det2
 
     elif taskcode == '344':
-        det1, det2 = get_action_detail(2,code_action, type_action)
+        det1, det2 = get_action_detail(2, code_action, type_action)
         return "Test App " + det1 + ' store in ' + det2
 
     elif taskcode == '345':
@@ -608,7 +627,6 @@ def getcode(code_child, code_action, type_action):
         return "Test Variable " + detail1 + ' and store into ' + detail2
 
     elif taskcode == '347':
-        t = "Test Tasker and store results into " + get_action_detail(1, code_action, type_action)
         return "Test Tasker and store results into " + get_action_detail(1, code_action, type_action)
 
     elif taskcode == '348':
@@ -651,6 +669,13 @@ def getcode(code_child, code_action, type_action):
 
     elif taskcode == '373':
         return "Test Sensor " + get_action_detail(1, code_action, type_action)
+
+    elif taskcode == '374':
+        return "Screen Capture"
+
+    elif taskcode == '376':
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
+        return "Test Sensor file " + detail1 + ' mime type ' + detail2
 
     elif taskcode == '377':
         detail1, lbl = get_action_detail(4, code_action, type_action)
@@ -860,6 +885,22 @@ def getcode(code_child, code_action, type_action):
     elif taskcode == '902':
         return "Get Locations " + get_action_detail(1, code_action, type_action)
 
+    elif taskcode == '903':
+        detail1, detail2 = get_action_detail(2, code_action, type_action)
+        return "Get Voice for language " + detail2
+
+    elif taskcode == '905':
+        detail1 = get_action_detail(3, code_action, type_action)
+        if detail1 == '0':
+            detail2 = 'Off'
+        elif detail1 == '1':
+            detail2 = 'Device Only'
+        elif detail1 == '2':
+            detail2 = 'Battery Saving'
+        else:
+            detail2 = 'High Accuracy'
+        return "Location Mode set to " + detail2
+
     elif taskcode == '987':
         return "Soft Keyboard" + get_action_detail(0, code_action, type_action)
 
@@ -870,7 +911,6 @@ def getcode(code_child, code_action, type_action):
 
     elif taskcode == '140618776':
         return "AutoWear Toast " + get_action_detail(6, code_action, type_action)
-
 
     elif taskcode == '166160670':
         return "AutoNotification " + get_action_detail(6, code_action, type_action)
@@ -897,7 +937,7 @@ def getcode(code_child, code_action, type_action):
         return "AutoWear Input " + get_action_detail(6, code_action, type_action)
 
     elif taskcode == '774351906':
-        return " " + get_action_detail(6, code_action, type_action) # Join Action (contained in get_action_detail)
+        return " " + get_action_detail(6, code_action, type_action)  # Join Action (contained in get_action_detail)
 
     elif taskcode == '778682267':
         return "AutoInput Gestures " + get_action_detail(6, code_action, type_action)
@@ -984,7 +1024,7 @@ def ulify(element, out_style, lvl=int):   # lvl=0=heading 1=start list 2=Task/Pr
     string = ''
     # Heading..............................
     if lvl == 0 or lvl == 4:  # lvl=4 >>> Heading or plain text line
-        if lvl == 0:  #Heading
+        if lvl == 0:  # Heading
             string = "<b>" + element + "</b><br>\n"
         else:
             string = element + '<br>\n'
@@ -1006,7 +1046,7 @@ def ulify(element, out_style, lvl=int):   # lvl=0=heading 1=start list 2=Task/Pr
                 string = paragraph_color + profile_color + line_height + '"> ├⎯' + element + '</p>\n'
             else:
                 string = list_color + bullet_color + '" ><span style="color:' + profile_color + ';">' + element + '</span></li>\n'
-        elif 'Task:' in element and 'Perform Task:' not in element:  # Task ========================
+        elif 'Task:' == element[0:5]:  # Task ========================
             if out_style == 'L':
                 if unknown_task_name in element:
                     string = paragraph_color + unknown_task_color + line_height + '">&nbsp;&nbsp;&nbsp;&nbsp;├⎯' + element + '\n'
@@ -1061,7 +1101,7 @@ def my_output(output_list, list_level, style, out_string):
         out_string = temp_element[0]
     output_list.append(ulify(out_string, style, list_level))
     if debug_out:
-        print('out_string:',ulify(out_string, style, list_level))
+        print('out_string:', ulify(out_string, style, list_level))
     return
 
 
@@ -1075,7 +1115,7 @@ def build_action(alist, tcode, achild, indent, indent_amt):
     if count < 0:
         # indent_len = len(indent_amt)
         tcode = indent_amt + tcode
-        count = 0
+        #count = 0
     # Break-up very long actions at new line
     if tcode != '':
         newline = tcode.find('\n')  # Break-up new line breaks
@@ -1099,11 +1139,9 @@ def build_action(alist, tcode, achild, indent, indent_amt):
     return
 
 
-# Shell sort for Action list (Actions are not necessarily in numeric order in XML backup file.
+# Shell sort for Action list (Actions are not necessarily in numeric order in XML backup file).
 def shellSort(arr, n):
     gap = n // 2
-    attr1 = ET.Element
-    attr2 = ET.Element
     while gap > 0:
         j = gap
         # Check the array in from left to right
@@ -1147,12 +1185,12 @@ def get_actions(current_task):
             count_of_actions += 1
         # sort the Actions by attrib sr (e.g. sr='act0', act1, act2, etc.) to get them in true order
         if count_of_actions > 1:
-            shellSort(task_actions,count_of_actions)
+            shellSort(task_actions, count_of_actions)
         for action in task_actions:
             child = action.find('code')   # Get the <code> element
             task_code = getcode(child, action, True)
             if debug:
-                print('Task ID:',current_task.attrib['sr'],' Code:',child.text,' task_code:',task_code,'Action attr:',action.attrib)
+                print('Task ID:', current_task.attrib['sr'], ' Code:', child.text, ' task_code:', task_code, 'Action attr:', action.attrib)
             # Calculate the amount of indention required
             if 'End If' == task_code[0:6] or 'Else' == task_code[0:4] or 'End For' == task_code[0:7]:  # Do we un-indent?
                 indentation -= 1
@@ -1191,22 +1229,37 @@ def get_task_name(the_task_id, all_the_tasks, tasks_that_have_been_found, the_ta
 # Process Task/Scene text/line item: call recursively for Tasks within Scenes
 def process_list(list_type, the_output, the_list, all_task_list, all_scene_list, the_task, the_style,
                  tasks_found, detail):
+    # Output the item first (Task, Scene or Action)
     my_count = 0
     if the_style != 'L':
         my_output(the_output, 1, the_style, '')  # Start list_type list
-        have_task = ''
     for the_item in the_list:
+        temp_item = ''
+        if not debug:  # Temporarily strip off 'ID: nnn' for the output and then put it back in place for later
+            if '⎯Task:' in list_type:
+                temp_item = the_item
+                temp_list = list_type
+                the_item = ''
+                id_loc = list_type.find('ID:')
+                if id_loc != -1:
+                    list_type = list_type[0:id_loc]  # Drop the 'ID: nnn'
+        else:
+            print('def_processlist  the_item:', the_item, ' the_list:', the_list, ' list_type', list_type)
         if debug:
-            print('the_item:',the_item,' list_type:',list_type)
+            print('the_item:', the_item,' list_type:', list_type)
         if my_count > 0 and the_style == 'L':  # If more than one list_type, skip normal output
             my_output(the_output, 2, the_style, '<br>&nbsp;&nbsp;&nbsp;&nbsp;├⎯' + list_type + '&nbsp;' + the_item + '<br>')
         else:
-            my_output(the_output, 2, the_style,list_type + '&nbsp;' + the_item)
+            my_output(the_output, 2, the_style, list_type + '&nbsp;' + the_item)
             my_count += 1
+        if temp_item:   # Put the_item back with the 'ID: nnn' portion included.
+            the_item = temp_item
+            list_type = temp_list
+
         # Output Actions for this Task if displaying detail and/or Task is unknown
         # Do we get the Task's Actions?
-        #if ('Task:' in list_type and (detail > 0 and unknown_task_name in the_item)) or ('Task:' in list_type and detail == 2):
-        if ('Task:' in list_type and unknown_task_name in the_item) or ('Task:' in list_type and detail == 2):
+        if ('Task:' in list_type and unknown_task_name in the_item) or ('Task:' in list_type):
+        # if ('Task:' in list_type and unknown_task_name in the_item) or ('Task:' in list_type and detail > 0):
             if unknown_task_name in the_item or detail > 0:  # If Unknown task, then "the_task" is not valid, and we have to find it.
                 if '⎯Task:' in list_type:   # -Task: = Scene rather than a Task
                     temp = ["x", the_item]
@@ -1214,24 +1267,29 @@ def process_list(list_type, the_output, the_list, all_task_list, all_scene_list,
                     temp = the_item.split('ID: ')  # Unknown/Anonymous!  Task ID: nn    << We just need the nn
                 if len(temp) > 1:
                     the_task, kaka = get_task_name(temp[1], all_task_list, tasks_found, [temp[1]], '')
+
             # Get the Task's Actions
-            alist = get_actions(the_task)
-            if alist:
-                action_count = 1
-                my_output(the_output, 1, the_style, '')  # Start Action list
-                for taction in alist:
-                    if taction is not None:
-                        if 'Label for' in taction:
-                            my_output(the_output, 2, the_style, taction)
-                        else:
-                            if '...' == taction[0:3]:
-                                my_output(the_output, 2, the_style, 'Action: ' + taction)
+            #if detail > 0:    # Process Task's actions if -d1 or -d2
+                alist = get_actions(the_task)
+                if alist:
+                    action_count = 1
+                    my_output(the_output, 1, the_style, '')  # Start Action list
+                    for taction in alist:
+                        if taction is not None:
+                            if 'Label for' in taction:
+                                my_output(the_output, 2, the_style, taction)
                             else:
-                                my_output(the_output, 2, the_style, 'Action: ' + str(action_count).zfill(2) + ' ' + taction)
-                                action_count += 1
-                        if action_count == 2 and detail == 0 and unknown_task_name in the_item:  # Just show first Task if unknown Task
-                            break
-                my_output(the_output, 3, the_style, '')  # Close Action list
+                                if '...' == taction[0:3]:
+                                    my_output(the_output, 2, the_style, 'Action: ' + taction)
+                                else:
+                                    my_output(the_output, 2, the_style, 'Action: ' + str(action_count).zfill(2) + ' ' + taction)
+                                    action_count += 1
+                            if action_count == 2 and detail == 0 and unknown_task_name in the_item:  # Just show first Task if unknown Task
+                                break
+                            elif detail == 1 and unknown_task_name not in the_item:
+                                break
+                    my_output(the_output, 3, the_style, '')  # Close Action list
+
         # Must be a Scene.  Look for all "Tap" Tasks for Scene
         elif 'Scene:' == list_type and detail == 2:  # We have a Scene: get its actions
             have_a_scene_task = False
@@ -1248,15 +1306,14 @@ def process_list(list_type, the_output, the_list, all_task_list, all_scene_list,
                                             temp_task_list = [subchild.text]
                                             task_element, name_of_task = get_task_name(subchild.text, all_task_list, tasks_found, temp_task_list, '')
                                             temp_task_list = [subchild.text]  # reset to task name since get_task_name changes it's value
+                                            extra = '&nbsp;&nbsp;ID:'
                                             if subchild.tag == 'itemclickTask' or subchild.tag == 'clickTask':
-                                                task_type = '⎯Task: TAP&nbsp;&nbsp;ID:'
+                                                task_type = '⎯Task: TAP' + extra
                                             elif 'long' in subchild.tag:
-                                                task_type = '⎯Task: LONG TAP&nbsp;&nbsp;ID:'
+                                                task_type = '⎯Task: LONG TAP' + extra
                                             else:
-                                                task_type = '⎯Task: TEXT CHANGED&nbsp;&nbsp;ID:'
-                                            process_list(task_type, the_output, temp_task_list, all_task_list,
-                                                         all_scene_list, task_element, the_style,
-                                                         tasks_found, detail) # Call ourselves iteratively
+                                                task_type = '⎯Task: TEXT CHANGED' + extra
+                                            process_list(task_type, the_output, temp_task_list, all_task_list, all_scene_list, task_element, the_style, tasks_found, detail)  # Call ourselves iteratively
                                         elif subchild.tag == 'Str':
                                             break
                                     if have_a_scene_task:  # Add Scene's Tasks to total list of Scene's Tasks
@@ -1280,12 +1337,12 @@ def process_list(list_type, the_output, the_list, all_task_list, all_scene_list,
         my_output(the_output, 3, the_style, '')  # Close list_type list
         return
 
+
 # Find the Project belonging to the Task id passed in
-def get_project_for_solo_task( all_of_the_projects, the_task_id, projs_with_no_tasks):
+def get_project_for_solo_task(all_of_the_projects, the_task_id, projs_with_no_tasks):
     proj_name = no_project
     for project in all_of_the_projects:
         proj_name = project.find('name').text
-        proj_tasks = ''
         try:
             proj_tasks = project.find('tids').text
         except Exception as e:  # Project has no Tasks
@@ -1296,6 +1353,7 @@ def get_project_for_solo_task( all_of_the_projects, the_task_id, projs_with_no_t
         if the_task_id in proj_tasks:
             return proj_name, project
     return proj_name, project
+
 
 # Get a specific Profile's Tasks
 def get_profile_tasks(the_profile, all_the_tasks, found_tasks_list, task_list_output, the_task_element, the_task_name):
@@ -1312,7 +1370,8 @@ def get_profile_tasks(the_profile, all_the_tasks, found_tasks_list, task_list_ou
             return
     return
 
-# Identify whether or not the Task passed in is part of a Scene: True = yes, False = no
+
+# Identify whether the Task passed in is part of a Scene: True = yes, False = no
 def task_in_scene(the_task_id, all_of_the_scenes):
     for scene in all_of_the_scenes:
         for child in scene:  # Go through sub-elements in the Scene element
@@ -1326,6 +1385,7 @@ def task_in_scene(the_task_id, all_of_the_scenes):
                     else:
                         continue
     return False
+
 
 # Profile condition: Time
 def condition_time(the_item, cond_string):
@@ -1360,6 +1420,7 @@ def condition_time(the_item, cond_string):
         cond_string = cond_string + child.text + ' not yet mapped'
     return cond_string
 
+
 # Profile condition: Day
 def condition_day(the_item, cond_string):
     the_days_of_week = ''
@@ -1382,8 +1443,8 @@ def condition_day(the_item, cond_string):
         cond_string = cond_string + 'Months: ' + the_months + ' '
     return cond_string
 
+
 def condition_state(the_item, cond_string):
-    state = ''
     for child in the_item:
         if child.tag == 'code':
             if '2' == child.text:
@@ -1402,37 +1463,73 @@ def condition_state(the_item, cond_string):
                 child.text = '37'
                 state = getcode(child, the_item, False)
             elif '122' == child.text:
-                state = 'Display Orientation'
+                orientation = get_action_detail(1, the_item, False)
+                if orientation == '0':
+                    orientation = 'portrait'
+                else:
+                    orientation = 'landscape'
+                state = 'Display Orientation: ' + orientation
             elif '123' == child.text:
-                state = 'Display State'
+                display_state = get_action_detail(1, the_item, False)
+                if display_state == '0':
+                    display_state = 'off'
+                else:
+                    display_state = 'on'
+                state = 'Display State is ' + display_state
             elif '125' == child.text:
                 state = 'Proximity Sensor'
             elif '140' == child.text:
                 state = getcode(child, the_item, False)
+            elif '150' == child.text:
+                state = 'USB Connected'
             elif '160' == child.text:
-                state = 'WiFi Connected'
+                state = 'WiFi Connected (to) ' + get_action_detail(1, the_item, False)
             elif '186' == child.text:
                 child.text = '235'  # Custom Setting
                 state = getcode(child, the_item, False)
+            elif '188' == child.text:
+                state = 'Dark Mode'
             elif '235' == child.text:  # Custom Setting
                 state = getcode(child, the_item, False)
+            elif '40830242' == child.text:
+                state = 'AutoNotification Intercept'
             elif '1138194991' == child.text:
                 state = 'AutoWear'
             else:
                 state = child.text + ' not yet mapped'
             cond_string = cond_string + 'State ' + state
+            invert = the_item.find('pin')
+            if invert is not None:
+                if invert.text == 'true':
+                    cond_string = cond_string + ' <em>[inverted]</em>'
             if debug:
                 cond_string = cond_string + ' (' + child.text + ')'
         return cond_string
 
+
 # Profile condition: Event
 def condition_event(the_item, cond_string):
-    event = ''
     the_event_code = the_item.find('code')
     if '4' == the_event_code.text:
         event = 'Phone Idle'
+    elif '6' == the_event_code.text:
+        event = 'Phone Ringing caller ' + get_action_detail(1, the_item, False)
     elif '7' == the_event_code.text:
-        event = 'Received Text'
+        text_type = get_action_detail(3, the_item, False)
+        if text_type == '0':
+            text_type = 'Any'
+        elif text_type == '1':
+            text_type = 'MMS'
+        else:
+            text_type = 'SMS'
+        msg_fields = []
+        for msg_string in the_item.iter('Str'):
+            if msg_string.text is not None:
+                msg_fields.append(msg_string.text)
+            else:
+                msg_fields.append('')
+        event = 'Received Text type:' + text_type + ' sender:' + msg_fields[0] + ' content:' + msg_fields[1] + \
+                ' sim:' + msg_fields[2] + ' body:' +msg_fields[3]
     elif '203' == the_event_code.text:
         battery_levels = ['highest', 'high', 'normal', 'low', 'lowest']
         pri = the_item.find('pri')
@@ -1440,6 +1537,11 @@ def condition_event(the_item, cond_string):
         event = 'Battery Changed to ' + the_battery_level
     elif '210' == the_event_code.text:
         event = 'Display Off'
+    elif '222' == the_event_code.text:
+        str1, str2 = get_action_detail(2, the_item, False)
+        event = 'File Modified file ' + str1 + ' Event ' + str2
+    elif '302' == the_event_code.text:
+        event = 'Time/Date Set'
     elif '307' == the_event_code.text:
         event = 'Monitor Start'
     elif '411' == the_event_code.text:
@@ -1454,6 +1556,8 @@ def condition_event(the_item, cond_string):
         event = getcode(the_event_code, the_item, False)
     elif '464' == the_event_code.text:
         event = 'Notification Removed'
+    elif '599' == the_event_code.text:
+        event = 'Intent Received with action ' + get_action_detail(1, the_item, False)
     elif '1000' == the_event_code.text:
         event = 'Display Unlocked'
     elif '2075' == the_event_code.text:  # Custom Settings
@@ -1461,6 +1565,8 @@ def condition_event(the_item, cond_string):
         event = getcode(the_event_code, the_item, False)
     elif '2078' == the_event_code.text:
         event = 'App Changed'
+    elif '2095' == the_event_code.text:
+        event = 'Tick for ' + get_action_detail(1, the_item, False)
     elif '2080' == the_event_code.text:  # BT Connected
         the_event_code.text = '340'
         event = getcode(the_event_code, the_item, False)
@@ -1470,40 +1576,50 @@ def condition_event(the_item, cond_string):
         event = 'Logcat Entry'
     elif '2091' == the_event_code.text:
         event = 'Logcat Entry'
+    elif '2093' == the_event_code.text:
+        event = 'Assistant Action'
     elif '3001' == the_event_code.text:
         event = 'Shake'
     elif '3050' == the_event_code.text:  # Variable set
         the_event_code.text = '547'
         event = getcode(the_event_code, the_item, False)
+    elif '18927444' == the_event_code.text:
+        event = 'AutoApps Command'
+    elif '41628340' == the_event_code.text:
+        event = 'AutoVoice Recognized'
     elif '580953799' == the_event_code.text:
         event = 'AutoShare'
+    elif '1520257414' == the_event_code.text:
+        event = 'AutoNotification Intercept'
     elif '1691829355' == the_event_code.text:
         event = 'SharpTools Thing'
+    elif '1825107102' == the_event_code.text:
+        event = 'AutoNotification'
     elif '1861978578' == the_event_code.text:
         event = 'AutoWear Command/Command Filter'
     else:
         event = the_event_code.text + ' not yet mapped'
 
-    if cond_string:
-        cond_string = cond_string + ' and '
     cond_string = cond_string + 'Event ' + event
     if debug:
         cond_string = cond_string + ' (' + the_event_code.text + ')'
     return cond_string
 
+
 # Given a Profile, return its list of conditions
 def parse_profile_condition(the_profile):
     cond_title = 'condition '
-    ignore_items = ['cdate', 'edate', 'flags', 'id']
+    ignore_items = ['cdate', 'edate', 'flags', 'id', 'ProfileVariable']
     condition = ''   # Assume no condition
     for item in the_profile:
         if item.tag in ignore_items or 'mid' in item.tag:  # Bypass junk we don't care about
             continue
         if condition:   # If we already have a condition, add 'and' (italicized)
             condition = condition + ' <em>and</em> '
+
     # Condition = Time
         if 'Time' == item.tag:
-            condition = condition_time(item, condition) # Get the Time condition
+            condition = condition_time(item, condition)  # Get the Time condition
 
         # Condition = Day of week
         elif 'Day' == item.tag:
@@ -1545,6 +1661,7 @@ def parse_profile_condition(the_profile):
     else:
         return cond_title + condition
 
+
 # Clean up our memory hogs
 def clean_up_memory(tree, all_projects, all_profiles, all_tasks, all_scenes, root, output_list):
     for elem in tree.iter():
@@ -1556,6 +1673,7 @@ def clean_up_memory(tree, all_projects, all_profiles, all_tasks, all_scenes, roo
     root.clear()
     output_list.clear()
 
+
 # Main program here >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # Main program here >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>        
 def main():
@@ -1563,6 +1681,7 @@ def main():
     task_list = []
     found_tasks = []
     output_list = []
+    projects_without_profiles = []
     single_task = ''
     single_task_found = ''
     single_task_nme_name = ''
@@ -1574,7 +1693,7 @@ def main():
     help_text = help_text1 + help_text2 + help_text3 + help_text4
     # Get any arguments passed to program
     if debug:
-        print('sys.argv:',sys.argv)
+        print('sys.argv:', sys.argv)
     # First, let's look to see if this run is for a single Task
     for item in sys.argv:
         if '-t=' == item[0:3]:
@@ -1585,7 +1704,7 @@ def main():
     # Now go through the rest of the arguments
     for i, arg in enumerate(sys.argv):
         if debug:
-            print('arg:',arg[0:4])
+            print('arg:', arg[0:4])
         if arg == '-v':  # Version
             g.textbox(msg="MapTasker Version", title="MapTasker", text="Version " + my_version)
         elif arg == '-h':  # Help
@@ -1649,6 +1768,7 @@ def main():
             project_pids = project.find('pids').text  # Get a list of the Profiles for this Project
         # except xml.etree.ElementTree.ParseError doesn't compile:
         except Exception:  # Project has no Profiles
+            projects_without_profiles.append(project_name)
             my_output(output_list, 2, output_style, 'Profile: ' + no_profile)
         if project_pids != '':  # Project has Profiles?
             profile_id = project_pids.split(',')
@@ -1665,28 +1785,39 @@ def main():
                         our_task_name = ''
                         get_profile_tasks(profile, all_tasks, found_tasks, task_list, our_task_element, our_task_name)
                         profile_name = ''
+                        if debug:
+                            profile_id = profile.find('id').text
+                        # Examine Profile attributes
                         limit = profile.find('limit')  # Is the Profile disabled?
-                        if limit != None and limit.text == 'true':
-                            profile_name = disabled_profile_html
+                        if limit is not None and limit.text == 'true':
+                            disabled = disabled_profile_html
+                        else:
+                            disabled = ''
+                        launcher_xml = profile.find('ProfileVariable')   # Is there a Launcher Task with this Profile?
+                        if launcher_xml is not None:
+                            launcher = launcher_task_html
+                        else:
+                            launcher = ''
                         if display_profile_conditions:
                             profile_condition = parse_profile_condition(profile)  # Get the Profile's condition
                             if profile_condition:
-                                profile_name = condition_color_html + ' (' + profile_condition + ') ' + profile_color_html + profile_name
-                                # profile_name = profile_name + condition_color_html + ' (' + profile_condition + ') ' + profile_color_html
+                                profile_name = condition_color_html + ' (' + profile_condition + ') ' + profile_color_html + profile_name + launcher + disabled
                         try:
-                            profile_name = profile.find('nme').text  + profile_name    # Get Profile's name
-
+                            profile_name = profile.find('nme').text + profile_name    # Get Profile's name
                         except Exception as e:  # no Profile name
                             if display_profile_conditions:
                                 profile_condition = parse_profile_condition(profile)  # Get the Profile's condition
                                 if profile_condition:
-                                    profile_name = condition_color_html + ' (' + profile_condition + ') ' + profile_color_html + no_profile
+                                    profile_name = no_profile + condition_color_html + ' (' + profile_condition + ') ' + profile_color_html + launcher  + disabled
                                 else:
-                                    profile_name = profile_name + no_profile
+                                    profile_name = profile_name + no_profile + launcher  + disabled
                             else:
-                                profile_name = profile_name + no_profile
-
-                        my_output(output_list, 2, output_style, 'Profile: ' + profile_name)
+                                profile_name = profile_name + no_profile + launcher + disabled
+                        if debug:
+                            profile_name = profile_name + ' ID:' + profile_id
+                            my_output(output_list, 2, output_style,  profile_color_html + 'Profile: ' + profile_name)
+                        else:
+                            my_output(output_list, 2, output_style, 'Profile: ' + profile_name)
 
                 # We have the Tasks.  Now let's output them.
                 if single_task:   # Are we mapping just a single Task?
@@ -1741,7 +1872,7 @@ def main():
             if have_heading == 0:
                 my_output(output_list, 0, output_style, '<hr>')  # blank line
                 my_output(output_list, 0, output_style,
-                          'Tasks that are not in any Profile...')
+                          'Tasks that are not called by any Profile...')
                 my_output(output_list, 1, output_style, '')  # Start Task list
                 have_heading = 1
 
@@ -1752,7 +1883,7 @@ def main():
             except Exception as e:  # Task name not found!
                 # Unknown Task.  Display details if requested
                 task_name = unknown_task_name + '&nbsp;&nbsp;Task ID: ' + task_id
-                if task_in_scene(task_id, all_scenes):  #  Is this Task part of a Scene?
+                if task_in_scene(task_id, all_scenes):  # Is this Task part of a Scene?
                     continue  # Ignore it if it is in a Scene
                 else:     # Otherwise, let's add it to the count of unknown Tasks
                     unknown_task = '1'
@@ -1773,9 +1904,15 @@ def main():
                     if single_task != '' and single_task == single_task_nme_name:
                         single_task_found = '1'
                         output_list.clear()
-                        output_list = ['<b><font face=' + output_font + '>MapTasker ...</b>' ]
+                        output_list = ['<b><font face=' + output_font + '>MapTasker ...</b>']
+                    temp = ''
+                    if not unknown_task and display_detail == 1:  # Force -d0 if not unknown Task
+                        temp = display_detail
+                        display_detail = 0
                     process_list('Task:', output_list, task_list, all_tasks, all_scenes, task, output_style,
                                  found_tasks, display_detail)
+                    if temp:
+                        display_detail = temp
 
     # Provide total number of unnamed Tasks
     if unnamed_task_count > 0:
@@ -1796,9 +1933,15 @@ def main():
 
     # List Projects with no Tasks
     if len(projects_with_no_tasks) > 0 and single_task_found == '':
-        my_output(output_list, 0, output_style, '<hr><font color=Black>')  # line
+        my_output(output_list, 0, output_style, '<hr><font color=Black><em>Projects Without Tasks...</em>')  # line
         for item in projects_with_no_tasks:
             my_output(output_list, 4, output_style, 'Project ' + item + ' has no Tasks')
+
+    # List all Profiles with no Tasks
+    if projects_without_profiles:
+        my_output(output_list, 0, output_style, '<hr><font color=Black><em>Projects Without Profiles...</em>')  # line
+        for item in projects_without_profiles:
+            my_output(output_list, 4, output_style, 'Project ' + item + ' has no Profiles')
 
     # Requested single Task but invalid Task name provided (i.e. no Task found)?
     if single_task != '' and single_task_found == '':
@@ -1830,7 +1973,6 @@ def main():
     out_file = open(my_output_dir + my_file_name, "w")
 
     # Output the generated html
-    count = 0
     for item in output_list:
         # Change "Action: nn ..." to Action nn: ..." (i.e. move the colon)
         action_position = item.find('Action: ')
@@ -1847,7 +1989,6 @@ def main():
 
     # Clean up memory
     clean_up_memory(tree, all_projects, all_profiles, all_tasks, all_scenes, root, output_list)
-
 
     # Display final output
     webbrowser.open('file://' + my_output_dir + my_file_name, new=2)
