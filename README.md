@@ -34,6 +34,6 @@ Additonally, an optional OS X compiled version of this program has been provided
 - unzip dist.zip
 - To run MapTasker, simply double-click on `/dist/MapTasker/Maptasker`
  
-Note: this has not been tested on other MACs and I would be interested in hearing feedback (mikrubin@gmail.com) as to whether or not this is working. 
+Note: this has not been tested on other MACs and I would be interested in hearing feedback (mikrubin@gmail.com) as to whether or not this is working.    
  
   
