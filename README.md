@@ -27,7 +27,15 @@ While not tested, I don't see why this shouldn't work on Windows or Linux.
  
 Runtime: `python3.10 MapTasker.py -option1 -option2` ...
  
-Runtime options: `-h` for help,  `-d0` for silent mode (no Action details), `-d1` to display Action list if Task is unnamed or anonymous (default), `-d2` to display Action list for all Tasks, `-t='task name'` to display a single Task only, `-p` to display a Profile's condition(s), `-c(type)=color_name`  define a specific color to 'type', where (type) is one of the following: Project Profile Task Action DisableProfile UnknownTask DisabledAction ActionCondition       ProfileCondition LauncherTask Background     Example options: -cTask=Green -cBackground=Black   `-ch`  color help: display all valid colors"
+Runtime options: 
+`-h` for help,  
+`-d0` for silent mode (no Action details except for first Action on unnamed Tasks), 
+`-d1` to display Action list if Task is unnamed or anonymous (default), 
+`-d2` to display Action list for all Tasks, 
+`-t='task name'` to display a single Task only, 
+`-p` to display a Profile's condition(s), 
+`-c(type)=color_name`  define a specific color to 'type', where (type) is one of the following: Project Profile Task Action DisableProfile UnknownTask DisabledAction ActionCondition ProfileCondition LauncherTask Background     Example options: -cTask=Green -cBackground=Black   
+`-ch`  color help: display all valid colors"
  
 Additonally, an optional OS X compiled version of this program has been provided via the dist.zip:
 - download the dist.zip
