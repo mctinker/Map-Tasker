@@ -8,7 +8,7 @@ I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable
 A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
  
 Program dependencies:
--	Python version v3.9 or higher preferrably
+-	Python version v3.10 or higher
 -	easygui: install from Terminal using the command: `pip3 install --upgrade easygui`
 -	python-tk@3.9: install from Terminal using the command: `brew install python-tk@3.9`
 -	input Tasker backup.xml (anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6. 
@@ -25,9 +25,9 @@ If you make changes and think they may benefit others, feel free to forward them
  
 While not tested, I don't see why this shouldn't work on Windows or Linux.
  
-Runtime: `python3 MapTasker.py -option1 -option2` ...
+Runtime: `python3.10 MapTasker.py -option1 -option2` ...
  
-Runtime options: `-h` for help, `-l` for linear output rather than list, `-d0` for silent mode (no Action details), `-d1` to display Action list if Task is unnamed or anonymous (default), `-d2` to display Action list for all Tasks, -t='task name' to display a single Task only, -p to display a Profile's condition(s).
+Runtime options: `-h` for help,  `-d0` for silent mode (no Action details), `-d1` to display Action list if Task is unnamed or anonymous (default), `-d2` to display Action list for all Tasks, `-t='task name'` to display a single Task only, `-p` to display a Profile's condition(s), `-c(type)=color_name`  define a specific color to 'type', where (type) is one of the following: Project Profile Task Action DisableProfile UnknownTask DisabledAction ActionCondition       ProfileCondition LauncherTask Background     Example options: -cTask=Green -cBackground=Black   `-ch`  color help: display all valid colors"
  
 Additonally, an optional OS X compiled version of this program has been provided via the dist.zip:
 - download the dist.zip
