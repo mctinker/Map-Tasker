@@ -1,5 +1,5 @@
 # MapTasker
-## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
+## Display the (Tasker)[https://tasker.joaoapps.com/] Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
 
 This is an application in support of Tasker that is intended to run on a MAC.
  
@@ -9,13 +9,11 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
  
 Program dependencies:
 -	Python version v3.10 or higher
--	easygui: install from Terminal using the command: `pip3 install --upgrade easygui`
--	python-tk@3.9: install from Terminal using the command: `brew install python-tk@3.9`
 -	input Tasker backup.xml (anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6. 
 
-To install, simply download MapTasker.py or dist.zip (see below for dist.zip)
+To install, simply download MapTasker.py
  
-To run the program from the directory in which MapTasker.py resides, enter: `python3 MapTasker.py`
+To run the program from the directory in which MapTasker.py resides, enter: `python3.10 MapTasker.py` (see below for runtimem options)
  
 Program out: the file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.  
  
@@ -36,11 +34,6 @@ Runtime options:
 `-p` to display a Profile's condition(s),   
 `-c(type)=color_name`  define a specific color to 'type', where (type) is one of the following: Project Profile Task Action DisableProfile UnknownTask DisabledAction ActionCondition ProfileCondition LauncherTask Background     Example options: -cTask=Green -cBackground=Black     
 `-ch`  color help: display all valid colors"
- 
-Additonally, an optional OS X compiled version of this program has been provided via the dist.zip:
-- download the dist.zip
-- unzip dist.zip
-- To run MapTasker, simply double-click on `/dist/MapTasker/Maptasker`
  
 Note: this has not been tested on other MACs and I would be interested in hearing feedback (mikrubin@gmail.com) as to whether or not this is working.    
  
