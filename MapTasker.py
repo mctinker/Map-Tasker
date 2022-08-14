@@ -1,17 +1,24 @@
-##! /usr/bin/env python3
+#! /usr/bin/env python3
 
 # ########################################################################################## #
 #                                                                                            #
 # MapTasker: read the Tasker backup file to map out the configuration                        #
 #                                                                                            #
 # Requirements                                                                               #
-#      1- easygui API : pip3 install easygui                                                 #
-#      2- python-tk@3.9 : brew install python-tk@3.9 or sudo apt-get install python3-tk      #
-#      3- Python version 3.10 or higher                                                      #
+#      1- Python version 3.10 or higher                                                      #
 #                                                                                            #
 #                                                                                            #
-# Version 6.0                                                                                #
+# GNU General Public License v3.0                                                            #
+# Permissions of this strong copyleft license are conditioned on making available            #
+# complete source code of licensed works and modifications, which include larger works       #
+# using a licensed work, under the same license. Copyright and license notices must be       #
+# preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
+#                                                                                            #
+# Version 6.1                                                                                #
+#                                                                                            #
+# - 6.1 Changed: removed requirements for easygui and python-tk@3.9                          #
+#       Added: additional Task actions and Profile configurations recognized                 #
 # - 6.0 Added: support for colors as arguments -c(type)=color_name  type: Task/Profile/etc.  #
 #       Added: additional Task actions and Profile configurations recognized                 #
 #       Fixed: code refinement for better performance                                        #
@@ -77,8 +84,15 @@
 #                                                                                            #
 # ########################################################################################## #
 
-import easygui as g  # easygui dependency (requires tkinter)
-import tkinter  # python-tk dependency, required by easygui
+# importing tkinter and tkinter.ttk
+# and all their functions and classes
+from tkinter import *
+TK_SILENCE_DEPRECATION = 1  # Silence deprecation warning for tkinter
+
+# importing askopenfile function
+# from class filedialog
+from tkinter.filedialog import askopenfile
+
 import xml.etree.ElementTree as ET
 import os
 import sys
@@ -505,6 +519,9 @@ def getcode(code_child, code_action, type_action):
             return "Bluetooth Voice " + get_action_detail(7, code_action, type_action)
         case '300':
             return "Anchor" + get_action_detail(0, code_action, type_action)
+        case '303':
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            return "Alarm Volume to  " + detail1 + lbl
         case '304':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             return "Ringer Volume to  " + detail1 + lbl
@@ -520,6 +537,9 @@ def getcode(code_child, code_action, type_action):
                 return "Media Volume to  " + detail1 + lbl
             else:
                 return "Media Volume" + lbl
+        case '308':
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            return "System Volume to  " + detail1 + lbl
         case '311':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             if detail1 != '':
@@ -757,6 +777,8 @@ def getcode(code_child, code_action, type_action):
             return "Display Timeout " + detail1 + lbl
         case '815':
             return "List Apps into " + get_action_detail(1, code_action, type_action)
+        case '822':
+            return "Display Autorotate set to " + get_action_detail(7, code_action, type_action)
         case '877':
             return "Send Intent " + get_action_detail(1, code_action, type_action)
         case '888':
@@ -1267,6 +1289,7 @@ def condition_day(the_item, cond_string):
 
 def condition_state(the_item, cond_string):
     for child in the_item:
+        mobile_network_type = ['2G', '3G', '3G HSPA', '4G', '5G']
         if child.tag == 'code':
             match child.text:
                 case '2':
@@ -1283,6 +1306,19 @@ def condition_state(the_item, cond_string):
                     state = 'Call'
                 case '103':  # Light Level
                     state = getcode(child, the_item, False)
+                case '110':  # Light Level
+                    detail1, xtra = get_action_detail(8, the_item, False)
+                    count = 0
+                    detail2 = ''
+                    for items in detail1:
+                        if detail1[count] == '1':
+                            detail2 = detail2 + ' ' + mobile_network_type[count]
+                        count += 1
+                        if count > 4:
+                            break
+                    state = 'Mobile Network:' + detail2
+                case '143':  # Light Level
+                    state = 'Task Running: ' + get_action_detail(1, the_item, False)
                 case '165':  # State code 165 = action code 37
                     child.text = '37'
                     state = getcode(child, the_item, False)
@@ -1363,11 +1399,15 @@ def condition_event(the_item, cond_string):
             pri = the_item.find('pri')
             the_battery_level = battery_levels[(int(pri.text)-1)]
             event = 'Battery Changed to ' + the_battery_level
+        case '208':
+            event = 'Display On'
         case '210':
             event = 'Display Off'
         case '222':
             str1, str2 = get_action_detail(2, the_item, False)
             event = 'File Modified file ' + str1 + ' Event ' + str2
+        case '235':  # Custom Setting
+            event = getcode(the_event_code, the_item, False)
         case '302':
             event = 'Time/Date Set'
         case '307':
@@ -1520,6 +1560,17 @@ def clean_up_memory(tree, all_projects, all_profiles, all_tasks, all_scenes, roo
     output_list.clear()
 
 
+# Given a list [x,y,z] , print as x y z
+def print_list(list_title,the_list):
+    line_out = ''
+    if list_title:
+        print(list_title)
+    for item in the_list:
+        line_out = line_out +  + item + ' '
+    print(line_out)
+    return
+
+
 # Validate the color name provided.  If color name is 'h', simply display all the colors
 def validate_color(the_color):
     red_color_names = ['IndianRed', 'LightCoral', 'Salmon', 'DarkSalmon', 'LightSalmon', 'Crimson', 'Red', 'FireBrick',
@@ -1555,14 +1606,19 @@ def validate_color(the_color):
 
     all_colors = red_color_names + pink_color_names + orange_color_names + yellow_color_names + purple_color_names + \
                  green_color_names + blue_color_names + brown_color_names + white_color_names + gray_color_names
+
     if the_color == 'h':
-        help_colors = ''
-        for item in all_colors:  # Add a space between color names
-            help_colors = help_colors + ' ' + item
-        if g.textbox(msg='Valid Color Names', title='MapTasker', text=help_colors):
-            pass
-        else:
-            exit(4)
+        print_list('Red color names:', red_color_names)
+        print_list('Pink color names:', pink_color_names)
+        print_list('Orange color names:', orange_color_names)
+        print_list('Yellow color names:', yellow_color_names)
+        print_list('Purple color names:', purple_color_names)
+        print_list('Green color names:', green_color_names)
+        print_list('Blue color names:', blue_color_names)
+        print_list('Brown color names:', brown_color_names)
+        print_list('White color names:', white_color_names)
+        print_list('Gray color names:', gray_color_names)
+        exit(0)
     else:
         if the_color in all_colors:
             return True
@@ -1583,11 +1639,9 @@ def get_and_set_the_color(the_arg):
     color_type = the_color_option[0]
     logger.debug('the_color_option:' + the_color_option[0] + 'color_type:' + color_type)
     if color_type not in types_for_color:
-        if g.textbox(msg='MapTasker', title="MapTasker",
-                     text="Argument " + the_arg + " is an invalid 'type' for color.  See the help (-h)!"):
-            exit(7)
-        else:
-            exit(4)
+        print("Argument " + the_arg + " is an invalid 'type' for color.  See the help (-h)!")
+        exit(7)
+
     desired_color = the_color_option[1]
     logger.debug(' desired_color:' + desired_color)
     if validate_color(desired_color):  # If the color provided is valid...
@@ -1628,8 +1682,8 @@ def get_and_set_the_color(the_arg):
 # Main program here >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # Main program here >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 def main():
-    # Initialize local variables
 
+    # Initialize local variables
     task_list = []
     found_tasks = []
     output_list = []
@@ -1637,9 +1691,9 @@ def main():
     single_task = ''
     single_task_found = ''
     single_task_nme_name = ''
-    display_detail = 1     # Default display detail: unknown Tasks actions only
-    display_profile_conditions = False
-    my_version = '6.0'
+    display_detail = 1     # Default (1) display detail: unknown Tasks actions only
+    display_profile_conditions = False   # Default: False
+    my_version = '6.1'
 
     my_file_name = '/MapTasker.html'
     no_profile = 'None or unnamed!'
@@ -1650,7 +1704,7 @@ def main():
     launcher_task_html = ' <span style = "color:' + launcher_task_color + '"</span>[Launcher Task] ' + profile_color_html
     condition_color_html = ' <span style = "color:' + profile_condition_color + '"</span>'
 
-    help_text1 = 'This program reads a Tasker backup file and displays the configuration of Profiles/Tasks/Scenes\n\n'
+    help_text1 = '\nThis program reads a Tasker backup file (e.g. backup.xml) and displays the configuration of Profiles/Tasks/Scenes\n\n'
     help_text2 = 'Runtime options...\n\n  -h  for this help\n  -d0  display first Task action only, for unnamed Tasks only (silent)\n  ' \
                  '-d1  display all Task action details for unknown Tasks only (default)\n  ' \
                  "-d2  display full Task action details on every Task\n  " \
@@ -1661,7 +1715,7 @@ def main():
                  "         Example options: -cTask=Green -cBackground=Black\n  -ch  color help: display all valid colors"
 
     help_text3 = '\n\nExit codes...\n  exit 1- program error\n  exit 2- output file failure\n ' \
-                 ' exit 3- file selected is not a valid Tasker backup file\n  exit 4- output text box error\n ' \
+                 ' exit 3- file selected is not a valid Tasker backup file\n ' \
                  ' exit 5- requested single Task not found\n  exit 6- no or improper filename selected\n ' \
                  ' exit 7- invalid option'
     help_text4 = '\n\nThe output HTML file is saved in your current folder/directory'
@@ -1679,13 +1733,19 @@ def main():
     # Get any arguments passed to program
     logger.debug('sys.argv' + str(sys.argv))
 
+    # Initialize tkinter
+    tkroot = Tk()
+    tkroot.geometry('200x100')
+    tkroot.title("Select Tasker backup xml file")
+
     # Now go through the rest of the arguments
     for i, arg in enumerate(sys.argv):
         logger.debug('arg:' + arg)
         if arg == '-v':  # Version
-            g.textbox(msg="MapTasker Version", title="MapTasker", text="Version " + my_version)
+            print('MapTask version ' + my_version)
+            sys.exit()
         elif arg == '-h':  # Help
-            g.textbox(msg="MapTasker Help", title="MapTasker", text=help_text)
+            print(help_text)
             sys.exit()
         elif arg == '-d0':  # Detail: 0 = no detail
             display_detail = 0
@@ -1703,10 +1763,8 @@ def main():
             display_profile_conditions = True
         else:
             if 'MapTasker' not in arg:
-                if g.textbox(msg='MapTasker', title="MapTasker", text="Argument " + arg + " is invalid!"):
-                    exit(7)
-                else:
-                    exit(4)
+                print('Argument ' + arg + ' is invalid!')
+                exit(7)
 
     # Force full detail if we are doing a single Task
     if single_task:
@@ -1715,9 +1773,12 @@ def main():
     # Find the Tasker backup.xml
     msg = 'Locate the Tasker backup xml file to use to map your Tasker environment'
     title = 'MapTasker'
-    filename = g.fileopenbox(msg, title, default="*.xml", multiple=False)
+    dir_path = os.path.dirname(os.path.realpath(__file__))  # Get current directory
+    filename = askopenfile(parent=tkroot, mode='r',
+                           title='Select Tasker backup xml file', initialdir=dir_path,
+                           filetypes = [('XML Files', '*.xml')])
     if filename is None:
-        g.textbox(msg="MapTasker cancelled", title="MapTasker", text="Backup selection cancelled.  Program ended.")
+        print('Backup selection cancelled.  Program ended.')
         exit(6)
 
     # Import xml
@@ -1937,7 +1998,7 @@ def main():
     # Requested single Task but invalid Task name provided (i.e. no Task found)?
     if single_task != '' and single_task_found == '':
         output_list.clear()
-        g.textbox(msg="MapTasker", title="MapTasker", text="Task '" + single_task + "' not found!!")
+        print('Task ' + single_task + ' not found!!')
         clean_up_memory(tree, all_projects, all_profiles, all_tasks, all_scenes, root, output_list)
         exit(5)
 
@@ -1958,7 +2019,7 @@ def main():
     # Store the output in the current  directory
     my_output_dir = os.getcwd()
     if my_output_dir is None:
-        g.textbox(msg="MapTasker cancelled", title="MapTasker", text="An error occurred.  Program cancelled.")
+        print('MapTasker cancelled.  An error occurred.  Program cancelled.')
         clean_up_memory(tree, all_projects, all_profiles, all_tasks, all_scenes, root, output_list)
         exit(2)
     out_file = open(my_output_dir + my_file_name, "w")
@@ -1983,8 +2044,7 @@ def main():
 
     # Display final output
     webbrowser.open('file://' + my_output_dir + my_file_name, new=2)
-    g.textbox(msg="MapTasker Done", title="MapTasker",
-              text="You can find 'MapTasker.html' in the current folder.  Your browser has displayed it in a new tab.  Program end.")
+    print("You can find 'MapTasker.html' in the current folder.  Your browser has displayed it in a new tab.  Program end.")
 
 
 # Main call
