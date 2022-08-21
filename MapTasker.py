@@ -6,7 +6,15 @@
 #                                                                                            #
 # Requirements                                                                               #
 #      1- Python version 3.10 or higher                                                      #
+#      2- Your Tasker backup.xml file, uploaded to your MAC                                  #
 #                                                                                            #
+# Note: This should work on PC OS's other than a MAC, but it has not been tested             #
+#       on any other platform.                                                               #
+#                                                                                            #
+# Add the following statement (without quotes) to your Terminal Shell configuration file     #
+#  (BASH, Fish, etc.) to eliminate the runtime msg:                                          #
+#  DEPRECATION WARNING: The system version of Tk is deprecated ...                           #
+#  "export TK_SILENCE_DEPRECATION = 1"                                                       #
 #                                                                                            #
 # GNU General Public License v3.0                                                            #
 # Permissions of this strong copyleft license are conditioned on making available            #
@@ -15,8 +23,13 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 #                                                                                            #
-# Version 6.1                                                                                #
+# Version 6.2                                                                                #
 #                                                                                            #
+# - 6.2 Added: additional Task actions and Profile configurations recognized                 #
+#              Actions complete: Alert, App, Audio, Code, Display, File                      #
+#       Added: prompt msgbox user to locate file first time the program is run               #
+#       Fixed: don't display Scenes if displaying a single Task                              #
+#       Fixed: not always finding Task being searched for (-t='task_name')                   #
 # - 6.1 Changed: removed requirements for easygui and python-tk@3.9                          #
 #       Added: additional Task actions and Profile configurations recognized                 #
 # - 6.0 Added: support for colors as arguments -c(type)=color_name  type: Task/Profile/etc.  #
@@ -87,11 +100,20 @@
 # importing tkinter and tkinter.ttk
 # and all their functions and classes
 from tkinter import *
-TK_SILENCE_DEPRECATION = 1  # Silence deprecation warning for tkinter
+# Add the following statement to your Terminal Shell configuration file (BASH, Fish, etc.
+#  to eliminate the runtime msg: DEPRECATION WARNING: The system version of Tk is deprecated and may be removed...
+#  export TK_SILENCE_DEPRECATION = 1
 
-# importing askopenfile function
-# from class filedialog
+# importing askopenfile (from class filedialog) and messagebox functions
 from tkinter.filedialog import askopenfile
+from tkinter import messagebox
+
+# imports for keeping track of number of runs
+#from __future__ import print_function
+import atexit
+from os import path
+from json import dumps, loads
+
 
 import xml.etree.ElementTree as ET
 import os
@@ -122,8 +144,7 @@ output_font = 'Courier'    # OS X Default monospace font
 
 unknown_task_name = 'Unnamed/Anonymous.'
 no_project = '-none found.'
-
-paragraph_color = '<p style = "color:'
+counter_file = '.MapTasker_RunCount.txt'
 
 # Initial logging and debug mode
 debug = False    # Controls the output of IDs / codes
@@ -139,6 +160,17 @@ logger.info('info message')
 # logger.critical('critical message')
 logger.addHandler(logging.StreamHandler())
 
+
+def read_counter():
+    return loads(open(counter_file, "r").read()) + 1 if path.exists(counter_file) else 0
+
+
+def write_counter():
+    with open(counter_file, "w") as f:
+        f.write(dumps(counter))
+
+counter = read_counter()
+atexit.register(write_counter)
 
 # Strip all html style code from string (e.g. <h1> &lt)
 def strip_string(the_string):
@@ -212,6 +244,16 @@ def get_label_disabled_condition(child):
                 condition_count += 1
     return task_conditions + action_disabled + task_label
 
+
+# Convert a list of items to a comma-separated string of items
+def list_to_string(the_list):
+    if the_list is not None:
+        the_string = ''
+        for item in the_list:
+            the_string = the_string + ' , ' + item
+        return the_string
+    else:
+        return ''
 
 # Chase after relevant data after <code> Task action
 # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
@@ -298,7 +340,6 @@ def get_action_detail(code_flag, code_child, action_type):
                 clean_string = clean_string.replace('&gt;', '>')
                 clean_string = clean_string.replace('<big>', '')
                 return clean_string + extra_stuff  # Get rid of extra </font>
-                # return child3.text + extra_stuff
             else:
                 return extra_stuff
 
@@ -317,13 +358,35 @@ def get_action_detail(code_flag, code_child, action_type):
             my_int = [child.attrib.get('val') for child in code_child if child.tag == 'Int' and child.attrib.get('val') is not None]
             return my_int, extra_stuff
 
+        # Return first Str and first Int attrib
+        case 9:
+            var1 = code_child.find('Str')
+            if var1 is not None:
+                if var1.text is not None:
+                    the_string = var1.text
+                else:
+                    the_string = ''
+            var1 = code_child.find('Int')
+            if var1 is not None:
+                if var1.attrib.get('val') is not None:
+                    the_integer = var1.attrib.get('val')
+                else:
+                    the_integer = ''
+                    return var1.attrib.get('val'), extra_stuff
+            return the_string, the_integer, extra_stuff
         case _:
             return '???'
 
 
-# Returns the Task-action's/Profile-condition's name and associated variables depending on the input xml code
-# <code>nn</code>  ...translate the nn into it's Action name
-# code_action = xml element for Task Action or Profile-condition, based on type_action (True=Action)
+##############################################################################################################
+#                                                                                                            #
+#  getcode: given the xml <code>nn</code>, figure out what (action) code it is and return the translation    #
+#                                                                                                            #
+#          code_child: used to parse the specific <code> xml for action details.                             #
+#          code_action: the nnn in <code>nnn</code> xml                                                      #
+#          type_action: true if Task action, False if not (e.g. a Profile state or event condition)          #
+#                                                                                                            #
+##############################################################################################################
 def getcode(code_child, code_action, type_action):
     immersive_modes = ['Off', 'Hide Status Bar', 'Hide Navigation Bar', 'Hide Both', 'Toggle Last']
     rotation_types = ['Off', 'Portrait', 'Portrait Reverse', 'Landscape', 'Landscape Reverse']
@@ -332,11 +395,20 @@ def getcode(code_child, code_action, type_action):
     custom_setting_status = ['Global', 'Secure', 'System']
     location_mode_status = ['Off', 'Device Only', 'Battery Saving', 'High Accuracy']
     goto_type = ['Action Number', 'Action Loop', 'Top of Loop', 'End of Loop', 'End of If']
+    ringtone_type = ['Alarm', 'Notification', 'Ringer']
+    stayon_type = ['Never', 'With AC Power', 'With USB Power', 'With AC or USB Power', 'With Wireless Power',
+                   'With Wireless or AC Power', 'With Wireless or USB Power', 'With Wireless, AC or USB Power']
+    test_display_type = ['AutoRotate', 'Orientation', 'DPI', 'Available Resolution', 'Hardware Resolution',
+                         'Is Locked', 'Is Securely Locked', 'Display Density', 'Navigation Bar Height',
+                         'Navigation Bar Top Offset', 'Navigation Bar Top Offset', 'Status Bar Offset']
 
     task_code = code_child.text
 
     # Start the search for the code and provide the results
     match task_code:
+        case '15':
+            detail1, lbl = get_action_detail(4, code_action, type_action)
+            return 'Lock ' + list_to_string(detail1) + ' ' + lbl
         case '16':
             return 'System Lock' + get_action_detail(0, code_action, type_action)
         case '18':
@@ -431,6 +503,9 @@ def getcode(code_child, code_action, type_action):
             return "Set Clipboard To " + get_action_detail(1, code_action, type_action)
         case '109':
             return "Set Wallpaper " + get_action_detail(1, code_action, type_action)
+        case '112':
+            detail1, detail2 = get_action_detail(2, code_action, type_action)
+            return "Run SLA4 Script " + detail1 + ' ' + detail2
         case '113':
             return "Wifi Tether " + get_action_detail(7, code_action, type_action)
         case '118':
@@ -450,9 +525,10 @@ def getcode(code_child, code_action, type_action):
         case '133':
             return "Set Tasker Pref" + get_action_detail(0, code_action, type_action)
         case '135':
-            lbl = get_action_detail(1, code_action, type_action)
             detail1, detail2 = get_action_detail(3, code_action, type_action)  # Get int
-            return "Go To type " + goto_type[int(detail1)] + ' label: ' + lbl
+            return "Go To type " + goto_type[int(detail1)] + detail2
+        case '136':
+            return "Sound Effects set to " + get_action_detail(7, code_action, type_action)
         case '137':
             return "Stop" + get_action_detail(0, code_action, type_action)
         case '140':
@@ -461,6 +537,8 @@ def getcode(code_child, code_action, type_action):
                 return "Battery Level from " + battery_levels[0] + ' to ' + battery_levels[1] + xtra
             else:
                 return 'Battery Level' + get_label_disabled_condition(code_action)
+        case '150':
+            return 'Keyboard set ' + get_action_detail(7, code_action, type_action)
         case '159':
             return "Profile Status for " + get_action_detail(1, code_action, type_action)
         case '160':
@@ -478,6 +556,9 @@ def getcode(code_child, code_action, type_action):
             return 'Cancel Alarm' + get_action_detail(0, code_action, type_action)
         case '171':
             return 'Beep' + get_action_detail(0, code_action, type_action)
+        case '172':
+            detail1 = get_action_detail(1, code_action, type_action)
+            return 'Morse ' + detail1
         case '173':
             return "Network Access" + get_action_detail(0, code_action, type_action)
         case '171':
@@ -486,6 +567,10 @@ def getcode(code_child, code_action, type_action):
             detail1, detail2 = get_action_detail(3, code_action, type_action)  # Get int
             battery = battery_status[int(detail1[0])]
             return "Power Mode set to " + battery + ' ' + detail2
+        case '176':
+            return 'Take Screenshot file ' + get_action_detail(1, code_action, type_action)
+        case '177':
+            return "Haptic Feedback set to " + get_action_detail(7, code_action, type_action)
         case '193':
             return "Set Clipboard to " + get_action_detail(1, code_action, type_action)
         case '194':
@@ -507,10 +592,20 @@ def getcode(code_child, code_action, type_action):
             for item in detail1:
                 detail3 = detail3 + ' ' + item + ' '
             return 'Custom Settings type ' + custom_setting_status[int(detail2)] + ' ' + detail3 + lbl
+        case '244':
+            return "Toggle Split Screen" + get_action_detail(0, code_action, type_action)
         case '245':
             return 'Back Button' + get_action_detail(0, code_action, type_action)
+        case '247':
+            return "Show Recents" + get_action_detail(0, code_action, type_action)
         case '248':
             return "Turn Off" + get_action_detail(0, code_action, type_action)
+        case '254':
+            return "Speakerphone set to " + get_action_detail(7, code_action, type_action)
+        case '256':
+            return "Vibrate On Ringer set to " + get_action_detail(7, code_action, type_action)
+        case '259':
+            return "Notification Pulse set to " + get_action_detail(7, code_action, type_action)
         case '294':
             return "Bluetooth " + get_action_detail(7, code_action, type_action)
         case '295':
@@ -519,6 +614,9 @@ def getcode(code_child, code_action, type_action):
             return "Bluetooth Voice " + get_action_detail(7, code_action, type_action)
         case '300':
             return "Anchor" + get_action_detail(0, code_action, type_action)
+        case '301':
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            return "Mic Volume set to  " + detail1 + lbl
         case '303':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             return "Alarm Volume to  " + detail1 + lbl
@@ -531,6 +629,9 @@ def getcode(code_child, code_action, type_action):
                 return "Notification Volume to  " + detail1 + lbl
             else:
                 return "Notification Volume" + lbl
+        case '306':
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            return "In-Call Volume set to  " + detail1 + lbl
         case '307':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             if detail1 != '':
@@ -540,6 +641,11 @@ def getcode(code_child, code_action, type_action):
         case '308':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             return "System Volume to  " + detail1 + lbl
+        case '309':
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            return "DTMF Volume to  " + detail1 + lbl
+        case '310':
+            return "Vibrate Mode set to " + get_action_detail(7, code_action, type_action)
         case '311':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             if detail1 != '':
@@ -560,10 +666,7 @@ def getcode(code_child, code_action, type_action):
             return "Ask Permissions " + get_action_detail(1, code_action, type_action)
         case '321':
             detail1, lbl = get_action_detail(4, code_action, type_action)
-            detail2 = ''
-            for item in detail1:
-                detail2 = detail2 + ' , ' + item
-            return 'GD Upload ' + detail2 + ' ' + lbl
+            return 'GD Upload ' + list_to_string(detail1) + ' ' + lbl
         case '328':
             return "Keyboard " + get_action_detail(0, code_action, type_action)
         case '331':
@@ -591,14 +694,18 @@ def getcode(code_child, code_action, type_action):
         case '347':
             return "Test Tasker and store results into " + get_action_detail(1, code_action, type_action)
         case '348':
-            return "Test Display " + get_action_detail(1, code_action, type_action)
+            detail1, detail2 = get_action_detail(3, code_action, type_action)  # Get int
+            detail3 = test_display_type[int(detail1[0])]
+            return "Test Display " + detail3 + ' ' + detail2
         case '351':
             return 'HTTP Auth' + get_action_detail(0, code_action, type_action)
         case '354':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return "Array Set for array " + detail1 + ' with values ' + detail2
         case '355':
-            return "Array Push " + get_action_detail(1, code_action, type_action)
+            detail1, detail2 = get_action_detail(3, code_action, type_action)  # Get int
+            detail3, lbl = get_action_detail(4, code_action, type_action)  # Get all strings
+            return 'Array Push position:' + detail1 + list_to_string(detail3) + lbl
         case '357':
             return "Array Clear " + get_action_detail(1, code_action, type_action)
         case '356':
@@ -607,10 +714,7 @@ def getcode(code_child, code_action, type_action):
             return "Bluetooth Info " + get_action_detail(0, code_action, type_action)
         case '360':
             detail1, lbl = get_action_detail(4, code_action, type_action)
-            detail2 = ''
-            for item in detail1:
-                detail2 = detail2 + ' , ' + item
-            return 'Input Dialog ' + detail2 + ' ' + lbl
+            return 'Input Dialog ' + list_to_string(detail1) + ' ' + lbl
         case '361':
             return "Dark Mode " + get_action_detail(7, code_action, type_action)
         case '365':
@@ -621,23 +725,29 @@ def getcode(code_child, code_action, type_action):
             return "Camera " + get_action_detail(7, code_action, type_action)
         case '369':
             return "Array Process " + get_action_detail(1, code_action, type_action)
+        case '370':
+            return "Shortcut " + get_action_detail(1, code_action, type_action)
         case '373':
             return "Test Sensor " + get_action_detail(1, code_action, type_action)
         case '374':
             return "Screen Capture"
+        case '375':
+            detail1, lbl = get_action_detail(4, code_action, type_action)
+            return 'ADB Wifi ' + list_to_string(detail1) + ' ' + lbl
         case '376':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return "Test Sensor file " + detail1 + ' mime type ' + detail2
         case '377':
             detail1, lbl = get_action_detail(4, code_action, type_action)
-            detail2 = ''
-            for item in detail1:
-                detail2 = detail2 + ' , ' + item
-            return 'Text/Image Dialog ' + detail2 + ' ' + lbl
+            return 'Text/Image Dialog ' + list_to_string(detail1) + ' ' + lbl
         case '378':
             return "List Dialog " + get_action_detail(1, code_action, type_action)
         case '383':
             return "Settings Panel" + get_action_detail(0, code_action, type_action)
+        case '387':
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            if detail1 != '':
+                return "Accessibility Volume to " + detail1 + lbl
         case '389':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return "Multiple Variables Set " + detail1 + ' to ' + detail2
@@ -662,6 +772,9 @@ def getcode(code_child, code_action, type_action):
         case '404':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return "Copy File " + detail1 + ' to ' + detail2
+        case '405':
+            detail1, detail2 = get_action_detail(2, code_action, type_action)
+            return "Copy Dir " + detail1 + ' to ' + detail2
         case '406':
             return "Delete File " + get_action_detail(1, code_action, type_action)
         case '408':
@@ -671,10 +784,33 @@ def getcode(code_child, code_action, type_action):
         case '410':
             return "Write File " + get_action_detail(1, code_action, type_action)
         case '412':
-            return "List Files " + get_action_detail(1, code_action, type_action)
+            return "List Files directory " + get_action_detail(1, code_action, type_action)
+        case '415':
+            detail1, lbl = get_action_detail(4, code_action, type_action)
+            return 'Read Line from file ' + list_to_string(detail1) + ' ' + lbl
+        case '416':
+            detail1, lbl = get_action_detail(4, code_action, type_action)
+            return 'Read Paragraph from file ' + list_to_string(detail1) + ' ' + lbl
         case '417':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return "Read File " + detail1 + ' into ' + detail2
+        case '420':
+            detail1, detail2 = get_action_detail(2, code_action, type_action)
+            detail3, lbl = get_action_detail(3, code_action, type_action)
+            if detail3 == '1':
+                detail3 = ' (Delete Orig checked) '
+            else:
+                detail3 = ''
+            return "Zip file " + detail1 + ' into ' + detail2 + detail3 + lbl
+        case '421':
+            return "Get Screen Info (assistant)" + get_action_detail(0, code_action, type_action)
+        case '422':
+            detail1, detail2, lbl = get_action_detail(9, code_action, type_action)
+            if detail2 == '1':
+                detail2 = ' (Delete Zip checked) '
+            else:
+                detail2 = ''
+            return "UnZip file " + detail1 + detail2 + lbl
         case '424':
             return 'Get Battery Info' + get_action_detail(0, code_action, type_action)
         case '425':
@@ -687,6 +823,10 @@ def getcode(code_child, code_action, type_action):
             return 'Media Control' + get_action_detail(0, code_action, type_action)
         case '445':
             return "Music Play " + get_action_detail(1, code_action, type_action)
+        case '457':
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            if detail1 != '':
+                return "Force Rotation " + ringtone_type[int(detail1)] + ' sound:' + get_action_detail(1, code_action, type_action) + lbl
         case '449':
             return "Music Stop" + get_action_detail(0, code_action, type_action)
         case '461':
@@ -695,19 +835,37 @@ def getcode(code_child, code_action, type_action):
                 return "Notification"
             else:
                 return "Notification for app " + detail2
+        case '475':
+            detail1, detail2, lbl = get_action_detail(9, code_action, type_action)
+            if detail2 == '1':
+                detail2 = ' (Delete Orig checked) '
+            else:
+                detail2 = ''
+            return "GZip file " + detail1 + detail2 + lbl
+        case '476':
+            detail1, detail2, lbl = get_action_detail(9, code_action, type_action)
+            if detail2 == '1':
+                detail2 = ' (Delete Zip checked) '
+            else:
+                detail2 = ''
+            return "GUnzip file " + detail1 + detail2 + lbl
         case '511':
             return 'Torch' + get_action_detail(0, code_action, type_action)
         case '512':
-            return 'Status Bar' + get_action_detail(0, code_action, type_action)
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            if detail1 == '0':
+                detail2 = 'Expanded'
+            else:
+                detail2 = 'Collapsed'
+            return 'Status Bar' + detail2 + lbl
         case '513':
             return "Close System Dialogs" + get_action_detail(0, code_action, type_action)
         case '523':
             detail1, lbl = get_action_detail(4, code_action, type_action)
-            detail2 = ''
-            for item in detail1:
-                if item is not None:
-                    detail2 = detail2 + ' , ' + item
-            return 'Notify ' + detail2 + ' ' + lbl
+            return 'Notify ' + list_to_string(detail1) + ' ' + lbl
+        case '525':
+            detail1, detail2 = get_action_detail(2, code_action, type_action)
+            return "Notify LED title:" + detail1 + ' text:' + detail2
         case '536':
             return "Notification Vibrate with title " + get_action_detail(1, code_action, type_action)
         case '538':
@@ -715,6 +873,9 @@ def getcode(code_child, code_action, type_action):
         case '550':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return "Popup title " + detail1 + ' with message: ' + detail2
+        case '552':
+            detail1, lbl = get_action_detail(4, code_action, type_action)
+            return 'Popup Task Buttons ' + list_to_string(detail1) + ' ' + lbl
         case '543':
             return "Start System Timer " + get_action_detail(1, code_action, type_action)
         case '545':
@@ -728,15 +889,15 @@ def getcode(code_child, code_action, type_action):
             return "Variable Clear " + get_action_detail(1, code_action, type_action)
         case '550':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Popup title " + detail1 + ' with text ' + detail2
+            return 'Popup ' + detail1 + ' ' + detail2
+        case '551':
+            detail1, lbl = get_action_detail(4, code_action, type_action)
+            return 'Menu with fields: ' + list_to_string(detail1) + lbl
         case '559':
             return "Say " + get_action_detail(1, code_action, type_action)
         case '566':
             detail1, lbl = get_action_detail(4, code_action, type_action)
-            detail2 = ''
-            for item in detail1:
-                detail2 = detail2 + ' ' + item + ' '
-            return 'Set Alarm ' + detail2 + ' ' + lbl
+            return 'Set Alarm ' + list_to_string(detail1) + ' ' + lbl
         case '567':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return "Calendar Insert " + detail1 + ' with description: ' + detail2
@@ -756,19 +917,29 @@ def getcode(code_child, code_action, type_action):
         case '664':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return "Java Function return object " + detail1 + ' , ' + detail2
+        case '665':
+            return "Java Object " + get_action_detail(1, code_action, type_action)
         case '667':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return "SQL Query " + detail1 + ' to ' + detail2
         case '697':
             return "Shut Up" + get_action_detail(0, code_action, type_action)
+        case '669':
+            detail1, lbl = get_action_detail(4, code_action, type_action)
+            return 'Say To File ' + list_to_string(detail1) + ' ' + lbl
         case '775':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return "Write Binary " + detail1 + ' file: ' + detail2
+        case '776':
+            detail1, detail2 = get_action_detail(2, code_action, type_action)
+            return "Write Binary file " + detail1 + ' to Var: ' + detail2
         case '779':
             return "Notify Cancel " + get_action_detail(1, code_action, type_action)
         case '806':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             return "Notify Cancel " + detail1 + lbl
+        case '808':
+            return "Auto Brightness " + get_action_detail(7, code_action, type_action)
         case '810':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             return "Display Brightness to " + detail1 + lbl
@@ -777,6 +948,9 @@ def getcode(code_child, code_action, type_action):
             return "Display Timeout " + detail1 + lbl
         case '815':
             return "List Apps into " + get_action_detail(1, code_action, type_action)
+        case '820':
+            detail1, detail2 = get_action_detail(3, code_action, type_action)  # Get int
+            return "Stay On " + stayon_type[int(detail1)] + detail2
         case '822':
             return "Display Autorotate set to " + get_action_detail(7, code_action, type_action)
         case '877':
@@ -786,6 +960,14 @@ def getcode(code_child, code_action, type_action):
             return "Variable Add " + detail1 + lbl
         case '890':
             return "Variable Subtract " + get_action_detail(1, code_action, type_action)
+        case '900':
+            detail1, detail2 = get_action_detail(2, code_action, type_action)
+            detail3, lbl = get_action_detail(3, code_action, type_action)
+            if detail3 == '1':
+                detail3 = 'Include Hidden Files'
+            else:
+                detail3 = ''
+            return "Browse Files directory " + detail1 + detail3 + ' match:' + detail2
         case '902':
             return "Get Locations " + get_action_detail(1, code_action, type_action)
         case '903':
@@ -799,8 +981,20 @@ def getcode(code_child, code_action, type_action):
         case '906':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             return "Immersive Mode " + immersive_modes[int(detail1)] + lbl
+        case '907':
+            return "Status Bar Icons " + get_action_detail(1, code_action, type_action)
+        case '941':
+            detail1, detail2 = get_action_detail(2, code_action, type_action)
+            return "HTML Pop code: " + detail1 + ' Layout: '+ detail2
         case '987':
             return "Soft Keyboard" + get_action_detail(0, code_action, type_action)
+        case '988':
+            return "Car Mode " + get_action_detail(7, code_action, type_action)
+        case '989':
+            detail1 = get_action_detail(7, code_action, type_action)
+            if detail1 == 'Toggle':
+                detail1 ='Auto'
+            return "Car Mode " + detail1
     
     # Plugins start here
         case '117240295':
@@ -959,7 +1153,7 @@ def build_action(alist, tcode, achild, indent, indent_amt):
         tcode_len = len(tcode)
         # If no new line break or line break less than width set for browser, just put it as is
         # Otherwise, make it a continuation line using '...' has the continuation flag
-        if newline == -1 or tcode_len:
+        if newline == -1 and tcode_len > 80:
             alist.append(tcode)
         else:
             array_of_lines = tcode.split('\n')
@@ -1194,8 +1388,11 @@ def get_project_for_solo_task(all_of_the_projects, the_task_id, projs_with_no_ta
 
 
 # Get a specific Profile's Tasks
-def get_profile_tasks(the_profile, all_the_tasks, found_tasks_list, task_list_output):
+def get_profile_tasks(the_profile, all_the_tasks, found_tasks_list, task_list_output, task_to_be_found):
+    keys_we_dont_want = ['cdate', 'edate', 'flags', 'id']
     for child in the_profile:
+        if child.tag in keys_we_dont_want:
+            continue
         if 'mid' in child.tag:
             task_type = 'Entry'
             if 'mid1' == child.tag:
@@ -1204,6 +1401,8 @@ def get_profile_tasks(the_profile, all_the_tasks, found_tasks_list, task_list_ou
             if task_id == '18':
                 logger.debug('====================================' + task_id + '====================================')
             the_task_element, the_task_name = get_task_name(task_id, all_the_tasks, found_tasks_list, task_list_output, task_type)
+            if task_to_be_found and task_to_be_found == the_task_name:
+                break
         elif 'nme' == child.tag:  # If hit Profile's name, we've passed all the Task ids.
             return the_task_element, the_task_name
     return the_task_element, the_task_name
@@ -1566,7 +1765,7 @@ def print_list(list_title,the_list):
     if list_title:
         print(list_title)
     for item in the_list:
-        line_out = line_out +  + item + ' '
+        line_out = line_out + item + ' '
     print(line_out)
     return
 
@@ -1608,16 +1807,16 @@ def validate_color(the_color):
                  green_color_names + blue_color_names + brown_color_names + white_color_names + gray_color_names
 
     if the_color == 'h':
-        print_list('Red color names:', red_color_names)
-        print_list('Pink color names:', pink_color_names)
-        print_list('Orange color names:', orange_color_names)
-        print_list('Yellow color names:', yellow_color_names)
-        print_list('Purple color names:', purple_color_names)
-        print_list('Green color names:', green_color_names)
-        print_list('Blue color names:', blue_color_names)
-        print_list('Brown color names:', brown_color_names)
-        print_list('White color names:', white_color_names)
-        print_list('Gray color names:', gray_color_names)
+        print_list('\nRed color names:', red_color_names)
+        print_list('\nPink color names:', pink_color_names)
+        print_list('\nOrange color names:', orange_color_names)
+        print_list('\nYellow color names:', yellow_color_names)
+        print_list('\nPurple color names:', purple_color_names)
+        print_list('\nGreen color names:', green_color_names)
+        print_list('\nBlue color names:', blue_color_names)
+        print_list('\nBrown color names:', brown_color_names)
+        print_list('\nWhite color names:', white_color_names)
+        print_list('\nGray color names:', gray_color_names)
         exit(0)
     else:
         if the_color in all_colors:
@@ -1679,8 +1878,11 @@ def get_and_set_the_color(the_arg):
                 exit(1)
 
 
-# Main program here >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-# Main program here >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+##############################################################################################################
+#                                                                                                            #
+#   Main Program Starts Here                                                                                 #
+#                                                                                                            #
+##############################################################################################################
 def main():
 
     # Initialize local variables
@@ -1693,7 +1895,7 @@ def main():
     single_task_nme_name = ''
     display_detail = 1     # Default (1) display detail: unknown Tasks actions only
     display_profile_conditions = False   # Default: False
-    my_version = '6.1'
+    my_version = '6.2'
 
     my_file_name = '/MapTasker.html'
     no_profile = 'None or unnamed!'
@@ -1741,38 +1943,46 @@ def main():
     # Now go through the rest of the arguments
     for i, arg in enumerate(sys.argv):
         logger.debug('arg:' + arg)
-        if arg == '-v':  # Version
-            print('MapTask version ' + my_version)
-            sys.exit()
-        elif arg == '-h':  # Help
-            print(help_text)
-            sys.exit()
-        elif arg == '-d0':  # Detail: 0 = no detail
-            display_detail = 0
-        elif arg == '-d1':  # Detail: 0 = no detail
-            display_detail = 1
-        elif arg == '-d2':  # Detail: 2 = all Task's actions/detail
-            display_detail = 2
-        elif arg[0:3] == '-t=':
-            single_task = arg[3:len(arg)]
-        elif arg[0:3] == '-ch':
-            validate_color('h')
-        elif arg[0:2] == '-c':
-            get_and_set_the_color(arg)
-        elif arg == '-p':
-            display_profile_conditions = True
-        else:
-            if 'MapTasker' not in arg:
-                print('Argument ' + arg + ' is invalid!')
-                exit(7)
+        match arg[0:2]:
+            case '-v':  # Version
+                print('MapTask version ' + my_version)
+                sys.exit()
+            case '-h':  # Help
+                print(help_text)
+                sys.exit()
+            case '-d':
+                if arg == '-d0':  # Detail: 0 = no detail
+                    display_detail = 0
+                elif arg == '-d1':  # Detail: 0 = no detail
+                    display_detail = 1
+                elif arg == '-d2':  # Detail: 2 = all Task's actions/detail
+                    display_detail = 2
+            case '-t':
+                if arg[2:3] == '=':
+                    single_task = arg[3:len(arg)]
+            case '-c':
+                if arg[0:3] == '-ch':
+                    validate_color('h')
+                elif arg[0:2] == '-c':
+                    get_and_set_the_color(arg)
+            case '-p':
+                display_profile_conditions = True
+            case _:
+                if 'MapTasker' not in arg:
+                    print('Argument ' + arg + ' is invalid!')
+                    exit(7)
 
     # Force full detail if we are doing a single Task
     if single_task:
+        logger.debug('Single Task=' + single_task)
         display_detail = 2  # Force detailed output
 
     # Find the Tasker backup.xml
-    msg = 'Locate the Tasker backup xml file to use to map your Tasker environment'
-    title = 'MapTasker'
+    if counter < 1:  # Only display message box on first run
+        msg = 'Locate the Tasker backup xml file to use to map your Tasker environment'
+        title = 'MapTasker'
+        messagebox.showinfo(title, msg)
+
     dir_path = os.path.dirname(os.path.realpath(__file__))  # Get current directory
     filename = askopenfile(parent=tkroot, mode='r',
                            title='Select Tasker backup xml file', initialdir=dir_path,
@@ -1827,7 +2037,7 @@ def main():
                     # Get the Tasks for this Profile
                     if item == profile.find('id').text:  # Is this the Profile we want?
                         task_list = []  # Get the Tasks for this Profile
-                        our_task_element, our_task_name = get_profile_tasks(profile, all_tasks, found_tasks, task_list)
+                        our_task_element, our_task_name = get_profile_tasks(profile, all_tasks, found_tasks, task_list, single_task)
                         profile_name = ''
                         if debug:
                             profile_id = profile.find('id').text
@@ -1864,7 +2074,7 @@ def main():
                             my_output(output_list, 2, 'Profile: ' + profile_name)
 
                 # We have the Tasks.  Now let's output them.
-                if single_task:   # Are we mapping just a single Task?
+                if our_task_name != '' and single_task:   # Are we mapping just a single Task?
                     if single_task == our_task_name:
                         my_output(output_list, 0, heading)
                         my_output(output_list, 1, '')  # Start Project list
@@ -1884,15 +2094,16 @@ def main():
                                  found_tasks, display_detail)
 
         # Find the Scenes for this Project <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        scene_names = ''
-        try:
-            scene_names = project.find('scenes').text
-        except Exception as e:
-            pass
-        if scene_names != '':
-            scene_list = scene_names.split(',')
-            process_list('Scene:', output_list, scene_list, all_tasks, all_scenes, our_task_element,
-                         found_tasks, display_detail)
+        if not (single_task and single_task_found):  # Only if not displaying a single Task
+            scene_names = ''
+            try:
+                scene_names = project.find('scenes').text
+            except Exception as e:
+                pass
+            if scene_names != '':
+                scene_list = scene_names.split(',')
+                process_list('Scene:', output_list, scene_list, all_tasks, all_scenes, our_task_element,
+                             found_tasks, display_detail)
 
         my_output(output_list, 3, '')  # Close Profile list
     my_output(output_list, 3, '')  # Close Project list
