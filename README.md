@@ -15,7 +15,9 @@ To install, simply download MapTasker.py
  
 To run the program from the directory in which MapTasker.py resides, enter: 
  
- `python3.10 MapTasker.py` (see below for runtimem options)
+ `python3.10 MapTasker.py` 
+ 
+ (see below for runtime options)
  
 Program out: the file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.  
  
