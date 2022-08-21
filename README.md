@@ -13,7 +13,9 @@ Program dependencies:
 
 To install, simply download MapTasker.py
  
-To run the program from the directory in which MapTasker.py resides, enter: `python3.10 MapTasker.py` (see below for runtimem options)
+To run the program from the directory in which MapTasker.py resides, enter: 
+ 
+ `python3.10 MapTasker.py` (see below for runtimem options)
  
 Program out: the file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.  
  
@@ -26,6 +28,7 @@ While not tested, I don't see why this shouldn't work on Windows or Linux.
 Runtime: `python3.10 MapTasker.py -option1 -option2` ...
  
 Runtime options: 
+ 
 `-h` for help,  
 `-d0` for silent mode (no Action details except for first Action on unnamed Tasks),  
 `-d1` to display Action list if Task is unnamed or anonymous (default),   
