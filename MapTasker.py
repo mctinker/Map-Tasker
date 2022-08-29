@@ -22,78 +22,7 @@
 # using a licensed work, under the same license. Copyright and license notices must be       #
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
-#                                                                                            #
-# Version 6.2                                                                                #
-#                                                                                            #
-# - 6.2 Added: additional Task actions and Profile configurations recognized                 #
-#              Actions complete: Alert, App, Audio, Code, Display, File                      #
-#       Added: prompt msgbox user to locate file first time the program is run               #
-#       Fixed: don't display Scenes if displaying a single Task                              #
-#       Fixed: not always finding Task being searched for (-t='task_name')                   #
-# - 6.1 Changed: removed requirements for easygui and python-tk@3.9                          #
-#       Added: additional Task actions and Profile configurations recognized                 #
-# - 6.0 Added: support for colors as arguments -c(type)=color_name  type: Task/Profile/etc.  #
-#       Added: additional Task actions and Profile configurations recognized                 #
-#       Fixed: code refinement for better performance                                        #
-#       Fixed: Action 'Turn Wifi' was not designating on/off/toggle                          #
-#       Fixed: xml Actions with string 'Task' displaying in wrong color                      #
-#       Perform: converted if-then-else processes to python 3.10's match case statements     #
-#       Fixed: deal with extra html tags in plugin data which caused corrupted output font   #
-#       Fixed: Go To Action had incorrect details                                            #
-#       Fixed: Single Task option -t not working properly                                    #
-#       Changed: Removed list output style (option -l)                                       #
-# - 5.2 Added: additional Task actions and Profile configurations recognized                 #
-#       Added: If Profile condition is displayed, identify inverted conditions               #
-#       Added: Summary at end of all Projects with no Profiles                               #
-#       Added: Recognition of the existence of a Launcher Task                               #
-#       Fixed: Scene details not displaying for runtime option -d1 (default)                 #
-#       Fixed: Eliminated Profile & Task ID numbers...only needed for debug                  #
-#       Fixed: code with name of 'Task:' incorrectly caused Task color                       #
-# - 5.1 Added: additional Task actions and Profile configurations recognized                 #
-# - 5.0 Added: Changed default font to monospace: Courier                                    #
-#       Added: Action details for Power Mode, Mobile Data, Autosync and Setup Quick Setting  #
-#       Added: Display Profile's condition (Time, State, Event, etc.) with option -p         #
-#       Added: If Task is Unnamed, display just the first Task for -d0 option (like Tasker)  #
-#       Added: identify disabled Profiles                                                    #
-#       Fixed: exit code 1 is due to an program error...corrected and added exit 6           #
-#       Fixed: some Scene-related Tasks wre not being listed                                 #
-#       Fixed: Listing total unknown Tasks included those associated with Scenes             #
-#       Fixed: Changed 'Action: nn' to 'Action nn:'   (moved then colon)                     #
-# - 4.3 Added: Support for more Action codes (e.g. plugin & other Task calls                 #
-#       Fixed: Variable Search Replace action value 2 was sometimes incorrect                #
-#       Fixed: Removed print output line for -t='task-name' option                           #
-#       Fixed: Not displaying owning Project for Tasks not associated to a Profile           #
-#       Fixed: Invalid Tasks Not Found Count at end, if -d0 or -d1 options                   #
-# - 4.2 Fixed: Only display Scene Action detail for option -d2                               #
-#       Added: Support for single Task detail only (option -t='Task Name Here')              #
-#       Fixed: missing detail in Actions Notify, Custom Settings, Input Dialog & Set Alarm   #
-#       Added: Details for plugin Actions                                                    #
-#       Fixed: Unnamed/Anonymous Tasks output in wrong (Green) color when should be Red      #
-#       Fixed: Remove 'Task ID: nnn' from output (of no benefit)                             #
-# - 4.1 Fixed: Location of output file corrected to be the current folder in msg box         #
-#       Fixed: If set / not set were reversed                                                #
-#       Added: Support for disabled Actions and Action conditions (If...                     #
-# - 4.0 Added: indentation support for if/then sequences                                     #
-#       Fixed: Action "End For or Stop" is just "End For"                                    #
-#       Added: Support for more Task Action codes                                            #
-#       Added: Action numbers                                                                #
-# - 3.0 Added: display label if found for Task action(s)                                     #
-#       Added: Display entry vs exit Task type                                               #
-#       Added: Support for many more Task Action codes                                       #
-#       Added: Support for 3 levels of detail: none, unnamed Tasks only, all Tasks           #
-#              Replaced argument -s with -d0 (no actions) and -d2 (all Task actions          #
-#              Default is -d1: actions for unnamed/anonymous Tasks only                      #
-#       Fixed: Some Scenes with Long Tap were not capturing the Task                         #
-#       Fixed: Project with no Tasks was showing incorrect Project name                      #
-# - 2.1 Fixed: actions were not sorted properly                                              #
-#       Fixed: Stop action improperly reported as Else action                                #
-#       Added: Support for more Task Action codes                                            #
-# - 2.0 Added output style (linear or bullet), bullet_color as global var                    #
-#       Added detail mode (default) which can be turned off with option -s                   #
-#        displaying unnamed Task's Actions                                                   #
-# - 1.2 Added -v and -h arguments to display the program version and help                    #
-# - 1.2 launch browser to display results                                                    #
-# - 1.1 Added list of Tasks for which there is no Profile                                    #
+# Version 6.3                                                                                #
 #                                                                                            #
 # ########################################################################################## #
 
@@ -162,11 +91,11 @@ logger.addHandler(logging.StreamHandler())
 
 
 def read_counter():
-    return loads(open(counter_file, "r").read()) + 1 if path.exists(counter_file) else 0
+    return loads(open(counter_file, 'r').read()) + 1 if path.exists(counter_file) else 0
 
 
 def write_counter():
-    with open(counter_file, "w") as f:
+    with open(counter_file, 'w') as f:
         f.write(dumps(counter))
 
 counter = read_counter()
@@ -248,12 +177,76 @@ def get_label_disabled_condition(child):
 # Convert a list of items to a comma-separated string of items
 def list_to_string(the_list):
     if the_list is not None:
-        the_string = ''
-        for item in the_list:
-            the_string = the_string + ' , ' + item
+        s = ', '
+        the_string = s.join(the_list)
         return the_string
     else:
         return ''
+
+#  Given an action code (xml), find Int (integer) args and match with names
+#  Example:
+#  3 Ints with arg0, arg1 and arg2, to be filled in with their matching name0, name1 and name2 + the associated text
+#  action = xml element for Action <code>
+#  arguments = list of Int arguments to look for (e.g. arg1,arg5,arg9)
+#  names = list of entries to substitute the argn value against.  It can be a list, which signifies a pulldown list of options to map[ against.
+def get_xml_int_argument_to_value(action, arguments, names):
+    match_results = []
+    for child in action:
+        if 'Int' == child.tag:
+            the_arg = child.attrib.get('sr')
+            for arg in arguments:
+                if arg == the_arg:
+                    arg_location = arguments.index(arg)
+                    if child.attrib.get('val') is not None:
+                        the_int_value = child.attrib.get('val')
+                        if type(names[arg_location]) is list:
+                            the_list = names[arg_location]
+                            the_title = the_list[0]  # Title is first element in the list
+                            idx = 0
+                            running = True
+                            # Loop through list two items at a time: 1st element is digit, 2nd element is the name to apply if it matches.
+                            while running:
+                                idx = (idx + 1) % len(the_list)  # Get next element = first element in pair
+                                this_element = the_list[idx]
+                                if this_element.isdigit:   # First element of pair must be a digit
+                                    idx = (idx + 1) % len(the_list)
+                                    next_element = the_list[idx]  # Second element in pair
+                                    if ' Close After (seconds):' == next_element:
+                                        print('kaka')
+                                    if this_element == the_int_value:
+                                        match_results.append(the_title + next_element + ', ')
+                                        break
+                                    idx = (idx + 1) % len(the_list)
+                                    if idx > len(the_list):
+                                        break
+                                else:
+                                    exit(8)   #  Rutroh...not an even pair of elements
+                            break  # Get out of arg loop and get next child
+                        else:   # Not a list
+                            match_results.append(names[arg_location] + the_int_value)  # Just grab the integer value
+                            break
+                    else:
+                        match_results.append('')
+    return match_results
+
+
+#  Given an action code (xml), find Str (string) args and match with names
+#  Example:
+#  3 Strs with arg0, arg1 and arg2, to be filled in with their matching name0, name1 and name2 + the associated text
+def get_xml_str_argument_to_value(action, arguments, names):
+    match_results = []
+    for child in action:
+        if 'Str' == child.tag:
+            the_arg = child.attrib.get('sr')
+            for arg in arguments:
+                if arg == the_arg:
+                    arg_location = arguments.index(arg)
+                    if child.text is not None:
+                        match_results.append(names[arg_location] + child.text + ', ')
+                    else:
+                        match_results.append('')
+    return match_results
+
 
 # Chase after relevant data after <code> Task action
 # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
@@ -264,7 +257,11 @@ def get_action_detail(code_flag, code_child, action_type):
     else:
         extra_stuff = ''
     if debug and action_type:  # Add the code if this is an Action
-        extra_stuff = extra_stuff + ' code:' + code_child.find('code').text
+        extra_stuff = extra_stuff + '<font color=red> code:' + code_child.find('code').text
+    child = code_child.find('se')
+    if child is not None:
+        if child.text == 'false':
+            extra_stuff = ' [Continue Task After Error]' + extra_stuff
 
     # Figure out what to do based on the input variable code_flag
     match code_flag:
@@ -401,6 +398,16 @@ def getcode(code_child, code_action, type_action):
     test_display_type = ['AutoRotate', 'Orientation', 'DPI', 'Available Resolution', 'Hardware Resolution',
                          'Is Locked', 'Is Securely Locked', 'Display Density', 'Navigation Bar Height',
                          'Navigation Bar Top Offset', 'Navigation Bar Top Offset', 'Status Bar Offset']
+    filter_type = ['Black and White', 'Enhance Blue', 'Enhance Green', 'Greyscale', 'Set Alpha']
+    button_type = ['Button', 'Toggle', 'Range', 'Toggle Range', 'No Action']
+    media_type = ['Call', 'System', 'Ringer', 'Media', 'Alarm', 'Notification']
+    cmd_type = ['Next', 'Pause', 'Previous', 'Toggle Pause', 'Stop', 'Play [Simulated Only]', 'Rewind', 'Fast Forward']
+    location_type = ['Normal', 'Satellite', 'Terrain', 'Hybrid', 'None']
+    format_type = ['MP4', '3GPP', 'AMR Narrowband', 'AMR Wideband', 'Hgd']
+    source_type = ['Default', 'Microphone', 'Call Outgoing', 'Call Incoming', 'Call']
+    test_media_type = ['Music File Artist Tag', 'Music File Duration Tag', 'Music File Title Tag', 'Music Playing Position',
+                  'Music Playing Position Millis']
+    no_yes = ['No', 'Yes']
 
     task_code = code_child.text
 
@@ -423,9 +430,9 @@ def getcode(code_child, code_action, type_action):
             return 'Go Home' + get_action_detail(0, code_action, type_action)
         case '30':
             detail1, detail2 = get_action_detail(3, code_action, type_action)
-            return "Wait for " + detail1 + detail2
+            return 'Wait for ' + detail1 + detail2
         case '35':
-            return "Wait" + get_action_detail(0, code_action, type_action)
+            return 'Wait' + get_action_detail(0, code_action, type_action)
         case '37':
             extra_stuff = ''
             if type_action:
@@ -435,114 +442,121 @@ def getcode(code_child, code_action, type_action):
                     for children in cchild:
                         if 'Condition' == children.tag:
                             first_string, operator, second_string = evaluate_condition(children)
-                            return "If " + first_string + operator + second_string + extra_stuff
+                            return 'If ' + first_string + operator + second_string + extra_stuff
         case '38':
-            return "End If" + get_action_detail(0, code_action, type_action)
+            return 'End If' + get_action_detail(0, code_action, type_action)
         case '39':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "For " + detail1 + ' to ' + detail2
+            return 'For ' + detail1 + ' to ' + detail2
         case '40':
-            return "End For" + get_action_detail(0, code_action, type_action)
+            return 'End For' + get_action_detail(0, code_action, type_action)
         case '41':
             det1, det2 = get_action_detail(2, code_action, type_action)
-            return "Send SMS " + det1 + ' message: ' + det2
+            return 'Send SMS ' + det1 + ' message: ' + det2
         case '43':
-            return "Else/Else If" + get_action_detail(0, code_action, type_action)
+            return 'Else/Else If' + get_action_detail(0, code_action, type_action)
         case '46':
-            return "Create Scene " + get_action_detail(1, code_action, type_action)
+            return 'Create Scene ' + get_action_detail(1, code_action, type_action)
         case '47':
-            return "Show Scene " + get_action_detail(1, code_action, type_action)
+            return 'Show Scene ' + get_action_detail(1, code_action, type_action)
         case '48':
-            return "Hide Scene " + get_action_detail(1, code_action, type_action)
+            return 'Hide Scene ' + get_action_detail(1, code_action, type_action)
         case '49':
-            return "Destroy Scene " + get_action_detail(1, code_action, type_action)
+            return 'Destroy Scene ' + get_action_detail(1, code_action, type_action)
         case '50':
             det1, det2 = get_action_detail(2, code_action, type_action)
-            return "Element Value " + det1 + ' Element: ' + det2
+            return 'Element Value ' + det1 + ' Element: ' + det2
         case '51':
-            return "Element Text " + get_action_detail(1, code_action, type_action)
+            return 'Element Text ' + get_action_detail(1, code_action, type_action)
         case '54':
-            return "Element Text Colour " + get_action_detail(1, code_action, type_action)
+            return 'Element Text Colour ' + get_action_detail(1, code_action, type_action)
         case '55':
             det1, det2 = get_action_detail(2, code_action, type_action)
-            return "Element Back Colour of screen " + det1 + ' Element: ' + det2
+            return 'Element Back Colour of screen ' + det1 + ' Element: ' + det2
         case '57':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Element Position  for Scene " + detail1 + ' element ' + detail2
+            return 'Element Position  for Scene ' + detail1 + ' element ' + detail2
         case '58':
             det1, det2 = get_action_detail(2, code_action, type_action)
-            return "Element Size for Scene " + det1 + ' to ' + det2
+            return 'Element Size for Scene ' + det1 + ' to ' + det2
         case '61':
             detail1, detail2 = get_action_detail(3, code_action, type_action)
-            return "Vibrate time at  " + detail1 + detail2
+            return 'Vibrate time at  ' + detail1 + detail2
         case '62':
-            return "Vibrate Pattern of " + get_action_detail(1, code_action, type_action)
+            return 'Vibrate Pattern of ' + get_action_detail(1, code_action, type_action)
         case '65':
             det1, det2 = get_action_detail(2, code_action, type_action)
-            return "Element Visibility " + det1 + ' to element match of ' + det2
+            return 'Element Visibility ' + det1 + ' to element match of ' + det2
         case '66':
-            return "Element Image " + get_action_detail(1, code_action, type_action)
+            return 'Element Image ' + get_action_detail(1, code_action, type_action)
         case '68':
             det1, det2 = get_action_detail(2, code_action, type_action)
-            return "Element Focus for scene: " + det1 + ' element: ' + det2
+            return 'Element Focus for scene: ' + det1 + ' element: ' + det2
         case '71':
-            return "Element Text Size " + get_action_detail(1, code_action, type_action)
+            return 'Element Text Size ' + get_action_detail(1, code_action, type_action)
         case '100':
-            return "Search " + get_action_detail(1, code_action, type_action)
+            return 'Search ' + get_action_detail(1, code_action, type_action)
         case '101':
-            return "Take Photo filename " + get_action_detail(1, code_action, type_action)
+            return 'Take Photo filename ' + get_action_detail(1, code_action, type_action)
         case '102':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Open File " + detail1 + ' ' + detail2
+            return 'Open File ' + detail1 + ' ' + detail2
         case '103':
             detail1, xtra = get_action_detail(8, code_action, type_action)
-            return "Light Level from " + detail1[0] + ' to ' + detail1[1] + xtra
+            return 'Light Level from ' + detail1[0] + ' to ' + detail1[1] + xtra
         case '104':
-            return "Browse URL " + get_action_detail(1, code_action, type_action)
+            return 'Browse URL ' + get_action_detail(1, code_action, type_action)
         case '105':
-            return "Set Clipboard To " + get_action_detail(1, code_action, type_action)
+            return 'Set Clipboard To ' + get_action_detail(1, code_action, type_action)
         case '109':
-            return "Set Wallpaper " + get_action_detail(1, code_action, type_action)
+            return 'Set Wallpaper ' + get_action_detail(1, code_action, type_action)
         case '112':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Run SLA4 Script " + detail1 + ' ' + detail2
+            return 'Run SLA4 Script ' + detail1 + ' ' + detail2
         case '113':
-            return "Wifi Tether " + get_action_detail(7, code_action, type_action)
+            return 'Wifi Tether ' + get_action_detail(7, code_action, type_action)
         case '118':
-            return "HTTP Get " + get_action_detail(1, code_action, type_action)
+            return 'HTTP Get ' + get_action_detail(1, code_action, type_action)
         case '119':
-            return "Open Map, Navigate to " + get_action_detail(1, code_action, type_action)
+            return 'Open Map, Navigate to ' + get_action_detail(1, code_action, type_action)
         case '123':
-            return "Run Shell " + get_action_detail(1, code_action, type_action)
+            return 'Run Shell ' + get_action_detail(1, code_action, type_action)
         case '126':
-            return "Return" + get_action_detail(0, code_action, type_action)
+            return 'Return' + get_action_detail(0, code_action, type_action)
         case '129':
-            return "JavaScriptlet " + get_action_detail(1, code_action, type_action)
+            return 'JavaScriptlet ' + get_action_detail(1, code_action, type_action)
         case '130':
-            return "Perform Task: " + get_action_detail(1, code_action, type_action)
+            return 'Perform Task: ' + get_action_detail(1, code_action, type_action)
         case '131':
-            return "JavaScript " + get_action_detail(1, code_action, type_action)
+            return 'JavaScript ' + get_action_detail(1, code_action, type_action)
         case '133':
-            return "Set Tasker Pref" + get_action_detail(0, code_action, type_action)
+            return 'Set Tasker Pref' + get_action_detail(0, code_action, type_action)
         case '135':
             detail1, detail2 = get_action_detail(3, code_action, type_action)  # Get int
-            return "Go To type " + goto_type[int(detail1)] + detail2
+            return 'Go To type ' + goto_type[int(detail1)] + detail2
         case '136':
-            return "Sound Effects set to " + get_action_detail(7, code_action, type_action)
+            return 'Sound Effects set to ' + get_action_detail(7, code_action, type_action)
         case '137':
-            return "Stop" + get_action_detail(0, code_action, type_action)
+            return 'Stop' + get_action_detail(0, code_action, type_action)
         case '140':
             battery_levels, xtra = get_action_detail(8, code_action, type_action)
             if battery_levels:
-                return "Battery Level from " + battery_levels[0] + ' to ' + battery_levels[1] + xtra
+                return 'Battery Level from ' + battery_levels[0] + ' to ' + battery_levels[1] + xtra
             else:
                 return 'Battery Level' + get_label_disabled_condition(code_action)
         case '150':
             return 'Keyboard set ' + get_action_detail(7, code_action, type_action)
+        case '156':
+            the_arguments = ['arg1', 'arg2']  # Ints: Format, Locality, Best Timeing
+            the_names = [[' Locality:', '0', 'English', '1', ' German/Deutsch'],
+                         ' Beat Timing:']
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'MIDI Play  Format: Tasker, ' + the_int_values[0]+ the_int_values[1] + \
+                   ' Score:' + get_action_detail(1, code_action, type_action)
         case '159':
-            return "Profile Status for " + get_action_detail(1, code_action, type_action)
+            return 'Profile Status for ' + get_action_detail(1, code_action, type_action)
         case '160':
-            return "Wifi Connected " + get_action_detail(1, code_action, type_action)
+            return 'Wifi Connected ' + get_action_detail(1, code_action, type_action)
         case '162':
             detail1 = get_action_detail(1, code_action, type_action)
             state_flag = False
@@ -560,231 +574,414 @@ def getcode(code_child, code_action, type_action):
             detail1 = get_action_detail(1, code_action, type_action)
             return 'Morse ' + detail1
         case '173':
-            return "Network Access" + get_action_detail(0, code_action, type_action)
+            return 'Network Access' + get_action_detail(0, code_action, type_action)
         case '171':
             return 'Power Mode' + get_action_detail(0, code_action, type_action)
         case '175':
             detail1, detail2 = get_action_detail(3, code_action, type_action)  # Get int
             battery = battery_status[int(detail1[0])]
-            return "Power Mode set to " + battery + ' ' + detail2
+            return 'Power Mode set to ' + battery + ' ' + detail2
         case '176':
             return 'Take Screenshot file ' + get_action_detail(1, code_action, type_action)
         case '177':
-            return "Haptic Feedback set to " + get_action_detail(7, code_action, type_action)
+            return 'Haptic Feedback set to ' + get_action_detail(7, code_action, type_action)
+        case '185':
+            detail1, lbl = get_action_detail(8, code_action, type_action)  # Get int
+            detail3 = filter_type[int(detail1[0])]
+            return 'Filter Image mode ' + detail3 + ' threshold:' + detail1[1] + lbl
+        case '187':
+            detail1 = get_action_detail(1, code_action, type_action)  # Get Str
+            detail2, lbl = get_action_detail(8, code_action, type_action)  # Get all Ints
+            if detail2[1] == 1:
+                detail3 = ' Delete From Memory After '
+            else:
+                detail3 = ''
+            return 'Save Image image quality:' + detail2[0] + detail3 + ' file:' + detail1
+        case '188':
+            max_wh = ''
+            lbl = get_action_detail(0, code_action, type_action)
+            for child in code_action:   #  We have to traverse the xml here due to complexity
+                if 'Img' == child.tag:
+                    sub_child = child.find('nme')
+                    if sub_child is not None:
+                        the_image = child.find('nme').text
+                elif 'Int' == child.tag:
+                    sub_child = child.find('var')
+                    if sub_child is not None:
+                        if sub_child.text is not None:
+                            max_wh = ' Max Height or Width:' + sub_child.text
+                    else:  # Get second (or first) Int
+                        if child.attrib.get('val') is not None:
+                            if child.attrib.get('val') == '1':
+                                detail2 = ' Respect EXIF Orientation'
+                            else:
+                                detail2 = ''
+                        break
+            return 'Load Image ' + the_image + max_wh + detail2 + lbl
+        case '189':
+            detail1, lbl = get_action_detail(8, code_action, type_action)
+            return 'Crop Image from left:' + detail1[0] + ' from right:' + detail1[1] + ' from top:' + detail1[2] + ' from bottom:' + detail1[3] + lbl
+        case '190':
+            detail1, detail2 = get_action_detail(3, code_action, type_action)  # Get int
+            if detail1 == '0':
+                detail1 = 'Horizontal'
+            else:
+                detail1 = 'Vertical'
+            return 'Flip Image ' + detail1 + detail2
+        case '191':
+            detail1, detail2 = get_action_detail(8, code_action, type_action)  # Get all Ints
+            if detail1[0] == '0':
+                detail1 = 'Left'
+            else:
+                detail1 = 'Right'
+            return 'Rotate Image ' + detail1 + detail2
+        case '192':
+            the_arguments = ['arg0', 'arg2']  # Int: Command, Simulate Button, Use Notification
+            the_names = ['', '']
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Play Ringtone  Type:' + ringtone_type[int(the_int_values[0])] + ', Stream:' + media_type[int(the_int_values[1])] + \
+            ', Sound:' + get_action_detail(1, code_action,type_action)
         case '193':
-            return "Set Clipboard to " + get_action_detail(1, code_action, type_action)
+            return 'Resize Image ' + get_action_detail(1, code_action, type_action)
         case '194':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Test Scene " + detail1 + ' store in ' + detail2
+            return 'Test Scene ' + detail1 + ' store in ' + detail2
         case '195':
             det1, det2 = get_action_detail(2, code_action, type_action)
-            return "Test Element scene:  " + det1 + ' element: ' + det2
+            return 'Test Element scene:  ' + det1 + ' element: ' + det2
         case '216':
-            return "App Settings " + get_action_detail(1, code_action, type_action)
+            return 'App Settings ' + get_action_detail(1, code_action, type_action)
         case '203':
-            return "Date Settings " + get_action_detail(0, code_action, type_action)
+            return 'Date Settings ' + get_action_detail(0, code_action, type_action)
         case '214':
-            return "Wireless Settings" + get_action_detail(0, code_action, type_action)
+            return 'Wireless Settings' + get_action_detail(0, code_action, type_action)
         case '235':
-            detail2, xtr = get_action_detail(3, code_action, type_action)
+            detail2, lbl = get_action_detail(3, code_action, type_action)
             detail1, lbl = get_action_detail(4, code_action, type_action)
             detail3 = ''
             for item in detail1:
                 detail3 = detail3 + ' ' + item + ' '
             return 'Custom Settings type ' + custom_setting_status[int(detail2)] + ' ' + detail3 + lbl
         case '244':
-            return "Toggle Split Screen" + get_action_detail(0, code_action, type_action)
+            return 'Toggle Split Screen' + get_action_detail(0, code_action, type_action)
         case '245':
             return 'Back Button' + get_action_detail(0, code_action, type_action)
+        case '246':
+            return 'Long Power Button' + get_action_detail(0, code_action, type_action)
         case '247':
-            return "Show Recents" + get_action_detail(0, code_action, type_action)
+            return 'Show Recents' + get_action_detail(0, code_action, type_action)
         case '248':
-            return "Turn Off" + get_action_detail(0, code_action, type_action)
+            return 'Turn Off' + get_action_detail(0, code_action, type_action)
+        case '249':
+            return 'System Screenshot' + get_action_detail(0, code_action, type_action)
         case '254':
-            return "Speakerphone set to " + get_action_detail(7, code_action, type_action)
+            return 'Speakerphone set to ' + get_action_detail(7, code_action, type_action)
         case '256':
-            return "Vibrate On Ringer set to " + get_action_detail(7, code_action, type_action)
+            return 'Vibrate On Ringer set to ' + get_action_detail(7, code_action, type_action)
         case '259':
-            return "Notification Pulse set to " + get_action_detail(7, code_action, type_action)
+            return 'Notification Pulse set to ' + get_action_detail(7, code_action, type_action)
         case '294':
-            return "Bluetooth " + get_action_detail(7, code_action, type_action)
+            return 'Bluetooth ' + get_action_detail(7, code_action, type_action)
         case '295':
-            return "Bluetooth ID " + get_action_detail(1, code_action, type_action)
+            return 'Bluetooth ID ' + get_action_detail(1, code_action, type_action)
         case '296':
-            return "Bluetooth Voice " + get_action_detail(7, code_action, type_action)
+            return 'Bluetooth Voice ' + get_action_detail(7, code_action, type_action)
         case '300':
-            return "Anchor" + get_action_detail(0, code_action, type_action)
+            return 'Anchor' + get_action_detail(0, code_action, type_action)
         case '301':
             detail1, lbl = get_action_detail(3, code_action, type_action)
-            return "Mic Volume set to  " + detail1 + lbl
+            return 'Mic Volume set to  ' + detail1 + lbl
         case '303':
             detail1, lbl = get_action_detail(3, code_action, type_action)
-            return "Alarm Volume to  " + detail1 + lbl
+            return 'Alarm Volume to  ' + detail1 + lbl
         case '304':
             detail1, lbl = get_action_detail(3, code_action, type_action)
-            return "Ringer Volume to  " + detail1 + lbl
+            return 'Ringer Volume to  ' + detail1 + lbl
         case '305':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             if detail1 != '':
-                return "Notification Volume to  " + detail1 + lbl
+                return 'Notification Volume to  ' + detail1 + lbl
             else:
-                return "Notification Volume" + lbl
+                return 'Notification Volume' + lbl
         case '306':
             detail1, lbl = get_action_detail(3, code_action, type_action)
-            return "In-Call Volume set to  " + detail1 + lbl
+            return 'In-Call Volume set to  ' + detail1 + lbl
         case '307':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             if detail1 != '':
-                return "Media Volume to  " + detail1 + lbl
+                return 'Media Volume to  ' + detail1 + lbl
             else:
-                return "Media Volume" + lbl
+                return 'Media Volume' + lbl
         case '308':
             detail1, lbl = get_action_detail(3, code_action, type_action)
-            return "System Volume to  " + detail1 + lbl
+            return 'System Volume to  ' + detail1 + lbl
         case '309':
             detail1, lbl = get_action_detail(3, code_action, type_action)
-            return "DTMF Volume to  " + detail1 + lbl
+            return 'DTMF Volume to  ' + detail1 + lbl
         case '310':
-            return "Vibrate Mode set to " + get_action_detail(7, code_action, type_action)
+            return 'Vibrate Mode set to ' + get_action_detail(7, code_action, type_action)
         case '311':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             if detail1 != '':
-                return "BT Voice Volume to " + detail1 + lbl
+                return 'BT Voice Volume to ' + detail1 + lbl
         case '312':
-            return "Do Not Disturb" + get_action_detail(0, code_action, type_action)
+            return 'Do Not Disturb' + get_action_detail(0, code_action, type_action)
         case '313':
-            return "Sound Mode" + get_action_detail(0, code_action, type_action)
+            return 'Sound Mode' + get_action_detail(0, code_action, type_action)
+        case '314':
+            detail1, lbl = get_action_detail(4, code_action, type_action)   # All Strs
+            detail2, lbl = get_action_detail(8, code_action, type_action)   # All Ints
+            if detail2[0] is not None:
+                if detail2[0] == '0':
+                    the_type = 'Credentials'
+                else:
+                    the_type = 'Biometric'
+            if detail2[3] is not None:
+                the_timeout = ' timeout:' + detail2[3]
+            else:
+                the_timeout = ''
+            return 'Authentication Dialog type ' + the_type + list_to_string(detail1) + the_timeout
         case '316':
-            return "Display Size" + get_action_detail(0, code_action, type_action)
+            return 'Display Size' + get_action_detail(0, code_action, type_action)
         case '318':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             if detail1 != '':
-                return "Force Rotation " + rotation_types[int(detail1)] + lbl
+                return 'Force Rotation ' + rotation_types[int(detail1)] + lbl
             else:
-                return "Force Rotation " + lbl
+                return 'Force Rotation ' + lbl
         case '319':
-            return "Ask Permissions " + get_action_detail(1, code_action, type_action)
+            return 'Ask Permissions ' + get_action_detail(1, code_action, type_action)
         case '321':
             detail1, lbl = get_action_detail(4, code_action, type_action)
             return 'GD Upload ' + list_to_string(detail1) + ' ' + lbl
+        case '324':
+            detail1, lbl = get_action_detail(4, code_action, type_action)
+            detail2, lbl = get_action_detail(8, code_action, type_action)
+            if detail2[0] == '0':
+                detail3 = 'Remote Folder'
+            else:
+                detail3 = 'Query'
+            if detail2[1] == '0':
+                detail4 = 'Both'
+            elif detail2[1] == '1':
+                detail4 = 'Files'
+            else:
+                detail4 = 'Folders'
+            return 'GD List type ' + detail3 + '  Files or Folders:' + detail4 + list_to_string(detail1) + ' ' + lbl
+        case '325':
+            detail1, lbl = get_action_detail(4, code_action, type_action)  # All Strs
+            detail2, lbl = get_action_detail(8, code_action, type_action)  # All Ints
+            detail3 = ' Trash Value:'
+            if detail2[0] == '0':
+                detail3 = detail3 + 'Trash'
+            else:
+                detail3 = detail3 + 'Remove From Trash'
+            detail4 = ' Type:'
+            if detail2[1] == '0':
+                detail4 = detail4 + 'File ID'
+            else:
+                detail4 = detail4 + 'Remote Path'
+            return 'GD Trash' + detail3 + detail4 + ' ' + list_to_string(detail1) + ' ' + lbl
+        case '326':
+            detail1, lbl = get_action_detail(4, code_action, type_action)
+            detail2, lbl = get_action_detail(3, code_action, type_action)
+            if detail2 == '0':
+                detail2 = 'File ID'
+            else:
+                detail2 = 'Remote Path'
+            return 'GD Download type ' + detail2 + ' ' + list_to_string(detail1) + ' ' + lbl
+        case '327':
+            detail1 = get_action_detail(1, code_action, type_action)
+            detail2, lbl = get_action_detail(3, code_action, type_action)
+            if detail2 == '1':
+                detail2 = ' with Full Access '
+            else:
+                detail2 = ''
+            return 'GD Sign In ' + detail2 + detail1
         case '328':
-            return "Keyboard " + get_action_detail(0, code_action, type_action)
+            return 'Keyboard ' + get_action_detail(0, code_action, type_action)
+        case '329':
+            the_arguments = ['arg0', 'arg1', 'arg2']
+            the_names = [' Left:', ' Center:', ' Right:']
+            the_values = get_xml_str_argument_to_value(code_action, the_arguments, the_names)
+            return 'Navigation Bar ' + the_values[0] + the_values[1] + the_values[2] + get_action_detail(0, code_action, type_action)
         case '331':
-            return "Auto-Sync set to " + get_action_detail(7, code_action, type_action)
+            return 'Auto-Sync set to ' + get_action_detail(7, code_action, type_action)
         case '334':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Save WaveNet " + detail1 + ' Voice: ' + detail2
+            return 'Save WaveNet ' + detail1 + ' Voice: ' + detail2
         case '335':
-            return "App Info" + get_action_detail(0, code_action, type_action)
+            return 'App Info' + get_action_detail(0, code_action, type_action)
         case '339':
-            return "HTTP Request " + get_action_detail(1, code_action, type_action)
+            return 'HTTP Request ' + get_action_detail(1, code_action, type_action)
         case '340':
-            return "Bluetooth Connection for device " + get_action_detail(1, code_action, type_action)
+            return 'Bluetooth Connection for device ' + get_action_detail(1, code_action, type_action)
         case '341':
-            return "Test Net " + get_action_detail(1, code_action, type_action)
+            return 'Test Net ' + get_action_detail(1, code_action, type_action)
         case '342':
             det1, det2 = get_action_detail(2, code_action, type_action)
-            return "Test File with data " + det1 + ' store in ' + det2
+            return 'Test File with data ' + det1 + ' store in ' + det2
+        case '343':
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            detail2, detail3 = get_action_detail(2, code_action, type_action)
+            return 'Test Media  Type:' + test_media_type[int(detail1)] + ', Data:' + detail2 + ', Store Results In:' + detail3
         case '344':
             det1, det2 = get_action_detail(2, code_action, type_action)
-            return "Test App " + det1 + ' store in ' + det2
+            return 'Test App ' + det1 + ' store in ' + det2
         case '345':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Test Variable " + detail1 + ' and store into ' + detail2
+            return 'Test Variable ' + detail1 + ' and store into ' + detail2
         case '347':
-            return "Test Tasker and store results into " + get_action_detail(1, code_action, type_action)
+            return 'Test Tasker and store results into ' + get_action_detail(1, code_action, type_action)
         case '348':
             detail1, detail2 = get_action_detail(3, code_action, type_action)  # Get int
             detail3 = test_display_type[int(detail1[0])]
-            return "Test Display " + detail3 + ' ' + detail2
+            return 'Test Display ' + detail3 + ' ' + detail2
         case '351':
             return 'HTTP Auth' + get_action_detail(0, code_action, type_action)
         case '354':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Array Set for array " + detail1 + ' with values ' + detail2
+            return 'Array Set for array ' + detail1 + ' with values ' + detail2
         case '355':
             detail1, detail2 = get_action_detail(3, code_action, type_action)  # Get int
             detail3, lbl = get_action_detail(4, code_action, type_action)  # Get all strings
             return 'Array Push position:' + detail1 + list_to_string(detail3) + lbl
         case '357':
-            return "Array Clear " + get_action_detail(1, code_action, type_action)
+            return 'Array Clear ' + get_action_detail(1, code_action, type_action)
         case '356':
-            return "Array Pop " + get_action_detail(1, code_action, type_action)
+            return 'Array Pop ' + get_action_detail(1, code_action, type_action)
         case '358':
-            return "Bluetooth Info " + get_action_detail(0, code_action, type_action)
+            return 'Bluetooth Info ' + get_action_detail(0, code_action, type_action)
         case '360':
             detail1, lbl = get_action_detail(4, code_action, type_action)
             return 'Input Dialog ' + list_to_string(detail1) + ' ' + lbl
         case '361':
-            return "Dark Mode " + get_action_detail(7, code_action, type_action)
+            return 'Dark Mode ' + get_action_detail(7, code_action, type_action)
         case '365':
-            return "Tasker Function " + get_action_detail(1, code_action, type_action)
+            return 'Tasker Function ' + get_action_detail(1, code_action, type_action)
         case '366':
-            return "Get Location V2" + get_action_detail(0, code_action, type_action)
+            the_arguments = ['arg2', 'arg3', 'arg4', 'arg5', 'arg8']  # Min Acc, Speed, Altitude, Near Loc, Min Speed
+            the_names = [' Min Accuracy:', ' Speed:', ' Altitude:', ' Near Loc:', ' Min Speed Accuracy:']
+            the_str_values = get_xml_str_argument_to_value(code_action, the_arguments, the_names)
+            the_arguments = ['arg1', 'arg6', 'arg7', 'arg9']  # Timeout, Enable Loc, Last Loc, Force Accuracy
+            the_names = ['Timeout (SECONDS):', '', '', '']
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Get Location V2 ' + the_int_values[0] + ', Enable Location:' + no_yes[int(the_int_values[1])] + \
+                   ', Last Location:' + no_yes[int(the_int_values[2])] + ', Force Accuracy:' + no_yes[int(the_int_values[3])] + \
+                   get_action_detail(0, code_action, type_action)
         case '367':
-            return "Camera " + get_action_detail(7, code_action, type_action)
+            return 'Camera ' + get_action_detail(7, code_action, type_action)
+        case '368':
+            the_arguments = ['arg1', 'arg3']  # Title, Init Location
+            the_names = [' Title:', ' Initial Location:']
+            the_str_values = get_xml_str_argument_to_value(code_action, the_arguments, the_names)
+            the_arguments = ['arg2', 'arg4']  # Select Radius, Type
+            the_names = ['', '']
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Pick Location ' + the_str_values[0] + ', Select Radius:' + no_yes[int(the_int_values[0])] + \
+                   ', ' + the_str_values[1] + ' Type:' + location_type[int(the_int_values[1])] + \
+                   get_action_detail(0, code_action, type_action)
         case '369':
-            return "Array Process " + get_action_detail(1, code_action, type_action)
+            return 'Array Process ' + get_action_detail(1, code_action, type_action)
         case '370':
-            return "Shortcut " + get_action_detail(1, code_action, type_action)
+            return 'Shortcut ' + get_action_detail(1, code_action, type_action)
         case '373':
-            return "Test Sensor " + get_action_detail(1, code_action, type_action)
+            return 'Test Sensor ' + get_action_detail(1, code_action, type_action)
         case '374':
-            return "Screen Capture"
+            return 'Screen Capture'
         case '375':
             detail1, lbl = get_action_detail(4, code_action, type_action)
             return 'ADB Wifi ' + list_to_string(detail1) + ' ' + lbl
         case '376':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Test Sensor file " + detail1 + ' mime type ' + detail2
+            return 'Test Sensor file ' + detail1 + ' mime type ' + detail2
         case '377':
-            detail1, lbl = get_action_detail(4, code_action, type_action)
-            return 'Text/Image Dialog ' + list_to_string(detail1) + ' ' + lbl
+            the_arguments = ['arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg8', 'arg9']
+            the_names = [' Title:', ' Text:', ' Button 1:', ' Button 2:', ' Button 3:', ' Image:', ' Max W/H:']
+            the_str_values = get_xml_str_argument_to_value(code_action, the_arguments, the_names)
+            the_arguments = ['arg6', 'arg7']
+            the_names = [' Close After (seconds):', '']
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Text/Image Dialog ' + the_str_values[0] + the_str_values[1] + the_str_values[2] + the_str_values[3] + \
+                    the_str_values[4] + the_int_values[0] + the_int_values[1] + the_str_values[5]  + ', Use HTML:' + \
+                   no_yes[int(the_int_values[1])] + the_str_values[6] + get_action_detail(0, code_action, type_action)
         case '378':
-            return "List Dialog " + get_action_detail(1, code_action, type_action)
+            return 'List Dialog ' + get_action_detail(1, code_action, type_action)
         case '383':
-            return "Settings Panel" + get_action_detail(0, code_action, type_action)
+            return 'Settings Panel' + get_action_detail(0, code_action, type_action)
+        case '384':
+            detail1, lbl = get_action_detail(4, code_action, type_action)
+            detail2, lbl = get_action_detail(8, code_action, type_action)
+            if detail2[0] == '0':
+                detail3 = 'Add/Edit'
+            else:
+                detail3 = 'Delete'
+            return 'Device Control (Power Menu Action) action:' + detail3 + ' type:' + button_type[int(detail2[1])] + ' ' + list_to_string(detail1) + lbl
         case '387':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             if detail1 != '':
-                return "Accessibility Volume to " + detail1 + lbl
+                return 'Accessibility Volume to ' + detail1 + lbl
         case '389':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Multiple Variables Set " + detail1 + ' to ' + detail2
+            return 'Multiple Variables Set ' + detail1 + ' to ' + detail2
         case '390':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Pick Input Dialog " + detail1 + ' with structure type ' + detail2
+            return 'Pick Input Dialog ' + detail1 + ' with structure type ' + detail2
+        case '391':
+            the_arguments = ['arg2', 'arg3', 'arg5', 'arg6']  # Get specific Strs
+            the_names = [' Title:', ' Text:', ' Animation Images:', ' Animation Tint:']
+            the_str_values = get_xml_str_argument_to_value(code_action, the_arguments, the_names)
+            the_arguments = ['arg1', 'arg4', 'arg7', 'arg10']  # Get specific Ints
+            the_names = [[' Action:', '0', 'Show/Update', '1', ' Dismiss'], [' Type:', '0', 'Animation', '1', 'Progress Bar'],
+                        ' Frame Duration:', '']
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Progress Dialog ' + the_int_values[0] + the_str_values[0] + the_str_values[1] + the_int_values[2] + \
+                    the_str_values[2] +  the_str_values[3] + the_int_values[3] + ', Use HTML:' + no_yes[int(the_int_values[1])] + \
+                    get_action_detail(0, code_action, type_action)
         case '392':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Set Variable Structure Type name " + detail1 + ' with structure type ' + detail2
+            return 'Set Variable Structure Type name ' + detail1 + ' with structure type ' + detail2
         case '393':
-            return "Array Merge " + get_action_detail(1, code_action, type_action)
+            return 'Array Merge ' + get_action_detail(1, code_action, type_action)
         case '394':
-            return "Parse/Format DateTime " + get_action_detail(0, code_action, type_action)
+            return 'Parse/Format DateTime ' + get_action_detail(0, code_action, type_action)
         case '396':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Simple Match/Regex " + detail1 + ' with regex ' + detail2
+            return 'Simple Match/Regex ' + detail1 + ' with regex ' + detail2
         case '399':
-            return "Variable Map " + get_action_detail(1, code_action, type_action)
+            return 'Variable Map ' + get_action_detail(1, code_action, type_action)
         case '400':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Move (file) from " + detail1 + ' to ' + detail2
+            return 'Move (file) from ' + detail1 + ' to ' + detail2
         case '404':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Copy File " + detail1 + ' to ' + detail2
+            return 'Copy File ' + detail1 + ' to ' + detail2
         case '405':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Copy Dir " + detail1 + ' to ' + detail2
+            return 'Copy Dir ' + detail1 + ' to ' + detail2
         case '406':
-            return "Delete File " + get_action_detail(1, code_action, type_action)
+            return 'Delete File ' + get_action_detail(1, code_action, type_action)
+        case '407':
+            the_arguments = ['arg1', 'arg2']
+            the_names = [' Max Number:', ' Mime Type:']
+            the_values = get_xml_str_argument_to_value(code_action, the_arguments, the_names)
+            detail1, detail2 = get_action_detail(3, code_action, type_action)
+            if detail1 == '1':
+                detail1 = ' (Copy To Cache) '
+            else:
+                detail1 = ''
+            return 'Pick Photos ' + the_values[0] + the_values[1] + detail1 + detail2
         case '408':
-            return "Delete Directory directory: " + get_action_detail(1, code_action, type_action)
+            return 'Delete Directory directory: ' + get_action_detail(1, code_action, type_action)
         case '409':
-            return "Create Directory " + get_action_detail(1, code_action, type_action)
+            return 'Create Directory ' + get_action_detail(1, code_action, type_action)
         case '410':
-            return "Write File " + get_action_detail(1, code_action, type_action)
+            return 'Write File ' + get_action_detail(1, code_action, type_action)
         case '412':
-            return "List Files directory " + get_action_detail(1, code_action, type_action)
+            return 'List Files directory ' + get_action_detail(1, code_action, type_action)
+        case '414':
+            detail1, detail2 = get_action_detail(2, code_action, type_action)
+            return 'Get Pixel Colors image:' + detail1 + ' pixel coordinates:' + detail2
         case '415':
             detail1, lbl = get_action_detail(4, code_action, type_action)
             return 'Read Line from file ' + list_to_string(detail1) + ' ' + lbl
@@ -793,7 +990,7 @@ def getcode(code_child, code_action, type_action):
             return 'Read Paragraph from file ' + list_to_string(detail1) + ' ' + lbl
         case '417':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Read File " + detail1 + ' into ' + detail2
+            return 'Read File ' + detail1 + ' into ' + detail2
         case '420':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             detail3, lbl = get_action_detail(3, code_action, type_action)
@@ -801,54 +998,95 @@ def getcode(code_child, code_action, type_action):
                 detail3 = ' (Delete Orig checked) '
             else:
                 detail3 = ''
-            return "Zip file " + detail1 + ' into ' + detail2 + detail3 + lbl
+            return 'Zip file ' + detail1 + ' into ' + detail2 + detail3 + lbl
         case '421':
-            return "Get Screen Info (assistant)" + get_action_detail(0, code_action, type_action)
+            return 'Get Screen Info (assistant)' + get_action_detail(0, code_action, type_action)
         case '422':
             detail1, detail2, lbl = get_action_detail(9, code_action, type_action)
             if detail2 == '1':
                 detail2 = ' (Delete Zip checked) '
             else:
                 detail2 = ''
-            return "UnZip file " + detail1 + detail2 + lbl
+            return 'UnZip file ' + detail1 + detail2 + lbl
         case '424':
             return 'Get Battery Info' + get_action_detail(0, code_action, type_action)
         case '425':
-            return "Turn Wifi " + get_action_detail(7, code_action, type_action)
+            return 'Turn Wifi ' + get_action_detail(7, code_action, type_action)
         case '430':
-            return "Restart Tasker" + get_action_detail(0, code_action, type_action)
+            return 'Restart Tasker' + get_action_detail(0, code_action, type_action)
         case '433':
             return 'Mobile Data set to ' + get_action_detail(7, code_action, type_action)
         case '443':
-            return 'Media Control' + get_action_detail(0, code_action, type_action)
+            app_detail, lbl = get_action_detail(5, code_action, type_action)  # Get application name
+            the_arguments = ['arg0', 'arg1', 'arg3']  # Int: Command, Simulate Button, Use Notification
+            the_names = ['', '', '']
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Media Control&nbsp;&nbsp;Cmd:' + cmd_type[int(the_int_values[0])]+ ', Simulated Media Button:' + \
+                   no_yes[int(the_int_values[1])]+ ', Use Notification If Available:' + no_yes[int(the_int_values[2])] + \
+                    ', Package:' + app_detail + ' with app name:' + lbl
         case '445':
-            return "Music Play " + get_action_detail(1, code_action, type_action)
+            the_arguments = ['arg1', 'arg2', 'arg3', 'arg4']  # Int: Command, Simulate Button, Use Notification
+            the_names = ['', '', '', '']
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Music Play&nbsp;&nbsp;Start:' + the_int_values[0] + ', Loop:' + no_yes[int(the_int_values[1])] + \
+                    ', Stream:' + media_type[int(the_int_values[2])] + ', Continue Task Immediately:' + no_yes[int(the_int_values[3])] + \
+                   ', File:' + get_action_detail(1, code_action, type_action)
+        case '447':
+            the_arguments = ['arg1', 'arg2', 'arg3', 'arg4', 'arg5']  # Int: Command, Simulate Button, Use Notification
+            the_names = ['', '', '', '', ', Maximum Tracks:']
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Music Play Dir&nbsp;&nbsp;Subdirs:' + no_yes[int(the_int_values[0])] + ', Audio Only:' + no_yes[int(the_int_values[1])] + \
+                   ', Random:' + no_yes[int(the_int_values[2])] + ', Flash:' + no_yes[int(the_int_values[3])] + \
+                   ', ' + the_int_values[4] + ', Directory:' + get_action_detail(1, code_action, type_action)
+        case '449':
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            return 'Music Stop&nbsp;&nbsp;Clear Dir:' + no_yes[int(detail1)] + lbl
+        case '451':
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            return 'Music Skip  Jump: ' + detail1 + lbl
+        case '453':
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            return 'Music Back&nbsp;&nbsp;Jump: ' + detail1 + lbl
+        case '455':
+            the_arguments = ['arg1', 'arg2', 'arg3']  # Int: Command, Simulate Button, Use Notification
+            the_names = ['', ', MaxSize:', '', '']
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Record Audio&nbsp;&nbsp;Source:' + source_type[int(the_int_values[0])] + the_int_values[1] + \
+                   ', Format:' + format_type[int(the_int_values[2])] + \
+                   ', File:' + get_action_detail(1, code_action, type_action)
         case '457':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             if detail1 != '':
-                return "Force Rotation " + ringtone_type[int(detail1)] + ' sound:' + get_action_detail(1, code_action, type_action) + lbl
-        case '449':
-            return "Music Stop" + get_action_detail(0, code_action, type_action)
+                return 'Force Rotation ' + detail1 + lbl
+        case '459':
+            return 'Scan Media&nbsp;&nbsp;File:' + get_action_detail(1, code_action, type_action)
         case '461':
             detail1, detail2 = get_action_detail(5, code_action, False)
             if detail2 == '':
-                return "Notification"
+                return 'Notification'
             else:
-                return "Notification for app " + detail2
+                return 'Notification for app ' + detail2
         case '475':
             detail1, detail2, lbl = get_action_detail(9, code_action, type_action)
             if detail2 == '1':
                 detail2 = ' (Delete Orig checked) '
             else:
                 detail2 = ''
-            return "GZip file " + detail1 + detail2 + lbl
+            return 'GZip file ' + detail1 + detail2 + lbl
         case '476':
             detail1, detail2, lbl = get_action_detail(9, code_action, type_action)
             if detail2 == '1':
                 detail2 = ' (Delete Zip checked) '
             else:
                 detail2 = ''
-            return "GUnzip file " + detail1 + detail2 + lbl
+            return 'GUnzip file ' + detail1 + detail2 + lbl
+        case '490':
+            the_arguments = ['arg0', 'arg1']  # Int: Action, Use New API
+            the_names = [[' Action:', '0', 'Grab', '1', 'Release'],
+                         [' Use New API:', '0', 'No', '1', 'Yes']]
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Media Button Events ' + the_int_values[0] + the_int_values[1] + \
+                   get_action_detail(0, code_action, type_action)
         case '511':
             return 'Torch' + get_action_detail(0, code_action, type_action)
         case '512':
@@ -859,34 +1097,34 @@ def getcode(code_child, code_action, type_action):
                 detail2 = 'Collapsed'
             return 'Status Bar' + detail2 + lbl
         case '513':
-            return "Close System Dialogs" + get_action_detail(0, code_action, type_action)
+            return 'Close System Dialogs' + get_action_detail(0, code_action, type_action)
         case '523':
             detail1, lbl = get_action_detail(4, code_action, type_action)
             return 'Notify ' + list_to_string(detail1) + ' ' + lbl
         case '525':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Notify LED title:" + detail1 + ' text:' + detail2
+            return 'Notify LED title:' + detail1 + ' text:' + detail2
         case '536':
-            return "Notification Vibrate with title " + get_action_detail(1, code_action, type_action)
+            return 'Notification Vibrate with title ' + get_action_detail(1, code_action, type_action)
         case '538':
-            return "Notification Sound with title " + get_action_detail(1, code_action, type_action)
+            return 'Notification Sound with title ' + get_action_detail(1, code_action, type_action)
         case '550':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Popup title " + detail1 + ' with message: ' + detail2
+            return 'Popup title ' + detail1 + ' with message: ' + detail2
         case '552':
             detail1, lbl = get_action_detail(4, code_action, type_action)
             return 'Popup Task Buttons ' + list_to_string(detail1) + ' ' + lbl
         case '543':
-            return "Start System Timer " + get_action_detail(1, code_action, type_action)
+            return 'Start System Timer ' + get_action_detail(1, code_action, type_action)
         case '545':
-            return "Variable Randomize " + get_action_detail(1, code_action, type_action)
+            return 'Variable Randomize ' + get_action_detail(1, code_action, type_action)
         case '547':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Variable Set " + detail1 + ' to ' + detail2
+            return 'Variable Set ' + detail1 + ' to ' + detail2
         case '548':
-            return "Flash " + get_action_detail(1, code_action, type_action)
+            return 'Flash ' + get_action_detail(1, code_action, type_action)
         case '549':
-            return "Variable Clear " + get_action_detail(1, code_action, type_action)
+            return 'Variable Clear ' + get_action_detail(1, code_action, type_action)
         case '550':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return 'Popup ' + detail1 + ' ' + detail2
@@ -894,72 +1132,72 @@ def getcode(code_child, code_action, type_action):
             detail1, lbl = get_action_detail(4, code_action, type_action)
             return 'Menu with fields: ' + list_to_string(detail1) + lbl
         case '559':
-            return "Say " + get_action_detail(1, code_action, type_action)
+            return 'Say ' + get_action_detail(1, code_action, type_action)
         case '566':
             detail1, lbl = get_action_detail(4, code_action, type_action)
             return 'Set Alarm ' + list_to_string(detail1) + ' ' + lbl
         case '567':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Calendar Insert " + detail1 + ' with description: ' + detail2
+            return 'Calendar Insert ' + detail1 + ' with description: ' + detail2
         case '590':
-            return "Variable Split " + get_action_detail(1, code_action, type_action)
+            return 'Variable Split ' + get_action_detail(1, code_action, type_action)
         case '592':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Variable Join " + detail1 + ' to ' + detail2
+            return 'Variable Join ' + detail1 + ' to ' + detail2
         case '596':
-            return "Variable Convert " + get_action_detail(1, code_action, type_action)
+            return 'Variable Convert ' + get_action_detail(1, code_action, type_action)
         case '597':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Variable Section " + detail1 + ' from ' + detail2
+            return 'Variable Section ' + detail1 + ' from ' + detail2
         case '598':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Variable Search Replace " + detail1 + ' search for ' + detail2
+            return 'Variable Search Replace ' + detail1 + ' search for ' + detail2
         case '664':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Java Function return object " + detail1 + ' , ' + detail2
+            return 'Java Function return object ' + detail1 + ' , ' + detail2
         case '665':
-            return "Java Object " + get_action_detail(1, code_action, type_action)
+            return 'Java Object ' + get_action_detail(1, code_action, type_action)
         case '667':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "SQL Query " + detail1 + ' to ' + detail2
+            return 'SQL Query ' + detail1 + ' to ' + detail2
         case '697':
-            return "Shut Up" + get_action_detail(0, code_action, type_action)
+            return 'Shut Up' + get_action_detail(0, code_action, type_action)
         case '669':
             detail1, lbl = get_action_detail(4, code_action, type_action)
             return 'Say To File ' + list_to_string(detail1) + ' ' + lbl
         case '775':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Write Binary " + detail1 + ' file: ' + detail2
+            return 'Write Binary ' + detail1 + ' file: ' + detail2
         case '776':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Write Binary file " + detail1 + ' to Var: ' + detail2
+            return 'Write Binary file ' + detail1 + ' to Var: ' + detail2
         case '779':
-            return "Notify Cancel " + get_action_detail(1, code_action, type_action)
+            return 'Notify Cancel ' + get_action_detail(1, code_action, type_action)
         case '806':
             detail1, lbl = get_action_detail(3, code_action, type_action)
-            return "Notify Cancel " + detail1 + lbl
+            return 'Notify Cancel ' + detail1 + lbl
         case '808':
-            return "Auto Brightness " + get_action_detail(7, code_action, type_action)
+            return 'Auto Brightness ' + get_action_detail(7, code_action, type_action)
         case '810':
             detail1, lbl = get_action_detail(3, code_action, type_action)
-            return "Display Brightness to " + detail1 + lbl
+            return 'Display Brightness to ' + detail1 + lbl
         case '812':
             detail1, lbl = get_action_detail(3, code_action, type_action)
-            return "Display Timeout " + detail1 + lbl
+            return 'Display Timeout ' + detail1 + lbl
         case '815':
-            return "List Apps into " + get_action_detail(1, code_action, type_action)
+            return 'List Apps into ' + get_action_detail(1, code_action, type_action)
         case '820':
             detail1, detail2 = get_action_detail(3, code_action, type_action)  # Get int
-            return "Stay On " + stayon_type[int(detail1)] + detail2
+            return 'Stay On ' + stayon_type[int(detail1)] + detail2
         case '822':
-            return "Display Autorotate set to " + get_action_detail(7, code_action, type_action)
+            return 'Display Autorotate set to ' + get_action_detail(7, code_action, type_action)
         case '877':
-            return "Send Intent " + get_action_detail(1, code_action, type_action)
+            return 'Send Intent ' + get_action_detail(1, code_action, type_action)
         case '888':
             detail1, lbl = get_action_detail(3, code_action, type_action)
-            return "Variable Add " + detail1 + lbl
+            return 'Variable Add ' + detail1 + lbl
         case '890':
-            return "Variable Subtract " + get_action_detail(1, code_action, type_action)
+            return 'Variable Subtract ' + get_action_detail(1, code_action, type_action)
         case '900':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             detail3, lbl = get_action_detail(3, code_action, type_action)
@@ -967,115 +1205,139 @@ def getcode(code_child, code_action, type_action):
                 detail3 = 'Include Hidden Files'
             else:
                 detail3 = ''
-            return "Browse Files directory " + detail1 + detail3 + ' match:' + detail2
+            return 'Browse Files directory ' + detail1 + detail3 + ' match:' + detail2
+        case '901':
+            return 'Stop Location ' + get_action_detail(0, code_action, type_action)
         case '902':
-            return "Get Locations " + get_action_detail(1, code_action, type_action)
+            the_arguments = ['arg0', 'arg1', 'arg2', 'arg3']  # Source, Timeout, Continue, Keep Tracking
+            the_names = [[' Source:', '0', 'GPS', '1', 'Net', '2', 'Any'], 'Timeout (SECONDS):',
+                         [' Continue Task Immediately:', '0', 'No', '1', 'Yes'],
+                         [' Keep Tracking:', '0', 'No', '1', 'Yes']]
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Get Location ' + the_int_values[0] + the_int_values[1] + the_int_values[3] +  \
+                   get_action_detail(0, code_action, type_action)
         case '903':
-            detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "Get Voice for language " + detail2
+            detail1, lbl = get_action_detail(4, code_action, type_action)
+            detail2, lbl = get_action_detail(8, code_action, type_action)
+            if detail2[0] == '0':
+                language_model = 'Free Form'
+            else:
+                language_model = 'Web Search'
+            if len(detail1) > 1:
+                language = detail1[1]
+                title = ' title:' + detail1[0]
+            else:
+                language = detail1[0]
+                title = ''
+            if len(detail2) > 2:
+                if detail2[3] == '1':
+                    hide_dial = ' (Hide Dialog)'
+                else:
+                    hide_dialog = ''
+            return 'Get Voice' + title +  ' for language:' + language + ' model:' + language_model + hide_dialog + lbl
         case '904':
-            return "Voice Command" + get_action_detail(0, code_action, type_action)
+            return 'Voice Command' + get_action_detail(0, code_action, type_action)
         case '905':
             detail1, lbl = get_action_detail(3, code_action, type_action)
-            return "Location Mode set to " + location_mode_status[int(detail1)] + lbl
+            return 'Location Mode set to ' + location_mode_status[int(detail1)] + lbl
         case '906':
             detail1, lbl = get_action_detail(3, code_action, type_action)
-            return "Immersive Mode " + immersive_modes[int(detail1)] + lbl
+            return 'Immersive Mode ' + immersive_modes[int(detail1)] + lbl
         case '907':
-            return "Status Bar Icons " + get_action_detail(1, code_action, type_action)
+            return 'Status Bar Icons ' + get_action_detail(1, code_action, type_action)
         case '941':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return "HTML Pop code: " + detail1 + ' Layout: '+ detail2
+            return 'HTML Pop code: ' + detail1 + ' Layout: '+ detail2
         case '987':
-            return "Soft Keyboard" + get_action_detail(0, code_action, type_action)
+            return 'Soft Keyboard' + get_action_detail(0, code_action, type_action)
         case '988':
-            return "Car Mode " + get_action_detail(7, code_action, type_action)
+            return 'Car Mode ' + get_action_detail(7, code_action, type_action)
         case '989':
             detail1 = get_action_detail(7, code_action, type_action)
             if detail1 == 'Toggle':
                 detail1 ='Auto'
-            return "Car Mode " + detail1
-    
+            return 'Car Mode ' + detail1
+
     # Plugins start here
         case '117240295':
-            return "AutoWear Input " + get_action_detail(6, code_action, type_action)
+            return 'AutoWear Input ' + get_action_detail(6, code_action, type_action)
         case '140618776':
-            return "AutoWear Toast " + get_action_detail(6, code_action, type_action)
+            return 'AutoWear Toast ' + get_action_detail(6, code_action, type_action)
         case '166160670':
-            return "AutoNotification " + get_action_detail(6, code_action, type_action)
+            return 'AutoNotification ' + get_action_detail(6, code_action, type_action)
         case '191971507':
-            return "AutoWear ADB Wifi " + get_action_detail(6, code_action, type_action)
+            return 'AutoWear ADB Wifi ' + get_action_detail(6, code_action, type_action)
         case '234244923':
-            return "AutoInput Unlock Screen" + get_action_detail(0, code_action, type_action)
+            return 'AutoInput Unlock Screen' + get_action_detail(0, code_action, type_action)
         case '268157305':
-            return "AutoNotification Tiles " + get_action_detail(6, code_action, type_action)
+            return 'AutoNotification Tiles ' + get_action_detail(6, code_action, type_action)
         case '319692633':
-            return "AutoShare Process Text " + get_action_detail(6, code_action, type_action)
+            return 'AutoShare Process Text ' + get_action_detail(6, code_action, type_action)
         case '344636446':
-            return "AutoVoice Trigger Alexa Routine " + get_action_detail(6, code_action, type_action)
+            return 'AutoVoice Trigger Alexa Routine ' + get_action_detail(6, code_action, type_action)
         case '557649458':
-            return "AutoWear Time " + get_action_detail(6, code_action, type_action)
+            return 'AutoWear Time ' + get_action_detail(6, code_action, type_action)
         case '565385068':
-            return "AutoWear Input " + get_action_detail(6, code_action, type_action)
+            return 'AutoWear Input ' + get_action_detail(6, code_action, type_action)
         case '774351906':
-            return " " + get_action_detail(6, code_action, type_action)  # Join Action (contained in get_action_detail)
+            return ' ' + get_action_detail(6, code_action, type_action)  # Join Action (contained in get_action_detail)
         case '778682267':
-            return "AutoInput Gestures " + get_action_detail(6, code_action, type_action)
+            return 'AutoInput Gestures ' + get_action_detail(6, code_action, type_action)
         case '811079103':
-            return "AutoInput Global Action " + get_action_detail(6, code_action, type_action)
+            return 'AutoInput Global Action ' + get_action_detail(6, code_action, type_action)
         case '906355163':
-            return "AutoWear Voice Screen " + get_action_detail(6, code_action, type_action)
+            return 'AutoWear Voice Screen ' + get_action_detail(6, code_action, type_action)
         case '940160580':
-            return "AutoShare " + get_action_detail(6, code_action, type_action)
+            return 'AutoShare ' + get_action_detail(6, code_action, type_action)
         case '1027911289':
-            return "AutoVoice Set Cmd Id " + get_action_detail(6, code_action, type_action)
+            return 'AutoVoice Set Cmd Id ' + get_action_detail(6, code_action, type_action)
         case '1099157652':
-            return "AutoTools Json Write " + get_action_detail(6, code_action, type_action)
+            return 'AutoTools Json Write ' + get_action_detail(6, code_action, type_action)
         case '1040876951':
-            return "AutoInput UI Query " + get_action_detail(6, code_action, type_action)
+            return 'AutoInput UI Query ' + get_action_detail(6, code_action, type_action)
         case '1150542767':
-            return "Double Tap Plugin " + get_action_detail(6, code_action, type_action)
+            return 'Double Tap Plugin ' + get_action_detail(6, code_action, type_action)
         case '1165325195':
-            return "AutoTools Web Screen " + get_action_detail(6, code_action, type_action)
+            return 'AutoTools Web Screen ' + get_action_detail(6, code_action, type_action)
         case '1250249549':
-            return "AutoInput Screen Off/On " + get_action_detail(6, code_action, type_action)
+            return 'AutoInput Screen Off/On ' + get_action_detail(6, code_action, type_action)
         case '1246578872':
-            return "AutoWear Notification " + get_action_detail(6, code_action, type_action)
+            return 'AutoWear Notification ' + get_action_detail(6, code_action, type_action)
         case '1304982781':
-            return "AutoTools Dialog " + get_action_detail(6, code_action, type_action)
+            return 'AutoTools Dialog ' + get_action_detail(6, code_action, type_action)
         case '1410790256':
-            return "AutoWear Floating Icon " + get_action_detail(6, code_action, type_action)
+            return 'AutoWear Floating Icon ' + get_action_detail(6, code_action, type_action)
         case '1644316156':
-            return "AutoNotification Reply " + get_action_detail(6, code_action, type_action)
+            return 'AutoNotification Reply ' + get_action_detail(6, code_action, type_action)
         case '1754437993':
-            return "AutoVoice Recognize " + get_action_detail(6, code_action, type_action)
+            return 'AutoVoice Recognize ' + get_action_detail(6, code_action, type_action)
         case '1830829821':
-            return "AutoWear 4 Screen " + get_action_detail(6, code_action, type_action)
+            return 'AutoWear 4 Screen ' + get_action_detail(6, code_action, type_action)
         case '1957670352':
-            return "AutoWear App " + get_action_detail(6, code_action, type_action)
+            return 'AutoWear App ' + get_action_detail(6, code_action, type_action)
         case '1339942270':
-            return "SharpTools Thing " + get_action_detail(6, code_action, type_action)
+            return 'SharpTools Thing ' + get_action_detail(6, code_action, type_action)
         case '1452528931':
-            return "AutoContacts Query 2.0 " + get_action_detail(6, code_action, type_action)
+            return 'AutoContacts Query 2.0 ' + get_action_detail(6, code_action, type_action)
         case '1620773086':
-            return "SharpTools A Thing " + get_action_detail(6, code_action, type_action)
+            return 'SharpTools A Thing ' + get_action_detail(6, code_action, type_action)
         case '1447159672':
-            return "AutoTools Text " + get_action_detail(6, code_action, type_action)
+            return 'AutoTools Text ' + get_action_detail(6, code_action, type_action)
         case '1508929357':
-            return "AutoTools " + get_action_detail(6, code_action, type_action)
+            return 'AutoTools ' + get_action_detail(6, code_action, type_action)
         case '1732635924':
-            return "AutoInput Action " + get_action_detail(6, code_action, type_action)
+            return 'AutoInput Action ' + get_action_detail(6, code_action, type_action)
         case '1830656901':
-            return "AutoWear List Screens " + get_action_detail(6, code_action, type_action)
+            return 'AutoWear List Screens ' + get_action_detail(6, code_action, type_action)
         case '1957681000':
-            return "AutoInput Gesture " + get_action_detail(6, code_action, type_action)
+            return 'AutoInput Gesture ' + get_action_detail(6, code_action, type_action)
         case '2046367074':
-            return "AutoNotification Cancel " + get_action_detail(6, code_action, type_action)
+            return 'AutoNotification Cancel ' + get_action_detail(6, code_action, type_action)
         case _:
             if 1000 < int(task_code):
-                return "Call to Plugin " + get_action_detail(6, code_action, type_action)
+                return 'Call to Plugin ' + get_action_detail(6, code_action, type_action)
             else:
-                return "Code " + task_code + " not yet mapped"
+                return 'Code ' + task_code + ' not yet mapped'
 
 
 # Generate the output string based on the input XML <code> passed in
@@ -1087,12 +1349,12 @@ def ulify(element, lvl=int):   # lvl=0=heading 1=start list 2=Task/Profile/Scene
     # Heading..............................
     if lvl == 0 or lvl == 4:  # lvl=4 >>> Heading or plain text line
         if lvl == 0:  # Heading
-            string = "<b>" + element + "</b><br>\n"
+            string = '<b>' + element + '</b><br>\n'
         else:
             string = element + '<br>\n'
     # Start List..............................
     elif lvl == 1:  # lvl=1 >>> Start list
-        string = "<ul>" + element + "\n"
+        string = '<ul>' + element + '\n'
     # Item in the list..............................
     elif lvl == 2:  # lvl=2 >>> List item
         if 'Project' == element[0:7]:   # Project ========================
@@ -1117,10 +1379,10 @@ def ulify(element, lvl=int):   # lvl=0=heading 1=start list 2=Task/Profile/Scene
         elif 'Label for' in element:  # Action
             string = list_color + bullet_color + '" ><span style="color:' + action_color + ';">' + element + '</span></li>\n'
         else:      # Must be additional item
-            string = "<li>" + element + "</li>\n"
+            string = '<li>' + element + '</li>\n'
     # End List..............................
     elif lvl == 3:  # lvl=3 >>> End list
-        string = "</ul>"
+        string = '</ul>'
     return string
 
 
@@ -1171,7 +1433,7 @@ def build_action(alist, tcode, achild, indent, indent_amt):
 
 
 # Shell sort for Action list (Actions are not necessarily in numeric order in XML backup file).
-def shellSort(arr, n):
+def shell_sort(arr, n):
     gap = n // 2
     while gap > 0:
         j = gap
@@ -1180,7 +1442,7 @@ def shellSort(arr, n):
         while j < n:
             i = j - gap  # This will keep help in maintain gap value
             while i >= 0:
-                # Get the n from <Action sr="actn" ve="7"> as a number for comparison purposes
+                # Get the n from <Action sr='actn' ve='7'> as a number for comparison purposes
                 attr1 = arr[i]
                 attr2 = arr[i+gap]
                 val1 = attr1.attrib['sr']
@@ -1217,7 +1479,7 @@ def get_actions(current_task):
             count_of_actions += 1
         # sort the Actions by attrib sr (e.g. sr='act0', act1, act2, etc.) to get them in true order
         if count_of_actions > 1:
-            shellSort(task_actions, count_of_actions)
+            shell_sort(task_actions, count_of_actions)
         for action in task_actions:
             child = action.find('code')   # Get the <code> element
             task_code = getcode(child, action, True)
@@ -1299,9 +1561,9 @@ def process_list(list_type, the_output, the_list, all_task_list, all_scene_list,
         # Output Actions for this Task if displaying detail and/or Task is unknown
         # Do we get the Task's Actions?
         if ('Task:' in list_type and unknown_task_name in the_item) or ('Task:' in list_type):
-            if unknown_task_name in the_item or detail > 0:  # If Unknown task, then "the_task" is not valid, and we have to find it.
+            if unknown_task_name in the_item or detail > 0:  # If Unknown task, then 'the_task' is not valid, and we have to find it.
                 if '⎯Task:' in list_type:   # -Task: = Scene rather than a Task
-                    temp = ["x", the_item]
+                    temp = ['x', the_item]
                 else:
                     temp = the_item.split('ID: ')  # Unknown/Anonymous!  Task ID: nn    << We just need the nn
                 if len(temp) > 1:
@@ -1328,7 +1590,7 @@ def process_list(list_type, the_output, the_list, all_task_list, all_scene_list,
                                 break
                     my_output(the_output, 3, '')  # Close Action list
 
-        # Must be a Scene.  Look for all "Tap" Tasks for Scene
+        # Must be a Scene.  Look for all 'Tap' Tasks for Scene
         elif 'Scene:' == list_type and detail == 2:  # We have a Scene: get its actions
             have_a_scene_task = False
             for my_scene in the_list:   # Go through each Scene to find TAP and Long TAP Tasks
@@ -1838,7 +2100,7 @@ def get_and_set_the_color(the_arg):
     color_type = the_color_option[0]
     logger.debug('the_color_option:' + the_color_option[0] + 'color_type:' + color_type)
     if color_type not in types_for_color:
-        print("Argument " + the_arg + " is an invalid 'type' for color.  See the help (-h)!")
+        print('Argument ' + the_arg + " is an invalid 'type' for color.  See the help (-h)!")
         exit(7)
 
     desired_color = the_color_option[1]
@@ -1895,7 +2157,7 @@ def main():
     single_task_nme_name = ''
     display_detail = 1     # Default (1) display detail: unknown Tasks actions only
     display_profile_conditions = False   # Default: False
-    my_version = '6.2'
+    my_version = '6.3'
 
     my_file_name = '/MapTasker.html'
     no_profile = 'None or unnamed!'
@@ -1909,7 +2171,7 @@ def main():
     help_text1 = '\nThis program reads a Tasker backup file (e.g. backup.xml) and displays the configuration of Profiles/Tasks/Scenes\n\n'
     help_text2 = 'Runtime options...\n\n  -h  for this help\n  -d0  display first Task action only, for unnamed Tasks only (silent)\n  ' \
                  '-d1  display all Task action details for unknown Tasks only (default)\n  ' \
-                 "-d2  display full Task action details on every Task\n  " \
+                 '-d2  display full Task action details on every Task\n  ' \
                  "-t='a valid Task name'  display the details for a single Task only (automatically sets -d option to -d2)\n  " \
                  "-v  for this program's version\n  -p  display Profile conditions (default=unnamed Profiles only)\n  " \
                  "-c(type)=color_name  define a specific color to 'type', \n           where type is one of the following...\n  " \
