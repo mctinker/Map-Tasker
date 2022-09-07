@@ -1,10 +1,12 @@
 MapTasker Change log
  
+  - 6.4 Added: additional Task actions recognized 
+                 Actions complete: Media, Net                                       
+        Fixed: Single Task option -t='task' sometimes returns multiple Tasks by mistake 
   - 6.3 Added: additional Task actions and Profile configurations recognized 
-                 Actions complete: Google, Image, Input, Location                       
-                 
+                 Actions complete: Google, Image, Input, Location                              
         Added: Start providing explicit detail for Actions
-        Changed: Moved this change log to Changelog.md                                             
+        Changed: Moved this change log to Changelog.md                                           
   - 6.2 Added: additional Task actions and Profile configurations recognized                  
                Actions complete: Alert, App, Audio, Code, Display, File                       
         Added: prompt msgbox user to locate file first time the program is run                
