@@ -22,34 +22,31 @@
 # using a licensed work, under the same license. Copyright and license notices must be       #
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
-# Version 6.3                                                                                #
+# Version 6.4                                                                                #
 #                                                                                            #
 # ########################################################################################## #
 
+# imports for keeping track of number of runs
+# from __future__ import print_function
+import atexit
+import logging
+import os
+import re
+import sys
+import webbrowser
+import xml.etree.ElementTree as ET
+from json import dumps, loads
+from os import path
 # importing tkinter and tkinter.ttk
 # and all their functions and classes
 from tkinter import *
+from tkinter import messagebox
+# importing askopenfile (from class filedialog) and messagebox functions
+from tkinter.filedialog import askopenfile
+
 # Add the following statement to your Terminal Shell configuration file (BASH, Fish, etc.
 #  to eliminate the runtime msg: DEPRECATION WARNING: The system version of Tk is deprecated and may be removed...
 #  export TK_SILENCE_DEPRECATION = 1
-
-# importing askopenfile (from class filedialog) and messagebox functions
-from tkinter.filedialog import askopenfile
-from tkinter import messagebox
-
-# imports for keeping track of number of runs
-#from __future__ import print_function
-import atexit
-from os import path
-from json import dumps, loads
-
-
-import xml.etree.ElementTree as ET
-import os
-import sys
-import webbrowser
-import re
-import logging
 
 #  START User-modifiable global constants #########################################################################
 project_color = 'Black'   # Refer to the following for valid names: https://htmlcolorcodes.com/color-names/
@@ -60,7 +57,7 @@ task_color = 'Green'
 unknown_task_color = 'Red'
 scene_color = 'Purple'
 bullet_color = 'Black'
-action_color = 'Orange'
+action_color = 'DarkOrange'
 action_label_color = 'Magenta'
 action_condition_color = 'Coral'
 disabled_action_color = 'Crimson'
@@ -98,8 +95,10 @@ def write_counter():
     with open(counter_file, 'w') as f:
         f.write(dumps(counter))
 
+
 counter = read_counter()
 atexit.register(write_counter)
+
 
 # Strip all html style code from string (e.g. <h1> &lt)
 def strip_string(the_string):
@@ -183,12 +182,13 @@ def list_to_string(the_list):
     else:
         return ''
 
+
 #  Given an action code (xml), find Int (integer) args and match with names
 #  Example:
 #  3 Ints with arg0, arg1 and arg2, to be filled in with their matching name0, name1 and name2 + the associated text
 #  action = xml element for Action <code>
 #  arguments = list of Int arguments to look for (e.g. arg1,arg5,arg9)
-#  names = list of entries to substitute the argn value against.  It can be a list, which signifies a pulldown list of options to map[ against.
+#  names = list of entries to substitute the argn value against.  It can be a list, which signifies a pulldown list of options to map against.
 def get_xml_int_argument_to_value(action, arguments, names):
     match_results = []
     for child in action:
@@ -220,7 +220,7 @@ def get_xml_int_argument_to_value(action, arguments, names):
                                     if idx > len(the_list):
                                         break
                                 else:
-                                    exit(8)   #  Rutroh...not an even pair of elements
+                                    exit(8)   # Rutroh...not an even pair of elements
                             break  # Get out of arg loop and get next child
                         else:   # Not a list
                             match_results.append(names[arg_location] + the_int_value)  # Just grab the integer value
@@ -368,7 +368,6 @@ def get_action_detail(code_flag, code_child, action_type):
                 if var1.attrib.get('val') is not None:
                     the_integer = var1.attrib.get('val')
                 else:
-                    the_integer = ''
                     return var1.attrib.get('val'), extra_stuff
             return the_string, the_integer, extra_stuff
         case _:
@@ -406,8 +405,18 @@ def getcode(code_child, code_action, type_action):
     format_type = ['MP4', '3GPP', 'AMR Narrowband', 'AMR Wideband', 'Hgd']
     source_type = ['Default', 'Microphone', 'Call Outgoing', 'Call Incoming', 'Call']
     test_media_type = ['Music File Artist Tag', 'Music File Duration Tag', 'Music File Title Tag', 'Music Playing Position',
-                  'Music Playing Position Millis']
+                       'Music Playing Position Millis']
+    bt_connect_type = ['Connect', 'Disconnect', 'Pair', 'Unpair (Forget)']
+    bt_info = ['Single Device', 'Paired Devices', 'Scan Devices']
     no_yes = ['No', 'Yes']
+    method_type = ['GET', 'POST', 'HEAD', 'PUT', 'PATCH', 'Delete', 'OPTIONS', 'TRACE']
+    mobile_type = ['Auto', '2G', '3G', '4G', '2G and 3G', '3G and 4G', '5G', '3G and 4G and 5G', '4G and 5G']
+    access_type = ['Allow All', 'Allow', 'Deny All', 'Deny']
+    test_net_type = ['Connection Type', 'Mobile Data Enabled', 'Wifi Hidden', 'Wifi MAC', 'Wifi RSSI', 'Wifi SSID',
+                     'BT Paired Addresses', 'BT Device Connected', 'BT Device Name', 'BT Device Class Name',
+                     'Auto Sync', 'Wifi IP Address']
+    wifi_net_type = ['Disconnect', 'Reassociate', 'Reconnect']
+    wifi_sleep_type = ['Default', 'Never While Plugged', 'Never']
 
     task_code = code_child.text
 
@@ -505,7 +514,12 @@ def getcode(code_child, code_action, type_action):
             detail1, xtra = get_action_detail(8, code_action, type_action)
             return 'Light Level from ' + detail1[0] + ' to ' + detail1[1] + xtra
         case '104':
-            return 'Browse URL ' + get_action_detail(1, code_action, type_action)
+            detail1, detail2 = get_action_detail(2, code_action, type_action)  # Get 2 Strs
+            detail3, lbl = get_action_detail(3, code_action, type_action)  # Get Int
+            detail4, the_app = get_action_detail(5, code_action, type_action)  # Get App
+            detail4 = the_app.split('<')  # Get rid of the label
+            return 'Browse URL&nbsp;&nbsp;URL:' + detail1 + ', Pkg/App:' + detail4[0] + ', "Open With" Dialog:' + \
+                   no_yes[int(detail3)] + ', "Open With" Title:' + detail2
         case '105':
             return 'Set Clipboard To ' + get_action_detail(1, code_action, type_action)
         case '109':
@@ -515,12 +529,34 @@ def getcode(code_child, code_action, type_action):
             return 'Run SLA4 Script ' + detail1 + ' ' + detail2
         case '113':
             return 'Wifi Tether ' + get_action_detail(7, code_action, type_action)
+        case '116':
+            the_arguments = ['arg0', 'arg1', 'arg2', 'arg3', 'arg4', 'arg6', 'arg7']
+            the_names = [' Server:Port:', ' Path:', ' Data/File:', ' Cookies', ' User Agent:', ' Content Type',
+                         ' Output File:']
+            the_str_values = get_xml_str_argument_to_value(code_action, the_arguments, the_names)
+            detail1, lbl = get_action_detail(8, code_action, type_action)
+            return 'HTTP Post&nbsp;&nbsp;' + the_str_values[0] + the_str_values[1] + the_str_values[2] + \
+                   the_str_values[3] + the_str_values[4] + ' Timeout:' + detail1[0] + the_str_values[5] + \
+                   the_str_values[6] + ' Trust Any Certificate:' + no_yes[int(detail1[1])] + lbl
+        case '117':
+            the_arguments = ['arg0', 'arg1', 'arg2', 'arg3', 'arg4']
+            the_names = [' Server:Port:', ' Path:', ' Attributes:', ' Cookies', ' User Agent:']
+            the_str_values = get_xml_str_argument_to_value(code_action, the_arguments, the_names)
+            detail1, lbl = get_action_detail(8, code_action, type_action)
+            return 'HTTP Head&nbsp;&nbsp;' + the_str_values[0] + the_str_values[1] + the_str_values[2] + \
+                the_str_values[3] + the_str_values[4] + ', Timeout:' + detail1[0] + ', Trust Any Certificate:' + \
+                no_yes[int(detail1[1])] + lbl
         case '118':
             return 'HTTP Get ' + get_action_detail(1, code_action, type_action)
         case '119':
             return 'Open Map, Navigate to ' + get_action_detail(1, code_action, type_action)
         case '123':
             return 'Run Shell ' + get_action_detail(1, code_action, type_action)
+        case '125':
+            the_arguments = ['arg0', 'arg1', 'arg2']  # Recipient, Subject, Message
+            the_names = [' Recipient:', ' Subject:', ' Message:']
+            the_str_values = get_xml_str_argument_to_value(code_action, the_arguments, the_names)
+            return 'Compose Email&nbsp;&nbsp;' + the_str_values[0] + the_str_values[1] + the_str_values[2]
         case '126':
             return 'Return' + get_action_detail(0, code_action, type_action)
         case '129':
@@ -551,7 +587,7 @@ def getcode(code_child, code_action, type_action):
             the_names = [[' Locality:', '0', 'English', '1', ' German/Deutsch'],
                          ' Beat Timing:']
             the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
-            return 'MIDI Play  Format: Tasker, ' + the_int_values[0]+ the_int_values[1] + \
+            return 'MIDI Play  Format: Tasker, ' + the_int_values[0] + the_int_values[1] + \
                    ' Score:' + get_action_detail(1, code_action, type_action)
         case '159':
             return 'Profile Status for ' + get_action_detail(1, code_action, type_action)
@@ -574,7 +610,9 @@ def getcode(code_child, code_action, type_action):
             detail1 = get_action_detail(1, code_action, type_action)
             return 'Morse ' + detail1
         case '173':
-            return 'Network Access' + get_action_detail(0, code_action, type_action)
+            detail1, lbl = get_action_detail(3, code_action, type_action)  # Get Int
+            detail2, app = get_action_detail(5, code_action, type_action)
+            return 'Network Access&nbsp;&nbsp;Mode:' + access_type[int(detail1)] + ', Package/App Name:' + app
         case '171':
             return 'Power Mode' + get_action_detail(0, code_action, type_action)
         case '175':
@@ -586,7 +624,7 @@ def getcode(code_child, code_action, type_action):
         case '177':
             return 'Haptic Feedback set to ' + get_action_detail(7, code_action, type_action)
         case '185':
-            detail1, lbl = get_action_detail(8, code_action, type_action)  # Get int
+            detail1, lbl = get_action_detail(8, code_action, type_action)  # Get all Ints
             detail3 = filter_type[int(detail1[0])]
             return 'Filter Image mode ' + detail3 + ' threshold:' + detail1[1] + lbl
         case '187':
@@ -600,7 +638,7 @@ def getcode(code_child, code_action, type_action):
         case '188':
             max_wh = ''
             lbl = get_action_detail(0, code_action, type_action)
-            for child in code_action:   #  We have to traverse the xml here due to complexity
+            for child in code_action:   # We have to traverse the xml here due to complexity
                 if 'Img' == child.tag:
                     sub_child = child.find('nme')
                     if sub_child is not None:
@@ -640,7 +678,7 @@ def getcode(code_child, code_action, type_action):
             the_names = ['', '']
             the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
             return 'Play Ringtone  Type:' + ringtone_type[int(the_int_values[0])] + ', Stream:' + media_type[int(the_int_values[1])] + \
-            ', Sound:' + get_action_detail(1, code_action,type_action)
+                ', Sound:' + get_action_detail(1, code_action ,type_action)
         case '193':
             return 'Resize Image ' + get_action_detail(1, code_action, type_action)
         case '194':
@@ -681,9 +719,9 @@ def getcode(code_child, code_action, type_action):
         case '259':
             return 'Notification Pulse set to ' + get_action_detail(7, code_action, type_action)
         case '294':
-            return 'Bluetooth ' + get_action_detail(7, code_action, type_action)
+            return 'Bluetooth &nbsp;&nbsp;Set:' + get_action_detail(7, code_action, type_action)
         case '295':
-            return 'Bluetooth ID ' + get_action_detail(1, code_action, type_action)
+            return 'Bluetooth ID&nbsp;&nbsp;Name:' + get_action_detail(1, code_action, type_action)
         case '296':
             return 'Bluetooth Voice ' + get_action_detail(7, code_action, type_action)
         case '300':
@@ -743,6 +781,8 @@ def getcode(code_child, code_action, type_action):
             return 'Authentication Dialog type ' + the_type + list_to_string(detail1) + the_timeout
         case '316':
             return 'Display Size' + get_action_detail(0, code_action, type_action)
+        case '317':
+            return 'NFS&nbsp;&nbsp;set to ' + get_action_detail(7, code_action, type_action)
         case '318':
             detail1, lbl = get_action_detail(3, code_action, type_action)
             if detail1 != '':
@@ -751,9 +791,22 @@ def getcode(code_child, code_action, type_action):
                 return 'Force Rotation ' + lbl
         case '319':
             return 'Ask Permissions ' + get_action_detail(1, code_action, type_action)
+        case '320':
+            detail1, lbl = get_action_detail(3, code_action, type_action)  # Get Int
+            detail2, lbl = get_action_detail(4, code_action, type_action)  # Get all Strs
+            return 'Ping&nbsp;&nbsp;Host:' + detail2[0] + ', Number:' + detail1 + ', Average Result Var:' + detail2[1] + \
+                   ', Min Result Var:' + detail2[2] + ', Max Result Var:' + detail2[3] + lbl
         case '321':
             detail1, lbl = get_action_detail(4, code_action, type_action)
             return 'GD Upload ' + list_to_string(detail1) + ' ' + lbl
+        case '323':
+            the_arguments = ['arg0', 'arg1', 'arg2', 'arg3', 'arg4']  # Bluetooth, Cell, NFC, WiFi, Wimax
+            the_names = ['', '', '', '', '']
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Airplane Radios&nbsp;&nbsp;Bluetooth:' + no_yes[int(the_int_values[0])] + \
+                   ', Cell:' + no_yes[int(the_int_values[1])] + ', NFC:' + no_yes[int(the_int_values[2])] + \
+                   ', WiFi:' + no_yes[int(the_int_values[3])] + ', Wimax:' + no_yes[int(the_int_values[4])] + \
+                   get_action_detail(0, code_action, type_action)
         case '324':
             detail1, lbl = get_action_detail(4, code_action, type_action)
             detail2, lbl = get_action_detail(8, code_action, type_action)
@@ -805,19 +858,37 @@ def getcode(code_child, code_action, type_action):
             the_names = [' Left:', ' Center:', ' Right:']
             the_values = get_xml_str_argument_to_value(code_action, the_arguments, the_names)
             return 'Navigation Bar ' + the_values[0] + the_values[1] + the_values[2] + get_action_detail(0, code_action, type_action)
+        case '330':
+            detail1, detail2 = get_action_detail(2, code_action, type_action)
+            return 'NFC Tag&nbsp;&nbsp;Payload to Write:' + detail1 + ', Payload Type:' + detail2
         case '331':
             return 'Auto-Sync set to ' + get_action_detail(7, code_action, type_action)
+        case '333':
+            return 'Airplane Mode ' + get_action_detail(7, code_action, type_action)
         case '334':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return 'Save WaveNet ' + detail1 + ' Voice: ' + detail2
         case '335':
             return 'App Info' + get_action_detail(0, code_action, type_action)
         case '339':
-            return 'HTTP Request ' + get_action_detail(1, code_action, type_action)
+            detail1, lbl = get_action_detail(3, code_action, type_action)
+            the_arguments = ['arg2', 'arg3', 'arg4', 'arg5', 'arg6', 'arg7']
+            the_names = [' URL:', ' Headers:', ' Query Parameters:', ' Body:', ' File To Send:', ' File/Dir To Save:']
+            the_str_values = get_xml_str_argument_to_value(code_action, the_arguments, the_names)
+            return 'HTTP Request&nbsp;&nbsp;Method:' + method_type[int(detail1)] + the_str_values[0] + \
+                the_str_values[1] + the_str_values[2] + the_str_values[3] + the_str_values[4] + the_str_values[5] + lbl
         case '340':
-            return 'Bluetooth Connection for device ' + get_action_detail(1, code_action, type_action)
+            detail1, detail2 = get_action_detail(3, code_action, type_action)  # Get Int
+            if detail1:
+                detail3 = 'Action:' + bt_connect_type[int(detail1)]
+            else:
+                detail3 = ''
+            return 'Bluetooth Connection&nbsp;&nbsp;' + detail3 + \
+                ', for device ' + get_action_detail(1, code_action, type_action)
         case '341':
-            return 'Test Net ' + get_action_detail(1, code_action, type_action)
+            detail1, lbl = get_action_detail(3, code_action, type_action)  # Get int
+            detail2, lbl = get_action_detail(4, code_action, type_action)  # Get all Strs
+            return 'Test Net&nbsp;&nbsp;Type:' + test_net_type[int(detail1)] + ', Store Result In:' + detail2[0] + lbl
         case '342':
             det1, det2 = get_action_detail(2, code_action, type_action)
             return 'Test File with data ' + det1 + ' store in ' + det2
@@ -851,12 +922,17 @@ def getcode(code_child, code_action, type_action):
         case '356':
             return 'Array Pop ' + get_action_detail(1, code_action, type_action)
         case '358':
-            return 'Bluetooth Info ' + get_action_detail(0, code_action, type_action)
+            detail1, lbl = get_action_detail(3, code_action, type_action)  # Get int
+            return 'Bluetooth Info ' + bt_info[int(detail1)] + lbl
         case '360':
             detail1, lbl = get_action_detail(4, code_action, type_action)
-            return 'Input Dialog ' + list_to_string(detail1) + ' ' + lbl
+            return 'Input Dialog&nbsp;&nbsp;Type:' + list_to_string(detail1) + ' ' + lbl
         case '361':
             return 'Dark Mode ' + get_action_detail(7, code_action, type_action)
+        case '363':
+            detail1 = get_action_detail(1, code_action, type_action)  # Get Str
+            detail2, lbl = get_action_detail(3, code_action, type_action)  # Get Int
+            return 'Mobile Network Type ' + mobile_type[int(detail2)] + ', SIM Card:' + detail1 + lbl
         case '365':
             return 'Tasker Function ' + get_action_detail(1, code_action, type_action)
         case '366':
@@ -866,9 +942,11 @@ def getcode(code_child, code_action, type_action):
             the_arguments = ['arg1', 'arg6', 'arg7', 'arg9']  # Timeout, Enable Loc, Last Loc, Force Accuracy
             the_names = ['Timeout (SECONDS):', '', '', '']
             the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
-            return 'Get Location V2 ' + the_int_values[0] + ', Enable Location:' + no_yes[int(the_int_values[1])] + \
-                   ', Last Location:' + no_yes[int(the_int_values[2])] + ', Force Accuracy:' + no_yes[int(the_int_values[3])] + \
-                   get_action_detail(0, code_action, type_action)
+            return 'Get Location V2&nbsp;&nbsp;' + the_int_values[0] + the_str_values[0] + \
+                the_str_values[1] + the_str_values[2] + the_str_values[3] + ', Enable Location:' + \
+                no_yes[int(the_int_values[1])] + ', Last Location if Timeout:' + no_yes[int(the_int_values[2])] + \
+                the_str_values[4] + ', Force Accuracy:' + no_yes[int(the_int_values[3])] + \
+                get_action_detail(0, code_action, type_action)
         case '367':
             return 'Camera ' + get_action_detail(7, code_action, type_action)
         case '368':
@@ -903,8 +981,8 @@ def getcode(code_child, code_action, type_action):
             the_names = [' Close After (seconds):', '']
             the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
             return 'Text/Image Dialog ' + the_str_values[0] + the_str_values[1] + the_str_values[2] + the_str_values[3] + \
-                    the_str_values[4] + the_int_values[0] + the_int_values[1] + the_str_values[5]  + ', Use HTML:' + \
-                   no_yes[int(the_int_values[1])] + the_str_values[6] + get_action_detail(0, code_action, type_action)
+                the_str_values[4] + the_int_values[0] + the_int_values[1] + the_str_values[5]  + ', Use HTML:' + \
+                no_yes[int(the_int_values[1])] + the_str_values[6] + get_action_detail(0, code_action, type_action)
         case '378':
             return 'List Dialog ' + get_action_detail(1, code_action, type_action)
         case '383':
@@ -933,11 +1011,11 @@ def getcode(code_child, code_action, type_action):
             the_str_values = get_xml_str_argument_to_value(code_action, the_arguments, the_names)
             the_arguments = ['arg1', 'arg4', 'arg7', 'arg10']  # Get specific Ints
             the_names = [[' Action:', '0', 'Show/Update', '1', ' Dismiss'], [' Type:', '0', 'Animation', '1', 'Progress Bar'],
-                        ' Frame Duration:', '']
+                         ' Frame Duration:', '']
             the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
             return 'Progress Dialog ' + the_int_values[0] + the_str_values[0] + the_str_values[1] + the_int_values[2] + \
-                    the_str_values[2] +  the_str_values[3] + the_int_values[3] + ', Use HTML:' + no_yes[int(the_int_values[1])] + \
-                    get_action_detail(0, code_action, type_action)
+                the_str_values[2] + the_str_values[3] + the_int_values[3] + ', Use HTML:' + no_yes[int(the_int_values[1])] + \
+                get_action_detail(0, code_action, type_action)
         case '392':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return 'Set Variable Structure Type name ' + detail1 + ' with structure type ' + detail2
@@ -948,6 +1026,8 @@ def getcode(code_child, code_action, type_action):
         case '396':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
             return 'Simple Match/Regex ' + detail1 + ' with regex ' + detail2
+        case '398':
+            return 'Connect to WiFi with SSID:' + get_action_detail(1, code_action, type_action)
         case '399':
             return 'Variable Map ' + get_action_detail(1, code_action, type_action)
         case '400':
@@ -1012,6 +1092,15 @@ def getcode(code_child, code_action, type_action):
             return 'Get Battery Info' + get_action_detail(0, code_action, type_action)
         case '425':
             return 'Turn Wifi ' + get_action_detail(7, code_action, type_action)
+        case '426':
+            detail1, lbl = get_action_detail(3, code_action, type_action)  # Get Int
+            the_arguments = ['arg1', 'arg2']
+            the_names = [', Force:', ', Report Failures:']
+            the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
+            return 'Wifi Net&nbsp;&nbsp;Action:' + wifi_net_type[int(detail1)] + the_int_values[0] + the_int_values[1] + lbl
+        case '427':
+            detail1, lbl = get_action_detail(3, code_action, type_action)  # Get Int
+            return 'Wifi Sleep&nbsp;&nbsp;Policy:' + wifi_sleep_type[int(detail1)] + lbl
         case '430':
             return 'Restart Tasker' + get_action_detail(0, code_action, type_action)
         case '433':
@@ -1021,16 +1110,16 @@ def getcode(code_child, code_action, type_action):
             the_arguments = ['arg0', 'arg1', 'arg3']  # Int: Command, Simulate Button, Use Notification
             the_names = ['', '', '']
             the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
-            return 'Media Control&nbsp;&nbsp;Cmd:' + cmd_type[int(the_int_values[0])]+ ', Simulated Media Button:' + \
-                   no_yes[int(the_int_values[1])]+ ', Use Notification If Available:' + no_yes[int(the_int_values[2])] + \
-                    ', Package:' + app_detail + ' with app name:' + lbl
+            return 'Media Control&nbsp;&nbsp;Cmd:' + cmd_type[int(the_int_values[0])] + ', Simulated Media Button:' + \
+                no_yes[int(the_int_values[1])] + ', Use Notification If Available:' + no_yes[int(the_int_values[2])] + \
+                ', Package:' + app_detail + ' with app name:' + lbl
         case '445':
             the_arguments = ['arg1', 'arg2', 'arg3', 'arg4']  # Int: Command, Simulate Button, Use Notification
             the_names = ['', '', '', '']
             the_int_values = get_xml_int_argument_to_value(code_action, the_arguments, the_names)
             return 'Music Play&nbsp;&nbsp;Start:' + the_int_values[0] + ', Loop:' + no_yes[int(the_int_values[1])] + \
-                    ', Stream:' + media_type[int(the_int_values[2])] + ', Continue Task Immediately:' + no_yes[int(the_int_values[3])] + \
-                   ', File:' + get_action_detail(1, code_action, type_action)
+                ', Stream:' + media_type[int(the_int_values[2])] + ', Continue Task Immediately:' + no_yes[int(the_int_values[3])] + \
+                ', File:' + get_action_detail(1, code_action, type_action)
         case '447':
             the_arguments = ['arg1', 'arg2', 'arg3', 'arg4', 'arg5']  # Int: Command, Simulate Button, Use Notification
             the_names = ['', '', '', '', ', Maximum Tracks:']
@@ -1231,10 +1320,10 @@ def getcode(code_child, code_action, type_action):
                 title = ''
             if len(detail2) > 2:
                 if detail2[3] == '1':
-                    hide_dial = ' (Hide Dialog)'
+                    hide_dialog = ' (Hide Dialog)'
                 else:
                     hide_dialog = ''
-            return 'Get Voice' + title +  ' for language:' + language + ' model:' + language_model + hide_dialog + lbl
+            return 'Get Voice' + title + ' for language:' + language + ' model:' + language_model + hide_dialog + lbl
         case '904':
             return 'Voice Command' + get_action_detail(0, code_action, type_action)
         case '905':
@@ -1247,7 +1336,7 @@ def getcode(code_child, code_action, type_action):
             return 'Status Bar Icons ' + get_action_detail(1, code_action, type_action)
         case '941':
             detail1, detail2 = get_action_detail(2, code_action, type_action)
-            return 'HTML Pop code: ' + detail1 + ' Layout: '+ detail2
+            return 'HTML Pop code: ' + detail1 + ' Layout: ' + detail2
         case '987':
             return 'Soft Keyboard' + get_action_detail(0, code_action, type_action)
         case '988':
@@ -1255,7 +1344,7 @@ def getcode(code_child, code_action, type_action):
         case '989':
             detail1 = get_action_detail(7, code_action, type_action)
             if detail1 == 'Toggle':
-                detail1 ='Auto'
+                detail1 = 'Auto'
             return 'Car Mode ' + detail1
 
     # Plugins start here
@@ -1518,6 +1607,7 @@ def get_task_name(the_task_id, all_the_tasks, tasks_that_have_been_found, the_ta
             break
     return task, task_name
 
+
 # See if the xml tag is one of the predefined types and return result
 def tag_in_type(tag, flag):
     scene_task_element_types = ['ListElement', 'TextElement', 'ImageElement', 'ButtonElement', 'OvalElement',
@@ -1534,6 +1624,7 @@ def tag_in_type(tag, flag):
             return True
         else:
             return False
+
 
 # Process Task/Scene text/line item: call recursively for Tasks within Scenes
 def process_list(list_type, the_output, the_list, all_task_list, all_scene_list, the_task,
@@ -1820,7 +1911,7 @@ def condition_state(the_item, cond_string):
                     state = 'AutoWear'
                 case _:
                     state = child.text + ' not yet mapped'
-            cond_string = cond_string + 'State ' + state
+            cond_string = cond_string + 'State: ' + state
             invert = the_item.find('pin')
             if invert is not None:
                 if invert.text == 'true':
@@ -1852,7 +1943,7 @@ def condition_event(the_item, cond_string):
                 else:
                     msg_fields.append('')
             event = 'Received Text type:' + text_type + ' sender:' + msg_fields[0] + ' content:' + msg_fields[1] + \
-                    ' sim:' + msg_fields[2] + ' body:' +msg_fields[3]
+                    ' sim:' + msg_fields[2] + ' body:' + msg_fields[3]
         case '201':
             event = 'Assistance Request'
         case '203':
@@ -1904,7 +1995,7 @@ def condition_event(the_item, cond_string):
         case '2079':
             the_volume, lbl = get_action_detail(3, the_item, False)
             if the_volume != '':
-                event = 'Volume Long Press Volume '  + volume_setting[int(the_volume)] + lbl
+                event = 'Volume Long Press Volume ' + volume_setting[int(the_volume)] + lbl
             else:
                 event = 'Volume Long Press Volume' + lbl
         case '2095':
@@ -1948,7 +2039,7 @@ def condition_event(the_item, cond_string):
         case _:
             event = the_event_code.text + ' not yet mapped'
 
-    cond_string = cond_string + 'Event ' + event
+    cond_string = cond_string + 'Event: ' + event
     if debug:  # If debug then add the code
         cond_string = cond_string + ' (code:' + the_event_code.text + ')'
     return cond_string
@@ -1968,7 +2059,7 @@ def parse_profile_condition(the_profile):
         # Find out what the condition is and handle it
         match item.tag:
 
-        # Condition = Time
+            # Condition = Time
             case 'Time':
                 condition = condition_time(item, condition)  # Get the Time condition
 
@@ -1990,7 +2081,7 @@ def parse_profile_condition(the_profile):
                 for apps in item:
                     if 'label' in apps.tag:
                         the_apps = the_apps + ' ' + apps.text
-                condition = condition + 'Application' + the_apps
+                condition = condition + 'Application:' + the_apps
 
             # Condition = Location
             case 'Loc':
@@ -2022,7 +2113,7 @@ def clean_up_memory(tree, all_projects, all_profiles, all_tasks, all_scenes, roo
 
 
 # Given a list [x,y,z] , print as x y z
-def print_list(list_title,the_list):
+def print_list(list_title, the_list):
     line_out = ''
     if list_title:
         print(list_title)
@@ -2066,7 +2157,7 @@ def validate_color(the_color):
                         'DarkSlateGray', 'Black']
 
     all_colors = red_color_names + pink_color_names + orange_color_names + yellow_color_names + purple_color_names + \
-                 green_color_names + blue_color_names + brown_color_names + white_color_names + gray_color_names
+        green_color_names + blue_color_names + brown_color_names + white_color_names + gray_color_names
 
     if the_color == 'h':
         print_list('\nRed color names:', red_color_names)
@@ -2157,7 +2248,7 @@ def main():
     single_task_nme_name = ''
     display_detail = 1     # Default (1) display detail: unknown Tasks actions only
     display_profile_conditions = False   # Default: False
-    my_version = '6.3'
+    my_version = '6.4'
 
     my_file_name = '/MapTasker.html'
     no_profile = 'None or unnamed!'
@@ -2338,6 +2429,13 @@ def main():
                 # We have the Tasks.  Now let's output them.
                 if our_task_name != '' and single_task:   # Are we mapping just a single Task?
                     if single_task == our_task_name:
+                        if len(task_list) > 1:   # If multiple Tasks in this Profile, just get the one we want
+                            for task_item in task_list:
+                                if our_task_name in task_item:
+                                    task_list = [task_item]
+                                    break
+                                else:
+                                    continue
                         my_output(output_list, 0, heading)
                         my_output(output_list, 1, '')  # Start Project list
                         my_output(output_list, 2, 'Project: ' + project_name)
