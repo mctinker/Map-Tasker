@@ -1,6 +1,6 @@
 MapTasker Change log
  
-  - 0.6.5 Added: additional Task actions recognized 
+  - 0.6.5 Added: additional Task actions recognized
                  Actions complete: Phone, Scenes
         Fixed: Incorrect indentation for Scene's Tasks and regular Tasks
         Fixed: Established a standard Action output format that will be used going forward
