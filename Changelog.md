@@ -2,11 +2,11 @@ MapTasker Change log
  
   - 0.6.5 Added: additional Task actions recognized 
                  Actions complete: Phone, Scenes
-          Fixed: Incorrect indentation for Scene's Tasks and regular Tasks
-          Fixed: Established a standard Action output format that will be used going forward
-          Fixed: Eliminate extraneous print commands
-          Fixed: Bug in Action, for which an integer value is stored in a variable
-          Fixed: Not properly stripping all extraneous html (e.g. <small>) from backup xml
+        Fixed: Incorrect indentation for Scene's Tasks and regular Tasks
+        Fixed: Established a standard Action output format that will be used going forward
+        Fixed: Eliminate extraneous print commands
+        Fixed: Bug in Action, for which an integer value is stored in a variable
+        Fixed: Not properly stripping all extraneous html (e.g. <small>) from backup xml
   - 6.4 Added: additional Task actions recognized 
                  Actions complete: Media, Net                                       
         Fixed: Single Task option -t='task' sometimes returns multiple Tasks by mistake 
