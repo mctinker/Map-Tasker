@@ -1,7 +1,7 @@
 MapTasker Change log
  
  ## [0.6.6] - 2022-10-06
-###  Added: additional Task actions recognized and more in-depth detail for some pre-xistng Actions 
+###  Added: additional Task actions recognized and more in-depth detail for some pre-existng Actions 
      Actions completed: Settings, System, Tasks, Tasker, Variables
 ### Added: Optimized code for debug/testing mode
 ### Added: More details for a number of Actions
