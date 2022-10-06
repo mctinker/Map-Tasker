@@ -1,5 +1,21 @@
 MapTasker Change log
  
+ ## [0.6.6] - 2022-????????
+###  Added: additional Task actions recognized and more in-depth detail for some pre-xistng Actions 
+     Actions completed: Settings, System, Tasks, Tasker, Variables
+### Added: Optimized code for debug/testing mode
+### Added: More details for a number of Actions
+### Fixed: incorrect colors used if displaying specific Task
+### Fixed: Not capturing all Action attributes if type is Int (integer)
+### Fixed: Drop final comma from Action details since nothing follows after the comma
+ ## [0.6.5] - 2022-09-27
+### Added: additional Task actions recognized   
+                 Actions complete: Phone, Scenes   
+### Fixed: Incorrect indentation for Scene's Tasks and regular Tasks   
+### Fixed: Established a standard Action output format that will be used going forward   
+### Fixed: Eliminate extraneous print commands   
+### Fixed: Bug in Action, for which an integer value is stored in a variable   
+### Fixed: Not properly stripping all extraneous html from backup xml
  ## [0.6.5] - 2022-09-27
 ### Added: additional Task actions recognized   
                  Actions complete: Phone, Scenes   
