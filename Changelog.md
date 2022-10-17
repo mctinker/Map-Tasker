@@ -1,29 +1,33 @@
 MapTasker Change log
- 
- ## [0.6.6] - 2022-10-06
-###  Added: additional Task actions recognized and more in-depth detail for some pre-existng Actions 
-     Actions completed: Settings, System, Tasks, Tasker, Variables
-### Added: Optimized code for debug/testing mode
+ ## [0.6.7] - 2022-10-17
+###  Added: additional Task actions recognized and more in-depth detail for some preexisting Actions 
+     Actions completed: Zoom
 ### Added: More details for a number of Actions
-### Fixed: incorrect colors used if displaying specific Task
-### Fixed: Not capturing all Action attributes if type is Int (integer)
-### Fixed: Drop final comma from Action details since nothing follows after the comma
- ## [0.6.5] - 2022-09-27
-### Added: additional Task actions recognized   
+        Flash, Notify, Google Drive
+### Added: Force continued Actions limit to avoid super large binary files from displaying
+### Added: Orientation Profile 'State' as condition
+### Added: Dark mode in user defined variables
+### Change: Converted lists to dictionaries for better performance
+### Fixed: Changed logic to allow for output cleanup after Action details
+### Fixed: Font corruption if Action label contains html.  Try to maintain most of the html.
+### Fixed: Invalid Project identified for Task ('...in Project xxx') if Task ID is subset of Project's Tasks (e.g. '83' in '283')
+Older History Log
+  - 0.6.6 - 2022-10-06
+        Added: additional Task actions recognized and more in-depth detail for some preexisting Actions  
+               Actions completed: Settings, System, Tasks, Tasker, Variables  
+        Added: Optimized code for debug/testing mode  
+        Added: More details for a number of Actions  
+        Fixed: incorrect colors used if displaying specific Task  
+        Fixed: Not capturing all Action attributes if type is Int (integer)  
+        Fixed: Drop final comma from Action details since nothing follows after the comma  
+  - 0.6.5 - 2022-09-27
+        Added: additional Task actions recognized   
                  Actions complete: Phone, Scenes   
-### Fixed: Incorrect indentation for Scene's Tasks and regular Tasks   
-### Fixed: Established a standard Action output format that will be used going forward   
-### Fixed: Eliminate extraneous print commands   
-### Fixed: Bug in Action, for which an integer value is stored in a variable   
-### Fixed: Not properly stripping all extraneous html from backup xml
- ## [0.6.5] - 2022-09-27
-### Added: additional Task actions recognized   
-                 Actions complete: Phone, Scenes   
-### Fixed: Incorrect indentation for Scene's Tasks and regular Tasks   
-### Fixed: Established a standard Action output format that will be used going forward   
-### Fixed: Eliminate extraneous print commands   
-### Fixed: Bug in Action, for which an integer value is stored in a variable   
-### Fixed: Not properly stripping all extraneous html (e.g. <small>) from backup xml   
+        Fixed: Incorrect indentation for Scene's Tasks and regular Tasks   
+        Fixed: Established a standard Action output format that will be used going forward   
+        Fixed: Eliminate extraneous print commands   
+        Fixed: Bug in Action, for which an integer value is stored in a variable   
+        Fixed: Not properly stripping all extraneous html from backup xml
   - 6.4 Added: additional Task actions recognized   
                  Actions complete: Media, Net                                       
         Fixed: Single Task option -t='task' sometimes returns multiple Tasks by mistake 
