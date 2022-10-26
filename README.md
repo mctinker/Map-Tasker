@@ -35,11 +35,10 @@ Runtime options:
 `-d0` for silent mode (no Action details except for first Action on unnamed Tasks),  
 `-d1` to display Action list if Task is unnamed or anonymous (default),   
 `-d2` to display Action list for all Tasks,   
-`-t='task name'` to display a single Task only,   
-`-p` to display a Profile's condition(s),   
+`-task='task name'` to display a single Task only (forces option -d2),
+`-profile='profile name'` to display a single Profile only, 
+`-profcon` to display a Profile's condition(s),   
 `-c(type)=color_name`  define a specific color to 'type', where (type) is one of the following: Project Profile Task Action DisableProfile UnknownTask DisabledAction ActionCondition ProfileCondition LauncherTask Background     Example options: -cTask=Green -cBackground=Black     
 `-ch`  color help: display all valid colors". 
  
-Note: this has not been tested on other MACs and I would be interested in hearing feedback (mikrubin@gmail.com) as to whether or not this is working.    
- 
-  
+Note: this has not been tested on other MACs a
