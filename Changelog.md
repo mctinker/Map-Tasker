@@ -1,17 +1,25 @@
 MapTasker Change log
- ## [0.6.7] - 2022-10-17
-###  Added: additional Task actions recognized and more in-depth detail for some preexisting Actions 
-     Actions completed: Zoom
-### Added: More details for a number of Actions
-        Flash, Notify, Google Drive
-### Added: Force continued Actions limit to avoid super large binary files from displaying
-### Added: Orientation Profile 'State' as condition
-### Added: Dark mode in user defined variables
-### Change: Converted lists to dictionaries for better performance
-### Fixed: Changed logic to allow for output cleanup after Action details
-### Fixed: Font corruption if Action label contains html.  Try to maintain most of the html.
-### Fixed: Invalid Project identified for Task ('...in Project xxx') if Task ID is subset of Project's Tasks (e.g. '83' in '283')
+ ## [0.7.0] - 2022-10-26
+### Changed: Restructured code for better readability
+### Added: New option (-pf='profile name') to display a single Profile and it's Tasks
+### Changed: runtime option -p is now -profcon (display Profile conditions)
+### Changed: runtime option -t='task_name' is now -task='task_name' (display a single Task)
+### Fixed: Certain Tasks not being identified within Profile for option -t='task_name'
+### Fixed: Not properly reporting bad arguments
+ 
 Older History Log
+  - 0.6.7 - 2022-10-17
+       Added: additional Task actions recognized and more in-depth detail for some preexisting Actions 
+                Actions completed: Zoom
+        Added: More details for a number of Actions
+        Flash, Notify, Google Drive
+        Added: Force continued Actions limit to avoid super large binary files from displaying
+        Added: Orientation Profile 'State' as condition
+        Added: Dark mode in user defined variables
+        Change: Converted lists to dictionaries for better performance
+        Fixed: Changed logic to allow for output cleanup after Action details
+        Fixed: Font corruption if Action label contains html.  Try to maintain most of the html.
+        Fixed: Invalid Project identified for Task ('...in Project xxx') if Task ID is subset of Project's Tasks (e.g. '83' in '283')
   - 0.6.6 - 2022-10-06
         Added: additional Task actions recognized and more in-depth detail for some preexisting Actions  
                Actions completed: Settings, System, Tasks, Tasker, Variables  
