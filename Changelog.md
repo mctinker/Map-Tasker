@@ -1,10 +1,10 @@
 MapTasker Change log
  ## [0.7.0] - 2022-10-26
 ### Changed: Restructured code for better readability
-### Added: New option (-pf='profile name') to display a single Profile and it's Tasks
+### Added: New option (-profile='profile name') to display a single Profile and it's Tasks
 ### Changed: runtime option -p is now -profcon (display Profile conditions)
 ### Changed: runtime option -t='task_name' is now -task='task_name' (display a single Task)
-### Fixed: Certain Tasks not being identified within Profile for option -t='task_name'
+### Fixed: Certain Tasks not being identified within Profile for single Task option
 ### Fixed: Not properly reporting bad arguments
  
 Older History Log
