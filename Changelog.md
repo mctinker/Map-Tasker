@@ -1,13 +1,20 @@
 MapTasker Change log
- ## [0.7.0] - 2022-10-26
-### Changed: Restructured code for better readability
-### Added: New option (-profile='profile name') to display a single Profile and it's Tasks
-### Changed: runtime option -p is now -profcon (display Profile conditions)
-### Changed: runtime option -t='task_name' is now -task='task_name' (display a single Task)
-### Fixed: Certain Tasks not being identified within Profile for single Task option
-### Fixed: Not properly reporting bad arguments
+ ## [0.8.0] - 2022-11-03
+### Changed: Restructured code for better readability and performance
+### Added: New option (-project='project name') to display a single Project, its Profiles and Tasks
+### Added: Missing Plugin Actions: AutoTools Action Wait, Autotools Time, Autotools Json Read
+### Fixed: Cleaned up a number of Task Actions
+### Fixed: Background color option not getting properly set
+### Fixed: -task= option could result in multiple Tasks being displayed for same Profile
  
 Older History Log
+  - 0.7.0 - 2022-10-26  
+       Changed: Restructured code for better readability  
+       Added: New option (-profile='profile name') to display a single Profile and it's Tasks  
+       Changed: runtime option -p is now -profcon (display Profile conditions)  
+       Changed: runtime option -t='task_name' is now -task='task_name' (display a single Task)  
+       Fixed: Certain Tasks not being identified within Profile for option to display a single Task
+       Fixed: Not properly reporting bad argument
   - 0.6.7 - 2022-10-17
        Added: additional Task actions recognized and more in-depth detail for some preexisting Actions 
                 Actions completed: Zoom
