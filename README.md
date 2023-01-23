@@ -60,7 +60,20 @@ Runtime options:
 `-ch`  color help: display all valid colors". 
 
 Sample output with runtime option '-d0':
+
 <img src="/documentation_images/display_level-d0.png" width="400"/>
+
+Sample output with runtime option '-d1':
+
+<img src="/documentation_images/display_level-d1.png" width="400"/>
+
+Sample output with runtime option '-d2':
+
+<img src="/documentation_images/display_level-d2.png" width="400"/>
+
+Sample output with runtime options '-d3 -profcon':
+
+<img src="/documentation_images/display_level-d3.png" width="400"/>
 
     Example runtime options: python3.10 maptasker.py -d3 -profcon
 
