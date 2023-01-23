@@ -41,7 +41,7 @@ Program out: the file “MapTasker.html” will be written to your runtime/curre
  
 Runtime: `python3.10 maptasker.py -option1 -option2` ...
  
-Runtime options: 
+### Runtime options: 
  
 `-h` for help,  
 `-d0` for silent mode (no Action details except for first Action on unnamed Tasks),  
