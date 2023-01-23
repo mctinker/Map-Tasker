@@ -18,7 +18,7 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
 
 
     pip3 install customtkinter
-    pip3 install CTkColorPicker    
+    pip3 install ctkcolorpicker
     
 
 ### Installation
