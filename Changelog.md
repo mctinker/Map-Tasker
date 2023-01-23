@@ -1,9 +1,9 @@
 MapTasker Change log
  ## [1.1.0] - 2023-01-23
-### Added: Optional GUI frontend for runtime options
-### Added sample images to README
+### Added:  Optional GUI front-end for runtime options
+### Added:  Sample images to README
 ### Changed: Relocated called modules to subdirectory 'routines'
-### Changed: main program top all lowercase
+### Changed: Main program top all lowercase: maptasker.py
 ### Fixed: no longer producing log file if not in debug mode
  
 Older History Log   
