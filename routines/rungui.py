@@ -52,8 +52,10 @@ def process_gui(colormap, use_gui):
         exit(99)
 
     # 'Run' button hit.  Get all the input from GUI variables
-    with contextlib.suppress(AttributeError):
+    try:
         display_detail_level = int(user_input.display_detail)
+    except Exception as e:
+        display_detail_level = 1
     # Ok, load up the arguments from the GUI
     display_profile_conditions = user_input.conditions
     single_project_name = user_input.project_name
