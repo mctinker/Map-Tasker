@@ -1,5 +1,5 @@
 MapTasker Change log
- ## [1.1.1] - 2023-01-??
+ ## [1.1.1] - 2023-01-27
 ### Added:  Project/Profile Taskernet details optionally displayed (see option -taskernet)
 ### Added: '-e' option for display "everything": Profile conditions, TaskerNet info and full details 
 ### Fixed: Project 'launch' Tasks now properly displayed
