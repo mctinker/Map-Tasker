@@ -2,7 +2,8 @@
 
 # ########################################################################################## #
 #                                                                                            #
-# MapTasker: read the Tasker backup file to build a visual map of its configuration:         #
+# MapTasker: Main Program                                                                    #
+#            Read the Tasker backup file to build a visual map of its configuration:         #
 #            Projects, Profiles, Tasks, Scenes                                               #
 #                                                                                            #
 # Requirements                                                                               #
@@ -146,8 +147,9 @@ def clean_up_and_exit(
     all_tasker_items: dict,
 ) -> None:
     output_list.clear()
-    print(f"{name} {profile_or_task_name} not found!!")
-    logger.debug(f"{name} {profile_or_task_name} not found!!")
+    error_message = f"{name} {profile_or_task_name} not found!!"
+    print(error_message)
+    logger.debug(error_message)
     clean_up_memory(tree, root, output_list, all_tasker_items)
     sys.exit(5)
 
@@ -168,9 +170,10 @@ def main():
     colormap, program_args, found_items, heading = initialize.start_up()
 
     # Development only parameters here:
-    # program_args['debug'] = True
-    # program_args['display_detail_level'] = 3
-    # program_args['display_profile_conditions'] = True
+    # program_args["debug"] = True
+    # program_args["display_detail_level"] = 3
+    # program_args["display_profile_conditions"] = True
+    # program_args['display_taskernet'] = False
     # program_args['single_task_name'] = 'Check Upstairs Heat'
 
     # Prompt user for Tasker's backup.xml file location

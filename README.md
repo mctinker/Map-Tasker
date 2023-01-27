@@ -44,15 +44,17 @@ Runtime: `python3.10 maptasker.py -option1 -option2` ...
  
 ### Runtime options 
  
-`-h` for help,  
+`-h` for help.  Also refer to HELP.md for more details,  
 `-d0` for silent mode (no Action details except for first Action on unnamed Tasks),  
-`-d1` to display Action list if Task is unnamed or anonymous (default),   
-`-d2` to display Action list for all Tasks,    
-`-d3` to display Action list with all parameters for all Tasks,
+`-d1` to display Action list if Task onl is unnamed or anonymous (default),   
+`-d2` to display Action list names for *all* Tasks,    
+`-d3` to display Action list names with *all* parameters for all Tasks,    
+`-e` to display 'everything': Profile 'conditions', TaskerNet info and full Task/Action details \n  
 `-g` to get arguments from the GUI rather than via the command line,    
-`-project='name of project'` to display a single Project, its Profiles and Tasks only,
-`-profile='profile name'` to display a single Profile and its Tasks only,
-`-task='task name'` to display a single Task only (forces option -d2), 
+`-project='name of project'` to display a single Project, its Profiles and Tasks only,    
+`-profile='profile name'` to display a single Profile and its Tasks only,    
+`-task='task name'` to display a single Task only (forces option -d2),   
+`-taskernet` to display any TaskerNet share details,    
 `-profcon` to display a Profile's condition(s),   
 `-c(type)=color_name`  define a specific color to 'type', where (type) is *one* of the following:
 > Project Profile Task Action DisabledProfile UnknownTask DisabledAction ActionCondition ProfileCondition LauncherTask Background ActionLabel
@@ -76,9 +78,9 @@ Sample output with runtime options '-d3 -profcon':
 
 <img src="/documentation_images/display_level-d3.png" width="400"/>
 
-    Example runtime options: python3.10 maptasker.py -d3 -profcon
+    Example runtime options: 'python3.10 maptasker.py -d3 -profcon'
 
-    Example using GUI: python3.10 maptasker.py -g
+    Example using GUI: 'python3.10 maptasker.py -g'
 
 Alternatively, see *config.py* for user-customizable options.  Make user-specific changes in this file and save it rather than specifying them as arguments or via the GUI.
 
@@ -95,3 +97,5 @@ Alternatively, see *config.py* for user-customizable options.  Make user-specifi
 [] Manage dependencies through Poetry
  
 [] Package for pip
+
+[] Save and restore program runtime settings

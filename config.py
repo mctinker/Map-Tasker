@@ -26,12 +26,13 @@ OUTPUT_FONT = "Courier"  # OS X Default monospace font
 GUI = False  # Graphical User Interface (True) vs. CLI Command Line Interface (False)
 DARK_MODE = True  # Light vs Dark Mode
 # Set the default colors to use
+
 if DARK_MODE:  # Dark background with light text colors
     project_color = "White"  # Refer to the following for valid names: https://htmlcolorcodes.com/color-names/
-    profile_color = "LightPink"
+    profile_color = "Aqua"
     disabled_profile_color = "Red"
     launcher_task_color = "Chartreuse"
-    task_color = "PapayaWhip"
+    task_color = "Lavender"
     unknown_task_color = "Red"
     scene_color = "Lime"
     bullet_color = "Black"
@@ -43,16 +44,18 @@ if DARK_MODE:  # Dark background with light text colors
     profile_condition_color = "Turquoise"
     background_color = "DarkSlateGray"
     trailing_comments_color = "LightSeaGreen"
+    taskernet_color = "LightPink"
+
 else:  # White background with dark text colors
     project_color = "Black"  # Refer to the following for valid names: https://htmlcolorcodes.com/color-names/
-    profile_color = "Blue"
+    profile_color = "DarkBlue"
     disabled_profile_color = "DarkRed"
     launcher_task_color = "LawnGreen"
-    task_color = "Green"
+    task_color = "DarkGreen"
     unknown_task_color = "MediumVioletRed"
     scene_color = "Purple"
     bullet_color = "DarkSlateGray"
-    action_color = "CornflowerBlue"
+    action_color = "DarkSlateGray"
     action_name_color = "Indigo"
     action_label_color = "MediumOrchid"
     action_condition_color = "Brown"
@@ -60,6 +63,9 @@ else:  # White background with dark text colors
     profile_condition_color = "DarkSlateGray"
     background_color = "Lavender"
     trailing_comments_color = "Tomato"
+    taskernet_color = "RoyalBlue"
+
+
 # ####################################################################################################
 #  END User-modifiable global constants
 # ####################################################################################################
@@ -68,13 +74,14 @@ else:  # White background with dark text colors
 
 logger = logging.getLogger("MapTasker")
 debug_out = False  # Prints the line to be added to the output
+debug_program = False
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 1.1.0"
+MY_VERSION = "MapTasker version 1.1.1"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
 FONT_TO_USE = f"<font face={OUTPUT_FONT}>"
 NO_PROFILE = "None or unnamed!"
-HELP_FILE = "https://github.com/mctinker/MapTasker/blob/Version-1.1.0/help.md"
+HELP_FILE = "https://github.com/mctinker/MapTasker/blob/Version-1.1.1/Help.md"
