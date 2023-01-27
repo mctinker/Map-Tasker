@@ -84,6 +84,7 @@ def setup_colors() -> dict:
         "launcher_task_color": launcher_task_color,
         "background_color": background_color,
         "bullet_color": bullet_color,
+        "taskernet_color": taskernet_color,
     }
 
 
@@ -101,7 +102,26 @@ def setup_logging():
     logger.info(sys.version_info)
 
 
+##############################################################################################
+# Log the arguments
 # #############################################################################################
+def log_startup_values(program_args: dict, colormap: dict) -> None:
+    setup_logging()  # Get logging going
+    logger.info(f"{MY_VERSION} {str(datetime.datetime.now())}")
+    logger.info(f"display_detail_level: {program_args['display_detail_level']}")
+    logger.info(f"display_taskernet: {program_args['display_taskernet']}")
+    logger.info(f"single_project_name: {program_args['single_project_name']}")
+    logger.info(f"single_profile_name: {program_args['single_profile_name']}")
+    logger.info(f"single_task_name: {program_args['single_task_name']}")
+    logger.info(
+        f"display_profile_conditions: {program_args['display_profile_conditions']}"
+    )
+    logger.info(f"debug: {program_args['debug']}")
+    for key, value in colormap.items():
+        logger.info(f"colormap for {key} set to {value}")
+
+
+##############################################################################################
 # Perform main program initialization functions
 # #############################################################################################
 def start_up() -> tuple:
@@ -111,20 +131,9 @@ def start_up() -> tuple:
     # Get any arguments passed to program
     logger.info(f"sys.argv{str(sys.argv)}")
     program_args = get_args.get_program_arguments(colormap)
+    # If debug mode, log the arguments
     if program_args["debug"]:
-        setup_logging()  # Get logging going
-        logger.info(f"{MY_VERSION} {str(datetime.datetime.now())}")
-        logger.info(f"display_detail_level: {program_args['display_detail_level']}")
-        logger.info(f"single_project_name: {program_args['single_project_name']}")
-        logger.info(f"single_profile_name: {program_args['single_profile_name']}")
-        logger.info(f"single_task_name: {program_args['single_task_name']}")
-        logger.info(
-            f"display_profile_conditions: {program_args['display_profile_conditions']}"
-        )
-        logger.info(f"debug: {program_args['debug']}")
-        for key, value in colormap.items():
-            logger.info(f"colormap for {key} set to {value}")
-
+        log_startup_values(program_args, colormap)
     heading = (
         '<html>\n<head>\n<title>MapTasker</title>\n<body style="background-color:'
         + colormap["background_color"]

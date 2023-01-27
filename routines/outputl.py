@@ -11,6 +11,7 @@
 # ########################################################################################## #
 
 import routines.actione as action_evaluate
+import xml.etree.ElementTree  # Need for type hints
 from config import *
 
 
@@ -41,7 +42,7 @@ def refresh_our_output(
 # Generate the output string based on the input XML <code> passed in
 # Returns a formatted string for output based on the input codes
 # #############################################################################################
-def ulify_list_item(element, colormap, font_to_use):
+def ulify_list_item(element: xml.etree, colormap: dict, font_to_use: str) -> str:
     list_color = '<li style="color:'
 
     if element[:7] == "Project":  # Project ========================
@@ -127,6 +128,19 @@ def ulify_list_item(element, colormap, font_to_use):
             + element
             + "</span></li>\n"
         )
+    elif "TaskerNet " in element:  # TaskerNet
+        return (
+            '<p style="margin-left:20px; margin-right:50px;">'
+            # + "<p>"
+            + '<span style="color:'
+            + colormap["taskernet_color"]
+            + '">'
+            + element
+            + "</span></p>\n"
+            + '<span style="color:'
+            + colormap["taskernet_color"]
+            + '">'
+        )
     else:  # Must be additional item
         return f"<li>{element}" + "</li>\n"
 
@@ -135,10 +149,8 @@ def ulify_list_item(element, colormap, font_to_use):
 # Generate the output string based on the input XML <code> passed in
 # Returns a formatted string for output based on the input codes
 # #############################################################################################
-def ulify(
-    element, lvl, colormap, font_to_use
-):  # lvl=0=heading 1=start list 2=Task/Profile/Scene 3=end list 4=special Task
-
+def ulify(element, lvl, colormap, font_to_use):
+    # list lvl: 0=heading 1=start list 2=Task/Profile/Scene 3=end list 4=special Task
     string = ""
     match lvl:
         case 0:
@@ -167,6 +179,7 @@ def my_output(colormap, program_args, output_list, list_level, out_string):
     output_list.append(
         ulify(out_string, list_level, colormap, program_args["font_to_use"])
     )
+    # Log the generated output if in special debug mode
     if debug_out:
         debug_msg = "out_string:", ulify(
             out_string, list_level, colormap, program_args["font_to_use"]

@@ -34,6 +34,7 @@ INFO_TEXT = (
     "    Level 2 = display full Task action name on every Task\n"
     "    Level 3 = display full Task action details on every Task with action details\n\n"
     "* Display Conditions: Turn on the display of Profile and Task conditions.\n\n"
+    "* Display TaskerNet Info - If available, display TaskerNet publishing information\n\n"
     "* Appearance Mode: Dark mode, Light mode, or System default mode.\n\n"
     "* Reset Options: Clear everything and start anew.\n\n"
     "* Run: Run the program with the settings provided.\n\n"
@@ -93,10 +94,20 @@ class MyGui(customtkinter.CTk):
             self.sidebar_frame,
             command=self.condition_event,
             text="Display Conditions",
-            onvalue=1,
-            offvalue=0,
+            onvalue=True,
+            offvalue=False,
         )
-        self.condition_button.grid(row=3, column=0, padx=20, pady=10)
+        self.condition_button.grid(row=3, column=0, padx=20, pady=10, sticky="w")
+
+        # Display 'TaskerNet' button
+        self.taskernet_button = customtkinter.CTkCheckBox(
+            self.sidebar_frame,
+            command=self.taskernet_event,
+            text="Display TaskerNet Info",
+            onvalue=True,
+            offvalue=False,
+        )
+        self.taskernet_button.grid(row=4, column=0, padx=20, pady=10)
 
         # Screen Appearance: Light / Dark / System
         self.appearance_mode_label = customtkinter.CTkLabel(
@@ -215,6 +226,7 @@ class MyGui(customtkinter.CTk):
                 "Scenes",
                 "Background",
                 "Bullet",
+                "TaskerNet Description",
             ],
             command=self.colors_event,
         )
@@ -241,6 +253,7 @@ class MyGui(customtkinter.CTk):
         self.sidebar_detail_option.configure(values=["0", "1", "2", "3"])
         self.sidebar_detail_option.set("1")
         self.conditions = False
+        self.taskernet = False
         self.project_name = ""
         self.profile_name = ""
         self.task_name = ""
@@ -413,11 +426,18 @@ class MyGui(customtkinter.CTk):
         self.conditions = self.condition_button.get()
 
     # #######################################################################################
+    # Process the 'taskernet' checkbox
+    # #######################################################################################
+    def taskernet_event(self):
+        self.taskernet = self.taskernet_button.get()
+
+    # #######################################################################################
     # Process the 'Reset Settings' button
     # #######################################################################################
     def reset_settings_event(self):
         self.sidebar_detail_option.set("1")  # display detail level
         self.condition_button.deselect()  # Conditions
+        self.taskernet_button.deselect()  # TaskerNet
         self.appearance_mode_optionemenu.set("Dark")  # Appearance
         customtkinter.set_appearance_mode("Dark")  # Enforce appearance
         self.debug_checkbox.deselect()  # Debug

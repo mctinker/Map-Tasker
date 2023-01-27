@@ -11,24 +11,25 @@
 # ########################################################################################## #
 import xml.etree.ElementTree  # Need for type hints
 
-from routines import condition as condition
 import routines.tasks as tasks
+from config import *
+from routines import condition as condition
 from routines.outputl import my_output
 from routines.outputl import refresh_our_output
-from config import *
+from routines.share import share
 
 
 # #######################################################################################
 # Get a specific Profile's Tasks (maximum of two:entry and exit)
 # #######################################################################################
 def get_profile_tasks(
-    the_profile: iter,
+    the_profile: xml.etree,
     found_tasks_list: list,
     task_list_output: list,
     program_args: dict,
     all_tasks: dict,
     found_items: dict,
-) -> tuple[xml.etree.ElementTree, str, bool]:
+) -> tuple[xml.etree, str]:
     keys_we_dont_want = ["cdate", "edate", "flags", "id"]
     the_task_element, the_task_name = "", ""
 
@@ -59,7 +60,14 @@ def get_profile_tasks(
 # #######################################################################################
 # Get the Profile's key attributes: limit, launcher task, run conditions
 # #######################################################################################
-def build_profile_line(project, profile, output_list, program_args, colormap):
+def build_profile_line(
+    project: xml.etree,
+    profile: xml.etree,
+    output_list: list,
+    program_args: dict,
+    colormap: dict,
+) -> tuple:
+
     # Set up html to use
     profile_color_html = (
         '<span style = "color:'
@@ -83,6 +91,7 @@ def build_profile_line(project, profile, output_list, program_args, colormap):
     )
     profile_condition = ""
 
+    # Look for disabled Profile
     limit = profile.find("limit")  # Is the Profile disabled?
     if limit is not None and limit.text == "true":
         disabled = disabled_profile_html
@@ -126,6 +135,7 @@ def build_profile_line(project, profile, output_list, program_args, colormap):
     if program_args["debug"]:
         profile_id = profile.find("id").text
         profile_name = f"{profile_name} ID:{profile_id}"
+    # Output the Profile line
     my_output(
         colormap,
         program_args,
@@ -140,23 +150,25 @@ def build_profile_line(project, profile, output_list, program_args, colormap):
 # process_projects: go through all Projects Profiles...and output them
 # #######################################################################################
 def process_profiles(
-    output_list,
-    project,
-    project_name,
-    profile_ids,
-    list_of_found_tasks,
-    program_args,
-    heading,
-    colormap,
-    all_tasker_items,
-    found_items,
-):
+    output_list: list,
+    project: xml.etree,
+    project_name: str,
+    profile_ids: list,
+    list_of_found_tasks: list,
+    program_args: dict,
+    heading: str,
+    colormap: dict,
+    all_tasker_items: dict,
+    found_items: dict,
+) -> object:
 
     our_task_element = ""
 
     # Go through the Profiles found in the Project
     for item in profile_ids:
         profile = all_tasker_items["all_profiles"][item]
+        if profile is None:  # If Project has no
+            return None
         # Are we searching for a specific Profile?
         if program_args["single_profile_name"]:
             try:
@@ -185,10 +197,14 @@ def process_profiles(
             found_items,
         )
 
-        # Examine Profile attributes
+        # Examine Profile attributes and output Profile line
         limit, launcher, profile_condition, profile_name = build_profile_line(
             project, profile, output_list, program_args, colormap
         )
+
+        # Process any <Share> information from TaskerNet
+        if program_args["display_taskernet"]:
+            share(profile, colormap, program_args, output_list)
 
         # We have the Tasks for this Profile.  Now let's output them.
         # True = we're looking for a specific Task

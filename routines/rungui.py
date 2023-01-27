@@ -58,6 +58,7 @@ def process_gui(colormap, use_gui):
         display_detail_level = 1
     # Ok, load up the arguments from the GUI
     display_profile_conditions = user_input.conditions
+    display_taskernet = user_input.taskernet
     single_project_name = user_input.project_name
     single_profile_name = user_input.profile_name
     single_task_name = user_input.task_name
@@ -91,6 +92,8 @@ def process_gui(colormap, use_gui):
                     colormap["background_color"] = value
                 case "Bullets":
                     colormap["bullet_color"] = value
+                case "TaskerNet Description":
+                    colormap["taskernet_color"] = value
                 case _:
                     pass
 
@@ -102,6 +105,7 @@ def process_gui(colormap, use_gui):
     return (
         display_detail_level,
         display_profile_conditions,
+        display_taskernet,
         single_project_name,
         single_profile_name,
         single_task_name,

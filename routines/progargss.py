@@ -2,11 +2,6 @@
 #                                                                                            #
 # progargss: program arguments support routines                                              #
 #                                                                                            #
-# Add the following statement (without quotes) to your Terminal Shell configuration file     #
-#  (BASH, Fish, etc.) to eliminate the runtime msg:                                          #
-#  DEPRECATION WARNING: The system version of Tk is deprecated ...                           #
-#  "export TK_SILENCE_DEPRECATION = 1"                                                       #
-#                                                                                            #
 # GNU General Public License v3.0                                                            #
 # Permissions of this strong copyleft license are conditioned on making available            #
 # complete source code of licensed works and modifications, which include larger works       #
@@ -32,10 +27,12 @@ def display_the_help():
         "-d1  display all Task action details for unknown Tasks only (default)\n  "
         "-d2  display all Task action names only\n  "
         "-d3  display full Task action details (parameters) on every Task\n  "
+        "-e  display 'everything': Profile conditions, TaskerNet info and full Task/Action details \n  "
         "-project='a valid Project name'  display the details for a single Project, its Profiles and its Task only\n  "
         "-profile='a valid Profile name'  display the details for a single Profile and its Task only\n  "
         "-task='a valid Task name'  display the details for a single Task only (automatically sets -d option to -d2)\n  "
         "-g  bring up the GUI (and ignore command line arguments)\n  "
+        "-taskernet  display TaskerNet share details\n  "
         "-profcon  display the condition(s) for Profiles\n  "
         "-v  for this program's version\n  "
         "-c(type)=color_name  define a specific color to 'type', \n           where type is one of the following...\n  "

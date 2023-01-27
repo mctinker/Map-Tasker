@@ -28,6 +28,7 @@ from routines.rungui import process_gui
 # #######################################################################################
 # Command line parameters
 def process_cli(colormap):
+    everything = False
 
     display_detail_level, single_task_name, single_profile_name, single_project_name = (
         1,
@@ -35,7 +36,7 @@ def process_cli(colormap):
         "",
         "",
     )
-    display_profile_conditions, debug = False, False
+    display_profile_conditions, display_taskernet, debug = False, False, False
 
     args = sys.argv
 
@@ -49,6 +50,11 @@ def process_cli(colormap):
                 print(MY_VERSION)
                 print(MY_LICENSE)
                 sys.exit()
+            case "-e":  # Everything and the kitchen sink
+                display_detail_level = 3
+                display_taskernet = True
+                display_profile_conditions = True
+                everything = True
             case "-h":  # Help
                 arg_support.display_the_help()
             case "-d":  # Display detail level
@@ -56,11 +62,11 @@ def process_cli(colormap):
                     arg, display_detail_level, debug
                 )
             case "-g":  # GUI
-                gui = True
-
+                # gui = True
                 (
                     display_detail_level,
                     display_profile_conditions,
+                    display_taskernet,
                     single_project_name,
                     single_profile_name,
                     single_task_name,
@@ -72,6 +78,8 @@ def process_cli(colormap):
                         single_task_name = arg[6:]
                     else:
                         print('"-profile"', f'{argument_precedence}"-task=".')
+                elif arg[1:10] == "taskernet":
+                    display_taskernet = True
                 else:
                     arg_support.report_bad_argument(arg)
             case "-c":  # Color
@@ -102,6 +110,7 @@ def process_cli(colormap):
     return (
         display_detail_level,
         display_profile_conditions,
+        display_taskernet,
         single_project_name,
         single_profile_name,
         single_task_name,

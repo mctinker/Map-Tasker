@@ -2,10 +2,6 @@
 #                                                                                            #
 # colors: get and set the program colors                                                     #
 #                                                                                            #
-# Add the following statement (without quotes) to your Terminal Shell configuration file     #
-#  (BASH, Fish, etc.) to eliminate the runtime msg:                                          #
-#  DEPRECATION WARNING: The system version of Tk is deprecated ...                           #
-#                                                                                            #
 # GNU General Public License v3.0                                                            #
 # Permissions of this strong copyleft license are conditioned on making available            #
 # complete source code of licensed works and modifications, which include larger works       #
@@ -256,19 +252,26 @@ def get_and_set_the_color(the_arg, colormap):
         "Bullet",
         "ActionLabel",
         "ActionName",
+        "TaskerNetInfo",
     ]
 
     the_color_option = the_arg[2:].split("=")
+    print(the_color_option)
     color_type = the_color_option[0]
-    logger.debug(f"the_color_option: {the_color_option[1]} color_type: {color_type}")
-    if color_type not in types_for_color:
-        error_msg = (
-            f"Argument {the_arg} is an invalid 'type' for color.  See the help (-h)!"
+    if len(the_color_option) == 2:  # Do we have the second parameter?
+        logger.debug(
+            f"the_color_option: {the_color_option[1]} color_type: {color_type}"
         )
-        print(error_msg)
-        logger.debug(f"{error_msg}exit code 7")
-        exit(7)
-
+    else:
+        handle_error(
+            f"{the_arg} has an invalid 'color'.  See the help (-ch)!", " Exit code 7", 7
+        )
+    if color_type not in types_for_color:
+        handle_error(
+            f"{color_type} is an invalid type for 'color'.  See the help (-h)!",
+            " Exit code 7",
+            7,
+        )
     desired_color = the_color_option[1]
     logger.debug(f" desired_color:{desired_color}")
     if validate_color(desired_color):  # If the color provided is valid...
@@ -303,6 +306,8 @@ def get_and_set_the_color(the_arg, colormap):
                 colormap["bullet_color"] = desired_color
             case "ActionLabel":
                 colormap["action_label_color"] = desired_color
+            case "TaskerNetInfo":
+                colormap["taskernet_color"] = desired_color
             case _:
                 error_msg = f"Invalid name in arg: =cName, where name is:{desired_color} color_type:{color_type}"
                 handle_error(error_msg, " exit code 1", 1)

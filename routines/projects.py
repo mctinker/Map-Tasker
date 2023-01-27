@@ -17,6 +17,7 @@ from routines.outputl import my_output
 from routines.outputl import refresh_our_output
 from routines.proclist import process_list
 from routines.profiles import process_profiles
+from routines.share import share
 
 
 # #######################################################################################
@@ -105,12 +106,35 @@ def process_projects(
     program_args,
     all_tasker_items,
 ):
+    # Set up html to use
+    project_color_html = (
+        '<span style = "color:'
+        + colormap["project_color"]
+        + '"</span>'
+        + program_args["font_to_use"]
+    )
 
     for project in all_tasker_items["all_projects"]:
         # Don't bother with another Project if we've done a single Task or Profile only
         if found_items["single_task_found"] or found_items["single_profile_found"]:
             break
         project_name = project.find("name").text
+
+        # See if there is a Launcher task
+        launcher_task_info = ""
+        share_element = project.find("Share")
+        if share_element is not None:
+            launcher_task_element = share_element.find("t")
+            if (
+                launcher_task_element is not None
+                and launcher_task_element.text is not None
+            ):
+                launcher_task_info = (
+                    ' <span style = "color:'
+                    + colormap["launcher_task_color"]
+                    + f'"</span>[Launcher Task: {launcher_task_element.text}] '
+                    + project_color_html
+                )
         # Are we looking for a specific Project?
         if program_args["single_project_name"]:
             if project_name != program_args["single_project_name"]:
@@ -121,8 +145,16 @@ def process_projects(
             )
         else:
             my_output(
-                colormap, program_args, output_list, 2, f"Project: {project_name}"
+                colormap,
+                program_args,
+                output_list,
+                2,
+                f"Project: {project_name} {launcher_task_info}",
             )
+        # Process any <Share> information from TaskerNet
+        if program_args["display_taskernet"]:
+            share(project, colormap, program_args, output_list)
+
         project_pids = ""
 
         # Get Profiles and it's Project and Tasks
