@@ -8,18 +8,19 @@ I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable
 A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
  
 ### Program dependencies:
--	Python version v3.10 or higher     
+-	Python version v3.10 or higher             
 
 
-    brew install python3.10
-    brew install python-tk@3.10
+    `brew install python3.10`          
+    `brew install python-tk@3.10`           
+     
 -	Tasker full or partial backup.xml (anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6. 
--   If using the GUI, then these addition dependencies must be installed:    
+-   If using the GUI, then these addition dependencies must be installed:           
 
 
-    pip3 install customtkinter
-    pip3 install ctkcolorpicker
-    pip3 install pillow
+     `pip3 install customtkinter`         
+     `pip3 install ctkcolorpicker`          
+     `pip3 install pillow`          
     
 
 ### Installation
