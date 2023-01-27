@@ -18,9 +18,9 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
 -   If using the GUI, then these addition dependencies must be installed:           
 
 
-     `pip3 install customtkinter`         
-     `pip3 install ctkcolorpicker`          
-     `pip3 install pillow`          
+     `pip install customtkinter`         
+     `pip install ctkcolorpicker`          
+     `pip install pillow`          
     
 
 ### Installation
