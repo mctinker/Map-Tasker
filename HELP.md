@@ -12,8 +12,9 @@ To run this program, you must have the following installed on your Mac:
     
 
       tkinter:        brew install python-tk@3.10
-      customtkinter:  pip3 install customtkinter
-      ctkcolorpicker: pip3 install CTkColorPicker
+      customtkinter:  pip install customtkinter
+      ctkcolorpicker: pip install CTkColorPicker
+      PIL:            pip install pillow      
 
       
 * A copy of your Tasker backup file (xml), uploaded from your Android device to your Mac.
