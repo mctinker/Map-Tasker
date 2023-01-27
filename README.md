@@ -1,7 +1,7 @@
 # MapTasker
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
 
-This is an application in support of Tasker (https://tasker.joaoapps.com/) that is intended to run on a MAC.
+This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a MAC.
  
 I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, so I wrote a Python program for my MAC to provide an indented list of my entire configuration based on my Tasker backup XML file that I save to my Google Drive.
  
