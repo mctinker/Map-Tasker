@@ -45,31 +45,33 @@ Runtime: `python3.10 maptasker.py -option1 -option2` ...
  
 ### Runtime options 
  
-`-h` for help.  Also refer to HELP.md for more details,  
-`-detail 0` for silent mode (no Action details except for first Action on unnamed Tasks),  
-`-detail 1` to display Action list if Task onl is unnamed or anonymous (default),   
-`-detail 2` to display Action list names for *all* Tasks,    
-`-detail 3` to display Action list names with *all* parameters for all Tasks,    
-`-e` to display 'everything': Profile 'conditions', TaskerNet info and full Task (action) details    
-`-g` to get arguments from the GUI rather than via the command line,   
-
-The following three arguments are exclusive.  Use *one* only:
-
-
-`-project 'name of project'` to display a single Project, its Profiles and Tasks only,    
-`-profile 'profile name'` to display a single Profile and its Tasks only,    
-`-task 'task name'` to display a single Task only (forces option -d2),   
+    `-h` for help.  Also refer to HELP.md for more details,  
+    `-detail 0` for silent mode (no Action details except for first Action on unnamed Tasks),  
+    `-detail 1` to display Action list if Task onl is unnamed or anonymous (default),   
+    `-detail 2` to display Action list names for *all* Tasks,    
+    `-detail 3` to display Action list names with *all* parameters for all Tasks,    
+    `-e` to display 'everything': Profile 'conditions', TaskerNet info and full Task (action) details    
+    `-g` to get arguments from the GUI rather than via the command line,   
     
-    
-`-taskernet` to display any TaskerNet share details,    
-`-conditions` to display a Profile's and Task's condition(s),   
-`-c(type) color_name`  define a specific color to 'type', where 'type' is *one* of the following:
-> Project Profile Task Action DisabledProfile UnknownTask DisabledAction ActionCondition ProfileCondition LauncherTask Background ActionLabel
-            
-    Example color options: -cTask Green -cBackground Black cProfile 19c8ff     
-`-ch`  color help: display all valid colors".     
-`-s`  save these settings.    
-`-r`  restore previously saved settings. 
+    The following three arguments are exclusive.  Use one only:
+
+    `-project 'name of project'` to display a single Project, its Profiles and Tasks only,    
+    `-profile 'profile name'` to display a single Profile and its Tasks only,    
+    `-task 'task name'` to display a single Task only (forces option -d2),   
+        
+        
+    `-taskernet` to display any TaskerNet share details,    
+    `-conditions` to display a Profile's and Task's condition(s),   
+    `-c(type) color_name`  define a specific color to 'type', where 'type' is *one* of the following:
+    > Project Profile Task Action DisabledProfile UnknownTask DisabledAction ActionCondition ProfileCondition LauncherTask Background ActionLabel
+                
+        Example color options: -cTask Green -cBackground Black cProfile 19c8ff     
+    `-ch` color help: display all valid colors".     
+
+    The following two arguments are exclusive.  Use one only:
+
+    `-s`  save these settings for later reuse.    
+    `-r`  restore previously saved settings. 
 
 Sample output with runtime option '-detail 0':
 
