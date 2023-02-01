@@ -65,8 +65,9 @@ def process_gui(colormap, use_gui):
     single_task_name = user_input.single_task_name
     # Get the colors selected
     if user_input.color_lookup:  # If we have at least one color item selected...
+        print(colormap)
         for key, value in user_input.color_lookup.items():
-            colormap[TYPES_OF_COLOR_NAMES[key]] = value
+            colormap[key] = value
 
     # Debug flag
     debug = user_input.debug
