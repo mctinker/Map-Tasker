@@ -16,17 +16,39 @@
 def tag_in_type(tag: str, flag: bool) -> bool:
     """evaluate the xml tag to see if it is one of our predefined types
 
-            Parameters: the tag to evaluate, and whether this is a Scene or not (which
-                    determines which list of types to look for)
+    Parameters: the tag to evaluate, and whether this is a Scene or not (which
+            determines which list of types to look for)
 
-            Returns: True if tag found, False otherwise
+    Returns: True if tag found, False otherwise
 
-           """
-    scene_task_element_types = ['ListElement', 'TextElement', 'ImageElement', 'ButtonElement', 'OvalElement',
-                                'EditTextElement']
-    scene_task_click_types = ['checkchangeTask', 'clickTask', 'focuschangeTask', 'itemselectedTask', 'keyTask',
-                              'linkclickTask', 'longclickTask', 'mapclickTask', 'maplongclickTask', 'pageloadedTask',
-                              'strokeTask', 'valueselectedTask', 'videoTask']
+    """
+    scene_task_element_types = [
+        "ListElement",
+        "TextElement",
+        "ImageElement",
+        "ButtonElement",
+        "OvalElement",
+        "EditTextElement",
+    ]
+    scene_task_click_types = [
+        "checkchangeTask",
+        "clickTask",
+        "focuschangeTask",
+        "itemselectedTask",
+        "keyTask",
+        "linkclickTask",
+        "longclickTask",
+        "mapclickTask",
+        "maplongclickTask",
+        "pageloadedTask",
+        "strokeTask",
+        "valueselectedTask",
+        "videoTask",
+    ]
 
-    return flag and tag in scene_task_element_types or not flag and tag in scene_task_click_types  # Boolean
-
+    return (
+        flag
+        and tag in scene_task_element_types
+        or not flag
+        and tag in scene_task_click_types
+    )  # Boolean

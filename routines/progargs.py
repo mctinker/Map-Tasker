@@ -11,8 +11,10 @@
 # ########################################################################################## #
 
 from config import *
-from routines.rungui import process_gui
 from routines.runcli import process_cli
+from routines.rungui import process_gui
+from routines.sysconst import FONT_TO_USE
+from routines.sysconst import debug_program
 
 
 # #######################################################################################
@@ -42,9 +44,10 @@ def get_program_arguments(colormap: dict):
             single_profile_name,
             single_task_name,
             debug,
+            colormap,
         ) = process_cli(colormap)
 
-    # Are we in development mode?
+    # Are we in development mode?  If so, override debug argument
     if debug_program:
         debug = True
     return {
@@ -56,4 +59,4 @@ def get_program_arguments(colormap: dict):
         "display_taskernet": display_taskernet,
         "debug": debug,
         "font_to_use": FONT_TO_USE,
-    }
+    }, colormap

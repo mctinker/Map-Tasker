@@ -23,13 +23,14 @@ from tkinter.filedialog import askopenfile
 
 from config import *  # Configuration info
 from routines import progargs as get_args
+from routines.sysconst import *
 
 
 # #######################################################################################
 # Open and read the Tasker backup XML file
 # Return the file name for use for
 # #######################################################################################
-def open_and_get_backup_xml_file(program_args: dict) -> dict:
+def open_and_get_backup_xml_file(program_args: dict) -> object:
     logger.info("entry")
     file_error = False
     # Initialize tkinter
@@ -130,7 +131,7 @@ def start_up() -> tuple:
 
     # Get any arguments passed to program
     logger.info(f"sys.argv{str(sys.argv)}")
-    program_args = get_args.get_program_arguments(colormap)
+    program_args, colormap = get_args.get_program_arguments(colormap)
     # If debug mode, log the arguments
     if program_args["debug"]:
         log_startup_values(program_args, colormap)

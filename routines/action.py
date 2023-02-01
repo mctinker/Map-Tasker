@@ -11,6 +11,7 @@
 
 from config import *
 from routines.shellsort import shell_sort
+from routines.sysconst import logger
 import re
 import sys
 

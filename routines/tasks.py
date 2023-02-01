@@ -13,6 +13,7 @@ from routines import actione as action_evaluate
 from routines.outputl import my_output
 from routines.outputl import refresh_our_output
 from routines.xmldata import tag_in_type
+from routines.sysconst import *
 from config import *  # Configuration info
 
 # from proclist import process_list

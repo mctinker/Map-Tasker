@@ -17,6 +17,8 @@
 import customtkinter
 
 from CTkColorPicker.ctk_color_picker import AskColor
+from routines.getputarg import save_restore_args
+from routines.sysconst import TYPES_OF_COLOR_NAMES
 
 customtkinter.set_appearance_mode(
     "System"
@@ -35,18 +37,21 @@ INFO_TEXT = (
     "    Level 3 = display full Task action details on every Task with action details\n\n"
     "* Display Conditions: Turn on the display of Profile and Task conditions.\n\n"
     "* Display TaskerNet Info - If available, display TaskerNet publishing information\n\n"
-    "* Appearance Mode: Dark mode, Light mode, or System default mode.\n\n"
+    "* Save Settings - Save these settings for later use.\n\n"
+    "* Restore Settings - Restore the settings from a previously saved session.\n\n"
+    "* GUI Appearance Mode: Dark, Light, or System default.\n\n"
     "* Reset Options: Clear everything and start anew.\n\n"
     "* Run: Run the program with the settings provided.\n\n"
-    "* Specific Name tab: enter a specific named item to display...\n"
+    "* Specific Name tab: enter a single, specific named item to display...\n"
     "   - Project Name: enter a specific Project to display\n"
     "   - Profile Name: enter a specific Profile to display\n"
-    "   - Task Name: enter a specific Task to display\n\n"
+    "   - Task Name: enter a specific Task to display\n"
+    "   (These three are exclusive: enter one only)\n\n"
     "* Colors tab: select colors for various elements of the display\n"
     "              (e.g. color for Projects, Profiles, Tasks, etc.)\n\n"
     "* Exit: Exit the program (quit).\n\n"
     "Note: You will be prompted to identify your Tasker backup file once\n"
-    "      you hit the 'un' button"
+    "      you hit the 'Run' button"
 )
 
 
@@ -100,26 +105,48 @@ class MyGui(customtkinter.CTk):
         self.condition_button.grid(row=3, column=0, padx=20, pady=10, sticky="w")
 
         # Display 'TaskerNet' button
-        self.taskernet_button = customtkinter.CTkCheckBox(
+        self.display_taskernet_button = customtkinter.CTkCheckBox(
             self.sidebar_frame,
-            command=self.taskernet_event,
+            command=self.display_taskernet_event,
             text="Display TaskerNet Info",
             onvalue=True,
             offvalue=False,
         )
-        self.taskernet_button.grid(row=4, column=0, padx=20, pady=10)
+        self.display_taskernet_button.grid(
+            row=4, column=0, padx=20, pady=10, sticky="w"
+        )
+
+        # Save settings button
+        self.save_settings_button = customtkinter.CTkButton(
+            self.sidebar_frame,
+            border_color="#6563ff",
+            border_width=2,
+            text="Save Settings",
+            command=self.save_settings_event,
+        )
+        self.save_settings_button.grid(row=5, column=0, padx=20, pady=10, sticky="n")
+
+        # Restore settings button
+        self.restore_settings_button = customtkinter.CTkButton(
+            self.sidebar_frame,
+            border_color="#6563ff",
+            border_width=2,
+            text="Restore Settings",
+            command=self.restore_settings_event,
+        )
+        self.restore_settings_button.grid(row=6, column=0, padx=20, pady=10, sticky="n")
 
         # Screen Appearance: Light / Dark / System
         self.appearance_mode_label = customtkinter.CTkLabel(
             self.sidebar_frame, text="GUI Appearance Mode:", anchor="w"
         )
-        self.appearance_mode_label.grid(row=5, column=0, padx=20)
+        self.appearance_mode_label.grid(row=7, column=0, padx=20)
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(
             self.sidebar_frame,
             values=["Light", "Dark", "System"],
             command=self.change_appearance_mode_event,
         )
-        self.appearance_mode_optionemenu.grid(row=6, column=0, padx=0, sticky="n")
+        self.appearance_mode_optionemenu.grid(row=8, column=0, padx=0, sticky="n")
 
         # 'Reset Settings' button definition
         self.reset_button = customtkinter.CTkButton(
@@ -128,7 +155,6 @@ class MyGui(customtkinter.CTk):
             border_width=2,
             text="Reset Options",
             command=self.reset_settings_event,
-            # command=lambda: self.destroy(),
         )
         self.reset_button.grid(
             row=6, column=0, padx=(20, 20), pady=(20, 20), sticky="nsew"
@@ -163,7 +189,7 @@ class MyGui(customtkinter.CTk):
         self.textbox.configure(scrollbar_button_color="#6563ff")
         self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="nsew")
 
-        # create tabview
+        # create tabview for Name, Color and Debug
         self.tabview = customtkinter.CTkTabview(
             self, width=250, segmented_button_fg_color="#6563ff"
         )
@@ -177,29 +203,42 @@ class MyGui(customtkinter.CTk):
         self.tabview.tab("Colors").grid_columnconfigure(0, weight=1)
 
         # Project Name
-        self.string_input_button = customtkinter.CTkButton(
+        self.string_input_button1 = customtkinter.CTkRadioButton(
             self.tabview.tab("Specific Name"),
             text="Project Name",
-            command=self.project_name_event,
+            command=self.single_project_name_event,
+            fg_color="#6563ff",
+            border_color="#1bc9ff",
         )
-        self.string_input_button.grid(row=1, column=0, padx=20, pady=(10, 10))
+        self.string_input_button1.grid(
+            row=1, column=0, padx=20, pady=(10, 10), sticky="nsew"
+        )
 
         # Profile Name
-        self.string_input_button = customtkinter.CTkButton(
+        self.string_input_button2 = customtkinter.CTkRadioButton(
             self.tabview.tab("Specific Name"),
             text="Profile Name",
-            command=self.profile_name_event,
+            command=self.single_profile_name_event,
+            fg_color="#6563ff",
+            border_color="#1bc9ff",
         )
-        self.string_input_button.grid(row=2, column=0, padx=20, pady=(10, 10))
+        self.string_input_button2.grid(
+            row=2, column=0, padx=20, pady=(10, 10), sticky="nsew"
+        )
 
         # Task Name
-        self.string_input_button = customtkinter.CTkButton(
+        self.string_input_button3 = customtkinter.CTkRadioButton(
             self.tabview.tab("Specific Name"),
             text="Task Name",
-            command=self.task_name_event,
+            command=self.single_task_name_event,
+            fg_color="#6563ff",
+            border_color="#1bc9ff",
         )
-        self.string_input_button.grid(row=3, column=0, padx=20, pady=(10, 10))
+        self.string_input_button3.grid(
+            row=3, column=0, padx=20, pady=(10, 10), sticky="nsew"
+        )
 
+        # Prompt for the name
         self.name_label = customtkinter.CTkLabel(
             self.tabview.tab("Specific Name"), text="(Pick ONLY One)", anchor="w"
         )
@@ -225,8 +264,8 @@ class MyGui(customtkinter.CTk):
                 "Action Names",
                 "Scenes",
                 "Background",
-                "Bullet",
-                "TaskerNet Description",
+                "Bullets",
+                "TaskerNet Information",
             ],
             command=self.colors_event,
         )
@@ -252,13 +291,14 @@ class MyGui(customtkinter.CTk):
     def set_defaults(self, first_time: bool):
         self.sidebar_detail_option.configure(values=["0", "1", "2", "3"])
         self.sidebar_detail_option.set("1")
-        self.conditions = False
-        self.taskernet = False
-        self.project_name = ""
-        self.profile_name = ""
-        self.task_name = ""
+        self.display_detail_level = 1
+        self.display_profile_conditions = False
+        self.display_taskernet = False
+        self.single_project_name = ""
+        self.single_profile_name = ""
+        self.single_task_name = ""
         self.color_text_row = 2
-        self.debug_mode = False
+        self.debug = False
         self.clear_settings = False
         self.reset = False
         self.exit = False
@@ -311,17 +351,17 @@ class MyGui(customtkinter.CTk):
                 "Try again."
             )
             self.named_item = False
-        if self.project_name and self.profile_name:
+        if self.single_project_name and self.single_profile_name:
             error_message = (
                 "Error:\n\nYou have entered both a Project and a Profile name!\n\n"
                 "Try again and only select one."
             )
-        elif self.project_name and self.task_name:
+        elif self.single_project_name and self.single_task_name:
             error_message = (
                 "Error:\n\nYou have entered both a Project and a Task name!\n\n"
                 "Try again and only select one."
             )
-        elif self.profile_name and self.task_name:
+        elif self.single_profile_name and self.single_task_name:
             error_message = (
                 "Error:\n\nYou have entered both a Profile and a Task name!\n\n"
                 "Try again and only select one."
@@ -329,58 +369,71 @@ class MyGui(customtkinter.CTk):
 
         if error_message:
             self.display_error_box(error_message)
-            self.display_message_box("")
-            self.project_name, self.profile_name, self.task_name = "", "", ""
+
+            (
+                self.single_project_name,
+                self.single_profile_name,
+                self.single_task_name,
+            ) = ("", "", "")
         else:
             self.display_message_box((f"Display only the '{the_name}' {element_name}"))
 
     # #######################################################################################
     # Process the Project Name entry
     # #######################################################################################
-    def project_name_event(self):
+    def single_project_name_event(self):
         #  Clear any prior error message
         error_message = ""
         self.display_error_box(error_message)
+        # Turn off Profile and Task buttons
+        self.string_input_button2.deselect()
+        self.string_input_button3.deselect()
         # Display prompt for name
         dialog = customtkinter.CTkInputDialog(
             text="Enter Project name:", title="Display Specific Project"
         )
         # Get the name
-        self.project_name = dialog.get_input()
+        self.single_project_name = dialog.get_input()
         # Validate the name
-        self.check_name(self.project_name, "Project")
+        self.check_name(self.single_project_name, "Project")
 
     # #######################################################################################
     # Process the Profile Name entry
     # #######################################################################################
-    def profile_name_event(self):
+    def single_profile_name_event(self):
         #  Clear any prior error message
         error_message = ""
         self.display_error_box(error_message)
+        # Turn off Project and Task buttons
+        self.string_input_button1.deselect()
+        self.string_input_button3.deselect()
         # Display prompt for name
         dialog = customtkinter.CTkInputDialog(
             text="Enter Profile name:", title="Display Specific Profile"
         )
         # Get the name
-        self.profile_name = dialog.get_input()
+        self.single_profile_name = dialog.get_input()
         # Validate the name
-        self.check_name(self.profile_name, "Profile")
+        self.check_name(self.single_profile_name, "Profile")
 
     # #######################################################################################
     # Process the Profile Name entry
     # #######################################################################################
-    def task_name_event(self):
+    def single_task_name_event(self):
         #  Clear any prior error message
         error_message = ""
         self.display_error_box(error_message)
+        # Turn off Project and Profile buttons
+        self.string_input_button1.deselect()
+        self.string_input_button2.deselect()
         # Display prompt for name
         dialog = customtkinter.CTkInputDialog(
             text="Enter Task name:", title="Display Specific Task"
         )
         # Get the name
-        self.task_name = dialog.get_input()
+        self.single_task_name = dialog.get_input()
         # Validate the name
-        self.check_name(self.task_name, "Task")
+        self.check_name(self.single_task_name, "Task")
 
     # #######################################################################################
     # Process the screen mode: dark, light, system
@@ -393,7 +446,7 @@ class MyGui(customtkinter.CTk):
     # Process the Display Detail Level selection
     # #######################################################################################
     def detail_selected_event(self, display_detail: str):
-        self.display_detail = display_detail
+        self.display_detail_level = display_detail
 
     # #######################################################################################
     # Process color selection
@@ -405,7 +458,7 @@ class MyGui(customtkinter.CTk):
         if color is not None:
             row = self.color_text_row
             self.color_lookup[
-                color_selected_item
+                TYPES_OF_COLOR_NAMES[color_selected_item]
             ] = color  # Add color for the selected item to our dictionary
             self.color_labels.append(
                 customtkinter.CTkLabel(
@@ -418,18 +471,64 @@ class MyGui(customtkinter.CTk):
                 row=self.color_text_row, column=0, padx=0, pady=0
             )
             self.color_text_row += 1
+            self.display_message_box(f"{color_selected_item} color changed to {color}")
 
     # #######################################################################################
     # Process the 'conditions' checkbox
     # #######################################################################################
     def condition_event(self):
-        self.conditions = self.condition_button.get()
+        self.display_profile_conditions = self.condition_button.get()
 
     # #######################################################################################
     # Process the 'taskernet' checkbox
     # #######################################################################################
-    def taskernet_event(self):
-        self.taskernet = self.taskernet_button.get()
+    def display_taskernet_event(self):
+        self.display_taskernet = self.display_taskernet_button.get()
+
+    # #######################################################################################
+    # Process the 'Save Settings' checkbox
+    # #######################################################################################
+    def save_settings_event(self):
+        temp_args = {
+            "display_detail_level": self.display_detail_level,
+            "display_profile_conditions": self.display_profile_conditions,
+            "display_taskernet": self.display_taskernet,
+            "single_project_name": self.single_project_name,
+            "single_profile_name": self.single_profile_name,
+            "single_task_name": self.single_task_name,
+            "debug": self.debug,
+        }
+        # We need to do a reverse dictionary lookup to convert the saved name to name
+        # in color lookup table.
+        invert_colormap = {value: key for key, value in TYPES_OF_COLOR_NAMES.items()}
+        temp_colormap = {
+            invert_colormap[key]: value for key, value in self.color_lookup.items()
+        }
+        temp_args, temp_colormap = save_restore_args(True, self.color_lookup, temp_args)
+        self.display_message_box("Settings saved.")
+
+    # #######################################################################################
+    # Process the 'Restore Settings' checkbox
+    # #######################################################################################
+    def restore_settings_event(self):
+        self.set_defaults(False)  # Reset all values
+        temp_args = {}
+        # Restore all changes that have been saved
+        temp_args, temp_colormap = save_restore_args(
+            False, self.color_lookup, temp_args
+        )
+        # We need to do a reverse dictionary lookup to convert the saved name to name
+        # in color lookup table.
+        invert_colormap = {
+            value: key for key, value in TYPES_OF_COLOR_NAMES.items()
+        }  # Invert dictionary keys/values
+        for key, value in temp_colormap.items():
+            self.color_lookup[invert_colormap[key]] = value
+        # Now grab temp_arg values and put them back in place
+        for key, value in temp_args.items():
+            if key is not None:
+                setattr(self, key, value)
+        self.display_message_box("Settings restored.")
 
     # #######################################################################################
     # Process the 'Reset Settings' button
@@ -437,11 +536,11 @@ class MyGui(customtkinter.CTk):
     def reset_settings_event(self):
         self.sidebar_detail_option.set("1")  # display detail level
         self.condition_button.deselect()  # Conditions
-        self.taskernet_button.deselect()  # TaskerNet
+        self.display_taskernet_button.deselect()  # TaskerNet
         self.appearance_mode_optionemenu.set("Dark")  # Appearance
         customtkinter.set_appearance_mode("Dark")  # Enforce appearance
         self.debug_checkbox.deselect()  # Debug
-        self.display_message_box("")
+        self.display_message_box("Settings reset.")
         self.display_error_box("")
         if self.color_labels:  # is there any color text?
             for label in self.color_labels:
@@ -452,7 +551,7 @@ class MyGui(customtkinter.CTk):
     # Process Debug Mode checkbox
     # #######################################################################################
     def debug_checkbox_event(self):
-        self.debug_mode = self.debug_checkbox.get()
+        self.debug = self.debug_checkbox.get()
         self.display_message_box(
             "Debug mode requires Tasker backup file to be named: backup.xml"
         )

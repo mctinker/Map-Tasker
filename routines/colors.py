@@ -9,8 +9,9 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-
-from config import *
+import string
+from routines.sysconst import TYPES_OF_COLORS
+from routines.sysconst import logger
 
 
 # #######################################################################################
@@ -198,7 +199,7 @@ def validate_color(the_color):
         "DarkSlateGray",
         "Black",
     ]
-    any_color = ["hex value.  Example '#db29ff'"]
+    any_color = ["hex value.  Example 'db29ff'"]
 
     all_colors = (
         red_color_names
@@ -216,6 +217,10 @@ def validate_color(the_color):
 
     if the_color != "h":
         logger.debug(the_color in all_colors)
+        #  Test for hexdigits
+        if all(c in string.hexdigits for c in the_color):
+            return True
+        # Return True/False based on whether it is in our named colors
         return the_color in all_colors
     print_list("\nRed color names:", red_color_names)
     print_list("\nPink color names:", pink_color_names)
@@ -236,27 +241,7 @@ def validate_color(the_color):
 # #######################################################################################
 def get_and_set_the_color(the_arg, colormap):
 
-    types_for_color = [
-        "Project",
-        "Profile",
-        "Task",
-        "Action",
-        "DisabledProfile",
-        "UnknownTask",
-        "DisabledAction",
-        "ActionCondition",
-        "ProfileCondition",
-        "LauncherTask",
-        "Background",
-        "Scene",
-        "Bullet",
-        "ActionLabel",
-        "ActionName",
-        "TaskerNetInfo",
-    ]
-
     the_color_option = the_arg[2:].split("=")
-    print(the_color_option)
     color_type = the_color_option[0]
     if len(the_color_option) == 2:  # Do we have the second parameter?
         logger.debug(
@@ -266,7 +251,7 @@ def get_and_set_the_color(the_arg, colormap):
         handle_error(
             f"{the_arg} has an invalid 'color'.  See the help (-ch)!", " Exit code 7", 7
         )
-    if color_type not in types_for_color:
+    if color_type not in TYPES_OF_COLORS:
         handle_error(
             f"{color_type} is an invalid type for 'color'.  See the help (-h)!",
             " Exit code 7",
@@ -312,7 +297,9 @@ def get_and_set_the_color(the_arg, colormap):
                 error_msg = f"Invalid name in arg: =cName, where name is:{desired_color} color_type:{color_type}"
                 handle_error(error_msg, " exit code 1", 1)
     else:
-        error_msg = f"Invalid color specified: {desired_color}"
+        error_msg = (
+            f"Invalid color specified: {desired_color} for 'c{the_color_option[0]}'!"
+        )
         handle_error(error_msg, " exit code 7", 7)
     return
 

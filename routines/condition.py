@@ -11,7 +11,7 @@
 # ########################################################################################## #
 from routines import actione as action_evaluate, actiond as process_action_codes
 from routines.actionc import *  # action_codes: Master dictionary of Task action and Profile condition codes
-from config import *  # Configuration info
+from routines.sysconst import logger
 
 
 # #######################################################################################

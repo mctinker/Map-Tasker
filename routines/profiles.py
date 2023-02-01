@@ -12,11 +12,11 @@
 import xml.etree.ElementTree  # Need for type hints
 
 import routines.tasks as tasks
-from config import *
 from routines import condition as condition
 from routines.outputl import my_output
 from routines.outputl import refresh_our_output
 from routines.share import share
+from routines.sysconst import NO_PROFILE
 
 
 # #######################################################################################

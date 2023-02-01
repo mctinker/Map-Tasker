@@ -14,9 +14,10 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import contextlib
 
 from config import *
+from routines.sysconst import logger
+from routines.sysconst import TYPES_OF_COLOR_NAMES
 
 if GUI:
     from routines.userintr import MyGui
@@ -53,51 +54,22 @@ def process_gui(colormap, use_gui):
 
     # 'Run' button hit.  Get all the input from GUI variables
     try:
-        display_detail_level = int(user_input.display_detail)
+        display_detail_level = int(user_input.display_detail_level)
     except Exception as e:
         display_detail_level = 1
     # Ok, load up the arguments from the GUI
-    display_profile_conditions = user_input.conditions
-    display_taskernet = user_input.taskernet
-    single_project_name = user_input.project_name
-    single_profile_name = user_input.profile_name
-    single_task_name = user_input.task_name
+    display_profile_conditions = user_input.display_profile_conditions
+    display_taskernet = user_input.display_taskernet
+    single_project_name = user_input.single_project_name
+    single_profile_name = user_input.single_profile_name
+    single_task_name = user_input.single_task_name
+    # Get the colors selected
     if user_input.color_lookup:  # If we have at least one color item selected...
-        # Map the GUI named items to the action color named items
         for key, value in user_input.color_lookup.items():
-            match key:
-                case "Projects":
-                    colormap["project_color"] = value
-                case "Profiles":
-                    colormap["profile_color"] = value
-                case "Disabled Projects":
-                    colormap["disabled_profile_color"] = value
-                case "Launcher Task":
-                    colormap["launcher_task_color"] = value
-                case "Profile Conditions":
-                    colormap["profile_condition_color"] = value
-                case "Tasks":
-                    colormap["task_color"] = value
-                case "(Task) Actions":
-                    colormap["action_color"] = value
-                case "Action Conditions":
-                    colormap["action_condition_color"] = value
-                case "Action Labels":
-                    colormap["action_label_color"] = value
-                case "Action Names":
-                    colormap["action_name_color"] = value
-                case "Scenes":
-                    colormap["scene_color"] = value
-                case "Background":
-                    colormap["background_color"] = value
-                case "Bullets":
-                    colormap["bullet_color"] = value
-                case "TaskerNet Description":
-                    colormap["taskernet_color"] = value
-                case _:
-                    pass
+            colormap[TYPES_OF_COLOR_NAMES[key]] = value
 
-    debug = user_input.debug_mode
+    # Debug flag
+    debug = user_input.debug
 
     # Delete the GUI
     del user_input

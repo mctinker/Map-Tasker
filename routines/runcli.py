@@ -14,21 +14,24 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import sys
 
-from routines import progargss as arg_support
 from routines.colors import get_and_set_the_color
 from routines.colors import validate_color
-from config import *
+from routines.getputarg import save_restore_args
+from routines.parsearg import user_interface
 from routines.rungui import process_gui
+from routines.sysconst import TYPES_OF_COLORS
+from routines.sysconst import TYPES_OF_COLOR_NAMES
+from routines.sysconst import logger
+from routines.sysconst import MY_VERSION
+from routines.sysconst import MY_LICENSE
 
 
 # #######################################################################################
 # Get the program arguments (e.g. python maptasker.py -x)
 # #######################################################################################
 # Command line parameters
-def process_cli(colormap):
-    everything = False
+def process_cli(colormap: dict) -> tuple:
 
     display_detail_level, single_task_name, single_profile_name, single_project_name = (
         1,
@@ -38,75 +41,95 @@ def process_cli(colormap):
     )
     display_profile_conditions, display_taskernet, debug = False, False, False
 
-    args = sys.argv
+    # Get the arguments entered by user
+    args = user_interface()
+    logger.debug(f"Program arguments: {args}")
 
-    argument_precedence = " argument has precedence over "
-    for arg in args:
-        if arg == "mapTasker.py":
-            continue
-        logger.debug(f"arg:{arg} checking argument:{arg[:2]}")
-        match arg[:2]:
-            case "-v":  # Version
-                print(MY_VERSION)
-                print(MY_LICENSE)
-                sys.exit()
-            case "-e":  # Everything and the kitchen sink
-                display_detail_level = 3
-                display_taskernet = True
-                display_profile_conditions = True
-                everything = True
-            case "-h":  # Help
-                arg_support.display_the_help()
-            case "-d":  # Display detail level
-                display_detail_level, debug = arg_support.get_detail_level(
-                    arg, display_detail_level, debug
-                )
-            case "-g":  # GUI
-                # gui = True
-                (
-                    display_detail_level,
-                    display_profile_conditions,
-                    display_taskernet,
-                    single_project_name,
-                    single_profile_name,
-                    single_task_name,
-                    debug,
-                ) = process_gui(colormap, True)
-            case "-t":  # Task name
-                if arg[1:6] == "task=":
-                    if not single_profile_name:
-                        single_task_name = arg[6:]
-                    else:
-                        print('"-profile"', f'{argument_precedence}"-task=".')
-                elif arg[1:10] == "taskernet":
-                    display_taskernet = True
-                else:
-                    arg_support.report_bad_argument(arg)
-            case "-c":  # Color
-                if arg[:3] == "-ch":
-                    validate_color("h")
-                elif arg[:2] == "-c":
-                    get_and_set_the_color(arg, colormap)
-                else:
-                    arg_support.report_bad_argument(arg)
-            case "-p":  # This could be a Profile name, Project name, or Profile condition
-                (
-                    single_task_name,
-                    single_profile_name,
-                    single_project_name,
-                    display_profile_conditions,
-                ) = arg_support.get_dashp_specifics(
-                    arg,
-                    single_task_name,
-                    single_profile_name,
-                    single_project_name,
-                    display_profile_conditions,
-                    argument_precedence,
-                )
-            case _:
-                if "maptasker" not in arg and "MapTasker" not in arg:
-                    arg_support.report_bad_argument(arg)
+    # Grab the results
+    if getattr(args, "g"):  # GUI for input?
+        (
+            display_detail_level,
+            display_profile_conditions,
+            display_taskernet,
+            single_project_name,
+            single_profile_name,
+            single_task_name,
+            debug,
+        ) = process_gui(colormap, True)
+    # Restore arguments from file?
+    elif getattr(args, "r"):
+        # Restore all changes that have been saved for progargs
+        temp_args = {}
+        temp_args, temp_colormap = save_restore_args(False, colormap, temp_args)
+        for key, value in temp_args.items():  # Map the progarg keys and values restored
+            if key is not None:
+                if key == "debug":
+                    debug = value
+                elif key == "display_detail_level":
+                    display_detail_level = int(value)
+                elif key == "display_profile_conditions":
+                    display_profile_conditions = value
+                elif key == "display_taskernet":
+                    display_taskernet = value
+                elif key == "single_profile_name":
+                    single_profile_name = value
+                elif key == "single_project_name":
+                    single_project_name = value
+                elif key == "single_task_name":
+                    single_task_name = value
+        # Map the colormap keys and values restored
+        for key, value in temp_colormap.items():
+            if key is not None:
+                colormap[key] = value
 
+    # Process commands from command line
+    else:
+        if getattr(args, "ch"):
+            validate_color("h")
+        # Not GUI.  Get input from command line arguments
+        if getattr(args, "e"):
+            display_detail_level = 3
+            display_profile_conditions = True
+            display_taskernet = True
+        else:
+            display_detail_level = getattr(args, "detail")
+            display_profile_conditions = getattr(args, "conditions")
+            display_taskernet = getattr(args, "taskernet")
+        the_name = getattr(args, "project")
+        if the_name is not None:
+            single_project_name = the_name[0]
+        the_name = getattr(args, "profile")
+        if the_name is not None:
+            single_profile_name = the_name[0]
+        the_name = getattr(args, "task")
+        if the_name is not None:
+            single_task_name = the_name[0]
+        if getattr(args, "d"):
+            debug = True
+        if getattr(args, "v"):
+            print(f"{MY_VERSION}, under license {MY_LICENSE}")
+            exit(0)
+
+        # Process colors
+        for item in TYPES_OF_COLORS:
+            the_name = getattr(args, f"c{item}")
+            if the_name is not None:
+                get_and_set_the_color(f"-c{item}={the_name[0]}", colormap)
+
+        # Save the arguments
+        if getattr(args, "s"):
+            temp_args = {
+                "display_detail_level": display_detail_level,
+                "single_task_name": single_task_name,
+                "single_profile_name": single_profile_name,
+                "single_project_name": single_project_name,
+                "display_profile_conditions": display_profile_conditions,
+                "display_taskernet": display_taskernet,
+                "debug": debug,
+            }
+            save_restore_args(True, colormap, temp_args)
+
+    # Return the results
     return (
         display_detail_level,
         display_profile_conditions,
@@ -115,4 +138,5 @@ def process_cli(colormap):
         single_profile_name,
         single_task_name,
         debug,
+        colormap,
     )

@@ -10,12 +10,13 @@
 ######################################################################################################################
 import copy
 import re
+import xml.etree.ElementTree  # Need for type hints
 
 import routines.actionr as action_results
+from config import *
 from routines.action import get_extra_stuff
 from routines.actionc import action_codes
-from config import *
-import xml.etree.ElementTree  # Need for type hints
+from routines.sysconst import logger
 
 pattern = re.compile(r",[, ]+")
 # pattern1 = re.compile(r'<.*?>')  # Get rid of all <something> html code

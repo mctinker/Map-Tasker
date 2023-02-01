@@ -12,12 +12,12 @@
 
 import contextlib
 
-from config import *
 from routines.outputl import my_output
 from routines.outputl import refresh_our_output
 from routines.proclist import process_list
 from routines.profiles import process_profiles
 from routines.share import share
+from routines.sysconst import NO_PROFILE
 
 
 # #######################################################################################
@@ -72,7 +72,7 @@ def process_project_scenes(
     found_tasks,
     all_tasker_items,
 ):
-    scene_names = ""  # Just in case there are none
+    scene_names = None
     with contextlib.suppress(Exception):
         scene_names = project.find("scenes").text
     if scene_names is not None:
@@ -139,7 +139,7 @@ def process_projects(
         if program_args["single_project_name"]:
             if project_name != program_args["single_project_name"]:
                 continue
-            single_project_found = True
+            found_items["single_project_found"] = True
             refresh_our_output(
                 False, output_list, project_name, "", heading, colormap, program_args
             )
@@ -210,4 +210,6 @@ def process_projects(
         ):
             my_output(colormap, program_args, output_list, 3, "")  # Close Project list
             return found_tasks
+
+    # If we didn't find the single Project, then say so.
     return
