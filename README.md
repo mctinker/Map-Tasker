@@ -103,7 +103,7 @@ Alternatively, see *config.py* for user-customizable options.  Make user-specifi
 ### To Do List (in no particular order)
 [] Catch up with recent Tasker changes in the 6.1.n code base
 
-[] Optionally, display Task properties
+[] Optionally, display Task and Profile properties
 
 [] Complete insertion of Python docstrings
 
