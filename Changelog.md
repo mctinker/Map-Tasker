@@ -1,13 +1,21 @@
 MapTasker Change log
- ## [1.1.1] - 2023-01-27
-### Added:  Project/Profile Taskernet details optionally displayed (see option -taskernet)
-### Added: '-e' option for display "everything": Profile conditions, TaskerNet info and full details 
-### Fixed: Project 'launch' Tasks now properly displayed
-### Fixed: README runtime options not formatted properly
-### Fixed: Program error processing invalid color choice
+## [1.2.0] - 2023-01-??
+### Added:  Formal argument parser
+### Added:  Save runtime arguments to file and optionally restore them
+### Added: Messages provided in GUI for Reset button and Color selection
+### Added: Check for valid hex digits for program argument color
+### Changed: Command Line Interface options have changed (see README)
+### Fixed: Option '-e' only recognized via GUI and not CLI
+### Changed: GUI Project/Profile/Task 'Name' buttons changed to radio buttons
 
  
-Older History Log   
+Older History Log     
+- [1.1.1] - 2023-01-27    
+       - Added:  Project/Profile Taskernet details optionally displayed (see option -taskernet)    
+       - Added: '-e' option for display "everything": Profile conditions, TaskerNet info and full details    
+       - Fixed: Project 'launch' Tasks now properly displayed    
+        - Fixed: README runtime options not formatted properly
+- Fixed: Program error processing invalid color choice
     - [1.1.0] - 2023-01-23    
         - Added:  Optional GUI front-end for runtime options
         - Added:  Sample images to README    

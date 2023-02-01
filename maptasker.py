@@ -38,13 +38,13 @@ from pathlib import Path
 from tkinter import messagebox
 from typing import List, Dict
 
-from config import *  # Configuration info
 from routines import proginit as initialize
 from routines import projects as projects
 from routines import taskuniq as special_tasks
 from routines.caveats import display_caveats
 from routines.outputl import my_output
 from routines.taskerd import get_the_xml_data
+from routines.sysconst import *
 
 
 # #############################################################################################
@@ -92,6 +92,10 @@ def clean_up_memory(
     output_list: List[str],
     all_tasker_items: Dict[str, List[xml.etree.ElementTree.Element]],
 ) -> None:
+    """
+    Free up memory
+    :rtype: None
+    """
     for elem in tree.iter():
         elem.clear()
     all_tasker_items["all_projects"].clear()
@@ -109,6 +113,10 @@ def clean_up_memory(
 def write_out_the_file(
     output_list: List[str], my_output_dir: str, my_file_name: str
 ) -> None:
+    """
+    Write out the final html
+    :rtype: None
+    """
     logger.info(f"Function Entry: write_out_the_file dir:{my_output_dir}")
     with open(my_output_dir + my_file_name, "w") as out_file:
         for item in output_list:
@@ -127,10 +135,6 @@ def write_out_the_file(
             else:
                 output_line = item
             out_file.write(output_line)
-    # Output dictionary as txt file
-    # if create_dictionary:
-    #     output_the_dictionary(my_output_dir)
-
     logger.info("Function Exit: write_out_the_file")
     return
 
@@ -146,6 +150,10 @@ def clean_up_and_exit(
     output_list: list,
     all_tasker_items: dict,
 ) -> None:
+    """
+    clear memory and exit due to error
+    :rtype: exit 5
+    """
     output_list.clear()
     error_message = f"{name} {profile_or_task_name} not found!!"
     print(error_message)
@@ -160,6 +168,10 @@ def clean_up_and_exit(
 #                                                                                                            #
 ##############################################################################################################
 def main():
+    """
+    main program
+    :rtype: none
+    """
     # Initialize local variables and other stuff
     found_tasks, output_list, projects_without_profiles, projects_with_no_tasks = (
         [],
@@ -215,6 +227,17 @@ def main():
         all_tasker_items,
     )
 
+    # If we were looking for a specific Project and didn't find it, then quit
+    if program_args["single_project_name"] and not found_items["single_project_found"]:
+        clean_up_and_exit(
+            "Project",
+            program_args["single_project_name"],
+            tree,
+            root,
+            output_list,
+            all_tasker_items,
+        )
+    # If we were looking for a specific Profile and didn't find it, then quit
     if program_args["single_profile_name"] and not found_items["single_profile_found"]:
         clean_up_and_exit(
             "Profile",

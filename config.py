@@ -69,19 +69,3 @@ else:  # White background with dark text colors
 # ####################################################################################################
 #  END User-modifiable global constants
 # ####################################################################################################
-
-# ######################## DO NOT MODIFY ANYTHING BELOW THIS LINE ######################################
-
-logger = logging.getLogger("MapTasker")
-debug_out = False  # Prints the line to be added to the output
-debug_program = False
-
-# Global constants
-UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 1.1.1"
-MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
-NO_PROJECT = "-none found."
-COUNTER_FILE = ".MapTasker_RunCount.txt"
-FONT_TO_USE = f"<font face={OUTPUT_FONT}>"
-NO_PROFILE = "None or unnamed!"
-HELP_FILE = "https://github.com/mctinker/MapTasker/blob/Version-1.1.1/Help.md"
