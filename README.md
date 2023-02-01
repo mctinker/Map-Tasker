@@ -63,9 +63,13 @@ Runtime: `python3.10 maptasker.py -option1 -option2` ...
     `-taskernet` to display any TaskerNet share details,    
     `-conditions` to display a Profile's and Task's condition(s),   
     `-c(type) color_name`  define a specific color to 'type', where 'type' is *one* of the following:
-    > Project Profile Task Action DisabledProfile UnknownTask DisabledAction ActionCondition ProfileCondition LauncherTask Background ActionLabel
+
+      'Project' 'Profile' 'Task' 'Action' 'DisabledProfile' 'UnknownTask' 
+      'DisabledAction' 'ActionCondition' 'ProfileCondition' 'LauncherTask' 
+      'Background' 'ActionLabel' 'Bullets' 'TaskerNetInfo'
                 
-        Example color options: -cTask Green -cBackground Black cProfile 19c8ff     
+      Example color options: -cTask Green -cBackground Black cProfile 19c8ff   
+
     `-ch` color help: display all valid colors".     
 
     The following two arguments are exclusive.  Use one only:
