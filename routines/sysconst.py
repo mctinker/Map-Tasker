@@ -63,4 +63,4 @@ TYPES_OF_COLORS = {
 
 logger = logging.getLogger("MapTasker")
 debug_out = False  # Prints the line to be added to the output
-debug_program = True
+debug_program = False
