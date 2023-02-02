@@ -10,10 +10,10 @@
 #                                                                                            #
 # ########################################################################################## #
 from typing import List, Union
-
 import routines.tasks as tasks
 from config import *  # Configuration info
-from routines.outputl import my_output
+
+import routines.outputl as build_output
 from routines.sysconst import FONT_TO_USE
 
 
@@ -30,7 +30,7 @@ def process_missing_tasks_and_profiles(
 ) -> None:
     # List Projects with no Tasks
     if len(projects_with_no_tasks) > 0 and not found_items["single_task_found"]:
-        my_output(
+        build_output.my_output(
             colormap,
             program_args,
             output_list,
@@ -38,13 +38,13 @@ def process_missing_tasks_and_profiles(
             f'<hr><font color={trailing_comments_color}"{FONT_TO_USE}<em>Projects Without Tasks...</em>',
         )
         for item in projects_with_no_tasks:
-            my_output(
+            build_output.my_output(
                 colormap, program_args, output_list, 4, f"Project {item} has no Tasks"
             )
 
     # List all Projects without Profiles
     if projects_without_profiles:
-        my_output(
+        build_output.my_output(
             colormap,
             program_args,
             output_list,
@@ -52,7 +52,7 @@ def process_missing_tasks_and_profiles(
             f'<hr><font color={trailing_comments_color}"{FONT_TO_USE}<em>Projects Without Profiles...</em>',
         )
         for item in projects_without_profiles:
-            my_output(
+            build_output.my_output(
                 colormap,
                 program_args,
                 output_list,
@@ -110,14 +110,16 @@ def process_tasks_not_called_by_profile(
     # Provide total number of unnamed Tasks
     if unnamed_task_count > 0:
         if program_args["display_detail_level"] > 0:
-            my_output(colormap, program_args, output_list, 0, "")  # line
-        my_output(colormap, program_args, output_list, 3, "")  # Close Task list
+            build_output.my_output(colormap, program_args, output_list, 0, "")  # line
+        build_output.my_output(
+            colormap, program_args, output_list, 3, ""
+        )  # Close Task list
         # If we don't have a single Task only, display total count of unnamed Tasks
         if (
             not found_items["single_task_found"]
             and program_args["display_detail_level"] != 0
         ):
-            my_output(
+            build_output.my_output(
                 colormap,
                 program_args,
                 output_list,
@@ -127,7 +129,11 @@ def process_tasks_not_called_by_profile(
             )
 
     if task_name is True:
-        my_output(colormap, program_args, output_list, 3, "")  # Close Task list
+        build_output.my_output(
+            colormap, program_args, output_list, 3, ""
+        )  # Close Task list
 
-    my_output(colormap, program_args, output_list, 3, "")  # Close out the list
+    build_output.my_output(
+        colormap, program_args, output_list, 3, ""
+    )  # Close out the list
     return

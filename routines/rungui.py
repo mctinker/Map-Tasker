@@ -37,7 +37,7 @@ def output_and_quit(arg0):
 # #######################################################################################
 def process_gui(colormap, use_gui):
     if use_gui:
-        from routines.userintr import MyGui
+        from maptasker.maptasker import MyGui
 
     # Display GUI and get the user input
     user_input = MyGui()

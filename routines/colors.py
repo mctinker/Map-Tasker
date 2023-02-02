@@ -35,7 +35,6 @@ def print_list(list_title, the_list):
 # Validate the color name provided.  If color name is 'h', simply display all the colors
 # #######################################################################################
 def validate_color(the_color):
-
     red_color_names = [
         "IndianRed",
         "LightCoral",
@@ -240,7 +239,6 @@ def validate_color(the_color):
 # Get the runtime option for a color change and set it
 # #######################################################################################
 def get_and_set_the_color(the_arg, colormap):
-
     the_color_option = the_arg[2:].split("=")
     color_type = the_color_option[0]
     if len(the_color_option) == 2:  # Do we have the second parameter?

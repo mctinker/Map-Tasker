@@ -9,7 +9,7 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-from config import *  # Configuration info
+
 from routines.sysconst import logger
 
 

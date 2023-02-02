@@ -33,7 +33,6 @@ def process_projects_and_their_profiles(
     colormap,
     all_tasker_items,
 ):
-
     our_task_element = ""
 
     process_projects(

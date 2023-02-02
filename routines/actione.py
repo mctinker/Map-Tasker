@@ -26,7 +26,6 @@ pattern = re.compile(r",[, ]+")
 # Delete crap that might be in the label
 # ####################################################################################################
 def cleanup_the_result(results):
-
     # The following line works as well, going through each character in the string
     # results = ', '.join([x.strip() for x in results.split(',') if not x.isspace() and x != ''])
     results = results.replace(
@@ -94,7 +93,6 @@ def get_action_code(
     code_type: str,
     program_args: dict,
 ) -> str:
-
     logger.debug(f"getcode:{code_child.text}{code_type}")
     dict_code = code_child.text + code_type
     # See if this code is deprecated

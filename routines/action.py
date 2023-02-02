@@ -27,9 +27,9 @@ pattern = re.compile(r"<.*?>")
 #   arg_lst: list of sorted args as numbers only (e.g. 'arg' removed from 'arg0')
 #   type_list: list of sorted types (e.g. 'Int', 'Str', etc.)
 
+
 # #######################################################################################
 def get_args(action, ignore_list):
-
     arg_list, type_list, master_list = [], [], []
     arg_nums = 0
     for child in action:
@@ -141,6 +141,7 @@ def evaluate_action_setting(*args):
 #   3: the value to plug in if it meets the test
 # ####################################################################################################
 def process_xml_list(names, arg_location, the_int_value, match_results, arguments):
+    # NOTE: Do NOT move this import statement to avoid recursion
     from routines.actiont import lookup_values
 
     the_list = names[arg_location]
@@ -207,7 +208,6 @@ def process_xml_list(names, arg_location, the_int_value, match_results, argument
 #         ['some_text', 'l', lookup_code] > use lookup_values dictionary to translate code and plug in value
 # ####################################################################################################
 def get_xml_int_argument_to_value(action, arguments, names):
-
     match_results = []
 
     for child in action:
@@ -336,7 +336,6 @@ def clean_label(lbl, colormap):
 # Get the: label, whether to continue Task after error, etc.
 # ####################################################################################################
 def get_extra_stuff(code_action, action_type, colormap, program_args):
-
     if (
         action_type
     ):  # Only get extras if this is a Task action (vs. a Profile condition)

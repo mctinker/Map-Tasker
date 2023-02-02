@@ -42,7 +42,13 @@ def open_and_get_backup_xml_file(program_args: dict) -> object:
     dir_path = Path.cwd()
     logger.info(f"dir_path: {dir_path}")
     if program_args["debug"]:
-        filename = open(f"{dir_path}/backup.xml", "r")
+        try:
+            filename = open(f"{dir_path}/backup.xml", "r")
+        except Exception:
+            error_msg = f"Error: The backup.xml file was not found in {dir_path}.  Program terminated!"
+            logger.debug(error_msg)
+            print(error_msg)
+            exit(3)
     else:
         try:
             filename = askopenfile(
@@ -126,7 +132,6 @@ def log_startup_values(program_args: dict, colormap: dict) -> None:
 # Perform main program initialization functions
 # #############################################################################################
 def start_up() -> tuple:
-
     colormap = setup_colors()  # Get our map of colors
 
     # Get any arguments passed to program

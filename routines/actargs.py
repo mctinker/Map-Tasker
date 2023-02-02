@@ -8,10 +8,10 @@
 # using a licensed work, under the same license. Copyright and license notices must be       #
 # preserved. Contributors provide an express grant of patent rights.                         #
 # ########################################################################################## #
-from config import *
 from routines.actiond import process_condition_list
 from routines.sysconst import logger
 import routines.action as get_action
+
 
 # ####################################################################################################
 # Go through the arguments and parse each one based on its argument 'type'
@@ -27,7 +27,6 @@ def action_args(
     program_args,
     evaluated_results,
 ):
-
     for num, arg in enumerate(arg_list):
         # Find the location for this arg in dictionary key "types' since they can be non-sequential (e.g. '1', '3', '4', '6')
         index = num if arg == "if" else lookup_code_entry[dict_code]["args"].index(arg)

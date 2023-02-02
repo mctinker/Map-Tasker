@@ -25,7 +25,7 @@ def get_scene_details_and_output(
     colormap: dict,
     all_tasker_items: dict,
 ) -> None:
-    from routines.proclist import process_list
+    from maptasker.maptasker import process_list
 
     scene_task_types = {
         "checkchangeTask": "Check Change",

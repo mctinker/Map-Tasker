@@ -10,8 +10,8 @@
 #                                                                                            #
 # ########################################################################################## #
 from routines import actione as action_evaluate
-from routines.outputl import my_output
-from routines.outputl import refresh_our_output
+
+import routines.outputl as build_output
 from routines.xmldata import tag_in_type
 from routines.sysconst import *
 from config import *  # Configuration info
@@ -184,8 +184,10 @@ def process_solo_task_with_no_profile(
 
     # At this point, we've found the Project this Task belongs to, or it doesn't belong to any Task
     if not have_heading:
-        my_output(colormap, program_args, output_list, 0, "<hr>")  # blank line
-        my_output(
+        build_output.my_output(
+            colormap, program_args, output_list, 0, "<hr>"
+        )  # blank line
+        build_output.my_output(
             colormap,
             program_args,
             output_list,
@@ -196,7 +198,9 @@ def process_solo_task_with_no_profile(
                 + "Tasks that are not called by any Profile..."
             ),
         )
-        my_output(colormap, program_args, output_list, 1, "")  # Start Task list
+        build_output.my_output(
+            colormap, program_args, output_list, 1, ""
+        )  # Start Task list
         have_heading = True
 
     # Get the Task's name
@@ -259,7 +263,7 @@ def output_task(
     all_tasker_items,
     found_items,
 ):
-
+    # Do NOT move this import.  Otherwise, will get recursion error
     from routines.proclist import process_list
 
     if (
@@ -269,7 +273,7 @@ def output_task(
             # We have the single Task we are looking for
             found_items["single_task_found"] = True
 
-            refresh_our_output(
+            build_output.refresh_our_output(
                 True,
                 output_list,
                 project_name,
@@ -303,7 +307,7 @@ def output_task(
         ):  # If multiple Tasks in this Profile, just get the one we want
             for task_item in task_list:
                 if program_args["single_task_name"] in task_item:
-                    my_output(
+                    build_output.my_output(
                         colormap, program_args, output_list, 1, ""
                     )  # Start Task list
                     task_list = [task_item]
@@ -317,13 +321,15 @@ def output_task(
                         colormap,
                         all_tasker_items,
                     )
-                    my_output(
+                    build_output.my_output(
                         colormap, program_args, output_list, 3, ""
                     )  # End Task list
                     break
         return True  # Call it quits on Task...we have the one we want
     elif task_list:
-        my_output(colormap, program_args, output_list, 1, "")  # Start Task list
+        build_output.my_output(
+            colormap, program_args, output_list, 1, ""
+        )  # Start Task list
         process_list(
             "Task:",
             output_list,
@@ -334,6 +340,8 @@ def output_task(
             colormap,
             all_tasker_items,
         )
-        my_output(colormap, program_args, output_list, 3, "")  # End Task list
+        build_output.my_output(
+            colormap, program_args, output_list, 3, ""
+        )  # End Task list
 
     return False  # Normal Task...continue processing them

@@ -10,7 +10,6 @@
 #                                                                                            #
 # ########################################################################################## #
 from config import *
-from config import logging
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."

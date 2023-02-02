@@ -67,7 +67,6 @@ def build_profile_line(
     program_args: dict,
     colormap: dict,
 ) -> tuple:
-
     # Set up html to use
     profile_color_html = (
         '<span style = "color:'
@@ -161,7 +160,6 @@ def process_profiles(
     all_tasker_items: dict,
     found_items: dict,
 ) -> object:
-
     our_task_element = ""
 
     # Go through the Profiles found in the Project

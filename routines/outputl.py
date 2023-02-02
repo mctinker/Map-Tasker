@@ -13,8 +13,11 @@
 import xml.etree.ElementTree  # Need for type hints
 
 import routines.actione as action_evaluate
-from config import *
-from routines.sysconst import *
+from config import bullet_color
+from routines.sysconst import FONT_TO_USE
+from routines.sysconst import UNKNOWN_TASK_NAME
+from routines.sysconst import debug_out
+from routines.sysconst import logger
 
 
 # #######################################################################################

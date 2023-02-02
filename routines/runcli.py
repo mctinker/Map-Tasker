@@ -20,11 +20,10 @@ from routines.colors import validate_color
 from routines.getputarg import save_restore_args
 from routines.parsearg import user_interface
 from routines.rungui import process_gui
-from routines.sysconst import TYPES_OF_COLORS
-from routines.sysconst import TYPES_OF_COLOR_NAMES
-from routines.sysconst import logger
-from routines.sysconst import MY_VERSION
 from routines.sysconst import MY_LICENSE
+from routines.sysconst import MY_VERSION
+from routines.sysconst import TYPES_OF_COLORS
+from routines.sysconst import logger
 
 
 # #######################################################################################
@@ -32,7 +31,6 @@ from routines.sysconst import MY_LICENSE
 # #######################################################################################
 # Command line parameters
 def process_cli(colormap: dict) -> tuple:
-
     display_detail_level, single_task_name, single_profile_name, single_project_name = (
         1,
         "",

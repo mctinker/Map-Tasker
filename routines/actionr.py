@@ -17,8 +17,6 @@ from routines.sysconst import logger
 from routines.actionc import *
 from collections import defaultdict
 
-from config import *
-
 
 # ####################################################################################################
 # Given a list of positional items, return a string in the correct order based on position
@@ -78,7 +76,6 @@ def evaluate_action_args(
     evaluate_list: list,
     evaluated_results: dict,
 ) -> tuple:
-
     # Process the Task action arguments
     evaluated_results = action_args(
         arg_list,

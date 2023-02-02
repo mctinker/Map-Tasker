@@ -21,7 +21,6 @@ from routines.sysconst import debug_program
 # Get the program arguments (e.g. python maptasker.py -x)
 # #######################################################################################
 def get_program_arguments(colormap: dict):
-
     # Are we using the GUI?
     if GUI:
         (
