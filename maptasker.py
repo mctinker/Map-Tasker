@@ -38,11 +38,13 @@ from pathlib import Path
 from tkinter import messagebox
 from typing import List, Dict
 
-from routines import proginit as initialize
-from routines import projects as projects
-from routines import taskuniq as special_tasks
+from routines import (
+    proginit as initialize,
+    projects as projects,
+    taskuniq as special_tasks,
+)
 from routines.caveats import display_caveats
-from routines.outputl import my_output
+import routines.outputl as build_output
 from routines.taskerd import get_the_xml_data
 from routines.sysconst import *
 
@@ -203,15 +205,17 @@ def main():
     # Check for valid Tasker backup.xml file
     if root.tag != "TaskerData":
         error_msg = "You did not select a Tasker backup XML file...exit 2"
-        my_output(colormap, program_args, output_list, 0, error_msg)
+        build_output.my_output(colormap, program_args, output_list, 0, error_msg)
         logger.debug(f"{error_msg}exit 3")
         sys.exit(3)
     else:
         heading = f"{heading}    Tasker version: " + root.attrib["tv"]
 
     # Start the output with heading
-    my_output(colormap, program_args, output_list, 0, heading)
-    my_output(colormap, program_args, output_list, 1, "")  # Start Project list
+    build_output.my_output(colormap, program_args, output_list, 0, heading)
+    build_output.my_output(
+        colormap, program_args, output_list, 1, ""
+    )  # Start Project list
 
     # #######################################################################################
     # Go through XML and Process all Projects
@@ -309,7 +313,7 @@ def main():
 
     # Add html complete code
     error_msg = "</body>\n</html>"
-    my_output(colormap, program_args, output_list, 0, error_msg)
+    build_output.my_output(colormap, program_args, output_list, 0, error_msg)
 
     # Okay, lets generate the actual output file.
     # Store the output in the current  directory
