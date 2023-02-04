@@ -1,5 +1,5 @@
 MapTasker Change log
-## [1.2.0] - 2023-01-??
+## [1.2.0] - 2023-02-04
 ### Added:  Formal argument parser
 ### Added:  Save runtime arguments to file and optionally restore them
 ### Added: Messages provided in GUI for Reset button and Color selection
