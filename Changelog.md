@@ -1,15 +1,25 @@
 MapTasker Change log
-## [1.2.0] - 2023-02-04
-### Added:  Formal argument parser
-### Added:  Save runtime arguments to file and optionally restore them
-### Added: Messages provided in GUI for Reset button and Color selection
-### Added: Check for valid hex digits for program argument color
-### Changed: Command Line Interface options have changed (see README)
-### Fixed: Option '-e' only recognized via GUI and not CLI
-### Changed: GUI Project/Profile/Task 'Name' buttons changed to radio buttons
+## [1.2.22] - 2023-02-17
+### Changed: Moved code base to src directory
+### Changed: Primary program renamed from 'main' to 'maptasker'
 
- 
-Older History Log     
+Older History Log 
+- [1.2.2-thru-1.2.21] - 2023-02-17    
+       Added: Packaged for pip install    
+- [1.2.1] - 2023-02-05   
+       - Updated for pip packaging  
+       - Fixed: GUI 'Restore Settings' not changing the colors from saved settings  
+       - Fixed: Bullet color not properly set in output  
+       - Changed: Simplified command line code  
+       - Added: Clarification on color argument options help by providing examples (-c)
+- [1.2.0] - 2023-02-04
+       - Added:  Formal argument parser    
+       - Added:  Save runtime arguments to file and optionally restore them    
+       - Added: Messages provided in GUI for Reset button and Color selection    
+       - Added: Check for valid hex digits for program argument color    
+       - Changed: Command Line Interface options have changed (see README)    
+       - Fixed: Option '-e' only recognized via GUI and not CLI    
+       - Changed: GUI Project/Profile/Task 'Name' buttons changed to radio buttons    
 - [1.1.1] - 2023-01-27    
        - Added:  Project/Profile Taskernet details optionally displayed (see option -taskernet)    
        - Added: '-e' option for display "everything": Profile conditions, TaskerNet info and full details    
@@ -145,7 +155,7 @@ Older History Log
      - 2.1 Fixed: actions were not sorted properly                                               
            Fixed: Stop action improperly reported as Else action                                 
            Added: Support for more Task Action codes                                             
-     - 2.0 Added output style (linear or bullet), bullet_color as global var                     
+     - 2.0 Added output style (linear or bullet), colormap['bullet_color'] as global var                     
            Added detail mode (default) which can be turned off with option -s                    
             displaying unnamed Task's Actions                                                    
      - 1.2 Added -v and -h arguments to display the program version and help                     

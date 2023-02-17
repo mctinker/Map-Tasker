@@ -7,24 +7,23 @@ I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable
  
 A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
  
-### Program dependencies:
--	Python version v3.10 or higher and Tkinter (not included with Python 3.10 from brew)            
+### Program Dependencies
+-	Python version v3.10 or higher and Tkinter (not included with Python 3.10 from 'brew')            
 
 
     python 3.10: `brew install python3.10`          
     Tkinter:     `brew install python-tk@3.10`           
      
 -	Tasker full or partial backup.xml (anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6. 
--   If using the GUI, then these addition dependencies must be installed:           
 
-
-     `pip install customtkinter`         
-     `pip install ctkcolorpicker`          
-     `pip install pillow`          
-    
 
 ### Installation
 
+- Install maptasker by entering the following command into Terminal:    
+ 
+
+     `pip install maptasker`          
+    
 - From the GitHub 'Code' pull-down menu, select 'Download ZIP', save it into a new directory (e.g. /your_id/maptasker) and uncompress it into that directory.
 
 
@@ -35,14 +34,14 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
 - From this directory, enter the command:
 
 
-     `python3.10 maptasker.py` 
+     `maptasker (runtime options...se below)` 
  
  (see below for runtime options)
  
 Program out: the file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.
  
-Runtime: `python3.10 maptasker.py -option1 -option2` ...
- 
+Runtime: `maptasker -option1 -option2` ...
+
 ### Runtime options 
  
     `-h` for help.  Also refer to HELP.md for more details,  
@@ -95,13 +94,13 @@ Sample output with runtime options '-detail 3 -profcon':
 
 Example runtime options: 
     
-    'python3.10 maptasker.py -detail 3 -conditions -taskernet -s'
+    'maptasker -detail 3 -conditions -taskernet -s'
         (show full detail including Profile/Task 'conditions' and TaskerNet 
          information, and save the settings)
 
 Example using GUI: 
     
-    'python3.10 maptasker.py -g'
+    'maptasker -g'
 
 Alternatively, see *config.py* for user-customizable options.  Make user-specific changes in this file and save it rather than specifying them as arguments or via the GUI.
 
@@ -116,5 +115,4 @@ Alternatively, see *config.py* for user-customizable options.  Make user-specifi
 [] Optionally, display Scene element details
 
 [] Manage dependencies through Poetry
- 
-[] Package for pip
+

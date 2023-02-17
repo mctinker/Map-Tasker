@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "maptasker"
+version = "1.2.22"
+description = "Utility to display your Android 'Tasker' configuration on your MAC."
+authors = ["Michael Rubin <mikrubin@gmail.com>"]
+readme = "README.md"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/mctinker/Map-Tasker"
+keywords = ["tasker", "Tasker", "map tasker"]
+packages = [
+    { include = "maptasker"}
+]
+include = ["**/maptasker/**/*.py"]
+exclude = ["run_test.py", "**/maptasker/**/backup.xml", "**/maptasker/maptasker.log", "**/maptasker/MapTasker.html", "**/maptasker/.MapTasker_RunCount.txt"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+customtkinter = "^5.1.2"
+ctkcolorpicker = "^0.3.0"
+pillow = "^9.4.0"
+
+[tool.poetry.scripts]
+maptasker = "maptasker.maptasker:main"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/mctinker/Map-Tasker/issues"
+"Change Log" = "https://github.com/mctinker/Map-Tasker/CHANGELOG.md"
+
+[[tool.poetry.source]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+default = false
+secondary = false
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
