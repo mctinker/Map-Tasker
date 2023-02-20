@@ -1,9 +1,12 @@
 MapTasker Change log
-## [1.2.22] - 2023-02-17
-### Changed: Moved code base to src directory
-### Changed: Primary program renamed from 'main' to 'maptasker'
+## [1.2.23] - 2023-02-20
+### Fixed: GUI Restore not displaying 'file not found' in GUI
+### Added: GUI Restore changes display setttings based on restored settings
 
 Older History Log 
+- [1.2.22] - 2023-02-17    
+       - Changed: Moved code base to src directory   
+       - Changed: Primary program renamed from 'main' to 'maptasker'
 - [1.2.2-thru-1.2.21] - 2023-02-17    
        Added: Packaged for pip install    
 - [1.2.1] - 2023-02-05   

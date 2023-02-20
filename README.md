@@ -106,7 +106,7 @@ Alternatively, see *config.py* for user-customizable options.  Make user-specifi
 
 
 ### To Do List (in no particular order)
-[] Catch up with recent Tasker changes in the 6.1.n code base
+[] Catch up with recent Tasker changes in the 6.1.n code base additions
 
 [] Optionally, display Task and Profile properties
 
@@ -114,5 +114,6 @@ Alternatively, see *config.py* for user-customizable options.  Make user-specifi
 
 [] Optionally, display Scene element details
 
-[] Manage dependencies through Poetry
+[] Save settings via standard ini file so it can be modified
+
 
