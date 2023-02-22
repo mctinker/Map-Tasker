@@ -1,9 +1,14 @@
 MapTasker Change log
-## [1.2.23] - 2023-02-20
-### Fixed: GUI Restore not displaying 'file not found' in GUI
-### Added: GUI Restore changes display setttings based on restored settings
+## [1.2.25] - 2023-02-22
+### Fixed: Only first (TAP/LONG TAP) Task in Scene is displayed
+### Fixed: Scene Tasks for rectangle, web elements, and 'ITEM TAP' missing
+### Fixed: Corrected URL provided in 'Caveats' at bottom of output
+### Added: Display Scene elements
 
 Older History Log 
+- [1.2.23] - 2023-02-20
+       - Fixed: GUI Restore not displaying 'file not found' in GUI
+       - Added: GUI Restore changes display settings based on restored settings
 - [1.2.22] - 2023-02-17    
        - Changed: Moved code base to src directory   
        - Changed: Primary program renamed from 'main' to 'maptasker'

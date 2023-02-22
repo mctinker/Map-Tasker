@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maptasker"
-version = "1.2.22"
+version = "1.2.25"
 description = "Utility to display your Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README.md"
@@ -20,7 +20,7 @@ ctkcolorpicker = "^0.3.0"
 pillow = "^9.4.0"
 
 [tool.poetry.scripts]
-maptasker = "maptasker.maptasker:main"
+maptasker = "maptasker.main:main"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/mctinker/Map-Tasker/issues"
