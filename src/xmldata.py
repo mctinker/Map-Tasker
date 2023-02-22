@@ -31,6 +31,8 @@ def tag_in_type(tag: str, flag: bool) -> bool:
         "ButtonElement",
         "OvalElement",
         "EditTextElement",
+        "RectElement",
+        "WebElement",
     ]
     scene_task_click_types = [
         "checkchangeTask",
@@ -46,6 +48,8 @@ def tag_in_type(tag: str, flag: bool) -> bool:
         "strokeTask",
         "valueselectedTask",
         "videoTask",
+        "itemclickTask",
+        "itemlongclickTask",
     ]
 
     return (

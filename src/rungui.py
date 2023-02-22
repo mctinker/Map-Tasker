@@ -19,6 +19,7 @@
 
 from maptasker.src.config import GUI
 from maptasker.src.sysconst import logger
+from os.path import exists
 
 if GUI:
     from maptasker.src.userintr import MyGui

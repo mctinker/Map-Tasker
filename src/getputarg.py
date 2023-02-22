@@ -39,5 +39,6 @@ def save_restore_args(to_save, colormap, temp_args):
             error_msg = "'-r' Error: There are no saved items found to restore!"
             print(error_msg)
             logger.debug(error_msg)
+            temp_args, colormap = {}, {}
 
     return temp_args, colormap

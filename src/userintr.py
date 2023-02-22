@@ -330,15 +330,16 @@ class MyGui(customtkinter.CTk):
     # #######################################################################################
     # Display Message Box
     # #######################################################################################
-    def display_message_box(self, message):
+    def display_message_box(self, message, good):
+        color = 'Green' if good else 'Red'
         self.textbox = customtkinter.CTkTextbox(self)
         self.textbox.grid(row=4, column=1, padx=10, pady=10)
-        self.textbox.insert("0.0", message)  # insert at line 0 character 0
+        self.textbox.insert("0.0", f"{message}\n")  # insert at line 0 character 0
         self.text = self.textbox.get(
             "0.0", "end"
         )  # get text from line 0 character 0 till the end
         self.textbox.configure(
-            state="disabled", text_color="Green"
+            state="disabled", text_color=color
         )  # configure textbox to be read-only
         self.textbox.focus_set()
 
@@ -378,7 +379,7 @@ class MyGui(customtkinter.CTk):
                 self.single_task_name,
             ) = ("", "", "")
         else:
-            self.display_message_box((f"Display only the '{the_name}' {element_name}"))
+            self.display_message_box((f"Display only the '{the_name}' {element_name}"), True)
 
     # #######################################################################################
     # Process the Project Name entry
@@ -459,6 +460,7 @@ class MyGui(customtkinter.CTk):
         color = pick_color.get()  # Get the color
         if color is not None:
             row = self.color_text_row
+            print('color_selected_item:', color_selected_item, ' color:', color)
             self.color_lookup[
                 TYPES_OF_COLOR_NAMES[color_selected_item]
             ] = color  # Add color for the selected item to our dictionary
@@ -473,7 +475,7 @@ class MyGui(customtkinter.CTk):
                 row=self.color_text_row, column=0, padx=0, pady=0
             )
             self.color_text_row += 1
-            self.display_message_box(f"{color_selected_item} color changed to {color}")
+            self.display_message_box(f"{color_selected_item} color changed to {color}", True)
 
     # #######################################################################################
     # Process the 'conditions' checkbox
@@ -501,7 +503,43 @@ class MyGui(customtkinter.CTk):
             "debug": self.debug,
         }
         temp_args, self.color_lookup = save_restore_args(True, self.color_lookup, temp_args)
-        self.display_message_box("Settings saved.")
+        self.display_message_box("Settings saved.", True)
+
+    # #######################################################################################
+    # Restore displays settings from restored values
+    # #######################################################################################
+    def restore_display(self, key, value):
+        message = ''
+        match key:
+            case "debug":
+                if value:
+                    self.debug_checkbox.select()
+                else:
+                    self.debug_checkbox.deselect()
+            case "display_detail_level":
+                self.sidebar_detail_option.set(str(value))
+            case "display_profile_conditions":
+                if value:
+                    self.condition_button.select()
+                else:
+                    self.condition_button.deselect()
+            case "display_taskernet":
+                if value:
+                    self.display_taskernet_button.select()
+                else:
+                    self.display_taskernet_button.deselect()
+            case "single_project_name":
+                if value:
+                    message = f"{message}Project set to {value}.\n"
+            case "single_profile_name":
+                if value:
+                    message = f"{message}Profile set to {value}.\n"
+            case "single_task_name":
+                if value:
+                    message = f"{message}Task set to {value}.\n"
+            case _:
+                self.display_message_box(f"Rutroh!  Undefined argument: {value}")
+        return message
 
     # #######################################################################################
     # Process the 'Restore Settings' checkbox
@@ -513,10 +551,24 @@ class MyGui(customtkinter.CTk):
         temp_args, self.color_lookup = save_restore_args(
             False, self.color_lookup, temp_args
         )
-        for key, value in temp_args.items():
-            if key is not None:
-                setattr(self, key, value)
-        self.display_message_box("Settings restored.")
+        # Restore progargs values
+        if temp_args or self.color_lookup:
+            all_messages, new_message = '', ''
+            for key, value in temp_args.items():
+                if key is not None:
+                    setattr(self, key, value)
+                    if new_message := self.restore_display(key, value):
+                        all_messages = all_messages + new_message
+            # Display the restored color changes
+            inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
+            for key, value in self.color_lookup.items():
+                if key is not None:
+                    all_messages = f"{all_messages} {inv_color_names[key]} color set to {value}\n"
+            # Display the queue of messages
+            self.display_message_box(f"{all_messages}\nSettings restored.", True)
+
+        else:  # Empty?
+            self.display_message_box("No settings file found.", False)
 
     # #######################################################################################
     # Process the 'Reset Settings' button
@@ -528,7 +580,7 @@ class MyGui(customtkinter.CTk):
         self.appearance_mode_optionemenu.set("Dark")  # Appearance
         customtkinter.set_appearance_mode("Dark")  # Enforce appearance
         self.debug_checkbox.deselect()  # Debug
-        self.display_message_box("Settings reset.")
+        self.display_message_box("Settings reset.", True)
         self.display_error_box("")
         if self.color_labels:  # is there any color text?
             for label in self.color_labels:
@@ -541,7 +593,7 @@ class MyGui(customtkinter.CTk):
     def debug_checkbox_event(self):
         self.debug = self.debug_checkbox.get()
         self.display_message_box(
-            "Debug mode requires Tasker backup file to be named: backup.xml"
+            "Debug mode requires Tasker backup file to be named: backup.xml", True
         )
 
     # #######################################################################################

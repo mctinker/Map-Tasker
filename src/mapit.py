@@ -99,8 +99,12 @@ def clean_up_memory(
     all_tasker_items: Dict[str, List[xml.etree.ElementTree.Element]],
 ) -> None:
     """
-    Free up memory
-    :rtype: None
+Clean up our memory hogs
+    :param tree: xml tree to empty
+    :param root: root xml that was parsed from backup file
+    :param output_list: list of output lines to clear
+    :param all_tasker_items: All Projects/Profiles/Tasks/Scenes
+    :return:
     """
     for elem in tree.iter():
         elem.clear()
@@ -120,8 +124,11 @@ def write_out_the_file(
     output_list: List[str], my_output_dir: str, my_file_name: str
 ) -> None:
     """
-    Write out the final html
-    :rtype: None
+write_out_the_file: we have a list of output lines.  Write them out.
+    :param output_list: list of all output lines generated
+    :param my_output_dir: directory to output to
+    :param my_file_name: name of file to use
+    :return: nothing
     """
     logger.info(f"Function Entry: write_out_the_file dir:{my_output_dir}")
     with open(my_output_dir + my_file_name, "w") as out_file:
@@ -157,8 +164,14 @@ def clean_up_and_exit(
     all_tasker_items: dict,
 ) -> None:
     """
-    clear memory and exit due to error
-    :rtype: exit 5
+Cleanup memory and let user know there was no match found for Task/Profile
+    :param name: the name to add to the log/print output
+    :param profile_or_task_name: name of the Profile or Task to clean
+    :param tree: xml tree to clear
+    :param root: root of xml parsed from file to clear
+    :param output_list: list of output lines to empty
+    :param all_tasker_items: all Tasker Projects/Profiles/Tasks/Scenes to clear
+    :rtype: none
     """
     output_list.clear()
     error_message = f"{name} {profile_or_task_name} not found!!"
@@ -175,7 +188,7 @@ def clean_up_and_exit(
 ##############################################################################################################
 def mapitall():
     """
-    maptaskerodl program
+    main program that kicks off all processes
     :rtype: none
     """
     # Initialize local variables and other stuff

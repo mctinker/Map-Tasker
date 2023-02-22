@@ -31,7 +31,7 @@ def display_caveats(output_list: list[str], program_args: dict, colormap: dict) 
     )
     caveat3 = (
         "- This has only been tested on my own backup.xml file."
-        "  For problems, report them on https://github.com/mctinker/MapTasker."
+        "  For problems, report them on https://github.com/mctinker/Map-Tasker."
     )
     caveat4 = '- Tasks that are identified as "Unnamed/Anonymous" have no name and are considered Anonymous.\n'
     caveat6 = '- Task labels that have embedded HTML "<color=...>" will result in the remaining label displayed in that same color.'

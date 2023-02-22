@@ -55,6 +55,7 @@ def open_and_get_backup_xml_file(program_args: dict) -> object:
     tkroot = Tk()
     tkroot.geometry("200x100")
     tkroot.title("Select Tasker backup xml file")
+    filename = None
 
     # dir_path = path.dirname(path.realpath(__file__))  # Get current directory
     dir_path = Path.cwd()

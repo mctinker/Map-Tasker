@@ -32,6 +32,18 @@ def process_list(
     colormap: dict,
     all_tasker_items: dict,
 ) -> None:
+    """
+Process Task/Scene text/line item: call recursively for Tasks within Scenes
+    :param list_type: Task or Scene
+    :param output_list: list of output lines
+    :param the_list: list of elements for list_type
+    :param the_task: Task/Scene xml element
+    :param tasks_found: list of Tasks found so far
+    :param program_args: dictionary of runtime arguments
+    :param colormap: dictionary of colors to use
+    :param all_tasker_items: dictionary of all Tasker Projects/Profiles/Tasks/Scenes
+    :return:
+    """
     # Go through all Tasks in the list
     for my_count, the_item in enumerate(the_list):
         temp_item = ""
@@ -69,12 +81,10 @@ def process_list(
                 colormap,
                 all_tasker_items["all_tasks"],
             )
-
-        elif (
-            list_type == "Scene:" and program_args["display_detail_level"] > 1
-        ):  # We have a Scene: get its actions
+        elif list_type == "Scene:" and program_args["display_detail_level"] > 1:
+            # We have a Scene: process it
             get_scene_details_and_output(
-                the_list,
+                the_item,
                 output_list,
                 tasks_found,
                 program_args,

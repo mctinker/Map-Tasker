@@ -90,32 +90,36 @@ def get_actions(current_task, colormap, display_detail_level):
 def get_task_name(
     the_task_id, tasks_that_have_been_found, the_task_list, task_type, all_tasks: dict
 ):
-    task = all_tasks[the_task_id]
-    tasks_that_have_been_found.append(the_task_id)
-    extra = f"&nbsp;&nbsp;Task ID: {the_task_id}"
-    try:
-        task_name = task.find("nme").text
-        if task_type == "Exit":
-            the_task_list.append(
-                f"{task_name}&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task{extra}"
-            )
+    if the_task_id.isdigit():
+        task = all_tasks[the_task_id]
+        tasks_that_have_been_found.append(the_task_id)
+        extra = f"&nbsp;&nbsp;Task ID: {the_task_id}"
+        try:
+            task_name = task.find("nme").text
+            if task_type == "Exit":
+                the_task_list.append(
+                    f"{task_name}&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task{extra}"
+                )
 
-        else:
-            the_task_list.append(
-                f"{task_name}&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task{extra}"
-            )
+            else:
+                the_task_list.append(
+                    f"{task_name}&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task{extra}"
+                )
 
-    except Exception as e:
-        task_name = UNKNOWN_TASK_NAME
-        if task_type == "Exit":
-            the_task_list.append(
-                f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task{extra}"
-            )
+        except Exception as e:
+            task_name = UNKNOWN_TASK_NAME
+            if task_type == "Exit":
+                the_task_list.append(
+                    f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task{extra}"
+                )
 
-        else:
-            the_task_list.append(
-                f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task{extra}"
-            )
+            else:
+                the_task_list.append(
+                    f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task{extra}"
+                )
+    else:
+        task = None
+        task_name = ''
 
     return task, task_name
 
