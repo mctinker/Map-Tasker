@@ -2,9 +2,11 @@
 
 # ########################################################################################## #
 #                                                                                            #
-# MapTasker: Main Program                                                                    #
+# mapit: Main Program                                                                        #
 #            Read the Tasker backup file to build a visual map of its configuration:         #
 #            Projects, Profiles, Tasks, Scenes                                               #
+#                                                                                            #
+# mapitall: Kick-off function                                                                #
 #                                                                                            #
 # Requirements                                                                               #
 #      1- Python version 3.10 or higher                                                      #
@@ -337,7 +339,9 @@ def mapitall():
     my_output_dir = getcwd()
     logger.debug(f"output directory:{my_output_dir}")
     if my_output_dir is None:
-        print("MapTasker cancelled.  An error occurred.  Program cancelled.")
+        error_msg = "MapTasker cancelled.  An error occurred.  Program cancelled."
+        logger.debug(error_msg)
+        print(error_msg)
         clean_up_memory(tree, root, output_list, all_tasker_items)
         sys.exit(2)
 
@@ -354,14 +358,9 @@ def mapitall():
     try:
         webbrowser.open(f"file://{my_output_dir}{my_file_name}", new=2)
     except Exception.webrowser.e:
-        error_msg = "Failed to open output in browser: your browser is not supported."
+        error_msg = "Error: Failed to open output in browser: your browser is not supported."
         print(error_msg)
         logger.debug(error_msg)
         my_rc = 1
     print("You can find 'MapTasker.html' in the current folder.  Program end.")
     exit(my_rc)
-
-
-# Main call
-# if __name__ == "__main__":
-#     maptaskerodl()

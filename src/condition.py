@@ -11,7 +11,9 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import maptasker.src.actione as action_evaluate, maptasker.src.actiond as process_action_codes
+import maptasker.src.actione as action_evaluate
+import maptasker.src.actiond as process_action_codes
+from maptasker.src.priority import get_priority
 from maptasker.src.actionc import *  # action_codes: Master dictionary of Task action and Profile condition codes
 from maptasker.src.sysconst import logger
 
@@ -163,6 +165,7 @@ def condition_event(the_item, cond_string, colormap, program_args):
     else:
         event_code = the_event_code.text
     if event_code not in action_codes:
+        # Build new (template_ action code if not in our dictionary of codes yet
         process_action_codes.build_action_codes(
             the_event_code, the_item, "e", program_args
         )  # Add it to our action dictionary
@@ -170,6 +173,8 @@ def condition_event(the_item, cond_string, colormap, program_args):
     event = action_evaluate.get_action_code(
         the_event_code, the_item, False, colormap, "e", program_args
     )
+    # Get the event priority
+    event = f'{event}{get_priority(the_item, True)}'
 
     cond_string = f"{cond_string}Event: {event}"
     if program_args["debug"]:  # if program_args['debug'] then add the code

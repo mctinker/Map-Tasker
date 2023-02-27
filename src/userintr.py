@@ -460,7 +460,6 @@ class MyGui(customtkinter.CTk):
         color = pick_color.get()  # Get the color
         if color is not None:
             row = self.color_text_row
-            print('color_selected_item:', color_selected_item, ' color:', color)
             self.color_lookup[
                 TYPES_OF_COLOR_NAMES[color_selected_item]
             ] = color  # Add color for the selected item to our dictionary

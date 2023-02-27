@@ -34,7 +34,7 @@ if DARK_MODE:  # Dark background with light text colors
     profile_color = "Aqua"
     disabled_profile_color = "Red"
     launcher_task_color = "Chartreuse"
-    task_color = "Lavender"
+    task_color = "Yellow"
     unknown_task_color = "Red"
     scene_color = "Lime"
     bullet_color = "Black"

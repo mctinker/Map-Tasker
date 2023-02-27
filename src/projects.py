@@ -13,12 +13,15 @@
 # ########################################################################################## #
 
 import contextlib
+import xml.etree.ElementTree  # Need for type hints
 
 from maptasker.src.outputl import my_output
 from maptasker.src.outputl import refresh_our_output
 from maptasker.src.proclist import process_list
 from maptasker.src.profiles import process_profiles
 from maptasker.src.share import share
+from maptasker.src.kidapp import get_kid_app
+from maptasker.src.priority import get_priority
 from maptasker.src.sysconst import NO_PROFILE
 
 
@@ -26,22 +29,21 @@ from maptasker.src.sysconst import NO_PROFILE
 # process_projects: go through all Projects Profiles...and output them
 # #######################################################################################
 def process_projects_and_their_profiles(
-    output_list,
-    found_tasks,
-    projects_without_profiles,
-    program_args,
-    found_items,
-    heading,
-    colormap,
-    all_tasker_items,
-):
+        output_list: list,
+        found_tasks: list,
+        projects_without_profiles: list,
+        program_args: dict,
+        found_items: dict,
+        heading: str,
+        colormap: dict,
+        all_tasker_items: dict,
+) -> list:
     our_task_element = ""
 
     process_projects(
         found_items,
         output_list,
         heading,
-        NO_PROFILE,
         projects_without_profiles,
         found_tasks,
         our_task_element,
@@ -65,14 +67,25 @@ def process_projects_and_their_profiles(
 # Go through all Scenes for Project, get their detail and output it
 # #############################################################################################
 def process_project_scenes(
-    project,
-    colormap,
-    program_args,
-    output_list,
-    our_task_element,
-    found_tasks,
-    all_tasker_items,
-):
+        project: xml.etree,
+        colormap: dict,
+        program_args: dict,
+        output_list: list,
+        our_task_element: xml.etree,
+        found_tasks: list,
+        all_tasker_items: dict,
+) -> None:
+    """
+Go through all Scenes for Project, get their detail and output it
+    :param project: xml element of Project we are processing
+    :param colormap: colors to use in output
+    :param program_args: runtime arguments
+    :param output_list: list of output lines created thus far
+    :param our_task_element: xml element pointing to our Task
+    :param found_tasks: list of Tasks found so far
+    :param all_tasker_items: all Projects/Profiles/Tasks/Scenes
+    :return: nada
+    """
     scene_names = None
     with contextlib.suppress(Exception):
         scene_names = project.find("scenes").text
@@ -92,21 +105,58 @@ def process_project_scenes(
     return
 
 
+def get_launcher_task(project: xml.etree, colormap: dict, project_color_html: str) -> str:
+    """
+If Project has a launcher Task, get it
+    :param project: xml element of Project we are processing
+    :param colormap: colors to use in output
+    :param project_color_html: html to use that defines the color
+    :return: information related to launcher Task
+    """
+    launcher_task_info = ""
+    share_element = project.find("Share")
+    if share_element is not None:
+        launcher_task_element = share_element.find("t")
+        if (
+                launcher_task_element is not None
+                and launcher_task_element.text is not None
+        ):
+            launcher_task_info = (
+                    ' <span style = "color:'
+                    + colormap["launcher_task_color"]
+                    + f'"</span>[Launcher Task: {launcher_task_element.text}] '
+                    + project_color_html
+            )
+    return launcher_task_info
+
+
 # #############################################################################################
 # Go through all the Projects, get their detail and output it
 # #############################################################################################
 def process_projects(
-    found_items,
-    output_list,
-    heading,
-    NO_PROFILE,
-    projects_without_profiles,
-    found_tasks,
-    our_task_element,
-    colormap,
-    program_args,
-    all_tasker_items,
-):
+        found_items: dict,
+        output_list: list,
+        heading: str,
+        projects_without_profiles: list,
+        found_tasks: list,
+        our_task_element: xml.etree,
+        colormap: dict,
+        program_args: dict,
+        all_tasker_items: dict,
+) -> list:
+    """
+Go through all the Projects, get their detail and output it
+    :param found_items: all items found so far
+    :param output_list: list of output lines generated so far
+    :param heading: the output heading
+    :param projects_without_profiles: list of Projects with no Profiles
+    :param found_tasks: list of Tasks found
+    :param our_task_element: xml element of our Task
+    :param colormap: output colors to use
+    :param program_args: runtime arguments
+    :param all_tasker_items: all Projects/Profiles/Tasks/Scenes
+    :return: list of found Tasks
+    """
     # Set up html to use
     project_color_html = (
         '<span style = "color:'
@@ -122,20 +172,14 @@ def process_projects(
         project_name = project.find("name").text
 
         # See if there is a Launcher task
-        launcher_task_info = ""
-        share_element = project.find("Share")
-        if share_element is not None:
-            launcher_task_element = share_element.find("t")
-            if (
-                launcher_task_element is not None
-                and launcher_task_element.text is not None
-            ):
-                launcher_task_info = (
-                    ' <span style = "color:'
-                    + colormap["launcher_task_color"]
-                    + f'"</span>[Launcher Task: {launcher_task_element.text}] '
-                    + project_color_html
-                )
+        launcher_task_info = get_launcher_task(project, colormap, project_color_html)
+
+        # See if there is a Kid app
+        kid_app_info = priority = ''
+        if program_args["display_detail_level"] == 3:
+            kid_app_info = get_kid_app(project)
+            priority = get_priority(project, False)
+
         # Are we looking for a specific Project?
         if program_args["single_project_name"]:
             if project_name != program_args["single_project_name"]:
@@ -150,7 +194,7 @@ def process_projects(
                 program_args,
                 output_list,
                 2,
-                f"Project: {project_name} {launcher_task_info}",
+                f"Project: {project_name} {launcher_task_info}{priority}{kid_app_info}",
             )
         # Process any <Share> information from TaskerNet
         if program_args["display_taskernet"]:
@@ -161,9 +205,8 @@ def process_projects(
         # Get Profiles and it's Project and Tasks
         my_output(colormap, program_args, output_list, 1, "")  # Start Profile list
         try:
-            project_pids = project.find(
-                "pids"
-            ).text  # Get a list of the Profiles for this Project
+            # Get a list of the Profiles for this Project
+            project_pids = project.find("pids").text
         except Exception:  # Project has no Profiles
             projects_without_profiles.append(project_name)
             my_output(colormap, program_args, output_list, 2, f"Profile: {NO_PROFILE}")
@@ -213,4 +256,4 @@ def process_projects(
             return found_tasks
 
     # If we didn't find the single Project, then say so.
-    return
+    return []

@@ -19,6 +19,8 @@ from maptasker.src.outputl import my_output
 from maptasker.src.outputl import refresh_our_output
 from maptasker.src.share import share
 from maptasker.src.sysconst import NO_PROFILE
+from maptasker.src.priority import get_priority
+from maptasker.src.kidapp import get_kid_app
 
 
 # #######################################################################################
@@ -102,6 +104,14 @@ def build_profile_line(
         "ProfileVariable"
     )  # Is there a Launcher Task with this Project?
     launcher = launcher_task_html if launcher_xml is not None else ""
+
+    # See if there is a Kid app and/or Priority
+    kid_app_info = ''
+    if program_args["display_detail_level"] == 3:
+        kid_app_info = get_kid_app(profile)
+        priority = get_priority(profile, False)
+
+    # Check for Profile 'conditions'
     profile_name = ""
     if program_args["display_profile_conditions"]:
         profile_condition = condition.parse_profile_condition(

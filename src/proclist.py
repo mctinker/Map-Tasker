@@ -26,7 +26,7 @@ def process_list(
     list_type: str,
     output_list: list,
     the_list: list,
-    the_task: xml.etree.ElementTree,
+    the_task: xml.etree,
     tasks_found: list,
     program_args: dict,
     colormap: dict,
@@ -59,6 +59,8 @@ Process Task/Scene text/line item: call recursively for Tasks within Scenes
             id_loc = list_type.find("ID:")
             if id_loc != -1:
                 list_type = list_type[:id_loc]
+
+        # Add this Task to the output
         my_output(
             colormap, program_args, output_list, 2, f"{list_type}&nbsp;{the_item}"
         )
@@ -68,7 +70,7 @@ Process Task/Scene text/line item: call recursively for Tasks within Scenes
 
         # Output Actions for this Task if displaying detail and/or Task is unknown
         # Do we get the Task's Actions?
-        if ("Task:" in list_type and UNKNOWN_TASK_NAME in the_item) or (
+        if (the_task and "Task:" in list_type and UNKNOWN_TASK_NAME in the_item) or (
             "Task:" in list_type
         ):
             get_task_actions_and_output(

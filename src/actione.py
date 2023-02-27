@@ -56,12 +56,12 @@ def look_for_missing_req():
         entry = action_codes[item]
         numargs = entry["numargs"]
         if numargs > 0 and "reqargs" not in entry:
-            error_msg = f"dict_code {item} missing reqargs!  numargs:{numargs}"
+            error_msg = f"Error: dict_code {item} missing reqargs!  numargs:{numargs}"
             print(error_msg)
             logger.debug(f"{error_msg}")
             flag = True
         if "display" not in entry:
-            error_msg = f'dict_code {item} missing "display"!'
+            error_msg = f'Error: dict_code {item} missing "display"!'
             print(error_msg)
             logger.debug(error_msg)
             entry["display"] = "unmapped"
