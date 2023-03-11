@@ -277,6 +277,7 @@ class MyGui(customtkinter.CTk):
                 "Background",
                 "Bullets",
                 "TaskerNet Information",
+                "Tasker Preferences",
             ],
             command=self.colors_event,
         )
