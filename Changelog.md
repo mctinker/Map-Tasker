@@ -1,24 +1,30 @@
 MapTasker Change log
-## [1.2.26] - 2023-02-27
-### Added: New Task actions: Request Add Tile
-### Added: Support for new parameters in Set Quick Tile, Progress Dialog
-### Added: Display Project's/Task's Kid App info if details = 3
-### Added: Display Profile/Task priority if details = 3
-### Added: Log now includes 'Error:' for program/functional errors
+## [1.3.00] - 2023-03-??
+### Added: Support for unit testing (no user impact)
+### Added: Optionally display Tasker Preferences = runtime option '-preferences'
+### Changed: Optimized initialization code
+### Changed: Task(s) with no Profile will now be displayed under the Project it/they belong to
+### Fixed: Go To 'action' not showing the label to go to.
 
 Older History Log 
-- [1.2.25] - 2023-02-22
+- [1.2.26] - 2023-02-27  
+       - Added: New Task actions: Request Add Tile  
+       - Added: Support for new parameters in Set Quick Tile, Progress Dialog  
+       - Added: Display Project's/Task's Kid App info if details = 3  
+       - Added: Display Profile/Task priority if details = 3  
+       - Added: Log now includes 'Error:' for program/functional errors  
+- [1.2.25] - 2023-02-22  
        - Fixed: Only first (TAP/LONG TAP) Task in Scene is displayed   
        - Fixed: Scene Tasks for rectangle, web elements, and 'ITEM TAP' missing  
        - Fixed: Corrected URL provided in 'Caveats' at bottom of output  
        - Added: Display Scene elements  
-- [1.2.23] - 2023-02-20
+- [1.2.23] - 2023-02-20  
        - Fixed: GUI Restore not displaying 'file not found' in GUI
        - Added: GUI Restore changes display settings based on restored settings
-- [1.2.22] - 2023-02-17    
+- [1.2.22] - 2023-02-17     
        - Changed: Moved code base to src directory   
        - Changed: Primary program renamed from 'main' to 'maptasker'
-- [1.2.2-thru-1.2.21] - 2023-02-17    
+- [1.2.2-thru-1.2.21] - 2023-02-17      
        Added: Packaged for pip install    
 - [1.2.1] - 2023-02-05   
        - Updated for pip packaging  

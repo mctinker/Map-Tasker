@@ -112,8 +112,6 @@ Alternatively, see *config.py* for user-customizable options.  Make user-specifi
 
 [] Complete insertion of Python docstrings
 
-[] Optionally, display Scene element details
-
 [] Save settings via standard ini file so it can be modified
 
 
