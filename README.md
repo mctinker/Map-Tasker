@@ -22,9 +22,18 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
 - Install maptasker by entering the following command into Terminal:    
  
 
-     `pip install maptasker`          
+     `pip install maptasker`        
+
+- To install it to a virtual environment, enter the following command into Terminal:    
+
+     `cd xxx`, where 'xxx' is a directory into which you want to setup the virtual environment    
+     `pip venv venv`    
+     `set VIRTUAL_ENV {directory path to 'xxx'}/venv`    
+     `source {directory path to 'xxx'}/venv/bin/activate`  
+     `pip install maptasker` 
+     
     
-- From the GitHub 'Code' pull-down menu, select 'Download ZIP', save it into a new directory (e.g. /your_id/maptasker) and uncompress it into that directory.
+- To install it from GitHub, get the zip file by clicking on the ['Code'](https://github.com/mctinker/Map-Tasker) pull-down menu, select 'Download ZIP', save it into a new directory (e.g. /your_id/maptasker) and uncompress it into that directory.
 
 
 ### Usage 
@@ -59,13 +68,15 @@ Runtime: `maptasker -option1 -option2` ...
     `-task 'task name'` to display a single Task only (forces option -d2),   
         
         
-    `-taskernet` to display any TaskerNet share details,    
-    `-conditions` to display a Profile's and Task's condition(s),   
+    `-taskernet` to display any TaskerNet share details,  
+    `-preferences` to display Tasker's preference settings,  
+    `-conditions` to display a Profile's and Task's condition(s),
+
     `-c(type) color_name`  define a specific color to 'type', where 'type' is *one* of the following:
 
       'Project' 'Profile' 'Task' 'Action' 'DisabledProfile' 'UnknownTask' 
       'DisabledAction' 'ActionCondition' 'ProfileCondition' 'LauncherTask' 
-      'Background' 'ActionLabel' 'Bullets' 'TaskerNetInfo'
+      'Background' 'ActionLabel' 'Bullets' 'TaskerNetInfo', "Preferences'
                 
       Example color options: -cTask Green -cBackground Black cProfile 19c8ff   
 
