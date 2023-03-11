@@ -16,7 +16,7 @@ from maptasker.src.config import logging
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 1.2.25"
+MY_VERSION = "MapTasker version 1.3.00"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -42,6 +42,7 @@ TYPES_OF_COLOR_NAMES = {
     "Action Labels": "action_label_color",
     "Action Names": "action_name_color",
     "TaskerNet Information": "taskernet_color",
+    "Tasker Preferences": "preferences_color",
 }
 
 TYPES_OF_COLORS = {
@@ -54,13 +55,14 @@ TYPES_OF_COLORS = {
     "DisabledAction": "disabled Task 'actions'",
     "ActionCondition": "Task action 'conditions'",
     "ProfileCondition": "Profile 'conditions'",
-    "LauncherTask": "Profile's 'launcher' Task",
+    "LauncherTask": "Project's 'launcher' Task",
     "Background": "output background",
     "Scene": "Scenes",
     "Bullet": "list bullets",
     "ActionLabel": "Task action 'labels'",
     "ActionName": "Task action 'names'",
     "TaskerNetInfo": "TaskerNet 'information'",
+    "Preferences": "Tasker 'preferences'",
 }
 
 logger = logging.getLogger("MapTasker")

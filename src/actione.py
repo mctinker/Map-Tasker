@@ -79,7 +79,7 @@ def check_for_deprecation(dict_code):
     lookup = dict_code[:-1]  # Remove last character to get just the digits
     if lookup in depricated and dict_code in action_codes:
         action_codes[dict_code] = {
-            "display": action_codes[dict_code]["display"] + "<em> (Is Deprecated)</em>"
+            "display": action_codes[dict_code]["display"] + "<em> (Is Deprecated)</em> "
         }
     return
 

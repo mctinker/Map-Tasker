@@ -289,6 +289,8 @@ def get_and_set_the_color(the_arg, colormap):
                 colormap["action_label_color"] = desired_color
             case "TaskerNetInfo":
                 colormap["taskernet_color"] = desired_color
+            case "Preferences":
+                colormap["preferences_color"] = desired_color
             case _:
                 error_msg = f"Invalid name in arg: =cName, where name is:{desired_color} color_type:{color_type}"
                 handle_error(error_msg, " exit code 1", 1)

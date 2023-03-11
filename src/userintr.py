@@ -29,31 +29,28 @@ customtkinter.set_default_color_theme(
     "blue"
 )  # Themes: "blue" (standard), "green", "dark-blue"
 INFO_TEXT = (
-    'MapTasker displays your Android Tasker configuration based on your uploaded Tasker backup file (e.g. "backup.xml").  The display '
-    "will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task"
-    "related information.\n\n"
-    "* Display options are:\n"
-    "    Level 0: display first Task action only, for unnamed Tasks only (silent)\n"
-    "    Level 1 = display all Task action details for unknown Tasks only (default)\n"
-    "    Level 2 = display full Task action name on every Task\n"
-    "    Level 3 = display full Task action details on every Task with action details\n\n"
-    "* Display Conditions: Turn on the display of Profile and Task conditions.\n\n"
-    "* Display TaskerNet Info - If available, display TaskerNet publishing information\n\n"
-    "* Save Settings - Save these settings for later use.\n\n"
-    "* Restore Settings - Restore the settings from a previously saved session.\n\n"
-    "* GUI Appearance Mode: Dark, Light, or System default.\n\n"
-    "* Reset Options: Clear everything and start anew.\n\n"
-    "* Run: Run the program with the settings provided.\n\n"
-    "* Specific Name tab: enter a single, specific named item to display...\n"
-    "   - Project Name: enter a specific Project to display\n"
-    "   - Profile Name: enter a specific Profile to display\n"
-    "   - Task Name: enter a specific Task to display\n"
-    "   (These three are exclusive: enter one only)\n\n"
-    "* Colors tab: select colors for various elements of the display\n"
-    "              (e.g. color for Projects, Profiles, Tasks, etc.)\n\n"
-    "* Exit: Exit the program (quit).\n\n"
-    "Note: You will be prompted to identify your Tasker backup file once\n"
-    "      you hit the 'Run' button"
+    'MapTasker displays your Android Tasker configuration based on your uploaded Tasker'
+    ' backup file (e.g. "backup.xml").  The display will optionally include all'
+    ' Projects, Profiles, Tasks and their actions, Profile/Task conditions and other'
+    ' Profile/Taskrelated information.\n\n* Display options are:\n    Level 0: display'
+    ' first Task action only, for unnamed Tasks only (silent)\n    Level 1 = display'
+    ' all Task action details for unknown Tasks only (default)\n    Level 2 = display'
+    ' full Task action name on every Task\n    Level 3 = display full Task action'
+    ' details on every Task with action details\n\n* Display Conditions: Turn on the'
+    ' display of Profile and Task conditions.\n\n* Display TaskerNet Info - If'
+    ' available, display TaskerNet publishing information\n\n* Display Tasker'
+    ' Preferences - display Tasker\'s system Preferences\n\n* Save Settings - Save'
+    ' these settings for later use.\n\n* Restore Settings - Restore the settings from a'
+    ' previously saved session.\n\n* GUI Appearance Mode: Dark, Light, or System'
+    ' default.\n\n* Reset Options: Clear everything and start anew.\n\n* Run: Run the'
+    ' program with the settings provided.\n\n* Specific Name tab: enter a single,'
+    ' specific named item to display...\n   - Project Name: enter a specific Project to'
+    ' display\n   - Profile Name: enter a specific Profile to display\n   - Task Name:'
+    ' enter a specific Task to display\n   (These three are exclusive: enter one'
+    ' only)\n\n* Colors tab: select colors for various elements of the display\n       '
+    '       (e.g. color for Projects, Profiles, Tasks, etc.)\n\n* Exit: Exit the'
+    ' program (quit).\n\nNote: You will be prompted to identify your Tasker backup file'
+    ' once\n      you hit the \'Run\' button'
 )
 
 
@@ -118,6 +115,18 @@ class MyGui(customtkinter.CTk):
             row=4, column=0, padx=20, pady=10, sticky="w"
         )
 
+        # Display 'Tasker Preferences' button
+        self.display_preferences_button = customtkinter.CTkCheckBox(
+            self.sidebar_frame,
+            command=self.display_preferences_event,
+            text="Display Tasker Preferences",
+            onvalue=True,
+            offvalue=False,
+        )
+        self.display_preferences_button.grid(
+            row=5, column=0, padx=20, pady=10, sticky="w"
+        )
+
         # Save settings button
         self.save_settings_button = customtkinter.CTkButton(
             self.sidebar_frame,
@@ -126,7 +135,7 @@ class MyGui(customtkinter.CTk):
             text="Save Settings",
             command=self.save_settings_event,
         )
-        self.save_settings_button.grid(row=5, column=0, padx=20, pady=10, sticky="n")
+        self.save_settings_button.grid(row=6, column=0, padx=10, pady=10, sticky="s")
 
         # Restore settings button
         self.restore_settings_button = customtkinter.CTkButton(
@@ -136,19 +145,19 @@ class MyGui(customtkinter.CTk):
             text="Restore Settings",
             command=self.restore_settings_event,
         )
-        self.restore_settings_button.grid(row=6, column=0, padx=20, pady=10, sticky="n")
+        self.restore_settings_button.grid(row=7, column=0, padx=10, pady=10, sticky="n")
 
         # Screen Appearance: Light / Dark / System
         self.appearance_mode_label = customtkinter.CTkLabel(
             self.sidebar_frame, text="GUI Appearance Mode:", anchor="w"
         )
-        self.appearance_mode_label.grid(row=7, column=0, padx=20)
+        self.appearance_mode_label.grid(row=8, column=0, padx=20)
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(
             self.sidebar_frame,
             values=["Light", "Dark", "System"],
             command=self.change_appearance_mode_event,
         )
-        self.appearance_mode_optionemenu.grid(row=8, column=0, padx=0, sticky="n")
+        self.appearance_mode_optionemenu.grid(row=9, column=0, padx=0, sticky="n")
 
         # 'Reset Settings' button definition
         self.reset_button = customtkinter.CTkButton(
@@ -295,6 +304,7 @@ class MyGui(customtkinter.CTk):
         self.sidebar_detail_option.set("1")
         self.display_detail_level = 1
         self.display_profile_conditions = False
+        self.display_preferences = False
         self.display_taskernet = False
         self.single_project_name = ""
         self.single_profile_name = ""
@@ -350,8 +360,9 @@ class MyGui(customtkinter.CTk):
         error_message = ""
         if not the_name:
             error_message = (
-                "Error:\n\nThe name entered for the " + element_name + " is blank!\n\n"
-                "Try again."
+                "Error:\n\nThe name entered for the "
+                + element_name
+                + " is blank!\n\nTry again."
             )
             self.named_item = False
         if self.single_project_name and self.single_profile_name:
@@ -379,7 +390,9 @@ class MyGui(customtkinter.CTk):
                 self.single_task_name,
             ) = ("", "", "")
         else:
-            self.display_message_box((f"Display only the '{the_name}' {element_name}"), True)
+            self.display_message_box(
+                f"Display only the '{the_name}' {element_name}", True
+            )
 
     # #######################################################################################
     # Process the Project Name entry
@@ -460,9 +473,9 @@ class MyGui(customtkinter.CTk):
         color = pick_color.get()  # Get the color
         if color is not None:
             row = self.color_text_row
-            self.color_lookup[
-                TYPES_OF_COLOR_NAMES[color_selected_item]
-            ] = color  # Add color for the selected item to our dictionary
+            self.color_lookup[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
+                color  # Add color for the selected item to our dictionary
+            )
             self.color_labels.append(
                 customtkinter.CTkLabel(
                     self.tabview.tab("Colors"),
@@ -474,13 +487,21 @@ class MyGui(customtkinter.CTk):
                 row=self.color_text_row, column=0, padx=0, pady=0
             )
             self.color_text_row += 1
-            self.display_message_box(f"{color_selected_item} color changed to {color}", True)
+            self.display_message_box(
+                f"{color_selected_item} color changed to {color}", True
+            )
 
     # #######################################################################################
     # Process the 'conditions' checkbox
     # #######################################################################################
     def condition_event(self):
         self.display_profile_conditions = self.condition_button.get()
+
+    # #######################################################################################
+    # Process the 'Tasker Prefernces' checkbox
+    # #######################################################################################
+    def display_preferences_event(self):
+        self.display_preferences = self.display_preferences_button.get()
 
     # #######################################################################################
     # Process the 'taskernet' checkbox
@@ -495,13 +516,16 @@ class MyGui(customtkinter.CTk):
         temp_args = {
             "display_detail_level": self.display_detail_level,
             "display_profile_conditions": self.display_profile_conditions,
+            "display_preferences": self.display_preferences,
             "display_taskernet": self.display_taskernet,
             "single_project_name": self.single_project_name,
             "single_profile_name": self.single_profile_name,
             "single_task_name": self.single_task_name,
             "debug": self.debug,
         }
-        temp_args, self.color_lookup = save_restore_args(True, self.color_lookup, temp_args)
+        temp_args, self.color_lookup = save_restore_args(
+            True, self.color_lookup, temp_args
+        )
         self.display_message_box("Settings saved.", True)
 
     # #######################################################################################
@@ -522,6 +546,11 @@ class MyGui(customtkinter.CTk):
                     self.condition_button.select()
                 else:
                     self.condition_button.deselect()
+            case "display_preferences":
+                if value:
+                    self.display_preferences_button.select()
+                else:
+                    self.display_preferences_button.deselect()
             case "display_taskernet":
                 if value:
                     self.display_taskernet_button.select()
@@ -562,7 +591,9 @@ class MyGui(customtkinter.CTk):
             inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
             for key, value in self.color_lookup.items():
                 if key is not None:
-                    all_messages = f"{all_messages} {inv_color_names[key]} color set to {value}\n"
+                    all_messages = (
+                        f"{all_messages} {inv_color_names[key]} color set to {value}\n"
+                    )
             # Display the queue of messages
             self.display_message_box(f"{all_messages}\nSettings restored.", True)
 
@@ -575,6 +606,7 @@ class MyGui(customtkinter.CTk):
     def reset_settings_event(self):
         self.sidebar_detail_option.set("1")  # display detail level
         self.condition_button.deselect()  # Conditions
+        self.display_preferences_button.deselect()  # Tasker Preferences
         self.display_taskernet_button.deselect()  # TaskerNet
         self.appearance_mode_optionemenu.set("Dark")  # Appearance
         customtkinter.set_appearance_mode("Dark")  # Enforce appearance

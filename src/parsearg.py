@@ -29,7 +29,7 @@ from maptasker.src.sysconst import logger
 # #######################################################################################
 # Get the program arguments using via a GUI (Gooey)
 # #######################################################################################
-def user_interface():
+def runtime_parser():
     if GUI:
         return None
     # Setup for argument parsing
@@ -108,6 +108,14 @@ def user_interface():
     parser.add_argument(
         "-taskernet",
         help="Display any TaskerNet information for Projects/Profiles",
+        action="store_true",
+        default=False,
+    )
+    # Display Tasker preferences
+    parser.add_argument(
+        "-p",
+        "-preferences",
+        help="Display Tasker preferences",
         action="store_true",
         default=False,
     )
@@ -210,6 +218,4 @@ def user_interface():
 def output_results(args):
     # Arguments have been provided
     message_out = f"Arguments: {args}"
-    # print(message_out)
-    # print(args)
     logger.info(message_out)

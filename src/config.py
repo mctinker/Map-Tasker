@@ -28,9 +28,10 @@ OUTPUT_FONT = "Courier"  # OS X Default monospace font
 GUI = False  # Graphical User Interface (True) vs. CLI Command Line Interface (False)
 DARK_MODE = True  # Light vs Dark Mode
 # Set the default colors to use
+# Refer to the following for valid names: https://htmlcolorcodes.com/color-names/
 
 if DARK_MODE:  # Dark background with light text colors
-    project_color = "White"  # Refer to the following for valid names: https://htmlcolorcodes.com/color-names/
+    project_color = "White"
     profile_color = "Aqua"
     disabled_profile_color = "Red"
     launcher_task_color = "Chartreuse"
@@ -47,9 +48,10 @@ if DARK_MODE:  # Dark background with light text colors
     background_color = "DarkSlateGray"
     trailing_comments_color = "LightSeaGreen"
     taskernet_color = "LightPink"
+    preferences_color = 'PeachPuff'
 
 else:  # White background with dark text colors
-    project_color = "Black"  # Refer to the following for valid names: https://htmlcolorcodes.com/color-names/
+    project_color = "Black"
     profile_color = "DarkBlue"
     disabled_profile_color = "DarkRed"
     launcher_task_color = "LawnGreen"
@@ -66,6 +68,7 @@ else:  # White background with dark text colors
     background_color = "Lavender"
     trailing_comments_color = "Tomato"
     taskernet_color = "RoyalBlue"
+    preferences_color = 'DodgerBlue'
 
 
 # ####################################################################################################

@@ -18,8 +18,9 @@
 # ########################################################################################## #
 
 from maptasker.src.config import GUI
+from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.sysconst import FONT_TO_USE
 from maptasker.src.sysconst import logger
-from os.path import exists
 
 if GUI:
     from maptasker.src.userintr import MyGui
@@ -38,6 +39,7 @@ def output_and_quit(arg0):
 # Get the program arguments from GUI
 # #######################################################################################
 def process_gui(colormap, use_gui):
+    global MyGui
     if use_gui:
         from maptasker.src.userintr import MyGui
 
@@ -54,35 +56,35 @@ def process_gui(colormap, use_gui):
         output_and_quit("Program cancelled be user (killed GUI)")
         exit(99)
 
+    # Convert runtime argument default values to a dictionary
+    prog_args = initialize_runtime_arguments()
+
     # 'Run' button hit.  Get all the input from GUI variables
     try:
-        display_detail_level = int(user_input.display_detail_level)
+        prog_args["display_detail_level"] = int(user_input.display_detail_level)
     except Exception as e:
         display_detail_level = 1
     # Ok, load up the arguments from the GUI
-    display_profile_conditions = user_input.display_profile_conditions
-    display_taskernet = user_input.display_taskernet
-    single_project_name = user_input.single_project_name
-    single_profile_name = user_input.single_profile_name
-    single_task_name = user_input.single_task_name
+    prog_args["display_profile_conditions"] = user_input.display_profile_conditions
+    prog_args["display_preferences"] = user_input.display_preferences
+    prog_args["display_taskernet"] = user_input.display_taskernet
+    prog_args["single_project_name"] = user_input.single_project_name
+    prog_args["single_profile_name"] = user_input.single_profile_name
+    prog_args["single_task_name"] = user_input.single_task_name
     # Process the colors
     if user_input.color_lookup:
         for key, value in user_input.color_lookup.items():
             colormap[key] = value
 
     # Debug flag
-    debug = user_input.debug
+    prog_args["debug"] = user_input.debug
 
     # Delete the GUI
+    MyGui.quit(user_input)
     del user_input
+    del MyGui
 
     return (
-        display_detail_level,
-        display_profile_conditions,
-        display_taskernet,
-        single_project_name,
-        single_profile_name,
-        single_task_name,
-        debug,
+        prog_args,
         colormap,
     )

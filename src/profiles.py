@@ -13,14 +13,14 @@
 # ########################################################################################## #
 import xml.etree.ElementTree  # Need for type hints
 
-import maptasker.src.tasks as tasks
 import maptasker.src.condition as condition
+import maptasker.src.tasks as tasks
+from maptasker.src.kidapp import get_kid_app
 from maptasker.src.outputl import my_output
 from maptasker.src.outputl import refresh_our_output
+from maptasker.src.priority import get_priority
 from maptasker.src.share import share
 from maptasker.src.sysconst import NO_PROFILE
-from maptasker.src.priority import get_priority
-from maptasker.src.kidapp import get_kid_app
 
 
 # #######################################################################################
@@ -29,7 +29,7 @@ from maptasker.src.kidapp import get_kid_app
 def get_profile_tasks(
     the_profile: xml.etree,
     found_tasks_list: list,
-    task_list_output: list,
+    task_output_line: list,
     program_args: dict,
     all_tasks: dict,
     found_items: dict,
@@ -46,7 +46,7 @@ def get_profile_tasks(
                 task_type = "Exit"
             task_id = child.text
             the_task_element, the_task_name = tasks.get_task_name(
-                task_id, found_tasks_list, task_list_output, task_type, all_tasks
+                task_id, found_tasks_list, task_output_line, task_type, all_tasks
             )
             if (
                 program_args["single_task_name"]
@@ -118,7 +118,10 @@ def build_profile_line(
             profile, colormap, program_args
         )  # Get the Profile's condition
         if profile_condition:
-            profile_name = f"{condition_color_html} ({profile_condition}) {profile_name}{launcher}{disabled}"
+            profile_name = (
+                f"{condition_color_html} ({profile_condition})"
+                f" {profile_name}{launcher}{disabled}"
+            )
 
     # Start formulating the Profile output line
     try:
@@ -171,7 +174,21 @@ def process_profiles(
     colormap: dict,
     all_tasker_items: dict,
     found_items: dict,
-) -> object:
+) -> xml.etree:
+    """
+    Go through Project's Profiles and output each
+        :param output_list: list of each output line generated so far
+        :param project: Project to process
+        :param project_name: Project's name
+        :param profile_ids: list of Profiles in Project
+        :param list_of_found_tasks: list of Tasks found
+        :param program_args: runtime arguments
+        :param heading: the output heading
+        :param colormap: the colors to use in ouput
+        :param all_tasker_items: all Tasker Projects/Profiles/Tasks/Scenes
+        :param found_items: all "found" items (single Project/Profile/Task) name and flag
+        :return: xml element of Task
+    """
     our_task_element = ""
 
     # Go through the Profiles found in the Project
@@ -198,6 +215,7 @@ def process_profiles(
             except Exception as e:  # no Profile name...go to next Profile ID
                 continue
         task_list = []  # Profile's Tasks will be filled in here
+        task_output_line = ' '
         our_task_element, our_task_name = get_profile_tasks(
             profile,
             list_of_found_tasks,
@@ -233,6 +251,8 @@ def process_profiles(
             all_tasker_items,
             found_items,
         )
+
+        # Get out if doing a specific Task, and it was found
         if (
             specific_task
             and program_args["single_task_name"]

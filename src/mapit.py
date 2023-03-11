@@ -48,6 +48,7 @@ from maptasker.src.caveats import display_caveats
 from maptasker.src.sysconst import COUNTER_FILE
 from maptasker.src.sysconst import logger
 from maptasker.src.taskerd import get_the_xml_data
+from maptasker.src.prefers import get_preferences
 
 
 # import os
@@ -101,12 +102,12 @@ def clean_up_memory(
     all_tasker_items: Dict[str, List[xml.etree.ElementTree.Element]],
 ) -> None:
     """
-Clean up our memory hogs
-    :param tree: xml tree to empty
-    :param root: root xml that was parsed from backup file
-    :param output_list: list of output lines to clear
-    :param all_tasker_items: All Projects/Profiles/Tasks/Scenes
-    :return:
+    Clean up our memory hogs
+        :param tree: xml tree to empty
+        :param root: root xml that was parsed from backup file
+        :param output_list: list of output lines to clear
+        :param all_tasker_items: All Projects/Profiles/Tasks/Scenes
+        :return:
     """
     for elem in tree.iter():
         elem.clear()
@@ -126,11 +127,11 @@ def write_out_the_file(
     output_list: List[str], my_output_dir: str, my_file_name: str
 ) -> None:
     """
-write_out_the_file: we have a list of output lines.  Write them out.
-    :param output_list: list of all output lines generated
-    :param my_output_dir: directory to output to
-    :param my_file_name: name of file to use
-    :return: nothing
+    write_out_the_file: we have a list of output lines.  Write them out.
+        :param output_list: list of all output lines generated
+        :param my_output_dir: directory to output to
+        :param my_file_name: name of file to use
+        :return: nothing
     """
     logger.info(f"Function Entry: write_out_the_file dir:{my_output_dir}")
     with open(my_output_dir + my_file_name, "w") as out_file:
@@ -166,14 +167,14 @@ def clean_up_and_exit(
     all_tasker_items: dict,
 ) -> None:
     """
-Cleanup memory and let user know there was no match found for Task/Profile
-    :param name: the name to add to the log/print output
-    :param profile_or_task_name: name of the Profile or Task to clean
-    :param tree: xml tree to clear
-    :param root: root of xml parsed from file to clear
-    :param output_list: list of output lines to empty
-    :param all_tasker_items: all Tasker Projects/Profiles/Tasks/Scenes to clear
-    :rtype: none
+    Cleanup memory and let user know there was no match found for Task/Profile
+        :param name: the name to add to the log/print output
+        :param profile_or_task_name: name of the Profile or Task to clean
+        :param tree: xml tree to clear
+        :param root: root of xml parsed from file to clear
+        :param output_list: list of output lines to empty
+        :param all_tasker_items: all Tasker Projects/Profiles/Tasks/Scenes to clear
+        :rtype: none
     """
     output_list.clear()
     error_message = f"{name} {profile_or_task_name} not found!!"
@@ -188,11 +189,50 @@ Cleanup memory and let user know there was no match found for Task/Profile
 #   Main Program Starts Here                                                                                 #
 #                                                                                                            #
 ##############################################################################################################
-def mapitall():
-    """
-    main program that kicks off all processes
-    :rtype: none
-    """
+'''
+-The function 'mapit_all' is the main function of the MapTasker program, which maps the Tasker environment and generates an HTML output file.
+
+
+
+- The function initializes local variables and other necessary stuff.
+
+- It gets colors to use, runtime arguments, found items, and heading by calling the 'start_up' function from the 'proginit' module.
+
+- It prompts the user to locate the Tasker backup XML file to use to map the Tasker environment.
+
+- It opens and reads the file by calling the 'open_and_get_backup_xml_file' function from the 'proginit' module.
+
+- It gets all the XML data by calling the 'get_the_xml_data' function from the 'taskerd' module.
+
+- It checks for a valid Tasker backup XML file.
+
+- It processes Tasker preferences and displays them if the 'display_preferences' argument is True.
+
+- It processes all projects and their profiles by calling the 'process_projects_and_their_profiles' function from the 'projects' module.
+
+- If a specific project or profile is requested but not found, it exits the program by calling the 'clean_up_and_exit' function.
+
+- It looks for tasks that are not referenced by profiles and displays a total count.
+
+- It lists any projects without tasks and projects without profiles.
+
+- If a specific task is requested but not found, it exits the program by calling the 'clean_up_and_exit' function.
+
+- It outputs caveats if the 'display_detail_level' argument is greater than or equal to 3.
+
+- It adds HTML complete code to the output.
+
+- It generates the actual output file and stores it in the current directory.
+
+- It cleans up memory by calling the 'clean_up_memory' function.
+
+- It displays the final output by opening the output file in the default browser.
+
+- It returns the exit code of the program.
+'''
+
+
+def mapit_all() -> int:
     # Initialize local variables and other stuff
     found_tasks, output_list, projects_without_profiles, projects_with_no_tasks = (
         [],
@@ -200,14 +240,34 @@ def mapitall():
         [],
         [],
     )
+
+    # Get colors to use, runtime arguments etc.
     colormap, program_args, found_items, heading = initialize.start_up()
 
     # Development only parameters here:
     # program_args["debug"] = True
     # program_args["display_detail_level"] = 3
     # program_args["display_profile_conditions"] = True
-    # program_args['display_taskernet'] = False
-    # program_args['single_task_name'] = 'Check Upstairs Heat'
+    # program_args['display_preferences'] = True
+    # program_args['display_taskernet'] = True
+
+    # If debug, output the runtime arguments and colors
+    if program_args["debug"]:
+        build_output.my_output(
+            colormap, program_args, output_list, 4, f"sys.argv:{str(sys.argv)}"
+        )
+        for key, value in program_args.items():
+            build_output.my_output(
+                colormap, program_args, output_list, 4, f"{key}: {value}"
+            )
+        for key, value in colormap.items():
+            build_output.my_output(
+                colormap,
+                program_args,
+                output_list,
+                4,
+                f"colormap for {key} set to {value}",
+            )
 
     # Prompt user for Tasker's backup.xml file location
     if run_counter < 1:  # Only display message box on first run
@@ -232,9 +292,19 @@ def mapitall():
 
     # Start the output with heading
     build_output.my_output(colormap, program_args, output_list, 0, heading)
-    build_output.my_output(
-        colormap, program_args, output_list, 1, ""
-    )  # Start Project list
+    # Start Project list
+    build_output.my_output(colormap, program_args, output_list, 1, "")
+
+    #######################################################################################
+    # Process Tasker Preferences
+    #######################################################################################
+    if program_args["display_preferences"]:
+        get_preferences(
+            output_list,
+            program_args,
+            colormap,
+            all_tasker_items,
+        )
 
     # #######################################################################################
     # Go through XML and Process all Projects
@@ -357,10 +427,12 @@ def mapitall():
     my_rc = 0
     try:
         webbrowser.open(f"file://{my_output_dir}{my_file_name}", new=2)
-    except Exception.webrowser.e:
-        error_msg = "Error: Failed to open output in browser: your browser is not supported."
+    except Exception as e:
+        error_msg = (
+            "Error: Failed to open output in browser: your browser is not supported."
+        )
         print(error_msg)
         logger.debug(error_msg)
         my_rc = 1
     print("You can find 'MapTasker.html' in the current folder.  Program end.")
-    exit(my_rc)
+    return my_rc

@@ -38,6 +38,7 @@ from maptasker.src.config import profile_condition_color
 from maptasker.src.config import launcher_task_color
 from maptasker.src.config import background_color
 from maptasker.src.config import bullet_color
+from maptasker.src.config import preferences_color
 from maptasker.src.config import taskernet_color
 
 import maptasker.src.progargs as get_args
@@ -64,7 +65,10 @@ def open_and_get_backup_xml_file(program_args: dict) -> object:
         try:
             filename = open(f"{dir_path}/backup.xml", "r")
         except Exception:
-            error_msg = f"Error: The backup.xml file was not found in {dir_path}.  Program terminated!"
+            error_msg = (
+                f"Error: The backup.xml file was not found in {dir_path}.  Program"
+                " terminated!"
+            )
             logger.debug(error_msg)
             print(error_msg)
             exit(3)
@@ -111,6 +115,7 @@ def setup_colors() -> dict:
         "background_color": background_color,
         "bullet_color": bullet_color,
         "taskernet_color": taskernet_color,
+        "preferences_color": preferences_color,
     }
 
 
@@ -120,7 +125,7 @@ def setup_colors() -> dict:
 def setup_logging():
     logging.basicConfig(
         filename="maptasker.log",
-        filemode="a",
+        filemode="w",
         format="%(asctime)s,%(msecs)d %(levelname)s %(name)s %(funcName)s %(message)s",
         datefmt="%H:%M:%S",
         level=logging.DEBUG,
@@ -134,21 +139,15 @@ def setup_logging():
 def log_startup_values(program_args: dict, colormap: dict) -> None:
     setup_logging()  # Get logging going
     logger.info(f"{MY_VERSION} {str(datetime.datetime.now())}")
-    logger.info(f"display_detail_level: {program_args['display_detail_level']}")
-    logger.info(f"display_taskernet: {program_args['display_taskernet']}")
-    logger.info(f"single_project_name: {program_args['single_project_name']}")
-    logger.info(f"single_profile_name: {program_args['single_profile_name']}")
-    logger.info(f"single_task_name: {program_args['single_task_name']}")
-    logger.info(
-        f"display_profile_conditions: {program_args['display_profile_conditions']}"
-    )
-    logger.info(f"debug: {program_args['debug']}")
+    logger.info(f"sys.argv:{str(sys.argv)}")
+    for key, value in program_args.items():
+        logger.info(f"{key}: {value}")
     for key, value in colormap.items():
         logger.info(f"colormap for {key} set to {value}")
 
 
 ##############################################################################################
-# Perform maptaskerodl program initialization functions
+# Perform maptasker program initialization functions
 # #############################################################################################
 def start_up() -> tuple:
     colormap = setup_colors()  # Get our map of colors

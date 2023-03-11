@@ -153,7 +153,7 @@ lookup_values = {
     },
     "135": {
         0: "Action Number",
-        1: "Action Loop",
+        1: "Action Label",
         2: "Top of Loop",
         3: "End of Loop",
         4: "End of If",
@@ -394,7 +394,7 @@ lookup_values = {
     "384": {0: "Add/Edit", 1: "Delete"},
     "384a": {0: "Button", 1: "Toggle", 2: "Range", 3: "Toggle Range", 4: "No Action"},
     "386": {0: "Disallow", 1: "Allow"},
-    "391": {0: "Show Update", 1: "Dismiss"},
+    "391": {0: "Show/Update", 1: "Dismiss"},
     "391a": {0: "Animation", 1: "Progress Bar"},
     "393": {0: "Simple", 1: "Format"},
     "394": {

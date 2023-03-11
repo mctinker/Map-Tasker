@@ -36,7 +36,7 @@ def process_list(
 Process Task/Scene text/line item: call recursively for Tasks within Scenes
     :param list_type: Task or Scene
     :param output_list: list of output lines
-    :param the_list: list of elements for list_type
+    :param the_list: list of Task names tro process
     :param the_task: Task/Scene xml element
     :param tasks_found: list of Tasks found so far
     :param program_args: dictionary of runtime arguments
@@ -48,7 +48,7 @@ Process Task/Scene text/line item: call recursively for Tasks within Scenes
     for my_count, the_item in enumerate(the_list):
         temp_item = ""
         temp_list = ""
-        if program_args["debug"]:
+        if program_args["debug"]:  # Add Task ID if in debug mode
             logger.debug(
                 f"process_list  the_item:{str(the_item)} the_list:{the_list} list_type:{list_type}"
             )

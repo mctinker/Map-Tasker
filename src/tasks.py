@@ -18,10 +18,10 @@ import maptasker.src.outputl as build_output
 from maptasker.src.xmldata import tag_in_type
 from maptasker.src.kidapp import get_kid_app
 from maptasker.src.priority import get_priority
+from maptasker.src.getids import get_ids
 from maptasker.src.sysconst import *
 from maptasker.src.config import trailing_comments_color
 
-# from proclist import process_list
 from maptasker.src.shellsort import shell_sort
 
 
@@ -31,11 +31,11 @@ from maptasker.src.shellsort import shell_sort
 # #######################################################################################
 def get_actions(current_task: xml.etree, colormap: dict, prog_args: dict) -> list:
     """
-Return a list of Task's actions for the given Task
-    :param current_task: xml element of the Task we are getting actions for
-    :param colormap: colors to use in output
-    :param prog_args: runtime arguments
-    :return: list of Task 'action' output lines
+    Return a list of Task's actions for the given Task
+        :param current_task: xml element of the Task we are getting actions for
+        :param colormap: colors to use in output
+        :param prog_args: runtime arguments
+        :return: list of Task 'action' output lines
     """
     tasklist = []
 
@@ -100,16 +100,20 @@ Return a list of Task's actions for the given Task
 # return the Task's element and the Task's name
 # #######################################################################################
 def get_task_name(
-        the_task_id: str, tasks_that_have_been_found: list, the_task_list: list, task_type: str, all_tasks: dict
+    the_task_id: str,
+    tasks_that_have_been_found: list,
+    task_output_lines: list,
+    task_type: str,
+    all_tasks: dict,
 ) -> tuple[xml.etree, str]:
     """
-Get the name of the task given the Task ID
-    :param the_task_id: the Task's ID (e.g. '47')
-    :param tasks_that_have_been_found: list of Tasks found so far
-    :param the_task_list: list of Tasks
-    :param task_type: Type of Task (Entry, Exit, Scene)
-    :param all_tasks: all Tasks in xml
-    :return: Task's xml element, Task's name
+    Get the name of the task given the Task ID
+        :param the_task_id: the Task's ID (e.g. '47')
+        :param tasks_that_have_been_found: list of Tasks found so far
+        :param task_output_lines: list of Tasks
+        :param task_type: Type of Task (Entry, Exit, Scene)
+        :param all_tasks: all Tasks in xml
+        :return: Task's xml element, Task's name
     """
     if the_task_id.isdigit():
         task = all_tasks[the_task_id]
@@ -118,24 +122,24 @@ Get the name of the task given the Task ID
         try:
             task_name = task.find("nme").text
             if task_type == "Exit":
-                the_task_list.append(
+                task_output_lines.append(
                     f"{task_name}&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task{extra}"
                 )
 
             else:
-                the_task_list.append(
+                task_output_lines.append(
                     f"{task_name}&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task{extra}"
                 )
 
         except Exception as e:
             task_name = UNKNOWN_TASK_NAME
             if task_type == "Exit":
-                the_task_list.append(
+                task_output_lines.append(
                     f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task{extra}"
                 )
 
             else:
-                the_task_list.append(
+                task_output_lines.append(
                     f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task{extra}"
                 )
     else:
@@ -148,21 +152,19 @@ Get the name of the task given the Task ID
 # #######################################################################################
 # Find the Project belonging to the Task id passed in
 # #######################################################################################
-def get_project_for_solo_task(the_task_id: str, projects_with_no_tasks: list, all_projects: dict) -> tuple[str, xml.etree]:
+def get_project_for_solo_task(
+    the_task_id: str, projects_with_no_tasks: list, all_projects: dict
+) -> tuple[str, xml.etree]:
     proj_name = NO_PROJECT
     project = None
     if all_projects is not None:
+        # Go through each Project
         for project in all_projects:
             proj_name = project.find("name").text
-            try:
-                proj_tasks = project.find("tids").text
-            except Exception as e:  # Project has no Tasks
-                if proj_name not in projects_with_no_tasks:
-                    projects_with_no_tasks.append(proj_name)
-                proj_name = NO_PROJECT
-                continue
-            list_of_tasks = proj_tasks.split(",")
-            if the_task_id in list_of_tasks:
+            task_ids = get_ids(
+                False, {}, {}, [], project, proj_name, projects_with_no_tasks
+            )
+            if the_task_id in task_ids:
                 return proj_name, project
     return proj_name, project
 
@@ -248,7 +250,10 @@ def process_solo_task_with_no_profile(
 
     if not unknown_task and project_name != NO_PROJECT:
         if program_args["debug"]:
-            task_name += f" with Task ID: {task_id} ...in Project {project_name} <em>No Profile</em>"
+            task_name += (
+                f" with Task ID: {task_id} ...in Project {project_name} <em>No"
+                " Profile</em>"
+            )
         else:
             task_name += f" ...in Project {project_name} <em>No Profile</em>"
 
@@ -279,13 +284,27 @@ def process_solo_task_with_no_profile(
 # #######################################################################################
 # We're processing a single task only
 # #######################################################################################
-def do_single_task(our_task_name, output_list, project_name, profile_name, heading,
-                   found_items, task_list, our_task_element, list_of_found_tasks,
-                   all_tasker_items, colormap, program_args):
+def do_single_task(
+    our_task_name,
+    output_list,
+    project_name,
+    profile_name,
+    heading,
+    found_items,
+    task_list,
+    our_task_element,
+    list_of_found_tasks,
+    all_tasker_items,
+    colormap,
+    program_args,
+):
     # Do NOT move this import.  Otherwise, will get recursion error
     from maptasker.src.proclist import process_list
 
-    logger.debug(f'tasks single task name:{program_args["single_task_name"]} our Task name:{our_task_name}')
+    logger.debug(
+        f'tasks single task name:{program_args["single_task_name"]} our Task'
+        f' name:{our_task_name}'
+    )
     if program_args["single_task_name"] == our_task_name:
         # We have the single Task we are looking for
         found_items["single_task_found"] = True
@@ -322,7 +341,7 @@ def do_single_task(our_task_name, output_list, project_name, profile_name, headi
             all_tasker_items,
         )
     elif (
-            len(task_list) > 1
+        len(task_list) > 1
     ):  # If multiple Tasks in this Profile, just get the one we want
         for task_item in task_list:
             if program_args["single_task_name"] in task_item:
@@ -350,45 +369,68 @@ def do_single_task(our_task_name, output_list, project_name, profile_name, headi
 # output_task: we have a Task and need to generate the output
 # #######################################################################################
 def output_task(
-    output_list,
-    our_task_name,
-    our_task_element,
-    task_list,
-    project_name,
-    profile_name,
-    list_of_found_tasks,
-    heading,
-    colormap,
-    program_args,
-    all_tasker_items,
-    found_items,
-):
+    output_list: list,
+    our_task_name: str,
+    our_task_element: xml.etree,
+    task_list: list,
+    project_name: str,
+    profile_name: str,
+    list_of_found_tasks: list,
+    heading: str,
+    colormap: dict,
+    program_args: dict,
+    all_tasker_items: dict,
+    found_items: dict,
+) -> bool:
+    """
+    We have a single Task or a list of Tasks.  Output it/them.
+        :param output_list: list of output lines generated thus far
+        :param our_task_name: name of Task
+        :param our_task_element: Task xml element
+        :param task_list: Task list
+        :param project_name: name of current Project
+        :param profile_name: name of current Profile
+        :param list_of_found_tasks: list of Tasks found so far
+        :param heading: current heading
+        :param colormap: colors to use in output
+        :param program_args: runtime arguments
+        :param all_tasker_items: all Projects/Profiles/Tasks/Scenes
+        :param found_items: single Project/Profile/Task to search for
+        :return: True if we are searching for a single Task and found it.  Otherwise, False
+    """
     # Do NOT move this import.  Otherwise, will get recursion error
     from maptasker.src.proclist import process_list
 
     # See if there is a Kid app and/or Priority
-    kid_app_info = ''
     if program_args["display_detail_level"] == 3:
         if kid_app_info := get_kid_app(our_task_element):
             task_list[0] = f'{task_list[0]} {kid_app_info}'
         if priority := get_priority(our_task_element, False):
             task_list[0] = f'{task_list[0]} {priority}'
 
-
     # Looking for a single Task?
     if (
         our_task_name != "" and program_args["single_task_name"]
     ):  # Are we mapping just a single Task?
-        do_single_task(our_task_name, output_list, project_name, profile_name, heading,
-                   found_items, task_list, our_task_element, list_of_found_tasks,
-                   all_tasker_items, colormap, program_args)
+        do_single_task(
+            our_task_name,
+            output_list,
+            project_name,
+            profile_name,
+            heading,
+            found_items,
+            task_list,
+            our_task_element,
+            list_of_found_tasks,
+            all_tasker_items,
+            colormap,
+            program_args,
+        )
 
         return True  # Call it quits on Task...we have the one we want
     elif task_list:
         # Start a list
-        build_output.my_output(
-            colormap, program_args, output_list, 1, ""
-        )
+        build_output.my_output(colormap, program_args, output_list, 1, "")
         # Process the list of Task(s)
         process_list(
             "Task:",

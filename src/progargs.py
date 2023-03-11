@@ -15,7 +15,7 @@
 from maptasker.src.config import GUI
 from maptasker.src.runcli import process_cli
 from maptasker.src.rungui import process_gui
-from maptasker.src.sysconst import FONT_TO_USE
+
 from maptasker.src.sysconst import DEBUG_PROGRAM
 
 
@@ -26,26 +26,14 @@ def get_program_arguments(colormap: dict):
     # Are we using the GUI?
     if GUI:
         (
-            display_detail_level,
-            display_profile_conditions,
-            display_taskernet,
-            single_project_name,
-            single_profile_name,
-            single_task_name,
-            debug,
+            prog_args,
             colormap,
         ) = process_gui(colormap, True)
 
     # Command line parameters
     else:
         (
-            display_detail_level,
-            display_profile_conditions,
-            display_taskernet,
-            single_project_name,
-            single_profile_name,
-            single_task_name,
-            debug,
+            prog_args,
             colormap,
         ) = process_cli(colormap)
 
@@ -53,13 +41,4 @@ def get_program_arguments(colormap: dict):
     if DEBUG_PROGRAM:
         debug = True
 
-    return {
-        "display_detail_level": display_detail_level,
-        "single_task_name": single_task_name,
-        "single_profile_name": single_profile_name,
-        "single_project_name": single_project_name,
-        "display_profile_conditions": display_profile_conditions,
-        "display_taskernet": display_taskernet,
-        "debug": debug,
-        "font_to_use": FONT_TO_USE,
-    }, colormap
+    return prog_args, colormap

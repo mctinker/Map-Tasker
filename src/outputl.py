@@ -143,7 +143,7 @@ def ulify_list_item(element: xml.etree, colormap: dict, font_to_use: str) -> str
             + '">'
             + element
             + "</span></p>\n"
-            + '<span style="color:'
+            + '<span style="color:'  # Additional color needed for additional TaskerNet info
             + colormap["taskernet_color"]
             + '">'
         )

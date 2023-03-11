@@ -43,20 +43,25 @@ def get_the_xml_data(filename):
         exit(1)
 
     root = tree.getroot()
+
+    all_services = root.findall("Setting")
     all_projects = root.findall("Project")
     all_profiles_list = root.findall("Profile")
     all_scenes_list = root.findall("Scene")
     all_tasks_list = root.findall("Task")
+
     # We now have what we need as lists.  Now move some into dictionaries
     all_profiles = move_xml_to_table(all_profiles_list, False)
     all_tasks = move_xml_to_table(all_tasks_list, False)
     all_scenes = move_xml_to_table(all_scenes_list, True)
+
     # Return all data in a dictionary for easier access
     all_tasker_items = {
         "all_projects": all_projects,
         "all_profiles": all_profiles,
         "all_scenes": all_scenes,
         "all_tasks": all_tasks,
+        "all_services": all_services
     }
     logger.info("exit")
     return tree, root, all_tasker_items
