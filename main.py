@@ -3,9 +3,10 @@ from maptasker.src import mapit
 
 def main():
     """
-Kick off the main program: mapit.py
+    Kick off the main program: mapit.py
     """
-    mapit.mapitall()
-    return 0
+    return_code = mapit.mapit_all()
+    exit(return_code)
+
 
 main()
