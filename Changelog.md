@@ -1,5 +1,5 @@
 MapTasker Change log
-## [1.3.00] - 2023-03-??
+## [1.3.00] - 2023-03-11
 ### Added: Support for unit testing (no user impact)
 ### Added: Optionally display Tasker Preferences = runtime option '-preferences'
 ### Changed: Optimized initialization code

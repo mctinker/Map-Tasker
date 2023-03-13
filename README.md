@@ -1,3 +1,21 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./documentation_images/maptasker_logo_dark.png">
+    <img src="./documentation_images/maptasker_logo_light.png">
+  </picture>
+</p>
+
+<div align="center">
+
+![PyPI](https://img.shields.io/pypi/v/maptasker)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
+![Downloads](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
+![PyPI - License](https://img.shields.io/pypi/l/maptasker)
+![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
+
+</div>
+
+---
 # MapTasker
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC based on Tasker's backup.xml
 
@@ -22,7 +40,7 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
 - Install maptasker by entering the following command into Terminal:    
  
 
-     `pip install maptasker`        
+     `pip3 install maptasker`        
 
 - To install it to a virtual environment, enter the following command into Terminal:    
 
@@ -30,7 +48,7 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
      `pip venv venv`    
      `set VIRTUAL_ENV {directory path to 'xxx'}/venv`    
      `source {directory path to 'xxx'}/venv/bin/activate`  
-     `pip install maptasker` 
+     `pip3 install maptasker` 
      
     
 - To install it from GitHub, get the zip file by clicking on the ['Code'](https://github.com/mctinker/Map-Tasker) pull-down menu, select 'Download ZIP', save it into a new directory (e.g. /your_id/maptasker) and uncompress it into that directory.
@@ -117,9 +135,6 @@ Alternatively, see *config.py* for user-customizable options.  Make user-specifi
 
 
 ### To Do List (in no particular order)
-[] Catch up with recent Tasker changes in the 6.1.n code base additions
-
-[] Optionally, display Task and Profile properties
 
 [] Complete insertion of Python docstrings
 
