@@ -1,12 +1,23 @@
 MapTasker Change log
-## [1.3.00] - 2023-03-11
+## [1.3.01] - 2023-03-??
 ### Added: Support for unit testing (no user impact)
-### Added: Optionally display Tasker Preferences = runtime option '-preferences'
-### Changed: Optimized initialization code
-### Changed: Task(s) with no Profile will now be displayed under the Project it/they belong to
-### Fixed: Go To 'action' not showing the label to go to.
+### Added: GUI Appearance mode change (Dark/Light) now reflected in output
+### Added: new color 'cTrailingComments' for comments at end of output
+### Changed: GUI message box widths extended for readability
+### Changed: Background color set to DarkBlue for better contrast
+### Fixed: Runtime color selection error for certain parameter formats
+### Fixed: Tasks not found in any Profile were not listing at the end
+### Fixed: assigned comment color was not being used
+### Fixed: Action 'set clipboard' missing details
+### Fixed: List of Projects with no Tasks was repeating the same Project
 
 Older History Log 
+- [1.3.00] - 2023-03-11   
+       - Added: Support for unit testing (no user impact)   
+       - Added: Optionally display Tasker Preferences = runtime option '-preferences'   
+       - Changed: Optimized initialization code   
+       - Changed: Task(s) with no Profile will now be displayed under the Project it/they belong to   
+       - Fixed: Go To 'action' not showing the label to go to.   
 - [1.2.26] - 2023-02-27  
        - Added: New Task actions: Request Add Tile  
        - Added: Support for new parameters in Set Quick Tile, Progress Dialog  
