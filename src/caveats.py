@@ -17,28 +17,41 @@ from maptasker.src.config import trailing_comments_color
 
 def display_caveats(output_list: list[str], program_args: dict, colormap: dict) -> None:
     """output the program caveats
+    Output the program caveats at the very end
+        Parameters: list into which all output has been added, the program runtime arguments,
+                    the dictionary of colors to use
 
-    Parameters: list into which all output has been added, the program runtime arguments,
-                the dictionary of colors to use
-
-    Returns: the count of the number of times the program has been called
+        Returns: the count of the number of times the program has been called
 
     """
     caveat1 = (
-        f'<span style = "color:{trailing_comments_color}"'
+        f'<span style="color:{colormap["trailing_comments_color"]}">'
         + program_args["font_to_use"]
-        + "</span>CAVEATS:\n"
+        + "</font>CAVEATS:\n"
     )
     caveat3 = (
         "- This has only been tested on my own backup.xml file."
         "  For problems, report them on https://github.com/mctinker/Map-Tasker."
     )
-    caveat4 = '- Tasks that are identified as "Unnamed/Anonymous" have no name and are considered Anonymous.\n'
-    caveat6 = '- Task labels that have embedded HTML "<color=...>" will result in the remaining label displayed in that same color.'
+    caveat4 = (
+        '- Tasks that are identified as "Unnamed/Anonymous" have no name and are'
+        ' considered Anonymous.\n'
+    )
+    caveat6 = (
+        '- Task labels that have embedded HTML (e.g. color=...>") will result in the'
+        ' remaining label displayed in that same color/font.'
+    )
+    caveat7 = (
+        '- With the more recent versions of Tasker, disabled Profiles are not'
+        ' easily detected and go unrecognized as disabled.'
+    )
     build_output.my_output(colormap, program_args, output_list, 0, "<hr>")  # line
     build_output.my_output(colormap, program_args, output_list, 4, caveat1)  # caveat
     if program_args["display_detail_level"] > 0:  # Caveat about Actions
-        caveat2 = "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions.\n"
+        caveat2 = (
+            "- Most but not all Task actions have been mapped and will display as such."
+            "  Likewise for Profile conditions.\n"
+        )
         build_output.my_output(
             colormap, program_args, output_list, 4, caveat2
         )  # caveat
@@ -48,11 +61,12 @@ def display_caveats(output_list: list[str], program_args: dict, colormap: dict) 
         program_args["display_detail_level"] == 0
     ):  # Caveat about -d0 option and 1sat Action for unnamed Tasks
         caveat5 = (
-            '- For option -d0, Tasks that are identified as "Unnamed/Anonymous" will have their first Task only listed....\n'
-            "  just like Tasker does.\n"
+            '- For option -d0, Tasks that are identified as "Unnamed/Anonymous" will'
+            ' have their first Task only listed....\n  just like Tasker does.\n'
         )
         build_output.my_output(
             colormap, program_args, output_list, 4, caveat5
         )  # caveat
     build_output.my_output(colormap, program_args, output_list, 4, caveat6)  # caveat
+    build_output.my_output(colormap, program_args, output_list, 4, caveat7)  # caveat
     return

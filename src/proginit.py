@@ -40,6 +40,7 @@ from maptasker.src.config import background_color
 from maptasker.src.config import bullet_color
 from maptasker.src.config import preferences_color
 from maptasker.src.config import taskernet_color
+from maptasker.src.config import trailing_comments_color
 
 import maptasker.src.progargs as get_args
 from maptasker.src.sysconst import *
@@ -116,6 +117,7 @@ def setup_colors() -> dict:
         "bullet_color": bullet_color,
         "taskernet_color": taskernet_color,
         "preferences_color": preferences_color,
+        "trailing_comments_color": trailing_comments_color,
     }
 
 

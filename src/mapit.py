@@ -49,6 +49,7 @@ from maptasker.src.sysconst import COUNTER_FILE
 from maptasker.src.sysconst import logger
 from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.prefers import get_preferences
+from maptasker.src.debug import debug1
 
 
 # import os
@@ -251,24 +252,9 @@ def mapit_all() -> int:
     # program_args['display_preferences'] = True
     # program_args['display_taskernet'] = True
 
-    # If debug, output the runtime arguments and colors
+    # If we are debugging, output the runtime arguments and colors
     if program_args["debug"]:
-        build_output.my_output(
-            colormap, program_args, output_list, 4, f"sys.argv:{str(sys.argv)}"
-        )
-        for key, value in program_args.items():
-            build_output.my_output(
-                colormap, program_args, output_list, 4, f"{key}: {value}"
-            )
-        for key, value in colormap.items():
-            build_output.my_output(
-                colormap,
-                program_args,
-                output_list,
-                4,
-                f"colormap for {key} set to {value}",
-            )
-
+        debug1(colormap, program_args, output_list)
     # Prompt user for Tasker's backup.xml file location
     if run_counter < 1:  # Only display message box on first run
         msg = "Locate the Tasker backup xml file to use to map your Tasker environment"
@@ -288,7 +274,10 @@ def mapit_all() -> int:
         logger.debug(f"{error_msg}exit 3")
         sys.exit(3)
     else:
-        heading = f"{heading}    Tasker version: " + root.attrib["tv"]
+        heading = (
+            f'<span style="color:Green"</span>{heading}    Tasker version:'
+            f' {root.attrib["tv"]}'
+        )
 
     # Start the output with heading
     build_output.my_output(colormap, program_args, output_list, 0, heading)
@@ -346,8 +335,8 @@ def mapit_all() -> int:
     # #######################################################################################
     if (
         not program_args["single_task_name"]
-        and not program_args["single_profile_name"]
         and not program_args["single_project_name"]
+        and not program_args["single_profile_name"]
     ):
         special_tasks.process_tasks_not_called_by_profile(
             output_list,

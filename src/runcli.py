@@ -68,7 +68,10 @@ def process_arguments(args: object, prog_args: dict, colormap: dict) -> tuple:
     for item in TYPES_OF_COLORS:
         the_name = getattr(args, f"c{item}")
         if the_name is not None:
-            get_and_set_the_color(f"-c{item}={the_name[0]}", colormap)
+            if type(the_name) is list:
+                get_and_set_the_color(f"-c{item}={the_name[0]}", colormap)
+            else:
+                get_and_set_the_color(f"-c{item}={the_name}", colormap)
 
     # Save the arguments
     if getattr(args, "s"):
@@ -157,6 +160,7 @@ def unit_test() -> object:
         cActionName=None,
         cTaskerNetInfo=None,
         cPreferences=None,
+        cTrailingComments=None,
         ch=False,
         d=True,
         s=False,

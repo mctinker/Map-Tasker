@@ -13,8 +13,10 @@
 # ########################################################################################## #
 import maptasker.src.actione as action_evaluate
 import maptasker.src.actiond as process_action_codes
+from maptasker.src.actionc import (
+    action_codes,
+)  # action_codes: Master dictionary of Task action and Profile condition codes
 from maptasker.src.priority import get_priority
-from maptasker.src.actionc import *  # action_codes: Master dictionary of Task action and Profile condition codes
 from maptasker.src.sysconst import logger
 
 
@@ -222,7 +224,10 @@ def parse_profile_condition(the_profile, colormap, program_args):
                 lon = item.find("long").text
                 rad = item.find("rad").text
                 if lat:
-                    condition = f"{condition}Location with latitude {lat} longitude {lon} radius {rad}"
+                    condition = (
+                        f"{condition}Location with latitude {lat} longitude"
+                        f" {lon} radius {rad}"
+                    )
 
             case _:
                 pass

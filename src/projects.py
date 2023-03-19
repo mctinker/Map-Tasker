@@ -12,17 +12,16 @@
 #                                                                                            #
 # ########################################################################################## #
 
-import contextlib
 import xml.etree.ElementTree  # Need for type hints
 
 from maptasker.src.outputl import my_output
 from maptasker.src.outputl import refresh_our_output
-from maptasker.src.proclist import process_list
 from maptasker.src.profiles import process_profiles
 from maptasker.src.share import share
 from maptasker.src.kidapp import get_kid_app
 from maptasker.src.priority import get_priority
 from maptasker.src.getids import get_ids
+from maptasker.src.scenes import process_project_scenes
 import maptasker.src.tasks as tasks
 from maptasker.src.sysconst import NO_PROFILE
 
@@ -44,7 +43,7 @@ def process_projects_and_their_profiles(
     Go through all Projects, process them and their Profiles and Tasks (and add to our output list)
         :param output_list: list of output lines generated thus far
         :param found_tasks: list of Tasks found thus far
-        :param projects_without_profiles: list of Profjects that don't have any Profiles
+        :param projects_without_profiles: list of Projects that don't have any Profiles
         :param program_args: runtime arguments
         :param found_items: if searching for a single Project/Profile/Task, name of single item
         :param heading: heading printed
@@ -70,48 +69,6 @@ def process_projects_and_their_profiles(
     # Return a list of Tasks found thus far with duplicates remove
     # Reference: https://www.pythonmorsels.com/deduplicate-lists/
     return list(dict.fromkeys(found_tasks).keys())
-
-
-# #############################################################################################
-# Go through all Scenes for Project, get their detail and output it
-# #############################################################################################
-def process_project_scenes(
-    project: xml.etree,
-    colormap: dict,
-    program_args: dict,
-    output_list: list,
-    our_task_element: xml.etree,
-    found_tasks: list,
-    all_tasker_items: dict,
-) -> None:
-    """
-    Go through all Scenes for Project, get their detail and output it
-        :param project: xml element of Project we are processing
-        :param colormap: colors to use in output
-        :param program_args: runtime arguments
-        :param output_list: list of output lines created thus far
-        :param our_task_element: xml element pointing to our Task
-        :param found_tasks: list of Tasks found so far
-        :param all_tasker_items: all Projects/Profiles/Tasks/Scenes
-        :return: nada
-    """
-    scene_names = None
-    with contextlib.suppress(Exception):
-        scene_names = project.find("scenes").text
-    if scene_names is not None:
-        scene_list = scene_names.split(",")
-        if scene_list[0]:
-            process_list(
-                "Scene:",
-                output_list,
-                scene_list,
-                our_task_element,
-                found_tasks,
-                program_args,
-                colormap,
-                all_tasker_items,
-            )
-    return
 
 
 def get_launcher_task(
@@ -156,7 +113,7 @@ def tasks_not_in_profiles(
     Process all Tasks in Project that are not referenced by a Profile
         :param task_ids: List of Task IDs
         :param found_tasks: list of Tasks found thus far
-        :param output_list: output lines generated thus far onto which we will apend more
+        :param output_list: output lines generated thus far onto which we will append more
         :param project_name: name of current Project
         :param colormap: colors to use in output
         :param program_args: runtime arguments
@@ -165,24 +122,54 @@ def tasks_not_in_profiles(
         :param found_items: single item name for Project/Profile/Task
         :return: none
     """
+
+    output_the_heading = (
+        True  # Flag that we have to first put out the "not found" heading
+    )
+
     # Go through all Tasks for this Project
     for the_id in task_ids:
         # We have a Task in Project that has yet to be output?
         if the_id not in found_tasks and (
-            not found_items["single_project_found"]
-            and not found_items["single_profile_found"]
+            # not found_items["single_project_found"]
+            not found_items["single_profile_found"]
             and not found_items["single_task_found"]
         ):
             # We have a Project's Task that has not yet been output
             our_task_element, our_task_name = tasks.get_task_name(
                 the_id, found_tasks, [], "", all_tasker_items['all_tasks']
             )
+            # We have to remove this Task from found Tasks since it was added by get_task_name
+            found_tasks.remove(the_id)
+
+            # Only print the Task header if there are Tasks not found in any Profile, and we are not looking for a single item
+            if (
+                output_the_heading
+                and task_ids
+                and not (found_items["single_profile_found"])
+                and not (found_items["single_task_found"])
+            ):
+                my_output(
+                    colormap,
+                    program_args,
+                    output_list,
+                    4,
+                    (
+                        '<br><span'
+                        f' style="color:{colormap["task_color"]}">&nbsp;&nbsp;&nbsp;The'
+                        f' following Tasks in Project {project_name} are not in any'
+                        ' Profile...</span><br>'
+                    ),
+                )
+                output_the_heading = False
+
+                # Format the output line
             task_list = [
                 f"{our_task_name} <em>(Not referenced by any Profile in Project"
                 f" {project_name})</em>"
             ]
 
-            # Output the Task
+            # Output the Task (we don't care about the returned value)
             kaka = tasks.output_task(
                 output_list,
                 our_task_name,
@@ -349,7 +336,7 @@ def process_projects(
 
         # # See if there are Tasks in Project that have no Profile
         if task_ids := get_ids(False, {}, {}, [], project, project_name, []):
-            # Process Tasks in Porject that are not referenced by a Profile
+            # Process Tasks in Project that are not referenced by a Profile
             tasks_not_in_profiles(
                 task_ids,
                 found_tasks,

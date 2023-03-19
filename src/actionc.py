@@ -123,12 +123,12 @@ action_codes = {
         "evalargs": [],
     },
     "105t": {
-        "numargs": 0,
-        "args": [],
-        "types": [],
+        "numargs": 3,
+        "args": ["0", "1", "2"],
+        "types": ["Str", "Int", "Str"],
         "display": "Set Clipboard",
-        "reqargs": [],
-        "evalargs": [],
+        "reqargs": ["0", "1", "2"],
+        "evalargs": ["Text:", ["", "e", ", Add"], "Image:"],
     },
     "106s": {
         "numargs": 0,

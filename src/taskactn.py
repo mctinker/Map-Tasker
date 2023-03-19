@@ -15,7 +15,8 @@ import xml.etree.ElementTree  # Need for type hints
 
 import maptasker.src.tasks as tasks
 from maptasker.src.outputl import my_output
-from maptasker.src.sysconst import *
+from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 
 
 # #######################################################################################
@@ -31,14 +32,10 @@ def get_task_actions_and_output(
     colormap: dict,
     all_tasks: dict,
 ) -> None:
-
     # If Unknown task, then 'the_task' is not valid, and we have to find it.
     if UNKNOWN_TASK_NAME in the_item or program_args["display_detail_level"] > 0:
         # Get the Task ID so that we can get the Task xml element
-        if "⎯Task:" in list_type:
-            temp_id = 'x'
-        else:
-            temp_id = the_item.split("Task ID: ")
+        temp_id = 'x' if "⎯Task:" in list_type else the_item.split("Task ID: ")
         # Get the Task xml element
         if len(temp_id) > 1:
             temp_id[1] = temp_id[1].split(' ', 1)[0]  # ID = 1st word of temp_id[1]
@@ -48,11 +45,13 @@ def get_task_actions_and_output(
         # Get Task actions
         if the_task:
             if alist := tasks.get_actions(the_task, colormap, program_args):
-                my_output(colormap, program_args, output_list, 1, "")  # Start Action list
+                my_output(
+                    colormap, program_args, output_list, 1, ""
+                )  # Start Action list
                 action_count = 1
                 output_list_of_actions(
                     colormap, program_args, output_list, action_count, alist, the_item
-            )
+                )
         else:
             error_msg = 'Error: No Task found!!!'
             logger.debug(error_msg)

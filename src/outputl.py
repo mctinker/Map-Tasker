@@ -14,11 +14,12 @@
 
 import xml.etree.ElementTree  # Need for type hints
 
+import maptasker.src.actione as action_evaluate
+from maptasker.src.debug import debug1
 from maptasker.src.sysconst import FONT_TO_USE
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 from maptasker.src.sysconst import debug_out
 from maptasker.src.sysconst import logger
-import maptasker.src.actione as action_evaluate
 
 
 # #######################################################################################
@@ -34,6 +35,9 @@ def refresh_our_output(
     program_args: dict,
 ) -> None:
     output_list.clear()
+    # If debugging, put out our runtime arguments first
+    if program_args["debug"]:
+        debug1(colormap, program_args, output_list)
     my_output(colormap, program_args, output_list, 0, FONT_TO_USE + heading)
     my_output(colormap, program_args, output_list, 1, "")  # Start Project list
     my_output(colormap, program_args, output_list, 2, f"Project: {project_name}")

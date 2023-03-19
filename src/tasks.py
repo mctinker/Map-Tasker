@@ -19,8 +19,9 @@ from maptasker.src.xmldata import tag_in_type
 from maptasker.src.kidapp import get_kid_app
 from maptasker.src.priority import get_priority
 from maptasker.src.getids import get_ids
-from maptasker.src.sysconst import *
-from maptasker.src.config import trailing_comments_color
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME
+from maptasker.src.sysconst import NO_PROJECT
+from maptasker.src.sysconst import logger
 
 from maptasker.src.shellsort import shell_sort
 
@@ -130,7 +131,6 @@ def get_task_name(
                 task_output_lines.append(
                     f"{task_name}&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task{extra}"
                 )
-
         except Exception as e:
             task_name = UNKNOWN_TASK_NAME
             if task_type == "Exit":
@@ -187,98 +187,6 @@ def task_in_scene(the_task_id, all_scenes):
                     else:
                         continue
     return False
-
-
-# #######################################################################################
-# Process a single Task that does not belong to any Profile
-# #######################################################################################
-def process_solo_task_with_no_profile(
-    output_list,
-    task_id,
-    found_tasks,
-    program_args,
-    found_items,
-    unnamed_task_count,
-    have_heading: bool,
-    projects_with_no_tasks,
-    heading,
-    colormap,
-    all_tasker_items,
-):
-    the_task_name = ""
-    unknown_task, specific_task = False, False
-
-    # Get the Project this Task is under.
-    project_name, the_project = get_project_for_solo_task(
-        task_id, projects_with_no_tasks, all_tasker_items["all_projects"]
-    )
-
-    # At this point, we've found the Project this Task belongs to, or it doesn't belong to any Task
-    if not have_heading:
-        build_output.my_output(
-            colormap, program_args, output_list, 0, "<hr>"
-        )  # blank line
-        build_output.my_output(
-            colormap,
-            program_args,
-            output_list,
-            0,
-            (
-                f'<font color="{trailing_comments_color}"'
-                + program_args["font_to_use"]
-                + "Tasks that are not called by any Profile..."
-            ),
-        )
-        build_output.my_output(
-            colormap, program_args, output_list, 1, ""
-        )  # Start Task list
-        have_heading = True
-
-    # Get the Task's name
-    task_element, task_name = get_task_name(
-        task_id, found_tasks, [], "", all_tasker_items["all_tasks"]
-    )
-    if task_name == UNKNOWN_TASK_NAME:
-        task_name = f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;Task ID: {task_id}"
-        # Ignore it if it is in a Scene
-        if task_in_scene(task_id, all_tasker_items["all_scenes"]):
-            return have_heading, specific_task
-        unknown_task = True
-        unnamed_task_count += 1
-    else:
-        the_task_name = task_name
-
-    if not unknown_task and project_name != NO_PROJECT:
-        if program_args["debug"]:
-            task_name += (
-                f" with Task ID: {task_id} ...in Project {project_name} <em>No"
-                " Profile</em>"
-            )
-        else:
-            task_name += f" ...in Project {project_name} <em>No Profile</em>"
-
-    # Output the (possible unknown) Task's details
-    if (
-        not unknown_task or program_args["display_detail_level"] > 0
-    ):  # Only list named Tasks or if details are wanted
-        task_list = [task_name]
-
-        # We have the Tasks.  Now let's output them.
-        specific_task = output_task(
-            output_list,
-            the_task_name,
-            task_element,
-            task_list,
-            project_name,
-            "None",
-            [],
-            heading,
-            colormap,
-            program_args,
-            all_tasker_items,
-            found_items,
-        )
-    return have_heading, specific_task
 
 
 # #######################################################################################

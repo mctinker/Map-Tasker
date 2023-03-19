@@ -10,10 +10,13 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
+import contextlib
+
 import xml.etree.ElementTree  # Need for type hints
 import maptasker.src.tasks as tasks
 from maptasker.src.outputl import my_output
 from maptasker.src.xmldata import tag_in_type
+from maptasker.src.proclist import process_list
 
 SCENE_TASK_TYPES = {
     "checkchangeTask": "Check Change",
@@ -32,33 +35,53 @@ SCENE_TASK_TYPES = {
     "itemclickTask": "ITEM TAP",
     "itemlongclickTask": "ITEM LONG TAP",
 }
-SCENE_TAGS_TO_IGNORE = ['cdate', 'edate', 'heightLand', 'heightPort', 'nme', 'widthLand', 'widthPort']
+SCENE_TAGS_TO_IGNORE = [
+    'cdate',
+    'edate',
+    'heightLand',
+    'heightPort',
+    'nme',
+    'widthLand',
+    'widthPort',
+]
 
 
-def get_scene_elements(child: xml.etree, colormap: dict, program_args: dict, output_list: list) -> None:
+def get_scene_elements(
+    child: xml.etree, colormap: dict, program_args: dict, output_list: list
+) -> None:
     """
-Go through Scene's <xxxElement> tags and output them
-    :param child: pointer to '<xxxElement' Scene xml statement
-    :param colormap: colors to use
-    :param program_args: program runtime arguments
-    :param output_list: list of output lines
-    :return: nothing
+    Go through Scene's <xxxElement> tags and output them
+        :param child: pointer to '<xxxElement' Scene xml statement
+        :param colormap: colors to use
+        :param program_args: program runtime arguments
+        :param output_list: list of output lines
+        :return: nothing
     """
     element_type = child.tag.split('Element')
     name_xml_element = child.find('Str')
     element_name = name_xml_element.text
-    output_text = f'<span style="color:{colormap["scene_color"]}">&nbsp;&nbsp;&nbsp;Element: {element_type[0]} named {element_name}'
-    my_output(colormap, program_args, output_list, 4, output_text)
+    my_output(
+        colormap,
+        program_args,
+        output_list,
+        4,
+        (
+            f'<span style="color:{colormap["scene_color"]}">&nbsp;&nbsp;&nbsp;Element:'
+            f' {element_type[0]} named {element_name}'
+        ),
+    )
 
     return
 
 
-def process_scene(my_scene: str,
-                  output_list: list[str],
-                  tasks_found: list[str],
-                  program_args: dict,
-                  colormap: dict,
-                  all_tasker_items: dict) -> None:
+def process_scene(
+    my_scene: str,
+    output_list: list[str],
+    tasks_found: list[str],
+    program_args: dict,
+    colormap: dict,
+    all_tasker_items: dict,
+) -> None:
     """
 
     :param my_scene: name of Scene to process
@@ -69,10 +92,10 @@ def process_scene(my_scene: str,
     :param all_tasker_items: dictionary of Tasker Projects/Profiles/Tasks/Scenes
     :return:
     """
-    # Go through sub-elements in the Scene element
+    # This import statement must reside here to avoid an error
     from maptasker.src.proclist import process_list
 
-    # Go through all the children of the Scene looking for click Tasks
+    # Go through all the children of the Scene looking for 'click' Tasks
     for child in all_tasker_items["all_scenes"][my_scene]:
         if child.tag in SCENE_TAGS_TO_IGNORE:
             continue
@@ -86,10 +109,10 @@ def process_scene(my_scene: str,
                 # Task-Click (<xxxClick> or <xxxTask>) associated with this Scene's element?
                 if tag_in_type(sub_child.tag, False):
                     # Start Scene's Task list
-                    my_output(colormap, program_args, output_list, 1, "")
                     temp_task_list = [sub_child.text]
                     # Check for valid Task ID
                     if '-' not in temp_task_list[0]:
+                        my_output(colormap, program_args, output_list, 1, "")
                         task_element, name_of_task = tasks.get_task_name(
                             sub_child.text,
                             tasks_found,
@@ -98,9 +121,7 @@ def process_scene(my_scene: str,
                             all_tasker_items["all_tasks"],
                         )
                         # reset to task name since get_task_name changes its value
-                        temp_task_list = [
-                            sub_child.text
-                        ]
+                        temp_task_list = [sub_child.text]
                         extra = "&nbsp;&nbsp;ID:"
                         task_type = f"⎯Task: {SCENE_TASK_TYPES[sub_child.tag]}{extra}"
                         process_list(
@@ -117,42 +138,56 @@ def process_scene(my_scene: str,
                             colormap, program_args, output_list, 3, ""
                         )  # End list
                     else:
-                        my_output(
-                            colormap, program_args, output_list, 3, ""
-                        )  # End list
                         break
                 elif sub_child.tag == "Str":
                     break
+    return
 
 
-# #######################################################################################
-# For this specific Scene, get any Tasks it might have and output the details
-# #######################################################################################
-def get_scene_details_and_output(
-        my_scene: str,
-        output_list: list[str],
-        tasks_found: list[str],
-        program_args: dict,
-        colormap: dict,
-        all_tasker_items: dict,
+# #############################################################################################
+# Go through all Scenes for Project, get their detail and output it
+# #############################################################################################
+def process_project_scenes(
+    project: xml.etree,
+    colormap: dict,
+    program_args: dict,
+    output_list: list,
+    our_task_element: xml.etree,
+    found_tasks: list,
+    all_tasker_items: dict,
 ) -> None:
     """
-    For this specific Scene, get any Tasks it might have and output the details
-
-    :param my_scene: name of Scenes associated with Task/Profile
-    :param output_list: our additive output (each line = list element)
-    :param tasks_found: list of tasks found
-    :param program_args: program runtime argument settings
-    :param colormap: colors to use in putput
-    :param all_tasker_items: all Project/Profile/Task/Scene xml elements
+    Go through all Scenes for Project, get their detail and output it
+        :param project: xml element of Project we are processing
+        :param colormap: colors to use in output
+        :param program_args: runtime arguments
+        :param output_list: list of output lines created thus far
+        :param our_task_element: xml element pointing to our Task
+        :param found_tasks: list of Tasks found so far
+        :param all_tasker_items: all Projects/Profiles/Tasks/Scenes
+        :return: nada
     """
+    scene_names = None
+    with contextlib.suppress(Exception):
+        scene_names = project.find("scenes").text
+    if scene_names is not None:
+        scene_list = scene_names.split(",")
 
-    # Go through each Scene to find TAP and Long TAP Tasks
-    # for my_scene in the_list:
-    process_scene(my_scene,
-                  output_list,
-                  tasks_found,
-                  program_args,
-                  colormap,
-                  all_tasker_items)
+        # If last line in output has an end underline, then it must have been
+        # for the list of Tasks not found in any Profile...and it has to be removed
+        # to avoid a double end underline casing mis-alignment of Scene: statements in output
+        if output_list[-1] == "</ul>":
+            my_output(colormap, program_args, output_list, 1, "")
+        # if output_list(len(output_list)-1)[]
+        if scene_list[0]:
+            process_list(
+                "Scene:",
+                output_list,
+                scene_list,
+                our_task_element,
+                found_tasks,
+                program_args,
+                colormap,
+                all_tasker_items,
+            )
     return

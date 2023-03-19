@@ -22,17 +22,16 @@ from CTkColorPicker.ctk_color_picker import AskColor
 from maptasker.src.getputarg import save_restore_args
 from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES
 
-customtkinter.set_appearance_mode(
-    "System"
-)  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme(
-    "blue"
-)  # Themes: "blue" (standard), "green", "dark-blue"
+# Color Modes: "System" (standard), "Dark", "Light"
+customtkinter.set_appearance_mode("System")
+# Themes: "blue" (standard), "green", "dark-blue"
+customtkinter.set_default_color_theme("blue")
+
 INFO_TEXT = (
     'MapTasker displays your Android Tasker configuration based on your uploaded Tasker'
     ' backup file (e.g. "backup.xml").  The display will optionally include all'
     ' Projects, Profiles, Tasks and their actions, Profile/Task conditions and other'
-    ' Profile/Taskrelated information.\n\n* Display options are:\n    Level 0: display'
+    ' Profile/Task related information.\n\n* Display options are:\n    Level 0: display'
     ' first Task action only, for unnamed Tasks only (silent)\n    Level 1 = display'
     ' all Task action details for unknown Tasks only (default)\n    Level 2 = display'
     ' full Task action name on every Task\n    Level 3 = display full Task action'
@@ -41,7 +40,7 @@ INFO_TEXT = (
     ' available, display TaskerNet publishing information\n\n* Display Tasker'
     ' Preferences - display Tasker\'s system Preferences\n\n* Save Settings - Save'
     ' these settings for later use.\n\n* Restore Settings - Restore the settings from a'
-    ' previously saved session.\n\n* GUI Appearance Mode: Dark, Light, or System'
+    ' previously saved session.\n\n* Appearance Mode: Dark, Light, or System'
     ' default.\n\n* Reset Options: Clear everything and start anew.\n\n* Run: Run the'
     ' program with the settings provided.\n\n* Specific Name tab: enter a single,'
     ' specific named item to display...\n   - Project Name: enter a specific Project to'
@@ -63,17 +62,18 @@ class MyGui(customtkinter.CTk):
 
         # configure window
         self.title("MapTasker Runtime Options")
-        self.geometry("1100x580")
+        self.geometry("1100x600")
 
         # configure grid layout (4x4)
         self.grid_columnconfigure(1, weight=1)
         self.grid_columnconfigure((2, 3), weight=0)
-        self.grid_rowconfigure((0, 1, 2), weight=1)
+        self.grid_rowconfigure((0), weight=1)
 
         # create sidebar frame with widgets
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, rowspan=6, sticky="nsew")
-        self.sidebar_frame.grid_rowconfigure(6, weight=1)
+        # Define sidebar background frame
+        self.sidebar_frame.grid_rowconfigure(9, weight=1)
         self.logo_label = customtkinter.CTkLabel(
             self.sidebar_frame,
             text="MapTasker",
@@ -135,7 +135,7 @@ class MyGui(customtkinter.CTk):
             text="Save Settings",
             command=self.save_settings_event,
         )
-        self.save_settings_button.grid(row=6, column=0, padx=10, pady=10, sticky="s")
+        self.save_settings_button.grid(row=6, column=0, padx=10, pady=20, sticky="s")
 
         # Restore settings button
         self.restore_settings_button = customtkinter.CTkButton(
@@ -145,13 +145,13 @@ class MyGui(customtkinter.CTk):
             text="Restore Settings",
             command=self.restore_settings_event,
         )
-        self.restore_settings_button.grid(row=7, column=0, padx=10, pady=10, sticky="n")
+        self.restore_settings_button.grid(row=7, column=0, padx=10, pady=0, sticky="n")
 
         # Screen Appearance: Light / Dark / System
         self.appearance_mode_label = customtkinter.CTkLabel(
             self.sidebar_frame, text="GUI Appearance Mode:", anchor="w"
         )
-        self.appearance_mode_label.grid(row=8, column=0, padx=20)
+        self.appearance_mode_label.grid(row=8, column=0, padx=20, pady=10)
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(
             self.sidebar_frame,
             values=["Light", "Dark", "System"],
@@ -304,35 +304,29 @@ class MyGui(customtkinter.CTk):
         self.sidebar_detail_option.configure(values=["0", "1", "2", "3"])
         self.sidebar_detail_option.set("1")
         self.display_detail_level = 1
-        self.display_profile_conditions = False
-        self.display_preferences = False
-        self.display_taskernet = False
-        self.single_project_name = ""
-        self.single_profile_name = ""
-        self.single_task_name = ""
+        self.display_profile_conditions = (
+            self.display_preferences
+        ) = (
+            self.display_taskernet
+        ) = (
+            self.debug
+        ) = self.clear_settings = self.reset = self.exit = self.go_program = False
+        self.single_project_name = self.single_profile_name = self.single_task_name = ""
         self.color_text_row = 2
-        self.debug = False
-        self.clear_settings = False
-        self.reset = False
-        self.exit = False
-        self.appearance_mode_optionemenu.set("Dark")
+        self.appearance_mode_optionemenu.set("System")
         self.color_labels = []
         self.appearance_mode = "System"
         if first_time:
             self.textbox.insert("0.0", "MapTasker Help\n\n" + INFO_TEXT)
-        self.go_program = False
         self.color_lookup = {}  # Setup default dictionary as empty list
 
     # #######################################################################################
     # Display Error Box
     # #######################################################################################
     def display_error_box(self, error_message):
-        self.textbox = customtkinter.CTkTextbox(self)
-        self.textbox.grid(row=4, column=2, padx=10, pady=10)
+        self.textbox = customtkinter.CTkTextbox(self, width=250)
+        self.textbox.grid(row=4, column=2, padx=20, pady=20)
         self.textbox.insert("0.0", error_message)  # insert at line 0 character 0
-        self.text = self.textbox.get(
-            "0.0", "end"
-        )  # get text from line 0 character 0 till the end
         self.textbox.configure(
             state="disabled", text_color="Red"
         )  # configure textbox to be read-only
@@ -343,12 +337,9 @@ class MyGui(customtkinter.CTk):
     # #######################################################################################
     def display_message_box(self, message, good):
         color = 'Green' if good else 'Red'
-        self.textbox = customtkinter.CTkTextbox(self)
-        self.textbox.grid(row=4, column=1, padx=10, pady=10)
+        self.textbox = customtkinter.CTkTextbox(self, width=600)
+        self.textbox.grid(row=4, column=1, padx=20, pady=20)
         self.textbox.insert("0.0", f"{message}\n")  # insert at line 0 character 0
-        self.text = self.textbox.get(
-            "0.0", "end"
-        )  # get text from line 0 character 0 till the end
         self.textbox.configure(
             state="disabled", text_color=color
         )  # configure textbox to be read-only
@@ -384,7 +375,6 @@ class MyGui(customtkinter.CTk):
 
         if error_message:
             self.display_error_box(error_message)
-
             (
                 self.single_project_name,
                 self.single_profile_name,
@@ -609,8 +599,8 @@ class MyGui(customtkinter.CTk):
         self.condition_button.deselect()  # Conditions
         self.display_preferences_button.deselect()  # Tasker Preferences
         self.display_taskernet_button.deselect()  # TaskerNet
-        self.appearance_mode_optionemenu.set("Dark")  # Appearance
-        customtkinter.set_appearance_mode("Dark")  # Enforce appearance
+        self.appearance_mode_optionemenu.set("System")  # Appearance
+        customtkinter.set_appearance_mode("System")  # Enforce appearance
         self.debug_checkbox.deselect()  # Debug
         self.display_message_box("Settings reset.", True)
         self.display_error_box("")

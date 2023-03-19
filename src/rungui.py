@@ -19,6 +19,7 @@
 
 from maptasker.src.config import GUI
 from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.colrmode import set_color_mode
 from maptasker.src.sysconst import FONT_TO_USE
 from maptasker.src.sysconst import logger
 
@@ -71,6 +72,8 @@ def process_gui(colormap, use_gui):
     prog_args["single_project_name"] = user_input.single_project_name
     prog_args["single_profile_name"] = user_input.single_profile_name
     prog_args["single_task_name"] = user_input.single_task_name
+    # Appearance change: Dark or Light mode?
+    colormap = set_color_mode(user_input.appearance_mode, colormap)
     # Process the colors
     if user_input.color_lookup:
         for key, value in user_input.color_lookup.items():

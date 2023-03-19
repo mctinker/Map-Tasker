@@ -44,9 +44,7 @@ def get_args(action, ignore_list):
     # If we have args then sort them and convert to string
     if master_list:
         # Sort args by their number (e.g. arg0, arg1, arg2, ...)
-        shell_sort(
-            master_list, True, False
-        )
+        shell_sort(master_list, True, False)
         for child in master_list:
             type_list.append(child.tag)  # one of: 'Str' 'Int' 'Bundle' 'App'
             arg_list.append(child.attrib.get("sr"))
@@ -182,14 +180,20 @@ def process_xml_list(names, arg_location, the_int_value, match_results, argument
                 evaluated_value = the_list[idx - 2] + evaluated_value[0] + ", "
                 match_results.append(evaluated_value)
             else:
-                error_msg = f"Program error: {the_list[idx]} is not in actiont (lookup table) for name:{names}"
+                error_msg = (
+                    f"Program error: {the_list[idx]} is not in actiont (lookup table)"
+                    f" for name:{names}"
+                )
                 logger.debug(error_msg)
                 print(error_msg)
                 sys.exit(1)
             break
         else:
             msg = (
-                f"get_xml_int_argument_to_value failed- this_element:{this_element} {arguments}",
+                (
+                    "get_xml_int_argument_to_value failed-"
+                    f" this_element:{this_element} {arguments}"
+                ),
                 names,
             )
             logger.debug(msg)
@@ -301,7 +305,11 @@ def get_label_disabled_condition(child, colormap):
                 string1, operator, string2 = evaluate_condition(children)
                 if condition_count != 0:
                     boolean_to_inject = f"{booleans[condition_count - 1].upper()} "
-                task_conditions = f'{task_conditions} <span style = "color:{colormap["action_condition_color"]}"</span> ({boolean_to_inject}condition:  If {string1}{operator}{string2})'
+                task_conditions = (
+                    f'{task_conditions} <span style ='
+                    f' "color:{colormap["action_condition_color"]}"</span>'
+                    f' ({boolean_to_inject}condition:  If {string1}{operator}{string2})'
+                )
                 condition_count += 1
         if the_action_code == "35":  # Wait Until?
             task_conditions = task_conditions.replace(
@@ -326,10 +334,12 @@ def clean_label(lbl, colormap):
     ):  # Make sure we end with the same number combination of <font> and </font>
         end_font_count = lbl.count("/font")
         if font_count > end_font_count:
-            label_color = colormap["action_label_color"]
-            lbl = f'{lbl}<font "color:{label_color}"</font>'
+            lbl = f'{lbl}<font "color:{colormap["action_label_color"]}"</font>'
 
-    return f' <span style = "color:{colormap["action_label_color"]}"</span>...with label: {lbl}'
+    return (
+        f' <span style = "color:{colormap["action_label_color"]}"</span>...with label:'
+        f' {lbl}'
+    )
 
 
 # ####################################################################################################

@@ -48,7 +48,8 @@ def get_ids(
         # Get a list of the Profiles for this Project
         project_pids = project.find(ids_to_find).text
     except Exception:  # Project has no Profiles
-        projects_without_profiles.append(project_name)
+        if project_name not in projects_without_profiles:
+            projects_without_profiles.append(project_name)
         if doing_project:
             my_output(colormap, program_args, output_list, 2, f"Profile: {NO_PROFILE}")
     return project_pids.split(",") if project_pids != "" else []

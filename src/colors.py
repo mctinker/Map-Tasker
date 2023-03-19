@@ -12,7 +12,7 @@
 #                                                                                            #
 # ########################################################################################## #
 import string
-from maptasker.src.sysconst import TYPES_OF_COLORS
+from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES
 from maptasker.src.sysconst import logger
 
 
@@ -247,7 +247,7 @@ def get_and_set_the_color(the_arg, colormap):
         handle_error(
             f"{the_arg} has an invalid 'color'.  See the help (-ch)!", " Exit code 7", 7
         )
-    if color_type not in TYPES_OF_COLORS:
+    if color_type not in TYPES_OF_COLOR_NAMES:
         handle_error(
             f"{color_type} is an invalid type for 'color'.  See the help (-h)!",
             " Exit code 7",
@@ -256,44 +256,8 @@ def get_and_set_the_color(the_arg, colormap):
     desired_color = the_color_option[1]
     logger.debug(f" desired_color:{desired_color}")
     if validate_color(desired_color):  # If the color provided is valid...
-        match color_type:
-            case "Project":
-                colormap["project_color"] = desired_color
-            case "Profile":
-                colormap["profile_color"] = desired_color
-            case "Task":
-                colormap["task_color"] = desired_color
-            case "Action":
-                colormap["action_color"] = desired_color
-            case "DisabledProfile":
-                colormap["disabled_profile_color"] = desired_color
-            case "UnknownTask":
-                colormap["unknown_task_color"] = desired_color
-            case "DisabledAction":
-                colormap["disabled_action_color"] = desired_color
-            case "ActionCondition":
-                colormap["action_condition_color"] = desired_color
-            case "ActionName":
-                colormap["action_name_color"] = desired_color
-            case "ProfileCondition":
-                colormap["profile_condition_color"] = desired_color
-            case "LauncherTask":
-                colormap["launcher_task_color"] = desired_color
-            case "Background":
-                colormap["background_color"] = desired_color
-            case "Scene":
-                colormap["scene_color"] = desired_color
-            case "Bullet":
-                colormap["bullet_color"] = desired_color
-            case "ActionLabel":
-                colormap["action_label_color"] = desired_color
-            case "TaskerNetInfo":
-                colormap["taskernet_color"] = desired_color
-            case "Preferences":
-                colormap["preferences_color"] = desired_color
-            case _:
-                error_msg = f"Invalid name in arg: =cName, where name is:{desired_color} color_type:{color_type}"
-                handle_error(error_msg, " exit code 1", 1)
+        # match color_type:
+        colormap[TYPES_OF_COLOR_NAMES[color_type]] = desired_color
     else:
         error_msg = (
             f"Invalid color specified: {desired_color} for 'c{the_color_option[0]}'!"
@@ -302,7 +266,13 @@ def get_and_set_the_color(the_arg, colormap):
     return
 
 
-def handle_error(error_msg, arg1, arg2):
+def handle_error(error_msg: str, arg1: str, arg2: int) -> None:
+    """
+    Log and print error message, and then exit.
+        :param error_msg: message to output
+        :param arg1: exit code text
+        :param arg2: exit code number as int
+    """
     logger.debug(f"{error_msg}{arg1}")
     print(error_msg)
     exit(arg2)
