@@ -1,5 +1,5 @@
 MapTasker Change log
-## [1.3.01] - 2023-03-??
+## [1.3.01] - 2023-03-19
 ### Added: Support for unit testing (no user impact)
 ### Added: GUI Appearance mode change (Dark/Light) now reflected in output
 ### Added: new color 'cTrailingComments' for comments at end of output
