@@ -11,7 +11,7 @@
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
 ![Downloads](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
 ![PyPI - License](https://img.shields.io/pypi/l/maptasker)
-![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
+![](https://tokei.rs/b1/github/mctinker/Map-Tasker/doc_images/loc.html)
 
 </div>
 
