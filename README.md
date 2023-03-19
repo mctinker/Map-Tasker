@@ -140,4 +140,3 @@ Alternatively, see *config.py* for user-customizable options.  Make user-specifi
 
 [] Save settings via standard ini file so it can be modified
 
-
