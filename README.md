@@ -45,7 +45,7 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
 - To install it to a virtual environment, enter the following command into Terminal:    
 
      `cd xxx`, where 'xxx' is a directory into which you want to setup the virtual environment    
-     `pip venv venv`    
+     `python -m venv venv`    
      `set VIRTUAL_ENV {directory path to 'xxx'}/venv`    
      `source {directory path to 'xxx'}/venv/bin/activate`  
      `pip3 install maptasker` 
