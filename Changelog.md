@@ -1,5 +1,5 @@
 MapTasker Change log
-## [1.3.2] - 2023-04-06
+## [1.3.2] - 2023-04-06: Maintenance Only
 ### Added: Include Map-Tasker version in output title
 ### Changed: default color for Profile conditions
 ### Changed: eliminated colors in config.py...redundant
