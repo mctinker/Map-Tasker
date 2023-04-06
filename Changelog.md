@@ -1,18 +1,27 @@
 MapTasker Change log
-## [1.3.01] - 2023-03-19
-### Added: Support for unit testing (no user impact)
-### Added: GUI Appearance mode change (Dark/Light) now reflected in output
-### Added: new color 'cTrailingComments' for comments at end of output
-### Changed: GUI message box widths extended for readability
-### Changed: Background color set to DarkBlue for better contrast
-### Fixed: Runtime color selection error for certain parameter formats
-### Fixed: Tasks not found in any Profile were not listing at the end
-### Fixed: assigned comment color was not being used
-### Fixed: Action 'set clipboard' missing details
-### Fixed: List of Projects with no Tasks was repeating the same Project
+## [1.3.2] - 2023-04-06
+### Added: Include Map-Tasker version in output title
+### Changed: default color for Profile conditions
+### Changed: eliminated colors in config.py...redundant
+### Fixed: Bypass extra Task information if "Task not called by Profile" section
+### Fixed: cleaned up improperly formatted output due to spurious HTML tag
+### Fixed: incorrectly formatted HTML
+### Fixed: Improved Taskernet description formatting
+### Fixed: Spacing on indented If/For segments
+### Added: Clearly identify Projects that have no Profiles
 
 Older History Log 
-- [1.3.00] - 2023-03-11   
+- [1.3.1] - 2023-03-19
+       - Added: GUI Appearance mode change (Dark/Light) now reflected in output   
+       - Added: new color 'cTrailingComments' for comments at end of output   
+       - Changed: GUI message box widths extended for readability   
+       - Changed: Background color set to DarkBlue for better contrast   
+       - Fixed: Runtime color selection error for certain parameter formats   
+       - Fixed: Tasks not found in any Profile were not listing at the end   
+       - Fixed: assigned comment color was not being used   
+       - Fixed: Action 'set clipboard' missing details   
+       - Fixed: List of Projects with no Tasks was repeating the same Project   
+- [1.3.0] - 2023-03-11   
        - Added: Support for unit testing (no user impact)   
        - Added: Optionally display Tasker Preferences = runtime option '-preferences'   
        - Changed: Optimized initialization code   
