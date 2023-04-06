@@ -1,0 +1,13 @@
+semgrep:
+  image: returntocorp/semgrep
+  script: semgrep ci
+  rules:
+  - if: $CI_PIPELINE_SOURCE == "web"  # allow triggering a scan manually from the gitlab UI
+  - if: $CI_MERGE_REQUEST_IID
+  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  variables:
+    
+    SEMGREP_APP_TOKEN: $SEMGREP_APP_TOKEN
+  
+  # Setup inline MR comments:
+  # https://semgrep.dev/docs/semgrep-app/notifications/#enabling-gitlab-merge-request-comments
