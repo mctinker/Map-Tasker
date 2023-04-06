@@ -17,6 +17,7 @@ from operator import itemgetter
 
 from maptasker.src.outputl import my_output
 from maptasker.src.servicec import service_codes
+from maptasker.src.sysconst import FONT_TO_USE
 
 
 def process_service(
@@ -30,7 +31,7 @@ def process_service(
         :param output_lines: accumulated output lines generated thus far (to append to)
     """
     preferences_html = (
-        ' <span style = "color:' + colormap["preferences_color"] + '"</span>'
+        " <span style=\"color:" + colormap["preferences_color"] + FONT_TO_USE + '>'
     )
     blank = "&nbsp;"
 
@@ -63,7 +64,7 @@ def process_service(
         [
             service_codes[service_name]['num'],
             (
-                f"{preferences_html}{blank * 2}{output_service_name}{blank * 4}{service_value}"
+                f"{preferences_html}{blank * 2}{output_service_name}{blank * 4}{service_value}</span>"
             ),
         ]
     )
@@ -98,7 +99,7 @@ def get_preferences(
     ]
     output_lines = []
     preferences_html = (
-        ' <span style = "color:' + colormap["preferences_color"] + '"</span>'
+        ' <span style="color:' + colormap["preferences_color"] + FONT_TO_USE + '>'
     )
     blank = "&nbsp;"
     first_time = True
@@ -111,7 +112,7 @@ def get_preferences(
         4,
         (
             f"{preferences_html}Tasker Preferences"
-            " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+            " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>></span>"
         ),
     )
 
@@ -139,7 +140,7 @@ def get_preferences(
                     dummy_num,
                     (
                         f"{preferences_html}&nbsp;&nbsp;Not yet mapped:"
-                        f" {service_name}{blank * 4}type:{service_type}{blank * 4}value:{service_value}"
+                        f" {service_name}{blank * 4}type:{service_type}{blank * 4}value:{service_value}</span>"
                     ),
                 ]
             )
@@ -164,7 +165,7 @@ def get_preferences(
                     4,
                     (
                         f"<br>{preferences_html}&nbsp;Section:"
-                        f" {section_names[item[1]['section']]}"
+                        f" {section_names[item[1]['section']]}</span>"
                     ),
                 )
                 current_section = item[1]["section"]

@@ -24,6 +24,7 @@ from maptasker.src.getids import get_ids
 from maptasker.src.scenes import process_project_scenes
 import maptasker.src.tasks as tasks
 from maptasker.src.sysconst import NO_PROFILE
+from maptasker.src.sysconst import FONT_TO_USE
 
 
 # #######################################################################################
@@ -87,9 +88,10 @@ def get_launcher_task(
         launcher_task_element = share_element.find("t")
         if launcher_task_element is not None and launcher_task_element.text is not None:
             launcher_task_info = (
-                ' <span style = "color:'
+                '</span><span style="color:'
                 + colormap["launcher_task_color"]
-                + f'"</span>[Launcher Task: {launcher_task_element.text}] '
+                + FONT_TO_USE
+                + f'>[Launcher Task: {launcher_task_element.text}]</span> '
                 + project_color_html
             )
     return launcher_task_info
@@ -156,11 +158,13 @@ def tasks_not_in_profiles(
                     4,
                     (
                         '<br><span'
-                        f' style="color:{colormap["task_color"]}">&nbsp;&nbsp;&nbsp;The'
+                        f' style="color:{colormap["task_color"]};font-family:'
+                        f'{program_args["font_to_use"]}>&nbsp;&nbsp;&nbsp;The'
                         f' following Tasks in Project {project_name} are not in any'
                         ' Profile...</span><br>'
                     ),
                 )
+                my_output(colormap, program_args, output_list, 1, "")
                 output_the_heading = False
 
                 # Format the output line
@@ -183,7 +187,10 @@ def tasks_not_in_profiles(
                 program_args,
                 all_tasker_items,
                 found_items,
+                True,
             )
+    # Force a line break
+    my_output(colormap, program_args, output_list, 4, "")
     return
 
 
@@ -267,10 +274,10 @@ def process_projects(
     """
     # Set up html to use
     project_color_html = (
-        '<span style = "color:'
+        '<span style="color:'
         + colormap["project_color"]
-        + '"</span>'
         + program_args["font_to_use"]
+        + ">"
     )
 
     for project in all_tasker_items["all_projects"]:
@@ -299,8 +306,7 @@ def process_projects(
         if program_args["display_taskernet"]:
             share(project, colormap, program_args, output_list)
 
-        # Get Profiles IDs
-        profile_ids = get_ids(
+        if profile_ids := get_ids(
             True,
             program_args,
             colormap,
@@ -308,10 +314,7 @@ def process_projects(
             project,
             project_name,
             projects_without_profiles,
-        )
-
-        if profile_ids != "":
-            # Process the Project's Profiles
+        ):
             our_task_element = process_profiles(
                 output_list,
                 project,
@@ -331,7 +334,19 @@ def process_projects(
                 and not found_items["single_profile_found"]
             ):
                 continue  # On to next Project
-
+        else:
+            my_output(
+                colormap,
+                program_args,
+                output_list,
+                2,
+                (
+                    '</span><span style="color:'
+                    + colormap["profile_color"]
+                    + FONT_TO_USE
+                    + '><em>Project has no Profiles</em></span>'
+                ),
+            )
         my_output(colormap, program_args, output_list, 3, "")  # Close Profile list
 
         # # See if there are Tasks in Project that have no Profile

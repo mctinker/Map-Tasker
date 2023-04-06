@@ -58,8 +58,7 @@ def get_actions(current_task: xml.etree, colormap: dict, prog_args: dict) -> lis
         # Now go through each Action to start processing it.
         for action in task_actions:
             child = action.find("code")  # Get the <code> element
-            # if create_dictionary:  # Are we creating a dictionary for Actions?
-            #     process_action_codes.build_action_code(child, action, 't')
+            # Get the Action code ( <code> )
             task_code = action_evaluate.get_action_code(
                 child, action, True, colormap, "t", prog_args
             )
@@ -75,9 +74,9 @@ def get_actions(current_task: xml.etree, colormap: dict, prog_args: dict) -> lis
             )
             # Calculate the amount of indention required
             if (
-                "</span>End If" in task_code
-                or "</span>Else" in task_code
-                or "</span>End For" in task_code
+                ">End If" in task_code
+                or ">Else" in task_code
+                or ">End For" in task_code
             ):  # Do we un-indent?
                 indentation -= 1
                 length_indent = len(indentation_amount)
@@ -86,9 +85,7 @@ def get_actions(current_task: xml.etree, colormap: dict, prog_args: dict) -> lis
                 tasklist, task_code, child, indentation, indentation_amount
             )
             if (
-                "</span>If" in task_code
-                or "</span>Else" in task_code
-                or "</span>For" in task_code
+                ">If" in task_code or ">Else" in task_code or ">For" in task_code
             ):  # Do we indent?
                 indentation += 1
                 indentation_amount = f"{indentation_amount}&nbsp;&nbsp;&nbsp;&nbsp;"
@@ -155,6 +152,13 @@ def get_task_name(
 def get_project_for_solo_task(
     the_task_id: str, projects_with_no_tasks: list, all_projects: dict
 ) -> tuple[str, xml.etree]:
+    """
+    Find the Project belonging to the Task id passed in
+        :param the_task_id: the ID of the Task
+        :param projects_with_no_tasks: list of Projects that do not have any Tasks
+        :param all_projects: all Tasker Projects
+        :return: name of the Project that belongs to this task and the Project xml element
+    """
     proj_name = NO_PROJECT
     project = None
     if all_projects is not None:
@@ -172,16 +176,24 @@ def get_project_for_solo_task(
 # #######################################################################################
 # Identify whether the Task passed in is part of a Scene: True = yes, False = no
 # #######################################################################################
-def task_in_scene(the_task_id, all_scenes):
-    for scene in all_scenes:
-        for child in all_scenes[scene]:  # Go through sub-elements in the Scene element
+def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
+    """
+    Identify whether the Task passed in is part of a Scene: True = yes, False = no
+        :param the_task_id: the id of the Task to check against
+        :param all_scenes: all Scenes in Tasker configuration
+        :return: True if Task is part of a Scene, False otherwise
+    """
+    # Go through each Scene
+    for value in all_scenes.values():
+        for child in value:  # Go through sub-elements in the Scene element
             if tag_in_type(child.tag, True):
                 for subchild in child:  # Go through xxxxElement sub-items
-                    if tag_in_type(subchild.tag, False):
-                        if (
-                            the_task_id == subchild.text
-                        ):  # Is this Task in this specific Scene (child)?
-                            return True
+                    # Is this Task in this specific Scene (child)?
+                    if (
+                        tag_in_type(subchild.tag, False)
+                        and the_task_id == subchild.text
+                    ):
+                        return True
                     elif child.tag == "Str":  # Passed any click Task
                         break
                     else:
@@ -193,19 +205,34 @@ def task_in_scene(the_task_id, all_scenes):
 # We're processing a single task only
 # #######################################################################################
 def do_single_task(
-    our_task_name,
-    output_list,
-    project_name,
-    profile_name,
-    heading,
-    found_items,
-    task_list,
-    our_task_element,
-    list_of_found_tasks,
-    all_tasker_items,
-    colormap,
-    program_args,
-):
+    our_task_name: str,
+    output_list: list,
+    project_name: str,
+    profile_name: str,
+    heading: str,
+    found_items: dict,
+    task_list: list,
+    our_task_element: xml.etree,
+    list_of_found_tasks: list,
+    all_tasker_items: dict,
+    colormap: dict,
+    program_args: dict,
+) -> None:
+    """
+    Process a single Task only
+        :param our_task_name: name of the Task to process
+        :param output_list: where the output line goes for Task
+        :param project_name: name of the Project Task belongs to
+        :param profile_name: name of the Profile the Task belongs to
+        :param heading: the heading, if any
+        :param found_items: single name for Project/Profile/Task
+        :param task_list: list of Tasks
+        :param our_task_element: the xml element for this Task
+        :param list_of_found_tasks: all Tasks processed so far
+        :param all_tasker_items: all Projects/Profiles/Tasks/Scenes
+        :param colormap: colors to use in output
+        :param program_args: runtime arguments
+    """
     # Do NOT move this import.  Otherwise, will get recursion error
     from maptasker.src.proclist import process_list
 
@@ -267,9 +294,9 @@ def do_single_task(
                     colormap,
                     all_tasker_items,
                 )
-                build_output.my_output(
-                    colormap, program_args, output_list, 3, ""
-                )  # End Task list
+                # build_output.my_output(
+                #     colormap, program_args, output_list, 3, ""
+                # )  # End Task list
                 break
 
 
@@ -289,6 +316,7 @@ def output_task(
     program_args: dict,
     all_tasker_items: dict,
     found_items: dict,
+    do_extra: bool,
 ) -> bool:
     """
     We have a single Task or a list of Tasks.  Output it/them.
@@ -304,22 +332,21 @@ def output_task(
         :param program_args: runtime arguments
         :param all_tasker_items: all Projects/Profiles/Tasks/Scenes
         :param found_items: single Project/Profile/Task to search for
+        :param do_extra: flag to do/output extra Task stuff
         :return: True if we are searching for a single Task and found it.  Otherwise, False
     """
     # Do NOT move this import.  Otherwise, will get recursion error
     from maptasker.src.proclist import process_list
 
     # See if there is a Kid app and/or Priority
-    if program_args["display_detail_level"] == 3:
+    if do_extra and program_args["display_detail_level"] == 3:
         if kid_app_info := get_kid_app(our_task_element):
             task_list[0] = f'{task_list[0]} {kid_app_info}'
         if priority := get_priority(our_task_element, False):
             task_list[0] = f'{task_list[0]} {priority}'
 
     # Looking for a single Task?
-    if (
-        our_task_name != "" and program_args["single_task_name"]
-    ):  # Are we mapping just a single Task?
+    if our_task_name != "" and program_args["single_task_name"]:
         do_single_task(
             our_task_name,
             output_list,
@@ -334,7 +361,6 @@ def output_task(
             colormap,
             program_args,
         )
-
         return True  # Call it quits on Task...we have the one we want
     elif task_list:
         # Start a list
@@ -350,8 +376,7 @@ def output_task(
             colormap,
             all_tasker_items,
         )
-        build_output.my_output(
-            colormap, program_args, output_list, 3, ""
-        )  # End Task list
+        # End Task list
+        build_output.my_output(colormap, program_args, output_list, 3, "")
 
     return False  # Normal Task...continue processing them

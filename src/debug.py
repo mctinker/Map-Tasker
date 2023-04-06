@@ -14,6 +14,8 @@
 import sys
 import maptasker.src.outputl as build_output
 
+debug_style = '<span style="color:White;font-family:Courier">'
+
 
 def debug1(colormap: dict, program_args: dict, output_list: list) -> None:
     """
@@ -27,17 +29,42 @@ def debug1(colormap: dict, program_args: dict, output_list: list) -> None:
         program_args,
         output_list,
         4,
-        f'<span style="color:Green"</span>sys.argv:{str(sys.argv)}',
+        f'{debug_style}sys.argv:{str(sys.argv)}</span>',
+    )
+    build_output.my_output(
+        colormap,
+        program_args,
+        output_list,
+        4,
+        '',
     )
     for key, value in program_args.items():
         build_output.my_output(
-            colormap, program_args, output_list, 4, f"{key}: {value}"
+            colormap,
+            program_args,
+            output_list,
+            4,
+            f"{debug_style}{key}: {value}</span>",
         )
+    build_output.my_output(
+        colormap,
+        program_args,
+        output_list,
+        4,
+        '',
+    )
     for key, value in colormap.items():
         build_output.my_output(
             colormap,
             program_args,
             output_list,
             4,
-            f"colormap for {key} set to {value}",
+            f"{debug_style}colormap for {key} set to {value}</span>",
         )
+    build_output.my_output(
+        colormap,
+        program_args,
+        output_list,
+        4,
+        '',
+    )

@@ -66,8 +66,9 @@ def get_scene_elements(
         output_list,
         4,
         (
-            f'<span style="color:{colormap["scene_color"]}">&nbsp;&nbsp;&nbsp;Element:'
-            f' {element_type[0]} named {element_name}'
+            '<span'
+            f' style="color:{colormap["scene_color"]}{program_args["font_to_use"]}>&nbsp;&nbsp;&nbsp;Element:'
+            f' {element_type[0]} named {element_name}</span>'
         ),
     )
 
@@ -123,7 +124,11 @@ def process_scene(
                         # reset to task name since get_task_name changes its value
                         temp_task_list = [sub_child.text]
                         extra = "&nbsp;&nbsp;ID:"
-                        task_type = f"⎯Task: {SCENE_TASK_TYPES[sub_child.tag]}{extra}"
+                        task_type = (
+                            "&nbsp;&#45;&#45;Task:"
+                            f" {SCENE_TASK_TYPES[sub_child.tag]}{extra}"
+                        )
+                        # process the Scene's Task
                         process_list(
                             task_type,
                             output_list,
@@ -133,10 +138,8 @@ def process_scene(
                             program_args,
                             colormap,
                             all_tasker_items,
-                        )  # process the Scene's Task
-                        my_output(
-                            colormap, program_args, output_list, 3, ""
-                        )  # End list
+                        )
+                        my_output(colormap, program_args, output_list, 1, "")
                     else:
                         break
                 elif sub_child.tag == "Str":
@@ -190,4 +193,6 @@ def process_project_scenes(
                 colormap,
                 all_tasker_items,
             )
+            # Force a line break
+            my_output(colormap, program_args, output_list, 4, "")
     return

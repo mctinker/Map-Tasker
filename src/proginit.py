@@ -12,38 +12,75 @@
 #                                                                                            #
 # ########################################################################################## #
 
-import sys
+import atexit
+import contextlib
 import datetime
+import sys
+from json import dumps, loads  # For write and read counter
+from os import rename
 from pathlib import Path
 
 # importing tkinter and tkinter.ttk and all their functions and classes
 from tkinter import *
+from tkinter import messagebox
+import xml.etree.ElementTree  # Need for type hints
 
 # importing askopenfile (from class filedialog) and messagebox functions
 # from class filedialog
 from tkinter.filedialog import askopenfile
+from typing import Any, Tuple, Dict, List
+from xml.etree.ElementTree import ElementTree, Element
 
-from maptasker.src.config import project_color
-from maptasker.src.config import profile_color
-from maptasker.src.config import task_color
-from maptasker.src.config import scene_color
-from maptasker.src.config import action_color
-from maptasker.src.config import disabled_profile_color
-from maptasker.src.config import unknown_task_color
-from maptasker.src.config import disabled_action_color
-from maptasker.src.config import action_condition_color
-from maptasker.src.config import action_label_color
-from maptasker.src.config import action_name_color
-from maptasker.src.config import profile_condition_color
-from maptasker.src.config import launcher_task_color
-from maptasker.src.config import background_color
-from maptasker.src.config import bullet_color
-from maptasker.src.config import preferences_color
-from maptasker.src.config import taskernet_color
-from maptasker.src.config import trailing_comments_color
-
+import maptasker.src.outputl as build_output
 import maptasker.src.progargs as get_args
-from maptasker.src.sysconst import *
+from maptasker.src.config import GUI
+
+from maptasker.src.config import DARK_MODE
+from maptasker.src.debug import debug1
+from maptasker.src.sysconst import ARGUMENTS_FILE
+from maptasker.src.sysconst import COUNTER_FILE
+from maptasker.src.sysconst import FONT_TO_USE
+from maptasker.src.sysconst import MY_VERSION
+from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import logging
+from maptasker.src.taskerd import get_the_xml_data
+from maptasker.src.colrmode import set_color_mode
+
+
+# #############################################################################################
+# Use a counter to determine if this is the first time run.
+#  If first time only, then provide a user prompt to locate the backup file
+# #############################################################################################
+def read_counter():
+    """Read the program counter
+
+    Parameters: none
+
+    Returns: the count of the number of times the program has been called
+
+    """
+    return (
+        loads(open(COUNTER_FILE, "r").read()) + 1
+        if Path.exists(Path(COUNTER_FILE).resolve())
+        else 0
+    )
+
+
+def write_counter():
+    """Write the program counter
+
+    Parameters: none
+
+    Returns: none
+
+    """
+    with open(COUNTER_FILE, "w") as f:
+        f.write(dumps(run_counter))
+    return
+
+
+run_counter = read_counter()
+atexit.register(write_counter)
 
 
 # #######################################################################################
@@ -91,7 +128,7 @@ def open_and_get_backup_xml_file(program_args: dict) -> object:
             print(cancel_message)
             logger.debug(cancel_message)
             sys.exit(6)
-    logger.info("exit")
+
     return filename
 
 
@@ -99,26 +136,14 @@ def open_and_get_backup_xml_file(program_args: dict) -> object:
 # Build color dictionary
 # #############################################################################################
 def setup_colors() -> dict:
-    return {
-        "project_color": project_color,
-        "profile_color": profile_color,
-        "task_color": task_color,
-        "scene_color": scene_color,
-        "action_color": action_color,
-        "disabled_profile_color": disabled_profile_color,
-        "unknown_task_color": unknown_task_color,
-        "disabled_action_color": disabled_action_color,
-        "action_condition_color": action_condition_color,
-        "action_label_color": action_label_color,
-        "action_name_color": action_name_color,
-        "profile_condition_color": profile_condition_color,
-        "launcher_task_color": launcher_task_color,
-        "background_color": background_color,
-        "bullet_color": bullet_color,
-        "taskernet_color": taskernet_color,
-        "preferences_color": preferences_color,
-        "trailing_comments_color": trailing_comments_color,
-    }
+    """
+    Set up the initial colors to use.
+        :return: color map dictionary
+    """
+    colormap = {}
+
+    appearance = 'Dark' if DARK_MODE else "Light"
+    return set_color_mode(appearance, colormap)
 
 
 # #############################################################################################
@@ -137,7 +162,7 @@ def setup_logging():
 
 ##############################################################################################
 # Log the arguments
-# #############################################################################################
+# ############################################################################################
 def log_startup_values(program_args: dict, colormap: dict) -> None:
     setup_logging()  # Get logging going
     logger.info(f"{MY_VERSION} {str(datetime.datetime.now())}")
@@ -149,24 +174,91 @@ def log_startup_values(program_args: dict, colormap: dict) -> None:
 
 
 ##############################################################################################
+# Program setup: initialize key elements
+# ############################################################################################
+def setup(
+    colormap: dict, program_args: dict, output_list: list
+) -> tuple[Any, Any, object, Any, list, str]:
+    """
+    Perform basic setup
+        :param colormap: colors to use for output
+        :param program_args: runtime arguments
+        :param output_list: lines of output generated thus far
+        :return xml tree, xml root, all Tasker Projects/Profiles/Tasks/Scenes, output lines, the heading
+    """
+
+    # Prompt user for Tasker's backup.xml file location
+    if run_counter < 1 and not GUI:  # Only display message box on first run
+        msg = "Locate the Tasker backup xml file to use to map your Tasker environment"
+        title = "MapTasker"
+        messagebox.showinfo(title, msg)
+
+    # Open and read the file...
+    filename = open_and_get_backup_xml_file(program_args)
+
+    # Go get all the xml data
+    tree, root, all_tasker_items = get_the_xml_data(filename)
+
+    # Check for valid Tasker backup.xml file
+    if root.tag != "TaskerData":
+        error_msg = "You did not select a Tasker backup XML file...exit 2"
+        build_output.my_output(colormap, program_args, output_list, 0, error_msg)
+        logger.debug(f"{error_msg}exit 3")
+        sys.exit(3)
+    else:
+        # Format the output heading
+        heading = (
+            '<html>\n<head>\n<title>MapTasker</title>\n<body style="background-color:'
+            + colormap["background_color"]
+            + '">\n'
+            + '<span style="color:LawnGreen'
+            + FONT_TO_USE
+            + ">Tasker Mapping................"
+            "&nbsp;&nbsp;&nbsp;Tasker version:"
+            f" {root.attrib['tv']}"
+            "&nbsp;&nbsp;&nbsp;&nbsp;Map-Tasker version:"
+            f" {MY_VERSION}</span>"
+        )
+        # Start the output with heading
+        build_output.my_output(colormap, program_args, output_list, 0, heading)
+
+    # If we are debugging, output the runtime arguments and colors
+    if program_args["debug"]:
+        debug1(colormap, program_args, output_list)
+
+    # Start Project list
+    build_output.my_output(colormap, program_args, output_list, 1, "")
+
+    return tree, root, filename, all_tasker_items, output_list, heading
+
+
+##############################################################################################
 # Perform maptasker program initialization functions
 # #############################################################################################
-def start_up() -> tuple:
+def start_up(output_list: list) -> tuple:
+    """
+    Initialize program variables
+        :type output_list: tuple[
+    """
     colormap = setup_colors()  # Get our map of colors
 
     # Get any arguments passed to program
     logger.info(f"sys.argv{str(sys.argv)}")
+
+    # Rename any old argument file to new name for clarity (one time only operation)
+    dir_path = Path.cwd()
+    with contextlib.suppress(FileNotFoundError):
+        rename(f"{dir_path}/.arguments.txt", f"{dir_path}/{ARGUMENTS_FILE}")
     program_args, colormap = get_args.get_program_arguments(colormap)
+
+    # Setup program key elements
+    tree, root, filename, all_tasker_items, output_list, heading = setup(
+        colormap, program_args, output_list
+    )
+
     # If debug mode, log the arguments
     if program_args["debug"]:
         log_startup_values(program_args, colormap)
-    heading = (
-        '<html>\n<head>\n<title>MapTasker</title>\n<body style="background-color:'
-        + colormap["background_color"]
-        + '">'
-        + FONT_TO_USE
-        + "Tasker Mapping................"
-    )
 
     # Force full detail if we are doing a single Task
     if program_args["single_task_name"]:
@@ -180,4 +272,14 @@ def start_up() -> tuple:
         "single_task_found": False,
     }
     logger.info("exit")
-    return colormap, program_args, found_items, heading
+    return (
+        colormap,
+        program_args,
+        found_items,
+        heading,
+        output_list,
+        tree,
+        root,
+        filename,
+        all_tasker_items,
+    )

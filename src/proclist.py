@@ -58,13 +58,17 @@ def process_list(
                 "process_list "
                 f" the_item:{str(the_item)} the_list:{the_list} list_type:{list_type}"
             )
-        elif "⎯Task:" in list_type:
+        # If "--Task:" then this is a Task under a Scene.
+        # Need to temporarily save the_item since my_output changes the_item
+        if "&#45;&#45;Task:" in list_type:
             temp_item = the_item
             temp_list = list_type
             the_item = ""
-            id_loc = list_type.find("ID:")
-            if id_loc != -1:
-                list_type = list_type[:id_loc]
+            if program_args["debug"]:  # Get the Task ID
+                id_loc = list_type.find("ID:")
+                if id_loc != -1:
+                    list_type = f'{list_type}{str(id_loc)}'
+            # list_type = list_type.replace("&#45;&#45;Task:", "&nbsp;&nbsp;Task:")
 
         # Add this Task to the output
         my_output(

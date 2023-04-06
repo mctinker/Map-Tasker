@@ -19,6 +19,7 @@ from maptasker.src.config import CONTINUE_LIMIT
 from maptasker.src.action import get_extra_stuff
 from maptasker.src.actionc import action_codes
 from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import FONT_TO_USE
 
 pattern = re.compile(r",[, ]+")
 # pattern1 = re.compile(r'<.*?>')  # Get rid of all <something> html code
@@ -95,27 +96,43 @@ def get_action_code(
     code_type: str,
     program_args: dict,
 ) -> str:
+    """
+    Given an action code, evaluate it for display
+        :param code_child: xml element of the <code>
+        :param code_action: value of <code> (e.g. "549")
+        :param action_type:
+        :param colormap: colors to use in output
+        :param code_type: 'e'=event, 's'=state, 't'=task
+        :param program_args: runtime arguments
+        :return: formatted output line with action details
+    """
     logger.debug(f"getcode:{code_child.text}{code_type}")
     dict_code = code_child.text + code_type
     # See if this code is deprecated
     check_for_deprecation(dict_code)
-    if (
-        dict_code not in action_codes or "display" not in action_codes[dict_code]
-    ):  # We have a code that is not yet in the dictionary?
-        the_result = f"Code {dict_code} not yet mapped{get_extra_stuff(code_action, action_type, colormap, program_args)}"
+    # We have a code that is not yet in the dictionary?
+    if dict_code not in action_codes or "display" not in action_codes[dict_code]:
+        the_result = (
+            f"Code {dict_code} not yet"
+            f" mapped{get_extra_stuff(code_action, action_type, colormap, program_args)}"
+        )
         logger.debug(f"unmapped task code: {dict_code} ")
 
     else:
+        # The code is in our dictionary.  Add the display name
         the_result = (
             '<span style="color:'
             + colormap["action_name_color"]
-            + '"</span>'
+            + program_args["font_to_use"]
+            + '>'
             + action_codes[dict_code]["display"]
+            + "</span>"
         )  # Just get the basics for now
         if "numargs" in action_codes[dict_code]:
             numargs = action_codes[dict_code]["numargs"]
         else:
             numargs = 0
+        # If there are required args, then parse them
         if numargs != 0 and "reqargs" in action_codes[dict_code]:
             the_result = action_results.get_action_results(
                 dict_code,
@@ -161,7 +178,8 @@ def build_action(alist, tcode, code_element, indent, indent_amt):
     # Calculate total indentation to put in front of action
     count = indent
     if count != 0:
-        tcode = indent_amt + tcode
+        tcode = tcode.replace(f"{FONT_TO_USE}>", f"{FONT_TO_USE}>{indent_amt}", 1)
+        # tcode = indent_amt + tcode
         count = 0
     if count < 0:
         tcode = indent_amt + tcode
@@ -187,7 +205,9 @@ def build_action(alist, tcode, code_element, indent, indent_amt):
                     count == CONTINUE_LIMIT
                 ):  # Only display up to so many continued lines
                     alist.append(
-                        f'<font color:red> ... continue limit of {str(CONTINUE_LIMIT)} reached.  See "CONTINUE_LIMIT =" in code for details'
+                        '<span style="color:red"> ... continue limit of'
+                        f' {str(CONTINUE_LIMIT)} reached.  See "CONTINUE_LIMIT =" in'
+                        ' code for details</span>'
                     )
                     break
     else:

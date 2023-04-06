@@ -39,6 +39,6 @@ def get_program_arguments(colormap: dict):
 
     # Are we in development mode?  If so, override debug argument
     if DEBUG_PROGRAM:
-        debug = True
+        prog_args["debug"] = True
 
     return prog_args, colormap

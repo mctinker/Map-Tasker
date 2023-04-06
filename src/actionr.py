@@ -18,6 +18,8 @@ import maptasker.src.action as get_action
 from maptasker.src.actargs import action_args
 from maptasker.src.actionc import action_codes
 from maptasker.src.sysconst import logger
+from maptasker.src.xmldata import get_xml_int_argument_to_value
+from maptasker.src.xmldata import get_xml_str_argument_to_value
 
 
 # ####################################################################################################
@@ -93,11 +95,11 @@ def evaluate_action_args(
     # If we had at least one Int or Str then deal with them
     if evaluated_results["get_xml_flag"]:
         if evaluated_results["strargs"]:
-            evaluated_results["result_str"] = get_action.get_xml_str_argument_to_value(
+            evaluated_results["result_str"] = get_xml_str_argument_to_value(
                 code_action, evaluated_results["strargs"], evaluated_results["streval"]
             )
         if evaluated_results["intargs"]:
-            evaluated_results["result_int"] = get_action.get_xml_int_argument_to_value(
+            evaluated_results["result_int"] = get_xml_int_argument_to_value(
                 code_action, evaluated_results["intargs"], evaluated_results["inteval"]
             )
 
@@ -123,16 +125,21 @@ def get_action_results(
     )  # Setup default dictionary as empty list
     two_blanks = "&nbsp;&nbsp;"
     result = ""
-    returning_something = False
-    if "s" in dict_code or "e" in dict_code:
+    if "s" in dict_code or "e" in dict_code:  # Condition (State/Event)?
         display_name_color = ""
         display_detail_color = ""
-    else:
+    else:  # We have a Task
         display_name_color = (
-            '<span style="color:' + colormap["action_name_color"] + '"</span>'
+            '<span style="color:'
+            + colormap["action_name_color"]
+            + program_args["font_to_use"]
+            + '>'
         )
         display_detail_color = (
-            '<span style="color:' + colormap["action_color"] + '"</span>'
+            '</span><span style="color:'
+            + colormap["action_color"]
+            + program_args["font_to_use"]
+            + '>'
         )
 
     # Save the associated data

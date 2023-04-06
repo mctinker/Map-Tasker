@@ -40,13 +40,20 @@ def process_missing_tasks_and_profiles(
             0,
             (
                 '<hr><span'
-                f' style=color={colormap["trailing_comments_color"]}"{FONT_TO_USE}</font><em>Projects</font>'
-                ' Without Tasks...</em>'
+                f' style="color:{colormap["trailing_comments_color"]}{FONT_TO_USE}><em>Projects'
+                ' Without Tasks...</em></span>'
             ),
         )
         for item in projects_with_no_tasks:
             build_output.my_output(
-                colormap, program_args, output_list, 4, f"Project {item} has no Tasks"
+                colormap,
+                program_args,
+                output_list,
+                4,
+                (
+                    f'<span style="color:{colormap["trailing_comments_color"]}'
+                    f'{FONT_TO_USE}>Project {item} has no Tasks</span>'
+                ),
             )
 
     # List all Projects without Profiles
@@ -58,7 +65,7 @@ def process_missing_tasks_and_profiles(
             0,
             (
                 '<hr><span'
-                f' style="color:{colormap["trailing_comments_color"]}">{FONT_TO_USE}</font><em>Projects'
+                f' style=color:{colormap["trailing_comments_color"]}{FONT_TO_USE}><em>Projects'
                 ' Without Profiles...</em>'
             ),
         )
@@ -70,7 +77,7 @@ def process_missing_tasks_and_profiles(
                 4,
                 (
                     '<span'
-                    f' style="color:{colormap["trailing_comments_color"]}">{FONT_TO_USE}</font>Project'
+                    f' style="color:{colormap["trailing_comments_color"]}{FONT_TO_USE}>Project'
                     f' {item} has no Profiles'
                 ),
             )
@@ -126,9 +133,9 @@ def process_solo_task_with_no_profile(
             output_list,
             0,
             (
-                f'<font color="{colormap["trailing_comments_color"]}"'
-                + program_args["font_to_use"]
-                + "Tasks that are not called by any Profile..."
+                '<span'
+                f' style="color:{colormap["trailing_comments_color"]}{program_args["font_to_use"]}>'
+                + "Tasks that are not called by any Profile...<span>"
             ),
         )
         build_output.my_output(
@@ -165,6 +172,7 @@ def process_solo_task_with_no_profile(
             program_args,
             all_tasker_items,
             found_items,
+            False,
         )
     return have_heading, specific_task, unnamed_task_count
 
@@ -234,9 +242,10 @@ def process_tasks_not_called_by_profile(
                 output_list,
                 0,
                 (
-                    f'<font color={colormap["unknown_task_color"]}>There are a total of'
-                    f' {unnamed_task_count} unnamed Tasks not associated with a'
-                    ' Profile!'
+                    '<span'
+                    f' style="color:{colormap["unknown_task_color"]}{program_args["font_to_use"]}>There'
+                    f' are a total of {unnamed_task_count} unnamed Tasks not associated'
+                    ' with a Profile!</span>'
                 ),
             )
 

@@ -30,14 +30,10 @@
 #                                                                                            #
 # ########################################################################################## #
 
-import atexit
 import sys
 import webbrowser  # To be removed in Python 10.13 (2023?)
 import xml.etree.ElementTree  # Need for type hints
-from json import dumps, loads  # For write and read counter
 from os import getcwd
-from pathlib import Path
-from tkinter import messagebox
 from typing import List, Dict
 
 import maptasker.src.outputl as build_output
@@ -45,52 +41,12 @@ import maptasker.src.proginit as initialize
 import maptasker.src.projects as projects
 import maptasker.src.taskuniq as special_tasks
 from maptasker.src.caveats import display_caveats
-from maptasker.src.sysconst import COUNTER_FILE
-from maptasker.src.sysconst import logger
-from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.prefers import get_preferences
-from maptasker.src.debug import debug1
-
+from maptasker.src.sysconst import logger
 
 # import os
 # print('Path:', os.getcwd())
 # print('__file__={0:<35} | __name__={1:<25} | __package__={2:<25}'.format(__file__,__name__,str(__package__)))
-
-
-# #############################################################################################
-# Use a counter to determine if this is the first time run.
-#  If first time only, then provide a user prompt to locate the backup file
-# #############################################################################################
-def read_counter():
-    """Read the program counter
-
-    Parameters: none
-
-    Returns: the count of the number of times the program has been called
-
-    """
-    return (
-        loads(open(COUNTER_FILE, "r").read()) + 1
-        if Path.exists(Path(COUNTER_FILE).resolve())
-        else 0
-    )
-
-
-def write_counter():
-    """Write the program counter
-
-    Parameters: none
-
-    Returns: none
-
-    """
-    with open(COUNTER_FILE, "w") as f:
-        f.write(dumps(run_counter))
-    return
-
-
-run_counter = read_counter()
-atexit.register(write_counter)
 
 
 # #######################################################################################
@@ -175,8 +131,9 @@ def clean_up_and_exit(
         :param root: root of xml parsed from file to clear
         :param output_list: list of output lines to empty
         :param all_tasker_items: all Tasker Projects/Profiles/Tasks/Scenes to clear
-        :rtype: none
+        :rtype: colors, runtime arguments,
     """
+
     output_list.clear()
     error_message = f"{name} {profile_or_task_name} not found!!"
     print(error_message)
@@ -243,7 +200,17 @@ def mapit_all() -> int:
     )
 
     # Get colors to use, runtime arguments etc.
-    colormap, program_args, found_items, heading = initialize.start_up()
+    (
+        colormap,
+        program_args,
+        found_items,
+        heading,
+        output_list,
+        tree,
+        root,
+        filename,
+        all_tasker_items,
+    ) = initialize.start_up(output_list)
 
     # Development only parameters here:
     # program_args["debug"] = True
@@ -251,38 +218,6 @@ def mapit_all() -> int:
     # program_args["display_profile_conditions"] = True
     # program_args['display_preferences'] = True
     # program_args['display_taskernet'] = True
-
-    # If we are debugging, output the runtime arguments and colors
-    if program_args["debug"]:
-        debug1(colormap, program_args, output_list)
-    # Prompt user for Tasker's backup.xml file location
-    if run_counter < 1:  # Only display message box on first run
-        msg = "Locate the Tasker backup xml file to use to map your Tasker environment"
-        title = "MapTasker"
-        messagebox.showinfo(title, msg)
-
-    # Open and read the file...
-    filename = initialize.open_and_get_backup_xml_file(program_args)
-
-    # Go get all the xml data
-    tree, root, all_tasker_items = get_the_xml_data(filename)
-
-    # Check for valid Tasker backup.xml file
-    if root.tag != "TaskerData":
-        error_msg = "You did not select a Tasker backup XML file...exit 2"
-        build_output.my_output(colormap, program_args, output_list, 0, error_msg)
-        logger.debug(f"{error_msg}exit 3")
-        sys.exit(3)
-    else:
-        heading = (
-            f'<span style="color:Green"</span>{heading}    Tasker version:'
-            f' {root.attrib["tv"]}'
-        )
-
-    # Start the output with heading
-    build_output.my_output(colormap, program_args, output_list, 0, heading)
-    # Start Project list
-    build_output.my_output(colormap, program_args, output_list, 1, "")
 
     #######################################################################################
     # Process Tasker Preferences

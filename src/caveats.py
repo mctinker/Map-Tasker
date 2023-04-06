@@ -12,7 +12,6 @@
 #                                                                                            #
 # ########################################################################################## #
 import maptasker.src.outputl as build_output
-from maptasker.src.config import trailing_comments_color
 
 
 def display_caveats(output_list: list[str], program_args: dict, colormap: dict) -> None:
@@ -25,9 +24,9 @@ def display_caveats(output_list: list[str], program_args: dict, colormap: dict) 
 
     """
     caveat1 = (
-        f'<span style="color:{colormap["trailing_comments_color"]}">'
+        f'<span style="color:{colormap["trailing_comments_color"]}'
         + program_args["font_to_use"]
-        + "</font>CAVEATS:\n"
+        + ">CAVEATS:\n"
     )
     caveat3 = (
         "- This has only been tested on my own backup.xml file."
@@ -38,19 +37,15 @@ def display_caveats(output_list: list[str], program_args: dict, colormap: dict) 
         ' considered Anonymous.\n'
     )
     caveat6 = (
-        '- Task labels that have embedded HTML (e.g. color=...>") will result in the'
+        '- Tasker fields that have embedded HTML (e.g. color=...>") will result in the'
         ' remaining label displayed in that same color/font.'
-    )
-    caveat7 = (
-        '- With the more recent versions of Tasker, disabled Profiles are not'
-        ' easily detected and go unrecognized as disabled.'
     )
     build_output.my_output(colormap, program_args, output_list, 0, "<hr>")  # line
     build_output.my_output(colormap, program_args, output_list, 4, caveat1)  # caveat
     if program_args["display_detail_level"] > 0:  # Caveat about Actions
         caveat2 = (
             "- Most but not all Task actions have been mapped and will display as such."
-            "  Likewise for Profile conditions.\n"
+            "  Likewise for Profile conditions and Plug-ins.\n</span>"
         )
         build_output.my_output(
             colormap, program_args, output_list, 4, caveat2
@@ -68,5 +63,4 @@ def display_caveats(output_list: list[str], program_args: dict, colormap: dict) 
             colormap, program_args, output_list, 4, caveat5
         )  # caveat
     build_output.my_output(colormap, program_args, output_list, 4, caveat6)  # caveat
-    build_output.my_output(colormap, program_args, output_list, 4, caveat7)  # caveat
     return

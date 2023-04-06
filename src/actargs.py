@@ -12,7 +12,97 @@
 # ########################################################################################## #
 from maptasker.src.actiond import process_condition_list
 from maptasker.src.sysconst import logger
+import xml.etree.ElementTree  # Need for type hints
 import maptasker.src.action as get_action
+
+
+def get_action_arguments(
+    evaluated_results: dict,
+    arg: object,
+    argeval: list,
+    argtype: list,
+    code_action: xml.etree,
+    action_type: xml.etree,
+    colormap: dict,
+    program_args: dict,
+) -> dict:
+    """
+
+    :param evaluated_results: all the Action argument "types" and "arguments"
+    :param arg: the incoming argument
+    :param argeval: the evaluation argument
+    :param argtype: the argument "type"
+    :param code_action: the Action code
+    :param action_type: the Action type
+    :param colormap: colors to use in output
+    :param program_args: runtime arguments
+    :return: dictionary of results
+    """
+    match argtype:
+        case "Str":
+            evaluated_results["get_xml_flag"] = True
+            evaluated_results["strargs"].append(f"arg{str(arg)}")
+            evaluated_results["streval"].append(argeval)
+            evaluated_results["returning_something"] = True
+        case "Int":
+            evaluated_results["get_xml_flag"] = True
+            evaluated_results["intargs"].append(f"arg{str(arg)}")
+            evaluated_results["inteval"].append(argeval)
+            evaluated_results["returning_something"] = True
+        case "App":
+            evaluated_results["strargs"].append(f"arg{str(arg)}")
+            evaluated_results["streval"].append(argeval)
+            app_class, app_pkg, app, extra = get_action.get_app_details(
+                code_action, action_type, colormap, program_args
+            )
+            evaluated_results["result_app"].append(f"{app_class}, {app_pkg}, {app}")
+            evaluated_results["returning_something"] = True
+        case "ConditionList":
+            evaluated_results["strargs"].append(f"arg{str(arg)}")
+            evaluated_results["streval"].append(argeval)
+            final_conditions = ""
+            condition_list, boolean_list = process_condition_list(code_action)
+            # Go through all conditions
+            for numx, condition in enumerate(condition_list):
+                final_conditions = (
+                    f"{final_conditions} {condition[0]}{condition[1]}{condition[2]}"
+                )
+                if boolean_list and len(boolean_list) > numx:
+                    final_conditions = f"{final_conditions} {boolean_list[numx]} "
+            evaluated_results["result_con"].append(final_conditions)
+            evaluated_results["returning_something"] = True
+        case "Img":
+            image, package = "", ""
+            child = code_action.find("Img")
+            if child.find("nme") is not None:
+                image = child.find("nme").text
+            if child.find("pkg") is not None:
+                package = ", Package:" + child.find("pkg").text
+            elif child.find("var") is not None:  # There is a variable name?
+                image = child.find("var").text
+            if image:
+                evaluated_results["result_img"].append(argeval + image + package)
+                evaluated_results["returning_something"] = True
+            else:
+                evaluated_results["result_img"].append(" ")
+        case "Bundle":  # It's a plugin
+            child1 = code_action.find("Bundle")
+            child2 = child1.find("Vals")
+            child3 = child2.find(
+                "com.twofortyfouram.locale.intent.extra.BLURB"
+            )  # 2:40 am...funny!
+            if child3 is not None and child3.text is not None:
+                # Get rid of extraneous html in Action's label
+                clean_string = child3.text.replace("</font><br><br>", "<br><br>")
+                clean_string = clean_string.replace("&lt;", "<")
+                clean_string = clean_string.replace("&gt;", ">")
+                evaluated_results["result_bun"].append(clean_string)
+                evaluated_results["returning_something"] = True
+        case _:
+            logger.debug(
+                "get_action_results:" + " unknown argtype:" + argtype + "!!!!!"
+            )
+    return evaluated_results
 
 
 # ####################################################################################################
@@ -36,69 +126,15 @@ def action_args(
         argeval = evaluate_list[num]
         argtype = lookup_code_entry[dict_code]["types"][index]
         evaluated_results["position_arg_type"].append(argtype)
-        match argtype:
-            case "Str":
-                evaluated_results["get_xml_flag"] = True
-                evaluated_results["strargs"].append(f"arg{str(arg)}")
-                evaluated_results["streval"].append(argeval)
-                evaluated_results["returning_something"] = True
-            case "Int":
-                evaluated_results["get_xml_flag"] = True
-                evaluated_results["intargs"].append(f"arg{str(arg)}")
-                evaluated_results["inteval"].append(argeval)
-                evaluated_results["returning_something"] = True
-            case "App":
-                evaluated_results["strargs"].append(f"arg{str(arg)}")
-                evaluated_results["streval"].append(argeval)
-                app_class, app_pkg, app, extra = get_action.get_app_details(
-                    code_action, action_type, colormap, program_args
-                )
-                evaluated_results["result_app"].append(f"{app_class}, {app_pkg}, {app}")
-                evaluated_results["returning_something"] = True
-            case "ConditionList":
-                evaluated_results["strargs"].append(f"arg{str(arg)}")
-                evaluated_results["streval"].append(argeval)
-                final_conditions = ""
-                condition_list, boolean_list = process_condition_list(code_action)
-                # Go through all conditions
-                for numx, condition in enumerate(condition_list):
-                    final_conditions = (
-                        f"{final_conditions} {condition[0]}{condition[1]}{condition[2]}"
-                    )
-                    if boolean_list and len(boolean_list) > numx:
-                        final_conditions = f"{final_conditions} {boolean_list[numx]} "
-                evaluated_results["result_con"].append(final_conditions)
-                evaluated_results["returning_something"] = True
-            case "Img":
-                image, package = "", ""
-                child = code_action.find("Img")
-                if child.find("nme") is not None:
-                    image = child.find("nme").text
-                if child.find("pkg") is not None:
-                    package = ", Package:" + child.find("pkg").text
-                elif child.find("var") is not None:  # There is a variable name?
-                    image = child.find("var").text
-                if image:
-                    evaluated_results["result_img"].append(argeval + image + package)
-                    evaluated_results["returning_something"] = True
-                else:
-                    evaluated_results["result_img"].append(" ")
-            case "Bundle":  # It's a plugin
-                child1 = code_action.find("Bundle")
-                child2 = child1.find("Vals")
-                child3 = child2.find(
-                    "com.twofortyfouram.locale.intent.extra.BLURB"
-                )  # 2:40 am...funny!
-                if child3 is not None and child3.text is not None:
-                    # Get rid of extraneous html in Action's label
-                    clean_string = child3.text.replace("</font><br><br>", "<br><br>")
-                    clean_string = clean_string.replace("&lt;", "<")
-                    clean_string = clean_string.replace("&gt;", ">")
-                    evaluated_results["result_bun"].append(clean_string)
-                    evaluated_results["returning_something"] = True
-            case _:
-                logger.debug(
-                    "get_action_results:" + " unknown argtype:" + argtype + "!!!!!"
-                )
+        evaluated_results = get_action_arguments(
+            evaluated_results,
+            arg,
+            argeval,
+            argtype,
+            code_action,
+            action_type,
+            colormap,
+            program_args,
+        )
 
     return evaluated_results

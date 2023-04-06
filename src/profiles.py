@@ -15,10 +15,11 @@ import xml.etree.ElementTree  # Need for type hints
 
 import maptasker.src.condition as condition
 import maptasker.src.tasks as tasks
-from maptasker.src.kidapp import get_kid_app
+
+# from maptasker.src.kidapp import get_kid_app
 from maptasker.src.outputl import my_output
 from maptasker.src.outputl import refresh_our_output
-from maptasker.src.priority import get_priority
+
 from maptasker.src.share import share
 from maptasker.src.sysconst import NO_PROFILE
 
@@ -73,24 +74,28 @@ def build_profile_line(
 ) -> tuple:
     # Set up html to use
     profile_color_html = (
-        '<span style = "color:'
+        '<span style="color:'
         + colormap["profile_color"]
-        + '"</span>'
         + program_args["font_to_use"]
+        + "></span>"
     )
     disabled_profile_html = (
-        ' <span style = "color:'
+        '<span style="color:'
         + colormap["disabled_profile_color"]
-        + '"</span>[DISABLED] '
+        + program_args["font_to_use"]
+        + '>[DISABLED]</span>'
     )
     launcher_task_html = (
-        ' <span style = "color:'
+        '  style="color:'
         + colormap["launcher_task_color"]
-        + '"</span>[Launcher Task] '
+        + '"[Launcher Task]'
         + profile_color_html
     )
     condition_color_html = (
-        ' <span style = "color:' + colormap["profile_condition_color"] + '"</span>'
+        '<span style="color:'
+        + colormap["profile_condition_color"]
+        + program_args["font_to_use"]
+        + '>'
     )
     profile_condition = ""
 
@@ -105,11 +110,22 @@ def build_profile_line(
     )  # Is there a Launcher Task with this Project?
     launcher = launcher_task_html if launcher_xml is not None else ""
 
-    # See if there is a Kid app and/or Priority
-    kid_app_info = ''
-    if program_args["display_detail_level"] == 3:
-        kid_app_info = get_kid_app(profile)
-        priority = get_priority(profile, False)
+    # See if there is a Kid app and/or Priority (FOR FUTURE USE)
+    # kid_app_info = ''
+    # if program_args["display_detail_level"] == 3:
+    #     kid_app_info = get_kid_app(profile)
+    #     priority = get_priority(profile, False)
+
+    # Display flags for debug mode
+    flags = ""
+    if program_args["debug"]:
+        flags = profile.find("flags")
+        if flags is not None:
+            flags = (
+                f' <span style="color:GreenYellow{program_args["font_to_use"]}>flags:'
+                f' {flags.text}</span><span'
+                f' style="color:Red{program_args["font_to_use"]}>'
+            )
 
     # Check for Profile 'conditions'
     profile_name = ""
@@ -119,8 +135,8 @@ def build_profile_line(
         )  # Get the Profile's condition
         if profile_condition:
             profile_name = (
-                f"{condition_color_html} ({profile_condition})"
-                f" {profile_name}{launcher}{disabled}"
+                f"{condition_color_html} ({profile_condition})</span>"
+                f" {profile_name}{launcher}{disabled} {flags}</span>"
             )
 
     # Start formulating the Profile output line
@@ -131,21 +147,15 @@ def build_profile_line(
             profile_condition = condition.parse_profile_condition(
                 profile, colormap, program_args
             )  # Get the Profile's condition
-            if profile_condition:
-                profile_name = (
-                    NO_PROFILE
-                    + condition_color_html
-                    + " ("
-                    + profile_condition
-                    + ") "
-                    + profile_color_html
-                    + launcher
-                    + disabled
-                )
-            else:
-                profile_name = profile_name + NO_PROFILE + launcher + disabled
+            profile_name = (
+                f"{NO_PROFILE}</span>{condition_color_html} ({profile_condition})</span>"
+                f" {profile_color_html}{launcher}{disabled}{flags}"
+                if profile_condition
+                else profile_name + NO_PROFILE + launcher + disabled
+            )
         else:
             profile_name = profile_name + NO_PROFILE + launcher + disabled
+
     if program_args["debug"]:
         profile_id = profile.find("id").text
         profile_name = f"{profile_name} ID:{profile_id}"
@@ -155,7 +165,7 @@ def build_profile_line(
         program_args,
         output_list,
         2,
-        f"{profile_color_html}Profile: {profile_name}",
+        f"Profile: {profile_name}",
     )
     return limit, launcher, profile_condition, profile_name
 
@@ -250,6 +260,7 @@ def process_profiles(
             program_args,
             all_tasker_items,
             found_items,
+            True,
         )
 
         # Get out if doing a specific Task, and it was found

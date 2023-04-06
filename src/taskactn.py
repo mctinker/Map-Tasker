@@ -32,10 +32,11 @@ def get_task_actions_and_output(
     colormap: dict,
     all_tasks: dict,
 ) -> None:
-    # If Unknown task, then 'the_task' is not valid, and we have to find it.
+    # If Unknown task or displaying more detail, then 'the_task' is not valid, and we have to find it.
     if UNKNOWN_TASK_NAME in the_item or program_args["display_detail_level"] > 0:
         # Get the Task ID so that we can get the Task xml element
-        temp_id = 'x' if "⎯Task:" in list_type else the_item.split("Task ID: ")
+        # "--Task:" denotes a Task in a Scene
+        temp_id = 'x' if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
         # Get the Task xml element
         if len(temp_id) > 1:
             temp_id[1] = temp_id[1].split(' ', 1)[0]  # ID = 1st word of temp_id[1]
@@ -52,6 +53,10 @@ def get_task_actions_and_output(
                 output_list_of_actions(
                     colormap, program_args, output_list, action_count, alist, the_item
                 )
+                # End list if Scene Task
+                if "&#45;&#45;Task:" in list_type:
+                    my_output(colormap, program_args, output_list, 3, "")
+                    my_output(colormap, program_args, output_list, 3, "")
         else:
             error_msg = 'Error: No Task found!!!'
             logger.debug(error_msg)
@@ -95,7 +100,7 @@ def output_list_of_actions(
                     program_args,
                     output_list,
                     2,
-                    f"Action: {str(action_count).zfill(2)} {taction}",
+                    f"Action: {str(action_count).zfill(2)} </span>{taction}",
                 )
                 action_count += 1
             if (

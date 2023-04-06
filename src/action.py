@@ -2,7 +2,7 @@
 
 # ########################################################################################## #
 #                                                                                            #
-# action: Task Action functions for MapTasker                                                #
+# action: Find Task's Action arguments (<argn>) and return as sorted list                    #
 #                                                                                            #
 # Permissions of this strong copyleft license are conditioned on making available            #
 # complete source code of licensed works and modifications, which include larger works       #
@@ -11,12 +11,11 @@
 #                                                                                            #
 # ########################################################################################## #
 
-import maptasker.src.shellsort as shell_sort
-from maptasker.src.sysconst import logger
-import re
 import sys
 
-pattern = re.compile(r"<.*?>")
+from maptasker.src.shellsort import shell_sort
+from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import FONT_TO_USE
 
 
 # #######################################################################################
@@ -202,85 +201,14 @@ def process_xml_list(names, arg_location, the_int_value, match_results, argument
 
 
 # ####################################################################################################
-#  Given an action code (xml), find Int (integer) args and match with names
-#  Example:
-#  3 Ints with arg0, arg1 and arg2, to be filled in with their matching name0, name1 and name2 + the associated text
-#  action = xml element for Action <code>
-#  arguments = list of Int arguments to look for (e.g. arg1,arg5,arg9)
-#  names = list of entries to substitute the argn value against.
-#    ...It can be a list, which signifies a pull-down list of options to map against:
-#         [ preceding_text1, value1, evaluated_text1, preceding_text2, value2, evaluated_text2, ...]
-#         ['', 'e', 'name'] > Test for '1' and plug in 'name' if '1'
-#         ['some_text', 'l', lookup_code] > use lookup_values dictionary to translate code and plug in value
-# ####################################################################################################
-def get_xml_int_argument_to_value(action, arguments, names):
-    match_results = []
-
-    for child in action:
-        if child.tag == "Int":
-            the_arg = child.attrib.get("sr")
-            for arg in arguments:
-                if arg == the_arg:
-                    arg_location = arguments.index(arg)
-                    the_int_value = ""
-                    if child.attrib.get("val") is not None:
-                        the_int_value = child.attrib.get(
-                            "val"
-                        )  # There a numeric value as a string?
-                    elif child.find("var") is not None:  # There is a variable name?
-                        the_int_value = child.find("var").text
-                    if the_int_value:  # If we have an integer or variable name
-                        # List of options for this Int?
-                        if type(names[arg_location]) is list:
-                            process_xml_list(
-                                names,
-                                arg_location,
-                                the_int_value,
-                                match_results,
-                                arguments,
-                            )
-                        else:  # Not a list
-                            match_results.append(
-                                names[arg_location] + the_int_value
-                            )  # Just grab the integer value
-                        break  # Get out of arg loop and get next child
-                    else:
-                        match_results.append(
-                            ""
-                        )  # No Integer value or variable found...return empty
-
-    return drop_trailing_comma(match_results)
-
-
-# ####################################################################################################
-#  Given an action code (xml), find Str (string) args and match with names
-#  Example:
-#  3 Strs with arg0, arg1 and arg2, to be filled in with their matching name0, name1 and name2 + the associated text
-# ####################################################################################################
-def get_xml_str_argument_to_value(action, arguments, names) -> list:
-    match_results = []
-    for child in action:
-        if child.tag == "Str":
-            the_arg = child.attrib.get("sr")
-            for arg in arguments:
-                if arg == the_arg:
-                    arg_location = arguments.index(arg)
-                    if child.text is not None:
-                        match_results.append(names[arg_location] + child.text + ", ")
-                    else:
-                        match_results.append("")
-                    break  # We have what we want.  Go to next child
-    return drop_trailing_comma(match_results)
-
-
-# ####################################################################################################
 # Get Task's label, disabled flag and any conditions
 # ####################################################################################################
 def get_label_disabled_condition(child, colormap):
     disabled_action_html = (
-        ' <span style = "color:'
+        ' </span><span style="color:'
         + colormap["disabled_action_color"]
-        + '"</span>[DISABLED]'
+        + FONT_TO_USE
+        + '>[DISABLED]</span>'
     )
 
     task_label = ""
@@ -306,8 +234,8 @@ def get_label_disabled_condition(child, colormap):
                 if condition_count != 0:
                     boolean_to_inject = f"{booleans[condition_count - 1].upper()} "
                 task_conditions = (
-                    f'{task_conditions} <span style ='
-                    f' "color:{colormap["action_condition_color"]}"</span>'
+                    f'{task_conditions} <span style='
+                    f' "color:{colormap["action_condition_color"]}"></span>'
                     f' ({boolean_to_inject}condition:  If {string1}{operator}{string2})'
                 )
                 condition_count += 1
@@ -334,11 +262,11 @@ def clean_label(lbl, colormap):
     ):  # Make sure we end with the same number combination of <font> and </font>
         end_font_count = lbl.count("/font")
         if font_count > end_font_count:
-            lbl = f'{lbl}<font "color:{colormap["action_label_color"]}"</font>'
+            lbl = f'{lbl}<span style="color:{colormap["action_label_color"]}"'
 
     return (
-        f' <span style = "color:{colormap["action_label_color"]}"</span>...with label:'
-        f' {lbl}'
+        f' <span style="color:{colormap["action_label_color"]}">...with label:'
+        f' {lbl}</span></b>'
     )
 
 
@@ -372,7 +300,8 @@ def get_extra_stuff(code_action, action_type, colormap, program_args):
         program_args["debug"] and action_type
     ):  # Add the code if this is an Action and in debug mode
         extra_stuff = (
-            f'{extra_stuff}<span style="color:Red"</span>&nbsp;&nbsp;code:'
+            f'{extra_stuff}</span><span'
+            f' style="color:Red{program_args["font_to_use"]}>&nbsp;&nbsp;code:'
             + code_action.find("code").text
             + "-"
         )
