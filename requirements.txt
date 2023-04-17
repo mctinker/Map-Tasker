@@ -1,5 +1,5 @@
 CTkColorPicker==0.3.0
 customtkinter==5.1.2
 darkdetect==0.8.0
-maptasker==1.3.0
+defusedxml==0.7.1
 Pillow==9.4.0

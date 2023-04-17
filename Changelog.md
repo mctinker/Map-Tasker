@@ -1,16 +1,23 @@
 MapTasker Change log
-## [1.3.2] - 2023-04-06: Maintenance Only
-### Added: Include Map-Tasker version in output title
-### Changed: default color for Profile conditions
-### Changed: eliminated colors in config.py...redundant
-### Fixed: Bypass extra Task information if "Task not called by Profile" section
-### Fixed: cleaned up improperly formatted output due to spurious HTML tag
-### Fixed: incorrectly formatted HTML
-### Fixed: Improved Taskernet description formatting
-### Fixed: Spacing on indented If/For segments
-### Added: Clearly identify Projects that have no Profiles
+## [1.3.3] - 2023-04-17
+### Added: Additional error checking in GUI
+### Fixed: Settings save/restore: replace pickle with json for security purposes.  Old settings file will be converted.
+### Fixed: Changed from built-in xml.tree to defusedxml for improved security
+### Fixed: Changed exception handling to proper error types
+### Fixed: Corrected output formatting errors with improper fonts and character attributes
+### Changed: Code optimization for HTML colors and font
 
 Older History Log 
+- [1.3.2] - 2023-04-06: Maintenance Only   
+       - Added: Include Map-Tasker version in output title   
+       - Changed: default color for Profile conditions   
+       - Changed: eliminated colors in config.py...redundant   
+       - Fixed: Bypass extra Task information if "Task not called by Profile" section   
+       - Fixed: cleaned up improperly formatted output due to spurious HTML tag   
+       - Fixed: incorrectly formatted HTML  
+       - Fixed: Improved Taskernet description formatting  
+       - Fixed: Spacing on indented If/For segments   
+       - Added: Clearly identify Projects that have no Profiles   
 - [1.3.1] - 2023-03-19
        - Added: GUI Appearance mode change (Dark/Light) now reflected in output   
        - Added: new color 'cTrailingComments' for comments at end of output   
