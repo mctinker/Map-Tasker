@@ -14,8 +14,9 @@
 import sys
 
 from maptasker.src.shellsort import shell_sort
+from maptasker.src.frmthtml import format_html
+from maptasker.src.xmldata import remove_html_tags
 from maptasker.src.sysconst import logger
-from maptasker.src.sysconst import FONT_TO_USE
 
 
 # #######################################################################################
@@ -44,9 +45,11 @@ def get_args(action, ignore_list):
     if master_list:
         # Sort args by their number (e.g. arg0, arg1, arg2, ...)
         shell_sort(master_list, True, False)
+        # Now go through args and build our "type" and "arg" lists
         for child in master_list:
             type_list.append(child.tag)  # one of: 'Str' 'Int' 'Bundle' 'App'
             arg_list.append(child.attrib.get("sr"))
+        # Build list of arg position only (numeric part of argn)
         arg_nums = [
             str(ind) for ind, x in enumerate(arg_list)
         ]  # Build list of arg position only (numeric part of argn)
@@ -204,24 +207,19 @@ def process_xml_list(names, arg_location, the_int_value, match_results, argument
 # Get Task's label, disabled flag and any conditions
 # ####################################################################################################
 def get_label_disabled_condition(child, colormap):
-    disabled_action_html = (
-        ' </span><span style="color:'
-        + colormap["disabled_action_color"]
-        + FONT_TO_USE
-        + '>[DISABLED]</span>'
-    )
-
     task_label = ""
     task_conditions = ""
     the_action_code = child.find("code").text
     if child.find("label") is not None:
         lbl = child.find("label").text
-        # We have to be careful what we strip out and what we replace for the label to maintain
-        #  as much of the visual context as possible without blowing-up everything else that follows.
-        if lbl not in ["", "\n"]:
-            task_label = clean_label(lbl, colormap)
+        # Make sure the label doesn't have any HTML crap in it
+        task_label = clean_label(lbl, colormap)
 
-    action_disabled = disabled_action_html if child.find("on") is not None else ""
+    action_disabled = (
+        format_html(colormap, "disabled_action_color", "", " [DISABLED]", True)
+        if child.find("on") is not None
+        else ""
+    )
     if child.find("ConditionList") is not None:  # If condition on Action?
         condition_count = 0
         boolean_to_inject = ""
@@ -233,10 +231,16 @@ def get_label_disabled_condition(child, colormap):
                 string1, operator, string2 = evaluate_condition(children)
                 if condition_count != 0:
                     boolean_to_inject = f"{booleans[condition_count - 1].upper()} "
-                task_conditions = (
-                    f'{task_conditions} <span style='
-                    f' "color:{colormap["action_condition_color"]}"></span>'
-                    f' ({boolean_to_inject}condition:  If {string1}{operator}{string2})'
+                task_conditions = format_html(
+                    colormap,
+                    "action_condition_color",
+                    "",
+                    (
+                        f' ({boolean_to_inject}condition:  '
+                        f'If {string1}{operator}'
+                        f'{string2})'
+                    ),
+                    True,
                 )
                 condition_count += 1
         if the_action_code == "35":  # Wait Until?
@@ -252,21 +256,10 @@ def get_label_disabled_condition(child, colormap):
 # ####################################################################################################
 def clean_label(lbl, colormap):
     # Look for label with <font color=...> embedded
-    lbl = lbl.replace("\n", "")
-    lbl = lbl.replace("</font>", "")
-    lbl = lbl.replace("</big>", "")
-    lbl = lbl.replace("</font></font>", "</font>")
-    font_count = lbl.count("<font")
-    if (
-        font_count > 0
-    ):  # Make sure we end with the same number combination of <font> and </font>
-        end_font_count = lbl.count("/font")
-        if font_count > end_font_count:
-            lbl = f'{lbl}<span style="color:{colormap["action_label_color"]}"'
+    lbl = remove_html_tags(lbl, "")
 
-    return (
-        f' <span style="color:{colormap["action_label_color"]}">...with label:'
-        f' {lbl}</span></b>'
+    return format_html(
+        colormap, "action_label_color", "", f" ...with label: {lbl}", True
     )
 
 
@@ -276,9 +269,8 @@ def clean_label(lbl, colormap):
 # Get the: label, whether to continue Task after error, etc.
 # ####################################################################################################
 def get_extra_stuff(code_action, action_type, colormap, program_args):
-    if (
-        action_type
-    ):  # Only get extras if this is a Task action (vs. a Profile condition)
+    # Only get extras if this is a Task action (vs. a Profile condition)
+    if action_type:
         extra_stuff = get_label_disabled_condition(
             code_action, colormap
         )  # Look for extra Task stiff: label, disabled, conditions
@@ -299,18 +291,19 @@ def get_extra_stuff(code_action, action_type, colormap, program_args):
     if (
         program_args["debug"] and action_type
     ):  # Add the code if this is an Action and in debug mode
-        extra_stuff = (
-            f'{extra_stuff}</span><span'
-            f' style="color:Red{program_args["font_to_use"]}>&nbsp;&nbsp;code:'
-            + code_action.find("code").text
-            + "-"
+        extra_stuff = format_html(
+            colormap,
+            "Yellow",
+            "",
+            f'&nbsp;&nbsp;code: {code_action.find("code").text}-',
+            False,
         )
 
     # See if Task action is to be continued after error
     child = code_action.find("se")
     if child is not None and child.text == "false":
         extra_stuff = f" [Continue Task After Error]{extra_stuff}"
-    return extra_stuff
+    return f"{extra_stuff}</span>"
 
 
 # ####################################################################################################

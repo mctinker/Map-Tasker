@@ -11,7 +11,6 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import logging
 
 # Add the following statement to your Terminal Shell configuration file (BASH, Fish, etc.
 #  to eliminate the runtime msg: DEPRECATION WARNING: The system version of Tk is deprecated and may be removed...

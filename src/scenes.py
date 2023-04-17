@@ -12,11 +12,12 @@
 # ########################################################################################## #
 import contextlib
 
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 import maptasker.src.tasks as tasks
 from maptasker.src.outputl import my_output
 from maptasker.src.xmldata import tag_in_type
 from maptasker.src.proclist import process_list
+from maptasker.src.frmthtml import format_html
 
 SCENE_TASK_TYPES = {
     "checkchangeTask": "Check Change",
@@ -47,7 +48,10 @@ SCENE_TAGS_TO_IGNORE = [
 
 
 def get_scene_elements(
-    child: xml.etree, colormap: dict, program_args: dict, output_list: list
+    child: defusedxml.ElementTree.XML,
+    colormap: dict,
+    program_args: dict,
+    output_list: list,
 ) -> None:
     """
     Go through Scene's <xxxElement> tags and output them
@@ -65,10 +69,12 @@ def get_scene_elements(
         program_args,
         output_list,
         4,
-        (
-            '<span'
-            f' style="color:{colormap["scene_color"]}{program_args["font_to_use"]}>&nbsp;&nbsp;&nbsp;Element:'
-            f' {element_type[0]} named {element_name}</span>'
+        format_html(
+            colormap,
+            "scene_color",
+            "",
+            f"&nbsp;&nbsp;&nbsp;Element: {element_type[0]} named {element_name}",
+            True,
         ),
     )
 
@@ -84,14 +90,14 @@ def process_scene(
     all_tasker_items: dict,
 ) -> None:
     """
-
-    :param my_scene: name of Scene to process
-    :param output_list: list of output lines
-    :param tasks_found: list of Tasks found so far
-    :param program_args: dictionary of runtime arguments
-    :param colormap: dictionary of colors to use
-    :param all_tasker_items: dictionary of Tasker Projects/Profiles/Tasks/Scenes
-    :return:
+    Process the Project's Scene(s), one at a time
+        :param my_scene: name of Scene to process
+        :param output_list: list of output lines
+        :param tasks_found: list of Tasks found so far
+        :param program_args: dictionary of runtime arguments
+        :param colormap: dictionary of colors to use
+        :param all_tasker_items: dictionary of Tasker Projects/Profiles/Tasks/Scenes
+        :return:
     """
     # This import statement must reside here to avoid an error
     from maptasker.src.proclist import process_list
@@ -151,11 +157,11 @@ def process_scene(
 # Go through all Scenes for Project, get their detail and output it
 # #############################################################################################
 def process_project_scenes(
-    project: xml.etree,
+    project: defusedxml.ElementTree.XML,
     colormap: dict,
     program_args: dict,
     output_list: list,
-    our_task_element: xml.etree,
+    our_task_element: defusedxml.ElementTree.XML,
     found_tasks: list,
     all_tasker_items: dict,
 ) -> None:

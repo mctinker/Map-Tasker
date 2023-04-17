@@ -12,7 +12,7 @@
 # ########################################################################################## #
 from maptasker.src.actiond import process_condition_list
 from maptasker.src.sysconst import logger
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 import maptasker.src.action as get_action
 
 
@@ -21,8 +21,8 @@ def get_action_arguments(
     arg: object,
     argeval: list,
     argtype: list,
-    code_action: xml.etree,
-    action_type: xml.etree,
+    code_action: defusedxml.ElementTree.XML,
+    action_type: defusedxml.ElementTree.XML,
     colormap: dict,
     program_args: dict,
 ) -> dict:

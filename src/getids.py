@@ -12,8 +12,8 @@
 #                                                                                            #
 # ########################################################################################## #
 from maptasker.src.outputl import my_output
-from maptasker.src.sysconst import NO_PROFILE
-import xml.etree.ElementTree  # Need for type hints
+
+import defusedxml.ElementTree  # Need for type hints
 
 
 def get_ids(
@@ -21,7 +21,7 @@ def get_ids(
     program_args: dict,
     colormap: dict,
     output_list: list,
-    project: xml.etree,
+    project: defusedxml.ElementTree.XML,
     project_name: str,
     projects_without_profiles: list,
 ) -> list:
@@ -47,7 +47,7 @@ def get_ids(
     try:
         # Get a list of the Profiles for this Project
         project_pids = project.find(ids_to_find).text
-    except Exception:  # Project has no Profiles
+    except AttributeError:  # Project has no Profiles
         if project_name not in projects_without_profiles:
             projects_without_profiles.append(project_name)
 

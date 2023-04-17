@@ -11,7 +11,7 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.condition as condition
 import maptasker.src.tasks as tasks
@@ -19,6 +19,8 @@ import maptasker.src.tasks as tasks
 # from maptasker.src.kidapp import get_kid_app
 from maptasker.src.outputl import my_output
 from maptasker.src.outputl import refresh_our_output
+from maptasker.src.frmthtml import format_html
+from maptasker.src.xmldata import remove_html_tags
 
 from maptasker.src.share import share
 from maptasker.src.sysconst import NO_PROFILE
@@ -28,13 +30,13 @@ from maptasker.src.sysconst import NO_PROFILE
 # Get a specific Profile's Tasks (maximum of two:entry and exit)
 # #######################################################################################
 def get_profile_tasks(
-    the_profile: xml.etree,
+    the_profile: defusedxml.ElementTree.XML,
     found_tasks_list: list,
     task_output_line: list,
     program_args: dict,
     all_tasks: dict,
     found_items: dict,
-) -> tuple[xml.etree, str]:
+) -> tuple[defusedxml.ElementTree.XML, str]:
     keys_we_dont_want = ["cdate", "edate", "flags", "id"]
     the_task_element, the_task_name = "", ""
 
@@ -66,38 +68,30 @@ def get_profile_tasks(
 # Get the Profile's key attributes: limit, launcher task, run conditions
 # #######################################################################################
 def build_profile_line(
-    project: xml.etree,
-    profile: xml.etree,
+    project: defusedxml.ElementTree.XML,
+    profile: defusedxml.ElementTree.XML,
     output_list: list,
     program_args: dict,
     colormap: dict,
-) -> tuple:
-    # Set up html to use
-    profile_color_html = (
-        '<span style="color:'
-        + colormap["profile_color"]
-        + program_args["font_to_use"]
-        + "></span>"
+) -> str:
+    """
+    Get the Profile's key attributes: limit, launcher task, run conditions and output it
+        :param project: the Project xml element
+        :param profile: the Profile xml element
+        :param output_list: the list of output lines built thus far
+        :param program_args: runtime arguments
+        :param colormap: colors to use in output
+        :return: Profile name
+    """
+    flags = condition_text = ""
+
+    # Set up HTML to use
+    disabled_profile_html = format_html(
+        colormap, "disabled_profile_color", "", "[DISABLED]", True
     )
-    disabled_profile_html = (
-        '<span style="color:'
-        + colormap["disabled_profile_color"]
-        + program_args["font_to_use"]
-        + '>[DISABLED]</span>'
+    launcher_task_html = format_html(
+        colormap, "launcher_task_color", "", "[Launcher Task]", True
     )
-    launcher_task_html = (
-        '  style="color:'
-        + colormap["launcher_task_color"]
-        + '"[Launcher Task]'
-        + profile_color_html
-    )
-    condition_color_html = (
-        '<span style="color:'
-        + colormap["profile_condition_color"]
-        + program_args["font_to_use"]
-        + '>'
-    )
-    profile_condition = ""
 
     # Look for disabled Profile
     limit = profile.find("limit")  # Is the Profile disabled?
@@ -105,9 +99,9 @@ def build_profile_line(
         disabled = disabled_profile_html
     else:
         disabled = ""
-    launcher_xml = project.find(
-        "ProfileVariable"
-    )  # Is there a Launcher Task with this Project?
+
+    # Is there a Launcher Task with this Project?
+    launcher_xml = project.find("ProfileVariable")
     launcher = launcher_task_html if launcher_xml is not None else ""
 
     # See if there is a Kid app and/or Priority (FOR FUTURE USE)
@@ -117,57 +111,61 @@ def build_profile_line(
     #     priority = get_priority(profile, False)
 
     # Display flags for debug mode
-    flags = ""
     if program_args["debug"]:
         flags = profile.find("flags")
         if flags is not None:
-            flags = (
-                f' <span style="color:GreenYellow{program_args["font_to_use"]}>flags:'
-                f' {flags.text}</span><span'
-                f' style="color:Red{program_args["font_to_use"]}>'
-            )
-
-    # Check for Profile 'conditions'
-    profile_name = ""
-    if program_args["display_profile_conditions"]:
-        profile_condition = condition.parse_profile_condition(
-            profile, colormap, program_args
-        )  # Get the Profile's condition
-        if profile_condition:
-            profile_name = (
-                f"{condition_color_html} ({profile_condition})</span>"
-                f" {profile_name}{launcher}{disabled} {flags}</span>"
-            )
-
-    # Start formulating the Profile output line
-    try:
-        profile_name = profile.find("nme").text + profile_name  # Get Profile's name
-    except Exception as e:  # no Profile name
-        if program_args["display_profile_conditions"]:
-            profile_condition = condition.parse_profile_condition(
-                profile, colormap, program_args
-            )  # Get the Profile's condition
-            profile_name = (
-                f"{NO_PROFILE}</span>{condition_color_html} ({profile_condition})</span>"
-                f" {profile_color_html}{launcher}{disabled}{flags}"
-                if profile_condition
-                else profile_name + NO_PROFILE + launcher + disabled
+            flags = format_html(
+                colormap, "GreenYellow", "", f" flags: {flags.text}", True
             )
         else:
-            profile_name = profile_name + NO_PROFILE + launcher + disabled
+            flags = ""
 
+    # Get the Profile's conditions
+    if program_args["display_profile_conditions"]:
+        if profile_conditions := condition.parse_profile_condition(
+            profile, colormap, program_args
+        ):
+            # Strip pre-existing HTML from conmditions, since some condition codes may be same as Actions
+            # And the Actions would have plugged in the action_color HTML
+            profile_conditions = remove_html_tags(profile_conditions, "")
+            condition_text = format_html(
+                colormap,
+                "profile_condition_color",
+                "",
+                f" ({profile_conditions})",
+                True,
+            )
+
+    # Get the Profile name
+    try:
+        the_profile_name = profile.find("nme").text  # Get Profile's name
+    except AttributeError:  # no Profile name
+        the_profile_name = NO_PROFILE
+
+    # Add html color and font for Profile name
+    profile_name = format_html(
+        colormap, "profile_color", "", f"Profile: {the_profile_name} ", True
+    )
+
+    # If we are debugging, add the Profile ID
     if program_args["debug"]:
         profile_id = profile.find("id").text
-        profile_name = f"{profile_name} ID:{profile_id}"
+        profile_name = (
+            f'{profile_name} {format_html(colormap, "Yellow", "", f"ID:{profile_id}", True)}'
+        )
+
+    # Okay, string it all together
+    profile_name = f"{profile_name} {condition_text} {launcher}{disabled} {flags}"
+
     # Output the Profile line
     my_output(
         colormap,
         program_args,
         output_list,
         2,
-        f"Profile: {profile_name}",
+        profile_name,
     )
-    return limit, launcher, profile_condition, profile_name
+    return the_profile_name
 
 
 # #######################################################################################
@@ -175,7 +173,7 @@ def build_profile_line(
 # #######################################################################################
 def process_profiles(
     output_list: list,
-    project: xml.etree,
+    project: defusedxml.ElementTree.XML,
     project_name: str,
     profile_ids: list,
     list_of_found_tasks: list,
@@ -184,7 +182,7 @@ def process_profiles(
     colormap: dict,
     all_tasker_items: dict,
     found_items: dict,
-) -> xml.etree:
+) -> defusedxml.ElementTree:
     """
     Go through Project's Profiles and output each
         :param output_list: list of each output line generated so far
@@ -213,6 +211,7 @@ def process_profiles(
                 if program_args["single_profile_name"] != profile_name:
                     continue  # Not our Profile...go to next Profile ID
                 found_items["single_profile_found"] = True
+                # Clear the output list to prepare for single Profile only
                 refresh_our_output(
                     False,
                     output_list,
@@ -222,10 +221,12 @@ def process_profiles(
                     colormap,
                     program_args,
                 )
-            except Exception as e:  # no Profile name...go to next Profile ID
+                # Start Profile list
+                my_output(colormap, program_args, output_list, 1, "")
+            except AttributeError:  # no Profile name...go to next Profile ID
                 continue
+        # Get Task xml element and name
         task_list = []  # Profile's Tasks will be filled in here
-        task_output_line = ' '
         our_task_element, our_task_name = get_profile_tasks(
             profile,
             list_of_found_tasks,
@@ -236,7 +237,7 @@ def process_profiles(
         )
 
         # Examine Profile attributes and output Profile line
-        limit, launcher, profile_condition, profile_name = build_profile_line(
+        profile_name = build_profile_line(
             project, profile, output_list, program_args, colormap
         )
 

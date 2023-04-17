@@ -11,14 +11,14 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 
-def get_kid_app(element: xml.etree) -> str:
+def get_kid_app(element: defusedxml.ElementTree) -> str:
     """
-Get any associated Kid Application info and return it
-    :param element: root element to search for <Kid>
-    :return: the Kid App info
+    Get any associated Kid Application info and return it
+        :param element: root element to search for <Kid>
+        :return: the Kid App info
     """
     kid_package = kid_version = kid_features = kid_plugins = ""
     four_spaces = "&nbsp;&nbsp;&nbsp;&nbsp;"
@@ -43,4 +43,8 @@ Get any associated Kid Application info and return it
     if kid_plugins:
         kid_plugins = f"<br>{four_spaces}Plugins:{kid_plugins[:len(kid_plugins)-2]}"
 
-    return f'<br>&nbsp;&nbsp;&nbsp;[Kid App: Package:{kid_package}, Version Name:{kid_version}, Target Android Version:{kid_target} {kid_features} {kid_plugins}]'
+    return (
+        f'<br>&nbsp;&nbsp;&nbsp;[Kid App: Package:{kid_package}, Version'
+        f' Name:{kid_version}, Target Android'
+        f' Version:{kid_target} {kid_features} {kid_plugins}]'
+    )

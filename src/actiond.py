@@ -11,7 +11,7 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 from typing import Any
 
 import maptasker.src.action as get_action
@@ -24,7 +24,7 @@ ignore_list = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
 # #######################################################################################
 # Provide the Action dictionary to the caller
 # #######################################################################################
-def get_dict() -> xml.etree.ElementTree:
+def get_dict() -> defusedxml.ElementTree:
     return action_codes
 
 
@@ -32,8 +32,8 @@ def get_dict() -> xml.etree.ElementTree:
 # Update the dictionary for the Action code
 # #######################################################################################
 def update_action_codes(
-    action: xml.etree.ElementTree, dict_code: xml.etree.ElementTree
-) -> xml.etree.ElementTree:
+    action: defusedxml.ElementTree.XML, dict_code: defusedxml.ElementTree
+) -> defusedxml.ElementTree:
     # #######################################################################################
     # Update dictionary entry for this code in the format of an output line
     # dict = { 'the_code':
@@ -57,8 +57,8 @@ def update_action_codes(
 # Build the dictionary for the Action code
 # #######################################################################################
 def build_new_action_codes(
-    action: xml.etree.ElementTree, dict_code: xml.etree.ElementTree
-) -> xml.etree.ElementTree:
+    action: defusedxml.ElementTree.XML, dict_code: defusedxml.ElementTree
+) -> defusedxml.ElementTree:
     logger.info(f"...for {dict_code}")
 
     # #######################################################################################
@@ -83,11 +83,11 @@ def build_new_action_codes(
 # adder = empty if <action>.  Else it is a Profile condition, and we need to make key unique
 # #######################################################################################
 def build_action_codes(
-    child: xml.etree.ElementTree,
-    action: xml.etree.ElementTree,
-    adder: xml.etree.ElementTree,
-    program_args: xml.etree.ElementTree,
-) -> xml.etree.ElementTree:
+    child: defusedxml.ElementTree.XML,
+    action: defusedxml.ElementTree.XML,
+    adder: defusedxml.ElementTree.XML,
+    program_args: defusedxml.ElementTree.XML,
+) -> defusedxml.ElementTree:
     #  multiplier = 10 if adder else 1
     dict_code = child.text + adder
     if (
@@ -106,8 +106,8 @@ def build_action_codes(
 # See if the display name is already in our Action dictionary.  If not, add it.
 # ####################################################################################################
 def add_name_to_action_codes(
-    dict_code: xml.etree.ElementTree, display_name: xml.etree.ElementTree
-) -> xml.etree.ElementTree:
+    dict_code: defusedxml.ElementTree.XML, display_name: defusedxml.ElementTree
+) -> defusedxml.ElementTree:
     if dict_code not in action_codes:
         build_new_action_codes("", dict_code)
     if display_name not in action_codes[dict_code]:
@@ -120,7 +120,7 @@ def add_name_to_action_codes(
 # Return the list of conditions and list of associated booleans
 # ####################################################################################################
 def process_condition_list(
-    code_action: xml.etree.ElementTree.Element,
+    code_action: defusedxml.ElementTree.XML,
 ) -> tuple[list[list[Any]], list[str]]:
     condition_list, boolean_list = [], []
     condition_list_str = code_action.find("ConditionList")

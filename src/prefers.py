@@ -16,8 +16,8 @@ import re
 from operator import itemgetter
 
 from maptasker.src.outputl import my_output
+from maptasker.src.frmthtml import format_html
 from maptasker.src.servicec import service_codes
-from maptasker.src.sysconst import FONT_TO_USE
 
 
 def process_service(
@@ -30,9 +30,7 @@ def process_service(
         :param service_value: value of the preference in <Service xml
         :param output_lines: accumulated output lines generated thus far (to append to)
     """
-    preferences_html = (
-        " <span style=\"color:" + colormap["preferences_color"] + FONT_TO_USE + '>'
-    )
+    preferences_html = format_html(colormap, "preferences_color", "", "", False)
     blank = "&nbsp;"
 
     # Get the name to display
@@ -59,12 +57,19 @@ def process_service(
             )
         service_value = package_names
 
-    # Add the output details to our list of output stuff
     output_lines.append(
         [
             service_codes[service_name]['num'],
             (
-                f"{preferences_html}{blank * 2}{output_service_name}{blank * 4}{service_value}</span>"
+                format_html(
+                    colormap,
+                    "preferences_color",
+                    "",
+                    (
+                        f"{preferences_html}{blank * 2}{output_service_name}{blank * 4}{service_value}"
+                    ),
+                    True,
+                )
             ),
         ]
     )
@@ -98,9 +103,7 @@ def get_preferences(
         "Unlisted (Perhaps Deprecated)",
     ]
     output_lines = []
-    preferences_html = (
-        ' <span style="color:' + colormap["preferences_color"] + FONT_TO_USE + '>'
-    )
+    preferences_html = format_html(colormap, "preferences_color", "", "", False)
     blank = "&nbsp;"
     first_time = True
 
@@ -111,8 +114,13 @@ def get_preferences(
         output_list,
         4,
         (
-            f"{preferences_html}Tasker Preferences"
-            " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>></span>"
+            format_html(
+                colormap,
+                "preferences_color",
+                "",
+                "Tasker Preferences >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",
+                True,
+            )
         ),
     )
 
@@ -138,9 +146,15 @@ def get_preferences(
             output_lines.append(
                 [
                     dummy_num,
-                    (
-                        f"{preferences_html}&nbsp;&nbsp;Not yet mapped:"
-                        f" {service_name}{blank * 4}type:{service_type}{blank * 4}value:{service_value}</span>"
+                    format_html(
+                        colormap,
+                        "preferences_color",
+                        "",
+                        (
+                            f"{blank * 2}Not yet"
+                            f" mapped:{service_name}{blank * 4}type:{service_type}{blank * 4}value:{service_value}"
+                        ),
+                        True,
                     ),
                 ]
             )
@@ -163,9 +177,12 @@ def get_preferences(
                     program_args,
                     output_list,
                     4,
-                    (
-                        f"<br>{preferences_html}&nbsp;Section:"
-                        f" {section_names[item[1]['section']]}</span>"
+                    format_html(
+                        colormap,
+                        "preferences_color",
+                        "",
+                        f"<br>&nbsp;Section: {section_names[item[1]['section']]}",
+                        True,
                     ),
                 )
                 current_section = item[1]["section"]

@@ -13,8 +13,7 @@
 # ########################################################################################## #
 import sys
 import maptasker.src.outputl as build_output
-
-debug_style = '<span style="color:White;font-family:Courier">'
+from maptasker.src.frmthtml import format_html
 
 
 def debug1(colormap: dict, program_args: dict, output_list: list) -> None:
@@ -29,8 +28,9 @@ def debug1(colormap: dict, program_args: dict, output_list: list) -> None:
         program_args,
         output_list,
         4,
-        f'{debug_style}sys.argv:{str(sys.argv)}</span>',
+        format_html(colormap, "White", "", f"sys.argv:{str(sys.argv)}", True),
     )
+    # )
     build_output.my_output(
         colormap,
         program_args,
@@ -44,7 +44,7 @@ def debug1(colormap: dict, program_args: dict, output_list: list) -> None:
             program_args,
             output_list,
             4,
-            f"{debug_style}{key}: {value}</span>",
+            format_html(colormap, "White", "", f"{key}: {value}", True),
         )
     build_output.my_output(
         colormap,
@@ -59,7 +59,9 @@ def debug1(colormap: dict, program_args: dict, output_list: list) -> None:
             program_args,
             output_list,
             4,
-            f"{debug_style}colormap for {key} set to {value}</span>",
+            format_html(
+                colormap, "White", "", f"colormap for {key} set to {value}", True
+            ),
         )
     build_output.my_output(
         colormap,

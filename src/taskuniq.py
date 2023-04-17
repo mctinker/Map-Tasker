@@ -15,6 +15,7 @@ from typing import List, Union
 
 import maptasker.src.outputl as build_output
 import maptasker.src.tasks as tasks
+from maptasker.src.frmthtml import format_html
 from maptasker.src.sysconst import FONT_TO_USE
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 from maptasker.src.sysconst import NO_PROJECT
@@ -38,21 +39,27 @@ def process_missing_tasks_and_profiles(
             program_args,
             output_list,
             0,
-            (
-                '<hr><span'
-                f' style="color:{colormap["trailing_comments_color"]}{FONT_TO_USE}><em>Projects'
-                ' Without Tasks...</em></span>'
+            format_html(
+                colormap,
+                "trailing_comments_color",
+                "",
+                "<hr><em>Projects Without Tasks...</em>",
+                True,
             ),
         )
+
         for item in projects_with_no_tasks:
             build_output.my_output(
                 colormap,
                 program_args,
                 output_list,
                 4,
-                (
-                    f'<span style="color:{colormap["trailing_comments_color"]}'
-                    f'{FONT_TO_USE}>Project {item} has no Tasks</span>'
+                format_html(
+                    colormap,
+                    "trailing_comments_color",
+                    "",
+                    f"Project {item} has no <em>Named</em> Tasks",
+                    True,
                 ),
             )
 
@@ -63,10 +70,12 @@ def process_missing_tasks_and_profiles(
             program_args,
             output_list,
             0,
-            (
-                '<hr><span'
-                f' style=color:{colormap["trailing_comments_color"]}{FONT_TO_USE}><em>Projects'
-                ' Without Profiles...</em>'
+            format_html(
+                colormap,
+                "trailing_comments_color",
+                "<br>",
+                "<em>Projects Without Profiles...</em>",
+                True,
             ),
         )
         for item in projects_without_profiles:
@@ -75,10 +84,12 @@ def process_missing_tasks_and_profiles(
                 program_args,
                 output_list,
                 4,
-                (
-                    '<span'
-                    f' style="color:{colormap["trailing_comments_color"]}{FONT_TO_USE}>Project'
-                    f' {item} has no Profiles'
+                format_html(
+                    colormap,
+                    "trailing_comments_color",
+                    "",
+                    f">Project {item} has no Profiles",
+                    True,
                 ),
             )
     return
@@ -132,10 +143,12 @@ def process_solo_task_with_no_profile(
             program_args,
             output_list,
             0,
-            (
-                '<span'
-                f' style="color:{colormap["trailing_comments_color"]}{program_args["font_to_use"]}>'
-                + "Tasks that are not called by any Profile...<span>"
+            format_html(
+                colormap,
+                "trailing_comments_color",
+                "",
+                "Tasks that are not called by any Profile...",
+                True,
             ),
         )
         build_output.my_output(
@@ -241,11 +254,15 @@ def process_tasks_not_called_by_profile(
                 program_args,
                 output_list,
                 0,
-                (
-                    '<span'
-                    f' style="color:{colormap["unknown_task_color"]}{program_args["font_to_use"]}>There'
-                    f' are a total of {unnamed_task_count} unnamed Tasks not associated'
-                    ' with a Profile!</span>'
+                format_html(
+                    colormap,
+                    "unknown_task_color",
+                    "",
+                    (
+                        f"There are a total of {unnamed_task_count} unnamed Tasks not"
+                        " associated with a Profile!"
+                    ),
+                    True,
                 ),
             )
 

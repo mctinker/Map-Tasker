@@ -12,10 +12,11 @@
 #                                                                                            #
 # ########################################################################################## #
 
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.actione as action_evaluate
 from maptasker.src.debug import debug1
+from maptasker.src.frmthtml import format_html
 from maptasker.src.sysconst import FONT_TO_USE
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 from maptasker.src.sysconst import debug_out
@@ -36,15 +37,36 @@ def refresh_our_output(
 ) -> None:
     output_list.clear()
 
+    # Output the heading
     my_output(colormap, program_args, output_list, 0, FONT_TO_USE + heading)
     # If debugging, put out our runtime arguments first
     if program_args["debug"]:
         debug1(colormap, program_args, output_list)
-    my_output(colormap, program_args, output_list, 1, "")  # Start Project list
-    my_output(colormap, program_args, output_list, 2, f"Project: {project_name}")
+
+    # Start the Project list (<ul>)
+    my_output(colormap, program_args, output_list, 1, "")
+    # Output the Project name as list item (<li>)
+    my_output(
+        colormap,
+        program_args,
+        output_list,
+        2,
+        format_html(colormap, "project_color", "", f"Project: {project_name}", True),
+    )
+
+    # Are we to include the Profile?
     if include_the_profile:
-        my_output(colormap, program_args, output_list, 1, "")  # Start Profile list
-        my_output(colormap, program_args, output_list, 2, f"Profile: {profile_name}")
+        # Start Profile list
+        my_output(colormap, program_args, output_list, 1, "")
+        my_output(
+            colormap,
+            program_args,
+            output_list,
+            2,
+            format_html(
+                colormap, "profile_color", "", f"Profile: {profile_name}", True
+            ),
+        )
         my_output(colormap, program_args, output_list, 1, "")  # Start Project list
     return
 
@@ -62,21 +84,21 @@ def refresh_our_output(
 def put_style(style_details: dict) -> str:
     """
     Add appropriate HTML style tags based on parameters in dictionary passed in
-        :param style_details: dictionary
+        :param style_details: True if we are to output a list (<li>), False if not
         :return: updated output line with style details added
     """
     line_with_style = ""
     if style_details["is_list"]:
         line_with_style = (
             f'<li style="color:{style_details["color1"]}"><span style="color:'
-            f'{style_details["color2"]}{style_details["font"]}>'
+            f'{style_details["color2"]}{style_details["font"]}">'
             f'{style_details["element"]}</span></li>\n'
         )
 
     elif style_details["is_taskernet"]:
         line_with_style = (
-            '<p style="margin-left:20px;margin-right:50px;"><p style="color:'
-            f'{style_details["color2"]}{FONT_TO_USE}>'
+            '<p style="margin-left:20px;margin-right:50px;color:'
+            f'{style_details["color2"]}{FONT_TO_USE}">'
             f'{style_details["element"]}</p>\n'
             f'<p style="color:{style_details["color1"]}">'
         )
@@ -89,27 +111,15 @@ def put_style(style_details: dict) -> str:
 # Generate the output string based on the input XML <code> passed in
 # Returns a formatted string for output based on the input codes
 # #############################################################################################
-def ulify_list_item(element: xml.etree, colormap: dict, font_to_use: str) -> str:
-    if element[:7] == "Project":  # Project ========================
-        return put_style(
-            style_details={
-                "is_list": True,
-                "color1": colormap['bullet_color'],
-                "color2": colormap["project_color"],
-                "font": font_to_use,
-                "element": element,
-            }
-        )
-    elif element[:7] == "Profile":  # Profile ========================
-        return put_style(
-            style_details={
-                "is_list": True,
-                "color1": colormap['bullet_color'],
-                "color2": colormap["profile_color"],
-                "font": font_to_use,
-                "element": element,
-            }
-        )
+def ulify_list_item(
+    element: defusedxml.ElementTree.XML, colormap: dict, font_to_use: str
+) -> str:
+    if (
+        f'{font_to_use}">Project:' in element or "Project has no Profiles" in element
+    ):  # Project ========================
+        return f'<li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
+    elif f'{font_to_use}">Profile:' in element:  # Profile ========================
+        return f'<li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
     elif (
         element[:5] == "Task:" or "&#45;&#45;Task:" in element
     ):  # Task or Scene's Task ========================
@@ -154,25 +164,7 @@ def ulify_list_item(element: xml.etree, colormap: dict, font_to_use: str) -> str
                 element.replace("Action: ...", "&nbsp;&nbsp;continued >>> ")
             )
             element = tmp
-        return put_style(
-            style_details={
-                "is_list": True,
-                "color1": colormap['bullet_color'],
-                "color2": colormap["action_color"],
-                "font": font_to_use,
-                "element": element,
-            }
-        )
-    elif "Label for" in element:  # Label
-        return put_style(
-            style_details={
-                "is_list": True,
-                "color1": colormap['bullet_color'],
-                "color2": colormap["action_label_color"],
-                "font": font_to_use,
-                "element": element,
-            }
-        )
+        return f'<li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
     elif "TaskerNet " in element:  # TaskerNet
         return put_style(
             style_details={
@@ -185,7 +177,7 @@ def ulify_list_item(element: xml.etree, colormap: dict, font_to_use: str) -> str
             }
         )
     else:  # Must be additional item
-        return f"<li {element}" + "</li>\n"
+        return f"<li {element}" + "</span></li>\n"
 
 
 # #############################################################################################
@@ -216,7 +208,22 @@ def ulify(element, lvl, colormap, font_to_use):
 # #############################################################################################
 # Write line of output
 # #############################################################################################
-def my_output(colormap, program_args, output_list, list_level, out_string):
+def my_output(
+    colormap: dict,
+    program_args: dict,
+    output_list: list,
+    list_level: int,
+    out_string: str,
+) -> None:
+    """
+    Add line to the list of output lines
+        :param colormap: colors to use in the output
+        :param program_args: runtime arguments
+        :param output_list: list of all output lines thus far
+        :param list_level: level we are outputting
+        :param out_string: the string to add to the output
+        :return: none
+    """
     if (
         "Task ID:" in out_string and program_args["debug"] is False
     ):  # Drop ID: nnn since we don't need it anymore

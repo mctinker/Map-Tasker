@@ -38,7 +38,7 @@ def set_color_mode(appearance_mode: str, colormap: dict) -> dict:
             "unknown_task_color": "Red",
             "scene_color": "Lime",
             "bullet_color": "White",
-            "action_name_color": "PaleGoldenrod",
+            "action_name_color": "Gold",
             "action_color": "DarkOrange",
             "action_label_color": "Magenta",
             "action_condition_color": "PapayaWhip",

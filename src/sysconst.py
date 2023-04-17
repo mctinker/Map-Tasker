@@ -12,16 +12,16 @@
 #                                                                                            #
 # ########################################################################################## #
 from maptasker.src.config import OUTPUT_FONT
-from maptasker.src.config import logging
+import logging
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 1.3.2"
+MY_VERSION = "MapTasker version 1.3.3"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
-ARGUMENTS_FILE = ".MapTasker_arguments.txt"
-FONT_TO_USE = f';font-family:{OUTPUT_FONT}"'
+ARGUMENTS_FILE = ".MapTasker_arguments.json"
+FONT_TO_USE = f';font-family:{OUTPUT_FONT}'
 NO_PROFILE = "None or unnamed!"
 
 #  List of color arguments and their names

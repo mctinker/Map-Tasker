@@ -11,7 +11,7 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.outputl import my_output
 
@@ -27,7 +27,7 @@ def process_list(
     list_type: str,
     output_list: list,
     the_list: list,
-    the_task: xml.etree,
+    the_task: defusedxml.ElementTree.XML,
     tasks_found: list,
     program_args: dict,
     colormap: dict,

@@ -11,8 +11,6 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-from maptasker.src.action import process_xml_list
-from maptasker.src.action import drop_trailing_comma
 
 
 # #######################################################################################
@@ -76,6 +74,10 @@ def tag_in_type(tag: str, flag: bool) -> bool:
 #         ['some_text', 'l', lookup_code] > use lookup_values dictionary to translate code and plug in value
 # ####################################################################################################
 def get_xml_int_argument_to_value(action, arguments, names):
+    # These imports MUST be here and not at top to avoid circular import error
+    from maptasker.src.action import process_xml_list
+    from maptasker.src.action import drop_trailing_comma
+
     match_results = []
 
     for child in action:
@@ -120,6 +122,8 @@ def get_xml_int_argument_to_value(action, arguments, names):
 #  3 Strs with arg0, arg1 and arg2, to be filled in with their matching name0, name1 and name2 + the associated text
 # ####################################################################################################
 def get_xml_str_argument_to_value(action, arguments, names) -> list:
+    from maptasker.src.action import drop_trailing_comma
+
     match_results = []
     for child in action:
         if child.tag == "Str":

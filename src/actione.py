@@ -12,16 +12,19 @@
 ######################################################################################################################
 import copy
 import re
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.actionr as action_results
-from maptasker.src.config import CONTINUE_LIMIT
+
 from maptasker.src.action import get_extra_stuff
+from maptasker.src.frmthtml import format_html
 from maptasker.src.actionc import action_codes
 from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import FONT_TO_USE
 
 pattern = re.compile(r",[, ]+")
+
+
 # pattern1 = re.compile(r'<.*?>')  # Get rid of all <something> html code
 
 
@@ -89,8 +92,8 @@ def check_for_deprecation(dict_code):
 # Given an action code, evaluate it for display
 # ####################################################################################################
 def get_action_code(
-    code_child: xml.etree.ElementTree,
-    code_action: xml.etree.ElementTree,
+    code_child: defusedxml.ElementTree.XML,
+    code_action: defusedxml.ElementTree.XML,
     action_type: bool,
     colormap: dict,
     code_type: str,
@@ -120,14 +123,10 @@ def get_action_code(
 
     else:
         # The code is in our dictionary.  Add the display name
-        the_result = (
-            '<span style="color:'
-            + colormap["action_name_color"]
-            + program_args["font_to_use"]
-            + '>'
-            + action_codes[dict_code]["display"]
-            + "</span>"
-        )  # Just get the basics for now
+        the_result = format_html(
+            colormap, "action_name_color", "", action_codes[dict_code]["display"], True
+        )
+
         if "numargs" in action_codes[dict_code]:
             numargs = action_codes[dict_code]["numargs"]
         else:
@@ -174,12 +173,13 @@ def get_action_code(
 # #############################################################################################
 # Construct Task Action output line
 # #############################################################################################
-def build_action(alist, tcode, code_element, indent, indent_amt):
+def build_action(colormap, alist, tcode, code_element, indent, indent_amt):
+    from maptasker.src.config import CONTINUE_LIMIT
+
     # Calculate total indentation to put in front of action
     count = indent
     if count != 0:
-        tcode = tcode.replace(f"{FONT_TO_USE}>", f"{FONT_TO_USE}>{indent_amt}", 1)
-        # tcode = indent_amt + tcode
+        tcode = tcode.replace(f'{FONT_TO_USE}">', f'{FONT_TO_USE}">{indent_amt}', 1)
         count = 0
     if count < 0:
         tcode = indent_amt + tcode
@@ -201,13 +201,20 @@ def build_action(alist, tcode, code_element, indent, indent_amt):
                 else:
                     alist.append(f"...{item}")
                 count += 1
-                if (
-                    count == CONTINUE_LIMIT
-                ):  # Only display up to so many continued lines
+                # Only display up to so many continued lines
+                if count == CONTINUE_LIMIT:
                     alist.append(
-                        '<span style="color:red"> ... continue limit of'
-                        f' {str(CONTINUE_LIMIT)} reached.  See "CONTINUE_LIMIT =" in'
-                        ' code for details</span>'
+                        format_html(
+                            colormap,
+                            "Red",
+                            "",
+                            (
+                                f' ... continue limit of {str(CONTINUE_LIMIT)} '
+                                'reached.  See "CONTINUE_LIMIT =" in config.py for '
+                                'details'
+                            ),
+                            True,
+                        )
                     )
                     break
     else:

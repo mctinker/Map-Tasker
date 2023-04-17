@@ -12,19 +12,19 @@
 #                                                                                            #
 # ########################################################################################## #
 
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
+import maptasker.src.tasks as tasks
+from maptasker.src.frmthtml import format_html
+from maptasker.src.getids import get_ids
+from maptasker.src.kidapp import get_kid_app
 from maptasker.src.outputl import my_output
 from maptasker.src.outputl import refresh_our_output
-from maptasker.src.profiles import process_profiles
-from maptasker.src.share import share
-from maptasker.src.kidapp import get_kid_app
 from maptasker.src.priority import get_priority
-from maptasker.src.getids import get_ids
+from maptasker.src.profiles import process_profiles
 from maptasker.src.scenes import process_project_scenes
-import maptasker.src.tasks as tasks
+from maptasker.src.share import share
 from maptasker.src.sysconst import NO_PROFILE
-from maptasker.src.sysconst import FONT_TO_USE
 
 
 # #######################################################################################
@@ -72,14 +72,11 @@ def process_projects_and_their_profiles(
     return list(dict.fromkeys(found_tasks).keys())
 
 
-def get_launcher_task(
-    project: xml.etree, colormap: dict, project_color_html: str
-) -> str:
+def get_launcher_task(project: defusedxml.ElementTree.XML, colormap: dict) -> str:
     """
     If Project has a launcher Task, get it
         :param project: xml element of Project we are processing
         :param colormap: colors to use in output
-        :param project_color_html: html to use that defines the color
         :return: information related to launcher Task
     """
     launcher_task_info = ""
@@ -87,12 +84,12 @@ def get_launcher_task(
     if share_element is not None:
         launcher_task_element = share_element.find("t")
         if launcher_task_element is not None and launcher_task_element.text is not None:
-            launcher_task_info = (
-                '</span><span style="color:'
-                + colormap["launcher_task_color"]
-                + FONT_TO_USE
-                + f'>[Launcher Task: {launcher_task_element.text}]</span> '
-                + project_color_html
+            launcher_task_info = format_html(
+                colormap,
+                "launcher_task_color",
+                "",
+                f'[Launcher Task: {launcher_task_element.text}] ',
+                True,
             )
     return launcher_task_info
 
@@ -144,7 +141,8 @@ def tasks_not_in_profiles(
             # We have to remove this Task from found Tasks since it was added by get_task_name
             found_tasks.remove(the_id)
 
-            # Only print the Task header if there are Tasks not found in any Profile, and we are not looking for a single item
+            # Only print the Task header if there are Tasks not found in any Profile, and we are not looking for a
+            # single item
             if (
                 output_the_heading
                 and task_ids
@@ -156,12 +154,15 @@ def tasks_not_in_profiles(
                     program_args,
                     output_list,
                     4,
-                    (
-                        '<br><span'
-                        f' style="color:{colormap["task_color"]};font-family:'
-                        f'{program_args["font_to_use"]}>&nbsp;&nbsp;&nbsp;The'
-                        f' following Tasks in Project {project_name} are not in any'
-                        ' Profile...</span><br>'
+                    format_html(
+                        colormap,
+                        "task_color",
+                        "",
+                        (
+                            "<br>&nbsp;&nbsp;&nbsp;The following Tasks in Project"
+                            f" {project_name} are not in any Profile...<br>"
+                        ),
+                        True,
                     ),
                 )
                 my_output(colormap, program_args, output_list, 1, "")
@@ -200,7 +201,7 @@ def tasks_not_in_profiles(
 def get_extra_and_output_project(
     program_args: dict,
     colormap: dict,
-    project: xml.etree,
+    project: defusedxml.ElementTree.XML,
     project_name: str,
     found_items: dict,
     heading: str,
@@ -225,6 +226,11 @@ def get_extra_and_output_project(
         kid_app_info = get_kid_app(project)
         priority = get_priority(project, False)
 
+    # Get the name in a format with proper HTML code wrapped around it
+    project_name_details = format_html(
+        colormap, "project_color", "", f"Project: {project_name}", True
+    )
+
     # Are we looking for a specific Project?
     if program_args["single_project_name"]:
         if project_name != program_args["single_project_name"]:
@@ -232,7 +238,13 @@ def get_extra_and_output_project(
         # We found our single Project
         found_items["single_project_found"] = True
         refresh_our_output(
-            False, output_list, project_name, "", heading, colormap, program_args
+            False,
+            output_list,
+            f"{project_name_details} {launcher_task_info}{priority}{kid_app_info}",
+            "",
+            heading,
+            colormap,
+            program_args,
         )
     else:
         my_output(
@@ -240,7 +252,7 @@ def get_extra_and_output_project(
             program_args,
             output_list,
             2,
-            f"Project: {project_name} {launcher_task_info}{priority}{kid_app_info}",
+            f"{project_name_details} {launcher_task_info}{priority}{kid_app_info}",
         )
     return False
 
@@ -254,7 +266,7 @@ def process_projects(
     heading: str,
     projects_without_profiles: list,
     found_tasks: list,
-    our_task_element: xml.etree,
+    our_task_element: defusedxml.ElementTree.XML,
     colormap: dict,
     program_args: dict,
     all_tasker_items: dict,
@@ -272,13 +284,6 @@ def process_projects(
         :param all_tasker_items: all Projects/Profiles/Tasks/Scenes
         :return: list of found Tasks
     """
-    # Set up html to use
-    project_color_html = (
-        '<span style="color:'
-        + colormap["project_color"]
-        + program_args["font_to_use"]
-        + ">"
-    )
 
     for project in all_tasker_items["all_projects"]:
         # Don't bother with another Project if we've done a single Task or Profile only
@@ -287,7 +292,7 @@ def process_projects(
         project_name = project.find("name").text
 
         # See if there is a Launcher task
-        launcher_task_info = get_launcher_task(project, colormap, project_color_html)
+        launcher_task_info = get_launcher_task(project, colormap)
 
         # Get some extra details and output the Project information
         if get_extra_and_output_project(
@@ -340,11 +345,12 @@ def process_projects(
                 program_args,
                 output_list,
                 2,
-                (
-                    '</span><span style="color:'
-                    + colormap["profile_color"]
-                    + FONT_TO_USE
-                    + '><em>Project has no Profiles</em></span>'
+                format_html(
+                    colormap,
+                    "profile_color",
+                    "",
+                    "<em>Project has no Profiles</em>",
+                    False,
                 ),
             )
         my_output(colormap, program_args, output_list, 3, "")  # Close Profile list

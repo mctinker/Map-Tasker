@@ -32,7 +32,7 @@
 
 import sys
 import webbrowser  # To be removed in Python 10.13 (2023?)
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 from os import getcwd
 from typing import List, Dict
 
@@ -44,6 +44,7 @@ from maptasker.src.caveats import display_caveats
 from maptasker.src.prefers import get_preferences
 from maptasker.src.sysconst import logger
 
+
 # import os
 # print('Path:', os.getcwd())
 # print('__file__={0:<35} | __name__={1:<25} | __package__={2:<25}'.format(__file__,__name__,str(__package__)))
@@ -53,10 +54,10 @@ from maptasker.src.sysconst import logger
 # Clean up our memory hogs
 # #######################################################################################
 def clean_up_memory(
-    tree: xml.etree.ElementTree.ElementTree,
-    root: xml.etree.ElementTree.Element,
+    tree: defusedxml.ElementTree.XML,
+    root: defusedxml.ElementTree.XML,
     output_list: List[str],
-    all_tasker_items: Dict[str, List[xml.etree.ElementTree.Element]],
+    all_tasker_items: Dict[str, List[defusedxml.ElementTree.XML]],
 ) -> None:
     """
     Clean up our memory hogs
@@ -107,6 +108,8 @@ def write_out_the_file(
                 output_line = temp
             else:
                 output_line = item
+            output_line = output_line.replace("</span></span>", "</span>")
+            output_line = output_line.replace("</p></p>", "</p>")
             out_file.write(output_line)
     logger.info("Function Exit: write_out_the_file")
     return
@@ -118,8 +121,8 @@ def write_out_the_file(
 def clean_up_and_exit(
     name: str,
     profile_or_task_name: str,
-    tree: xml.etree,
-    root: xml.etree,
+    tree: defusedxml.ElementTree.XML,
+    root: defusedxml.ElementTree.XML,
     output_list: list,
     all_tasker_items: dict,
 ) -> None:
@@ -213,7 +216,6 @@ def mapit_all() -> int:
     ) = initialize.start_up(output_list)
 
     # Development only parameters here:
-    # program_args["debug"] = True
     # program_args["display_detail_level"] = 3
     # program_args["display_profile_conditions"] = True
     # program_args['display_preferences'] = True
@@ -351,7 +353,7 @@ def mapit_all() -> int:
     my_rc = 0
     try:
         webbrowser.open(f"file://{my_output_dir}{my_file_name}", new=2)
-    except Exception as e:
+    except webbrowser.Error:
         error_msg = (
             "Error: Failed to open output in browser: your browser is not supported."
         )

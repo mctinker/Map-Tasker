@@ -11,19 +11,20 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.tasks as tasks
 from maptasker.src.outputl import my_output
 from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME
+from maptasker.src.frmthtml import format_html
 
 
 # #######################################################################################
 # For this specific Task, get its Actions and output the Task and Actions
 # #######################################################################################
 def get_task_actions_and_output(
-    the_task: xml.etree,
+    the_task: defusedxml.ElementTree.XML,
     output_list: list[str],
     program_args: dict,
     list_type: str,
@@ -73,7 +74,7 @@ def output_list_of_actions(
     output_list: list,
     action_count: int,
     alist: list,
-    the_item: xml.etree.ElementTree,
+    the_item: defusedxml.ElementTree.XML,
 ) -> None:
     """output the list of Task Actions
 
@@ -90,17 +91,32 @@ def output_list_of_actions(
     """
     for taction in alist:
         if taction is not None:
-            if "Label for" in taction:
-                my_output(colormap, program_args, output_list, 2, taction)
-            elif taction[:3] == "...":
-                my_output(colormap, program_args, output_list, 2, f"Action: {taction}")
-            else:
+            # if "Label for" in taction:
+            #     my_output(colormap, program_args, output_list, 2, taction)
+            if taction[:3] == "...":
                 my_output(
                     colormap,
                     program_args,
                     output_list,
                     2,
-                    f"Action: {str(action_count).zfill(2)} </span>{taction}",
+                    format_html(
+                        colormap, "action_color", "", f"Action: {taction}", False
+                    ),
+                )
+            else:
+                #  Output the Action count = line number of action (fill to 2 leading zeros)
+                my_output(
+                    colormap,
+                    program_args,
+                    output_list,
+                    2,
+                    format_html(
+                        colormap,
+                        "action_color",
+                        "",
+                        f"Action: {str(action_count).zfill(2)}</span> {taction}",
+                        False,
+                    ),
                 )
                 action_count += 1
             if (

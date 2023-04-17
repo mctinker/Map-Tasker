@@ -11,12 +11,14 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 # ########################################################################################## #
 import sys
-import xml.etree.ElementTree  # Need for type hints
 from collections import defaultdict
+
+import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.action as get_action
 from maptasker.src.actargs import action_args
 from maptasker.src.actionc import action_codes
+from maptasker.src.frmthtml import format_html
 from maptasker.src.sysconst import logger
 from maptasker.src.xmldata import get_xml_int_argument_to_value
 from maptasker.src.xmldata import get_xml_str_argument_to_value
@@ -70,9 +72,9 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
 # Then evaluate the data against the master dictionary of actions
 # ####################################################################################################
 def evaluate_action_args(
-    dict_code: xml.etree.ElementTree,
+    dict_code: defusedxml.ElementTree.XML,
     arg_list: list,
-    code_action: xml.etree.ElementTree,
+    code_action: defusedxml.ElementTree.XML,
     action_type: bool,
     colormap: dict,
     program_args: dict,
@@ -112,35 +114,19 @@ def evaluate_action_args(
 # ####################################################################################################
 def get_action_results(
     dict_code: str,
-    lookup_code_entry: xml.etree.ElementTree,
-    code_action: xml.etree.ElementTree,
+    lookup_code_entry: defusedxml.ElementTree.XML,
+    code_action: defusedxml.ElementTree.XML,
     action_type: bool,
-    colormap: xml.etree.ElementTree,
+    colormap: defusedxml.ElementTree.XML,
     arg_list: list[str],
     evaluate_list: list[str],
-    program_args: xml.etree.ElementTree,
+    program_args: defusedxml.ElementTree.XML,
 ) -> str:
     evaluated_results = defaultdict(
         lambda: []
     )  # Setup default dictionary as empty list
     two_blanks = "&nbsp;&nbsp;"
     result = ""
-    if "s" in dict_code or "e" in dict_code:  # Condition (State/Event)?
-        display_name_color = ""
-        display_detail_color = ""
-    else:  # We have a Task
-        display_name_color = (
-            '<span style="color:'
-            + colormap["action_name_color"]
-            + program_args["font_to_use"]
-            + '>'
-        )
-        display_detail_color = (
-            '</span><span style="color:'
-            + colormap["action_color"]
-            + program_args["font_to_use"]
-            + '>'
-        )
 
     # Save the associated data
     # action_codes[dict_code]['display'] = display_name
@@ -160,16 +146,21 @@ def get_action_results(
             evaluate_list,
             evaluated_results,
         )
-    # Evaluate the required args
 
     # If we have results from evaluation, then go put them in their appropriate order
     if evaluated_results["returning_something"]:
         result = get_results_in_arg_order(evaluated_results)
-    return (
-        display_name_color
-        + action_codes[dict_code]["display"]
-        + display_detail_color
-        + two_blanks
-        + result
-        + get_action.get_extra_stuff(code_action, action_type, colormap, program_args)
+
+    # Return the properly formatted HTML with the Action name and extra stuff
+    return format_html(
+        colormap, "action_name_color", "", action_codes[dict_code]["display"], True
+    ) + format_html(
+        colormap,
+        "action_color",
+        "",
+        (
+            f"{two_blanks}{result}</span>"
+            f"{get_action.get_extra_stuff(code_action, action_type, colormap, program_args)}"
+        ),
+        False,
     )

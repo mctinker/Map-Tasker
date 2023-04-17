@@ -63,7 +63,7 @@ def process_gui(colormap, use_gui):
     # 'Run' button hit.  Get all the input from GUI variables
     try:
         prog_args["display_detail_level"] = int(user_input.display_detail_level)
-    except Exception as e:
+    except TypeError:
         display_detail_level = 1
     # Ok, load up the arguments from the GUI
     prog_args["display_profile_conditions"] = user_input.display_profile_conditions

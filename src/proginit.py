@@ -13,38 +13,34 @@
 # ########################################################################################## #
 
 import atexit
-import contextlib
 import datetime
 import sys
 from json import dumps, loads  # For write and read counter
-from os import rename
 from pathlib import Path
 
 # importing tkinter and tkinter.ttk and all their functions and classes
 from tkinter import *
 from tkinter import messagebox
-import xml.etree.ElementTree  # Need for type hints
 
 # importing askopenfile (from class filedialog) and messagebox functions
 # from class filedialog
 from tkinter.filedialog import askopenfile
-from typing import Any, Tuple, Dict, List
-from xml.etree.ElementTree import ElementTree, Element
+from typing import Any
 
+import maptasker.src.migrate as old_to_new
 import maptasker.src.outputl as build_output
 import maptasker.src.progargs as get_args
-from maptasker.src.config import GUI
-
+from maptasker.src.frmthtml import format_html
+from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DARK_MODE
+from maptasker.src.config import GUI
 from maptasker.src.debug import debug1
-from maptasker.src.sysconst import ARGUMENTS_FILE
 from maptasker.src.sysconst import COUNTER_FILE
 from maptasker.src.sysconst import FONT_TO_USE
 from maptasker.src.sysconst import MY_VERSION
 from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import logging
 from maptasker.src.taskerd import get_the_xml_data
-from maptasker.src.colrmode import set_color_mode
 
 
 # #############################################################################################
@@ -102,7 +98,7 @@ def open_and_get_backup_xml_file(program_args: dict) -> object:
     if program_args["debug"]:
         try:
             filename = open(f"{dir_path}/backup.xml", "r")
-        except Exception:
+        except OSError:
             error_msg = (
                 f"Error: The backup.xml file was not found in {dir_path}.  Program"
                 " terminated!"
@@ -211,13 +207,17 @@ def setup(
             '<html>\n<head>\n<title>MapTasker</title>\n<body style="background-color:'
             + colormap["background_color"]
             + '">\n'
-            + '<span style="color:LawnGreen'
-            + FONT_TO_USE
-            + ">Tasker Mapping................"
-            "&nbsp;&nbsp;&nbsp;Tasker version:"
-            f" {root.attrib['tv']}"
-            "&nbsp;&nbsp;&nbsp;&nbsp;Map-Tasker version:"
-            f" {MY_VERSION}</span>"
+            + format_html(
+                colormap,
+                "LawnGreen",
+                "",
+                (
+                    "<b>Tasker Mapping................&nbsp;&nbsp;&nbsp;Tasker version:"
+                    f" {root.attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;Map-Tasker version:"
+                    f" {MY_VERSION}</b>"
+                ),
+                True,
+            )
         )
         # Start the output with heading
         build_output.my_output(colormap, program_args, output_list, 0, heading)
@@ -245,10 +245,10 @@ def start_up(output_list: list) -> tuple:
     # Get any arguments passed to program
     logger.info(f"sys.argv{str(sys.argv)}")
 
-    # Rename any old argument file to new name for clarity (one time only operation)
-    dir_path = Path.cwd()
-    with contextlib.suppress(FileNotFoundError):
-        rename(f"{dir_path}/.arguments.txt", f"{dir_path}/{ARGUMENTS_FILE}")
+    # Rename/convert any old argument file to new name/format for clarity (one time only operation)
+    old_to_new.migrate()
+
+    # Get runtime arguments
     program_args, colormap = get_args.get_program_arguments(colormap)
 
     # Setup program key elements

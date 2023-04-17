@@ -11,7 +11,7 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 import maptasker.src.actione as action_evaluate
 
 import maptasker.src.outputl as build_output
@@ -30,7 +30,9 @@ from maptasker.src.shellsort import shell_sort
 # Navigate through Task's Actions and identify each
 # Return a list of Task's actions for the given Task
 # #######################################################################################
-def get_actions(current_task: xml.etree, colormap: dict, prog_args: dict) -> list:
+def get_actions(
+    current_task: defusedxml.ElementTree.XML, colormap: dict, prog_args: dict
+) -> list:
     """
     Return a list of Task's actions for the given Task
         :param current_task: xml element of the Task we are getting actions for
@@ -42,8 +44,8 @@ def get_actions(current_task: xml.etree, colormap: dict, prog_args: dict) -> lis
 
     try:
         task_actions = current_task.findall("Action")
-    except Exception as e:
-        print(current_task)
+    except defusedxml.DefusedXmlException:
+        print("tasks.py current Task:", current_task)
         error_msg = "Error: No action found!!!"
         print(error_msg)
         logger.debug(error_msg)
@@ -82,7 +84,7 @@ def get_actions(current_task: xml.etree, colormap: dict, prog_args: dict) -> lis
                 length_indent = len(indentation_amount)
                 indentation_amount = indentation_amount[24:length_indent]
             action_evaluate.build_action(
-                tasklist, task_code, child, indentation, indentation_amount
+                colormap, tasklist, task_code, child, indentation, indentation_amount
             )
             if (
                 ">If" in task_code or ">Else" in task_code or ">For" in task_code
@@ -103,7 +105,7 @@ def get_task_name(
     task_output_lines: list,
     task_type: str,
     all_tasks: dict,
-) -> tuple[xml.etree, str]:
+) -> tuple[defusedxml.ElementTree.XML, str]:
     """
     Get the name of the task given the Task ID
         :param the_task_id: the Task's ID (e.g. '47')
@@ -151,7 +153,7 @@ def get_task_name(
 # #######################################################################################
 def get_project_for_solo_task(
     the_task_id: str, projects_with_no_tasks: list, all_projects: dict
-) -> tuple[str, xml.etree]:
+) -> tuple[str, defusedxml.ElementTree]:
     """
     Find the Project belonging to the Task id passed in
         :param the_task_id: the ID of the Task
@@ -212,7 +214,7 @@ def do_single_task(
     heading: str,
     found_items: dict,
     task_list: list,
-    our_task_element: xml.etree,
+    our_task_element: defusedxml.ElementTree.XML,
     list_of_found_tasks: list,
     all_tasker_items: dict,
     colormap: dict,
@@ -243,6 +245,7 @@ def do_single_task(
     if program_args["single_task_name"] == our_task_name:
         # We have the single Task we are looking for
         found_items["single_task_found"] = True
+
         # Clear output list
         build_output.refresh_our_output(
             True,
@@ -306,7 +309,7 @@ def do_single_task(
 def output_task(
     output_list: list,
     our_task_name: str,
-    our_task_element: xml.etree,
+    our_task_element: defusedxml.ElementTree.XML,
     task_list: list,
     project_name: str,
     profile_name: str,

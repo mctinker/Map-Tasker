@@ -11,21 +11,21 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 
-def get_priority(element: xml.etree, event: bool) -> str:
+def get_priority(element: defusedxml.ElementTree.XML, event: bool) -> str:
     """
-Get any associated priority for the Task/Profile
-    :param element: root element to search for
-    :param event: True if this is for an 'Event' condition, False if not
-    :return: the priority or none
+    Get any associated priority for the Task/Profile
+        :param element: root element to search for
+        :param event: True if this is for an 'Event' condition, False if not
+        :return: the priority or none
     """
 
     priority_element = element.find("pri")
     if priority_element is None:
         return ""
     elif event:
-        return f'Priority:{priority_element.text}'
+        return f' Priority:{priority_element.text}'
     else:
         return f'<br>&nbsp;&nbsp;&nbsp;[Priority: {priority_element.text}]'

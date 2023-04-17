@@ -1,4 +1,6 @@
 #! /usr/bin/env python3
+import defusedxml
+from defusedxml.ElementTree import parse
 
 # ########################################################################################## #
 #                                                                                            #
@@ -11,7 +13,6 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import xml.etree.ElementTree as ET  # This built-in code will parse the xml for us
 from maptasker.src.sysconst import logger
 
 
@@ -35,8 +36,8 @@ def get_the_xml_data(filename):
     logger.info("entry")
     # Import xml
     try:
-        tree = ET.parse(filename)
-    except Exception as e:
+        tree = parse(filename)
+    except defusedxml.ElementTree.ParseError:
         error_msg = f"Error parsing {filename}"
         print(error_msg)
         logger.debug(error_msg)
@@ -61,7 +62,7 @@ def get_the_xml_data(filename):
         "all_profiles": all_profiles,
         "all_scenes": all_scenes,
         "all_tasks": all_tasks,
-        "all_services": all_services
+        "all_services": all_services,
     }
     logger.info("exit")
     return tree, root, all_tasker_items

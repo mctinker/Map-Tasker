@@ -1,10 +1,8 @@
 #! /usr/bin/env python3
 
-import re
-
 # ########################################################################################## #
 #                                                                                            #
-# share: process TaskerNet 'Share" information                                               #
+# share: process TaskerNet "Share" information                                               #
 #                                                                                            #
 # GNU General Public License v3.0                                                            #
 # Permissions of this strong copyleft license are conditioned on making available            #
@@ -13,22 +11,21 @@ import re
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import xml.etree.ElementTree  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 
 from maptasker.src.outputl import my_output
-from maptasker.src.xmldata import remove_html_tags
 from maptasker.src.sysconst import FONT_TO_USE
 
 
 def share(
-    root_element: xml.etree,
+    root_element: defusedxml.ElementTree.XML,
     colormap: dict,
     program_args: dict,
     output_list: list,
 ) -> None:
     # Get the <share> element, if any
-    share_element: xml.etree = root_element.find("Share")
+    share_element: defusedxml.ElementTree = root_element.find("Share")
     if share_element is not None:
         #  We have a <Share> .  Find the description
         description_element = share_element.find("d")
@@ -48,8 +45,11 @@ def share(
 
 # Process the description <d> element
 def description_element_output(
-    description_element: str, colormap: dict, program_args: dict, output_list: list
-) -> str:
+    description_element: defusedxml.ElementTree,
+    colormap: dict,
+    program_args: dict,
+    output_list: list,
+) -> None:
     """
     We have a Taskernet description (<Share>).  Process it
         :param description_element: the xml element with the description
@@ -58,7 +58,7 @@ def description_element_output(
         :param output_list: the output lines thus far
     """
     # We need to properly format this since it has embedded stuff that screws it up
-    out_string = f"&nbsp;&nbsp;TaskerNet description: {description_element.text}"
+    out_string = f"TaskerNet description: {description_element.text}"
     indent_html = (
         '</p><p'
         f' style="margin-left:20px;margin-right:50px;color:{colormap["taskernet_color"]}{FONT_TO_USE}>'

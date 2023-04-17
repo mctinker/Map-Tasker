@@ -16,8 +16,9 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
+import contextlib
 import customtkinter
-
+from pathlib import Path
 from CTkColorPicker.ctk_color_picker import AskColor
 from maptasker.src.getputarg import save_restore_args
 from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES
@@ -459,28 +460,58 @@ class MyGui(customtkinter.CTk):
     # Process color selection
     # #######################################################################################
     def colors_event(self, color_selected_item: str):
+        warning_check = [
+            "Profile Conditions",
+            "Action Conditions",
+            "TaskerNet Information",
+            "Tasker Preferences",
+        ]
+        check_against = [
+            self.display_profile_conditions,
+            self.display_profile_conditions,
+            self.display_taskernet,
+            self.display_preferences,
+        ]
+
+        # Let's first make sure that if a color has been chosen for a display flag, that the flag is True (e.g.
+        # display this colored item)
+        with contextlib.suppress(Exception):
+            the_index = warning_check.index(color_selected_item)
+            if not check_against[the_index]:
+                the_output_message = color_selected_item.replace("Profile ", "")
+                the_output_message = the_output_message.replace("Action ", "")
+                self.display_message_box(
+                    f"Display {the_output_message} is not set to display!", False
+                )
+                return
         # Put up color picker and get the color
         pick_color = AskColor()  # Open the Color Picker
         color = pick_color.get()  # Get the color
         if color is not None:
-            row = self.color_text_row
-            self.color_lookup[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
-                color  # Add color for the selected item to our dictionary
-            )
-            self.color_labels.append(
-                customtkinter.CTkLabel(
-                    self.tabview.tab("Colors"),
-                    text=f"{color_selected_item} << color",
-                    text_color=color,
-                )
-            )
-            self.color_labels[-1].grid(
-                row=self.color_text_row, column=0, padx=0, pady=0
-            )
-            self.color_text_row += 1
             self.display_message_box(
-                f"{color_selected_item} color changed to {color}", True
+                f"{color_selected_item} color changed to {color}", False
             )
+
+            # Okay, plug in the selected color for the selected named item
+            self.extract_color_from_event(color, color_selected_item)
+
+    def extract_color_from_event(self, color, color_selected_item):
+        row = self.color_text_row
+        self.color_lookup[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
+            color  # Add color for the selected item to our dictionary
+        )
+        self.color_labels.append(
+            customtkinter.CTkLabel(
+                self.tabview.tab("Colors"),
+                text=f"{color_selected_item} << color",
+                text_color=color,
+            )
+        )
+        self.color_labels[-1].grid(row=self.color_text_row, column=0, padx=0, pady=0)
+        self.color_text_row += 1
+        self.display_message_box(
+            f"{color_selected_item} color changed to {color}", True
+        )
 
     # #######################################################################################
     # Process the 'conditions' checkbox
@@ -557,7 +588,7 @@ class MyGui(customtkinter.CTk):
                 if value:
                     message = f"{message}Task set to {value}.\n"
             case _:
-                self.display_message_box(f"Rutroh!  Undefined argument: {value}")
+                self.display_message_box(f"Rutroh!  Undefined argument: {value}", False)
         return message
 
     # #######################################################################################
@@ -570,6 +601,14 @@ class MyGui(customtkinter.CTk):
         temp_args, self.color_lookup = save_restore_args(
             False, self.color_lookup, temp_args
         )
+        # Check for errors
+        try:
+            if temp_args["msg"]:
+                self.display_message_box(temp_args["msg"], False)
+                return
+        except KeyError:  # Ignore if key not found.
+            pass
+
         # Restore progargs values
         if temp_args or self.color_lookup:
             all_messages, new_message = '', ''
@@ -614,9 +653,19 @@ class MyGui(customtkinter.CTk):
     # #######################################################################################
     def debug_checkbox_event(self):
         self.debug = self.debug_checkbox.get()
-        self.display_message_box(
-            "Debug mode requires Tasker backup file to be named: backup.xml", True
-        )
+        if self.debug:
+            if Path("backup.xml").is_file():
+                self.display_message_box("Debug mode enabled.", True)
+            else:
+                self.display_message_box(
+                    (
+                        "Debug mode requires Tasker backup file to be named:"
+                        " 'backup.xml', which is missing!"
+                    ),
+                    False,
+                )
+        else:
+            self.display_message_box("Debug mode disabled.", True)
 
     # #######################################################################################
     # The 'Run' program button has been pressed.  Set the run flag and close the GUI
