@@ -17,14 +17,9 @@
 #                                                                                            #
 # ########################################################################################## #
 
-from maptasker.src.config import GUI
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.sysconst import FONT_TO_USE
 from maptasker.src.sysconst import logger
-
-if GUI:
-    from maptasker.src.userintr import MyGui
 
 
 # #######################################################################################
@@ -52,8 +47,8 @@ def process_gui(colormap, use_gui):
         output_and_quit("Program exited. Goodbye.")
         exit()
 
-    # User has either closed the window or hit the 'Run' button
-    if not user_input.go_program:  # Window closed?
+    # User has either closed the window or hit the 'Run' or 'ReRun' button
+    if not user_input.go_program and not user_input.rerun_program:
         output_and_quit("Program cancelled be user (killed GUI)")
         exit(99)
 
@@ -64,7 +59,7 @@ def process_gui(colormap, use_gui):
     try:
         prog_args["display_detail_level"] = int(user_input.display_detail_level)
     except TypeError:
-        display_detail_level = 1
+        prog_args["display_detail_level"] = 1
     # Ok, load up the arguments from the GUI
     prog_args["display_profile_conditions"] = user_input.display_profile_conditions
     prog_args["display_preferences"] = user_input.display_preferences
@@ -81,6 +76,8 @@ def process_gui(colormap, use_gui):
 
     # Debug flag
     prog_args["debug"] = user_input.debug
+    # Save ReRun button setting
+    prog_args["rerun"] = user_input.rerun_program
 
     # Delete the GUI
     MyGui.quit(user_input)

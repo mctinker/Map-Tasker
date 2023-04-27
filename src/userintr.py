@@ -43,14 +43,15 @@ INFO_TEXT = (
     ' these settings for later use.\n\n* Restore Settings - Restore the settings from a'
     ' previously saved session.\n\n* Appearance Mode: Dark, Light, or System'
     ' default.\n\n* Reset Options: Clear everything and start anew.\n\n* Run: Run the'
-    ' program with the settings provided.\n\n* Specific Name tab: enter a single,'
-    ' specific named item to display...\n   - Project Name: enter a specific Project to'
-    ' display\n   - Profile Name: enter a specific Profile to display\n   - Task Name:'
-    ' enter a specific Task to display\n   (These three are exclusive: enter one'
-    ' only)\n\n* Colors tab: select colors for various elements of the display\n       '
-    '       (e.g. color for Projects, Profiles, Tasks, etc.)\n\n* Exit: Exit the'
-    ' program (quit).\n\nNote: You will be prompted to identify your Tasker backup file'
-    ' once\n      you hit the \'Run\' button'
+    ' program with the settings provided.\n* ReRun: Run multiple times (with different'
+    ' settings).\n\n* Specific Name tab: enter a single, specific named item to'
+    ' display...\n   - Project Name: enter a specific Project to display\n   - Profile'
+    ' Name: enter a specific Profile to display\n   - Task Name: enter a specific Task'
+    ' to display\n   (These three are exclusive: enter one only)\n\n* Colors tab:'
+    ' select colors for various elements of the display\n              (e.g. color for'
+    ' Projects, Profiles, Tasks, etc.)\n\n* Exit: Exit the program (quit).\n\nNote: You'
+    ' will be prompted to identify your Tasker backup file once\n      you hit the'
+    ' \'Run\' button'
 )
 
 
@@ -68,7 +69,7 @@ class MyGui(customtkinter.CTk):
         # configure grid layout (4x4)
         self.grid_columnconfigure(1, weight=1)
         self.grid_columnconfigure((2, 3), weight=0)
-        self.grid_rowconfigure((0), weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
         # create sidebar frame with widgets
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
@@ -182,7 +183,20 @@ class MyGui(customtkinter.CTk):
             text_color=("#0BF075", "#1AD63D"),
         )
         self.run_button.grid(
-            row=7, column=0, padx=(20, 20), pady=(20, 20), sticky="nsew"
+            row=6, column=1, padx=(200, 200), pady=(20, 20), sticky="nsew"
+        )
+
+        # 'ReRun' button definition
+        self.rerun_button = customtkinter.CTkButton(
+            master=self,
+            fg_color="#246FB6",
+            border_width=2,
+            text="ReRun",
+            command=self.rerun_program,
+            text_color=("#0BF075", "#1AD63D"),
+        )
+        self.rerun_button.grid(
+            row=7, column=1, padx=(200, 200), pady=(20, 20), sticky="nsew"
         )
 
         # 'Exit' button definition
@@ -299,8 +313,14 @@ class MyGui(customtkinter.CTk):
         self.set_defaults(True)
 
     # #######################################################################################
-    # Set the value defaults
+    # Close the window
     # #######################################################################################
+    def closing(self):
+        self.destroy()
+        print("destroyed")
+        if self.closing_event is not None:
+            self.closing_event()
+
     def set_defaults(self, first_time: bool):
         self.sidebar_detail_option.configure(values=["0", "1", "2", "3"])
         self.sidebar_detail_option.set("1")
@@ -311,7 +331,9 @@ class MyGui(customtkinter.CTk):
             self.display_taskernet
         ) = (
             self.debug
-        ) = self.clear_settings = self.reset = self.exit = self.go_program = False
+        ) = (
+            self.clear_settings
+        ) = self.reset = self.exit = self.go_program = self.rerun_program = False
         self.single_project_name = self.single_profile_name = self.single_task_name = ""
         self.color_text_row = 2
         self.appearance_mode_optionemenu.set("System")
@@ -496,7 +518,7 @@ class MyGui(customtkinter.CTk):
             self.extract_color_from_event(color, color_selected_item)
 
     def extract_color_from_event(self, color, color_selected_item):
-        row = self.color_text_row
+        # row = self.color_text_row
         self.color_lookup[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
             color  # Add color for the selected item to our dictionary
         )
@@ -602,33 +624,34 @@ class MyGui(customtkinter.CTk):
             False, self.color_lookup, temp_args
         )
         # Check for errors
-        try:
+        with contextlib.suppress(KeyError):
             if temp_args["msg"]:
                 self.display_message_box(temp_args["msg"], False)
                 return
-        except KeyError:  # Ignore if key not found.
-            pass
-
         # Restore progargs values
         if temp_args or self.color_lookup:
-            all_messages, new_message = '', ''
-            for key, value in temp_args.items():
-                if key is not None:
-                    setattr(self, key, value)
-                    if new_message := self.restore_display(key, value):
-                        all_messages = all_messages + new_message
-            # Display the restored color changes
-            inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
-            for key, value in self.color_lookup.items():
-                if key is not None:
-                    all_messages = (
-                        f"{all_messages} {inv_color_names[key]} color set to {value}\n"
-                    )
-            # Display the queue of messages
-            self.display_message_box(f"{all_messages}\nSettings restored.", True)
-
+            self.extract_settings(temp_args)
         else:  # Empty?
             self.display_message_box("No settings file found.", False)
+
+    def extract_settings(self, temp_args: dict) -> None:
+        all_messages, new_message = '', ''
+        for key, value in temp_args.items():
+            if key is not None:
+                setattr(self, key, value)
+                if new_message := self.restore_display(key, value):
+                    all_messages = all_messages + new_message
+        # Display the restored color changes
+        inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
+        for key, value in self.color_lookup.items():
+            if key is not None:
+                all_messages = (
+                    f"{all_messages} {inv_color_names[key]} color set to {value}\n"
+                )
+        # Display the queue of messages
+        self.display_message_box(f"{all_messages}\nSettings restored.", True)
+        if self.debug:
+            self.debug_checkbox_event()
 
     # #######################################################################################
     # Process the 'Reset Settings' button
@@ -672,6 +695,15 @@ class MyGui(customtkinter.CTk):
     # #######################################################################################
     def run_program(self):
         self.go_program = True
+        self.quit()
+
+    # #######################################################################################
+    # The 'ReRun' program button has been pressed.  Set the run flag and close the GUI
+    # #######################################################################################
+    def rerun_program(self):
+        self.rerun_program = True
+        # MyGui.destroy(self)
+        self.withdraw()
         self.quit()
 
     # #######################################################################################

@@ -29,6 +29,7 @@ from maptasker.src.sysconst import MY_LICENSE
 from maptasker.src.sysconst import MY_VERSION
 from maptasker.src.sysconst import TYPES_OF_COLORS
 from maptasker.src.sysconst import logger
+from maptasker.src.error import error_handler
 
 
 # #######################################################################################
@@ -106,9 +107,7 @@ def restore_arguments(prog_args: dict, colormap: dict) -> tuple:
                 case "single_task_name":
                     prog_args["single_task_name"] = value
                 case _:
-                    error_msg = "Error: Invalid argument restored!"
-                    print(error_msg)
-                    logger.debug((error_msg))
+                    error_handler("Invalid argument restored!", 0)
 
     # Map the colormap keys and values restored
     for key, value in temp_colormap.items():

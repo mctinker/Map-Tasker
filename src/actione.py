@@ -18,6 +18,7 @@ import maptasker.src.actionr as action_results
 
 from maptasker.src.action import get_extra_stuff
 from maptasker.src.frmthtml import format_html
+from maptasker.src.error import error_handler
 from maptasker.src.actionc import action_codes
 from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import FONT_TO_USE
@@ -54,24 +55,26 @@ def cleanup_the_result(results):
 # ####################################################################################################
 # For debug purposes, this searches dictionary for missing keys: 'reqargs' and 'display'
 # ####################################################################################################
-def look_for_missing_req():
+def look_for_missing_req() -> None:
+    """
+    For debug purposes, this searches dictionary for missing keys: 'reqargs' and 'display'
+        If found, the error is handled and the program exits
+    """
     flag = False
     for item in action_codes:
         entry = action_codes[item]
         numargs = entry["numargs"]
+        # Required arguments missing?  Exit with program error if so.
         if numargs > 0 and "reqargs" not in entry:
-            error_msg = f"Error: dict_code {item} missing reqargs!  numargs:{numargs}"
-            print(error_msg)
-            logger.debug(f"{error_msg}")
-            flag = True
+            error_handler(
+                f"dict_code {item} missing reqargs!  numargs:{numargs}",
+                1,
+            )
+        # Missing the entry's display name?
         if "display" not in entry:
-            error_msg = f'Error: dict_code {item} missing "display"!'
-            print(error_msg)
-            logger.debug(error_msg)
-            entry["display"] = "unmapped"
-            flag = True
-    if flag:
-        exit(99)
+            error_handler(f'dict_code {item} missing "display"!', 1)
+
+    return
 
 
 # ####################################################################################################
@@ -219,4 +222,4 @@ def build_action(colormap, alist, tcode, code_element, indent, indent_amt):
                     break
     else:
         alist.append(f"Action {code_element.text}: not yet mapped")
-    return
+    return alist

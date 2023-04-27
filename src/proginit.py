@@ -19,7 +19,7 @@ from json import dumps, loads  # For write and read counter
 from pathlib import Path
 
 # importing tkinter and tkinter.ttk and all their functions and classes
-from tkinter import *
+from tkinter import Tk
 from tkinter import messagebox
 
 # importing askopenfile (from class filedialog) and messagebox functions
@@ -36,11 +36,11 @@ from maptasker.src.config import DARK_MODE
 from maptasker.src.config import GUI
 from maptasker.src.debug import debug1
 from maptasker.src.sysconst import COUNTER_FILE
-from maptasker.src.sysconst import FONT_TO_USE
 from maptasker.src.sysconst import MY_VERSION
 from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import logging
 from maptasker.src.taskerd import get_the_xml_data
+from maptasker.src.error import error_handler
 
 
 # #############################################################################################
@@ -49,10 +49,9 @@ from maptasker.src.taskerd import get_the_xml_data
 # #############################################################################################
 def read_counter():
     """Read the program counter
-
-    Parameters: none
-
-    Returns: the count of the number of times the program has been called
+    Get the count of the number of times MapTasker has been called
+        Parameters: none
+        Returns: the count of the number of times the program has been called
 
     """
     return (
@@ -64,10 +63,9 @@ def read_counter():
 
 def write_counter():
     """Write the program counter
-
-    Parameters: none
-
-    Returns: none
+    Write out the number of times MapTasker has been called
+        Parameters: none
+        Returns: none
 
     """
     with open(COUNTER_FILE, "w") as f:
@@ -84,6 +82,11 @@ atexit.register(write_counter)
 # Return the file name for use for
 # #######################################################################################
 def open_and_get_backup_xml_file(program_args: dict) -> object:
+    """
+    Open the Tasker backup file and return the file object
+        :param program_args: runtime arguments
+        :return: Tasker backup file object
+    """
     logger.info("entry")
     file_error = False
     # Initialize tkinter
@@ -99,13 +102,18 @@ def open_and_get_backup_xml_file(program_args: dict) -> object:
         try:
             filename = open(f"{dir_path}/backup.xml", "r")
         except OSError:
-            error_msg = (
-                f"Error: The backup.xml file was not found in {dir_path}.  Program"
-                " terminated!"
+            error_handler(
+                (
+                    f"Error: The backup.xml file was not found in {dir_path}.  Program"
+                    " terminated!"
+                ),
+                3,
             )
-            logger.debug(error_msg)
-            print(error_msg)
-            exit(3)
+
+    elif program_args["file"]:
+        # We already have the file name...open it.
+        filename = open(program_args["file"], "r")
+
     else:
         try:
             filename = askopenfile(
@@ -124,6 +132,8 @@ def open_and_get_backup_xml_file(program_args: dict) -> object:
             print(cancel_message)
             logger.debug(cancel_message)
             sys.exit(6)
+    tkroot.destroy()
+    del tkroot
 
     return filename
 
@@ -143,9 +153,12 @@ def setup_colors() -> dict:
 
 
 # #############################################################################################
-# Setup logging if in debug mode
+# Setup logging
 # #############################################################################################
-def setup_logging():
+def setup_logging() -> None:
+    """
+    Set up the logging: name the file and establish the log type and format
+    """
     logging.basicConfig(
         filename="maptasker.log",
         filemode="w",
@@ -160,6 +173,11 @@ def setup_logging():
 # Log the arguments
 # ############################################################################################
 def log_startup_values(program_args: dict, colormap: dict) -> None:
+    """
+    Log the runtime arguments
+        :param program_args: runtrime arguments
+        :param colormap: colors to use in the output
+    """
     setup_logging()  # Get logging going
     logger.info(f"{MY_VERSION} {str(datetime.datetime.now())}")
     logger.info(f"sys.argv:{str(sys.argv)}")
@@ -173,21 +191,23 @@ def log_startup_values(program_args: dict, colormap: dict) -> None:
 # Program setup: initialize key elements
 # ############################################################################################
 def setup(
-    colormap: dict, program_args: dict, output_list: list
+    colormap: dict, program_args: dict, output_list: list, file_to_get: str
 ) -> tuple[Any, Any, object, Any, list, str]:
     """
     Perform basic setup
         :param colormap: colors to use for output
         :param program_args: runtime arguments
         :param output_list: lines of output generated thus far
+        :param file_to_get: file object (if file already defined, don't prompt user), or None
         :return xml tree, xml root, all Tasker Projects/Profiles/Tasks/Scenes, output lines, the heading
     """
 
-    # Prompt user for Tasker's backup.xml file location
-    if run_counter < 1 and not GUI:  # Only display message box on first run
+    program_args["file"] = file_to_get
+
+    # Only display message box if we don't yet have the file name
+    if not file_to_get and run_counter < 1 and not GUI:
         msg = "Locate the Tasker backup xml file to use to map your Tasker environment"
-        title = "MapTasker"
-        messagebox.showinfo(title, msg)
+        messagebox.showinfo("MapTasker", msg)
 
     # Open and read the file...
     filename = open_and_get_backup_xml_file(program_args)
@@ -204,9 +224,8 @@ def setup(
     else:
         # Format the output heading
         heading = (
-            '<html>\n<head>\n<title>MapTasker</title>\n<body style="background-color:'
-            + colormap["background_color"]
-            + '">\n'
+            "<html>\n<head>\n<title>MapTasker</title>\n<body"
+            f" style=\"background-color:{colormap['background_color']}\">\n"
             + format_html(
                 colormap,
                 "LawnGreen",
@@ -226,7 +245,7 @@ def setup(
     if program_args["debug"]:
         debug1(colormap, program_args, output_list)
 
-    # Start Project list
+    # Start a list (<ul>)
     build_output.my_output(colormap, program_args, output_list, 1, "")
 
     return tree, root, filename, all_tasker_items, output_list, heading
@@ -235,10 +254,12 @@ def setup(
 ##############################################################################################
 # Perform maptasker program initialization functions
 # #############################################################################################
-def start_up(output_list: list) -> tuple:
+def start_up(output_list: list, file_to_get: str) -> tuple:
     """
-    Initialize program variables
-        :type output_list: tuple[
+    Perform maptasker program initialization functions
+        :param output_list: list of output lines to add to.
+        :param file_to_get: file name (fully qualified) if previously defined
+        :return: see "return" statement
     """
     colormap = setup_colors()  # Get our map of colors
 
@@ -253,7 +274,7 @@ def start_up(output_list: list) -> tuple:
 
     # Setup program key elements
     tree, root, filename, all_tasker_items, output_list, heading = setup(
-        colormap, program_args, output_list
+        colormap, program_args, output_list, file_to_get
     )
 
     # If debug mode, log the arguments

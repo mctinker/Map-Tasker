@@ -15,9 +15,9 @@ import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.tasks as tasks
 from maptasker.src.outputl import my_output
-from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 from maptasker.src.frmthtml import format_html
+from maptasker.src.error import error_handler
 
 
 # #######################################################################################
@@ -38,12 +38,14 @@ def get_task_actions_and_output(
         # Get the Task ID so that we can get the Task xml element
         # "--Task:" denotes a Task in a Scene
         temp_id = 'x' if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
+        kaka = ""
         # Get the Task xml element
         if len(temp_id) > 1:
             temp_id[1] = temp_id[1].split(' ', 1)[0]  # ID = 1st word of temp_id[1]
             the_task, kaka = tasks.get_task_name(
                 temp_id[1], tasks_found, [temp_id[1]], "", all_tasks
             )
+
         # Get Task actions
         if the_task:
             if alist := tasks.get_actions(the_task, colormap, program_args):
@@ -59,9 +61,8 @@ def get_task_actions_and_output(
                     my_output(colormap, program_args, output_list, 3, "")
                     my_output(colormap, program_args, output_list, 3, "")
         else:
-            error_msg = 'Error: No Task found!!!'
-            logger.debug(error_msg)
-            print(error_msg)
+            error_handler('No Task found!!!', 0)
+
     return
 
 
@@ -91,8 +92,6 @@ def output_list_of_actions(
     """
     for taction in alist:
         if taction is not None:
-            # if "Label for" in taction:
-            #     my_output(colormap, program_args, output_list, 2, taction)
             if taction[:3] == "...":
                 my_output(
                     colormap,
@@ -130,5 +129,6 @@ def output_list_of_actions(
                 and UNKNOWN_TASK_NAME not in the_item
             ):
                 break
+
     my_output(colormap, program_args, output_list, 3, "")  # Close Action list
     return

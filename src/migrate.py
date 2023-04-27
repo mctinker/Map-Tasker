@@ -18,7 +18,7 @@ from os import rename
 from pathlib import Path
 
 from maptasker.src.getputarg import save_restore_args
-from maptasker.src.sysconst import logger
+from maptasker.src.error import error_handler
 
 
 # #######################################################################################
@@ -30,6 +30,7 @@ def restore_old_args(file_to_check: Path) -> tuple[dict, dict]:
         :param file_to_check: file path/object to restore
         :return: program runtime arguments and colors to use in output
     """
+    colormap = program_args = {}
 
     # Restore dictionaries
     try:
@@ -37,38 +38,60 @@ def restore_old_args(file_to_check: Path) -> tuple[dict, dict]:
             colormap = pickle.load(f)
             program_args = pickle.load(f)
     except OSError:  # no saved file
-        error_msg = (
-            "'-r' Error (Restoring Older Settings File): There are no saved items found"
-            " to migrate!"
+        colormap, program_args = process_error(
+            (
+                "'-r' Error (Restoring Older Settings File): There are no saved items"
+                " found to migrate. Prior settings lost."
+            ),
         )
-        print(error_msg)
-        logger.debug(error_msg)
-        program_args, colormap = {}, {}
+
     except _pickle.UnpicklingError:  # Format error
-        error_msg = (
-            f"'-r' Error (Restoring Older Settings File): File {file_to_check} is"
-            " corrupt. to migrate!"
+        colormap, program_args = process_error(
+            (
+                f"'-r' Error (Restoring Older Settings File): File {file_to_check} is"
+                " corrupt.  Migration ignored.  Prior settings lost."
+            ),
         )
-        print(error_msg)
-        logger.debug(error_msg)
-        program_args, colormap = {}, {}
+    except EOFError:
+        colormap, program_args = process_error(
+            (
+                f"'-r' Error (Restoring Older Settings File): File {file_to_check} is"
+                " corrupt.  Migration ignored."
+            ),
+        )
 
     f.close()
 
     return program_args, colormap
 
 
+def process_error(error_msg: str) -> tuple[dict, dict]:
+    """
+    Disspaly and log error message and reset colors and program args to empty
+        :param error_msg: error to print/log
+        :return: empty colormap and program runtime arguments
+    """
+    error_handler(error_msg, 0)
+    return {}, {}
+
+
 # #######################################################################################
 # Migrate from old filename/format to new for saved runtime arguments
 # #######################################################################################
 def migrate() -> None:
-    OLD_ARGUMENTS_FILE = ".MapTasker_arguments.txt"
-    file_to_check = Path(f"{OLD_ARGUMENTS_FILE}")
+    """
+    Migrate from old filename/format to new for saved runtime arguments
+      We have changed from using the unsecure "pickle" code to using "json"
+      to save the program arguments and colors
+        :return: nothing
+    """
+    old_arguments_file = ".MapTasker_arguments.txt"
+    file_to_check = Path(f"{old_arguments_file}")
 
     dir_path = Path.cwd()
     # If we have an old formatted argument file, convert it to new old name
     with contextlib.suppress(FileNotFoundError):
-        rename(f"{dir_path}/.arguments.txt", f"{dir_path}/{OLD_ARGUMENTS_FILE}")
+        rename(f"{dir_path}/.arguments.txt", f"{dir_path}/{old_arguments_file}")
 
     # Now, if we have the old binary file saved via pickle, convert it to JSON
     if file_to_check.is_file():

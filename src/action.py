@@ -11,12 +11,12 @@
 #                                                                                            #
 # ########################################################################################## #
 
-import sys
+import defusedxml.ElementTree
 
 from maptasker.src.shellsort import shell_sort
 from maptasker.src.frmthtml import format_html
 from maptasker.src.xmldata import remove_html_tags
-from maptasker.src.sysconst import logger
+from maptasker.src.error import error_handler
 
 
 # #######################################################################################
@@ -135,14 +135,35 @@ def evaluate_action_setting(*args):
 
 
 # ####################################################################################################
-# given a required value logic and its position, evaluate the found integer and add to match_results
+# Given a required value logic and its position, evaluate the found integer and add to match_results
 # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
 # *args is an undetermined number of lists, each consisting of 3 pairs:
 #   1: True=it is a string, False it is an integer,
 #   2: the value to test
 #   3: the value to plug in if it meets the test
 # ####################################################################################################
-def process_xml_list(names, arg_location, the_int_value, match_results, arguments):
+def process_xml_list(
+    names: list,
+    arg_location: int,
+    the_int_value: str,
+    match_results: list,
+    arguments: defusedxml.ElementTree,
+) -> None:
+    """
+    Given a required value logic and its position, evaluate the found integer and add to match_results
+    # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
+    # *args is an undetermined number of lists, each consisting of 3 pairs:
+    #   1: True=it is a string, False it is an integer,
+    #   2: the value to test
+    #   3: the value to plug in if it meets the test
+        :param names: list of entries to substitute the argn value against.
+        :param arg_location: the location of the argument in the lookup table
+        :param the_int_value: tha integer value found in the <argn> xml element
+        :param match_results: list in which to return the evaluated values
+        :param arguments: list of Int arguments to look for (e.g. arg1,arg5,arg9)
+        :return: nothing
+    """
+    # list of entries to substitute the argn value against.
     # NOTE: Do NOT move this import statement to avoid recursion
     from maptasker.src.actiont import lookup_values
 
@@ -181,25 +202,28 @@ def process_xml_list(names, arg_location, the_int_value, match_results, argument
                 evaluated_value = [lookup_values[the_list[idx]][int(the_int_value)]]
                 evaluated_value = the_list[idx - 2] + evaluated_value[0] + ", "
                 match_results.append(evaluated_value)
+            # Error: the element is not in the lookup table.  OHandle the error and exit.
             else:
-                error_msg = (
-                    f"Program error: {the_list[idx]} is not in actiont (lookup table)"
-                    f" for name:{names}"
+                error_handler(
+                    (
+                        f"{the_list[idx]} is not in actiont"
+                        f" (lookup table) for name:{names}"
+                    ),
+                    1,
                 )
-                logger.debug(error_msg)
-                print(error_msg)
-                sys.exit(1)
+            # Get out of loop
             break
         else:
-            msg = (
+            # Not a valid entry in the lookup table
+            error_handler(
                 (
                     "get_xml_int_argument_to_value failed-"
-                    f" this_element:{this_element} {arguments}"
+                    f" this_element:{this_element} {arguments} for element"
+                    f" {this_element}"
                 ),
-                names,
+                1,
             )
-            logger.debug(msg)
-            exit(8)  # Rutroh...not an even pair of elements
+
     return
 
 
@@ -210,24 +234,29 @@ def get_label_disabled_condition(child, colormap):
     task_label = ""
     task_conditions = ""
     the_action_code = child.find("code").text
+    # Get the label, if any
     if child.find("label") is not None:
         lbl = child.find("label").text
         # Make sure the label doesn't have any HTML crap in it
         task_label = clean_label(lbl, colormap)
-
+    # See if Action is disabled
     action_disabled = (
         format_html(colormap, "disabled_action_color", "", " [DISABLED]", True)
         if child.find("on") is not None
         else ""
     )
+    # Look for any conditions
     if child.find("ConditionList") is not None:  # If condition on Action?
         condition_count = 0
         boolean_to_inject = ""
         booleans = []
+        # Go through <ConditionList> sub-elements
         for children in child.find("ConditionList"):
             if "bool" in children.tag:
                 booleans.append(children.text)
+            # We have a condition and this is not an "If" condition
             elif children.tag == "Condition" and the_action_code != "37":
+                # Evaluate the condition to add to output
                 string1, operator, string2 = evaluate_condition(children)
                 if condition_count != 0:
                     boolean_to_inject = f"{booleans[condition_count - 1].upper()} "
@@ -268,12 +297,26 @@ def clean_label(lbl, colormap):
 # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
 # Get the: label, whether to continue Task after error, etc.
 # ####################################################################################################
-def get_extra_stuff(code_action, action_type, colormap, program_args):
+def get_extra_stuff(
+    code_action: defusedxml.ElementTree,
+    action_type: bool,
+    colormap: dict,
+    program_args: dict,
+) -> str:
+    """
+    # Chase after relevant data after <code> Task action
+    # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
+    # Get the: label, whether to continue Task after error, etc.
+        :param code_action: action code (e.g. "543") xml element
+        :param action_type: True if this is a Task Action, otherwise False
+        :param colormap: colors to use in output
+        :param program_args: runtime arguments
+        :return: formatted line of extra details about Task Action
+    """
     # Only get extras if this is a Task action (vs. a Profile condition)
     if action_type:
-        extra_stuff = get_label_disabled_condition(
-            code_action, colormap
-        )  # Look for extra Task stiff: label, disabled, conditions
+        # Look for extra Task stiff: label, disabled, conditions
+        extra_stuff = get_label_disabled_condition(code_action, colormap)
         if (
             "<font" in extra_stuff and "</font>" not in extra_stuff
         ):  # Make sure we terminate any fonts
@@ -295,14 +338,23 @@ def get_extra_stuff(code_action, action_type, colormap, program_args):
             colormap,
             "Yellow",
             "",
-            f'&nbsp;&nbsp;code: {code_action.find("code").text}-',
+            f'{extra_stuff}&nbsp;&nbsp;code: {code_action.find("code").text}-',
             False,
         )
 
     # See if Task action is to be continued after error
     child = code_action.find("se")
     if child is not None and child.text == "false":
-        extra_stuff = f" [Continue Task After Error]{extra_stuff}"
+        extra_stuff = (
+            format_html(
+                colormap,
+                "action_color",
+                "",
+                " [Continue Task After Error]",
+                True,
+            )
+            + f"{extra_stuff}"
+        )
     return f"{extra_stuff}</span>"
 
 

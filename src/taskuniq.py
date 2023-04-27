@@ -16,9 +16,8 @@ from typing import List, Union
 import maptasker.src.outputl as build_output
 import maptasker.src.tasks as tasks
 from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import FONT_TO_USE
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 from maptasker.src.sysconst import NO_PROJECT
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 
 
 # ###############################################################################################

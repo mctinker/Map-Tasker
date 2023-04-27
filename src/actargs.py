@@ -2,7 +2,7 @@
 
 # ########################################################################################## #
 #                                                                                            #
-# actarg: process Task "Action" arguments                                                    #
+# actargs: process Task "Action" arguments                                                   #
 #                                                                                            #
 # GNU General Public License v3.0                                                            #
 # Permissions of this strong copyleft license are conditioned on making available            #
@@ -27,16 +27,16 @@ def get_action_arguments(
     program_args: dict,
 ) -> dict:
     """
-
-    :param evaluated_results: all the Action argument "types" and "arguments"
-    :param arg: the incoming argument
-    :param argeval: the evaluation argument
-    :param argtype: the argument "type"
-    :param code_action: the Action code
-    :param action_type: the Action type
-    :param colormap: colors to use in output
-    :param program_args: runtime arguments
-    :return: dictionary of results
+    Given an <argn> element, evaluate it's contents based on our Action code dictionary (actionc.py)
+        :param evaluated_results: all the Action argument "types" and "arguments" as a dicitonary
+        :param arg: the incoming argument
+        :param argeval: the evaluation argument
+        :param argtype: the argument "type"
+        :param code_action: the Action code
+        :param action_type: the Action type
+        :param colormap: colors to use in output
+        :param program_args: runtime arguments
+        :return: dictionary of results
     """
     match argtype:
         case "Str":

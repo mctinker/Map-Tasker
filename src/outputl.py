@@ -117,9 +117,9 @@ def ulify_list_item(
     if (
         f'{font_to_use}">Project:' in element or "Project has no Profiles" in element
     ):  # Project ========================
-        return f'<li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
+        return f'<br><li style=color:{colormap["bullet_color"]}>{element}</li>\n'
     elif f'{font_to_use}">Profile:' in element:  # Profile ========================
-        return f'<li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
+        return f'<br><li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
     elif (
         element[:5] == "Task:" or "&#45;&#45;Task:" in element
     ):  # Task or Scene's Task ========================
@@ -166,16 +166,7 @@ def ulify_list_item(
             element = tmp
         return f'<li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
     elif "TaskerNet " in element:  # TaskerNet
-        return put_style(
-            style_details={
-                "is_list": False,
-                "color1": colormap['bullet_color'],
-                "color2": colormap["taskernet_color"],
-                "font": font_to_use,
-                "element": element,
-                "is_taskernet": True,
-            }
-        )
+        return f'{element}\n'
     else:  # Must be additional item
         return f"<li {element}" + "</span></li>\n"
 
@@ -216,7 +207,7 @@ def my_output(
     out_string: str,
 ) -> None:
     """
-    Add line to the list of output lines
+    Add line to the list of output lines.  The output entry is based on the list_level and the contents of the output_str
         :param colormap: colors to use in the output
         :param program_args: runtime arguments
         :param output_list: list of all output lines thus far
@@ -229,13 +220,13 @@ def my_output(
     ):  # Drop ID: nnn since we don't need it anymore
         temp_element = out_string.split("Task ID:")
         out_string = temp_element[0]
+
+    # Go configure the output based on the contents of the element and the list level
     output_list.append(
         ulify(out_string, list_level, colormap, program_args["font_to_use"])
     )
     # Log the generated output if in special debug mode
     if debug_out:
-        debug_msg = "out_string:", ulify(
-            out_string, list_level, colormap, program_args["font_to_use"]
-        )
+        debug_msg = f"out_string: {output_list[-1]}"
         logger.debug(debug_msg)
     return

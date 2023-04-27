@@ -22,6 +22,7 @@ from maptasker.src.frmthtml import format_html
 from maptasker.src.sysconst import logger
 from maptasker.src.xmldata import get_xml_int_argument_to_value
 from maptasker.src.xmldata import get_xml_str_argument_to_value
+from maptasker.src.xmldata import remove_html_tags
 
 
 # ####################################################################################################
@@ -129,7 +130,6 @@ def get_action_results(
     result = ""
 
     # Save the associated data
-    # action_codes[dict_code]['display'] = display_name
     lookup_code_entry[dict_code]["reqargs"] = arg_list
     lookup_code_entry[dict_code]["evalargs"] = evaluate_list
     # If just displaying action names or there are no action details, then just display the name
@@ -150,6 +150,10 @@ def get_action_results(
     # If we have results from evaluation, then go put them in their appropriate order
     if evaluated_results["returning_something"]:
         result = get_results_in_arg_order(evaluated_results)
+
+    # Clean up the arguments.  Replace <> so they appear properly and by remove any html
+    result = result.replace("<", "&lt;")
+    result = result.replace(">", "&gt;")
 
     # Return the properly formatted HTML with the Action name and extra stuff
     return format_html(

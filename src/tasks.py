@@ -22,6 +22,8 @@ from maptasker.src.getids import get_ids
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 from maptasker.src.sysconst import NO_PROJECT
 from maptasker.src.sysconst import logger
+from maptasker.src.error import error_handler
+from maptasker.src.frmthtml import format_html
 
 from maptasker.src.shellsort import shell_sort
 
@@ -42,14 +44,15 @@ def get_actions(
     """
     tasklist = []
 
+    # Get the Task's Actions (<Action> elements)
     try:
         task_actions = current_task.findall("Action")
     except defusedxml.DefusedXmlException:
         print("tasks.py current Task:", current_task)
-        error_msg = "Error: No action found!!!"
-        print(error_msg)
-        logger.debug(error_msg)
+        error_handler("Error: No action found!!!", 0)
         return []
+
+    # Process the Actions
     if task_actions:
         indentation_amount = ""
         indentation = 0
@@ -74,6 +77,7 @@ def get_actions(
                 + "Action attr:"
                 + str(action.attrib)
             )
+
             # Calculate the amount of indention required
             if (
                 ">End If" in task_code
@@ -83,11 +87,12 @@ def get_actions(
                 indentation -= 1
                 length_indent = len(indentation_amount)
                 indentation_amount = indentation_amount[24:length_indent]
-            action_evaluate.build_action(
+            tasklist = action_evaluate.build_action(
                 colormap, tasklist, task_code, child, indentation, indentation_amount
             )
+            #  Indent the line if this is a condition
             if (
-                ">If" in task_code or ">Else" in task_code or ">For" in task_code
+                ">If" in task_code or ">Else" in task_code or ">For<" in task_code
             ):  # Do we indent?
                 indentation += 1
                 indentation_amount = f"{indentation_amount}&nbsp;&nbsp;&nbsp;&nbsp;"
@@ -119,6 +124,7 @@ def get_task_name(
         task = all_tasks[the_task_id]
         tasks_that_have_been_found.append(the_task_id)
         extra = f"&nbsp;&nbsp;Task ID: {the_task_id}"
+        # Determine if this is an "Entry" or "Exit" Task
         try:
             task_name = task.find("nme").text
             if task_type == "Exit":
@@ -130,7 +136,7 @@ def get_task_name(
                 task_output_lines.append(
                     f"{task_name}&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task{extra}"
                 )
-        except Exception as e:
+        except AttributeError:
             task_name = UNKNOWN_TASK_NAME
             if task_type == "Exit":
                 task_output_lines.append(
@@ -297,9 +303,6 @@ def do_single_task(
                     colormap,
                     all_tasker_items,
                 )
-                # build_output.my_output(
-                #     colormap, program_args, output_list, 3, ""
-                # )  # End Task list
                 break
 
 
@@ -344,6 +347,7 @@ def output_task(
     # See if there is a Kid app and/or Priority
     if do_extra and program_args["display_detail_level"] == 3:
         if kid_app_info := get_kid_app(our_task_element):
+            kid_app_info = format_html(colormap, "task_color", "", kid_app_info, True)
             task_list[0] = f'{task_list[0]} {kid_app_info}'
         if priority := get_priority(our_task_element, False):
             task_list[0] = f'{task_list[0]} {priority}'

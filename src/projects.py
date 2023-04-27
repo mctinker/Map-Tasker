@@ -224,6 +224,10 @@ def get_extra_and_output_project(
     kid_app_info = priority = ''
     if program_args["display_detail_level"] == 3:
         kid_app_info = get_kid_app(project)
+        if kid_app_info:
+            kid_app_info = format_html(
+                colormap, "project_color", "", kid_app_info, True
+            )
         priority = get_priority(project, False)
 
     # Get the name in a format with proper HTML code wrapped around it
@@ -307,7 +311,7 @@ def process_projects(
         ):
             continue
 
-        # Process any <Share> information from TaskerNet
+        # Process any <Share> information from TaskerNet and output it
         if program_args["display_taskernet"]:
             share(project, colormap, program_args, output_list)
 
@@ -350,7 +354,7 @@ def process_projects(
                     "profile_color",
                     "",
                     "<em>Project has no Profiles</em>",
-                    False,
+                    True,
                 ),
             )
         my_output(colormap, program_args, output_list, 3, "")  # Close Profile list

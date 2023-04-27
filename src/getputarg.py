@@ -14,7 +14,7 @@
 import json
 
 from maptasker.src.sysconst import ARGUMENTS_FILE
-from maptasker.src.sysconst import logger
+from maptasker.src.error import error_handler
 from pathlib import Path
 
 
@@ -48,17 +48,20 @@ def save_restore_args(
                 f.close()
         # Handle file not found condition
         except OSError:
-            error_msg = "'-r' Error: No settings file found to restore!"
-            print(error_msg)
-            logger.debug(error_msg)
+            error_handler("'-r' MapTasker Error: No settings file found to restore!", 0)
             temp_args = colormap = {"msg": "No settings file found to restore!"}
         # Handle file format error
         except json.decoder.JSONDecodeError:  # no saved file
-            error_msg = f"'-r' Error: The settings file,  {ARGUMENTS_FILE} is corrupt!"
-            print(error_msg)
-            logger.debug(error_msg)
+            error_handler(
+                f"'-restore' option... The settings file,  {ARGUMENTS_FILE} is corrupt!"
+                "  The old settings can not be restored.  Re-save your settings."
+            )
+            # Return the error as an entry in our dictionaries for display via te GUI, if needed.
             temp_args = colormap = {
-                "msg": "The settings file is corrupt!  Re-save your settings."
+                "msg": (
+                    "The settings file is corrupt!  The old settings can not be"
+                    " restored.  Re-save your settings."
+                )
             }
 
     return temp_args, colormap

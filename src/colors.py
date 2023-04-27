@@ -14,6 +14,7 @@
 import string
 from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES
 from maptasker.src.sysconst import logger
+from maptasker.src.error import error_handler
 
 
 # #######################################################################################
@@ -244,11 +245,9 @@ def get_and_set_the_color(the_arg, colormap):
     the_color_option = the_arg[2:].split("=")
     color_type = the_color_option[0]
     if len(the_color_option) < 2:  # Do we have the second parameter?
-        handle_error(
-            f"{the_arg} has an invalid 'color'.  See the help (-ch)!", " Exit code 7", 7
-        )
+        error_handler(f"{the_arg} has an invalid 'color'.  See the help (-ch)!", 7)
     if color_type not in TYPES_OF_COLOR_NAMES:
-        handle_error(
+        error_handler(
             f"{color_type} is an invalid type for 'color'.  See the help (-h)!",
             " Exit code 7",
             7,
@@ -259,20 +258,11 @@ def get_and_set_the_color(the_arg, colormap):
         # match color_type:
         colormap[TYPES_OF_COLOR_NAMES[color_type]] = desired_color
     else:
-        error_msg = (
-            f"Invalid color specified: {desired_color} for 'c{the_color_option[0]}'!"
+        error_handler(
+            (
+                f"MapTasker...invalid color specified: {desired_color} for"
+                f" 'c{the_color_option[0]}'!"
+            ),
+            7,
         )
-        handle_error(error_msg, " exit code 7", 7)
     return
-
-
-def handle_error(error_msg: str, arg1: str, arg2: int) -> None:
-    """
-    Log and print error message, and then exit.
-        :param error_msg: message to output
-        :param arg1: exit code text
-        :param arg2: exit code number as int
-    """
-    logger.debug(f"{error_msg}{arg1}")
-    print(error_msg)
-    exit(arg2)

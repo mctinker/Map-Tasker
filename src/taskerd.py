@@ -14,6 +14,7 @@ from defusedxml.ElementTree import parse
 #                                                                                            #
 # ########################################################################################## #
 from maptasker.src.sysconst import logger
+from maptasker.src.error import error_handler
 
 
 # ###############################################################################################
@@ -38,10 +39,7 @@ def get_the_xml_data(filename):
     try:
         tree = parse(filename)
     except defusedxml.ElementTree.ParseError:
-        error_msg = f"Error parsing {filename}"
-        print(error_msg)
-        logger.debug(error_msg)
-        exit(1)
+        error_handler(f"Error parsing {filename}", 1)  # Error out and exit
 
     root = tree.getroot()
 

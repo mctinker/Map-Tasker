@@ -30,11 +30,12 @@
 #                                                                                            #
 # ########################################################################################## #
 
+import contextlib
 import sys
 import webbrowser  # To be removed in Python 10.13 (2023?)
 import defusedxml.ElementTree  # Need for type hints
 from os import getcwd
-from typing import List, Dict
+from typing import List
 
 import maptasker.src.outputl as build_output
 import maptasker.src.proginit as initialize
@@ -42,7 +43,9 @@ import maptasker.src.projects as projects
 import maptasker.src.taskuniq as special_tasks
 from maptasker.src.caveats import display_caveats
 from maptasker.src.prefers import get_preferences
+from maptasker.src.error import error_handler
 from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import debug_out
 
 
 # import os
@@ -57,7 +60,7 @@ def clean_up_memory(
     tree: defusedxml.ElementTree.XML,
     root: defusedxml.ElementTree.XML,
     output_list: List[str],
-    all_tasker_items: Dict[str, List[defusedxml.ElementTree.XML]],
+    all_tasker_items: dict[str, List[defusedxml.ElementTree.XML]],
 ) -> None:
     """
     Clean up our memory hogs
@@ -93,7 +96,20 @@ def write_out_the_file(
     """
     logger.info(f"Function Entry: write_out_the_file dir:{my_output_dir}")
     with open(my_output_dir + my_file_name, "w") as out_file:
-        for item in output_list:
+        for num, item in enumerate(output_list):
+            # Make sure we don't have three </ul>'s in a row
+            item.rstrip()  # Get rid of trailing blanks
+            if (
+                num > 3
+                and item[:5] == "</ul>"
+                and (
+                    output_list[num - 1][:5] == "</ul>"
+                    and output_list[num - 2][:5] == "</ul>"
+                    and output_list[num + 1][:4] == "<br>"
+                )
+            ):
+                continue
+
             # Change "Action: nn ..." to Action nn: ..." (i.e. move the colon)
             action_position = item.find("Action: ")
             if action_position != -1:
@@ -108,9 +124,13 @@ def write_out_the_file(
                 output_line = temp
             else:
                 output_line = item
+            # Get rid of extraneous html code that somehow got in to the output
             output_line = output_line.replace("</span></span>", "</span>")
             output_line = output_line.replace("</p></p>", "</p>")
+            # Write the actual final line out as html
             out_file.write(output_line)
+            if debug_out:
+                logger.debug(f"kaka:{output_line}")
     logger.info("Function Exit: write_out_the_file")
     return
 
@@ -138,9 +158,7 @@ def clean_up_and_exit(
     """
 
     output_list.clear()
-    error_message = f"{name} {profile_or_task_name} not found!!"
-    print(error_message)
-    logger.debug(error_message)
+    error_handler(f"{name} {profile_or_task_name} not found!!", 0)
     clean_up_memory(tree, root, output_list, all_tasker_items)
     sys.exit(5)
 
@@ -193,7 +211,12 @@ def clean_up_and_exit(
 '''
 
 
-def mapit_all() -> int:
+def mapit_all(file_to_get: str) -> int:
+    """
+    The primary code starts here
+        :param file_to_get: file name of input backup.xml file or none
+        :return: return code (zero or error code)
+    """
     # Initialize local variables and other stuff
     found_tasks, output_list, projects_without_profiles, projects_with_no_tasks = (
         [],
@@ -213,7 +236,7 @@ def mapit_all() -> int:
         root,
         filename,
         all_tasker_items,
-    ) = initialize.start_up(output_list)
+    ) = initialize.start_up(output_list, file_to_get)
 
     # Development only parameters here:
     # program_args["display_detail_level"] = 3
@@ -335,9 +358,7 @@ def mapit_all() -> int:
     my_output_dir = getcwd()
     logger.debug(f"output directory:{my_output_dir}")
     if my_output_dir is None:
-        error_msg = "MapTasker cancelled.  An error occurred.  Program cancelled."
-        logger.debug(error_msg)
-        print(error_msg)
+        error_handler("MapTasker cancelled.  An error occurred.  Program cancelled.", 0)
         clean_up_memory(tree, root, output_list, all_tasker_items)
         sys.exit(2)
 
@@ -350,15 +371,17 @@ def mapit_all() -> int:
 
     # Display final output
     logger.debug("MapTasker program ended normally")
-    my_rc = 0
     try:
         webbrowser.open(f"file://{my_output_dir}{my_file_name}", new=2)
     except webbrowser.Error:
-        error_msg = (
-            "Error: Failed to open output in browser: your browser is not supported."
+        error_handler(
+            "Error: Failed to open output in browser: your browser is not supported.", 1
         )
-        print(error_msg)
-        logger.debug(error_msg)
-        my_rc = 1
+
     print("You can find 'MapTasker.html' in the current folder.  Program end.")
-    return my_rc
+
+    # If in ReRun mode, let's do it all again :o)
+    with contextlib.suppress(KeyError):
+        if program_args["rerun"]:
+            mapit_all(filename.name)
+    return 0

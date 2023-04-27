@@ -2,7 +2,7 @@
 
 # ########################################################################################## #
 #                                                                                            #
-# priority: Get Profile/Task priority                                                        #
+# Error: Process Errors                                                                      #
 #                                                                                            #
 # GNU General Public License v3.0                                                            #
 # Permissions of this strong copyleft license are conditioned on making available            #
@@ -11,21 +11,21 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import defusedxml.ElementTree  # Need for type hints
+from maptasker.src.sysconst import logger
 
 
-def get_priority(element: defusedxml.ElementTree.XML, event: bool) -> str:
+def error_handler(error_message: str, exit_code: int) -> None:
     """
-    Get any associated priority for the Task/Profile
-        :param element: root element to search for
-        :param event: True if this is for an 'Event' condition, False if not
-        :return: the priority or none
+    Error handler: print and log the error.  Exit with error code if provided
+        :param error_message:
+        :param exit_code:
     """
+    # Add our heading to more easily identify the problem
+    final_error_message = f"MapTasker error: {error_message}"
 
-    priority_element = element.find("pri")
-    if priority_element is None:
-        return ""
-    elif event:
-        return f' Priority:{priority_element.text}'
-    else:
-        return f'&nbsp;&nbsp;&nbsp;[Priority: {priority_element.text}]'
+    # Print it out for the user
+    print(final_error_message)
+    # Log it as well
+    logger.debug(final_error_message)
+    if exit_code > 0:
+        exit(exit_code)
