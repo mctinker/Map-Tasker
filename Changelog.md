@@ -1,13 +1,21 @@
 MapTasker Change log
-## [1.3.3] - 2023-04-17
-### Added: Additional error checking in GUI
-### Fixed: Settings save/restore: replace pickle with json for security purposes.  Old settings file will be converted.
-### Fixed: Changed from built-in xml.tree to defusedxml for improved security
-### Fixed: Changed exception handling to proper error types
-### Fixed: Corrected output formatting errors with improper fonts and character attributes
-### Changed: Code optimization for HTML colors and font
+## [1.3.4] - 2023-04-28
+### Added: GUI Rerun option to run multiple times until Exit (remains in GUI)
+### Fixed: If select "debug" mode in GUI, make sure backup.xml is in current dir 
+### Fixed: Error if end-of-file while migrating old settings file.  Now prints error message that old settings are lost.
+### Fixed: Task Actions with "If x ~ <some trigger>" is not displaying the trigger due to  < > 
+### Fixed: Action "Force Rotation" caused an indentation of all following Actions for the given Task
+### Changed: Moved Task's Priority into same output line as Task, unless it has a Kid app
+### Changed: Moved all error handling to a common routine
 
 Older History Log 
+- [1.3.3] - 2023-04-17
+       - Added: Additional error checking in GUI  
+       - Fixed: Settings save/restore: replace pickle with json for security purposes.  Old settings file will be converted.   
+       - Fixed: Changed from built-in xml.tree to defusedxml for improved security   
+       - Fixed: Changed exception handling to proper error types   
+       - Fixed: Corrected output formatting errors with improper fonts and character attributes   
+       - Changed: Code optimization for HTML colors and font   
 - [1.3.2] - 2023-04-06: Maintenance Only   
        - Added: Include Map-Tasker version in output title   
        - Changed: default color for Profile conditions   
