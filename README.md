@@ -61,10 +61,15 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
 - From this directory, enter the command:
 
 
-     `maptasker (runtime options...se below)` 
+     `maptasker (runtime options...se below)`
  
- (see below for runtime options)
+ See below for runtime options.
  
+If running from the sourced github zip file, then do the following to run the program:
+
+     `pip install -r requirements.txt`   ...one time only, to first install the prerequisits 
+     `python main.py (runtime options...se below)`   ...to run Map-Tasker
+
 Program out: the file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.
  
 Runtime: `maptasker -option1 -option2` ...
