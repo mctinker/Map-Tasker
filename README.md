@@ -78,7 +78,7 @@ Runtime: `maptasker -option1 -option2` ...
  
     `-h` for help.  Also refer to HELP.md for more details,  
     `-detail 0` for silent mode (no Action details except for first Action on unnamed Tasks),  
-    `-detail 1` to display Action list if Task onl is unnamed or anonymous (default),   
+    `-detail 1` to display Action list only if Task is unnamed or anonymous (default),   
     `-detail 2` to display Action list names for *all* Tasks,    
     `-detail 3` to display Action list names with *all* parameters for all Tasks,    
     `-e` to display 'everything': Profile 'conditions', TaskerNet info and full Task (action) details    
@@ -143,6 +143,4 @@ Alternatively, see *config.py* for user-customizable options.  Make user-specifi
 
 [] Complete insertion of Python docstrings
 
-[] If using the GUI and an invalid Project/Profile/Task name is entered, then catch the error in the GUI and not afterwards.
-
-[] Likewise, if in GUI and the "Cancel" button is used for a single name, then don't use the name entered.
+[] If in GUI and the "Cancel" button is used for a single name, then don't use the name entered. (bug in CustomTinker)

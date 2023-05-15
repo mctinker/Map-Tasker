@@ -1,14 +1,24 @@
 MapTasker Change log
-## [1.3.4] - 2023-04-28
-### Added: GUI Rerun option to run multiple times until Exit (remains in GUI)
-### Fixed: If select "debug" mode in GUI, make sure backup.xml is in current dir 
-### Fixed: Error if end-of-file while migrating old settings file.  Now prints error message that old settings are lost.
-### Fixed: Task Actions with "If x ~ <some trigger>" is not displaying the trigger due to  < > 
-### Fixed: Action "Force Rotation" caused an indentation of all following Actions for the given Task
-### Changed: Moved Task's Priority into same output line as Task, unless it has a Kid app
-### Changed: Moved all error handling to a common routine
+## [1.3.5] - 2023-05-??
+### Added: GUI "Cancel" button does not work.  Comment in prompt notifies user of this problem.
+### Added: If Profile has no name, then automatically display it's condition(s)
+### Added: GUI single name for Project/Profile/Task now validates name entered before running.
+### Fixed: Program error in GUI when restoring settings.
+### Fixed: GUI restore settings does not display all settings restored in message box.
+### Fixed: When a Task Action "continued" limit is reached, it was using the next Task's number
+### Fixed: Correct remaining foobar'ed output html
+### Fixed: Displaying Task action details for "detail" levels other than 3.
 
-Older History Log 
+
+Older History Log
+- [1.3.4] - 2023-04-28   
+       - Added: GUI Rerun option to run multiple times until Exit (remains in GUI)   
+       - Fixed: If select "debug" mode in GUI, make sure backup.xml is in current dir    
+       - Fixed: Error if end-of-file while migrating old settings file.  Now prints error message that old settings are lost.   
+       - Fixed: Task Actions with "If x ~ <some trigger>" is not displaying the trigger due to  < >    
+       - Fixed: Action "Force Rotation" caused an indentation of all following Actions for the given Task   
+       - Changed: Moved Task's Priority into same output line as Task, unless it has a Kid app   
+       - Changed: Moved all error handling to a common routine   
 - [1.3.3] - 2023-04-17
        - Added: Additional error checking in GUI  
        - Fixed: Settings save/restore: replace pickle with json for security purposes.  Old settings file will be converted.   
