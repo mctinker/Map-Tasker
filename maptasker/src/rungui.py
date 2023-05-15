@@ -31,10 +31,24 @@ def output_and_quit(arg0):
     logger.debug(out_message)
 
 
+def delete_gui(MyGui, user_input):
+    # Hide the window
+    MyGui.withdraw(user_input)
+    # Delete the GUI
+    MyGui.quit(user_input)
+    del user_input
+    del MyGui
+
+
 # #######################################################################################
 # Get the program arguments from GUI
 # #######################################################################################
-def process_gui(colormap, use_gui):
+def process_gui(use_gui: bool) -> tuple[dict, dict]:
+    """
+    Present the GUI and get the runtime details
+        :param use_gui: flag if usijng the GUI, make sure we import it
+        :return: program runtime arguments and colors to use in the output
+    """
     global MyGui
     if use_gui:
         from maptasker.src.userintr import MyGui
@@ -43,6 +57,7 @@ def process_gui(colormap, use_gui):
     user_input = MyGui()
     user_input.mainloop()
 
+    # If user selected the "Exit" button, call it quits.
     if user_input.exit:
         output_and_quit("Program exited. Goodbye.")
         exit()
@@ -68,7 +83,7 @@ def process_gui(colormap, use_gui):
     prog_args["single_profile_name"] = user_input.single_profile_name
     prog_args["single_task_name"] = user_input.single_task_name
     # Appearance change: Dark or Light mode?
-    colormap = set_color_mode(user_input.appearance_mode, colormap)
+    colormap = set_color_mode(user_input.appearance_mode)
     # Process the colors
     if user_input.color_lookup:
         for key, value in user_input.color_lookup.items():
@@ -78,11 +93,11 @@ def process_gui(colormap, use_gui):
     prog_args["debug"] = user_input.debug
     # Save ReRun button setting
     prog_args["rerun"] = user_input.rerun_program
+    # Let everyone know we are running from the GUI
+    prog_args["gui"] = True
 
     # Delete the GUI
-    MyGui.quit(user_input)
-    del user_input
-    del MyGui
+    delete_gui(MyGui, user_input)
 
     return (
         prog_args,

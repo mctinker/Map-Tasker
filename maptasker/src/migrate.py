@@ -1,6 +1,4 @@
 #! /usr/bin/env python3
-import _pickle
-import contextlib
 
 # ########################################################################################## #
 #                                                                                            #
@@ -13,12 +11,15 @@ import contextlib
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
+import _pickle
+import contextlib
 import pickle
-from os import rename
+from os import rename, path
 from pathlib import Path
 
-from maptasker.src.getputarg import save_restore_args
 from maptasker.src.error import error_handler
+from maptasker.src.getputarg import save_restore_args
+from maptasker.src.sysconst import ARGUMENTS_FILE
 
 
 # #######################################################################################
@@ -30,7 +31,6 @@ def restore_old_args(file_to_check: Path) -> tuple[dict, dict]:
         :param file_to_check: file path/object to restore
         :return: program runtime arguments and colors to use in output
     """
-    colormap = program_args = {}
 
     # Restore dictionaries
     try:
@@ -67,7 +67,7 @@ def restore_old_args(file_to_check: Path) -> tuple[dict, dict]:
 
 def process_error(error_msg: str) -> tuple[dict, dict]:
     """
-    Disspaly and log error message and reset colors and program args to empty
+    Display and log error message and reset colors and program args to empty
         :param error_msg: error to print/log
         :return: empty colormap and program runtime arguments
     """
@@ -100,5 +100,20 @@ def migrate() -> None:
         nada, nada = save_restore_args(True, colormap, program_args)
         # Now delete the old file
         file_to_check.unlink()
+
+    # If we don't have an old binary file, check for existing JSON file and validate it's values
+    else:
+        file_to_check = f"{dir_path}/{ARGUMENTS_FILE}"
+        if path.exists(file_to_check):
+            # Get the current arguments and colors
+            temp_args, temp_colormap = save_restore_args(False, {}, {})
+            # Reset any "msg" left over from previous run
+            try:
+                if temp_colormap["msg"] or temp_args["msg"]:
+                    temp_args["msg"] = temp_colormap["msg"] = ""
+                    nada, nada = save_restore_args(True, temp_colormap, temp_args)
+            # If the "msg" key doesn't exist, then we don't care
+            except KeyError:
+                pass
 
     return

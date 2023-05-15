@@ -25,8 +25,8 @@ from maptasker.src.sysconst import FONT_TO_USE
 # Command line parameters
 def initialize_runtime_arguments() -> dict:
     """
-Initialize the program's runtime arguments...as a dictionary of options
-    :return: runtime arguments in dictionary
+    Initialize the program's runtime arguments...as a dictionary of options
+        :return: runtime arguments in dictionary
     """
     return {
         "display_detail_level": 1,
@@ -38,4 +38,5 @@ Initialize the program's runtime arguments...as a dictionary of options
         "display_taskernet": False,
         "debug": False,
         "font_to_use": FONT_TO_USE,
+        "gui": False,
     }

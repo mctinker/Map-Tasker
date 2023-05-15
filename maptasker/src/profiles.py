@@ -65,6 +65,38 @@ def get_profile_tasks(
 
 
 # #######################################################################################
+# Get a specific Profile's name
+# #######################################################################################
+def get_profile_name(
+    profile: defusedxml.ElementTree, program_args: dict, colormap: dict
+) -> str:
+    """
+    Get a specific Profile's name
+        :param profile: xml element pointing to the Profile
+        :param program_args: runtime arguments
+        :param colormap: colors to use in output
+        :return: name of the Profile
+    """
+    try:
+        the_profile_name = profile.find("nme").text  # Get Profile's name
+    except AttributeError:  # no Profile name
+        the_profile_name = NO_PROFILE
+
+    # Add html color and font for Profile name
+    profile_name = format_html(
+        colormap, "profile_color", "", f"Profile: {the_profile_name} ", True
+    )
+
+    # If we are debugging, add the Profile ID
+    if program_args["debug"]:
+        profile_id = profile.find("id").text
+        profile_name = (
+            f'{profile_name} {format_html(colormap, "Yellow", "", f"ID:{profile_id}", True)}'
+        )
+    return profile_name
+
+
+# #######################################################################################
 # Get the Profile's key attributes: limit, launcher task, run conditions
 # #######################################################################################
 def build_profile_line(
@@ -120,8 +152,14 @@ def build_profile_line(
         else:
             flags = ""
 
+    # Get the Profile name
+    profile_name = get_profile_name(profile, program_args, colormap)
+
     # Get the Profile's conditions
-    if program_args["display_profile_conditions"]:
+    if (
+        program_args["display_profile_conditions"]
+        or f"Profile: {NO_PROFILE}" in profile_name
+    ):
         if profile_conditions := condition.parse_profile_condition(
             profile, colormap, program_args
         ):
@@ -136,26 +174,8 @@ def build_profile_line(
                 True,
             )
 
-    # Get the Profile name
-    try:
-        the_profile_name = profile.find("nme").text  # Get Profile's name
-    except AttributeError:  # no Profile name
-        the_profile_name = NO_PROFILE
-
-    # Add html color and font for Profile name
-    profile_name = format_html(
-        colormap, "profile_color", "", f"Profile: {the_profile_name} ", True
-    )
-
-    # If we are debugging, add the Profile ID
-    if program_args["debug"]:
-        profile_id = profile.find("id").text
-        profile_name = (
-            f'{profile_name} {format_html(colormap, "Yellow", "", f"ID:{profile_id}", True)}'
-        )
-
     # Okay, string it all together
-    profile_name = f"{profile_name} {condition_text} {launcher}{disabled} {flags}"
+    profile_info = f"{profile_name} {condition_text} {launcher}{disabled} {flags}"
 
     # Output the Profile line
     my_output(
@@ -163,9 +183,9 @@ def build_profile_line(
         program_args,
         output_list,
         2,
-        profile_name,
+        profile_info,
     )
-    return the_profile_name
+    return profile_name
 
 
 # #######################################################################################

@@ -38,7 +38,7 @@ def get_task_actions_and_output(
         # Get the Task ID so that we can get the Task xml element
         # "--Task:" denotes a Task in a Scene
         temp_id = 'x' if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
-        kaka = ""
+
         # Get the Task xml element
         if len(temp_id) > 1:
             temp_id[1] = temp_id[1].split(' ', 1)[0]  # ID = 1st word of temp_id[1]

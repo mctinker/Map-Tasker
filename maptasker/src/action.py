@@ -314,7 +314,7 @@ def get_extra_stuff(
         :return: formatted line of extra details about Task Action
     """
     # Only get extras if this is a Task action (vs. a Profile condition)
-    if action_type:
+    if action_type and program_args["display_detail_level"] == 3:
         # Look for extra Task stiff: label, disabled, conditions
         extra_stuff = get_label_disabled_condition(code_action, colormap)
         if (
@@ -331,31 +331,40 @@ def get_extra_stuff(
             extra_stuff = f"{extra_stuff}</b>"
     else:
         extra_stuff = ""
+
     if (
         program_args["debug"] and action_type
     ):  # Add the code if this is an Action and in debug mode
-        extra_stuff = format_html(
+        extra_stuff = extra_stuff + format_html(
             colormap,
             "Yellow",
             "",
-            f'{extra_stuff}&nbsp;&nbsp;code: {code_action.find("code").text}-',
-            False,
+            f'&nbsp;&nbsp;code: {code_action.find("code").text}-',
+            True,
         )
 
     # See if Task action is to be continued after error
-    child = code_action.find("se")
-    if child is not None and child.text == "false":
-        extra_stuff = (
-            format_html(
-                colormap,
-                "action_color",
-                "",
-                " [Continue Task After Error]",
-                True,
+    if program_args["display_detail_level"] == 3:
+        child = code_action.find("se")
+        if child is not None and child.text == "false":
+            extra_stuff = (
+                format_html(
+                    colormap,
+                    "action_color",
+                    "",
+                    " [Continue Task After Error]",
+                    True,
+                )
+                + f"{extra_stuff}"
             )
-            + f"{extra_stuff}"
-        )
-    return f"{extra_stuff}</span>"
+
+    # For some reason, we're left with an empty "<span..." element.  Remove it.
+    extra_stuff = extra_stuff.replace(
+        '<span style="color:Yellow;font-family:Courier"><span ',
+        '<span ',
+    )
+
+    return f"{extra_stuff}"
 
 
 # ####################################################################################################

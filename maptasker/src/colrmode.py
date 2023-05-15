@@ -14,12 +14,11 @@
 import darkdetect
 
 
-def set_color_mode(appearance_mode: str, colormap: dict) -> dict:
+def set_color_mode(appearance_mode: str) -> dict:
     """
     Given the color mode to use (Dark or Light), set the colors appropriately
        ":param appearance_mode: color mode: Dark or Light
-       ":param colormap: colors to use in output
-       ":return new colormap
+       ":return new colormap of colors to use in the output
     """
 
     # Deal with "System" color mode

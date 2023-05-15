@@ -21,6 +21,9 @@ import customtkinter
 from pathlib import Path
 from CTkColorPicker.ctk_color_picker import AskColor
 from maptasker.src.getputarg import save_restore_args
+from maptasker.src.proginit import setup
+from maptasker.src.colrmode import set_color_mode
+from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES
 
 # Color Modes: "System" (standard), "Dark", "Light"
@@ -53,6 +56,8 @@ INFO_TEXT = (
     ' will be prompted to identify your Tasker backup file once\n      you hit the'
     ' \'Run\' button'
 )
+
+cancel_button_msg = '\n\nNote: "Cancel" button does not work at this time.'
 
 
 # #######################################################################################
@@ -192,7 +197,7 @@ class MyGui(customtkinter.CTk):
             fg_color="#246FB6",
             border_width=2,
             text="ReRun",
-            command=self.rerun_program,
+            command=self.rerun_the_program,
             text_color=("#0BF075", "#1AD63D"),
         )
         self.rerun_button.grid(
@@ -313,14 +318,8 @@ class MyGui(customtkinter.CTk):
         self.set_defaults(True)
 
     # #######################################################################################
-    # Close the window
+    # Establish all of the default values used
     # #######################################################################################
-    def closing(self):
-        self.destroy()
-        print("destroyed")
-        if self.closing_event is not None:
-            self.closing_event()
-
     def set_defaults(self, first_time: bool):
         self.sidebar_detail_option.configure(values=["0", "1", "2", "3"])
         self.sidebar_detail_option.set("1")
@@ -373,6 +372,7 @@ class MyGui(customtkinter.CTk):
     # #######################################################################################
     def check_name(self, the_name, element_name):
         error_message = ""
+        # Check for missing name
         if not the_name:
             error_message = (
                 "Error:\n\nThe name entered for the "
@@ -380,6 +380,10 @@ class MyGui(customtkinter.CTk):
                 + " is blank!\n\nTry again."
             )
             self.named_item = False
+        if the_name is None:
+            error_message = "Name entry canceled.  All will be displayed."
+
+        # Check to make sure only one named item has been entered
         if self.single_project_name and self.single_profile_name:
             error_message = (
                 "Error:\n\nYou have entered both a Project and a Profile name!\n\n"
@@ -395,7 +399,13 @@ class MyGui(customtkinter.CTk):
                 "Error:\n\nYou have entered both a Profile and a Task name!\n\n"
                 "Try again and only select one."
             )
+        # Make sure the named item exists
+        elif not self.valid_item(the_name, element_name):
+            error_message = (
+                f'Error: "{the_name}" {element_name} not found!!  Try again.'
+            )
 
+        # If we have an error, display it and blank out the various individual names
         if error_message:
             self.display_error_box(error_message)
             (
@@ -409,6 +419,47 @@ class MyGui(customtkinter.CTk):
             )
 
     # #######################################################################################
+    # Make sure the single named item exists...that it is a valid name
+    # #######################################################################################
+    def valid_item(self, the_name, element_name):
+        file_to_get = "backup.xml" if self.debug else ""
+        # We need to get all tasker items from the backup xml file
+        temp_program_args = initialize_runtime_arguments()
+        temp_program_args["debug"] = self.debug
+        tree, root, filename, all_tasker_items, output_list, heading = setup(
+            set_color_mode("Dark"), temp_program_args, [], file_to_get
+        )
+        # Set up for name check
+        root_element = []
+        name_key = ""
+        match element_name:
+            case "Project":
+                root_element = all_tasker_items["all_projects"]
+                dict_to_use = {}
+            case "Profile":
+                root_element = all_tasker_items["all_profiles"]
+                dict_to_use = "all_profiles"
+            case "Task":
+                root_element = all_tasker_items["all_tasks"]
+                dict_to_use = "all_tasks"
+            case _:
+                dict_to_use = {}
+
+        # See if the item exists
+        for item in root_element:
+            try:
+                if element_name == "Project":
+                    item_name = item.find("name").text
+                else:
+                    item_name = all_tasker_items[dict_to_use][item].find("nme").text
+                if the_name == item_name:
+                    return True
+            except AttributeError:
+                item_name = ""
+
+        return False
+
+    # #######################################################################################
     # Process the Project Name entry
     # #######################################################################################
     def single_project_name_event(self):
@@ -420,7 +471,8 @@ class MyGui(customtkinter.CTk):
         self.string_input_button3.deselect()
         # Display prompt for name
         dialog = customtkinter.CTkInputDialog(
-            text="Enter Project name:", title="Display Specific Project"
+            text=f"Enter Project name:{cancel_button_msg}",
+            title="Display Specific Project",
         )
         # Get the name
         self.single_project_name = dialog.get_input()
@@ -439,7 +491,8 @@ class MyGui(customtkinter.CTk):
         self.string_input_button3.deselect()
         # Display prompt for name
         dialog = customtkinter.CTkInputDialog(
-            text="Enter Profile name:", title="Display Specific Profile"
+            text=f"Enter Profile name:{cancel_button_msg}",
+            title="Display Specific Profile",
         )
         # Get the name
         self.single_profile_name = dialog.get_input()
@@ -447,7 +500,7 @@ class MyGui(customtkinter.CTk):
         self.check_name(self.single_profile_name, "Profile")
 
     # #######################################################################################
-    # Process the Profile Name entry
+    # Process the Task Name entry
     # #######################################################################################
     def single_task_name_event(self):
         #  Clear any prior error message
@@ -458,7 +511,8 @@ class MyGui(customtkinter.CTk):
         self.string_input_button2.deselect()
         # Display prompt for name
         dialog = customtkinter.CTkInputDialog(
-            text="Enter Task name:", title="Display Specific Task"
+            text=f"Enter Task name:{cancel_button_msg}",
+            title="Display Specific Task",
         )
         # Get the name
         self.single_task_name = dialog.get_input()
@@ -517,6 +571,9 @@ class MyGui(customtkinter.CTk):
             # Okay, plug in the selected color for the selected named item
             self.extract_color_from_event(color, color_selected_item)
 
+    # #######################################################################################
+    # Color selected...process it.
+    # #######################################################################################
     def extract_color_from_event(self, color, color_selected_item):
         # row = self.color_text_row
         self.color_lookup[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
@@ -542,7 +599,7 @@ class MyGui(customtkinter.CTk):
         self.display_profile_conditions = self.condition_button.get()
 
     # #######################################################################################
-    # Process the 'Tasker Prefernces' checkbox
+    # Process the 'Tasker Preferences' checkbox
     # #######################################################################################
     def display_preferences_event(self):
         self.display_preferences = self.display_preferences_button.get()
@@ -618,7 +675,7 @@ class MyGui(customtkinter.CTk):
     # #######################################################################################
     def restore_settings_event(self):
         self.set_defaults(False)  # Reset all values
-        temp_args = {}
+        temp_args = self.color_lookup = {}
         # Restore all changes that have been saved
         temp_args, self.color_lookup = save_restore_args(
             False, self.color_lookup, temp_args
@@ -627,6 +684,7 @@ class MyGui(customtkinter.CTk):
         with contextlib.suppress(KeyError):
             if temp_args["msg"]:
                 self.display_message_box(temp_args["msg"], False)
+                temp_args["msg"] = ""
                 return
         # Restore progargs values
         if temp_args or self.color_lookup:
@@ -634,6 +692,9 @@ class MyGui(customtkinter.CTk):
         else:  # Empty?
             self.display_message_box("No settings file found.", False)
 
+    # #######################################################################################
+    # We have read colors and runtime args from backup file.  Now extract them for use.
+    # #######################################################################################
     def extract_settings(self, temp_args: dict) -> None:
         all_messages, new_message = '', ''
         for key, value in temp_args.items():
@@ -641,17 +702,22 @@ class MyGui(customtkinter.CTk):
                 setattr(self, key, value)
                 if new_message := self.restore_display(key, value):
                     all_messages = all_messages + new_message
-        # Display the restored color changes
+        # Display the restored color changes, using the reverse dictionary of TYPES_OF_COLOR_NAMES
         inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
         for key, value in self.color_lookup.items():
             if key is not None:
-                all_messages = (
-                    f"{all_messages} {inv_color_names[key]} color set to {value}\n"
-                )
+                if key == "msg":
+                    inv_color_names[key] = ""
+                else:
+                    all_messages = (
+                        f"{all_messages} {inv_color_names[key]} color set to {value}\n"
+                    )
+        if self.debug:
+            all_messages = f"{all_messages} debug mode set\n"
         # Display the queue of messages
         self.display_message_box(f"{all_messages}\nSettings restored.", True)
-        if self.debug:
-            self.debug_checkbox_event()
+        # if self.debug:
+        #     self.debug_checkbox_event()
 
     # #######################################################################################
     # Process the 'Reset Settings' button
@@ -700,7 +766,7 @@ class MyGui(customtkinter.CTk):
     # #######################################################################################
     # The 'ReRun' program button has been pressed.  Set the run flag and close the GUI
     # #######################################################################################
-    def rerun_program(self):
+    def rerun_the_program(self):
         self.rerun_program = True
         # MyGui.destroy(self)
         self.withdraw()

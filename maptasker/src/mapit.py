@@ -147,19 +147,22 @@ def clean_up_and_exit(
     all_tasker_items: dict,
 ) -> None:
     """
-    Cleanup memory and let user know there was no match found for Task/Profile
+    Cleanup memory and let user know there was no match found for Task/Profile/Project
         :param name: the name to add to the log/print output
         :param profile_or_task_name: name of the Profile or Task to clean
         :param tree: xml tree to clear
         :param root: root of xml parsed from file to clear
         :param output_list: list of output lines to empty
         :param all_tasker_items: all Tasker Projects/Profiles/Tasks/Scenes to clear
-        :rtype: colors, runtime arguments,
     """
 
+    # Clear our current list of output lines.
     output_list.clear()
-    error_handler(f"{name} {profile_or_task_name} not found!!", 0)
+    # Spit out the error
+    error_handler(f'{name} "{profile_or_task_name}" not found!!', 0)
+    # Clean up all memory
     clean_up_memory(tree, root, output_list, all_tasker_items)
+    # Exit with code "item" not found.
     sys.exit(5)
 
 
@@ -321,7 +324,7 @@ def mapit_all(file_to_get: str) -> int:
             program_args,
         )
 
-    # Requested single Task but invalid Task name provided (i.e. no specific Project/Profile/Task found)?
+    # Requested single item but invalid item name provided (i.e. no specific Project/Profile/Task found)?
     if (
         program_args["single_task_name"]
         and not found_items["single_task_found"]

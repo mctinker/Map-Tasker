@@ -34,7 +34,13 @@ def format_html(
         color_to_use = color_code
 
     # Return completed HTML with color, font and text
-    return (
-        f'{text_before}<span'
-        f' style="color:{color_to_use}{FONT_TO_USE}">{text_after}{trailing_span}'
-    )
+    if text_after:
+        text_after = text_after.replace(
+            f'<span style="color:{color_to_use};font-family:Courier"><span', "<span"
+        )
+        return (
+            f'{text_before}<span'
+            f' style="color:{color_to_use}{FONT_TO_USE}">{text_after}{trailing_span}'
+        )
+    else:
+        return text_after

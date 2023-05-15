@@ -149,7 +149,7 @@ def setup_colors() -> dict:
     colormap = {}
 
     appearance = 'Dark' if DARK_MODE else "Light"
-    return set_color_mode(appearance, colormap)
+    return set_color_mode(appearance)
 
 
 # #############################################################################################
@@ -269,7 +269,7 @@ def start_up(output_list: list, file_to_get: str) -> tuple:
     # Rename/convert any old argument file to new name/format for clarity (one time only operation)
     old_to_new.migrate()
 
-    # Get runtime arguments
+    # Get runtime arguments (from CLI or GUI)
     program_args, colormap = get_args.get_program_arguments(colormap)
 
     # Setup program key elements

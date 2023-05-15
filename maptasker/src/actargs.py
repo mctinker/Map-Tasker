@@ -38,6 +38,7 @@ def get_action_arguments(
         :param program_args: runtime arguments
         :return: dictionary of results
     """
+
     match argtype:
         case "Str":
             evaluated_results["get_xml_flag"] = True
@@ -81,7 +82,7 @@ def get_action_arguments(
             elif child.find("var") is not None:  # There is a variable name?
                 image = child.find("var").text
             if image:
-                evaluated_results["result_img"].append(argeval + image + package)
+                evaluated_results["result_img"].append(f'{argeval}{image}{package}')
                 evaluated_results["returning_something"] = True
             else:
                 evaluated_results["result_img"].append(" ")
@@ -99,9 +100,7 @@ def get_action_arguments(
                 evaluated_results["result_bun"].append(clean_string)
                 evaluated_results["returning_something"] = True
         case _:
-            logger.debug(
-                "get_action_results:" + " unknown argtype:" + argtype + "!!!!!"
-            )
+            logger.debug(f"get_action_results  unknown argtype:{argtype}!!!!!")
     return evaluated_results
 
 

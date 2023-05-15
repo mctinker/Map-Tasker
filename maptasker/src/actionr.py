@@ -22,7 +22,6 @@ from maptasker.src.frmthtml import format_html
 from maptasker.src.sysconst import logger
 from maptasker.src.xmldata import get_xml_int_argument_to_value
 from maptasker.src.xmldata import get_xml_str_argument_to_value
-from maptasker.src.xmldata import remove_html_tags
 
 
 # ####################################################################################################
@@ -151,9 +150,13 @@ def get_action_results(
     if evaluated_results["returning_something"]:
         result = get_results_in_arg_order(evaluated_results)
 
-    # Clean up the arguments.  Replace <> so they appear properly and by remove any html
-    result = result.replace("<", "&lt;")
-    result = result.replace(">", "&gt;")
+    # Clean up the arguments, if any.  Replace <> so they appear properly and by remove any html
+    if result:
+        result = result.replace("<", "&lt;")
+        result = result.replace(">", "&gt;")
+        result = format_html(
+            colormap, "action_color", "", f"{two_blanks}{result}", True
+        )
 
     # Return the properly formatted HTML with the Action name and extra stuff
     return format_html(
@@ -163,8 +166,8 @@ def get_action_results(
         "action_color",
         "",
         (
-            f"{two_blanks}{result}</span>"
-            f"{get_action.get_extra_stuff(code_action, action_type, colormap, program_args)}"
+            # f"<span>{two_blanks}{result}</span>"
+            f"{result}{get_action.get_extra_stuff(code_action, action_type, colormap, program_args)}"
         ),
         False,
     )

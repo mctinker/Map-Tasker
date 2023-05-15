@@ -203,7 +203,7 @@ def process_cli(colormap: dict) -> tuple:
         (
             prog_args,
             colormap,
-        ) = process_gui(colormap, True)
+        ) = process_gui(True)
     # Restore arguments from file?
     elif getattr(args, "r"):
         # Restore all changes that have been saved for progargs

@@ -26,7 +26,9 @@ CONTINUE_LIMIT = 50  # Define the maximum number of Action lines to continue to 
 OUTPUT_FONT = "Courier"  # OS X Default monospace font
 # OUTPUT_FONT = 'Roboto Regular'    # Google monospace font
 GUI = False  # Graphical User Interface (True) vs. CLI Command Line Interface (False)
-DARK_MODE = True  # Light vs Dark Mode (refer to colrmode.py to hardcode the colors)
+DARK_MODE = (
+    True  # Light vs Dark Mode (refer to colrmode.py to hardcode the output colors)
+)
 
 # ####################################################################################################
 #  END User-modifiable global constants

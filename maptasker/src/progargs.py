@@ -28,7 +28,7 @@ def get_program_arguments(colormap: dict):
         (
             prog_args,
             colormap,
-        ) = process_gui(colormap, True)
+        ) = process_gui(True)
 
     # Command line parameters
     else:

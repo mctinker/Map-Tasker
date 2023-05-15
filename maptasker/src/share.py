@@ -42,6 +42,7 @@ def share(
             description_element_output(
                 description_element, colormap, program_args, output_list
             )
+
         # Look for search parameters
         search_element = share_element.find("g")
         if search_element is not None and search_element.text:
@@ -103,7 +104,6 @@ def description_element_output(
             )
 
         # Make certain we have proper html in front of string
-        # if indent_html not in out_string:
         if "<span " not in out_string:
             out_string = format_html(colormap, "taskernet_color", "", new_line, True)
         else:

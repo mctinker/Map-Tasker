@@ -60,6 +60,7 @@ def get_actions(
         # sort the Task's Actions by attrib sr (e.g. sr='act0', act1, act2, etc.) to get them in true order
         if len(task_actions) > 0:
             shell_sort(task_actions, True, False)
+
         # Now go through each Action to start processing it.
         for action in task_actions:
             child = action.find("code")  # Get the <code> element

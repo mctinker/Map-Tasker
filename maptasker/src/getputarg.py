@@ -53,8 +53,12 @@ def save_restore_args(
         # Handle file format error
         except json.decoder.JSONDecodeError:  # no saved file
             error_handler(
-                f"'-restore' option... The settings file,  {ARGUMENTS_FILE} is corrupt!"
-                "  The old settings can not be restored.  Re-save your settings."
+                (
+                    f"'-restore' option... The settings file,  {ARGUMENTS_FILE} is"
+                    " corrupt!  The old settings can not be restored.  Re-save your"
+                    " settings."
+                ),
+                0,
             )
             # Return the error as an entry in our dictionaries for display via te GUI, if needed.
             temp_args = colormap = {

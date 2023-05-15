@@ -103,7 +103,6 @@ def get_preferences(
         "Unlisted (Perhaps Deprecated)",
     ]
     output_lines = []
-    preferences_html = format_html(colormap, "preferences_color", "", "", False)
     blank = "&nbsp;"
     first_time = True
 
@@ -193,7 +192,13 @@ def get_preferences(
         program_args,
         output_list,
         4,
-        f"{preferences_html}<br>&nbsp;The remaining preferences are not yet mapped",
+        format_html(
+            colormap,
+            "preferences_color",
+            "",
+            "The remaining preferences are not yet mapped",
+            True,
+        ),
     )
     my_output(colormap, program_args, output_list, 4, "")
 

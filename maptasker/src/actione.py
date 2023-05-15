@@ -206,18 +206,17 @@ def build_action(colormap, alist, tcode, code_element, indent, indent_amt):
                 count += 1
                 # Only display up to so many continued lines
                 if count == CONTINUE_LIMIT:
-                    alist.append(
-                        format_html(
-                            colormap,
-                            "Red",
-                            "",
-                            (
-                                f' ... continue limit of {str(CONTINUE_LIMIT)} '
-                                'reached.  See "CONTINUE_LIMIT =" in config.py for '
-                                'details'
-                            ),
-                            True,
-                        )
+                    # Add comment that we have reached the limit for continued details
+                    alist[-1] = f"{alist[-1]}" + format_html(
+                        colormap,
+                        "Red",
+                        "",
+                        (
+                            f' ... continue limit of {str(CONTINUE_LIMIT)} '
+                            'reached.  See "CONTINUE_LIMIT =" in config.py for '
+                            'details'
+                        ),
+                        True,
                     )
                     break
     else:
