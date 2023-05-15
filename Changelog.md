@@ -1,5 +1,5 @@
 MapTasker Change log
-## [1.3.5] - 2023-05-??
+## [1.3.5] - 2023-05-15
 ### Added: GUI "Cancel" button does not work.  Comment in prompt notifies user of this problem.
 ### Added: If Profile has no name, then automatically display it's condition(s)
 ### Added: GUI single name for Project/Profile/Task now validates name entered before running.
