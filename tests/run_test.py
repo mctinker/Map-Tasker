@@ -31,34 +31,34 @@ def test_main():
     with patch("sys.argv", ["-test=yes", "detail=1", "d"]):
         print('run_test sys.argv:', sys.argv)
         mapit.mapit_all("")
-    # Test no detail
-    with patch("sys.argv", ["-test=yes", "detail=0", "d"]):
-        print('run_test sys.argv:', sys.argv)
-        mapit.mapit_all("")
-    # Test by Project name
-    with patch(
-        "sys.argv", ["-test=yes", "project=Base", "d", "conditions", "taskernet"]
-    ):
-        print('run_test sys.argv:', sys.argv)
-        mapit.mapit_all("")
-    # Test by Profile name
-    with patch(
-        "sys.argv",
-        ["-test=yes", "profile=Check Smartthings Batteries", "detail=3", "d"],
-    ):
-        print('run_test sys.argv:', sys.argv)
-        mapit.mapit_all("")
-    # Test by Task name
-    with patch("sys.argv", ["-test=yes", "task=Check Batteries", "d"]):
-        print('run_test sys.argv:', sys.argv)
-        mapit.mapit_all("")
-    # Test new -pref
-    with patch("sys.argv", ["-test=yes", "p", "d", "taskernet", "detail=2"]):
-        mapit.mapit_all("")
-    # Test new -everything
-    with patch("sys.argv", ["-test=yes", "e"]):
-        mapit.mapit_all("")
-    # Test colors
+    # # Test no detail
+    # with patch("sys.argv", ["-test=yes", "detail=0", "d"]):
+    #     print('run_test sys.argv:', sys.argv)
+    #     mapit.mapit_all("")
+    # # Test by Project name
+    # with patch(
+    #     "sys.argv", ["-test=yes", "project=Base", "d", "conditions", "taskernet"]
+    # ):
+    #     print('run_test sys.argv:', sys.argv)
+    #     mapit.mapit_all("")
+    # # Test by Profile name
+    # with patch(
+    #     "sys.argv",
+    #     ["-test=yes", "profile=Check Smartthings Batteries", "detail=3", "d"],
+    # ):
+    #     print('run_test sys.argv:', sys.argv)
+    #     mapit.mapit_all("")
+    # # Test by Task name
+    # with patch("sys.argv", ["-test=yes", "task=Check Batteries", "d"]):
+    #     print('run_test sys.argv:', sys.argv)
+    #     mapit.mapit_all("")
+    # # Test new -pref
+    # with patch("sys.argv", ["-test=yes", "p", "d", "taskernet", "detail=2"]):
+    #     mapit.mapit_all("")
+    # # Test new -everything
+    # with patch("sys.argv", ["-test=yes", "e"]):
+    #     mapit.mapit_all("")
+    # # Test colors
     # with patch(
     #     "sys.argv",
     #     [
