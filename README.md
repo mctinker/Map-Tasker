@@ -84,7 +84,7 @@ Runtime: `maptasker -option1 -option2` ...
     `-e` to display 'everything': Profile 'conditions', TaskerNet info and full Task (action) details    
     `-g` to get arguments from the GUI rather than via the command line,   
     
-    The following three arguments are exclusive.  Use one only:
+    The following three arguments are mutually exclusive.  Use one only:
 
     `-project 'name of project'` to display a single Project, its Profiles and Tasks only,    
     `-profile 'profile name'` to display a single Profile and its Tasks only,    
@@ -108,7 +108,17 @@ Runtime: `maptasker -option1 -option2` ...
     The following two arguments are exclusive.  Use one only:
 
     `-s`  save these settings for later reuse.    
-    `-r`  restore previously saved settings. 
+    `-r`  restore previously saved settings.
+
+    `-t`  display Task/Scene details hidden by a twisty.  Click on twisty to reveal.
+
+    Get the backup file directly from the Android device (*):
+
+    `-b ip_addr:port+file_location`  example: 192.168.0.210:8120+//Tasker/configs/user/backup.xml
+
+        * For the "Get backup" option to work, you must have the following prequisites:
+          1- Both the MAC and Android device must be on the same network
+          2- The [sample Tasker Project](https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example) must be installed and active on the Android device,  and the server must be running..see Android notification: "HTTP Server Info...".
 
 Sample output with runtime option '-detail 0':
 
@@ -136,7 +146,11 @@ Example using GUI:
     
     'maptasker -g'
 
-Alternatively, see *config.py* for user-customizable options.  Make user-specific changes in this file and save it rather than specifying them as arguments or via the GUI.
+Example fetching backup file directly from your Android device: 
+    
+    'maptasker -b 192.168.0.210:1821+/Tasker/configs/user/backup.xml'
+
+Alternatively, see *config.py* for some user-customizable options.  Make user-specific changes in this file and save it rather than specifying them as arguments or via the GUI.
 
 
 ### To Do List (in no particular order)

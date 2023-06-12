@@ -1,16 +1,35 @@
 MapTasker Change log
-## [1.3.5] - 2023-05-15
-### Added: GUI "Cancel" button does not work.  Comment in prompt notifies user of this problem.
-### Added: If Profile has no name, then automatically display it's condition(s)
-### Added: GUI single name for Project/Profile/Task now validates name entered before running.
-### Fixed: Program error in GUI when restoring settings.
-### Fixed: GUI restore settings does not display all settings restored in message box.
-### Fixed: When a Task Action "continued" limit is reached, it was using the next Task's number
-### Fixed: Correct remaining foobar'ed output html
-### Fixed: Displaying Task action details for "detail" levels other than 3.
+## [1.4.0] - 2023-06-??
+### Added: Task additional plug-ins mapped: AutoSpotify, AutoLaunch, AutoInput Actions V2, AutoBubbles, AutoContacts
+### Added: Add missing Scene elements 
+### Added: Display Task's collision setting if detail = 3
+### Added: Display backed-up device's screen resolution in heading 
+### Added: Support updated Profile HTTP Request 
+### Added: new Task actions HTTP Response (deprecates HTTP GET/PUT/HEAD), Matter Light and Get Network Info (up to Tasker.6.2.5-beta)
+### Added: New Option "-backup" to fetch the Tasker backup file directly from the Android device.  Also available via the GUI via new option: Get Backup from Device
+### Added: New option "-twisty" to display some details hidden by a twisty; click on twisty to display detail
+### Added: Display source backup file details right after the heading
+### Added: Display Scene and Scene's element's width and height, as well as that for sub-Scene (Layout) field
+### Fixed: catch possible program error processing Task actions if not mapped properly
+### Fixed: 'Show Scene' action was incorrectly being displayed as 'Display As'
+### Fixed: Gracefully handle new Tasker action items that have yet to be supported here
+### Fixed: Show Scene "Display As" pull-down missing 'Activity, No Bar, No Status'
+### Fixed: In certain cases the Task's priority is not appearing.
+### Fixed: miscellaneous formatting and identation errors
+### Changed: Restructured code for better performance
+### Changed: default display detail level is now 3 (highest level of detail)
 
 
 Older History Log
+- [1.3.5] - 2023-05-15   
+       - Added: GUI "Cancel" button does not work.  Comment in prompt notifies user of this problem.   
+       - Added: If Profile has no name, then automatically display its condition(s)   
+       - Added: GUI single name for Project/Profile/Task now validates name entered before running.   
+       - Fixed: Program error in GUI when restoring settings.   
+       - Fixed: GUI restore settings does not display all settings restored in message box.   
+       - Fixed: When a Task Action "continued" limit is reached, it was using the next Task's number   
+       - Fixed: Correct remaining foobar'ed output html   
+       - Fixed: Displaying Task action details for "detail" levels other than 3.   
 - [1.3.4] - 2023-04-28   
        - Added: GUI Rerun option to run multiple times until Exit (remains in GUI)   
        - Fixed: If select "debug" mode in GUI, make sure backup.xml is in current dir    
