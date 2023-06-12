@@ -120,21 +120,25 @@ Runtime: `maptasker -option1 -option2` ...
           1- Both the MAC and Android device must be on the same network
           2- The [sample Tasker Project](https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example) must be installed and active on the Android device,  and the server must be running..see Android notification: "HTTP Server Info...".
 
+The MapTasker GUI:
+
+<img src="/documentation_images/display_gui.png" width="600"/>
+
 Sample output with runtime option '-detail 0':
 
-<img src="/documentation_images/display_level-d0.png" width="400"/>
+<img src="/documentation_images/display_level-d0.png" width="600"/>
 
 Sample output with runtime option '-detail 1':
 
-<img src="/documentation_images/display_level-d1.png" width="400"/>
+<img src="/documentation_images/display_level-d1.png" width="600"/>
 
 Sample output with runtime option '-detail 2':
 
-<img src="/documentation_images/display_level-d2.png" width="400"/>
+<img src="/documentation_images/display_level-d2.png" width="600"/>
 
 Sample output with runtime options '-detail 3 -profcon':
 
-<img src="/documentation_images/display_level-d3.png" width="400"/>
+<img src="/documentation_images/display_level-d3.png" width="600"/>
 
 Example runtime options: 
     
