@@ -4,7 +4,7 @@ from maptasker.src.sysconst import FONT_TO_USE
 
 # ########################################################################################## #
 #                                                                                            #
-# format_html: Format HTML based on input arguments                                             #
+# format_html: Format HTML based on input arguments                                          #
 #                                                                                            #
 # Permissions of this strong copyleft license are conditioned on making available            #
 # complete source code of licensed works and modifications, which include larger works       #

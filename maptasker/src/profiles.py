@@ -17,8 +17,6 @@ import maptasker.src.condition as condition
 import maptasker.src.tasks as tasks
 
 # from maptasker.src.kidapp import get_kid_app
-from maptasker.src.outputl import my_output
-from maptasker.src.outputl import refresh_our_output
 from maptasker.src.frmthtml import format_html
 from maptasker.src.xmldata import remove_html_tags
 
@@ -30,12 +28,10 @@ from maptasker.src.sysconst import NO_PROFILE
 # Get a specific Profile's Tasks (maximum of two:entry and exit)
 # #######################################################################################
 def get_profile_tasks(
+    primary_items: dict,
     the_profile: defusedxml.ElementTree.XML,
     found_tasks_list: list,
     task_output_line: list,
-    program_args: dict,
-    all_tasks: dict,
-    found_items: dict,
 ) -> tuple[defusedxml.ElementTree.XML, str]:
     keys_we_dont_want = ["cdate", "edate", "flags", "id"]
     the_task_element, the_task_name = "", ""
@@ -49,13 +45,14 @@ def get_profile_tasks(
                 task_type = "Exit"
             task_id = child.text
             the_task_element, the_task_name = tasks.get_task_name(
-                task_id, found_tasks_list, task_output_line, task_type, all_tasks
+                primary_items, task_id, found_tasks_list, task_output_line, task_type
             )
             if (
-                program_args["single_task_name"]
-                and program_args["single_task_name"] == the_task_name
+                primary_items["program_arguments"]["single_task_name"]
+                and primary_items["program_arguments"]["single_task_name"]
+                == the_task_name
             ):
-                found_items["single_task_found"] = True
+                primary_items["found_named_items"]["single_task_found"] = True
                 break
         elif (
             child.tag == "nme"
@@ -68,13 +65,13 @@ def get_profile_tasks(
 # Get a specific Profile's name
 # #######################################################################################
 def get_profile_name(
-    profile: defusedxml.ElementTree, program_args: dict, colormap: dict
+    primary_items: dict,
+    profile: defusedxml.ElementTree,
 ) -> str:
     """
     Get a specific Profile's name
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param profile: xml element pointing to the Profile
-        :param program_args: runtime arguments
-        :param colormap: colors to use in output
         :return: name of the Profile
     """
     try:
@@ -84,14 +81,18 @@ def get_profile_name(
 
     # Add html color and font for Profile name
     profile_name = format_html(
-        colormap, "profile_color", "", f"Profile: {the_profile_name} ", True
+        primary_items["colors_to_use"],
+        "profile_color",
+        "",
+        f"Profile: {the_profile_name} ",
+        True,
     )
 
     # If we are debugging, add the Profile ID
-    if program_args["debug"]:
+    if primary_items["program_arguments"]["debug"]:
         profile_id = profile.find("id").text
         profile_name = (
-            f'{profile_name} {format_html(colormap, "Yellow", "", f"ID:{profile_id}", True)}'
+            f'{profile_name} {format_html(primary_items["colors_to_use"], "Yellow", "", f"ID:{profile_id}", True)}'
         )
     return profile_name
 
@@ -100,29 +101,30 @@ def get_profile_name(
 # Get the Profile's key attributes: limit, launcher task, run conditions
 # #######################################################################################
 def build_profile_line(
+    primary_items: dict,
     project: defusedxml.ElementTree.XML,
     profile: defusedxml.ElementTree.XML,
-    output_list: list,
-    program_args: dict,
-    colormap: dict,
 ) -> str:
     """
     Get the Profile's key attributes: limit, launcher task, run conditions and output it
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param project: the Project xml element
         :param profile: the Profile xml element
-        :param output_list: the list of output lines built thus far
-        :param program_args: runtime arguments
-        :param colormap: colors to use in output
         :return: Profile name
     """
+
     flags = condition_text = ""
 
     # Set up HTML to use
     disabled_profile_html = format_html(
-        colormap, "disabled_profile_color", "", "[DISABLED]", True
+        primary_items["colors_to_use"], "disabled_profile_color", "", "[DISABLED]", True
     )
     launcher_task_html = format_html(
-        colormap, "launcher_task_color", "", "[Launcher Task]", True
+        primary_items["colors_to_use"],
+        "launcher_task_color",
+        "",
+        "[Launcher Task]",
+        True,
     )
 
     # Look for disabled Profile
@@ -143,31 +145,36 @@ def build_profile_line(
     #     priority = get_priority(profile, False)
 
     # Display flags for debug mode
-    if program_args["debug"]:
+    if primary_items["program_arguments"]["debug"]:
         flags = profile.find("flags")
         if flags is not None:
             flags = format_html(
-                colormap, "GreenYellow", "", f" flags: {flags.text}", True
+                primary_items["colors_to_use"],
+                "GreenYellow",
+                "",
+                f" flags: {flags.text}",
+                True,
             )
         else:
             flags = ""
 
     # Get the Profile name
-    profile_name = get_profile_name(profile, program_args, colormap)
+    profile_name = get_profile_name(primary_items, profile)
 
     # Get the Profile's conditions
     if (
-        program_args["display_profile_conditions"]
+        primary_items["program_arguments"]["display_profile_conditions"]
         or f"Profile: {NO_PROFILE}" in profile_name
     ):
         if profile_conditions := condition.parse_profile_condition(
-            profile, colormap, program_args
+            primary_items,
+            profile,
         ):
             # Strip pre-existing HTML from conmditions, since some condition codes may be same as Actions
             # And the Actions would have plugged in the action_color HTML
             profile_conditions = remove_html_tags(profile_conditions, "")
             condition_text = format_html(
-                colormap,
+                primary_items["colors_to_use"],
                 "profile_condition_color",
                 "",
                 f" ({profile_conditions})",
@@ -178,10 +185,8 @@ def build_profile_line(
     profile_info = f"{profile_name} {condition_text} {launcher}{disabled} {flags}"
 
     # Output the Profile line
-    my_output(
-        colormap,
-        program_args,
-        output_list,
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
         2,
         profile_info,
     )
@@ -192,105 +197,92 @@ def build_profile_line(
 # process_projects: go through all Projects Profiles...and output them
 # #######################################################################################
 def process_profiles(
-    output_list: list,
+    primary_items: dict,
     project: defusedxml.ElementTree.XML,
     project_name: str,
     profile_ids: list,
     list_of_found_tasks: list,
-    program_args: dict,
-    heading: str,
-    colormap: dict,
-    all_tasker_items: dict,
-    found_items: dict,
 ) -> defusedxml.ElementTree:
     """
     Go through Project's Profiles and output each
-        :param output_list: list of each output line generated so far
+        :param primary_items: a dictionary containing program runtime arguments, colors to use in output,
+        all Tasker xml root elements, and a list of all output lines.
         :param project: Project to process
         :param project_name: Project's name
         :param profile_ids: list of Profiles in Project
         :param list_of_found_tasks: list of Tasks found
-        :param program_args: runtime arguments
-        :param heading: the output heading
-        :param colormap: the colors to use in ouput
-        :param all_tasker_items: all Tasker Projects/Profiles/Tasks/Scenes
-        :param found_items: all "found" items (single Project/Profile/Task) name and flag
         :return: xml element of Task
     """
+
     our_task_element = ""
 
     # Go through the Profiles found in the Project
     for item in profile_ids:
-        profile = all_tasker_items["all_profiles"][item]
+        profile = primary_items["tasker_root_elements"]["all_profiles"][item]
         if profile is None:  # If Project has no
             return None
         # Are we searching for a specific Profile?
-        if program_args["single_profile_name"]:
+        if primary_items["program_arguments"]["single_profile_name"]:
             try:
                 profile_name = profile.find("nme").text
-                if program_args["single_profile_name"] != profile_name:
+                if (
+                    primary_items["program_arguments"]["single_profile_name"]
+                    != profile_name
+                ):
                     continue  # Not our Profile...go to next Profile ID
-                found_items["single_profile_found"] = True
+                primary_items["found_named_items"]["single_profile_found"] = True
                 # Clear the output list to prepare for single Profile only
-                refresh_our_output(
+                primary_items["output_lines"].refresh_our_output(
+                    primary_items,
                     False,
-                    output_list,
                     project_name,
                     "",
-                    heading,
-                    colormap,
-                    program_args,
                 )
                 # Start Profile list
-                my_output(colormap, program_args, output_list, 1, "")
+                primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
             except AttributeError:  # no Profile name...go to next Profile ID
                 continue
         # Get Task xml element and name
         task_list = []  # Profile's Tasks will be filled in here
         our_task_element, our_task_name = get_profile_tasks(
+            primary_items,
             profile,
             list_of_found_tasks,
             task_list,
-            program_args,
-            all_tasker_items["all_tasks"],
-            found_items,
         )
 
         # Examine Profile attributes and output Profile line
         profile_name = build_profile_line(
-            project, profile, output_list, program_args, colormap
+            primary_items,
+            project,
+            profile,
         )
 
         # Process any <Share> information from TaskerNet
-        if program_args["display_taskernet"]:
-            share(profile, colormap, program_args, output_list)
+        if primary_items["program_arguments"]["display_taskernet"]:
+            share(primary_items, profile)
 
         # We have the Tasks for this Profile.  Now let's output them.
         # True = we're looking for a specific Task
         # False = this is a normal Task
         specific_task = tasks.output_task(
-            output_list,
+            primary_items,
             our_task_name,
             our_task_element,
             task_list,
             project_name,
             profile_name,
             list_of_found_tasks,
-            heading,
-            colormap,
-            program_args,
-            all_tasker_items,
-            found_items,
             True,
         )
 
         # Get out if doing a specific Task, and it was found
         if (
             specific_task
-            and program_args["single_task_name"]
-            and found_items["single_task_found"]
+            and primary_items["program_arguments"]["single_task_name"]
+            and primary_items["found_named_items"]["single_task_found"]
             or not specific_task
-            and found_items["single_profile_found"]
+            and primary_items["found_named_items"]["single_profile_found"]
         ):  # Get out if we've got the Task we're looking for
             break
         elif not specific_task:

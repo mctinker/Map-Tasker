@@ -17,6 +17,8 @@
 #                                                                                            #
 # ########################################################################################## #
 from maptasker.src.sysconst import FONT_TO_USE
+from maptasker.src.config import BACKUP_FILE_HTTP
+from maptasker.src.config import BACKUP_FILE_LOCATION
 
 
 #######################################################################################
@@ -29,14 +31,26 @@ def initialize_runtime_arguments() -> dict:
         :return: runtime arguments in dictionary
     """
     return {
-        "display_detail_level": 1,
-        "single_task_name": "",
-        "single_profile_name": "",
-        "single_project_name": "",
-        "display_profile_conditions": False,
-        "display_preferences": False,
-        "display_taskernet": False,
-        "debug": False,
-        "font_to_use": FONT_TO_USE,
-        "gui": False,
+        "display_detail_level": 3,  # Display detail level
+        "single_task_name": "",  # Display single Task name only
+        "single_profile_name": "",  # Display single Profile name only
+        "single_project_name": "",  # Display single Project name only
+        "display_profile_conditions": False,  # Display Profile and Task conditions
+        "display_preferences": False,  # Display Tasker's preferences
+        "display_taskernet": False,  # Display TaskerNet information
+        "debug": False,  # Run in debug mode (create log file)
+        "font_to_use": FONT_TO_USE,  # The output font to use, preferably monospaced
+        "gui": False,  # Use the GUI to get the runtime and color options
+        "rerun": False,  # Is this a GUI re-run?
+        "file": "",  # If we are re-running, then this is the file to re-use
+        "backup_file_http": (
+            BACKUP_FILE_HTTP
+        ),  # Port for Android-based Tasker server, to get backup file from
+        "backup_file_location": (
+            BACKUP_FILE_LOCATION
+        ),  # Location of the backup file to grab from Android device
+        "fetched_backup_from_android": (
+            False
+        ),  # Backup file was fetched from Android device
+        "twisty": False,
     }

@@ -33,11 +33,8 @@
 import contextlib
 import sys
 import webbrowser  # To be removed in Python 10.13 (2023?)
-import defusedxml.ElementTree  # Need for type hints
 from os import getcwd
-from typing import List
 
-import maptasker.src.outputl as build_output
 import maptasker.src.proginit as initialize
 import maptasker.src.projects as projects
 import maptasker.src.taskuniq as special_tasks
@@ -46,6 +43,7 @@ from maptasker.src.prefers import get_preferences
 from maptasker.src.error import error_handler
 from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import debug_out
+from maptasker.src.lineout import LineOut
 
 
 # import os
@@ -57,55 +55,51 @@ from maptasker.src.sysconst import debug_out
 # Clean up our memory hogs
 # #######################################################################################
 def clean_up_memory(
-    tree: defusedxml.ElementTree.XML,
-    root: defusedxml.ElementTree.XML,
-    output_list: List[str],
-    all_tasker_items: dict[str, List[defusedxml.ElementTree.XML]],
+    primary_items: dict,
 ) -> None:
     """
     Clean up our memory hogs
-        :param tree: xml tree to empty
-        :param root: root xml that was parsed from backup file
-        :param output_list: list of output lines to clear
-        :param all_tasker_items: All Projects/Profiles/Tasks/Scenes
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :return:
     """
-    for elem in tree.iter():
+    for elem in primary_items["xml_tree"].iter():
         elem.clear()
-    all_tasker_items["all_projects"].clear()
-    all_tasker_items["all_profiles"].clear()
-    all_tasker_items["all_tasks"].clear()
-    all_tasker_items["all_scenes"].clear()
-    root.clear()
-    output_list.clear()
+    primary_items["tasker_root_elements"]["all_projects"].clear()
+    primary_items["tasker_root_elements"]["all_profiles"].clear()
+    primary_items["tasker_root_elements"]["all_tasks"].clear()
+    primary_items["tasker_root_elements"]["all_scenes"].clear()
+    primary_items["xml_root"].clear()
+    primary_items["output_lines"].output_lines.clear()
     return
 
 
 # #######################################################################################
 # write_out_the_file: we have a list of output lines.  Write them out.
 # #######################################################################################
-def write_out_the_file(
-    output_list: List[str], my_output_dir: str, my_file_name: str
-) -> None:
+def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> None:
     """
     write_out_the_file: we have a list of output lines.  Write them out.
-        :param output_list: list of all output lines generated
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param my_output_dir: directory to output to
         :param my_file_name: name of file to use
         :return: nothing
     """
     logger.info(f"Function Entry: write_out_the_file dir:{my_output_dir}")
     with open(my_output_dir + my_file_name, "w") as out_file:
-        for num, item in enumerate(output_list):
-            # Make sure we don't have three </ul>'s in a row
+        for num, item in enumerate(primary_items["output_lines"].output_lines):
+            # If item is a list, then get the actual output line
+            if type(item) is list:
+                item = item[1]
             item.rstrip()  # Get rid of trailing blanks
             if (
                 num > 3
                 and item[:5] == "</ul>"
                 and (
-                    output_list[num - 1][:5] == "</ul>"
-                    and output_list[num - 2][:5] == "</ul>"
-                    and output_list[num + 1][:4] == "<br>"
+                    primary_items["output_lines"].output_lines[num - 1][:5] == "</ul>"
+                    and primary_items["output_lines"].output_lines[num - 2][:5]
+                    == "</ul>"
+                    and primary_items["output_lines"].output_lines[num + 1][:4]
+                    == "<br>"
                 )
             ):
                 continue
@@ -139,29 +133,23 @@ def write_out_the_file(
 # Cleanup memory and let user know there was no match found for Task/Profile
 # ###############################################################################################
 def clean_up_and_exit(
+    primary_items: dict,
     name: str,
     profile_or_task_name: str,
-    tree: defusedxml.ElementTree.XML,
-    root: defusedxml.ElementTree.XML,
-    output_list: list,
-    all_tasker_items: dict,
 ) -> None:
     """
     Cleanup memory and let user know there was no match found for Task/Profile/Project
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param name: the name to add to the log/print output
         :param profile_or_task_name: name of the Profile or Task to clean
-        :param tree: xml tree to clear
-        :param root: root of xml parsed from file to clear
-        :param output_list: list of output lines to empty
-        :param all_tasker_items: all Tasker Projects/Profiles/Tasks/Scenes to clear
     """
 
     # Clear our current list of output lines.
-    output_list.clear()
+    primary_items["output_lines"].output_lines.clear()
     # Spit out the error
     error_handler(f'{name} "{profile_or_task_name}" not found!!', 0)
     # Clean up all memory
-    clean_up_memory(tree, root, output_list, all_tasker_items)
+    clean_up_memory(primary_items)
     # Exit with code "item" not found.
     sys.exit(5)
 
@@ -221,156 +209,140 @@ def mapit_all(file_to_get: str) -> int:
         :return: return code (zero or error code)
     """
     # Initialize local variables and other stuff
-    found_tasks, output_list, projects_without_profiles, projects_with_no_tasks = (
-        [],
+    output_lines = LineOut()
+    found_tasks, projects_without_profiles, projects_with_no_tasks = (
         [],
         [],
         [],
     )
 
-    # Get colors to use, runtime arguments etc.
-    (
-        colormap,
-        program_args,
-        found_items,
-        heading,
-        output_list,
-        tree,
-        root,
-        filename,
-        all_tasker_items,
-    ) = initialize.start_up(output_list, file_to_get)
+    # Primary Items
+    # Set up an initial empty dictionary of primary items used throughout this project
+    #  xml_tree: main xml element of our Tasker xml tree
+    #  xml_root: root xml element of our Tasker xml tree
+    #  program_arguments: runtime arguments entered by user and parsed
+    #  colors_to_use: colors to use in the output
+    #  tasker_root_elements: root elements for all Projects/Profiles/Tasks/Scenes
+    #  output_lines: class for all lines added to output thus far
+    #  found_named_items: names/found-flags for single (if any) Project/Profile/Task
+    #  file_to_get: file object/name of Tasker backup file to read and parse
+    primary_items = {
+        "xml_tree": None,
+        "xml_root": None,
+        "program_arguments": {},
+        "colors_to_use": {},
+        "tasker_root_elements": {},
+        "output_lines": output_lines,
+        "found_named_items": {},
+        "file_to_get": file_to_get,
+    }
 
-    # Development only parameters here:
-    # program_args["display_detail_level"] = 3
-    # program_args["display_profile_conditions"] = True
-    # program_args['display_preferences'] = True
-    # program_args['display_taskernet'] = True
+    # Get colors to use, runtime arguments etc...all of our primary items we need throughout
+    primary_items = initialize.start_up(primary_items)
 
     #######################################################################################
     # Process Tasker Preferences
     #######################################################################################
-    if program_args["display_preferences"]:
-        get_preferences(
-            output_list,
-            program_args,
-            colormap,
-            all_tasker_items,
-        )
+    if primary_items["program_arguments"]["display_preferences"]:
+        get_preferences(primary_items)
 
     # #######################################################################################
     # Go through XML and Process all Projects
     # #######################################################################################
     found_tasks = projects.process_projects_and_their_profiles(
-        output_list,
+        primary_items,
         found_tasks,
         projects_without_profiles,
-        program_args,
-        found_items,
-        heading,
-        colormap,
-        all_tasker_items,
     )
 
     # If we were looking for a specific Project and didn't find it, then quit
-    if program_args["single_project_name"] and not found_items["single_project_found"]:
+    if (
+        primary_items["program_arguments"]["single_project_name"]
+        and not primary_items["found_named_items"]["single_project_found"]
+    ):
         clean_up_and_exit(
+            primary_items,
             "Project",
-            program_args["single_project_name"],
-            tree,
-            root,
-            output_list,
-            all_tasker_items,
+            primary_items["program_arguments"]["single_project_name"],
         )
     # If we were looking for a specific Profile and didn't find it, then quit
-    if program_args["single_profile_name"] and not found_items["single_profile_found"]:
+    if (
+        primary_items["program_arguments"]["single_profile_name"]
+        and not primary_items["found_named_items"]["single_profile_found"]
+    ):
         clean_up_and_exit(
+            primary_items,
             "Profile",
-            program_args["single_profile_name"],
-            tree,
-            root,
-            output_list,
-            all_tasker_items,
+            primary_items["program_arguments"]["single_profile_name"],
         )
 
     # #######################################################################################
     # Now let's look for Tasks that are not referenced by Profiles and display a total count
     # #######################################################################################
     if (
-        not program_args["single_task_name"]
-        and not program_args["single_project_name"]
-        and not program_args["single_profile_name"]
+        not primary_items["program_arguments"]["single_task_name"]
+        and not primary_items["program_arguments"]["single_project_name"]
+        and not primary_items["program_arguments"]["single_profile_name"]
     ):
         special_tasks.process_tasks_not_called_by_profile(
-            output_list,
+            primary_items,
             projects_with_no_tasks,
             found_tasks,
-            program_args,
-            found_items,
-            heading,
-            colormap,
-            all_tasker_items,
         )
 
         # #######################################################################################
         # List any Projects without Tasks and Projects without Profiles
         # #######################################################################################
         special_tasks.process_missing_tasks_and_profiles(
-            output_list,
+            primary_items,
             projects_with_no_tasks,
             projects_without_profiles,
-            found_items,
-            colormap,
-            program_args,
         )
 
     # Requested single item but invalid item name provided (i.e. no specific Project/Profile/Task found)?
     if (
-        program_args["single_task_name"]
-        and not found_items["single_task_found"]
+        primary_items["program_arguments"]["single_task_name"]
+        and not primary_items["found_named_items"]["single_task_found"]
         and (
-            not program_args["single_profile_name"]
-            or found_items["single_profile_found"]
+            not primary_items["program_arguments"]["single_profile_name"]
+            or primary_items["found_named_items"]["single_profile_found"]
         )
         and (
-            not program_args["single_project_name"]
-            or found_items["single_project_found"]
+            not primary_items["program_arguments"]["single_project_name"]
+            or primary_items["found_named_items"]["single_project_found"]
         )
     ):
         clean_up_and_exit(
+            primary_items,
             "Task",
-            program_args["single_task_name"],
-            tree,
-            root,
-            output_list,
-            all_tasker_items,
+            primary_items["program_arguments"]["single_task_name"],
         )
 
     # #######################################################################################
     # Let's wrap things up...
     # #######################################################################################
     # Output caveats if we are displaying the Actions
-    display_caveats(output_list, program_args, colormap)
+    display_caveats(primary_items)
 
     # Add html complete code
-    error_msg = "</body>\n</html>"
-    build_output.my_output(colormap, program_args, output_list, 0, error_msg)
+    final_msg = "\n</body>\n</html>"
+    primary_items["output_lines"].add_line_to_output(primary_items, 5, final_msg)
 
     # Okay, lets generate the actual output file.
-    # Store the output in the current  directory
+    # Store the output in the current directory
     my_output_dir = getcwd()
     logger.debug(f"output directory:{my_output_dir}")
     if my_output_dir is None:
         error_handler("MapTasker cancelled.  An error occurred.  Program cancelled.", 0)
-        clean_up_memory(tree, root, output_list, all_tasker_items)
+        clean_up_memory(primary_items)
         sys.exit(2)
 
     my_file_name = "/MapTasker.html"
     # Output the generated html
-    write_out_the_file(output_list, my_output_dir, my_file_name)
+    write_out_the_file(primary_items, my_output_dir, my_file_name)
 
     # Clean up memory
-    clean_up_memory(tree, root, output_list, all_tasker_items)
+    clean_up_memory(primary_items)
 
     # Display final output
     logger.debug("MapTasker program ended normally")
@@ -385,6 +357,6 @@ def mapit_all(file_to_get: str) -> int:
 
     # If in ReRun mode, let's do it all again :o)
     with contextlib.suppress(KeyError):
-        if program_args["rerun"]:
-            mapit_all(filename.name)
+        if primary_items["program_arguments"]["rerun"]:
+            mapit_all(primary_items["file_to_get"].name)
     return 0

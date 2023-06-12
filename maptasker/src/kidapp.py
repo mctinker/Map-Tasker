@@ -20,7 +20,7 @@ def get_kid_app(element: defusedxml.ElementTree) -> str:
         :param element: root element to search for <Kid>
         :return: the Kid App info
     """
-    kid_package = kid_version = kid_features = kid_plugins = ""
+    kid_features = kid_plugins = ""
     four_spaces = "&nbsp;&nbsp;&nbsp;&nbsp;"
     kid_element = element.find("Kid")
     if kid_element is None:

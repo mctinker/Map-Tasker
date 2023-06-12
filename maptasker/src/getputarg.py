@@ -22,19 +22,24 @@ from pathlib import Path
 # Save and restore colors to use and program arguments
 # #######################################################################################
 def save_restore_args(
-    to_save: bool, colormap: dict, temp_args: dict
+    program_arguments: dict,
+    colors_to_use: dict,
+    to_save: bool,
 ) -> tuple[dict, dict]:
     """
     Save and restore colors to use and program arguments
-        :param to_save: True if we are to save the info, False to restore the info
-        :param colormap: colors to use in output
-        :param temp_args: runtime arguments
-        :return: colors and runtime arguments saved/restored
+        :param program_arguments: program runtime arguments to save or restore into
+        :param colors_to_use: color dictionary to save or restore into
+        :param to_save: True if this is a save reques6t, False is restore request
+        :return: program runtime arguments saved/restored, colors to use saved/restored
     """
     the_file = f"{Path.cwd()}/{ARGUMENTS_FILE}"
     if to_save:
         # Save dictionaries
-        list_to_save = [colormap, temp_args]
+        list_to_save = [
+            colors_to_use,
+            program_arguments,
+        ]
         with open(the_file, "w") as f:
             json.dump(list_to_save, f)
             f.close()
@@ -43,13 +48,19 @@ def save_restore_args(
         try:
             with open(the_file, "r") as f:
                 list_to_restore = json.load(f)
-                colormap = list_to_restore[0]
-                temp_args = list_to_restore[1]
+                colors_to_use = list_to_restore[0]
+                program_arguments = list_to_restore[1]
                 f.close()
+                if isinstance(program_arguments["display_detail_level"], str):
+                    program_arguments["display_detail_level"] = int(
+                        program_arguments["display_detail_level"]
+                    )
         # Handle file not found condition
         except OSError:
             error_handler("'-r' MapTasker Error: No settings file found to restore!", 0)
-            temp_args = colormap = {"msg": "No settings file found to restore!"}
+            program_arguments = colors_to_use = {
+                "msg": "No settings file found to restore!"
+            }
         # Handle file format error
         except json.decoder.JSONDecodeError:  # no saved file
             error_handler(
@@ -61,11 +72,11 @@ def save_restore_args(
                 0,
             )
             # Return the error as an entry in our dictionaries for display via te GUI, if needed.
-            temp_args = colormap = {
+            program_arguments = colors_to_use = {
                 "msg": (
                     "The settings file is corrupt!  The old settings can not be"
                     " restored.  Re-save your settings."
                 )
             }
 
-    return temp_args, colormap
+    return program_arguments, colors_to_use

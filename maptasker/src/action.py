@@ -199,17 +199,21 @@ def process_xml_list(
             idx = (idx + 1) % len(the_list)
             # next_element = the_list[idx]  # Second element in pair
             if the_list[idx] in lookup_values:
-                evaluated_value = [lookup_values[the_list[idx]][int(the_int_value)]]
-                evaluated_value = the_list[idx - 2] + evaluated_value[0] + ", "
-                match_results.append(evaluated_value)
+                try:
+                    evaluated_value = [lookup_values[the_list[idx]][int(the_int_value)]]
+                    evaluated_value = the_list[idx - 2] + evaluated_value[0] + ", "
+                    match_results.append(evaluated_value)
+                except KeyError:
+                    match_results.append(
+                        f"MapTasker 'mapped' error in action: int {the_int_value} not"
+                        f" in lookup_values (actiont) for item {the_list[idx]} which is"
+                        f" {[lookup_values[the_list[idx]]]}"
+                    )
             # Error: the element is not in the lookup table.  OHandle the error and exit.
             else:
-                error_handler(
-                    (
-                        f"{the_list[idx]} is not in actiont"
-                        f" (lookup table) for name:{names}"
-                    ),
-                    1,
+                match_results.append(
+                    f"MapTasker 'mapped' error in action: {the_list[idx]} is not in"
+                    f" actiont (lookup table) for name:{names}"
                 )
             # Get out of loop
             break
@@ -297,26 +301,57 @@ def clean_label(lbl, colormap):
 # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
 # Get the: label, whether to continue Task after error, etc.
 # ####################################################################################################
+'''
+Objective:
+- The objective of the 'get_extra_stuff' function is to retrieve extra details about a Task Action, such as its label, disabled status, and conditions, and format them for output.
+
+Inputs:
+- 'code_action': an xml element representing the Task Action code
+- 'action_type': a boolean indicating whether the code represents a Task Action or a Profile condition
+- 'colormap': a dictionary containing colors to use in output
+- 'program_args': a dictionary containing runtime arguments
+
+Flow:
+- Check if the code represents a Task Action and if the display detail level is set to 3.
+- If so, retrieve the label, disabled status, and conditions of the Task Action using the 'get_label_disabled_condition' function and format them for output.
+- Check if the debug mode is enabled and if the code represents a Task Action.
+- If so, add the code to the output.
+- Check if the display detail level is set to 3.
+- If so, check if the Task Action is set to continue after an error and add it to the output.
+- Remove any empty '<span>' elements from the output.
+- Return the formatted output.
+
+Outputs:
+- A string containing the formatted extra details about the Task Action.
+
+Additional aspects:
+- The function uses the 'get_label_disabled_condition' function to retrieve the label, disabled status, and conditions of the Task Action.
+- The function formats the output using the 'format_html' function.
+- The function removes any empty '<span>' elements from the output.
+- The function only retrieves extra details if the code represents a Task Action and the display detail level is set to 3.
+'''
+
+
 def get_extra_stuff(
+    primary_items: dict,
     code_action: defusedxml.ElementTree,
     action_type: bool,
-    colormap: dict,
-    program_args: dict,
 ) -> str:
     """
     # Chase after relevant data after <code> Task action
     # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
     # Get the: label, whether to continue Task after error, etc.
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param code_action: action code (e.g. "543") xml element
         :param action_type: True if this is a Task Action, otherwise False
-        :param colormap: colors to use in output
-        :param program_args: runtime arguments
         :return: formatted line of extra details about Task Action
     """
     # Only get extras if this is a Task action (vs. a Profile condition)
-    if action_type and program_args["display_detail_level"] == 3:
+    if action_type and primary_items["program_arguments"]["display_detail_level"] == 3:
         # Look for extra Task stiff: label, disabled, conditions
-        extra_stuff = get_label_disabled_condition(code_action, colormap)
+        extra_stuff = get_label_disabled_condition(
+            code_action, primary_items["colors_to_use"]
+        )
         if (
             "<font" in extra_stuff and "</font>" not in extra_stuff
         ):  # Make sure we terminate any fonts
@@ -333,10 +368,10 @@ def get_extra_stuff(
         extra_stuff = ""
 
     if (
-        program_args["debug"] and action_type
+        primary_items["program_arguments"]["debug"] and action_type
     ):  # Add the code if this is an Action and in debug mode
         extra_stuff = extra_stuff + format_html(
-            colormap,
+            primary_items["colors_to_use"],
             "Yellow",
             "",
             f'&nbsp;&nbsp;code: {code_action.find("code").text}-',
@@ -344,12 +379,12 @@ def get_extra_stuff(
         )
 
     # See if Task action is to be continued after error
-    if program_args["display_detail_level"] == 3:
+    if primary_items["program_arguments"]["display_detail_level"] == 3:
         child = code_action.find("se")
         if child is not None and child.text == "false":
             extra_stuff = (
                 format_html(
-                    colormap,
+                    primary_items["colors_to_use"],
                     "action_color",
                     "",
                     " [Continue Task After Error]",
@@ -370,8 +405,8 @@ def get_extra_stuff(
 # ####################################################################################################
 # Get the application specifics for the given code
 # ####################################################################################################
-def get_app_details(code_child, action_type, colormap, program_args):
-    extra_stuff = get_extra_stuff(code_child, action_type, colormap, program_args)
+def get_app_details(primary_items, code_child, action_type):
+    extra_stuff = get_extra_stuff(primary_items, code_child, action_type)
     app_class, app_pkg, app = "", "", ""
     child = code_child.find("App")
     if child is not None and child.tag == "App":

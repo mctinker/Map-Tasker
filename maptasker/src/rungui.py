@@ -19,16 +19,8 @@
 
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.sysconst import logger
-
-
-# #######################################################################################
-# Output the provided message and return (then quit)
-# #######################################################################################
-def output_and_quit(arg0):
-    out_message = arg0
-    print(out_message)
-    logger.debug(out_message)
+from maptasker.src.error import error_handler
+from maptasker.src.sysconst import ARGUMENT_NAMES
 
 
 def delete_gui(MyGui, user_input):
@@ -43,12 +35,14 @@ def delete_gui(MyGui, user_input):
 # #######################################################################################
 # Get the program arguments from GUI
 # #######################################################################################
-def process_gui(use_gui: bool) -> tuple[dict, dict]:
+def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
     """
     Present the GUI and get the runtime details
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param use_gui: flag if usijng the GUI, make sure we import it
         :return: program runtime arguments and colors to use in the output
     """
+
     global MyGui
     if use_gui:
         from maptasker.src.userintr import MyGui
@@ -59,47 +53,48 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # If user selected the "Exit" button, call it quits.
     if user_input.exit:
-        output_and_quit("Program exited. Goodbye.")
-        exit()
+        error_handler("Program exited. Goodbye.", 0)
 
     # User has either closed the window or hit the 'Run' or 'ReRun' button
-    if not user_input.go_program and not user_input.rerun_program:
-        output_and_quit("Program cancelled be user (killed GUI)")
-        exit(99)
+    if not user_input.go_program and not user_input.rerun:
+        error_handler("Program cancelled be user (killed GUI)", 99)
 
     # Convert runtime argument default values to a dictionary
-    prog_args = initialize_runtime_arguments()
+    primary_items["program_arguments"] = initialize_runtime_arguments()
 
     # 'Run' button hit.  Get all the input from GUI variables
     try:
-        prog_args["display_detail_level"] = int(user_input.display_detail_level)
+        primary_items["program_arguments"]["display_detail_level"] = int(
+            user_input.display_detail_level
+        )
     except TypeError:
-        prog_args["display_detail_level"] = 1
-    # Ok, load up the arguments from the GUI
-    prog_args["display_profile_conditions"] = user_input.display_profile_conditions
-    prog_args["display_preferences"] = user_input.display_preferences
-    prog_args["display_taskernet"] = user_input.display_taskernet
-    prog_args["single_project_name"] = user_input.single_project_name
-    prog_args["single_profile_name"] = user_input.single_profile_name
-    prog_args["single_task_name"] = user_input.single_task_name
+        primary_items["program_arguments"]["display_detail_level"] = 3
+
+    # Get the program arguments and save them in our dictionary
+    for value in ARGUMENT_NAMES:
+        if value == "backup_file_http":
+            if http_info := getattr(user_input, value):
+                primary_items["program_arguments"][value] = f"http://{http_info}"
+        else:
+            primary_items["program_arguments"][value] = getattr(user_input, value)
+    # Make sure our detail_level is an int
+    if isinstance(primary_items["program_arguments"]["display_detail_level"], str):
+        primary_items["program_arguments"]["display_detail_level"] = int(
+            primary_items["program_arguments"]["display_detail_level"]
+        )
+
     # Appearance change: Dark or Light mode?
     colormap = set_color_mode(user_input.appearance_mode)
+
     # Process the colors
     if user_input.color_lookup:
         for key, value in user_input.color_lookup.items():
             colormap[key] = value
 
-    # Debug flag
-    prog_args["debug"] = user_input.debug
-    # Save ReRun button setting
-    prog_args["rerun"] = user_input.rerun_program
-    # Let everyone know we are running from the GUI
-    prog_args["gui"] = True
-
     # Delete the GUI
     delete_gui(MyGui, user_input)
 
     return (
-        prog_args,
+        primary_items["program_arguments"],
         colormap,
     )

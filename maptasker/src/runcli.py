@@ -35,90 +35,130 @@ from maptasker.src.error import error_handler
 # #######################################################################################
 # Get arguments from command line and put them to the proper settings
 # #######################################################################################
-def process_arguments(args: object, prog_args: dict, colormap: dict) -> tuple:
+def process_arguments(primary_items: dict, args: object) -> dict:
     # Color help?
     if getattr(args, "ch"):
         validate_color("h")
     # Not GUI.  Get input from command line arguments
-    if getattr(args, "e"):
-        prog_args["display_detail_level"] = 3
-        prog_args["display_profile_conditions"] = True
-        prog_args["display_preferences"] = True
-        prog_args["display_taskernet"] = True
+    if getattr(args, "e"):  # Everything?
+        primary_items["program_arguments"]["display_detail_level"] = 3
+        primary_items["program_arguments"]["display_profile_conditions"] = True
+        primary_items["program_arguments"]["display_preferences"] = True
+        primary_items["program_arguments"]["display_taskernet"] = True
     else:
-        prog_args["display_detail_level"] = getattr(args, "detail")
-        prog_args["display_profile_conditions"] = getattr(args, "conditions")
-        prog_args["display_preferences"] = getattr(args, "p")
-        prog_args["display_taskernet"] = getattr(args, "taskernet")
-    the_name = getattr(args, "project")
+        primary_items["program_arguments"]["display_detail_level"] = getattr(
+            args, "detail"  # Display detail level
+        )
+        primary_items["program_arguments"]["display_profile_conditions"] = getattr(
+            args, "conditions"  # Display conditions
+        )
+        primary_items["program_arguments"]["display_preferences"] = getattr(
+            args, "p"
+        )  # Display Tasker preferences
+        primary_items["program_arguments"]["display_taskernet"] = getattr(
+            args, "taskernet"  # Display TaskerNet info
+        )
+    the_name = getattr(args, "project")  # Display single Project
     if the_name is not None:
-        prog_args["single_project_name"] = the_name[0]
-    the_name = getattr(args, "profile")
+        primary_items["program_arguments"]["single_project_name"] = the_name[0]
+    the_name = getattr(args, "profile")  # Display single Profile
     if the_name is not None:
-        prog_args["single_profile_name"] = the_name[0]
-    the_name = getattr(args, "task")
+        primary_items["program_arguments"]["single_profile_name"] = the_name[0]
+    the_name = getattr(args, "task")  # Display single task
     if the_name is not None:
-        prog_args["single_task_name"] = the_name[0]
-    if getattr(args, "d"):
-        prog_args["debug"] = True
-    if getattr(args, "v"):
+        primary_items["program_arguments"]["single_task_name"] = the_name[0]
+    if getattr(args, "d"):  # Debug mode
+        primary_items["program_arguments"]["debug"] = True
+    if getattr(args, "v"):  # Display version info
         print(f"{MY_VERSION}, under license {MY_LICENSE}")
         exit(0)
+    if getattr(args, "twisty"):  # Twisty
+        primary_items["program_arguments"]["twisty"] = True
+    if backup_file_info := getattr(
+        args, "b"
+    ):  # Get backup file directly from Android device
+        # It is a list if coming from program arguments.  Otherwise, just a string if coming from run_test (unit test)
+        if type(backup_file_info) == list:
+            backup_details = backup_file_info[0].split("+")
+        else:
+            backup_details = backup_file_info.split("+")
+
+        # Break up the command into http portion and file-location portion
+        if backup_details[0].isdigit and backup_details[1]:
+            primary_items["program_arguments"]["backup_file_http"] = backup_details[0]
+            primary_items["program_arguments"]["backup_file_location"] = backup_details[
+                1
+            ]
 
     # Process colors
     for item in TYPES_OF_COLORS:
         the_name = getattr(args, f"c{item}")
         if the_name is not None:
             if type(the_name) is list:
-                get_and_set_the_color(f"-c{item}={the_name[0]}", colormap)
+                get_and_set_the_color(primary_items, f"-c{item}={the_name[0]}")
             else:
-                get_and_set_the_color(f"-c{item}={the_name}", colormap)
+                get_and_set_the_color(primary_items, f"-c{item}={the_name}")
 
     # Save the arguments
     if getattr(args, "s"):
-        save_restore_args(True, colormap, prog_args)
+        primary_items["program_arguments"], primary_items["colors_to_use"] = (
+            save_restore_args(
+                primary_items["program_arguments"], primary_items["colors_to_use"], True
+            )
+        )
 
-    return prog_args, colormap
+    return primary_items
 
 
 # #######################################################################################
 # Get arguments from saved file and restore them to the proper settings
 # #######################################################################################
-def restore_arguments(prog_args: dict, colormap: dict) -> tuple:
-    temp_args = {}
-    temp_args, temp_colormap = save_restore_args(False, colormap, temp_args)
-    for key, value in temp_args.items():  # Map the prog_arg keys and values restored
+def restore_arguments(primary_items: dict) -> dict:
+    """
+    Get arguments from saved file and restore them to the proper settings
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :return: primary items
+    """
+    temp_arguments = temp_colors = {}
+    temp_arguments, temp_colors = save_restore_args(temp_arguments, temp_colors, False)
+    for key, value in temp_arguments[
+        "program_arguments"
+    ].items():  # Map the prog_arg keys and values restored
         if key is not None:
             match key:
                 case "debug":
-                    prog_args["debug"] = value
+                    primary_items["program_arguments"]["debug"] = value
                 case "display_detail_level":
-                    prog_args["display_detail_level"] = int(value)
+                    primary_items["program_arguments"]["display_detail_level"] = int(
+                        value
+                    )
                 case "display_profile_conditions":
-                    prog_args["display_profile_conditions"] = value
+                    primary_items["program_arguments"][
+                        "display_profile_conditions"
+                    ] = value
                 case "display_preferences":
-                    prog_args["display_preferences"] = value
+                    primary_items["program_arguments"]["display_preferences"] = value
                 case "display_taskernet":
-                    prog_args["display_taskernet"] = value
+                    primary_items["program_arguments"]["display_taskernet"] = value
                 case "single_profile_name":
-                    prog_args["single_profile_name"] = value
+                    primary_items["program_arguments"]["single_profile_name"] = value
                 case "single_project_name":
-                    prog_args["single_project_name"] = value
+                    primary_items["program_arguments"]["single_project_name"] = value
                 case "single_task_name":
-                    prog_args["single_task_name"] = value
+                    primary_items["program_arguments"]["single_task_name"] = value
                 case _:
-                    error_handler("Invalid argument restored!", 0)
+                    error_handler("Invalid argument restored: {key}!", 0)
 
     # Map the colormap keys and values restored
-    for key, value in temp_colormap.items():
+    for key, value in temp_colors.items():
         if key is not None:
-            colormap[key] = value
+            primary_items["colors_to_use"][key] = value
 
-    return prog_args, colormap
+    return primary_items
 
 
 # #######################################################################################
-# We're running a unit test- get the unit test arguments
+# We're running a unit test. Get the unit test arguments
 # #######################################################################################
 def unit_test() -> object:
     """
@@ -133,12 +173,14 @@ def unit_test() -> object:
 
     # Setup default argument Namespace
     args = Namespace(
-        detail=1,
+        detail=3,
         conditions=False,
         e=False,
         g=False,
         p=False,
+        b=False,
         taskernet=False,
+        twisty=False,
         project=None,
         profile=None,
         task=None,
@@ -190,9 +232,9 @@ def unit_test() -> object:
 # Get the program arguments (e.g. python mapit.py -x)
 # #######################################################################################
 # Command line parameters
-def process_cli(colormap: dict) -> tuple:
+def process_cli(primary_items: dict) -> dict:
     # Convert runtime argument default values to a dictionary
-    prog_args = initialize_runtime_arguments()
+    primary_items["program_arguments"] = initialize_runtime_arguments()
 
     # Process unit tests if "-test" in arguments, else get normal runtime arguments
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
@@ -201,20 +243,18 @@ def process_cli(colormap: dict) -> tuple:
     # Grab the results
     if getattr(args, "g"):  # GUI for input?
         (
-            prog_args,
+            primary_items["program_arguments"],
             colormap,
-        ) = process_gui(True)
+        ) = process_gui(primary_items, True)
+
     # Restore arguments from file?
     elif getattr(args, "r"):
         # Restore all changes that have been saved for progargs
-        prog_args, colormap = restore_arguments(prog_args, colormap)
+        primary_items = restore_arguments(primary_items)
 
     # Process commands from command line
     else:
-        prog_args, colormap = process_arguments(args, prog_args, colormap)
+        primary_items = process_arguments(primary_items, args)
 
     # Return the results
-    return (
-        prog_args,
-        colormap,
-    )
+    return primary_items

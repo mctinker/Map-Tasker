@@ -78,11 +78,12 @@ def process_error(error_msg: str) -> tuple[dict, dict]:
 # #######################################################################################
 # Migrate from old filename/format to new for saved runtime arguments
 # #######################################################################################
-def migrate() -> None:
+def migrate(primary_items: dict) -> dict:
     """
     Migrate from old filename/format to new for saved runtime arguments
       We have changed from using the unsecure "pickle" code to using "json"
       to save the program arguments and colors
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :return: nothing
     """
     old_arguments_file = ".MapTasker_arguments.txt"
@@ -95,25 +96,24 @@ def migrate() -> None:
 
     # Now, if we have the old binary file saved via pickle, convert it to JSON
     if file_to_check.is_file():
-        program_args, colormap = restore_old_args(file_to_check)
-        # Save as JSON file
-        nada, nada = save_restore_args(True, colormap, program_args)
+        primary_items["program_arguments"], primary_items["colors_to_use"] = (
+            restore_old_args(file_to_check)
+        )
+        # Save as JSON file.  We don't care about the returned values
+        _, _ = save_restore_args(
+            primary_items["colors_to_use"], primary_items["program_arguments"], True
+        )
         # Now delete the old file
         file_to_check.unlink()
 
-    # If we don't have an old binary file, check for existing JSON file and validate it's values
     else:
         file_to_check = f"{dir_path}/{ARGUMENTS_FILE}"
         if path.exists(file_to_check):
             # Get the current arguments and colors
-            temp_args, temp_colormap = save_restore_args(False, {}, {})
+            temp_args, temp_colormap = save_restore_args({}, {}, False)
             # Reset any "msg" left over from previous run
-            try:
+            with contextlib.suppress(KeyError):
                 if temp_colormap["msg"] or temp_args["msg"]:
                     temp_args["msg"] = temp_colormap["msg"] = ""
-                    nada, nada = save_restore_args(True, temp_colormap, temp_args)
-            # If the "msg" key doesn't exist, then we don't care
-            except KeyError:
-                pass
-
-    return
+                    _, _ = save_restore_args(temp_colormap, temp_args, True)
+    return primary_items

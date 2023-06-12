@@ -60,7 +60,6 @@ def look_for_missing_req() -> None:
     For debug purposes, this searches dictionary for missing keys: 'reqargs' and 'display'
         If found, the error is handled and the program exits
     """
-    flag = False
     for item in action_codes:
         entry = action_codes[item]
         numargs = entry["numargs"]
@@ -95,24 +94,22 @@ def check_for_deprecation(dict_code):
 # Given an action code, evaluate it for display
 # ####################################################################################################
 def get_action_code(
+    primary_items: dict,
     code_child: defusedxml.ElementTree.XML,
     code_action: defusedxml.ElementTree.XML,
     action_type: bool,
-    colormap: dict,
     code_type: str,
-    program_args: dict,
 ) -> str:
     """
     Given an action code, evaluate it for display
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param code_child: xml element of the <code>
         :param code_action: value of <code> (e.g. "549")
         :param action_type:
-        :param colormap: colors to use in output
         :param code_type: 'e'=event, 's'=state, 't'=task
-        :param program_args: runtime arguments
         :return: formatted output line with action details
     """
-    logger.debug(f"getcode:{code_child.text}{code_type}")
+    logger.debug(f"get action code:{code_child.text}{code_type}")
     dict_code = code_child.text + code_type
     # See if this code is deprecated
     check_for_deprecation(dict_code)
@@ -120,14 +117,18 @@ def get_action_code(
     if dict_code not in action_codes or "display" not in action_codes[dict_code]:
         the_result = (
             f"Code {dict_code} not yet"
-            f" mapped{get_extra_stuff(code_action, action_type, colormap, program_args)}"
+            f" mapped{get_extra_stuff(primary_items, code_action, action_type)}"
         )
         logger.debug(f"unmapped task code: {dict_code} ")
 
     else:
         # The code is in our dictionary.  Add the display name
         the_result = format_html(
-            colormap, "action_name_color", "", action_codes[dict_code]["display"], True
+            primary_items["colors_to_use"],
+            "action_name_color",
+            "",
+            action_codes[dict_code]["display"],
+            True,
         )
 
         if "numargs" in action_codes[dict_code]:
@@ -137,14 +138,13 @@ def get_action_code(
         # If there are required args, then parse them
         if numargs != 0 and "reqargs" in action_codes[dict_code]:
             the_result = action_results.get_action_results(
+                primary_items,
                 dict_code,
                 action_codes,
                 code_action,
                 action_type,
-                colormap,
                 action_codes[dict_code]["reqargs"],
                 action_codes[dict_code]["evalargs"],
-                program_args,
             )
         # If this is a redirected lookup entry, create a temporary mirror dictionary entry.
         # Then grab the 'display' key and fill in rest with directed-to keys
@@ -159,14 +159,13 @@ def get_action_code(
             temp_lookup_codes["display"] = copy.deepcopy(display_name)
             # Get the results from the (copy of the) referred-to dictionary entry
             the_result = action_results.get_action_results(
+                primary_items,
                 dict_code,
                 temp_lookup_codes,
                 code_action,
                 action_type,
-                colormap,
                 temp_lookup_codes[dict_code]["reqargs"],
                 temp_lookup_codes[dict_code]["evalargs"],
-                program_args,
             )
 
     the_result = cleanup_the_result(the_result)
@@ -176,28 +175,50 @@ def get_action_code(
 # #############################################################################################
 # Construct Task Action output line
 # #############################################################################################
-def build_action(colormap, alist, tcode, code_element, indent, indent_amt):
+def build_action(
+    primary_items: dict,
+    alist: list,
+    task_code_line: str,
+    code_element: defusedxml.ElementTree.XML,
+    indent: int,
+    indent_amt: str,
+) -> list:
     from maptasker.src.config import CONTINUE_LIMIT
 
     # Calculate total indentation to put in front of action
     count = indent
     if count != 0:
-        tcode = tcode.replace(f'{FONT_TO_USE}">', f'{FONT_TO_USE}">{indent_amt}', 1)
+        task_code_line = task_code_line.replace(
+            f'{FONT_TO_USE}">', f'{FONT_TO_USE}">{indent_amt}', 1
+        )
         count = 0
     if count < 0:
-        tcode = indent_amt + tcode
+        task_code_line = indent_amt + task_code_line
 
     # Break-up very long actions at new line
-    if tcode != "":
-        newline = tcode.find("\n")  # Break-up new line breaks
-        tcode_len = len(tcode)
+    if not task_code_line:  # If no Action details
+        alist.append(
+            format_html(
+                primary_items,
+                "unknown_task_color",
+                "",
+                f"Action {code_element.text}: not yet mapped",
+                True,
+            )
+        )
+    else:  # We have Task Action details
+        newline = task_code_line.find("\n")  # Break-up new line breaks
+        task_code_line_len = len(task_code_line)
+
         # If no new line break or line break less than width set for browser, just put it as is
         # Otherwise, make it a continuation line using '...' has the continuation flag
-        if newline == -1 and tcode_len > 80:
-            alist.append(tcode)
+        if newline == -1 and task_code_line_len > 80:
+            alist.append(task_code_line)
         else:
-            array_of_lines = tcode.split("\n")
+            # Break into individual lines at line break (\n)
+            array_of_lines = task_code_line.split("\n")
             count = 0
+            # Determine if a single line or a continued line
             for item in array_of_lines:
                 if count == 0:
                     alist.append(item)
@@ -207,8 +228,8 @@ def build_action(colormap, alist, tcode, code_element, indent, indent_amt):
                 # Only display up to so many continued lines
                 if count == CONTINUE_LIMIT:
                     # Add comment that we have reached the limit for continued details
-                    alist[-1] = f"{alist[-1]}" + format_html(
-                        colormap,
+                    alist[-1] = f"{alist[-1]}</span>" + format_html(
+                        primary_items,
                         "Red",
                         "",
                         (
@@ -219,6 +240,5 @@ def build_action(colormap, alist, tcode, code_element, indent, indent_amt):
                         True,
                     )
                     break
-    else:
-        alist.append(f"Action {code_element.text}: not yet mapped")
+
     return alist

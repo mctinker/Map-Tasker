@@ -241,22 +241,30 @@ def validate_color(the_color):
 # #######################################################################################
 # Get the runtime option for a color change and set it
 # #######################################################################################
-def get_and_set_the_color(the_arg, colormap):
+def get_and_set_the_color(primary_items: dict, the_arg: str) -> object:
+    """
+    Get the runtime option for a color change and set it
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param the_arg:
+        :return:
+    """
     the_color_option = the_arg[2:].split("=")
     color_type = the_color_option[0]
     if len(the_color_option) < 2:  # Do we have the second parameter?
         error_handler(f"{the_arg} has an invalid 'color'.  See the help (-ch)!", 7)
     if color_type not in TYPES_OF_COLOR_NAMES:
         error_handler(
-            f"{color_type} is an invalid type for 'color'.  See the help (-h)!",
-            " Exit code 7",
+            (
+                f"{color_type} is an invalid type for 'color'.  See the help (-h)! "
+                " Exit code 7"
+            ),
             7,
         )
     desired_color = the_color_option[1]
     logger.debug(f" desired_color:{desired_color}")
     if validate_color(desired_color):  # If the color provided is valid...
         # match color_type:
-        colormap[TYPES_OF_COLOR_NAMES[color_type]] = desired_color
+        primary_items["colors_to_use"][TYPES_OF_COLOR_NAMES[color_type]] = desired_color
     else:
         error_handler(
             (

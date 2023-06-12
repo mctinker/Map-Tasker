@@ -11,26 +11,21 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-from maptasker.src.outputl import my_output
 
 import defusedxml.ElementTree  # Need for type hints
 
 
 def get_ids(
+    primary_items: dict,
     doing_project: bool,
-    program_args: dict,
-    colormap: dict,
-    output_list: list,
     project: defusedxml.ElementTree.XML,
     project_name: str,
     projects_without_profiles: list,
 ) -> list:
     """
     Find either Project 'pids' (Profile IDs) or 'tids' (Task IDs)
+    :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
     :param doing_project: True if this is searching for Project IDs
-    :param program_args: runtime arguments
-    :param colormap: output colors to use
-    :param output_list: list of all output lines to this point
     :param project: Project xml element
     :param project_name: name of Project
     :param projects_without_profiles: list of elements without ids
@@ -41,7 +36,9 @@ def get_ids(
     if doing_project:
         project_pids = ""
         ids_to_find = 'pids'
-        my_output(colormap, program_args, output_list, 1, "")  # Start Profile list
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 1, ""
+        )  # Start Profile list
     else:
         ids_to_find = 'tids'
     try:

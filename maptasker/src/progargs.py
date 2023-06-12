@@ -22,23 +22,20 @@ from maptasker.src.sysconst import DEBUG_PROGRAM
 # #######################################################################################
 # Get the program arguments (e.g. python mapit.py -x)
 # #######################################################################################
-def get_program_arguments(colormap: dict):
+def get_program_arguments(primary_items: dict):
     # Are we using the GUI?
     if GUI:
         (
-            prog_args,
-            colormap,
-        ) = process_gui(True)
+            primary_items["program_arguments"],
+            primary_items["colors_to_use"],
+        ) = process_gui(primary_items, True)
 
     # Command line parameters
     else:
-        (
-            prog_args,
-            colormap,
-        ) = process_cli(colormap)
+        primary_items = process_cli(primary_items)
 
     # Are we in development mode?  If so, override debug argument
     if DEBUG_PROGRAM:
-        prog_args["debug"] = True
+        primary_items["program_arguments"]["debug"] = True
 
-    return prog_args, colormap
+    return primary_items

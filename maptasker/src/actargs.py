@@ -14,31 +14,31 @@ from maptasker.src.actiond import process_condition_list
 from maptasker.src.sysconst import logger
 import defusedxml.ElementTree  # Need for type hints
 import maptasker.src.action as get_action
+from maptasker.src.frmthtml import format_html
 
 
 def get_action_arguments(
+    primary_items: dict,
     evaluated_results: dict,
     arg: object,
     argeval: list,
     argtype: list,
     code_action: defusedxml.ElementTree.XML,
     action_type: defusedxml.ElementTree.XML,
-    colormap: dict,
-    program_args: dict,
 ) -> dict:
     """
     Given an <argn> element, evaluate it's contents based on our Action code dictionary (actionc.py)
-        :param evaluated_results: all the Action argument "types" and "arguments" as a dicitonary
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param evaluated_results: all the Action argument "types" and "arguments" as a dictionary
         :param arg: the incoming argument
         :param argeval: the evaluation argument
         :param argtype: the argument "type"
         :param code_action: the Action code
         :param action_type: the Action type
-        :param colormap: colors to use in output
-        :param program_args: runtime arguments
-        :return: dictionary of results
+        :return:  of results
     """
 
+    # Evaluate the argument based on its type
     match argtype:
         case "Str":
             evaluated_results["get_xml_flag"] = True
@@ -54,7 +54,7 @@ def get_action_arguments(
             evaluated_results["strargs"].append(f"arg{str(arg)}")
             evaluated_results["streval"].append(argeval)
             app_class, app_pkg, app, extra = get_action.get_app_details(
-                code_action, action_type, colormap, program_args
+                primary_items, code_action, action_type
             )
             evaluated_results["result_app"].append(f"{app_class}, {app_pkg}, {app}")
             evaluated_results["returning_something"] = True
@@ -108,32 +108,55 @@ def get_action_arguments(
 # Go through the arguments and parse each one based on its argument 'type'
 # ####################################################################################################
 def action_args(
+    primary_items,
     arg_list,
     dict_code,
     lookup_code_entry,
     evaluate_list,
     code_action,
     action_type,
-    colormap,
-    program_args,
     evaluated_results,
 ):
     for num, arg in enumerate(arg_list):
         # Find the location for this arg in dictionary key "types' since they can be non-sequential (e.g. '1', '3', '4', '6')
         index = num if arg == "if" else lookup_code_entry[dict_code]["args"].index(arg)
         # Get the arg name and type
-        argeval = evaluate_list[num]
-        argtype = lookup_code_entry[dict_code]["types"][index]
+        try:
+            argeval = evaluate_list[num]
+        except IndexError:
+            evaluated_results["returning_something"] = False
+            evaluated_results["error"] = (
+                "MapTasker mapped IndexError error in action_args...action details not"
+                " displayed"
+            )
+            return evaluated_results
+        try:
+            argtype = lookup_code_entry[dict_code]["types"][index]
+        except IndexError:
+            argtype = ""
+            error_message = format_html(
+                primary_items["colors_to_use"],
+                "action_color",
+                "",
+                (
+                    f"MapTasker actionc error dict_code {dict_code} 'types' for index"
+                    f" {index} not mapped!"
+                ),
+                True,
+            )
+            logger.debug(error_message)
+            primary_items["output_lines"].add_line_to_output(
+                primary_items, 4, error_message
+            )
         evaluated_results["position_arg_type"].append(argtype)
         evaluated_results = get_action_arguments(
+            primary_items,
             evaluated_results,
             arg,
             argeval,
             argtype,
             code_action,
             action_type,
-            colormap,
-            program_args,
         )
 
     return evaluated_results

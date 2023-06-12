@@ -12,61 +12,59 @@
 #                                                                                            #
 # ########################################################################################## #
 import sys
-import maptasker.src.outputl as build_output
+
 from maptasker.src.frmthtml import format_html
 
 
-def debug1(colormap: dict, program_args: dict, output_list: list) -> None:
+def display_debug_info(primary_items: dict) -> None:
     """
     Output our runtime arguments
-        :param colormap: colors to use
-        :param program_args: other runtime arguments
-        :param output_list: where the output goes
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
     """
-    build_output.my_output(
-        colormap,
-        program_args,
-        output_list,
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
         4,
-        format_html(colormap, "White", "", f"sys.argv:{str(sys.argv)}", True),
+        format_html(
+            primary_items["colors_to_use"],
+            "White",
+            "",
+            f"sys.argv (runtime arguments):{str(sys.argv)}",
+            True,
+        ),
     )
     # )
-    build_output.my_output(
-        colormap,
-        program_args,
-        output_list,
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
         4,
         '',
     )
-    for key, value in program_args.items():
-        build_output.my_output(
-            colormap,
-            program_args,
-            output_list,
-            4,
-            format_html(colormap, "White", "", f"{key}: {value}", True),
-        )
-    build_output.my_output(
-        colormap,
-        program_args,
-        output_list,
-        4,
-        '',
-    )
-    for key, value in colormap.items():
-        build_output.my_output(
-            colormap,
-            program_args,
-            output_list,
+    for key, value in primary_items["program_arguments"].items():
+        primary_items["output_lines"].add_line_to_output(
+            primary_items,
             4,
             format_html(
-                colormap, "White", "", f"colormap for {key} set to {value}", True
+                primary_items["colors_to_use"], "White", "", f"{key}: {value}", True
             ),
         )
-    build_output.my_output(
-        colormap,
-        program_args,
-        output_list,
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
+        4,
+        '',
+    )
+    for key, value in primary_items["colors_to_use"].items():
+        primary_items["output_lines"].add_line_to_output(
+            primary_items,
+            4,
+            format_html(
+                primary_items["colors_to_use"],
+                "White",
+                "",
+                f"colormap for {key} set to {value}",
+                True,
+            ),
+        )
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
         4,
         '',
     )

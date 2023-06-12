@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
-import defusedxml
-from defusedxml.ElementTree import parse
+
+import defusedxml.cElementTree as ET
 
 # ########################################################################################## #
 #                                                                                            #
@@ -33,21 +33,32 @@ def move_xml_to_table(all_xml, is_scene: bool):
 # ###############################################################################################
 # Load all of the Projects, Profiles and Tasks into a format we can easily navigate through
 # ###############################################################################################
-def get_the_xml_data(filename):
+def get_the_xml_data(primary_items: dict) -> dict:
+    """
+    Load all of the Projects, Profiles and Tasks into a format we can easily navigate through
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :return: primary_items
+    """
+
     logger.info("entry")
     # Import xml
+    file_to_parse = primary_items["program_arguments"]["file"]
     try:
-        tree = parse(filename)
-    except defusedxml.ElementTree.ParseError:
-        error_handler(f"Error parsing {filename}", 1)  # Error out and exit
+        primary_items["xml_tree"] = ET.parse(primary_items["file_to_get"])
+    except ET.ParseError:  # Parsing error
+        error_handler(
+            f"Error in taskerd parsing {file_to_parse}", 1
+        )  # Error out and exit
+    except Exception:  # any other error
+        error_handler(f"Parsing error in taskerd {file_to_parse}", 1)
 
-    root = tree.getroot()
+    primary_items["xml_root"] = primary_items["xml_tree"].getroot()
 
-    all_services = root.findall("Setting")
-    all_projects = root.findall("Project")
-    all_profiles_list = root.findall("Profile")
-    all_scenes_list = root.findall("Scene")
-    all_tasks_list = root.findall("Task")
+    all_services = primary_items["xml_root"].findall("Setting")
+    all_projects = primary_items["xml_root"].findall("Project")
+    all_profiles_list = primary_items["xml_root"].findall("Profile")
+    all_scenes_list = primary_items["xml_root"].findall("Scene")
+    all_tasks_list = primary_items["xml_root"].findall("Task")
 
     # We now have what we need as lists.  Now move some into dictionaries
     all_profiles = move_xml_to_table(all_profiles_list, False)
@@ -55,7 +66,7 @@ def get_the_xml_data(filename):
     all_scenes = move_xml_to_table(all_scenes_list, True)
 
     # Return all data in a dictionary for easier access
-    all_tasker_items = {
+    primary_items["tasker_root_elements"] = {
         "all_projects": all_projects,
         "all_profiles": all_profiles,
         "all_scenes": all_scenes,
@@ -63,4 +74,4 @@ def get_the_xml_data(filename):
         "all_services": all_services,
     }
     logger.info("exit")
-    return tree, root, all_tasker_items
+    return primary_items

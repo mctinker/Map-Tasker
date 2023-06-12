@@ -14,18 +14,16 @@
 import defusedxml.ElementTree  # Need for type hints
 import maptasker.src.actione as action_evaluate
 
-import maptasker.src.outputl as build_output
 from maptasker.src.xmldata import tag_in_type
 from maptasker.src.kidapp import get_kid_app
-from maptasker.src.priority import get_priority
 from maptasker.src.getids import get_ids
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 from maptasker.src.sysconst import NO_PROJECT
 from maptasker.src.sysconst import logger
 from maptasker.src.error import error_handler
 from maptasker.src.frmthtml import format_html
-
 from maptasker.src.shellsort import shell_sort
+import maptasker.src.taskflag as task_flags
 
 
 # #######################################################################################
@@ -33,13 +31,13 @@ from maptasker.src.shellsort import shell_sort
 # Return a list of Task's actions for the given Task
 # #######################################################################################
 def get_actions(
-    current_task: defusedxml.ElementTree.XML, colormap: dict, prog_args: dict
+    primary_items: dict,
+    current_task: defusedxml.ElementTree.XML,
 ) -> list:
     """
     Return a list of Task's actions for the given Task
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param current_task: xml element of the Task we are getting actions for
-        :param colormap: colors to use in output
-        :param prog_args: runtime arguments
         :return: list of Task 'action' output lines
     """
     tasklist = []
@@ -66,7 +64,11 @@ def get_actions(
             child = action.find("code")  # Get the <code> element
             # Get the Action code ( <code> )
             task_code = action_evaluate.get_action_code(
-                child, action, True, colormap, "t", prog_args
+                primary_items,
+                child,
+                action,
+                True,
+                "t",
             )
             logger.debug(
                 "Task ID:"
@@ -89,7 +91,12 @@ def get_actions(
                 length_indent = len(indentation_amount)
                 indentation_amount = indentation_amount[24:length_indent]
             tasklist = action_evaluate.build_action(
-                colormap, tasklist, task_code, child, indentation, indentation_amount
+                primary_items,
+                tasklist,
+                task_code,
+                child,
+                indentation,
+                indentation_amount,
             )
             #  Indent the line if this is a condition
             if (
@@ -106,25 +113,28 @@ def get_actions(
 # return the Task's element and the Task's name
 # #######################################################################################
 def get_task_name(
+    primary_items,
     the_task_id: str,
     tasks_that_have_been_found: list,
     task_output_lines: list,
     task_type: str,
-    all_tasks: dict,
 ) -> tuple[defusedxml.ElementTree.XML, str]:
     """
     Get the name of the task given the Task ID
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param the_task_id: the Task's ID (e.g. '47')
         :param tasks_that_have_been_found: list of Tasks found so far
         :param task_output_lines: list of Tasks
         :param task_type: Type of Task (Entry, Exit, Scene)
-        :param all_tasks: all Tasks in xml
         :return: Task's xml element, Task's name
     """
     if the_task_id.isdigit():
-        task = all_tasks[the_task_id]
+        task = primary_items["tasker_root_elements"]["all_tasks"][the_task_id]
         tasks_that_have_been_found.append(the_task_id)
-        extra = f"&nbsp;&nbsp;Task ID: {the_task_id}"
+        if primary_items["program_arguments"]["debug"]:
+            extra = f"&nbsp;&nbsp;Task ID: {the_task_id}"
+        else:
+            extra = ""
         # Determine if this is an "Entry" or "Exit" Task
         try:
             task_name = task.find("nme").text
@@ -159,23 +169,25 @@ def get_task_name(
 # Find the Project belonging to the Task id passed in
 # #######################################################################################
 def get_project_for_solo_task(
-    the_task_id: str, projects_with_no_tasks: list, all_projects: dict
+    primary_items: dict,
+    the_task_id: str,
+    projects_with_no_tasks: list,
 ) -> tuple[str, defusedxml.ElementTree]:
     """
     Find the Project belonging to the Task id passed in
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param the_task_id: the ID of the Task
         :param projects_with_no_tasks: list of Projects that do not have any Tasks
-        :param all_projects: all Tasker Projects
         :return: name of the Project that belongs to this task and the Project xml element
     """
     proj_name = NO_PROJECT
     project = None
-    if all_projects is not None:
+    if primary_items["tasker_root_elements"]["all_projects"] is not None:
         # Go through each Project
-        for project in all_projects:
+        for project in primary_items["tasker_root_elements"]["all_projects"]:
             proj_name = project.find("name").text
             task_ids = get_ids(
-                False, {}, {}, [], project, proj_name, projects_with_no_tasks
+                primary_items, False, project, proj_name, projects_with_no_tasks
             )
             if the_task_id in task_ids:
                 return proj_name, project
@@ -214,54 +226,42 @@ def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
 # We're processing a single task only
 # #######################################################################################
 def do_single_task(
+    primary_items: dict,
     our_task_name: str,
-    output_list: list,
     project_name: str,
     profile_name: str,
-    heading: str,
-    found_items: dict,
     task_list: list,
     our_task_element: defusedxml.ElementTree.XML,
     list_of_found_tasks: list,
-    all_tasker_items: dict,
-    colormap: dict,
-    program_args: dict,
 ) -> None:
     """
     Process a single Task only
-        :param our_task_name: name of the Task to process
-        :param output_list: where the output line goes for Task
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param our_task_name: name of Task we are to process
         :param project_name: name of the Project Task belongs to
         :param profile_name: name of the Profile the Task belongs to
-        :param heading: the heading, if any
-        :param found_items: single name for Project/Profile/Task
         :param task_list: list of Tasks
         :param our_task_element: the xml element for this Task
         :param list_of_found_tasks: all Tasks processed so far
-        :param all_tasker_items: all Projects/Profiles/Tasks/Scenes
-        :param colormap: colors to use in output
-        :param program_args: runtime arguments
     """
     # Do NOT move this import.  Otherwise, will get recursion error
     from maptasker.src.proclist import process_list
 
     logger.debug(
-        f'tasks single task name:{program_args["single_task_name"]} our Task'
+        'tasks single task'
+        f' name:{primary_items["program_arguments"]["single_task_name"]} our Task'
         f' name:{our_task_name}'
     )
-    if program_args["single_task_name"] == our_task_name:
+    if primary_items["program_arguments"]["single_task_name"] == our_task_name:
         # We have the single Task we are looking for
-        found_items["single_task_found"] = True
+        primary_items["found_named_items"]["single_task_found"] = True
 
         # Clear output list
-        build_output.refresh_our_output(
+        primary_items["output_lines"].refresh_our_output(
+            primary_items,
             True,
-            output_list,
             project_name,
             profile_name,
-            heading,
-            colormap,
-            program_args,
         )
 
         # Go get the Task's details
@@ -276,33 +276,27 @@ def do_single_task(
             temporary_task_list = task_list
         # Go process the Task/Task list
         process_list(
+            primary_items,
             "Task:",
-            output_list,
             temporary_task_list,
             our_task_element,
             list_of_found_tasks,
-            program_args,
-            colormap,
-            all_tasker_items,
         )
     elif (
         len(task_list) > 1
     ):  # If multiple Tasks in this Profile, just get the one we want
         for task_item in task_list:
-            if program_args["single_task_name"] in task_item:
-                build_output.my_output(
-                    colormap, program_args, output_list, 1, ""
-                )  # Start Task list
+            if primary_items["program_arguments"]["single_task_name"] in task_item:
+                # Start a new line
+                primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
                 task_list = [task_item]
+                # Process the task(s)
                 process_list(
+                    primary_items,
                     "Task:",
-                    output_list,
                     task_list,
                     our_task_element,
                     list_of_found_tasks,
-                    program_args,
-                    colormap,
-                    all_tasker_items,
                 )
                 break
 
@@ -311,80 +305,68 @@ def do_single_task(
 # output_task: we have a Task and need to generate the output
 # #######################################################################################
 def output_task(
-    output_list: list,
+    primary_items: dict,
     our_task_name: str,
     our_task_element: defusedxml.ElementTree.XML,
     task_list: list,
     project_name: str,
     profile_name: str,
     list_of_found_tasks: list,
-    heading: str,
-    colormap: dict,
-    program_args: dict,
-    all_tasker_items: dict,
-    found_items: dict,
     do_extra: bool,
 ) -> bool:
     """
     We have a single Task or a list of Tasks.  Output it/them.
-        :param output_list: list of output lines generated thus far
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param our_task_name: name of Task
         :param our_task_element: Task xml element
         :param task_list: Task list
         :param project_name: name of current Project
         :param profile_name: name of current Profile
         :param list_of_found_tasks: list of Tasks found so far
-        :param heading: current heading
-        :param colormap: colors to use in output
-        :param program_args: runtime arguments
-        :param all_tasker_items: all Projects/Profiles/Tasks/Scenes
-        :param found_items: single Project/Profile/Task to search for
         :param do_extra: flag to do/output extra Task stuff
         :return: True if we are searching for a single Task and found it.  Otherwise, False
     """
     # Do NOT move this import.  Otherwise, will get recursion error
     from maptasker.src.proclist import process_list
 
-    # See if there is a Kid app and/or Priority
-    if do_extra and program_args["display_detail_level"] == 3:
+    # See if there is a Kid app and/or Priority and/or Collision
+    if do_extra and primary_items["program_arguments"]["display_detail_level"] == 3:
         if kid_app_info := get_kid_app(our_task_element):
-            kid_app_info = format_html(colormap, "task_color", "", kid_app_info, True)
+            kid_app_info = format_html(
+                primary_items["colors_to_use"], "task_color", "", kid_app_info, True
+            )
             task_list[0] = f'{task_list[0]} {kid_app_info}'
-        if priority := get_priority(our_task_element, False):
+        if priority := task_flags.get_priority(our_task_element, False):
             task_list[0] = f'{task_list[0]} {priority}'
+        if collision := task_flags.get_collision(our_task_element):
+            task_list[0] = f'{task_list[0]} {collision}'
+        if stay_awake := task_flags.get_awake(our_task_element):
+            task_list[0] = f'{task_list[0]} {stay_awake}'
 
-    # Looking for a single Task?
-    if our_task_name != "" and program_args["single_task_name"]:
+    # Looking for a single Task?  If so, then process it.
+    if our_task_name != "" and primary_items["program_arguments"]["single_task_name"]:
         do_single_task(
+            primary_items,
             our_task_name,
-            output_list,
             project_name,
             profile_name,
-            heading,
-            found_items,
             task_list,
             our_task_element,
             list_of_found_tasks,
-            all_tasker_items,
-            colormap,
-            program_args,
         )
         return True  # Call it quits on Task...we have the one we want
     elif task_list:
         # Start a list
-        build_output.my_output(colormap, program_args, output_list, 1, "")
+        primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
         # Process the list of Task(s)
         process_list(
+            primary_items,
             "Task:",
-            output_list,
             task_list,
             our_task_element,
             list_of_found_tasks,
-            program_args,
-            colormap,
-            all_tasker_items,
         )
         # End Task list
-        build_output.my_output(colormap, program_args, output_list, 3, "")
+        primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
 
     return False  # Normal Task...continue processing them

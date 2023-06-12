@@ -36,7 +36,10 @@ def runtime_parser():
     # parser = argparse.ArgumentParser(
     parser = ArgumentParser(
         prog="MapTasker",
-        description="This program reads a Tasker backup file (e.g. backup.xml) and displays the configuration of Profiles/Tasks/Scenes",
+        description=(
+            "This program reads a Tasker backup file (e.g. backup.xml) and displays the"
+            " configuration of Profiles/Tasks/Scenes"
+        ),
         epilog=textwrap.dedent(
             """\
                                 Exit codes...
@@ -46,12 +49,38 @@ def runtime_parser():
                                     exit 5- requested single Task not found
                                     exit 6- no or improper filename selected
                                     exit 7- invalid option
+                                    exit 8- request to Android device running server failed.  See output for error code.
 
                                 The output HTML file is saved in your current folder/directory
                                 .
                                 """
         ),
         formatter_class=argparse.RawTextHelpFormatter,
+    )
+    # Get Backup (get backup xml) preferences
+    parser.add_argument(
+        "-b",
+        "-backup",
+        metavar="http+location",
+        nargs=1,
+        required=False,
+        default="",
+        type=str,
+        help=textwrap.dedent(
+            """ \
+                        Get backup file directly from Android device running Tasker:
+                            Tasker's HTTP Server Example must be installed on the Android device for this to work:
+                            Specify the Tasker server port number and the location of the file. Enter both or none.
+                            Default: -backup http://192.168.0.210:1821+/Tasker/configs/user/backup.xml
+                            """
+        ),
+    )
+    # Display Profile/Task conditions
+    parser.add_argument(
+        "-conditions",
+        help="Display the condition(s) for Profiles and Tasks",
+        action="store_true",
+        default=False,
     )
     # Level of detail to display
     parser.add_argument(
@@ -69,12 +98,13 @@ def runtime_parser():
         choices=[0, 1, 2, 3],
         required=False,
         type=int,
-        default=1,
+        default=3,
     )
-    # Display Profile/Task conditions
+    # Debug
     parser.add_argument(
-        "-conditions",
-        help="Display the condition(s) for Profiles and Tasks",
+        "-d",
+        "-debug",
+        help="Print and log debug information",
         action="store_true",
         default=False,
     )
@@ -97,17 +127,10 @@ def runtime_parser():
         "-gui",
         help=textwrap.dedent(
             """ \
-                        Prompt for settings via the graphical user interface (GUI):
+                        Prompt for (these) settings via the graphical user interface (GUI):
                             This argument overrides all other arguments
                             """
         ),
-        action="store_true",
-        default=False,
-    )
-    # Display taskerNet info
-    parser.add_argument(
-        "-taskernet",
-        help="Display any TaskerNet information for Projects/Profiles",
         action="store_true",
         default=False,
     )
@@ -119,6 +142,7 @@ def runtime_parser():
         action="store_true",
         default=False,
     )
+
     # Group project, profile and task = name ... together as exclusive arguments
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
@@ -135,12 +159,60 @@ def runtime_parser():
         type=str,
         help="Display the details for a specific Profile only",
     )
+    # Save and Restore are mutually exclusive
+    group1 = parser.add_mutually_exclusive_group()
+    # Restore arguments
+    group1.add_argument(
+        "-r",
+        "-restore",
+        action="store_true",
+        default=False,
+        help=textwrap.dedent(
+            """ \
+                        Restore previously saved arguments for reuse:
+                            This argument overrides all other arguments except '-g'
+                            """
+        ),
+    )
+    # Save arguments
+    group1.add_argument(
+        "-s",
+        "-save",
+        help="Save arguments for reuse",
+        action="store_true",
+        default=False,
+    )
+
+    # Display taskerNet info
+    parser.add_argument(
+        "-taskernet",
+        help="Display any TaskerNet information for Projects/Profiles",
+        action="store_true",
+        default=False,
+    )
+    # Display Task details under "hide/twisty"
+    parser.add_argument(
+        "-twisty",
+        help=(
+            "Hide Task's details under 'twisty' ➤. Click on twisty to display details."
+        ),
+        action="store_true",
+        default=False,
+    )
     group.add_argument(
         "-task",
         nargs=1,
         required=False,
         type=str,
         help='Display the details for a single Task only (forces option "-d 2")',
+    )
+    # Version argument
+    parser.add_argument(
+        "-v",
+        "-version",
+        help="Display the program version and license information",
+        action="store_true",
+        default=False,
     )
 
     # define a color group for the various color settings
@@ -161,45 +233,6 @@ def runtime_parser():
         help="Display a list of valid color names",
         required=False,
         action="store_true",
-    )
-    # Debug
-    parser.add_argument(
-        "-d",
-        "-debug",
-        help="Print and log debug information",
-        action="store_true",
-        default=False,
-    )
-    # Save and Restore are mutually exclusive
-    group1 = parser.add_mutually_exclusive_group()
-    # Save arguments
-    group1.add_argument(
-        "-s",
-        "-save",
-        help="Save arguments for reuse",
-        action="store_true",
-        default=False,
-    )
-    # Restore arguments
-    group1.add_argument(
-        "-r",
-        "-restore",
-        action="store_true",
-        default=False,
-        help=textwrap.dedent(
-            """ \
-                        Restore previously saved arguments for reuse:
-                            This argument overrides all other arguments except '-g'
-                            """
-        ),
-    )
-    # Save arguments
-    parser.add_argument(
-        "-v",
-        "-version",
-        help="Display the program version and license information",
-        action="store_true",
-        default=False,
     )
 
     # parser.print_help()

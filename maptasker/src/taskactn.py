@@ -14,7 +14,6 @@
 import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.tasks as tasks
-from maptasker.src.outputl import my_output
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 from maptasker.src.frmthtml import format_html
 from maptasker.src.error import error_handler
@@ -24,17 +23,17 @@ from maptasker.src.error import error_handler
 # For this specific Task, get its Actions and output the Task and Actions
 # #######################################################################################
 def get_task_actions_and_output(
+    primary_items,
     the_task: defusedxml.ElementTree.XML,
-    output_list: list[str],
-    program_args: dict,
     list_type: str,
     the_item: str,
     tasks_found: list[str],
-    colormap: dict,
-    all_tasks: dict,
 ) -> None:
     # If Unknown task or displaying more detail, then 'the_task' is not valid, and we have to find it.
-    if UNKNOWN_TASK_NAME in the_item or program_args["display_detail_level"] > 0:
+    if (
+        UNKNOWN_TASK_NAME in the_item
+        or primary_items["program_arguments"]["display_detail_level"] > 0
+    ):
         # Get the Task ID so that we can get the Task xml element
         # "--Task:" denotes a Task in a Scene
         temp_id = 'x' if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
@@ -43,23 +42,29 @@ def get_task_actions_and_output(
         if len(temp_id) > 1:
             temp_id[1] = temp_id[1].split(' ', 1)[0]  # ID = 1st word of temp_id[1]
             the_task, kaka = tasks.get_task_name(
-                temp_id[1], tasks_found, [temp_id[1]], "", all_tasks
+                primary_items,
+                temp_id[1],  # Task ID
+                tasks_found,  # Tasks found so far
+                [temp_id[1]],  # Task's output line
+                "",  # Task type
             )
 
         # Get Task actions
         if the_task:
-            if alist := tasks.get_actions(the_task, colormap, program_args):
-                my_output(
-                    colormap, program_args, output_list, 1, ""
+            if alist := tasks.get_actions(primary_items, the_task):
+                primary_items["output_lines"].add_line_to_output(
+                    primary_items, 1, ""
                 )  # Start Action list
                 action_count = 1
-                output_list_of_actions(
-                    colormap, program_args, output_list, action_count, alist, the_item
-                )
+                output_list_of_actions(primary_items, action_count, alist, the_item)
                 # End list if Scene Task
                 if "&#45;&#45;Task:" in list_type:
-                    my_output(colormap, program_args, output_list, 3, "")
-                    my_output(colormap, program_args, output_list, 3, "")
+                    primary_items["output_lines"].add_line_to_output(
+                        primary_items, 3, ""
+                    )
+                    primary_items["output_lines"].add_line_to_output(
+                        primary_items, 3, ""
+                    )
         else:
             error_handler('No Task found!!!', 0)
 
@@ -70,9 +75,7 @@ def get_task_actions_and_output(
 # Go through list of actions and output them
 # #######################################################################################
 def output_list_of_actions(
-    colormap: dict,
-    program_args: dict,
-    output_list: list,
+    primary_items: dict,
     action_count: int,
     alist: list,
     the_item: defusedxml.ElementTree.XML,
@@ -80,9 +83,7 @@ def output_list_of_actions(
     """output the list of Task Actions
 
     Parameters:
-        :param colormap: dictionary of colors to use
-        :param program_args: dictionary of program runtime arguments
-        :param output_list: list into which to add the output lines
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param action_count: count of Task actions
         :param alist: list of task actions
         :param the_item: the specific Task's detailed line
@@ -93,24 +94,24 @@ def output_list_of_actions(
     for taction in alist:
         if taction is not None:
             if taction[:3] == "...":
-                my_output(
-                    colormap,
-                    program_args,
-                    output_list,
+                primary_items["output_lines"].add_line_to_output(
+                    primary_items,
                     2,
                     format_html(
-                        colormap, "action_color", "", f"Action: {taction}", False
+                        primary_items["colors_to_use"],
+                        "action_color",
+                        "",
+                        f"Action: {taction}",
+                        False,
                     ),
                 )
             else:
                 #  Output the Action count = line number of action (fill to 2 leading zeros)
-                my_output(
-                    colormap,
-                    program_args,
-                    output_list,
+                primary_items["output_lines"].add_line_to_output(
+                    primary_items,
                     2,
                     format_html(
-                        colormap,
+                        primary_items["colors_to_use"],
                         "action_color",
                         "",
                         f"Action: {str(action_count).zfill(2)}</span> {taction}",
@@ -120,15 +121,17 @@ def output_list_of_actions(
                 action_count += 1
             if (
                 action_count == 2
-                and program_args["display_detail_level"] == 0
+                and primary_items["program_arguments"]["display_detail_level"] == 0
                 and UNKNOWN_TASK_NAME in the_item
             ):  # Just show first Task if unknown Task
                 break
             elif (
-                program_args["display_detail_level"] == 1
+                primary_items["program_arguments"]["display_detail_level"] == 1
                 and UNKNOWN_TASK_NAME not in the_item
             ):
                 break
 
-    my_output(colormap, program_args, output_list, 3, "")  # Close Action list
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 3, ""
+    )  # Close Action list
     return

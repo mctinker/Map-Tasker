@@ -2,7 +2,7 @@
 
 # ########################################################################################## #
 #                                                                                            #
-# Error: Process Errors                                                                      #
+# twisty: add special twisty to output                                                       #
 #                                                                                            #
 # GNU General Public License v3.0                                                            #
 # Permissions of this strong copyleft license are conditioned on making available            #
@@ -11,21 +11,20 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-from maptasker.src.sysconst import logger
+from maptasker.src.frmthtml import format_html
 
 
-def error_handler(error_message: str, exit_code: int) -> None:
-    """
-    Error handler: print and log the error.  Exit with error code if provided
-        :param error_message: text of error to print and log
-        :param exit_code: error code to exit with
-    """
-    # Add our heading to more easily identify the problem
-    final_error_message = f"MapTasker error: {error_message}"
-
-    # Print it out for the user
-    print(final_error_message)
-    # Log it as well
-    logger.debug(final_error_message)
-    if exit_code > 0:
-        exit(exit_code)
+def add_twisty(primary_items, output_color_name, line_to_output):
+    # Add the "twisty" to hide the Task details
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
+        5,
+        format_html(
+            primary_items["colors_to_use"],
+            output_color_name,
+            "",
+            f"<br><details><summary>{line_to_output}</summary>",
+            True,
+        ),
+    )
+    return

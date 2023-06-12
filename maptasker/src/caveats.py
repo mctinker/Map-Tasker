@@ -11,23 +11,31 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import maptasker.src.outputl as build_output
+
 from maptasker.src.frmthtml import format_html
 
 
-def display_caveats(output_list: list[str], program_args: dict, colormap: dict) -> None:
-    """output the program caveats
-    Output the program caveats at the very end
-        Parameters: list into which all output has been added, the program runtime arguments,
-                    the dictionary of colors to use
-
-        Returns: the count of the number of times the program has been called
-
+def display_caveats(primary_items: dict) -> None:
     """
-    caveat1 = format_html(colormap, "trailing_comments_color", "", "CAVEATS:\n", False)
+    Output the program caveats at the very end
+    Inputs:
+    - primary_items: a dictionary containing program runtime arguments, colors to use in output,
+      all Tasker xml root elements, and a list of all output lines.
+
+    Outputs:
+    - None
+    """
+
+    caveat1 = format_html(
+        primary_items["colors_to_use"],
+        "trailing_comments_color",
+        "",
+        "CAVEATS:<br>",
+        False,
+    )
     caveat3 = (
         "- This has only been tested on my own backup.xml file."
-        "  For problems, report them on https://github.com/mctinker/Map-Tasker."
+        "  For problems, report them on https://github.com/mctinker/Map-Tasker/issues ."
     )
     caveat4 = (
         '- Tasks that are identified as "Unnamed/Anonymous" have no name and are'
@@ -37,27 +45,37 @@ def display_caveats(output_list: list[str], program_args: dict, colormap: dict) 
         '- All attempts are made to retain embedded HTML (e.g. color=...>") in Tasker'
         ' fields, but is stripped out of Action labels and TaskerNet comments.'
     )
-    build_output.my_output(colormap, program_args, output_list, 0, "<hr>")  # line
-    build_output.my_output(colormap, program_args, output_list, 4, caveat1)  # caveat
-    if program_args["display_detail_level"] > 0:  # Caveat about Actions
+    primary_items["output_lines"].add_line_to_output(primary_items, 0, "<hr>")  # line
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 1, caveat1
+    )  # caveat
+    if (
+        primary_items["program_arguments"]["display_detail_level"] > 0
+    ):  # Caveat about Actions
         caveat2 = (
             "- Most but not all Task actions have been mapped and will display as such."
             "  Likewise for Profile conditions and Plug-ins.\n"
         )
-        build_output.my_output(
-            colormap, program_args, output_list, 4, caveat2
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 4, caveat2
         )  # caveat
-    build_output.my_output(colormap, program_args, output_list, 4, caveat3)  # caveat
-    build_output.my_output(colormap, program_args, output_list, 4, caveat4)  # caveat
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 4, caveat3
+    )  # caveat
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 4, caveat4
+    )  # caveat
     if (
-        program_args["display_detail_level"] == 0
+        primary_items["program_arguments"]["display_detail_level"] == 0
     ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
         caveat5 = (
             '- For option -d0, Tasks that are identified as "Unnamed/Anonymous" will'
             ' have their first Action only listed....\n  just like Tasker does.\n'
         )
-        build_output.my_output(
-            colormap, program_args, output_list, 4, caveat5
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 4, caveat5
         )  # caveat
-    build_output.my_output(colormap, program_args, output_list, 4, f"{caveat6}</span>")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 4, f"{caveat6}</span>"
+    )
     return

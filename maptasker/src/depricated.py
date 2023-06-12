@@ -1,6 +1,9 @@
 #! /usr/bin/env python3
 
 depricated = {
+    "116": "Deprecated",
+    "117": "Deprecated",
+    "118": "Deprecated",
     "151": "Deprecated",
     "411": "Deprecated",
     "500": "Deprecated",

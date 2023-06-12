@@ -146,6 +146,7 @@ action_codes = {
         "reqargs": [],
         "evalargs": [],
     },
+    "107361459t": {"redirect": ["1040876951t"], "display": "AutoInput Actions V2"},
     "109t": {
         "numargs": 0,
         "args": [],
@@ -216,6 +217,7 @@ action_codes = {
     "114t": {"numargs": 0, "args": [], "types": [], "display": "USB Tether"},
     "1150542767s": {"redirect": ["1040876951t"], "display": "Tap Tap Plugin"},
     "116t": {"numargs": 0, "args": [], "types": [], "display": "HTTP Post"},
+    "1164968315t": {"redirect": ["1040876951t"], "display": "AutoSpotify Play Media"},
     "1165325195t": {"redirect": ["1040876951t"], "display": "AutoTools Web Screen"},
     "117t": {
         "numargs": 0,
@@ -561,6 +563,7 @@ action_codes = {
         "reqargs": [],
         "evalargs": [],
     },
+    "1452528931t": {"redirect": ["1040876951t"], "display": "AutoContacts Query 2.0"},
     "1461810131t": {"redirect": ["1040876951t"], "display": "AutoSheets Update Cells"},
     "147s": {
         "numargs": 0,
@@ -587,6 +590,7 @@ action_codes = {
         "evalargs": [],
     },
     "148t": {"numargs": 0, "args": [], "types": [], "display": "Show Runlog"},
+    "1482108003t": {"redirect": ["1040876951t"], "display": "AutoSpotify Player State"},
     "149s": {
         "numargs": 0,
         "args": [],
@@ -723,6 +727,10 @@ action_codes = {
         "display": "Wifi Connected",
         "reqargs": ["0", "1", "2", "3"],
         "evalargs": ["SSID:", ", MAC:", ", IP", ["Active:", "l", "160"]],
+    },
+    "1600958131t": {
+        "redirect": ["1040876951t"],
+        "display": "AutoBubbles Create Bubble",
     },
     "161s": {
         "numargs": 0,
@@ -932,6 +940,7 @@ action_codes = {
         "reqargs": ["0", "3"],
         "evalargs": ["", ["", "e", ", Structure Output (JSON, etc)"]],
     },
+    "1795842217t": {"redirect": ["1040876951t"], "display": "AutoLaunch"},
     "180s": {
         "numargs": 0,
         "args": [],
@@ -1222,6 +1231,7 @@ action_codes = {
     },
     "203t": {"numargs": 0, "args": [], "types": [], "display": "Date Settings"},
     "2046367074t": {"redirect": ["1040876951t"], "display": "AutoNotification Cancel"},
+    "2041559229t": {"redirect": ["1040876951t"], "display": "AutoSpotify Playlists"},
     "204t": {
         "numargs": 0,
         "args": [],
@@ -1243,6 +1253,10 @@ action_codes = {
         "display": "Battery Full",
         "reqargs": [],
         "evalargs": [],
+    },
+    "2051074546t": {
+        "redirect": ["1040876951t"],
+        "display": "AutoSpotify Control Media",
     },
     "206e": {
         "numargs": 0,
@@ -1347,6 +1361,22 @@ action_codes = {
         "reqargs": [],
         "evalargs": [],
     },
+    "2089e": {
+        "numargs": 8,
+        "args": ["0", "1", "2", "3", "4", "5", "6", "7"],
+        "types": ["Bundle", "Int", "Str", "Str", "Str", "Int", "Int", "Str"],
+        "display": "HTTP Request",
+        "reqargs": ["1", "2", "3", "4", "5", "6", "7"],
+        "evalargs": [
+            "Port:",
+            ", Method:",
+            ", Path:",
+            ", Quick Response",
+            ", Timeout:",
+            ["", "e", ", Only On Wifi"],
+            ", Network Name/MAC Address:",
+        ],
+    },
     "208e": {
         "numargs": 0,
         "args": 0,
@@ -1429,6 +1459,8 @@ action_codes = {
     "210t": {"numargs": 0, "args": [], "types": [], "display": "Input Method Settings"},
     "211t": {"numargs": 0, "args": [], "types": [], "display": "Sync Settings"},
     "211707263t": {"redirect": ["1040876951t"], "display": "Global Actions"},
+    "211905330t": {"redirect": ["1040876951t"], "display": "AutoContacts"},
+    "2114100406t": {"redirect": ["1040876951t"], "display": "AutoLaunch Query"},
     "212t": {"numargs": 0, "args": [], "types": [], "display": "WiFi IP Settings"},
     "2132875086t": {
         "redirect": ["1040876951t"],
@@ -2737,6 +2769,34 @@ action_codes = {
         "reqargs": ["if"],
         "evalargs": [""],
     },
+    "380t": {
+        "numargs": 10,
+        "args": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+        "types": [
+            "Bundle",
+            "Str",
+            "Str",
+            "Str",
+            "Int",
+            "Str",
+            "Str",
+            "Str",
+            "Int",
+            "Str",
+        ],
+        "display": "HTTP Response",
+        "reqargs": ["1", "2", "3", "4", "5", "6", "7", "8"],
+        "evalargs": [
+            "Request ID:",
+            ", Status Code:",
+            ", Headers:",
+            ["Type:", "l", "380"],
+            "",
+            ", File:",
+            ", Mime Type:",
+            ["", "e", ", File Inline"],
+        ],
+    },
     "381t": {
         "numargs": 5,
         "args": ["0", "1", "2", "3", "4"],
@@ -3185,6 +3245,7 @@ action_codes = {
         "reqargs": [],
         "evalargs": [],
     },
+    "414549629t": {"redirect": ["1040876951t"], "display": "AutoSpotify Search"},
     "415t": {
         "numargs": 0,
         "args": [],
@@ -3279,6 +3340,10 @@ action_codes = {
         "types": ["Bundle"],
         "display": "Get Battery Info",
     },
+    "424867932t": {
+        "redirect": ["1040876951t"],
+        "display": "AutoBubbles Manage Bubble",
+    },
     "425e": {
         "numargs": 0,
         "args": [],
@@ -3344,6 +3409,7 @@ action_codes = {
         "evalargs": [],
     },
     "42924197t": {"redirect": ["1040876951t"], "display": "Notification Listener"},
+    "429032033t": {"redirect": ["1040876951t"], "display": "AutoContacts Details"},
     "429e": {
         "numargs": 0,
         "args": [],
@@ -3384,6 +3450,14 @@ action_codes = {
         "reqargs": ["0"],
         "evalargs": [["Set:", "l", "switch_set"]],
     },
+    "438t": {
+        "numargs": 3,
+        "args": ["0", "1", "2"],
+        "types": ["Bundle", "Str", "Str"],
+        "display": "Matter Light",
+        "reqargs": ["1", "2"],
+        "evalargs": ["Device IDs/Name:", ", Set:"],
+    },
     "439t": {
         "numargs": 0,
         "args": [],
@@ -3399,6 +3473,14 @@ action_codes = {
         "display": "Else/Else If",
         "reqargs": ["if"],
         "evalargs": [""],
+    },
+    "432t": {
+        "numargs": 0,
+        "args": [],
+        "types": [],
+        "display": "Get Network Info",
+        "reqargs": [],
+        "evalargs": [],
     },
     "440t": {
         "numargs": 0,
@@ -3721,7 +3803,7 @@ action_codes = {
             "Int",
             "ConditionList",
         ],
-        "display": "Display As",
+        "display": "Show Scene",
         "reqargs": ["0", "1", "6", "7", "8", "9", "if"],
         "evalargs": [
             "Name:",
@@ -4783,6 +4865,7 @@ action_codes = {
         "reqargs": [],
         "evalargs": [],
     },
+    "801498676t": {"redirect": ["1040876951t"], "display": "AutoSpotify Albums"},
     "804t": {
         "numargs": 0,
         "args": [],
@@ -4844,6 +4927,7 @@ action_codes = {
         "reqargs": ["0", "1", "2"],
         "evalargs": [["Type:", "l", "815"], ", Match:", ", Store Result In:"],
     },
+    "819222800t": {"redirect": ["1040876951t"], "display": "AutoSpotify Tracks"},
     "820t": {
         "numargs": 1,
         "args": ["0"],
@@ -4861,6 +4945,7 @@ action_codes = {
         "evalargs": [["Set:", "l", "switch_set"]],
     },
     "864692752t": {"redirect": ["1040876951t"], "display": "Join"},
+    "8618362t": {"redirect": ["1040876951t"], "display": "AutoSpotify Notification"},
     "877t": {
         "numargs": 11,
         "args": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
@@ -5027,6 +5112,7 @@ action_codes = {
         "reqargs": [],
         "evalargs": [],
     },
+    "917310686t": {"redirect": ["1040876951t"], "display": "AutoSpotify Artists"},
     "918403287t": {
         "redirect": ["1040876951t"],
         "display": "AutoNotification Categories",

@@ -11,26 +11,31 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import gc
+
 import re
 from operator import itemgetter
 
-from maptasker.src.outputl import my_output
 from maptasker.src.frmthtml import format_html
 from maptasker.src.servicec import service_codes
+from maptasker.src.error import error_handler
 
 
 def process_service(
-    colormap: dict, service_name: str, service_value: str, output_lines: list
+    primary_items: dict,
+    service_name: str,
+    service_value: str,
+    temp_output_lines,
 ) -> None:
     """
     We have a service xml element that we have mapped as a preference.  Process it.
-        :param colormap: colors to use in output
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param service_name: name of the preference in <Service xml
         :param service_value: value of the preference in <Service xml
-        :param output_lines: accumulated output lines generated thus far (to append to)
+        :param temp_output_lines: list of service/preference output lines
     """
-    preferences_html = format_html(colormap, "preferences_color", "", "", False)
+    preferences_html = format_html(
+        primary_items["colors_to_use"], "preferences_color", "", "", False
+    )
     blank = "&nbsp;"
 
     # Get the name to display
@@ -46,6 +51,7 @@ def process_service(
     # Tasker icon default is "cust_notification"
     if service_value == "cust_notification":
         service_value = "Default"
+
     # Accessibility: parse value to get a list of settings
     elif service_name == "PREF_KEEP_ACCESSIBILITY_SERVICES_RUNNING":
         package_names = ""
@@ -57,12 +63,13 @@ def process_service(
             )
         service_value = package_names
 
-    output_lines.append(
+    # Add the service name to the output list
+    temp_output_lines.append(
         [
             service_codes[service_name]['num'],
             (
                 format_html(
-                    colormap,
+                    primary_items["colors_to_use"],
                     "preferences_color",
                     "",
                     (
@@ -75,17 +82,72 @@ def process_service(
     )
 
 
-def get_preferences(
-    output_list: list, program_args: dict, colormap: dict, all_tasker_items: dict
-) -> None:
+def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
     """
-    Get Tasker 'preferences' and output them
-        :param output_list: list of output lines generated thus far
-        :param program_args: runtime arguments
-        :param colormap: colors to use in putput
-        :param all_tasker_items: all Project/Profile/Task/Scene/Service xml elements
+    Go through all of the <service> xml elements to process the Tasker preferences
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param temp_output_lines: list of service/preference output lines
+        :return: nothing
     """
+    dummy_num = 100
+    first_time = True
+    blank = "&nbsp;"
 
+    # Go through each <service> xml element
+    for service in primary_items["tasker_root_elements"]["all_services"]:
+        # Make sure the <Setting> xml element is valid
+        if all(service.find(tag) is not None for tag in ("n", "t", "v")):
+            # Get the service codes
+            service_name = service.find("n").text or ""
+            service_type = service.find("t").text or ""
+            service_value = service.find("v").text or ""
+
+            # See if the service name is in our dictionary of preferences
+            if service_name in service_codes:
+                # Got a hit.  Go process it.
+                process_service(
+                    primary_items, service_name, service_value, temp_output_lines
+                )
+
+            # If debugging, list specific preferences which can't be identified.
+            elif primary_items["program_arguments"]["debug"]:
+                # Add a blank line and the output details to our list of output stuff
+                # Add a blank line if this is the first unmapped item
+                if first_time:
+                    first_time = False
+                    temp_output_lines.append([dummy_num, "<br>"])
+                # Add the output details to our list of output stuff
+                temp_output_lines.append(
+                    [
+                        dummy_num,
+                        format_html(
+                            primary_items["colors_to_use"],
+                            "preferences_color",
+                            "",
+                            (
+                                f"{blank * 2}Not yet"
+                                f" mapped:{service_name}{blank * 4}type:{service_type}{blank * 4}value:{service_value}"
+                            ),
+                            True,
+                        ),
+                    ]
+                )
+                dummy_num += 1
+        # Invalid <Setting> xml element
+        else:
+            error_handler(
+                "Error: the backup xml file is corrupt.  Program terminated.", 3
+            )
+
+    return
+
+
+def get_preferences(primary_items: dict) -> None:
+    """
+    Go through the Tasker <service> xml elements, each representing a Tasker preference
+    :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+    :rtype: nothing
+    """
     section_names = [
         "UI > General",
         "UI > Main Screen",
@@ -102,107 +164,70 @@ def get_preferences(
         "Misc > Debugging",
         "Unlisted (Perhaps Deprecated)",
     ]
-    output_lines = []
+    temp_output_lines = []
     blank = "&nbsp;"
-    first_time = True
 
     # Output title line
-    my_output(
-        colormap,
-        program_args,
-        output_list,
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
         4,
-        (
-            format_html(
-                colormap,
-                "preferences_color",
-                "",
-                "Tasker Preferences >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",
-                True,
-            )
+        format_html(
+            primary_items["colors_to_use"],
+            "preferences_color",
+            "",
+            "Tasker Preferences >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",
+            True,
         ),
     )
 
     # Go through each <Service xml element
-    current_section = 999
-    dummy_num = 100
-    for service in all_tasker_items["all_services"]:
-        service_name = service.find("n").text
-        service_type = service.find("t").text
-        service_value = service.find("v").text
-        # See if the service name is in our dictionary of preferences
-        if service_name in service_codes:
-            # Got a hit.  Go process it.
-            process_service(colormap, service_name, service_value, output_lines)
+    # We are going to put them all in a temporary output list to be sorted at the end:
+    #   service number (for sorting on), and service details
+    previous_section = None
 
-        # Preference not found
-        elif program_args["debug"]:
-            # Add a blank line if this is the first unmapped item
-            if first_time:
-                first_time = False
-                output_lines.append([dummy_num, "<br>"])
-            # Add the output details to our list of output stuff
-            output_lines.append(
-                [
-                    dummy_num,
-                    format_html(
-                        colormap,
-                        "preferences_color",
-                        "",
-                        (
-                            f"{blank * 2}Not yet"
-                            f" mapped:{service_name}{blank * 4}type:{service_type}{blank * 4}value:{service_value}"
-                        ),
-                        True,
-                    ),
-                ]
-            )
-            dummy_num += 1
+    # Okay, let's deal with the Tasker preferences
+    process_preferences(primary_items, temp_output_lines)
 
     # All service xml elements have been processed.
     # Sort our output by order of display in Tasker (key=list element 0)
-    sorted_output = sorted(output_lines, key=itemgetter(0))
+    sorted_output = sorted(temp_output_lines, key=itemgetter(0))
 
     # Now output them: go through list of output lines (sorted) and "output" each
-    for line in sorted_output:
-        # See if we have a new preference section and display the section if new
-        num = line[0]  # Get our current "num" key
-        # Find this line's entry in our lookup dictionary
-        for item in service_codes.items():
-            if item[1]["num"] == num and current_section != item[1]["section"]:
-                # Add the preference in the order it appears in Tasker
-                my_output(
-                    colormap,
-                    program_args,
-                    output_list,
-                    4,
-                    format_html(
-                        colormap,
-                        "preferences_color",
-                        "",
-                        f"<br>&nbsp;Section: {section_names[item[1]['section']]}",
-                        True,
-                    ),
-                )
-                current_section = item[1]["section"]
-        my_output(colormap, program_args, output_list, 4, line[1])
+    for index, (num, line) in enumerate(sorted_output):
+        section = next(
+            (
+                item[1]["section"]
+                for item in service_codes.items()
+                if item[1]["num"] == num
+            ),
+            None,
+        )
+        if section is not None and section != previous_section:
+            # Add the preference in the order it appears in Tasker
+            primary_items["output_lines"].add_line_to_output(
+                primary_items,
+                4,
+                format_html(
+                    primary_items["colors_to_use"],
+                    "preferences_color",
+                    "",
+                    f"<br>&nbsp;Section: {section_names[section]}",
+                    True,
+                ),
+            )
+            previous_section = section
+        primary_items["output_lines"].add_line_to_output(primary_items, 4, f"{line}")
 
-    my_output(
-        colormap,
-        program_args,
-        output_list,
+    # Let user know that we have not mapped the remaining items
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
         4,
         format_html(
-            colormap,
+            primary_items["colors_to_use"],
             "preferences_color",
             "",
             "The remaining preferences are not yet mapped",
             True,
         ),
     )
-    my_output(colormap, program_args, output_list, 4, "")
-
-    # We are done with <Service xml elements
-    del all_tasker_items["all_services"]
-    gc.collect()
-    return
+    primary_items["output_lines"].add_line_to_output(primary_items, 4, "")

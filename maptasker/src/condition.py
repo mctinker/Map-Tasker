@@ -16,7 +16,7 @@ import maptasker.src.actiond as process_action_codes
 from maptasker.src.actionc import (
     action_codes,
 )  # action_codes: Master dictionary of Task action and Profile condition codes
-from maptasker.src.priority import get_priority
+from maptasker.src.taskflag import get_priority
 from maptasker.src.sysconst import logger
 
 
@@ -43,6 +43,7 @@ def condition_time(the_item, cond_string):
         "",
         "",
     )
+    child = None
     for child in the_item:
         match child.tag:
             case "fh":
@@ -61,6 +62,8 @@ def condition_time(the_item, cond_string):
                 from_variable = child.text
             case "tovar":
                 to_variable = child.text
+            case _:
+                child.text = "Rutroh"
 
     if from_hour or from_minute:
         cond_string = f"{cond_string}Time: from {from_hour}:{from_minute.zfill(2)}{rep}"
@@ -70,7 +73,7 @@ def condition_time(the_item, cond_string):
     elif from_variable or to_variable:
         cond_string = f"{cond_string}Time: from {from_variable} to {to_variable} {rep}"
     else:
-        cond_string = cond_string + child.text + " not yet mapped"
+        cond_string = f'{cond_string}{child.text} not yet mapped!'
     return cond_string
 
 
@@ -126,7 +129,7 @@ def condition_day(the_item, cond_string):
 # #######################################################################################
 # Profile condition: State
 # #######################################################################################
-def condition_state(the_item, cond_string, colormap, program_args):
+def condition_state(primary_items, the_item, cond_string):
     # mobile_network_type = {0: '2G', 1: '3G', 2: '3G HSPA', 3: '4G', 4: '5G'}
     # orientation_type = {0: 'Face Up', 1: 'Face Down', 2: 'Standing Up', 3: 'Upside Down', 4: 'Left Side',
     #                     5: 'Right Side'}
@@ -136,11 +139,17 @@ def condition_state(the_item, cond_string, colormap, program_args):
             state_code = f"{child.text}s" if "s" not in child.text else child.text
             if state_code not in action_codes:
                 process_action_codes.build_action_codes(
-                    child, the_item, "s", program_args
+                    primary_items,
+                    child,
+                    the_item,
                 )  # Add it to our action dictionary
             # child.text = state_code
             state = action_evaluate.get_action_code(
-                child, the_item, False, colormap, "s", program_args
+                primary_items,
+                child,
+                the_item,
+                False,
+                "s",
             )
 
             # Add this State to any preceding State
@@ -148,7 +157,7 @@ def condition_state(the_item, cond_string, colormap, program_args):
             invert = the_item.find("pin")
             if invert is not None and invert.text == "true":
                 cond_string = f"{cond_string} <em>[inverted]</em>"
-            if program_args["debug"]:
+            if primary_items["program_arguments"]["debug"]:
                 cond_string = f"{cond_string} (code:{child.text})"
         return cond_string
     return
@@ -157,7 +166,7 @@ def condition_state(the_item, cond_string, colormap, program_args):
 # #######################################################################################
 # Profile condition: Event
 # #######################################################################################
-def condition_event(the_item, cond_string, colormap, program_args):
+def condition_event(primary_items, the_item, cond_string):
     the_event_code = the_item.find("code")
 
     # Determine what the Event code is and return the actual Event text
@@ -169,17 +178,23 @@ def condition_event(the_item, cond_string, colormap, program_args):
     if event_code not in action_codes:
         # Build new (template_ action code if not in our dictionary of codes yet
         process_action_codes.build_action_codes(
-            the_event_code, the_item, "e", program_args
+            primary_items, the_event_code, the_item
         )  # Add it to our action dictionary
     # the_event_code.text = event_code
     event = action_evaluate.get_action_code(
-        the_event_code, the_item, False, colormap, "e", program_args
+        primary_items,
+        the_event_code,
+        the_item,
+        False,
+        "e",
     )
     # Get the event priority
     event = f'{event}{get_priority(the_item, True)}'
 
     cond_string = f"{cond_string}Event: {event}"
-    if program_args["debug"]:  # if program_args['debug'] then add the code
+    if primary_items["program_arguments"][
+        "debug"
+    ]:  # if program_args['debug'] then add the code
         cond_string = f"{cond_string} (code:{the_event_code.text})"
     return cond_string
 
@@ -187,7 +202,7 @@ def condition_event(the_item, cond_string, colormap, program_args):
 # #######################################################################################
 # Given a Profile, return its list of conditions
 # #######################################################################################
-def parse_profile_condition(the_profile, colormap, program_args):
+def parse_profile_condition(primary_items, the_profile):
     ignore_items = ["cdate", "edate", "flags", "id", "ProfileVariable"]
     condition = ""  # Assume no condition
     for item in the_profile:
@@ -207,10 +222,10 @@ def parse_profile_condition(the_profile, colormap, program_args):
                 condition = condition_day(item, condition)
 
             case "State":
-                condition = condition_state(item, condition, colormap, program_args)
+                condition = condition_state(primary_items, item, condition)
 
             case "Event":
-                condition = condition_event(item, condition, colormap, program_args)
+                condition = condition_event(primary_items, item, condition)
 
             case "App":
                 the_apps = ""

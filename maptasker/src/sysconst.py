@@ -16,7 +16,7 @@ import logging
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 1.3.5"
+MY_VERSION = "MapTasker version 2.0.0"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -86,6 +86,22 @@ TYPES_OF_COLORS = {
     "Preferences": "Tasker 'preferences'",
     "TrailingComments": "Trailing Comments",
 }
+
+# Runtime argument names/keywords
+ARGUMENT_NAMES = [
+    "display_detail_level",
+    "display_profile_conditions",
+    "display_preferences",
+    "display_taskernet",
+    "single_project_name",
+    "single_profile_name",
+    "single_task_name",
+    "backup_file_http",
+    "backup_file_location",
+    "twisty",
+    "debug",
+    "rerun",
+]
 
 logger = logging.getLogger("MapTasker")
 debug_out = False  # Prints the line to be added to the output

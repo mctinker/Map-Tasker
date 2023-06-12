@@ -12,6 +12,7 @@
 #                                                                                            #
 # ########################################################################################## #
 # The following dictionary provides the strings for various specific code Actions which need to be looked up.
+# actionc.py entries that have a [xx, l, xx] represent a lookup (l entry) into this dictionary
 # Example: xml code '175' (Power Mode) Int value of '2' = 'Toggle' in list of strings 'Normal', 'Battery Saver', 'Toggle'
 lookup_values = {
     "4s": {0: "Highest", 1: "High", 2: "Normal", 3: "Low", 4: "Lowest"},
@@ -29,7 +30,8 @@ lookup_values = {
         6: "Activity",
         7: "Activity, No Bar",
         8: "Activity, No Status",
-        9: "Activity, No Bar, No Status, No Nav",
+        9: "Activity, No Bar, No Status",
+        10: "Activity, No Bar, No Status, No Nav",
     },
     "48": {
         0: "System",
@@ -390,6 +392,7 @@ lookup_values = {
     },
     "374": {0: "Start", 1: "Stop", 2: "Query"},
     "378": {0: "Select Single Item", 1: "Multiple Choices"},
+    "380": {0: "Text", 1: "File", 2: "Redirect"},
     "383": {0: "Connectivity", 1: "NFC", 2: "Volume", 3: "WiFi", 4: "Media Output"},
     "384": {0: "Add/Edit", 1: "Delete"},
     "384a": {0: "Button", 1: "Toggle", 2: "Range", 3: "Toggle Range", 4: "No Action"},

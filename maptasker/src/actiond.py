@@ -83,19 +83,25 @@ def build_new_action_codes(
 # adder = empty if <action>.  Else it is a Profile condition, and we need to make key unique
 # #######################################################################################
 def build_action_codes(
-    child: defusedxml.ElementTree.XML,
+    primary_items: dict,
     action: defusedxml.ElementTree.XML,
-    adder: defusedxml.ElementTree.XML,
-    program_args: defusedxml.ElementTree.XML,
+    child: defusedxml.ElementTree.XML,
 ) -> defusedxml.ElementTree:
-    #  multiplier = 10 if adder else 1
-    dict_code = child.text + adder
+    """
+    Build the dictionary for each Action code
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param action: xml element with Task action's "<code>nnn</code>"
+        :param child: xml root element of Task action
+        :return:
+    """
+    #  Get the actual dictionary/action code
+    dict_code = child.text
     if (
         dict_code not in action_codes
     ):  # We have a code that is not yet in the dictionary?
         build_new_action_codes(action, dict_code)
         logger.debug(f"build_new_action_codes: {dict_code} ", action_codes[dict_code])
-        if program_args["debug"]:
+        if primary_items["program_arguments"]["debug"]:
             print("build_new_action_codes: ", dict_code, " ", action_codes[dict_code])
     else:
         update_action_codes(action, dict_code)
