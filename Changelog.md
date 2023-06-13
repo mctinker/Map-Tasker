@@ -1,5 +1,5 @@
 MapTasker Change log
-## [1.4.0] - 2023-06-??
+## [1.4.0] - 2023-06-13
 ### Added: Task additional plug-ins mapped: AutoSpotify, AutoLaunch, AutoInput Actions V2, AutoBubbles, AutoContacts
 ### Added: Add missing Scene elements 
 ### Added: Display Task's collision setting if detail = 3
@@ -21,6 +21,7 @@ MapTasker Change log
 
 
 Older History Log
+
 - [1.3.5] - 2023-05-15   
        - Added: GUI "Cancel" button does not work.  Comment in prompt notifies user of this problem.   
        - Added: If Profile has no name, then automatically display its condition(s)   
