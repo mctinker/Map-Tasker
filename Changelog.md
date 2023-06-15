@@ -1,5 +1,5 @@
 MapTasker Change log
-## [1.4.0] - 2023-06-13
+## [2.0.3] - 2023-06-13
 ### Added: Task additional plug-ins mapped: AutoSpotify, AutoLaunch, AutoInput Actions V2, AutoBubbles, AutoContacts
 ### Added: Add missing Scene elements 
 ### Added: Display Task's collision setting if detail = 3
