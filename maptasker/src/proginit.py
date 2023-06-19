@@ -245,6 +245,9 @@ def setup(
     return primary_items
 
 
+##############################################################################################
+# Display/output the start up information
+# ############################################################################################
 def display_starting_info(primary_items: dict) -> None:
     """
     Display the heading and source file details
@@ -348,5 +351,13 @@ def start_up(primary_items: dict) -> dict:
         "single_profile_found": False,
         "single_task_found": False,
     }
+    # Setup grand total
+    primary_items["grand_totals"] = {
+        "projects": 0,
+        "profiles": 0,
+        "tasks": 0,
+        "scenes": 0,
+    }
+
     logger.info("exit")
     return primary_items

@@ -204,7 +204,7 @@ def runtime_parser():
         nargs=1,
         required=False,
         type=str,
-        help='Display the details for a single Task only (forces option "-d 2")',
+        help='Display the details for a single Task only (forces option "-detail 3")',
     )
     # Version argument
     parser.add_argument(

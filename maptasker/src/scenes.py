@@ -219,6 +219,7 @@ def process_project_scenes(
         :return: nada
     """
     scene_names = None
+    primary_items["scene_count"] = 0
     with contextlib.suppress(Exception):
         scene_names = project.find("scenes").text
     if scene_names is not None:
@@ -231,6 +232,7 @@ def process_project_scenes(
             primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
 
         if scene_list[0]:
+            primary_items["scene_count"] = len(scene_list)
             # # If we have Scene(s), process it/them
             process_list(
                 primary_items,

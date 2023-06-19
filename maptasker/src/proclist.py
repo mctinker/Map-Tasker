@@ -81,7 +81,7 @@ def process_item(primary_items, the_item, list_type, the_list, the_task, tasks_f
         # End the twisty hidden lines if not a Task in a Scene
         if (
             primary_items["program_arguments"]["twisty"]
-            and "&#45;&#45;Task:" not in list_type
+            # and "&#45;&#45;Task:" not in list_type
         ):
             primary_items["output_lines"].add_line_to_output(
                 primary_items,

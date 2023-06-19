@@ -44,6 +44,7 @@ from maptasker.src.error import error_handler
 from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import debug_out
 from maptasker.src.lineout import LineOut
+from maptasker.src.frmthtml import format_html
 
 
 # import os
@@ -124,7 +125,7 @@ def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> 
             # Write the actual final line out as html
             out_file.write(output_line)
             if debug_out:
-                logger.debug(f"kaka:{output_line}")
+                logger.debug(f"mapit output line:{output_line}")
     logger.info("Function Exit: write_out_the_file")
     return
 
@@ -152,6 +153,34 @@ def clean_up_and_exit(
     clean_up_memory(primary_items)
     # Exit with code "item" not found.
     sys.exit(5)
+
+
+def output_grand_totals(primary_items: dict) -> None:
+    """
+    Output the grand totals of Projects/Profiles/Tasks/Scenes
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+    """
+    grand_total_projects = primary_items["grand_totals"]["projects"]
+    grand_total_profiles = primary_items["grand_totals"]["profiles"]
+    grand_total_tasks = primary_items["grand_totals"]["tasks"]
+    grand_total_scenes = primary_items["grand_totals"]["scenes"]
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
+        1,
+        format_html(
+            primary_items["colors_to_use"],
+            "trailing_comments_color",
+            "",
+            (
+                f"<br>Total number of Projects: {grand_total_projects}"
+                f"<br>Total number of Profiles: {grand_total_profiles}"
+                f"<br>Total number of Tasks: {grand_total_tasks}"
+                f"<br>Total number of Scenes: {grand_total_scenes}<br><br>"
+            ),
+            True,
+        ),
+    )
+    primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
 
 
 ##############################################################################################################
@@ -277,7 +306,7 @@ def mapit_all(file_to_get: str) -> int:
         )
 
     # #######################################################################################
-    # Now let's look for Tasks that are not referenced by Profiles and display a total count
+    # Now let's look for Tasks that are not referenced by any Profile and display a total count
     # #######################################################################################
     if (
         not primary_items["program_arguments"]["single_task_name"]
@@ -298,6 +327,10 @@ def mapit_all(file_to_get: str) -> int:
             projects_with_no_tasks,
             projects_without_profiles,
         )
+
+    # Output the final tally of Projects/Profiles/Tasks/Scenes
+    if primary_items["program_arguments"]["display_detail_level"] == 3:
+        output_grand_totals(primary_items)
 
     # Requested single item but invalid item name provided (i.e. no specific Project/Profile/Task found)?
     if (

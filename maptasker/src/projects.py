@@ -105,12 +105,16 @@ def tasks_not_in_profiles(
 
     # Go through all Tasks for this Project
     for the_id in task_ids:
+        primary_items["task_count_total"] = len(task_ids)
         # We have a Task in Project that has yet to be output?
         if the_id not in found_tasks and (
             # not found_items["single_project_found"]
             not primary_items["found_named_items"]["single_profile_found"]
             and not primary_items["found_named_items"]["single_task_found"]
         ):
+            primary_items["task_count_no_profile"] = (
+                primary_items["task_count_no_profile"] + 1
+            )
             # We have a Project's Task that has not yet been output
             our_task_element, our_task_name = tasks.get_task_name(
                 primary_items,
@@ -245,6 +249,123 @@ def get_extra_and_output_project(
     return False
 
 
+def setup_summary_counts(primary_items: dict) -> int:
+    """
+    Initialize summary counters for the Project
+        :param primary_items:
+        :return:
+    """
+    # Set up Project counters for summary line
+    primary_items["task_count_for_profile"] = 0
+    primary_items["scene_count"] = 0
+    primary_items["task_count_total"] = 0
+    primary_items["task_count_unnamed"] = 0
+    primary_items["task_count_no_profile"] = 0
+    return 0
+
+
+def summary_counts(primary_items: dict, project_name: str, profile_count: int) -> None:
+    """
+    Output Project's summary counts
+        :param primary_items:
+        :param project_name:
+        :param profile_count:
+    """
+    # Get counts for f-strings
+    task_count_for_profile = primary_items["task_count_for_profile"]
+    task_count_total = primary_items["task_count_total"]
+    task_count_unnamed = primary_items["task_count_unnamed"]
+    task_count_no_profile = primary_items["task_count_no_profile"]
+    scene_count = primary_items["scene_count"]
+
+    # Accumulate totals for final tally
+    primary_items["grand_totals"]["projects"] = (
+        primary_items["grand_totals"]["projects"] + 1
+    )
+    primary_items["grand_totals"]["profiles"] = (
+        primary_items["grand_totals"]["profiles"] + profile_count
+    )
+    primary_items["grand_totals"]["tasks"] = (
+        primary_items["grand_totals"]["tasks"] + task_count_total
+    )
+    primary_items["grand_totals"]["scenes"] = (
+        primary_items["grand_totals"]["scenes"] + scene_count
+    )
+    # Output the summary line with counts
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
+        5,
+        format_html(
+            primary_items["colors_to_use"],
+            "project_color",
+            "",
+            (
+                f"Project {project_name} has a total of"
+                f" {profile_count} Profiles, {task_count_for_profile}  Tasks"
+                f" called by Profiles, {task_count_unnamed} unnamed Tasks,"
+                f" {task_count_no_profile} Tasks not in any Profile,"
+                f" {task_count_total} total Tasks, and"
+                f" {scene_count} Scenes<br><br>"
+            ),
+            True,
+        ),
+    )
+
+
+def finish_up(
+    primary_items: dict,
+    project: defusedxml.ElementTree.XML,
+    project_name: str,
+    found_tasks: list,
+    our_task_element: defusedxml.ElementTree.XML,
+    profile_count: int,
+) -> None:
+    """
+    Output the remaining components related to the Project
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param project: Project XML element
+        :param project_name: name of the Project
+        :param found_tasks: list of all Tasks found so far
+        :param our_task_element: current Task xml; element
+        :param profile_count: count of Profiles in this Project
+        :return: nothin
+    """
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 3, ""
+    )  # Close Profile list
+
+    # # See if there are Tasks in Project that have no Profile
+    if task_ids := get_ids(primary_items, False, project, project_name, []):
+        # Process Tasks in Project that are not referenced by a Profile
+        tasks_not_in_profiles(
+            primary_items,
+            task_ids,
+            found_tasks,
+            project_name,
+        )
+
+    # Find the Scenes for this Project <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    if not primary_items["program_arguments"]["single_task_name"]:
+        process_project_scenes(
+            primary_items,
+            project,
+            our_task_element,
+            found_tasks,
+        )
+
+    # Output the Project summary line
+    if primary_items["program_arguments"]["display_detail_level"] == 3:
+        summary_counts(primary_items, project_name, profile_count)
+
+    # If we are not inserting the twisties, then close the unordered list
+    # Twisties screw with the indentation
+    if not primary_items["program_arguments"]["twisty"]:
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 3, ""
+        )  # Close Profile list
+    return
+
+
 # #############################################################################################
 # Go through all the Projects, get their detail and output it
 # #############################################################################################
@@ -256,8 +377,7 @@ def process_projects(
 ) -> list:
     """
     Go through all the Projects, get their detail and output it
-        :param primary_items: a dictionary containing program runtime arguments, colors to use in output,
-        all Tasker xml root elements, and a list of all output lines.
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param projects_without_profiles: list of Projects with no Profiles
         :param found_tasks: list of Tasks found
         :param our_task_element: xml element of our Task
@@ -266,6 +386,8 @@ def process_projects(
 
     # Go through each Project in backup file
     for project in primary_items["tasker_root_elements"]["all_projects"]:
+        profile_count = setup_summary_counts(primary_items)
+
         # Don't bother with another Project if we've done a single Task or Profile only
         if (
             primary_items["found_named_items"]["single_task_found"]
@@ -290,6 +412,7 @@ def process_projects(
         if primary_items["program_arguments"]["display_taskernet"]:
             share(primary_items, project)
 
+        # Get all of the Profile <pid> names (e.g. ["102", "509", ...]
         if profile_ids := get_ids(
             primary_items,
             True,
@@ -297,6 +420,9 @@ def process_projects(
             project_name,
             projects_without_profiles,
         ):
+            # The number of pids represent the number of Profiles
+            profile_count = len(profile_ids)
+
             our_task_element = process_profiles(
                 primary_items,
                 project,
@@ -314,7 +440,7 @@ def process_projects(
         else:
             primary_items["output_lines"].add_line_to_output(
                 primary_items,
-                2,
+                5,
                 format_html(
                     primary_items["colors_to_use"],
                     "profile_color",
@@ -323,35 +449,16 @@ def process_projects(
                     True,
                 ),
             )
-        primary_items["output_lines"].add_line_to_output(
-            primary_items, 3, ""
-        )  # Close Profile list
 
-        # # See if there are Tasks in Project that have no Profile
-        if task_ids := get_ids(primary_items, False, project, project_name, []):
-            # Process Tasks in Project that are not referenced by a Profile
-            tasks_not_in_profiles(
-                primary_items,
-                task_ids,
-                found_tasks,
-                project_name,
-            )
-
-        # Find the Scenes for this Project <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        if not primary_items["program_arguments"]["single_task_name"]:
-            process_project_scenes(
-                primary_items,
-                project,
-                our_task_element,
-                found_tasks,
-            )
-
-        # If we are not inserting the twisties, then close the unordered list
-        # Twisties screw with the indentation
-        if not primary_items["program_arguments"]["twisty"]:
-            primary_items["output_lines"].add_line_to_output(
-                primary_items, 3, ""
-            )  # Close Profile list
+        # Now finish the rest of the output for this Project
+        finish_up(
+            primary_items,
+            project,
+            project_name,
+            found_tasks,
+            our_task_element,
+            profile_count,
+        )
 
         if (
             primary_items["found_named_items"]["single_project_found"]

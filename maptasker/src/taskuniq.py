@@ -144,7 +144,7 @@ def process_solo_task_with_no_profile(
     primary_items: dict,
     task_id: str,
     found_tasks: list,
-    unnamed_task_count: int,
+    task_count: int,
     have_heading: bool,
     projects_with_no_tasks: list,
     save_twisty: bool,
@@ -154,7 +154,7 @@ def process_solo_task_with_no_profile(
         :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param task_id: the ID of the Task being displayed
         :param found_tasks: list of Tasks that we have found
-        :param unnamed_task_count: count of the unnamed Tasks
+        :param task_count: count of the unnamed Tasks
         :param have_heading: whether we have the heading
         :param projects_with_no_tasks: list of Projects without Tasks
         :param save_twisty: whether we are displaying twisty to Hide Task details
@@ -180,11 +180,11 @@ def process_solo_task_with_no_profile(
         if tasks.task_in_scene(
             task_id, primary_items["tasker_root_elements"]["all_scenes"]
         ):
-            return have_heading, specific_task, unnamed_task_count
+            return have_heading, specific_task, task_count
         unknown_task = True
     else:
         the_task_name = task_name
-    unnamed_task_count += 1
+    task_count += 1
 
     # At this point, we've found the Project this Task belongs to, or it doesn't belong to any Task
     if (
@@ -223,7 +223,7 @@ def process_solo_task_with_no_profile(
             False,
         )
 
-    return have_heading, specific_task, unnamed_task_count
+    return have_heading, specific_task, task_count
 
 
 # #######################################################################################
@@ -241,7 +241,7 @@ def process_tasks_not_called_by_profile(
         :param found_tasks_list: list of all Tasks found so far
         :return: nothing
     """
-    unnamed_task_count = 0
+    task_count = 0
     task_name = ""
     have_heading = False
     # We only need twisty for top level, starting with the heading
@@ -256,16 +256,14 @@ def process_tasks_not_called_by_profile(
 
         # We have a solo Task not associated to any Profile
         if task_id not in found_tasks_list:
-            have_heading, specific_task, unnamed_task_count = (
-                process_solo_task_with_no_profile(
-                    primary_items,
-                    task_id,
-                    found_tasks_list,
-                    unnamed_task_count,
-                    have_heading,
-                    projects_with_no_tasks,
-                    save_twisty,
-                )
+            have_heading, specific_task, task_count = process_solo_task_with_no_profile(
+                primary_items,
+                task_id,
+                found_tasks_list,
+                task_count,
+                have_heading,
+                projects_with_no_tasks,
+                save_twisty,
             )
             if specific_task:
                 break
@@ -279,7 +277,7 @@ def process_tasks_not_called_by_profile(
         )
 
     # Provide total number of unnamed Tasks
-    if unnamed_task_count > 0:
+    if task_count > 0:
         if primary_items["program_arguments"]["display_detail_level"] > 0:
             primary_items["output_lines"].add_line_to_output(
                 primary_items, 0, ""
@@ -300,8 +298,8 @@ def process_tasks_not_called_by_profile(
                     "unknown_task_color",
                     "",
                     (
-                        f"There are a total of {unnamed_task_count} unnamed Tasks not"
-                        " associated with a Profile!"
+                        f"There are a total of {task_count} unnamed Tasks"
+                        " not associated with a Profile!"
                     ),
                     True,
                 ),

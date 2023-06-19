@@ -894,6 +894,7 @@ class MyGui(customtkinter.CTk):
                     ),
                     False,
                 )
+                self.debug = False
         else:
             self.display_message_box("Debug mode disabled.", True)
 

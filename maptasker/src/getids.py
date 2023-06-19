@@ -2,7 +2,7 @@
 
 # ########################################################################################## #
 #                                                                                            #
-# getids: Look for Profile / Task IDs in Project  <pids> <tids> xml elements                 #
+# getids: Look for Profile / Task IDs in head_xml_element  <pids> <tids> xml elements                 #
 #                                                                                            #
 # GNU General Public License v3.0                                                            #
 # Permissions of this strong copyleft license are conditioned on making available            #
@@ -17,24 +17,24 @@ import defusedxml.ElementTree  # Need for type hints
 
 def get_ids(
     primary_items: dict,
-    doing_project: bool,
-    project: defusedxml.ElementTree.XML,
-    project_name: str,
-    projects_without_profiles: list,
+    doing_head_xml_element: bool,
+    head_xml_element: defusedxml.ElementTree.XML,
+    head_xml_element_name: str,
+    head_xml_elements_without_profiles: list,
 ) -> list:
     """
-    Find either Project 'pids' (Profile IDs) or 'tids' (Task IDs)
+    Find either head_xml_element 'pids' (Profile IDs) or 'tids' (Task IDs)
     :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
-    :param doing_project: True if this is searching for Project IDs
-    :param project: Project xml element
-    :param project_name: name of Project
-    :param projects_without_profiles: list of elements without ids
+    :param doing_head_xml_element: True if this is searching for head_xml_element IDs
+    :param head_xml_element: head_xml_element xml element
+    :param head_xml_element_name: name of head_xml_element
+    :param head_xml_elements_without_profiles: list of elements without ids
     :return:
     """
     # Get Profiles
-    project_pids = ""
-    if doing_project:
-        project_pids = ""
+    found_ids = ""
+    if doing_head_xml_element:
+        found_ids = ""
         ids_to_find = 'pids'
         primary_items["output_lines"].add_line_to_output(
             primary_items, 1, ""
@@ -42,10 +42,10 @@ def get_ids(
     else:
         ids_to_find = 'tids'
     try:
-        # Get a list of the Profiles for this Project
-        project_pids = project.find(ids_to_find).text
-    except AttributeError:  # Project has no Profiles
-        if project_name not in projects_without_profiles:
-            projects_without_profiles.append(project_name)
+        # Get a list of the Profiles for this head_xml_element
+        found_ids = head_xml_element.find(ids_to_find).text
+    except AttributeError:  # head_xml_element has no Profiles
+        if head_xml_element_name not in head_xml_elements_without_profiles:
+            head_xml_elements_without_profiles.append(head_xml_element_name)
 
-    return project_pids.split(",") if project_pids != "" else []
+    return found_ids.split(",") if found_ids != "" else []

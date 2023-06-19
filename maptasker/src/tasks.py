@@ -130,7 +130,11 @@ def get_task_name(
     """
     if the_task_id.isdigit():
         task = primary_items["tasker_root_elements"]["all_tasks"][the_task_id]
-        tasks_that_have_been_found.append(the_task_id)
+        duplicate_task = False
+        if the_task_id not in tasks_that_have_been_found:
+            tasks_that_have_been_found.append(the_task_id)
+        else:
+            duplicate_task = True
         if primary_items["program_arguments"]["debug"]:
             extra = f"&nbsp;&nbsp;Task ID: {the_task_id}"
         else:
@@ -149,6 +153,11 @@ def get_task_name(
                 )
         except AttributeError:
             task_name = UNKNOWN_TASK_NAME
+            # Count this as an unnamed Task if it hasn't yet been counted
+            if not duplicate_task:
+                primary_items["task_count_unnamed"] = (
+                    primary_items["task_count_unnamed"] + 1
+                )
             if task_type == "Exit":
                 task_output_lines.append(
                     f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task{extra}"

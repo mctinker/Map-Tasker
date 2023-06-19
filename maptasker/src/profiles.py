@@ -40,10 +40,16 @@ def get_profile_tasks(
         if child.tag in keys_we_dont_want:
             continue
         if "mid" in child.tag:
+            # Assume Entry Task, unless tag = 'mid1'...then Exit Task
             task_type = "Entry"
             if child.tag == "mid1":
                 task_type = "Exit"
             task_id = child.text
+            # Count Task under Profile if it hasn't yet been counted
+            if task_id not in found_tasks_list:
+                primary_items["task_count_for_profile"] = (
+                    primary_items["task_count_for_profile"] + 1
+                )
             the_task_element, the_task_name = tasks.get_task_name(
                 primary_items, task_id, found_tasks_list, task_output_line, task_type
             )
@@ -54,9 +60,8 @@ def get_profile_tasks(
             ):
                 primary_items["found_named_items"]["single_task_found"] = True
                 break
-        elif (
-            child.tag == "nme"
-        ):  # If hit Profile's name, we've passed all the Task ids.
+        # If hit Profile's name, we've passed all the Task ids.
+        elif child.tag == "nme":
             break
     return the_task_element, the_task_name
 

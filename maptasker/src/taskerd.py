@@ -20,7 +20,13 @@ from maptasker.src.error import error_handler
 # ###############################################################################################
 # Convert list of xml to dictionary
 # ###############################################################################################
-def move_xml_to_table(all_xml, is_scene: bool):
+def move_xml_to_table(all_xml: list, is_scene: bool) -> dict:
+    """
+    Given a list of Profile/Task/Scene elements, find each name and store the element and name in a dictionary
+        :param all_xml: the head xml element for Profile/Task/Scene
+        :param is_scene: True if this is for a Scene
+        :return: dictionary that we created
+    """
     new_table = {}
     key_to_find = "nme" if is_scene else "id"
     for item in all_xml:
@@ -35,7 +41,7 @@ def move_xml_to_table(all_xml, is_scene: bool):
 # ###############################################################################################
 def get_the_xml_data(primary_items: dict) -> dict:
     """
-    Load all of the Projects, Profiles and Tasks into a format we can easily navigate through
+    Load all the Projects, Profiles and Tasks into a format we can easily navigate through
         :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :return: primary_items
     """

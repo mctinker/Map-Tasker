@@ -60,12 +60,12 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
                     the_item = evaluated_results["result_bun"][0]
                     evaluated_results["result_bun"].pop(0)
             case _:
-                logger.debug(
-                    f'Function get_results_in_arg_order: no match for "arg":{arg}'
+                error_msg = (
+                    'Function get_results_in_arg_order mapped error: no match for'
+                    f' "arg":{arg}'
                 )
-                the_item = (
-                    f'Function get_results_in_arg_order: no match for "arg":{arg}'
-                )
+                logger.debug(error_msg)
+                the_item = error_msg
         return_result = f"{return_result} {the_item}"  # Get the appropriate item
     return return_result
 
