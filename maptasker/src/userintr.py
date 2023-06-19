@@ -372,6 +372,7 @@ class MyGui(customtkinter.CTk):
         if first_time:
             self.textbox.insert("0.0", "MapTasker Help\n\n" + INFO_TEXT)
         self.color_lookup = {}  # Setup default dictionary as empty list
+        self.file = None
         # We only want to initialize the next two variables only if they have not yet been defined.
         #  Ignore sourcery recommendation to reformat these.
         try:  # The following will fail with an attribute error if it does not already exist
@@ -413,16 +414,13 @@ class MyGui(customtkinter.CTk):
         # Check for missing name
         if not the_name:
             error_message = (
-                "Error:\n\nThe name entered for the "
-                + element_name
-                + " is blank!\n\nTry again."
+                f"\n\nEither the name entered for the {element_name} is blank or the"
+                f" 'Cancel' button was clicked.\n\nAll {element_name}s will be"
+                " displayed."
             )
             self.named_item = False
-        if the_name is None:
-            error_message = "Name entry canceled.  All will be displayed."
-
         # Check to make sure only one named item has been entered
-        if self.single_project_name and self.single_profile_name:
+        elif self.single_project_name and self.single_profile_name:
             error_message = (
                 "Error:\n\nYou have entered both a Project and a Profile name!\n\n"
                 "Try again and only select one."
@@ -479,10 +477,12 @@ class MyGui(customtkinter.CTk):
                 ]
                 dict_to_use = {}
             case "Profile":
-                root_element = temp_primary_items["all_profiles"]
+                root_element = temp_primary_items["tasker_root_elements"][
+                    "all_profiles"
+                ]
                 dict_to_use = "all_profiles"
             case "Task":
-                root_element = temp_primary_items["all_tasks"]
+                root_element = temp_primary_items["tasker_root_elements"]["all_tasks"]
                 dict_to_use = "all_tasks"
             case _:
                 dict_to_use = {}
@@ -493,8 +493,15 @@ class MyGui(customtkinter.CTk):
                 if element_name == "Project":
                     item_name = item.find("name").text
                 else:
-                    item_name = temp_primary_items[dict_to_use][item].find("nme").text
+                    item_name = (
+                        temp_primary_items["tasker_root_elements"][dict_to_use][item]
+                        .find("nme")
+                        .text
+                    )
+                if item_name == "Check Downstairs Heat":
+                    print("kaka")
                 if the_name == item_name:
+                    self.file = temp_primary_items["file_to_get"]
                     return True
             except AttributeError:
                 item_name = ""

@@ -70,6 +70,10 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
     except TypeError:
         primary_items["program_arguments"]["display_detail_level"] = 3
 
+    # Do we already have the file object?
+    if user_input.file:
+        primary_items["file_to_get"] = user_input.file.name
+
     # Get the program arguments and save them in our dictionary
     for value in ARGUMENT_NAMES:
         if value == "backup_file_http":
