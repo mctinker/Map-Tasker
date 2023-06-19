@@ -25,6 +25,8 @@ I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable
  
 A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
  
+The Tasker backup xml can either be manually uploaded to your Mac/Google Drive, or this program can fetch it directly from your Android device.
+
 ### Program Dependencies
 -	Python version v3.10 or higher and Tkinter (not included with Python 3.10 from 'brew')            
 
@@ -57,8 +59,8 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
 ### Usage 
 
 - Ensure the dependencies are already installed.
-- Open a terminal window and change to the directory into which the zip file was uncompressed
-- From this directory, enter the command:
+- If installed from Github, open a terminal window and change to the directory into which the zip file was uncompressed
+- Enter the command:
 
 
      `maptasker (runtime options...se below)`
@@ -88,7 +90,7 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-project 'name of project'` to display a single Project, its Profiles and Tasks only,    
     `-profile 'profile name'` to display a single Profile and its Tasks only,    
-    `-task 'task name'` to display a single Task only (forces option -d2),   
+    `-task 'task name'` to display a single Task only (forces option -detail 3),   
         
         
     `-taskernet` to display any TaskerNet share details,  
@@ -110,7 +112,7 @@ Runtime: `maptasker -option1 -option2` ...
     `-s`  save these settings for later reuse.    
     `-r`  restore previously saved settings.
 
-    `-t`  display Task/Scene details hidden by a twisty.  Click on twisty to reveal.
+    `-t`  display Task/Scene details hidden by a twisty "▶︎".  Click on twisty to reveal.
 
     Get the backup file directly from the Android device (*):
 
@@ -119,6 +121,7 @@ Runtime: `maptasker -option1 -option2` ...
         * For the "Get backup" option to work, you must have the following prequisites:
           1- Both the MAC and Android device must be on the same network
           2- The [sample Tasker Project](https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example) must be installed and active on the Android device,  and the server must be running..see Android notification: "HTTP Server Info...".
+          3- See config.py to change the default settings permantely
 
 The MapTasker GUI:
 
@@ -159,6 +162,6 @@ Alternatively, see *config.py* for some user-customizable options.  Make user-sp
 
 ### To Do List (in no particular order)
 
-[] Complete insertion of Python docstrings
+[] Complete insertion of Python docstrings for programming etiquette
 
 [] If in GUI and the "Cancel" button is used for a single name, then don't use the name entered. (bug in CustomTinker)
