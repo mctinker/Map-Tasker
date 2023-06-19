@@ -1,13 +1,18 @@
 MapTasker Change log
 
-## [2.0.4] - 2023-06-19
-### Added: summary totals of Profiles/Tasks under each Project if display detail level is 3
-### Added: Profile "State" of Matter Light
-### Fixed: Event Sleeping missing arguments
-### Fixed: Don't allow Run from GUI if debug on and backup.xml file not found
-# Fixed: Help information regarding display of a single Task and forcing detail 3 (not 2)
+## [2.0.5] - 2023-06-19
+### Fixed: Cancel button in GUI now recognized
+### Fixed: Project/Profile/Task name selection in GUI caused program error.
+### Fixed: GUI prompts twice for file if displaying by name
 
 Older History Log
+
+- [2.0.4] - 2023-06-19
+       - Added: summary totals of Profiles/Tasks under each Project if display detail level is 3   
+       - Added: Profile "State" of Matter Light   
+       - Fixed: Event Sleeping missing arguments   
+       - Fixed: Don't allow Run from GUI if debug on and backup.xml file not found   
+       - Fixed: Help information regarding display of a single Task and forcindetail 3 (not 2)   
 
 - [2.0.3] - 2023-06-13
        - Added: Task additional plug-ins mapped: AutoSpotify, AutoLaunch, AutoInput Actions V2, AutoBubbles, AutoContacts  
