@@ -376,13 +376,11 @@ class MyGui(customtkinter.CTk):
         # We only want to initialize the next two variables only if they have not yet been defined.
         #  Ignore sourcery recommendation to reformat these.
         try:  # The following will fail with an attribute error if it does not already exist
-            if self.backup_file_http:
-                pass
+            pass
         except AttributeError:
             self.backup_file_http = ""
         try:
-            if self.backup_file_location:
-                pass
+            pass
         except AttributeError:
             self.backup_file_location = ""
 

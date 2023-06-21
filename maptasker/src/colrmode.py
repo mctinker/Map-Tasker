@@ -27,8 +27,8 @@ def set_color_mode(appearance_mode: str) -> dict:
     else:
         mode = appearance_mode
 
-    if mode == "Dark":
-        colormap = {
+    return (
+        {
             "project_color": "White",
             "profile_color": "Aqua",
             "disabled_profile_color": "Red",
@@ -48,8 +48,8 @@ def set_color_mode(appearance_mode: str) -> dict:
             "taskernet_color": "LightPink",
             "preferences_color": 'PeachPuff',
         }
-    else:
-        colormap = {
+        if mode == "Dark"
+        else {
             "project_color": "Black",
             "profile_color": "DarkBlue",
             "disabled_profile_color": "DarkRed",
@@ -69,5 +69,4 @@ def set_color_mode(appearance_mode: str) -> dict:
             "taskernet_color": "RoyalBlue",
             "preferences_color": 'DodgerBlue',
         }
-
-    return colormap
+    )
