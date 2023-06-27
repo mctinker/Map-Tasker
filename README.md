@@ -165,4 +165,3 @@ Alternatively, see *config.py* for some user-customizable options.  Make user-sp
 
 [] Complete insertion of Python docstrings for programming etiquette
 
-[] If in GUI and the "Cancel" button is used for a single name, then don't use the name entered. (bug in CustomTinker)

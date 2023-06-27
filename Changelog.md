@@ -1,6 +1,7 @@
 MapTasker Change log
 
 ## [2.0.6] - 2023-06-27
+### Fixed: GUI use of "Cancel" button is now properly recognized.
 ### Fixed: Fix Project/Scene indentation issue when using twisty
 ### Fixed: Removed extra blank link between twisties
 ### Fixed: Summary number of Tasks is for named Tasks only.
