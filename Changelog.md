@@ -1,12 +1,19 @@
 MapTasker Change log
 
-## [2.0.5] - 2023-06-19
-### Fixed: Cancel button in GUI now recognized
-### Fixed: Project/Profile/Task name selection in GUI caused program error.
-### Fixed: GUI prompts twice for file if displaying by name
+## [2.0.6] - 2023-06-27
+### Fixed: Fix Project/Scene indentation issue when using twisty
+### Fixed: Removed extra blank link between twisties
+### Fixed: Summary number of Tasks is for named Tasks only.
+### Fixed: Summary count of unnamed Tasks included those under Scenes
+### Changed: Total number of unnamed Tasks at end (in red) removed since invalid
+### Changed: Cleaned up output html for slightly better reading/debugging
 
 Older History Log
 
+- [2.0.5] - 2023-06-19
+       - Fixed: Cancel button in GUI now recognized   
+       - Fixed: Project/Profile/Task name selection in GUI caused program error.   
+       - Fixed: GUI prompts twice for file if displaying by name   
 - [2.0.4] - 2023-06-19
        - Added: summary totals of Profiles/Tasks under each Project if display detail level is 3   
        - Added: Profile "State" of Matter Light   
