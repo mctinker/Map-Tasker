@@ -153,8 +153,8 @@ def get_task_name(
                 )
         except AttributeError:
             task_name = UNKNOWN_TASK_NAME
-            # Count this as an unnamed Task if it hasn't yet been counted
-            if not duplicate_task:
+            # Count this as an unnamed Task if it hasn't yet been counted and it is a normal Task
+            if not duplicate_task and task_type in {"Entry", "Exit"}:
                 primary_items["task_count_unnamed"] = (
                     primary_items["task_count_unnamed"] + 1
                 )

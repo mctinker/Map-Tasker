@@ -19,9 +19,7 @@ def display_caveats(primary_items: dict) -> None:
     """
     Output the program caveats at the very end
     Inputs:
-    - primary_items: a dictionary containing program runtime arguments, colors to use in output,
-      all Tasker xml root elements, and a list of all output lines.
-
+    - primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
     Outputs:
     - None
     """

@@ -20,14 +20,20 @@ from maptasker.src.error import error_handler
 # #######################################################################################
 # Given a list [x,y,z] , print as x y z
 # #######################################################################################
-def print_list(list_title, the_list):
+def print_list(title: str, parse_items: list) -> None:
+    """
+    Given a list [x,y,z] , print as x y z
+        :param title: the heading to output
+        :param parse_items: a list of items separated by commas
+        :return: nothing
+    """
     line_out = ""
     seperator = ", "
-    list_length = len(the_list) - 1
-    if list_title:
-        print(list_title)
-    for item in the_list:
-        if the_list.index(item) == list_length:  # Last item in list?
+    list_length = len(parse_items) - 1
+    if title:
+        print(title)
+    for item in parse_items:
+        if parse_items.index(item) == list_length:  # Last item in list?
             seperator = ""
         line_out = line_out + item + seperator
     print(line_out)
@@ -37,7 +43,15 @@ def print_list(list_title, the_list):
 # #######################################################################################
 # Validate the color name provided.  If color name is 'h', simply display all the colors
 # #######################################################################################
-def validate_color(the_color):
+def validate_color(the_color: str) -> object:
+    """
+    Validate the color name provided.
+        If color name is 'h', simply display all the colors and exit.
+        IF the color passed in is hexidecimal, simply return True
+        Else return the color if it is valid
+        param: the_color: the color as a hexidecimal number, "h" for help, or a color name
+        :rtype: object: True if a hexadecimal color was provided, or the color name
+    """
     red_color_names = [
         "IndianRed",
         "LightCoral",
@@ -241,12 +255,12 @@ def validate_color(the_color):
 # #######################################################################################
 # Get the runtime option for a color change and set it
 # #######################################################################################
-def get_and_set_the_color(primary_items: dict, the_arg: str) -> object:
+def get_and_set_the_color(primary_items: dict, the_arg: str) -> None:
     """
     Get the runtime option for a color change and set it
         :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
-        :param the_arg:
-        :return:
+        :param the_arg: the color runtime argument (e.g. "cProfile=Blue" or "cProfile Blue")
+        :return: nothing
     """
     the_color_option = the_arg[2:].split("=")
     color_type = the_color_option[0]

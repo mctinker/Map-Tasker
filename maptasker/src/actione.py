@@ -23,8 +23,6 @@ from maptasker.src.actionc import action_codes
 from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import FONT_TO_USE
 
-pattern = re.compile(r",[, ]+")
-
 
 # pattern1 = re.compile(r'<.*?>')  # Get rid of all <something> html code
 
@@ -32,13 +30,19 @@ pattern = re.compile(r",[, ]+")
 # ####################################################################################################
 # Delete crap that might be in the label
 # ####################################################################################################
-def cleanup_the_result(results):
+def cleanup_the_result(results: str) -> str:
+    """
+    Delete html crap that might be in the label, and which would screw up the output formatting
+        :param results: the string to clean
+        :return: the cleaned string
+    """
     # The following line works as well, going through each character in the string
     # results = ', '.join([x.strip() for x in results.split(',') if not x.isspace() and x != ''])
     results = results.replace(
         ",  <font>", "<font>"
     )  # Get rid of comma on last parameter
     results = results.replace(", (", "")
+    pattern = re.compile(r",[, ]+")
     results = pattern.sub(", ", results)  # Delete repeating commas
     results = results.replace(", <span", "<span")
     results = results.replace(",  <span", "  <span")
@@ -59,6 +63,7 @@ def look_for_missing_req() -> None:
     """
     For debug purposes, this searches dictionary for missing keys: 'reqargs' and 'display'
         If found, the error is handled and the program exits
+        :return: nothing
     """
     for item in action_codes:
         entry = action_codes[item]
@@ -66,12 +71,12 @@ def look_for_missing_req() -> None:
         # Required arguments missing?  Exit with program error if so.
         if numargs > 0 and "reqargs" not in entry:
             error_handler(
-                f"dict_code {item} missing reqargs!  numargs:{numargs}",
+                f"the_action_code_plus {item} missing reqargs!  numargs:{numargs}",
                 1,
             )
         # Missing the entry's display name?
         if "display" not in entry:
-            error_handler(f'dict_code {item} missing "display"!', 1)
+            error_handler(f'the_action_code_plus {item} missing "display"!', 1)
 
     return
 
@@ -79,13 +84,21 @@ def look_for_missing_req() -> None:
 # ####################################################################################################
 # See if this Task or Profile code isa deprecated
 # ####################################################################################################
-def check_for_deprecation(dict_code):
+def check_for_deprecation(the_action_code_plus: str) -> None:
+    """
+    See if this Task or Profile code isa deprecated
+        :param the_action_code_plus: the action code plus the type of action (e.g. "861t", "t" = Task, "e" = Event, "s" = State)
+        :return: nothing
+    """
     from maptasker.src.depricated import depricated
 
-    lookup = dict_code[:-1]  # Remove last character to get just the digits
-    if lookup in depricated and dict_code in action_codes:
-        action_codes[dict_code] = {
-            "display": action_codes[dict_code]["display"] + "<em> (Is Deprecated)</em> "
+    lookup = the_action_code_plus[:-1]  # Remove last character to get just the digits
+    if lookup in depricated and the_action_code_plus in action_codes:
+        action_codes[the_action_code_plus] = {
+            "display": (
+                action_codes[the_action_code_plus]["display"]
+                + "<em> (Is Deprecated)</em> "
+            )
         }
     return
 
@@ -110,16 +123,19 @@ def get_action_code(
         :return: formatted output line with action details
     """
     logger.debug(f"get action code:{code_child.text}{code_type}")
-    dict_code = code_child.text + code_type
+    the_action_code_plus = code_child.text + code_type
     # See if this code is deprecated
-    check_for_deprecation(dict_code)
+    check_for_deprecation(the_action_code_plus)
     # We have a code that is not yet in the dictionary?
-    if dict_code not in action_codes or "display" not in action_codes[dict_code]:
+    if (
+        the_action_code_plus not in action_codes
+        or "display" not in action_codes[the_action_code_plus]
+    ):
         the_result = (
-            f"Code {dict_code} not yet"
+            f"Code {the_action_code_plus} not yet"
             f" mapped{get_extra_stuff(primary_items, code_action, action_type)}"
         )
-        logger.debug(f"unmapped task code: {dict_code} ")
+        logger.debug(f"unmapped task code: {the_action_code_plus} ")
 
     else:
         # The code is in our dictionary.  Add the display name
@@ -127,45 +143,47 @@ def get_action_code(
             primary_items["colors_to_use"],
             "action_name_color",
             "",
-            action_codes[dict_code]["display"],
+            action_codes[the_action_code_plus]["display"],
             True,
         )
 
-        if "numargs" in action_codes[dict_code]:
-            numargs = action_codes[dict_code]["numargs"]
+        if "numargs" in action_codes[the_action_code_plus]:
+            numargs = action_codes[the_action_code_plus]["numargs"]
         else:
             numargs = 0
         # If there are required args, then parse them
-        if numargs != 0 and "reqargs" in action_codes[dict_code]:
+        if numargs != 0 and "reqargs" in action_codes[the_action_code_plus]:
             the_result = action_results.get_action_results(
                 primary_items,
-                dict_code,
+                the_action_code_plus,
                 action_codes,
                 code_action,
                 action_type,
-                action_codes[dict_code]["reqargs"],
-                action_codes[dict_code]["evalargs"],
+                action_codes[the_action_code_plus]["reqargs"],
+                action_codes[the_action_code_plus]["evalargs"],
             )
         # If this is a redirected lookup entry, create a temporary mirror dictionary entry.
         # Then grab the 'display' key and fill in rest with directed-to keys
-        if "redirect" in action_codes[dict_code]:
-            referral = action_codes[dict_code]["redirect"][
+        if "redirect" in action_codes[the_action_code_plus]:
+            referral = action_codes[the_action_code_plus]["redirect"][
                 0
             ]  # Get the referred-to dictionary item
-            temp_lookup_codes = {dict_code: copy.deepcopy(action_codes[referral])}
-            display_name = action_codes[dict_code][
+            temp_lookup_codes = {
+                the_action_code_plus: copy.deepcopy(action_codes[referral])
+            }
+            display_name = action_codes[the_action_code_plus][
                 "display"
             ]  # Add this guy's display name
             temp_lookup_codes["display"] = copy.deepcopy(display_name)
             # Get the results from the (copy of the) referred-to dictionary entry
             the_result = action_results.get_action_results(
                 primary_items,
-                dict_code,
+                the_action_code_plus,
                 temp_lookup_codes,
                 code_action,
                 action_type,
-                temp_lookup_codes[dict_code]["reqargs"],
-                temp_lookup_codes[dict_code]["evalargs"],
+                temp_lookup_codes[the_action_code_plus]["reqargs"],
+                temp_lookup_codes[the_action_code_plus]["evalargs"],
             )
 
     the_result = cleanup_the_result(the_result)
@@ -183,6 +201,16 @@ def build_action(
     indent: int,
     indent_amt: str,
 ) -> list:
+    """
+    Construct Task Action output line
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param alist: list of actions (all <Actions> for task
+        :param task_code_line: output text of Task
+        :param code_element: xml element of <code> under <Action>
+        :param indent: the number of spaces to indent the output line
+        :param indent_amt: the indent number of spaces as "&nbsp;" for each space
+        :return: finalized output string
+    """
     from maptasker.src.config import CONTINUE_LIMIT
 
     # Calculate total indentation to put in front of action

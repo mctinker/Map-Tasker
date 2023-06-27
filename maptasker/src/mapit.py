@@ -45,6 +45,7 @@ from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import debug_out
 from maptasker.src.lineout import LineOut
 from maptasker.src.frmthtml import format_html
+from maptasker.src.frmtline import format_line
 
 
 # import os
@@ -88,42 +89,21 @@ def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> 
     logger.info(f"Function Entry: write_out_the_file dir:{my_output_dir}")
     with open(my_output_dir + my_file_name, "w") as out_file:
         for num, item in enumerate(primary_items["output_lines"].output_lines):
-            # If item is a list, then get the actual output line
-            if type(item) is list:
-                item = item[1]
-            item.rstrip()  # Get rid of trailing blanks
-            if (
-                num > 3
-                and item[:5] == "</ul>"
-                and (
-                    primary_items["output_lines"].output_lines[num - 1][:5] == "</ul>"
-                    and primary_items["output_lines"].output_lines[num - 2][:5]
-                    == "</ul>"
-                    and primary_items["output_lines"].output_lines[num + 1][:4]
-                    == "<br>"
-                )
-            ):
+            # Format the output line
+            output_line = format_line(primary_items, num, item)
+            if not output_line:
                 continue
 
-            # Change "Action: nn ..." to Action nn: ..." (i.e. move the colon)
-            action_position = item.find("Action: ")
-            if action_position != -1:
-                action_number_list = item[action_position + 8 :].split(" ")
-                action_number = action_number_list[0]
-                temp = (
-                    item[:action_position]
-                    + action_number
-                    + ":"
-                    + item[action_position + 8 + len(action_number) :]
-                )
-                output_line = temp
-            else:
-                output_line = item
-            # Get rid of extraneous html code that somehow got in to the output
-            output_line = output_line.replace("</span></span>", "</span>")
-            output_line = output_line.replace("</p></p>", "</p>")
+            # Parse twisty <details>...yield result
+            with contextlib.suppress(ValueError):
+                details_position = output_line.index("<details>")
+                out_file.write(f" {output_line[:details_position]}")
+                out_file.write("<details>\r")
+                output_line = f"    {output_line[details_position + 9:]}"
+
             # Write the actual final line out as html
-            out_file.write(output_line)
+            if output_line:
+                out_file.write(output_line)
             if debug_out:
                 logger.debug(f"mapit output line:{output_line}")
     logger.info("Function Exit: write_out_the_file")
@@ -162,7 +142,8 @@ def output_grand_totals(primary_items: dict) -> None:
     """
     grand_total_projects = primary_items["grand_totals"]["projects"]
     grand_total_profiles = primary_items["grand_totals"]["profiles"]
-    grand_total_tasks = primary_items["grand_totals"]["tasks"]
+    grand_total_unnamed_tasks = primary_items["grand_totals"]["unnamed_tasks"]
+    grand_total_named_tasks = primary_items["grand_totals"]["named_tasks"]
     grand_total_scenes = primary_items["grand_totals"]["scenes"]
     primary_items["output_lines"].add_line_to_output(
         primary_items,
@@ -172,10 +153,11 @@ def output_grand_totals(primary_items: dict) -> None:
             "trailing_comments_color",
             "",
             (
-                f"<br>Total number of Projects: {grand_total_projects}"
-                f"<br>Total number of Profiles: {grand_total_profiles}"
-                f"<br>Total number of Tasks: {grand_total_tasks}"
-                f"<br>Total number of Scenes: {grand_total_scenes}<br><br>"
+                f"<br>Total number of Projects: {grand_total_projects}<br>Total number"
+                f" of Profiles:  {grand_total_profiles}<br>Total number of Tasks:"
+                f" {grand_total_unnamed_tasks + grand_total_named_tasks} ({grand_total_unnamed_tasks} unnamed,"
+                f" {grand_total_named_tasks} named)<br>Total number of Scenes:"
+                f" {grand_total_scenes}<br><br>"
             ),
             True,
         ),
@@ -255,6 +237,11 @@ def mapit_all(file_to_get: str) -> int:
     #  output_lines: class for all lines added to output thus far
     #  found_named_items: names/found-flags for single (if any) Project/Profile/Task
     #  file_to_get: file object/name of Tasker backup file to read and parse
+    #  grand_totals: Total count of Projects/Profiles/Named Tasks, Unnamed Taks/All Tasks
+    #  task_count_for_profile: number of Tasks in the specific Profile for Project being processed
+    #  named_task_count_total: number of named Tasks for Project being processed
+    #  task_count_unnamed: number of unnamed Tasks for Project being processed
+    #  task_count_no_profile: number of Profiles in Project being processed.
     primary_items = {
         "xml_tree": None,
         "xml_root": None,
@@ -264,6 +251,7 @@ def mapit_all(file_to_get: str) -> int:
         "output_lines": output_lines,
         "found_named_items": {},
         "file_to_get": file_to_get,
+        "task_count_for_Profile": 0,
     }
 
     # Get colors to use, runtime arguments etc...all of our primary items we need throughout
@@ -329,7 +317,7 @@ def mapit_all(file_to_get: str) -> int:
         )
 
     # Output the final tally of Projects/Profiles/Tasks/Scenes
-    if primary_items["program_arguments"]["display_detail_level"] == 3:
+    if primary_items["program_arguments"]["display_detail_level"] > 0:
         output_grand_totals(primary_items)
 
     # Requested single item but invalid item name provided (i.e. no specific Project/Profile/Task found)?

@@ -72,6 +72,28 @@ class MyGui(customtkinter.CTk):
         super().__init__()
 
         # configure window
+        self.reset = None
+        self.display_profile_conditions = None
+        self.display_detail_level = None
+        self.exit = None
+        self.go_program = None
+        self.rerun = None
+        self.twisty = None
+        self.single_project_name = None
+        self.single_profile_name = None
+        self.single_task_name = None
+        self.color_text_row = None
+        self.color_lookup = None
+        self.color_labels = None
+        self.appearance_mode = None
+        self.file = None
+        self.backup_file_http = None
+        self.backup_file_location = None
+        self.named_item = None
+        self.display_preferences = None
+        self.display_taskernet = None
+        self.debug = None
+
         self.title("MapTasker Runtime Options")
         self.geometry("1100x600")
 

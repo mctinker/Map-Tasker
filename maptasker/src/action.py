@@ -21,6 +21,7 @@ from maptasker.src.error import error_handler
 
 # #######################################################################################
 # Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
+#  This is only called if the action code is not already in our master dictionary actionc.py
 # Input:
 #   action: list of actions or parameters
 #   ignore_list: xml to ignore (e.g. label, on, etc.
@@ -30,8 +31,17 @@ from maptasker.src.error import error_handler
 
 
 # #######################################################################################
-def get_args(action, ignore_list):
-    arg_list, type_list, master_list = [], [], []
+def get_args(
+    action: defusedxml.ElementTree, ignore_list: list
+) -> tuple[list, list, list]:
+    """
+    Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
+     This is only called if the action code is not already in our master dictionary actionc.py
+        :param action: xml element pointing to <actn> Action element
+        :param ignore_list: list of strings/elements to ignore (e.g. "label")
+        :return: list of arguments, list of argument types, list of argument position (numeric part of <argn>)
+    """
+    arguments, argument_types, master_list = [], [], []
     arg_nums = 0
     for child in action:
         if child.tag in ignore_list:  # Ignore certain tags
@@ -47,27 +57,39 @@ def get_args(action, ignore_list):
         shell_sort(master_list, True, False)
         # Now go through args and build our "type" and "arg" lists
         for child in master_list:
-            type_list.append(child.tag)  # one of: 'Str' 'Int' 'Bundle' 'App'
-            arg_list.append(child.attrib.get("sr"))
+            argument_types.append(child.tag)  # one of: 'Str' 'Int' 'Bundle' 'App'
+            arguments.append(child.attrib.get("sr"))
         # Build list of arg position only (numeric part of argn)
         arg_nums = [
-            str(ind) for ind, x in enumerate(arg_list)
+            str(ind) for ind, x in enumerate(arguments)
         ]  # Build list of arg position only (numeric part of argn)
 
-    return arg_list, type_list, arg_nums
+    return arguments, argument_types, arg_nums
 
 
 # ####################################################################################################
 # Check a value for '0' and return the appropriate string if it is/isn't
 # ####################################################################################################
-def if_zero_else(the_value, if_zero_string, if_not_zero_string):
+def if_zero_else(the_value: str, if_zero_string: str, if_not_zero_string: str) -> str:
+    """
+    Returns string #1 if the value is 0, otherwise return string #2
+        :param the_value: the value to evaluate
+        :param if_zero_string: the string to return if the value to evaluate is zero
+        :param if_not_zero_string: the string to return if the value to evaluate is not zero
+        :return: the value set by the above evaluation
+    """
     return if_zero_string if the_value == "0" else if_not_zero_string
 
 
 # ####################################################################################################
 # Evaluate the If statement and return the operation
 # ####################################################################################################
-def evaluate_condition(child):
+def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
+    """
+    Evaluate the If statement and return the operation
+        :param child: xml head element containing the <lhs xml element to be evaluated
+        :return: the evaluated result based on the <lhs elemental number
+    """
     the_operations = {
         "0": " = ",
         "1": " NEQ ",
@@ -88,18 +110,23 @@ def evaluate_condition(child):
     the_operation = the_operations[operation]
     if (
         "set" not in the_operation and child.find("rhs").text is not None
-    ):  # No second string fort set/not set
-        second_string = child.find("rhs").text
+    ):  # No second string if "set/not" set
+        second_operation = child.find("rhs").text
     else:
-        second_string = ""
+        second_operation = ""
 
-    return first_string, the_operation, second_string
+    return first_string, the_operation, second_operation
 
 
 # ####################################################################################################
 # Delete any trailing comma in output line
 # ####################################################################################################
-def drop_trailing_comma(match_results):
+def drop_trailing_comma(match_results: str) -> str:
+    """
+    Delete any trailing comma in output line
+        :param match_results: the string to check
+        :return: the string without trailing blanks
+    """
     last_valid_entry = len(match_results) - 1  # Point to last item in list
     if last_valid_entry > 0:
         for item in reversed(match_results):
@@ -121,7 +148,12 @@ def drop_trailing_comma(match_results):
 #   2: the value to test
 #   3: the value to plug in if it meets the test
 # ####################################################################################################
-def evaluate_action_setting(*args):
+def evaluate_action_setting(*args: list) -> list:
+    """
+    Define a class for converting string '1' setting to its value
+        :param args: list of arguments (<argn>)
+        :return: list of found results contained in arguments
+    """
     results = []
 
     for item in args:
@@ -234,7 +266,15 @@ def process_xml_list(
 # ####################################################################################################
 # Get Task's label, disabled flag and any conditions
 # ####################################################################################################
-def get_label_disabled_condition(child, colormap):
+def get_label_disabled_condition(
+    child: defusedxml.ElementTree.XML, colormap: dict
+) -> str:
+    """
+    Get Task's label, disabled flag and any conditions
+        :param child: head Action xml element
+        :param colormap: the colors to use in the output
+        :return: the string containing any found label, disabled flag and conditions
+    """
     task_label = ""
     task_conditions = ""
     the_action_code = child.find("code").text
@@ -287,7 +327,13 @@ def get_label_disabled_condition(child, colormap):
 # ####################################################################################################
 # Given the Task action's label, get rid of anything that could be problematic for the output format
 # ####################################################################################################
-def clean_label(lbl, colormap):
+def clean_label(lbl: str, colormap: dict) -> str:
+    """
+    Given the Task action's label, get rid of anything that could be problematic for the output format
+        :param lbl: the label to clean up
+        :param colormap: the colors to use in the output
+        :return: the cleaned up label with added html tags for a label's color
+    """
     # Look for label with <font color=...> embedded
     lbl = remove_html_tags(lbl, "")
 
@@ -405,7 +451,16 @@ def get_extra_stuff(
 # ####################################################################################################
 # Get the application specifics for the given code
 # ####################################################################################################
-def get_app_details(primary_items, code_child, action_type):
+def get_app_details(
+    primary_items: dict, code_child: defusedxml.ElementTree.XML, action_type: bool
+) -> tuple[str, str, str, str]:
+    """
+    Get the application specifics for the given code (<App>)
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param code_child: Action xml element
+        :param action_type: True if this is a Task, False if a condition
+        :return: the aplication specifics - class, package name, app name, extra stuff
+    """
     extra_stuff = get_extra_stuff(primary_items, code_child, action_type)
     app_class, app_pkg, app = "", "", ""
     child = code_child.find("App")

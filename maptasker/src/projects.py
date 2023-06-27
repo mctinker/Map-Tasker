@@ -24,6 +24,7 @@ from maptasker.src.share import share
 from maptasker.src.sysconst import NO_PROFILE
 from maptasker.src.taskflag import get_priority
 from maptasker.src.twisty import add_twisty
+from maptasker.src.twisty import remove_twisty
 
 
 # #######################################################################################
@@ -102,16 +103,19 @@ def tasks_not_in_profiles(
 
     # Flag that we have to first put out the "not found" heading
     output_the_heading = True
+    have_tasks_not_in_profile = False
 
     # Go through all Tasks for this Project
     for the_id in task_ids:
-        primary_items["task_count_total"] = len(task_ids)
+        primary_items["named_task_count_total"] = len(task_ids)
         # We have a Task in Project that has yet to be output?
         if the_id not in found_tasks and (
             # not found_items["single_project_found"]
             not primary_items["found_named_items"]["single_profile_found"]
             and not primary_items["found_named_items"]["single_task_found"]
         ):
+            # Flag that we have Taks that are not in any Profile, and bump the count
+            have_tasks_not_in_profile = True
             primary_items["task_count_no_profile"] = (
                 primary_items["task_count_no_profile"] + 1
             )
@@ -179,13 +183,13 @@ def tasks_not_in_profiles(
                 True,
             )
 
-    # End the twisty hidden lines
+    # End the twisty hidden lines if we have Tasks not in any Profile
     if primary_items["program_arguments"]["twisty"]:
-        primary_items["output_lines"].add_line_to_output(
-            primary_items,
-            5,
-            "</details>",
-        )
+        if have_tasks_not_in_profile:
+            remove_twisty(primary_items)
+        # Add additional </ul> if no Tasks not in any Profile
+        else:
+            primary_items["output_lines"].add_line_to_output(primary_items, 3, "&nbsp;")
 
     # Force a line break
     primary_items["output_lines"].add_line_to_output(primary_items, 4, "")
@@ -258,7 +262,7 @@ def setup_summary_counts(primary_items: dict) -> int:
     # Set up Project counters for summary line
     primary_items["task_count_for_profile"] = 0
     primary_items["scene_count"] = 0
-    primary_items["task_count_total"] = 0
+    primary_items["named_task_count_total"] = 0
     primary_items["task_count_unnamed"] = 0
     primary_items["task_count_no_profile"] = 0
     return 0
@@ -273,7 +277,7 @@ def summary_counts(primary_items: dict, project_name: str, profile_count: int) -
     """
     # Get counts for f-strings
     task_count_for_profile = primary_items["task_count_for_profile"]
-    task_count_total = primary_items["task_count_total"]
+    named_task_count_total = primary_items["named_task_count_total"]
     task_count_unnamed = primary_items["task_count_unnamed"]
     task_count_no_profile = primary_items["task_count_no_profile"]
     scene_count = primary_items["scene_count"]
@@ -285,8 +289,11 @@ def summary_counts(primary_items: dict, project_name: str, profile_count: int) -
     primary_items["grand_totals"]["profiles"] = (
         primary_items["grand_totals"]["profiles"] + profile_count
     )
-    primary_items["grand_totals"]["tasks"] = (
-        primary_items["grand_totals"]["tasks"] + task_count_total
+    primary_items["grand_totals"]["unnamed_tasks"] = (
+        primary_items["grand_totals"]["unnamed_tasks"] + task_count_unnamed
+    )
+    primary_items["grand_totals"]["named_tasks"] = (
+        primary_items["grand_totals"]["named_tasks"] + named_task_count_total
     )
     primary_items["grand_totals"]["scenes"] = (
         primary_items["grand_totals"]["scenes"] + scene_count
@@ -300,12 +307,12 @@ def summary_counts(primary_items: dict, project_name: str, profile_count: int) -
             "project_color",
             "",
             (
-                f"Project {project_name} has a total of"
-                f" {profile_count} Profiles, {task_count_for_profile}  Tasks"
-                f" called by Profiles, {task_count_unnamed} unnamed Tasks,"
-                f" {task_count_no_profile} Tasks not in any Profile,"
-                f" {task_count_total} total Tasks, and"
-                f" {scene_count} Scenes<br><br>"
+                f"Project {project_name} has a total of {profile_count} Profiles,"
+                f" {task_count_for_profile}  Tasks called by Profiles,"
+                f" {task_count_unnamed} unnamed Tasks, {task_count_no_profile} Tasks"
+                f" not in any Profile, {named_task_count_total} named Tasks out of"
+                f" {task_count_unnamed + named_task_count_total} total Tasks,"
+                f" and {scene_count} Scenes<br><br>"
             ),
             True,
         ),

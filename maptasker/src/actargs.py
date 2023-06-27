@@ -30,11 +30,11 @@ def get_action_arguments(
     Given an <argn> element, evaluate it's contents based on our Action code dictionary (actionc.py)
         :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param evaluated_results: all the Action argument "types" and "arguments" as a dictionary
-        :param arg: the incoming argument
-        :param argeval: the evaluation argument
-        :param argtype: the argument "type"
-        :param code_action: the Action code
-        :param action_type: the Action type
+        :param arg: the incoming argument location/number (e.g. "0" for <arg0>)
+        :param argeval: the evaluation argument from our action code table (actionc.py) e.g. "Timeout:" in "evalargs": ["", "Timeout:", ["", "e", ", Structure Output (JSON, etc)"]],
+        :param argtype: the argument "type"- Str, Int, App, ConditionList, Bundle, Img
+        :param code_action: xml element of the Action code (<code>nnn</code>)
+        :param action_type: the Action type = True if this is a Task, False if it is a condition
         :return:  of results
     """
 
@@ -108,18 +108,34 @@ def get_action_arguments(
 # Go through the arguments and parse each one based on its argument 'type'
 # ####################################################################################################
 def action_args(
-    primary_items,
-    arg_list,
-    dict_code,
-    lookup_code_entry,
-    evaluate_list,
-    code_action,
-    action_type,
-    evaluated_results,
-):
+    primary_items: dict,
+    arg_list: list,
+    the_action_code_plus: str,
+    lookup_code_entry: dict,
+    evaluate_list: list,
+    code_action: defusedxml.ElementTree.XML,
+    action_type: defusedxml.ElementTree.XML,
+    evaluated_results: dict,
+) -> object:
+    """
+    Go through the arguments and parse each one based on its argument 'type'
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param arg_list: list of arguments (xml "<argn>") to process
+        :param the_action_code_plus: the lookup the Action code from actionc with "action type" (e.g. 861t, t=Task, e=Event, s=State)
+        :param lookup_code_entry: dictionary entry for code nnnx (e.g. for entry "846t")
+        :param evaluate_list: dictionary into which we are supplying the results
+        :param code_action: xml element of the action code (<code>)
+        :param action_type: True if this is for a Task, False if for a condition (State, Event, etc.)
+        :param evaluated_results: dictionary into which to store the results
+        :return: dictionary of the stored results
+    """
     for num, arg in enumerate(arg_list):
         # Find the location for this arg in dictionary key "types' since they can be non-sequential (e.g. '1', '3', '4', '6')
-        index = num if arg == "if" else lookup_code_entry[dict_code]["args"].index(arg)
+        index = (
+            num
+            if arg == "if"
+            else lookup_code_entry[the_action_code_plus]["args"].index(arg)
+        )
         # Get the arg name and type
         try:
             argeval = evaluate_list[num]
@@ -131,7 +147,7 @@ def action_args(
             )
             return evaluated_results
         try:
-            argtype = lookup_code_entry[dict_code]["types"][index]
+            argtype = lookup_code_entry[the_action_code_plus]["types"][index]
         except IndexError:
             argtype = ""
             error_message = format_html(
@@ -139,8 +155,8 @@ def action_args(
                 "action_color",
                 "",
                 (
-                    f"MapTasker actionc error dict_code {dict_code} 'types' for index"
-                    f" {index} not mapped!"
+                    "MapTasker actionc error the_action_code_plus"
+                    f" {the_action_code_plus} 'types' for index {index} not mapped!"
                 ),
                 True,
             )

@@ -33,13 +33,12 @@ class LineOut:
         profile_name: str,
     ) -> None:
         """
-          For whatever reason, we need to clear out the existing output and start anew.
-                  :param primary_items: a dictionary containing program runtime arguments, colors to use in output,
-        all Tasker xml root elements, and a list of all output lines.
-                  :param include_the_profile: Boolean flag to indicate whether this is a Profile to be included
-                  :param project_name: name of the Project, if any
-                  :param profile_name: name of the Profile, if any
-                  :return: nothing
+        For whatever reason, we need to clear out the existing output and start anew.
+                :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+                :param include_the_profile: Boolean flag to indicate whether this is a Profile to be included
+                :param project_name: name of the Project, if any
+                :param profile_name: name of the Profile, if any
+                :return: nothing
         """
 
         # Clear whatever is already in the output queue
@@ -199,28 +198,30 @@ class LineOut:
     # Generate the output string based on the input XML <code> passed in
     # Returns a formatted string for output based on the input codes
     # #############################################################################################
-    def format_line(self, element, lvl, colormap, font_to_use):
+    def format_line(self, primary_items: dict, element: str, lvl: int) -> str:
         """
         Start formatting the output line with appropriate HTML
+                :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
                 :param element: the text line being formatted
                 :param lvl: the hierarchical list level for output- 0=heading, 1=start list, 2= list item, 3= end list, 4= plain text
-                :param colormap: colors to use in the output
-                :param font_to_use: fi=ont to use in the output
                 :return: modified output line
         """
         # list lvl: 0=heading 1=start list 2=Task/Profile/Scene 3=end list 4=special Task
         string = ""
         match lvl:
             case 0:
-                # Heading..............................lvl 0 = heading, 4 = sub-heading
-                if element[:6] == "<html>":
-                    string = f"{element}" + "<br>\n"
-                else:
-                    string = f"<b>{element}" + "</b><br>\n"
+                string = f"{element}" + "<br>\n"
             case 1:  # lvl=1 >>> Start list
                 string = f"<ul>{element}" + "\n"
             case 2:  # lvl=2 >>> List item
-                string = self.format_line_list_item(element, colormap, font_to_use)
+                string = self.format_line_list_item(
+                    element,
+                    primary_items["colors_to_use"],
+                    primary_items["program_arguments"]["font_to_use"],
+                )
+                # If we are doing twisty and this is a Scene, then we need to add an extra <ul>
+                if primary_items["program_arguments"]["twisty"] and "Scene:" in string:
+                    string = f"<ul>{string}"
             case 3:  # lvl=3 >>> End list
                 string = "</ul>"
             case 4:  # lvl=4 >>> Heading or plain text line
@@ -256,10 +257,9 @@ class LineOut:
         # Go configure the output based on the contents of the element and the list level
         self.output_lines.append(
             self.format_line(
+                primary_items,
                 out_string,
                 list_level,
-                primary_items["colors_to_use"],
-                primary_items["program_arguments"]["font_to_use"],
             )
         )
         # Log the generated output if in special debug mode

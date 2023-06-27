@@ -17,7 +17,6 @@ import maptasker.src.tasks as tasks
 from maptasker.src.xmldata import tag_in_type
 from maptasker.src.proclist import process_list
 from maptasker.src.frmthtml import format_html
-from maptasker.src.twisty import add_twisty
 
 SCENE_TASK_TYPES = {
     "checkchangeTask": "Check Change",
@@ -153,7 +152,6 @@ def process_scene(
         # End of "xxxElement"?
         if child.tag == "PropertiesElement":
             primary_items["output_lines"].output_lines.append("<br>")
-            return
 
         elif tag_in_type(child.tag, True):  # xxxElement?
             # Display the Element details
@@ -176,6 +174,7 @@ def process_scene(
                             temp_task_list,
                             "",
                         )
+
                         # reset to task name since get_task_name changes its value
                         temp_task_list = [sub_child.text]
                         extra = "&nbsp;&nbsp;ID:"
@@ -191,6 +190,7 @@ def process_scene(
                             task_element,
                             tasks_found,
                         )
+                        # Start a list
                         primary_items["output_lines"].add_line_to_output(
                             primary_items, 1, ""
                         )
@@ -198,6 +198,12 @@ def process_scene(
                         break
                 elif sub_child.tag == "Str":
                     break
+
+    # If we are doing twisties, then we need to close the unordered list.
+    #  (see lineout format_line, where we add a <ul> for this "Scene:" special case)
+    if primary_items["program_arguments"]["twisty"]:
+        primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+
     return
 
 

@@ -11,10 +11,9 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 # ########################################################################################## #
 import contextlib
-import sys
 from collections import defaultdict
 
-import defusedxml.ElementTree  # Need for type hints
+import defusedxml.ElementTree
 
 import maptasker.src.action as get_action
 from maptasker.src.actargs import action_args
@@ -29,6 +28,11 @@ from maptasker.src.xmldata import get_xml_str_argument_to_value
 # Given a list of positional items, return a string in the correct order based on position
 # ####################################################################################################
 def get_results_in_arg_order(evaluated_results: dict) -> str:
+    """
+    Given a list of positional items, return a string in the correct order based on position
+        :param evaluated_results: dictionary of the argument <argn> evaluated results
+        :return: all the evaluated results for Action
+    """
     return_result = ""
     for arg in evaluated_results["position_arg_type"]:
         the_item = ""
@@ -76,19 +80,32 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
 # ####################################################################################################
 def evaluate_action_args(
     primary_items: dict,
-    dict_code: defusedxml.ElementTree.XML,
+    the_action_code_plus: defusedxml.ElementTree.XML,
     arg_list: list,
     code_action: defusedxml.ElementTree.XML,
     action_type: bool,
     lookup_code_entry: dict,
     evaluate_list: list,
     evaluated_results: dict,
-) -> tuple:
+) -> object:
+    """
+    For the given code, save the display_name, required arg list and associated type list in dictionary
+     Then evaluate the data against the master dictionary of actions
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param the_action_code_plus: the code found in <code> for the Action (<Action>) plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
+        :param arg_list: list of arguments (<argn>) under Action
+        :param code_action: Action code found in <code>
+        :param action_type: True if this is for a Task, False if for a Condition
+        :param lookup_code_entry: The key to our Action code dictionary in actionc.py
+        :param evaluate_list: list of arguments to evaluate
+        :param evaluated_results: a list into which to put the evaluated results
+        :return: the evaluated results as a list
+    """
     # Process the Task action arguments
     evaluated_results = action_args(
         primary_items,
         arg_list,
-        dict_code,
+        the_action_code_plus,
         lookup_code_entry,
         evaluate_list,
         code_action,
@@ -125,27 +142,39 @@ def evaluate_action_args(
 # ####################################################################################################
 def get_action_results(
     primary_items: dict,
-    dict_code: str,
+    the_action_code_plus: str,
     lookup_code_entry: defusedxml.ElementTree.XML,
     code_action: defusedxml.ElementTree.XML,
     action_type: bool,
     arg_list: list[str],
     evaluate_list: list[str],
 ) -> str:
+    """
+    For the given code, save the display_name, required arg list and associated type list in dictionary
+    Then evaluate the data against the master dictionary of actions
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param the_action_code_plus: the code found in <code> for the Action (<Action>) plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
+        :param lookup_code_entry: The key to our Action code dictionary in actionc.py
+        :param code_action: the <code> xml element
+        :param action_type: True if this is for a Task, false if for a Condition
+        :param arg_list: list of <argn> statements
+        :param evaluate_list: list of argument evaluations
+        :return: the output line containing the Action details
+    """
     evaluated_results = defaultdict(
         lambda: []
     )  # Setup default dictionary as empty list
     result = ""
 
     # Save the associated data
-    lookup_code_entry[dict_code]["reqargs"] = arg_list
-    lookup_code_entry[dict_code]["evalargs"] = evaluate_list
+    lookup_code_entry[the_action_code_plus]["reqargs"] = arg_list
+    lookup_code_entry[the_action_code_plus]["evalargs"] = evaluate_list
     # If just displaying action names or there are no action details, then just display the name
     if arg_list and primary_items["program_arguments"]["display_detail_level"] != 2:
         # Evaluate the required args per arg_list
         evaluated_results = evaluate_action_args(
             primary_items,
-            dict_code,
+            the_action_code_plus,
             arg_list,
             code_action,
             action_type,
@@ -179,7 +208,7 @@ def get_action_results(
         primary_items["colors_to_use"],
         "action_name_color",
         "",
-        action_codes[dict_code]["display"],
+        action_codes[the_action_code_plus]["display"],
         True,
     ) + format_html(
         primary_items["colors_to_use"],

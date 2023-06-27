@@ -26,19 +26,19 @@ from tkinter import messagebox
 from tkinter.filedialog import askopenfile
 
 import maptasker.src.migrate as old_to_new
-import maptasker.src.progargs as get_args
-from maptasker.src.frmthtml import format_html
+import maptasker.src.progargs as get_arguments
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DARK_MODE
 from maptasker.src.config import GUI
 from maptasker.src.debug import display_debug_info
+from maptasker.src.error import error_handler
+from maptasker.src.frmthtml import format_html
+from maptasker.src.getbakup import get_backup_file
 from maptasker.src.sysconst import COUNTER_FILE
 from maptasker.src.sysconst import MY_VERSION
 from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import logging
 from maptasker.src.taskerd import get_the_xml_data
-from maptasker.src.error import error_handler
-from maptasker.src.getbakup import get_backup_file
 
 
 # #############################################################################################
@@ -269,10 +269,10 @@ def display_starting_info(primary_items: dict) -> None:
             "LawnGreen",
             "",
             (
-                "<b>MapTask Tasker Mapping................&nbsp;&nbsp;&nbsp;Tasker"
+                "MapTask Tasker Mapping................&nbsp;&nbsp;&nbsp;Tasker"
                 " version:"
                 f" {primary_items['xml_root'].attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;Map-Tasker"
-                f" version: {MY_VERSION}{screen_size}</b>"
+                f" version: {MY_VERSION}{screen_size}"
             ),
             True,
         )
@@ -329,7 +329,7 @@ def start_up(primary_items: dict) -> dict:
     primary_items = old_to_new.migrate(primary_items)
 
     # Get runtime arguments (from CLI or GUI)
-    primary_items = get_args.get_program_arguments(primary_items)
+    primary_items = get_arguments.get_program_arguments(primary_items)
 
     # Setup program key elements
     primary_items = setup(primary_items)
@@ -355,7 +355,8 @@ def start_up(primary_items: dict) -> dict:
     primary_items["grand_totals"] = {
         "projects": 0,
         "profiles": 0,
-        "tasks": 0,
+        "unnamed_tasks": 0,
+        "named_tasks": 0,
         "scenes": 0,
     }
 

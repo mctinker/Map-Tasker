@@ -17,6 +17,7 @@ from maptasker.src.taskactn import get_task_actions_and_output
 from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 from maptasker.src.twisty import add_twisty
+from maptasker.src.twisty import remove_twisty
 
 
 # #######################################################################################
@@ -79,15 +80,8 @@ def process_item(primary_items, the_item, list_type, the_list, the_task, tasks_f
         )
 
         # End the twisty hidden lines if not a Task in a Scene
-        if (
-            primary_items["program_arguments"]["twisty"]
-            # and "&#45;&#45;Task:" not in list_type
-        ):
-            primary_items["output_lines"].add_line_to_output(
-                primary_items,
-                5,
-                "</details>",
-            )
+        if primary_items["program_arguments"]["twisty"]:
+            remove_twisty(primary_items)
 
     elif (  # Do we have a Scene?
         list_type == "Scene:"
@@ -102,11 +96,7 @@ def process_item(primary_items, the_item, list_type, the_list, the_task, tasks_f
 
     # End twisty if named Task
     elif primary_items["program_arguments"]["twisty"]:
-        primary_items["output_lines"].add_line_to_output(
-            primary_items,
-            5,
-            "</details>",
-        )
+        remove_twisty(primary_items)
     return
 
 

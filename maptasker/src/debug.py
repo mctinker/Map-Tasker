@@ -16,11 +16,33 @@ import sys
 from maptasker.src.frmthtml import format_html
 
 
+def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
+    """
+    Put out a line that identifies the following output as DEBUG
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param begin_or_end: text identiying the beginning or end of debug
+    """
+    arrow = ">"
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
+        4,
+        format_html(
+            primary_items["colors_to_use"],
+            "Red",
+            "",
+            f"DEBUG {begin_or_end} {arrow * 80}",
+            True,
+        ),
+    )
+
+
 def display_debug_info(primary_items: dict) -> None:
     """
     Output our runtime arguments
         :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
     """
+    # Identify the output as debug stuff
+    output_debug_line(primary_items, "Start")
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         4,
@@ -63,6 +85,7 @@ def display_debug_info(primary_items: dict) -> None:
                 True,
             ),
         )
+    output_debug_line(primary_items, "End")
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         4,

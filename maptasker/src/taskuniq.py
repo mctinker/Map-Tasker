@@ -18,6 +18,7 @@ import defusedxml.ElementTree
 import maptasker.src.tasks as tasks
 from maptasker.src.frmthtml import format_html
 from maptasker.src.twisty import add_twisty
+from maptasker.src.twisty import remove_twisty
 from maptasker.src.sysconst import NO_PROJECT
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 
@@ -270,40 +271,17 @@ def process_tasks_not_called_by_profile(
 
     # End the twisty hidden Task list
     if save_twisty:
-        primary_items["output_lines"].add_line_to_output(
-            primary_items,
-            5,
-            "</details>",
-        )
+        remove_twisty(primary_items)
 
     # Provide total number of unnamed Tasks
     if task_count > 0:
         if primary_items["program_arguments"]["display_detail_level"] > 0:
             primary_items["output_lines"].add_line_to_output(
                 primary_items, 0, ""
-            )  # line
+            )  # blank line
         primary_items["output_lines"].add_line_to_output(
             primary_items, 3, ""
         )  # Close Task list
-        # If we don't have a single Task only, display total count of unnamed Tasks
-        if (
-            not primary_items["found_named_items"]["single_task_found"]
-            and primary_items["program_arguments"]["display_detail_level"] != 0
-        ):
-            primary_items["output_lines"].add_line_to_output(
-                primary_items,
-                1,
-                format_html(
-                    primary_items["colors_to_use"],
-                    "unknown_task_color",
-                    "",
-                    (
-                        f"There are a total of {task_count} unnamed Tasks"
-                        " not associated with a Profile!"
-                    ),
-                    True,
-                ),
-            )
 
     if task_name is True:
         primary_items["output_lines"].add_line_to_output(
