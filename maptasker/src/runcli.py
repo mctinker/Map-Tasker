@@ -260,11 +260,6 @@ def process_cli(primary_items: dict) -> dict:
     # Process commands from command line
     else:
         primary_items = process_arguments(primary_items, args)
-        
-    for key, value in enumerate(primary_items["program_arguments"]):
-        print("Value:", value, " = ", primary_items["program_arguments"][value])
-        
-    
 
     # Return the results
     return primary_items
