@@ -17,7 +17,8 @@ from maptasker.src import mapit
 
 def main():
     """
-    Kick off the main program: mapit.py
+    Kick off the main program: mapit.pypwd
+    
     """
 
     # Call the core function passing an empty filename
