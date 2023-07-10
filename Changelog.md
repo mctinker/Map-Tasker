@@ -1,16 +1,23 @@
 MapTasker Change log
 
-## [2.0.6] - 2023-06-27
-### Fixed: GUI use of "Cancel" button is now properly recognized.
-### Fixed: Fix Project/Scene indentation issue when using twisty
-### Fixed: Removed extra blank link between twisties
-### Fixed: Summary number of Tasks is for named Tasks only.
-### Fixed: Summary count of unnamed Tasks included those under Scenes
-### Changed: Total number of unnamed Tasks at end (in red) removed since invalid
-### Changed: Cleaned up output html for slightly better reading/debugging
+## [2.0.7] - 2023-07-09
+### Added: New optional directory, via new runtime option "-directory"
+### Added: a "Go to top" hotlink has been added to each Project line
+### Fixed: Heading was displaying properly
+### Changed: If program crashes, provide a more graceful error message
+### Changed: Removed the word "condition" from conditional statements...it is pretty obvious without stating it.
+
 
 Older History Log
 
+- [2.0.6] - 2023-06-27   
+       -  Fixed: GUI use of "Cancel" button is now properly recognized.   
+       -  Fixed: Fix Project/Scene indentation issue when using twisty   
+       -  Fixed: Removed extra blank link between twisties   
+       -  Fixed: Summary number of Tasks is for named Tasks only.   
+       -  Fixed: Summary count of unnamed Tasks included those under Scenes   
+       -  Changed: Total number of unnamed Tasks at end (in red) removed since invalid   
+       -  Changed: Cleaned up output html for slightly better reading/debugging   
 - [2.0.5] - 2023-06-19
        - Fixed: Cancel button in GUI now recognized   
        - Fixed: Project/Profile/Task name selection in GUI caused program error.   
