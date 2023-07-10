@@ -2,7 +2,7 @@
 
 # ########################################################################################## #
 #                                                                                            #
-# getids: Look for Profile / Task IDs in head_xml_element  <pids> <tids> xml elements                 #
+# getids: Look for Profile / Task IDs in head_xml_element  <pids> <tids> xml elements        #
 #                                                                                            #
 # GNU General Public License v3.0                                                            #
 # Permissions of this strong copyleft license are conditioned on making available            #

@@ -269,7 +269,7 @@ def display_starting_info(primary_items: dict) -> None:
             "LawnGreen",
             "",
             (
-                "MapTask Tasker Mapping................&nbsp;&nbsp;&nbsp;Tasker"
+                "<h2>MapTasker</h2><br Tasker Mapping................&nbsp;&nbsp;&nbsp;Tasker"
                 " version:"
                 f" {primary_items['xml_root'].attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;Map-Tasker"
                 f" version: {MY_VERSION}{screen_size}"
@@ -351,6 +351,7 @@ def start_up(primary_items: dict) -> dict:
         "single_profile_found": False,
         "single_task_found": False,
     }
+
     # Setup grand total
     primary_items["grand_totals"] = {
         "projects": 0,

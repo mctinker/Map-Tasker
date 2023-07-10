@@ -118,9 +118,6 @@ def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
     return first_string, the_operation, second_operation
 
 
-# ####################################################################################################
-# Delete any trailing comma in output line
-# ####################################################################################################
 def drop_trailing_comma(match_results: str) -> str:
     """
     Delete any trailing comma in output line
@@ -129,11 +126,12 @@ def drop_trailing_comma(match_results: str) -> str:
     """
     last_valid_entry = len(match_results) - 1  # Point to last item in list
     if last_valid_entry > 0:
-        for item in reversed(match_results):
+        for i in range(last_valid_entry, -1, -1):
+            item = match_results[i]
             if item == "":
                 last_valid_entry = last_valid_entry - 1
-            elif item[len(item) - 2 :] == ", ":
-                match_results[last_valid_entry] = item[: len(item) - 2]
+            elif item.endswith(", "):
+                match_results[i] = item[:-2]
                 return match_results
             else:
                 break
@@ -320,6 +318,10 @@ def get_label_disabled_condition(
             task_conditions = task_conditions.replace(
                 "condition:  If", "<em>UNTIL</em>"
             )
+        # Just make all "":conditional: If" as "IF"
+        task_conditions = task_conditions.replace(
+                "condition:  If", "<em>IF</em>"
+            )
 
     return task_conditions + action_disabled + task_label
 
@@ -418,14 +420,14 @@ def get_extra_stuff(
     ):  # Add the code if this is an Action and in debug mode
         extra_stuff = extra_stuff + format_html(
             primary_items["colors_to_use"],
-            "Yellow",
+            "Red",
             "",
             f'&nbsp;&nbsp;code: {code_action.find("code").text}-',
             True,
         )
 
     # See if Task action is to be continued after error
-    if primary_items["program_arguments"]["display_detail_level"] == 3:
+    if primary_items["program_arguments"]["display_detail_level"] == 3: 
         child = code_action.find("se")
         if child is not None and child.text == "false":
             extra_stuff = (

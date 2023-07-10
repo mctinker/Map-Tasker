@@ -48,7 +48,7 @@ def display_debug_info(primary_items: dict) -> None:
         4,
         format_html(
             primary_items["colors_to_use"],
-            "White",
+            "unknown_task_color",
             "",
             f"sys.argv (runtime arguments):{str(sys.argv)}",
             True,
@@ -65,7 +65,7 @@ def display_debug_info(primary_items: dict) -> None:
             primary_items,
             4,
             format_html(
-                primary_items["colors_to_use"], "White", "", f"{key}: {value}", True
+                primary_items["colors_to_use"], "unknown_task_color", "", f"{key}: {value}", True
             ),
         )
     primary_items["output_lines"].add_line_to_output(
@@ -79,7 +79,7 @@ def display_debug_info(primary_items: dict) -> None:
             4,
             format_html(
                 primary_items["colors_to_use"],
-                "White",
+                "unknown_task_color",
                 "",
                 f"colormap for {key} set to {value}",
                 True,

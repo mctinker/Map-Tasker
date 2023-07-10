@@ -296,4 +296,4 @@ def parse_profile_condition(
             case _:
                 pass
 
-    return "" if condition == "" else f"condition {condition}"
+    return "" if condition == "" else f"{condition}"

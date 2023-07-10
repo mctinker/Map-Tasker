@@ -108,6 +108,13 @@ def runtime_parser():
         action="store_true",
         default=False,
     )
+       # Display directory
+    parser.add_argument(
+        "-directory",
+        help="Display a directory of all Projects/Profiles/Tasks/Scenes",
+        action="store_true",
+        default=False,
+    )
     # Display everything
     parser.add_argument(
         "-e",
@@ -182,7 +189,6 @@ def runtime_parser():
         action="store_true",
         default=False,
     )
-
     # Display taskerNet info
     parser.add_argument(
         "-taskernet",
@@ -199,6 +205,7 @@ def runtime_parser():
         action="store_true",
         default=False,
     )
+
     group.add_argument(
         "-task",
         nargs=1,

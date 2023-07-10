@@ -36,14 +36,16 @@ from maptasker.src.error import error_handler
 # Get arguments from command line and put them to the proper settings
 # #######################################################################################
 def process_arguments(primary_items: dict, args: object) -> dict:
+
     # Color help?
     if getattr(args, "ch"):
         validate_color("h")
     # Not GUI.  Get input from command line arguments
     if getattr(args, "e"):  # Everything?
         primary_items["program_arguments"]["display_detail_level"] = 3
-        primary_items["program_arguments"]["display_profile_conditions"] = True
-        primary_items["program_arguments"]["display_preferences"] = True
+        primary_items["program_arguments"]["display_profile_conditions"] = \
+        primary_items["program_arguments"]["display_preferences"] = \
+            primary_items["program_arguments"]["directory"] = \
         primary_items["program_arguments"]["display_taskernet"] = True
     else:
         primary_items["program_arguments"]["display_detail_level"] = getattr(
@@ -74,6 +76,8 @@ def process_arguments(primary_items: dict, args: object) -> dict:
         exit(0)
     if getattr(args, "twisty"):  # Twisty
         primary_items["program_arguments"]["twisty"] = True
+    if getattr(args, "directory"):  # Directory
+        primary_items["program_arguments"]["directory"] = True
     if backup_file_info := getattr(
         args, "b"
     ):  # Get backup file directly from Android device
@@ -181,6 +185,7 @@ def unit_test() -> object:
         b=False,
         taskernet=False,
         twisty=False,
+        directory=False,
         project=None,
         profile=None,
         task=None,
@@ -255,6 +260,11 @@ def process_cli(primary_items: dict) -> dict:
     # Process commands from command line
     else:
         primary_items = process_arguments(primary_items, args)
+        
+    for key, value in enumerate(primary_items["program_arguments"]):
+        print("Value:", value, " = ", primary_items["program_arguments"][value])
+        
+    
 
     # Return the results
     return primary_items

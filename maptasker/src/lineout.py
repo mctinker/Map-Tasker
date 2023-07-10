@@ -125,60 +125,102 @@ class LineOut:
     # Returns a formatted string for output based on the input codes
     # #############################################################################################
     def format_line_list_item(
-        self, element: str, colormap: dict, font_to_use: str
+        self, primary_items, element: str, colormap: dict, font_to_use: str
     ) -> str:
         """
         Generate the output list (<li>) string based on the input XML <code> passed in
+            :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
             :param element: text string to be added to output
             :param colormap:
             :param font_to_use:
             :return:
         """
+        directory = ""
+
+        # Project ========================
         if (
             f'{font_to_use}">Project:' in element
             or "Project has no Profiles" in element
-        ):  # Project ========================
-            return f'<br><li style=color:{colormap["bullet_color"]}>{element}</li>\n'
-        elif f'{font_to_use}">Profile:' in element:  # Profile ========================
-            return (
-                '<br><li'
-                f' style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
-            )
-        elif (
-            element.startswith("Task:") or "&#45;&#45;Task:" in element
-        ):  # Task or Scene's Task ========================
-            return (
-                self.add_style(
+        ):
+            if primary_items["program_arguments"]["directory"]:
+                directory_item = f'"{primary_items["directory_item"]}"'
+                directory = f"<a id={directory_item}</a>\n"
+            return f'{directory}<li style=color:{colormap["bullet_color"]}>{element}</li>\n'
+
+        elif f'{font_to_use}">Profile:' in element:
+            if primary_items["program_arguments"]["directory"]:
+                directory_item = f'"{primary_items["directory_item"]}"'
+                directory = f"<a id={directory_item}</a>\n"
+            return f'{directory}<br><li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
+
+        elif element.startswith("Task:") or "&#45;&#45;Task:" in element:
+            # if primary_items["program_arguments"]["directory"] and "&#45;&#45;Task:" not in element:
+            #     directory_item = f'"{primary_items["directory_item"]}"'
+            #     directory = f"<a id={directory_item}</a>\n"
+            # return (
+            #     self.add_style(
+            #         style_details={
+            #             "is_list": True,
+            #             "color1": colormap['bullet_color'],
+            #             "color2": colormap["unknown_task_color"],
+            #             "font": font_to_use,
+            #             "element": element,
+            #         }
+            #     )
+            #     if UNKNOWN_TASK_NAME in element
+            #     else
+            #         directory +
+            #             self.add_style(style_details={
+            #                 "is_list": True,
+            #                 "color1": colormap["bullet_color"],
+            #                 "color2": colormap["task_color"],
+            #                 "font": font_to_use,
+            #                 "element": element,
+            #                 }
+            #             )
+            # )
+            if (
+                primary_items["program_arguments"]["directory"]
+                and "&#45;&#45;Task:" not in element
+            ):
+                directory_item = f'"{primary_items["directory_item"]}"'
+                directory = f"<a id={directory_item}</a>\n"
+            if UNKNOWN_TASK_NAME in element:
+                return self.add_style(
                     style_details={
                         "is_list": True,
-                        "color1": colormap['bullet_color'],
+                        "color1": colormap["bullet_color"],
                         "color2": colormap["unknown_task_color"],
                         "font": font_to_use,
                         "element": element,
                     }
                 )
-                if UNKNOWN_TASK_NAME in element
-                else self.add_style(
+            else:
+                return directory + self.add_style(
                     style_details={
                         "is_list": True,
-                        "color1": colormap['bullet_color'],
+                        "color1": colormap["bullet_color"],
                         "color2": colormap["task_color"],
                         "font": font_to_use,
                         "element": element,
                     }
                 )
-            )
-        elif element.startswith("Scene:"):  # Scene
-            return self.add_style(
+
+        elif element.startswith("Scene:"):
+            if primary_items["program_arguments"]["directory"]:
+                directory_item = f'scene_{element.split("Scene:&nbsp;")[1]}'
+                directory = f'<a id="{directory_item.replace(" ","_")}"</a>\n'
+            return directory + self.add_style(
                 style_details={
                     "is_list": True,
-                    "color1": colormap['bullet_color'],
+                    "color1": colormap["bullet_color"],
                     "color2": colormap["scene_color"],
                     "font": font_to_use,
                     "element": element,
                 }
             )
-        elif "Action:" in element:  # Action
+
+        elif "Action:" in element:
             if (
                 "Action: ..." in element
             ):  # If this is continued from the previous line, indicate so and ensure proper font
@@ -190,7 +232,7 @@ class LineOut:
                 element = tmp
             return f'<li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
         elif "TaskerNet " in element:  # TaskerNet
-            return f'{element}\n'
+            return f"{element}\n"
         else:  # Must be additional item
             return f"<li {element}" + "</span></li>\n"
 
@@ -208,6 +250,8 @@ class LineOut:
         """
         # list lvl: 0=heading 1=start list 2=Task/Profile/Scene 3=end list 4=special Task
         string = ""
+
+        # Look at level and set up accordingly: 0=str and break, 1=start list, 2=list item, 3= end list, 4=heading, 5=simple string
         match lvl:
             case 0:
                 string = f"{element}" + "<br>\n"
@@ -215,6 +259,7 @@ class LineOut:
                 string = f"<ul>{element}" + "\n"
             case 2:  # lvl=2 >>> List item
                 string = self.format_line_list_item(
+                    primary_items,
                     element,
                     primary_items["colors_to_use"],
                     primary_items["program_arguments"]["font_to_use"],
@@ -225,7 +270,7 @@ class LineOut:
             case 3:  # lvl=3 >>> End list
                 string = "</ul>"
             case 4:  # lvl=4 >>> Heading or plain text line
-                string = element + "<br>\n"
+                string = f"{element}<br>\n"
             case 5:  # lvl=5 >>> Plain text line
                 string = element + "\n"
         return string

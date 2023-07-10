@@ -45,6 +45,13 @@ def process_missing_tasks_and_profiles(
         len(projects_with_no_tasks) > 0
         and not primary_items["found_named_items"]["single_task_found"]
     ):
+        # If doing a directory, then add id to hyperlink to.
+        if primary_items["program_arguments"]["directory"]:
+            primary_items["output_lines"].add_line_to_output(
+                primary_items,
+                5,
+                '<a id="projects_wo_tasks"</a>',
+            )
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             1,
@@ -52,7 +59,7 @@ def process_missing_tasks_and_profiles(
                 primary_items["colors_to_use"],
                 "trailing_comments_color",
                 "",
-                "<hr><em>Projects Without Tasks...</em>",
+                "<hr><em>Projects Without Tasks...</em><br>",
                 True,
             ),
         )
@@ -74,6 +81,14 @@ def process_missing_tasks_and_profiles(
 
     # List all Projects without Profiles
     if projects_without_profiles:
+        # If doing a directory, then add id to hyperlink to.
+        if primary_items["program_arguments"]["directory"]:
+            primary_items["output_lines"].add_line_to_output(
+                primary_items,
+                5,
+                '<a id="projects_wo_profiles"</a>',
+            )
+        # Add heading
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             1,
@@ -81,7 +96,7 @@ def process_missing_tasks_and_profiles(
                 primary_items["colors_to_use"],
                 "trailing_comments_color",
                 "<br>",
-                "<em>Projects Without Profiles...</em>",
+                "<em>Projects Without Profiles...</em><br>",
                 True,
             ),
         )
@@ -115,10 +130,20 @@ def add_heading(primary_items: dict, save_twisty: bool) -> bool:
     # Add a ruler-line across page
     primary_items["output_lines"].add_line_to_output(primary_items, 1, "<hr>")
     text_line = "Named Tasks that are not called by any Profile..."
-    # Add a twisty
+
+    # If doing a directory, then add id to hyperlink to.
+    if primary_items["program_arguments"]["directory"]:
+        primary_items["output_lines"].add_line_to_output(
+            primary_items,
+            1,
+            '<a id="tasks_no_profile"</a>',
+        )
+
+    # Add a twisty if doing twisties
     if save_twisty:
         # Add the twisty magic
         add_twisty(primary_items, "trailing_comments_color", text_line)
+
     # Add the header
     primary_items["output_lines"].add_line_to_output(
         primary_items,

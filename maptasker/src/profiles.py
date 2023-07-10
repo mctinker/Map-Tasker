@@ -33,6 +33,23 @@ def get_profile_tasks(
     found_tasks_list: list,
     task_output_line: list,
 ) -> tuple[defusedxml.ElementTree.XML, str]:
+    """
+    Get the task element and task name from the profile.
+
+    This function iterates over the XML elements in the profile and extracts the task element and task name.
+    It counts the task under the profile if it hasn't been counted before.
+    It also checks if a single task name is specified and sets a flag if the task name matches.
+
+    Args:
+        primary_items (dict): dictionary of the primary items used throughout the module.  See mapit.py for details
+        the_profile (defusedxml.ElementTree.XML): The XML profile element.
+        found_tasks_list (list): A list of found tasks.
+        task_output_line (list): A list of task output lines.
+
+    Returns:
+        tuple[defusedxml.ElementTree.XML, str]: A tuple containing the task element and task name.
+
+    """
     keys_we_dont_want = ["cdate", "edate", "flags", "id"]
     the_task_element, the_task_name = "", ""
 
@@ -72,12 +89,12 @@ def get_profile_tasks(
 def get_profile_name(
     primary_items: dict,
     profile: defusedxml.ElementTree,
-) -> str:
+) -> tuple[str, str]:
     """
     Get a specific Profile's name
         :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param profile: xml element pointing to the Profile
-        :return: name of the Profile
+        :return: Profile name with appropriate html and the profile name itself
     """
     try:
         the_profile_name = profile.find("nme").text  # Get Profile's name
@@ -85,7 +102,7 @@ def get_profile_name(
         the_profile_name = NO_PROFILE
 
     # Add html color and font for Profile name
-    profile_name = format_html(
+    profile_name_with_html = format_html(
         primary_items["colors_to_use"],
         "profile_color",
         "",
@@ -96,10 +113,8 @@ def get_profile_name(
     # If we are debugging, add the Profile ID
     if primary_items["program_arguments"]["debug"]:
         profile_id = profile.find("id").text
-        profile_name = (
-            f'{profile_name} {format_html(primary_items["colors_to_use"], "Yellow", "", f"ID:{profile_id}", True)}'
-        )
-    return profile_name
+        profile_name_with_html = f'{profile_name_with_html} {format_html(primary_items["colors_to_use"], "Red", "", f"ID:{profile_id}", True)}'
+    return profile_name_with_html, the_profile_name
 
 
 # #######################################################################################
@@ -164,12 +179,15 @@ def build_profile_line(
             flags = ""
 
     # Get the Profile name
-    profile_name = get_profile_name(primary_items, profile)
+    profile_name_with_html, profile_name = get_profile_name(primary_items, profile)
+    primary_items[
+        "directory_item"
+    ] = f'profile_{profile_name.replace(" ", "_")}'  # Save name for direcctory
 
     # Get the Profile's conditions
     if (
         primary_items["program_arguments"]["display_profile_conditions"]
-        or f"Profile: {NO_PROFILE}" in profile_name
+        or profile_name == "NO_PROFILE"
     ):
         if profile_conditions := condition.parse_profile_condition(
             primary_items,
@@ -187,7 +205,9 @@ def build_profile_line(
             )
 
     # Okay, string it all together
-    profile_info = f"{profile_name} {condition_text} {launcher}{disabled} {flags}"
+    profile_info = (
+        f"{profile_name_with_html} {condition_text} {launcher}{disabled} {flags}"
+    )
 
     # Output the Profile line
     primary_items["output_lines"].add_line_to_output(

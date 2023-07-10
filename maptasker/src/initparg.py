@@ -2,7 +2,7 @@
 
 # ########################################################################################## #
 #                                                                                            #
-# runcli: process command line interface arguments for MapTasker                            #
+# runcli: intialize command line interface arguments for MapTasker                           #
 #                                                                                            #
 # Add the following statement (without quotes) to your Terminal Shell configuration file     #
 #  (BASH, Fish, etc.) to eliminate the runtime msg:                                          #
@@ -52,5 +52,6 @@ def initialize_runtime_arguments() -> dict:
         "fetched_backup_from_android": (
             False
         ),  # Backup file was fetched from Android device
-        "twisty": False,
+        "twisty": False,  # Add Task twisty "▶︎" clickable icons for Task details
+        "directory": False,  # Display directory
     }

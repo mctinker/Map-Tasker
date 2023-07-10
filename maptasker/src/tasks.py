@@ -181,7 +181,7 @@ def get_project_for_solo_task(
     primary_items: dict,
     the_task_id: str,
     projects_with_no_tasks: list,
-) -> tuple[str, defusedxml.ElementTree]:
+) -> tuple[str, defusedxml.ElementTree.XML]:
     """
     Find the Project belonging to the Task id passed in
         :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details

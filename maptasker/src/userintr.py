@@ -34,31 +34,31 @@ customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 
 INFO_TEXT = (
-    'MapTasker displays your Android Tasker configuration based on your uploaded Tasker'
+    "MapTasker displays your Android Tasker configuration based on your uploaded Tasker"
     ' backup file (e.g. "backup.xml").  The display will optionally include all'
-    ' Projects, Profiles, Tasks and their actions, Profile/Task conditions and other'
-    ' Profile/Task related information.\n\n* Display options are:\n    Level 0: display'
-    ' first Task action only, for unnamed Tasks only (silent)\n    Level 1 = display'
-    ' all Task action details for unknown Tasks only (default)\n    Level 2 = display'
-    ' full Task action name on every Task\n    Level 3 = display full Task action'
-    ' details on every Task with action details\n\n* Display Conditions: Turn on the'
-    ' display of Profile and Task conditions.\n\n* Display TaskerNet Info - If'
-    ' available, display TaskerNet publishing information\n\n* Display Tasker'
-    ' Preferences - display Tasker\'s system Preferences\n\n* Hide Task Details'
-    ' under Twisty: hide Task information within ► and click to display.\n\n* Save'
-    ' Settings - Save these settings for later use.\n\n* Restore Settings - Restore the'
-    ' settings from a previously saved session.\n\n* Appearance Mode: Dark, Light, or'
-    ' System default.\n\n* Reset Options: Clear everything and start anew.\n\n* Get'
-    ' Backup from Android Device: fetch the backup xml file from device\n* Run: Run the'
-    ' program with the settings provided.\n* ReRun: Run multiple times (with different'
-    ' settings).\n\n* Specific Name tab: enter a single, specific named item to'
-    ' display...\n   - Project Name: enter a specific Project to display\n   - Profile'
-    ' Name: enter a specific Profile to display\n   - Task Name: enter a specific Task'
-    ' to display\n   (These three are exclusive: enter one only)\n\n* Colors tab:'
-    ' select colors for various elements of the display\n              (e.g. color for'
-    ' Projects, Profiles, Tasks, etc.)\n\n* Exit: Exit the program (quit).\n\nNote: You'
-    ' will be prompted to identify your Tasker backup file once\n      you hit the'
-    ' \'Run\' button'
+    " Projects, Profiles, Tasks and their actions, Profile/Task conditions and other"
+    " Profile/Task related information.\n\n* Display options are:\n    Level 0: display"
+    " first Task action only, for unnamed Tasks only (silent)\n    Level 1 = display"
+    " all Task action details for unknown Tasks only (default)\n    Level 2 = display"
+    " full Task action name on every Task\n    Level 3 = display full Task action"
+    " details on every Task with action details\n\n* Display Conditions: Turn on the"
+    " display of Profile and Task conditions.\n\n* Display TaskerNet Info - If"
+    " available, display TaskerNet publishing information\n\n* Display Tasker"
+    " Preferences - display Tasker's system Preferences\n\n* Hide Task Details"
+    " under Twisty: hide Task information within ► and click to display.\n\n* Display directory of hyperlinks at beginning\n\n* Save"
+    " Settings - Save these settings for later use.\n\n* Restore Settings - Restore the"
+    " settings from a previously saved session.\n\n* Appearance Mode: Dark, Light, or"
+    " System default.\n\n* Reset Options: Clear everything and start anew.\n\n* Get"
+    " Backup from Android Device: fetch the backup xml file from device\n* Run: Run the"
+    " program with the settings provided.\n* ReRun: Run multiple times (with different"
+    " settings).\n\n* Specific Name tab: enter a single, specific named item to"
+    " display...\n   - Project Name: enter a specific Project to display\n   - Profile"
+    " Name: enter a specific Profile to display\n   - Task Name: enter a specific Task"
+    " to display\n   (These three are exclusive: enter one only)\n\n* Colors tab:"
+    " select colors for various elements of the display\n              (e.g. color for"
+    " Projects, Profiles, Tasks, etc.)\n\n* Exit: Exit the program (quit).\n\nNote: You"
+    " will be prompted to identify your Tasker backup file once\n      you hit the"
+    " 'Run' button"
 )
 
 cancel_button_msg = '\n\nNote: "Cancel" button does not work at this time.'
@@ -104,9 +104,9 @@ class MyGui(customtkinter.CTk):
 
         # create sidebar frame with widgets
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
-        self.sidebar_frame.grid(row=0, column=0, rowspan=9, sticky="nsew")
+        self.sidebar_frame.grid(row=0, column=0, rowspan=10, sticky="nsew")
         # Define sidebar background frame with 10 rows
-        self.sidebar_frame.grid_rowconfigure(10, weight=1)
+        self.sidebar_frame.grid_rowconfigure(11, weight=1)
 
         # Add grid title
         self.logo_label = customtkinter.CTkLabel(
@@ -115,6 +115,8 @@ class MyGui(customtkinter.CTk):
             font=customtkinter.CTkFont(size=20, weight="bold"),
         )
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
+
+        # Start first grid / column defintions
 
         # Display Detail Level
         self.detail_label = customtkinter.CTkLabel(
@@ -172,6 +174,16 @@ class MyGui(customtkinter.CTk):
         )
         self.twisty_button.grid(row=6, column=0, padx=20, pady=10, sticky="w")
 
+        # Display 'directory' button
+        self.directory_button = customtkinter.CTkCheckBox(
+            self.sidebar_frame,
+            command=self.directory_event,
+            text="Display directory",
+            onvalue=True,
+            offvalue=False,
+        )
+        self.directory_button.grid(row=7, column=0, padx=20, pady=10, sticky="w")
+
         # Save settings button
         self.save_settings_button = customtkinter.CTkButton(
             self.sidebar_frame,
@@ -180,7 +192,7 @@ class MyGui(customtkinter.CTk):
             text="Save Settings",
             command=self.save_settings_event,
         )
-        self.save_settings_button.grid(row=7, column=0, padx=10, pady=20, sticky="s")
+        self.save_settings_button.grid(row=8, column=0, padx=10, pady=20, sticky="s")
 
         # Restore settings button
         self.restore_settings_button = customtkinter.CTkButton(
@@ -190,19 +202,19 @@ class MyGui(customtkinter.CTk):
             text="Restore Settings",
             command=self.restore_settings_event,
         )
-        self.restore_settings_button.grid(row=8, column=0, padx=10, pady=0, sticky="n")
+        self.restore_settings_button.grid(row=9, column=0, padx=10, pady=0, sticky="n")
 
         # Screen Appearance: Light / Dark / System
         self.appearance_mode_label = customtkinter.CTkLabel(
             self.sidebar_frame, text="GUI Appearance Mode:", anchor="w"
         )
-        self.appearance_mode_label.grid(row=9, column=0, padx=20, pady=10)
+        self.appearance_mode_label.grid(row=10, column=0, padx=20, pady=10)
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(
             self.sidebar_frame,
             values=["Light", "Dark", "System"],
             command=self.change_appearance_mode_event,
         )
-        self.appearance_mode_optionemenu.grid(row=10, column=0, padx=0, sticky="n")
+        self.appearance_mode_optionemenu.grid(row=11, column=0, padx=0, sticky="n")
 
         # 'Reset Settings' button definition
         self.reset_button = customtkinter.CTkButton(
@@ -215,6 +227,8 @@ class MyGui(customtkinter.CTk):
         self.reset_button.grid(
             row=11, column=0, padx=(20, 20), pady=(20, 20), sticky="sew"
         )
+
+        # Start second grid / column definitions
 
         # 'Get Backup Settings' button definition
         self.get_backup_button = customtkinter.CTkButton(
@@ -270,6 +284,8 @@ class MyGui(customtkinter.CTk):
         self.textbox = customtkinter.CTkTextbox(self, height=100, width=250)
         self.textbox.configure(scrollbar_button_color="#6563ff")
         self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="nsew")
+
+        # Start thrid grid / column definitions
 
         # create tabview for Name, Color, and Debug
         self.tabview = customtkinter.CTkTabview(
@@ -385,7 +401,11 @@ class MyGui(customtkinter.CTk):
             self.debug
         ) = (
             self.clear_settings
-        ) = self.reset = self.exit = self.go_program = self.rerun = self.twisty = False
+        ) = (
+            self.reset
+        ) = (
+            self.exit
+        ) = self.go_program = self.rerun = self.twisty = self.directory = False
         self.single_project_name = self.single_profile_name = self.single_task_name = ""
         self.color_text_row = 2
         self.appearance_mode_optionemenu.set("System")
@@ -413,7 +433,7 @@ class MyGui(customtkinter.CTk):
     # #######################################################################################
     def display_message_box(self, message, good):
         # If "good", display in green.  Otherwise, must be bad and display in red.
-        color = 'Green' if good else 'Red'
+        color = "Green" if good else "Red"
         # Delete prior contents
         self.textbox.delete(
             "1.0",
@@ -484,7 +504,7 @@ class MyGui(customtkinter.CTk):
         temp_primary_items = {"program_arguments": initialize_runtime_arguments()}
         temp_primary_items["program_arguments"]["debug"] = self.debug
         temp_primary_items["file_to_get"] = "backup.xml" if self.debug else ""
-        temp_primary_items['colors_to_use'] = set_color_mode(self.appearance_mode)
+        temp_primary_items["colors_to_use"] = set_color_mode(self.appearance_mode)
         temp_primary_items["output_lines"] = LineOut()
         temp_primary_items = setup(temp_primary_items)
         del temp_primary_items["output_lines"]
@@ -648,9 +668,9 @@ class MyGui(customtkinter.CTk):
     # #######################################################################################
     def extract_color_from_event(self, color, color_selected_item):
         # row = self.color_text_row
-        self.color_lookup[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
-            color  # Add color for the selected item to our dictionary
-        )
+        self.color_lookup[
+            TYPES_OF_COLOR_NAMES[color_selected_item]
+        ] = color  # Add color for the selected item to our dictionary
         self.color_labels.append(
             customtkinter.CTkLabel(
                 self.tabview.tab("Colors"),
@@ -684,6 +704,13 @@ class MyGui(customtkinter.CTk):
         self.twisty = self.twisty_button.get()
 
     # #######################################################################################
+    # Process the 'Display directory' checkbox
+    # #######################################################################################
+
+    def directory_event(self):
+        self.directory = self.directory_button.get()
+
+    # #######################################################################################
     # Process the 'taskernet' checkbox
     # #######################################################################################
     def display_taskernet_event(self):
@@ -706,7 +733,7 @@ class MyGui(customtkinter.CTk):
     # Restore displays settings from restored values
     # #######################################################################################
     def restore_display(self, key, value):
-        message = ''
+        message = ""
         match key:
             case "debug":
                 if value:
@@ -756,6 +783,12 @@ class MyGui(customtkinter.CTk):
                 else:
                     self.twisty_button.deselect()
                 message = f"Twisty set to {value}\n"
+            case "directory":
+                if value:
+                    self.directory_button.select()
+                else:
+                    self.directory_button.deselect()
+                message = f"Display directory set to {value}\n"
             case "rerun":
                 pass
             case _:
@@ -790,7 +823,7 @@ class MyGui(customtkinter.CTk):
     # We have read colors and runtime args from backup file.  Now extract them for use.
     # #######################################################################################
     def extract_settings(self, temp_args: dict) -> None:
-        all_messages, new_message = '', ''
+        all_messages, new_message = "", ""
         for key, value in temp_args.items():
             if key is not None:
                 setattr(self, key, value)
@@ -901,6 +934,7 @@ class MyGui(customtkinter.CTk):
         self.debug_checkbox.deselect()  # Debug
         self.display_message_box("Settings reset.", True)
         self.twisty_button.deselect()  # Twisty
+        self.directory_button.deselect()  # directory
         self.backup_file_location = self.backup_file_http = ""
         if self.color_labels:  # is there any color text?
             for label in self.color_labels:

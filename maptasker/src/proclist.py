@@ -11,7 +11,7 @@
 # preserved. Contributors provide an express grant of patent rights.                         #
 #                                                                                            #
 # ########################################################################################## #
-import defusedxml.ElementTree  # Need for type hints
+import defusedxml
 
 from maptasker.src.taskactn import get_task_actions_and_output
 from maptasker.src.sysconst import logger
@@ -23,7 +23,29 @@ from maptasker.src.twisty import remove_twisty
 # #######################################################################################
 # Process Given a Task/Scene, process it.
 # #######################################################################################
-def process_item(primary_items, the_item, list_type, the_list, the_task, tasks_found):
+def process_item(
+    primary_items: dict,
+    the_item: str,
+    list_type: str,
+    the_list: list,
+    the_task: defusedxml.ElementTree.XML,
+    tasks_found: list,
+) -> None:
+    """
+    Process the item and add it to the output.
+
+    Args:
+        primary_items (dict): dictionary of the primary items used throughout the module.  See mapit.py for details
+        the_item (str): The item ID to process.
+        list_type (str): The type of the list.
+        the_list (str): The list to process.
+        the_task (str): The task to process.
+        tasks_found (list): The list of tasks found.
+
+    Returns:
+        None
+
+    """
     # This import must stay here to avoid error
     from maptasker.src.scenes import process_scene
 
@@ -32,8 +54,7 @@ def process_item(primary_items, the_item, list_type, the_list, the_task, tasks_f
 
     if primary_items["program_arguments"]["debug"]:  # Add Task ID if in debug mode
         logger.debug(
-            "process_list "
-            f" the_item:{str(the_item)} the_list:{the_list} list_type:{list_type}"
+            f"process_list  the_item:{the_item} the_list:{the_list} list_type:{list_type}"
         )
 
     # Format the output line
@@ -51,7 +72,17 @@ def process_item(primary_items, the_item, list_type, the_list, the_task, tasks_f
         if primary_items["program_arguments"]["debug"]:  # Get the Task ID
             id_loc = list_type.find("ID:")
             if id_loc != -1:
-                list_type = f'{list_type}{str(id_loc)}'
+                list_type = f"{list_type}{id_loc}"
+
+    # Insert directory for Task
+    elif primary_items["program_arguments"]["directory"] and "Task:" in list_type:
+        task_name_element = the_task.find("nme")
+        if task_name_element is not None:
+            task_name = task_name_element.text
+            # Hyperlink name can not have any embedded blanks.  Substitute a dash for each blank
+            primary_items[
+                "directory_item"
+            ] = f"task_{task_name.replace(' ', '_')}"  # Save name for directory
 
     # Add the "twisty" to hide the Task details
     if primary_items["program_arguments"]["twisty"] and "Task:" in list_type:
@@ -60,7 +91,8 @@ def process_item(primary_items, the_item, list_type, the_list, the_task, tasks_f
 
     # Add this Task/Scene to the output
     primary_items["output_lines"].add_line_to_output(primary_items, 2, output_line)
-    if temp_item:  # Put the_item back with the 'ID: nnn' portion included.
+    # Put the_item back with the 'ID: nnn' portion included.
+    if temp_item:
         the_item = temp_item
         list_type = temp_list
 
@@ -83,7 +115,8 @@ def process_item(primary_items, the_item, list_type, the_list, the_task, tasks_f
         if primary_items["program_arguments"]["twisty"]:
             remove_twisty(primary_items)
 
-    elif (  # Do we have a Scene?
+    # Do we have a Scene?
+    elif (
         list_type == "Scene:"
         and primary_items["program_arguments"]["display_detail_level"] > 1
     ):
@@ -107,7 +140,7 @@ def process_list(
     primary_items: dict,
     list_type: str,
     the_list: list,
-    the_task: defusedxml.ElementTree.XML,
+    the_task: defusedxml.ElementTree.XML,  # type: ignore
     tasks_found: list,
 ) -> None:
     """

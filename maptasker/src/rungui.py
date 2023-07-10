@@ -59,7 +59,7 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
     if not user_input.go_program and not user_input.rerun:
         error_handler("Program cancelled be user (killed GUI)", 99)
 
-    # Convert runtime argument default values to a dictionary
+    # Convert runtime argument default values to a dictionary with default values
     primary_items["program_arguments"] = initialize_runtime_arguments()
 
     # 'Run' button hit.  Get all the input from GUI variables
@@ -80,7 +80,9 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
             if http_info := getattr(user_input, value):
                 primary_items["program_arguments"][value] = f"http://{http_info}"
         else:
+            # Grab GUI value and put into our runtime arguments dictonary (of same name)
             primary_items["program_arguments"][value] = getattr(user_input, value)
+
     # Make sure our detail_level is an int
     if isinstance(primary_items["program_arguments"]["display_detail_level"], str):
         primary_items["program_arguments"]["display_detail_level"] = int(

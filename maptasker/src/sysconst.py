@@ -16,7 +16,7 @@ import logging
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 2.0.6"
+MY_VERSION = "MapTasker version 2.0.7"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -101,6 +101,7 @@ ARGUMENT_NAMES = [
     "twisty",
     "debug",
     "rerun",
+    "directory",
 ]
 
 logger = logging.getLogger("MapTasker")

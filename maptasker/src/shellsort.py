@@ -32,8 +32,10 @@ def shell_sort(arr, do_arguments, by_numeric):
                     # Get the n from <Action sr='actn' ve='7'> as a number for comparison purposes
                     attr1 = arr[i]
                     attr2 = arr[i + gap]
-                    val1 = attr1.attrib["sr"]
-                    val2 = attr2.attrib["sr"]
+                    val1 = attr1.attrib.get("sr", "")
+                    val2 = attr2.attrib.get("sr", "")
+                    # val1 = attr1.attrib["sr"]
+                    # val2 = attr2.attrib["sr"]
                     if val1[3:] == "" or val2[3:] == "":  # 'if' argument...skip
                         break
                     comp1 = val1[3:]
@@ -50,7 +52,8 @@ def shell_sort(arr, do_arguments, by_numeric):
                 # We don't do swap else we swap
                 if not comp1.isdigit() or not comp2.isdigit():
                     logger.debug(
-                        f"MapTasker.py:shell_sort: comp1:{str(comp1)} comp2:{str(comp2)}"
+                        "MapTasker.py:shell_sort:"
+                        f" comp1:{str(comp1)} comp2:{str(comp2)}"
                     )
                 if (
                     do_arguments

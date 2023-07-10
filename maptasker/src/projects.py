@@ -76,7 +76,7 @@ def get_launcher_task(primary_items, project: defusedxml.ElementTree.XML) -> str
                 primary_items["colors_to_use"],
                 "launcher_task_color",
                 "",
-                f'[Launcher Task: {launcher_task_element.text}] ',
+                f"[Launcher Task: {launcher_task_element.text}] ",
                 True,
             )
     return launcher_task_info
@@ -213,8 +213,10 @@ def get_extra_and_output_project(
         :param launcher_task_info: details about (any) launcher Task
         :return: True if we are looking for a single Project and this isn't it.  False otherwise.
     """
+    blank = "&nbsp;"
+
     # See if there is a Kid app and get the Project's priority
-    kid_app_info = priority = ''
+    kid_app_info = priority = ""
     if primary_items["program_arguments"]["display_detail_level"] == 3:
         kid_app_info = get_kid_app(project)
         if kid_app_info:
@@ -232,6 +234,17 @@ def get_extra_and_output_project(
         True,
     )
 
+    # Set up the final Project output line and add a "Go to top" hyperlink
+    final_project_line = (
+        f"{project_name_details} {launcher_task_info}{priority}{kid_app_info}"
+    )
+    if len(final_project_line) < 70:
+        final_project_line = (
+            f"{final_project_line}{blank * 20}<a href='#'>Go to top</a>"
+        )
+    else:
+        final_project_line = f"{final_project_line}{blank * 5}<a href='#'>Go to top</a>"
+
     # Are we looking for a specific Project?
     if primary_items["program_arguments"]["single_project_name"]:
         if project_name != primary_items["program_arguments"]["single_project_name"]:
@@ -241,14 +254,14 @@ def get_extra_and_output_project(
         primary_items["output_lines"].refresh_our_output(
             primary_items,
             False,
-            f"{project_name_details} {launcher_task_info}{priority}{kid_app_info}",
+            final_project_line,
             "",
         )
     else:
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             2,
-            f"{project_name_details} {launcher_task_info}{priority}{kid_app_info}",
+            final_project_line,
         )
     return False
 
@@ -361,7 +374,7 @@ def finish_up(
         )
 
     # Output the Project summary line
-    if primary_items["program_arguments"]["display_detail_level"] == 3:
+    if primary_items["program_arguments"]["display_detail_level"] != 0:
         summary_counts(primary_items, project_name, profile_count)
 
     # If we are not inserting the twisties, then close the unordered list
@@ -401,7 +414,12 @@ def process_projects(
             or primary_items["found_named_items"]["single_profile_found"]
         ):
             break
-        project_name = project.find("name").text
+        # Hyperlink name can not have any embedded blanks.  Substitute a dash for each blank
+        project_name = project.find("name").text.replace(" ", "_")
+        if primary_items["program_arguments"]["directory"]:
+            primary_items[
+                "directory_item"
+            ] = f"project_{project_name}"  # Save name for directory
 
         # See if there is a Launcher task
         launcher_task_info = get_launcher_task(primary_items, project)
