@@ -1,15 +1,17 @@
 MapTasker Change log
 
-## [2.0.7] - 2023-07-09
-### Added: New optional directory, via new runtime option "-directory"
-### Added: a "Go to top" hotlink has been added to each Project line
-### Fixed: Heading was displaying properly
-### Changed: If program crashes, provide a more graceful error message
-### Changed: Removed the word "condition" from conditional statements...it is pretty obvious without stating it.
+## [2.0.8] - 2023-07-11
+### Fixed: Using both options "-directory" and "-twisty" together causes Task twisties to incorrectly appear as "▶︎ Detail"
 
 
 Older History Log
 
+- [2.0.7] - 2023-07-09
+       -  Added: New optional directory, via new runtime option "-directory"   
+       -  Added: a "Go to top" hotlink has been added to each Project line
+       -  Fixed: Heading was displaying properly
+       -  Changed: If program crashes, provide a more graceful error message
+       -  Changed: Removed the word "condition" from conditional statements...it is pretty obvious without stating it.
 - [2.0.6] - 2023-06-27   
        -  Fixed: GUI use of "Cancel" button is now properly recognized.   
        -  Fixed: Fix Project/Scene indentation issue when using twisty   
