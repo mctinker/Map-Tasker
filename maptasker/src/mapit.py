@@ -253,8 +253,8 @@ def initialize_everything(file_to_get: str) -> tuple[dict, list, list, list]:
         
  
     # If debugging, force an ESC so that the full command/path are not displayed in VsCode terminal window.
-    # if primary_items["program_arguments"]["debug"]:
-    #     print("\033c")
+    if primary_items["program_arguments"]["debug"]:
+        print("\033c")
 
     return primary_items, [], [], []
 

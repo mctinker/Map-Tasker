@@ -84,6 +84,16 @@ def process_item(
                 "directory_item"
             ] = f"task_{task_name.replace(' ', '_')}"  # Save name for directory
 
+    # Insert a hyperlink if this is a Task...it has to go before a twisty
+    if (
+                primary_items["program_arguments"]["directory"]
+                and "Task:" in list_type
+                and "&#45;&#45;Task:" not in list_type
+            ):
+                directory_item = f'"{primary_items["directory_item"]}"'
+                directory = f"<a id={directory_item}</a>\n"
+                primary_items["output_lines"].add_line_to_output(primary_items, 5, directory)
+                
     # Add the "twisty" to hide the Task details
     if primary_items["program_arguments"]["twisty"] and "Task:" in list_type:
         # Add the twisty magic

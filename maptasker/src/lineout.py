@@ -147,44 +147,15 @@ class LineOut:
                 directory = f"<a id={directory_item}</a>\n"
             return f'{directory}<li style=color:{colormap["bullet_color"]}>{element}</li>\n'
 
+        # Profile =========================
         elif f'{font_to_use}">Profile:' in element:
             if primary_items["program_arguments"]["directory"]:
                 directory_item = f'"{primary_items["directory_item"]}"'
                 directory = f"<a id={directory_item}</a>\n"
             return f'{directory}<br><li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
 
+        # Task =========================
         elif element.startswith("Task:") or "&#45;&#45;Task:" in element:
-            # if primary_items["program_arguments"]["directory"] and "&#45;&#45;Task:" not in element:
-            #     directory_item = f'"{primary_items["directory_item"]}"'
-            #     directory = f"<a id={directory_item}</a>\n"
-            # return (
-            #     self.add_style(
-            #         style_details={
-            #             "is_list": True,
-            #             "color1": colormap['bullet_color'],
-            #             "color2": colormap["unknown_task_color"],
-            #             "font": font_to_use,
-            #             "element": element,
-            #         }
-            #     )
-            #     if UNKNOWN_TASK_NAME in element
-            #     else
-            #         directory +
-            #             self.add_style(style_details={
-            #                 "is_list": True,
-            #                 "color1": colormap["bullet_color"],
-            #                 "color2": colormap["task_color"],
-            #                 "font": font_to_use,
-            #                 "element": element,
-            #                 }
-            #             )
-            # )
-            if (
-                primary_items["program_arguments"]["directory"]
-                and "&#45;&#45;Task:" not in element
-            ):
-                directory_item = f'"{primary_items["directory_item"]}"'
-                directory = f"<a id={directory_item}</a>\n"
             if UNKNOWN_TASK_NAME in element:
                 return self.add_style(
                     style_details={
@@ -196,7 +167,7 @@ class LineOut:
                     }
                 )
             else:
-                return directory + self.add_style(
+                return self.add_style(
                     style_details={
                         "is_list": True,
                         "color1": colormap["bullet_color"],
@@ -206,6 +177,7 @@ class LineOut:
                     }
                 )
 
+        # Scene =========================
         elif element.startswith("Scene:"):
             if primary_items["program_arguments"]["directory"]:
                 directory_item = f'scene_{element.split("Scene:&nbsp;")[1]}'
