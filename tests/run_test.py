@@ -52,11 +52,14 @@ def test_main():
     # Test by Task name
     with patch("sys.argv", ["-test=yes", "task=Check Batteries", "d"]):
         test_it()
-    # Test new -pref
+    # Test -pref
     with patch("sys.argv", ["-test=yes", "p", "d", "taskernet", "detail=2"]):
         test_it()
+    # Test -dir
+    with patch("sys.argv", ["-test=yes", "directory", "d", "taskernet", "detail=3"]):
+        test_it()
     # Test new -everything
-    with patch("sys.argv", ["-test=yes", "e"]):
+    with patch("sys.argv", ["-test=yes", "e", "twisty"]):
         test_it()
     # Test -b fetch backup xml file
     with patch(
