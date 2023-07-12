@@ -190,9 +190,6 @@ def do_trailing_matters(primary_items: dict) -> None:
 
     # Do Tasks that are not associated with any Profile, Projects without Tasks and without Profiles
     trailing_matter = [
-        "<a href=#tasks_no_profile>Named Tasks that are not called by any Profile</a>",
-        "<a href=#projects_wo_tasks>Projects without Tasks</a>",
-        "<a href=#projects_wo_profiles>Projects without Profiles</a>",
         "<a href=#grand_totals>Grand Totals</a>",
     ]
 

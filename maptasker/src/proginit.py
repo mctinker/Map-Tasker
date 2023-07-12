@@ -360,6 +360,15 @@ def start_up(primary_items: dict) -> dict:
         "named_tasks": 0,
         "scenes": 0,
     }
+    
+    # Set up directory items
+    primary_items["directory_items"] = {
+        "current_item": "",
+        "projects": [],
+        "profiles": [], 
+        "tasks": [],
+        "scenes": []
+    }
 
     logger.info("exit")
     return primary_items

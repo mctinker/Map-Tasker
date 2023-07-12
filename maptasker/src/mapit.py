@@ -178,7 +178,7 @@ def output_grand_totals(primary_items: dict) -> None:
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             5,
-            '<a id="grand_totals"</a>',
+            '<a id="grand_totals"></a>',
         )
     primary_items["output_lines"].add_line_to_output(
         primary_items,
@@ -227,7 +227,7 @@ def initialize_everything(file_to_get: str) -> tuple[dict, list, list, list]:
     #  named_task_count_total: number of named Tasks for Project being processed
     #  task_count_unnamed: number of unnamed Tasks for Project being processed
     #  task_count_no_profile: number of Profiles in Project being processed.
-    #  directory_item: if displaying a directory then this is the current content name being displayed
+    #  directory_itemd: if displaying a directory then this is a dictionary of items for the directory
     primary_items = {
         "xml_tree": None,
         "xml_root": None,
@@ -238,7 +238,7 @@ def initialize_everything(file_to_get: str) -> tuple[dict, list, list, list]:
         "found_named_items": {},
         "file_to_get": file_to_get,
         "task_count_for_Profile": 0,
-        "directory_item": "",
+        "directory_items": [],
     }
 
     # Get colors to use, runtime arguments etc...all of our primary items we need throughout
@@ -364,9 +364,15 @@ def mapit_all(file_to_get: str) -> int:
             primary_items["program_arguments"]["single_profile_name"],
         )
 
-    # #######################################################################################
+    # #########################################################################################
+    # Disable directory for next two parts
+    # #########################################################################################
+    temp_dir = primary_items["program_arguments"]["directory"]
+    primary_items["program_arguments"]["directory"] = False
+
+    # #########################################################################################
     # Now let's look for Tasks that are not referenced by any Profile and display a total count
-    # #######################################################################################
+    # #########################################################################################
     if (
         not primary_items["program_arguments"]["single_task_name"]
         and not primary_items["program_arguments"]["single_project_name"]
@@ -386,8 +392,15 @@ def mapit_all(file_to_get: str) -> int:
             projects_with_no_tasks,
             projects_without_profiles,
         )
+        
+    # #########################################################################################
+    # Re-enable directory for next two parts
+    # #########################################################################################
+    primary_items["program_arguments"]["directory"] = temp_dir
 
+    # #########################################################################################
     # Output the final tally of Projects/Profiles/Tasks/Scenes
+       # #########################################################################################
     if primary_items["program_arguments"]["display_detail_level"] > 0:
         output_grand_totals(primary_items)
 

@@ -32,7 +32,7 @@ def add_twisty(
             primary_items["colors_to_use"],
             output_color_name,
             "",
-            f"<details><summary>{line_to_output}</summary>\r",
+            f"\n<details><summary>{line_to_output}</summary>\r",
             True,
         ),
     )

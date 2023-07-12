@@ -79,19 +79,26 @@ def process_item(
         task_name_element = the_task.find("nme")
         if task_name_element is not None:
             task_name = task_name_element.text
-            # Hyperlink name can not have any embedded blanks.  Substitute a dash for each blank
-            primary_items[
-                "directory_item"
-            ] = f"task_{task_name.replace(' ', '_')}"  # Save name for directory
+            if task_name not in primary_items["directory_items"]["tasks"]:
+                # Hyperlink name can not have any embedded blanks.  Substitute a dash for each blank
+                primary_items[
+                    "directory_items"
+                ]["current_item"] = f"task_{task_name.replace(' ', '_')}"  # Save name for directory
+                primary_items["directory_items"]["tasks"].append(task_name)
+            else:
+                primary_items["directory_items"]["current_item"] = ""
+        else:
+            primary_items["directory_items"]["current_item"] = ""
 
     # Insert a hyperlink if this is a Task...it has to go before a twisty
     if (
                 primary_items["program_arguments"]["directory"]
+                and primary_items["directory_items"]["current_item"]
                 and "Task:" in list_type
                 and "&#45;&#45;Task:" not in list_type
             ):
-                directory_item = f'"{primary_items["directory_item"]}"'
-                directory = f"<a id={directory_item}</a>\n"
+                directory_item = f'"{primary_items["directory_items"]["current_item"]}"'
+                directory = f"<a id={directory_item}></a>\n"
                 primary_items["output_lines"].add_line_to_output(primary_items, 5, directory)
                 
     # Add the "twisty" to hide the Task details

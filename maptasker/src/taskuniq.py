@@ -45,13 +45,7 @@ def process_missing_tasks_and_profiles(
         len(projects_with_no_tasks) > 0
         and not primary_items["found_named_items"]["single_task_found"]
     ):
-        # If doing a directory, then add id to hyperlink to.
-        if primary_items["program_arguments"]["directory"]:
-            primary_items["output_lines"].add_line_to_output(
-                primary_items,
-                5,
-                '<a id="projects_wo_tasks"</a>',
-            )
+
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             1,
@@ -81,13 +75,7 @@ def process_missing_tasks_and_profiles(
 
     # List all Projects without Profiles
     if projects_without_profiles:
-        # If doing a directory, then add id to hyperlink to.
-        if primary_items["program_arguments"]["directory"]:
-            primary_items["output_lines"].add_line_to_output(
-                primary_items,
-                5,
-                '<a id="projects_wo_profiles"</a>',
-            )
+
         # Add heading
         primary_items["output_lines"].add_line_to_output(
             primary_items,
@@ -127,21 +115,13 @@ def add_heading(primary_items: dict, save_twisty: bool) -> bool:
         :param save_twisty: flag to indicate whether or not we are doing the twisty/hidden Tasks
         :return: True...flag that the heading has been created/output
     """
-    # Add a ruler-line across page
+
+    # Start a list and add a ruler-line across page
     primary_items["output_lines"].add_line_to_output(primary_items, 1, "<hr>")
     text_line = "Named Tasks that are not called by any Profile..."
 
-    # If doing a directory, then add id to hyperlink to.
-    if primary_items["program_arguments"]["directory"]:
-        primary_items["output_lines"].add_line_to_output(
-            primary_items,
-            1,
-            '<a id="tasks_no_profile"</a>',
-        )
-
-    # Add a twisty if doing twisties
+    # Add a twisty, if doing twisties, to hide the line
     if save_twisty:
-        # Add the twisty magic
         add_twisty(primary_items, "trailing_comments_color", text_line)
 
     # Add the header

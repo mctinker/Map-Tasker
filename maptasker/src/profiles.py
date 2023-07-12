@@ -180,9 +180,14 @@ def build_profile_line(
 
     # Get the Profile name
     profile_name_with_html, profile_name = get_profile_name(primary_items, profile)
-    primary_items[
-        "directory_item"
-    ] = f'profile_{profile_name.replace(" ", "_")}'  # Save name for direcctory
+    
+    # Handle direectory hyperlink
+    if primary_items["program_arguments"]["directory"] and profile_name not in primary_items["directory_items"]["profiles"]:
+        primary_items[
+            "directory_items"
+        ]["current_item"] = f'profile_{profile_name.replace(" ", "_")}'  # Save name for directory
+        primary_items["directory_items"]["profiles"].append(profile_name)
+        
 
     # Get the Profile's conditions
     if (

@@ -142,16 +142,16 @@ class LineOut:
             f'{font_to_use}">Project:' in element
             or "Project has no Profiles" in element
         ):
-            if primary_items["program_arguments"]["directory"]:
-                directory_item = f'"{primary_items["directory_item"]}"'
-                directory = f"<a id={directory_item}</a>\n"
+            if primary_items["program_arguments"]["directory"] and primary_items["directory_items"]["current_item"]:
+                directory_item = f'"{primary_items["directory_items"]["current_item"]}"'
+                directory = f"<a id={directory_item}></a>\n"
             return f'{directory}<li style=color:{colormap["bullet_color"]}>{element}</li>\n'
 
         # Profile =========================
         elif f'{font_to_use}">Profile:' in element:
-            if primary_items["program_arguments"]["directory"]:
-                directory_item = f'"{primary_items["directory_item"]}"'
-                directory = f"<a id={directory_item}</a>\n"
+            if primary_items["program_arguments"]["directory"] and primary_items["directory_items"]["current_item"]:
+                directory_item = f'"{primary_items["directory_items"]["current_item"]}"'
+                directory = f"<a id={directory_item}></a>\n"
             return f'{directory}<br><li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
 
         # Task =========================
@@ -179,9 +179,10 @@ class LineOut:
 
         # Scene =========================
         elif element.startswith("Scene:"):
-            if primary_items["program_arguments"]["directory"]:
-                directory_item = f'scene_{element.split("Scene:&nbsp;")[1]}'
-                directory = f'<a id="{directory_item.replace(" ","_")}"</a>\n'
+            if primary_items["program_arguments"]["directory"] and primary_items["directory_items"]["current_item"]:
+                scene_name = f'scene_{element.split("Scene:&nbsp;")[1]}'
+                primary_items["directory_items"]["scenes"] = scene_name
+                directory = f'<a id="{scene_name.replace(" ","_")}"></a>\n'
             return directory + self.add_style(
                 style_details={
                     "is_list": True,
@@ -226,7 +227,7 @@ class LineOut:
         # Look at level and set up accordingly: 0=str and break, 1=start list, 2=list item, 3= end list, 4=heading, 5=simple string
         match lvl:
             case 0:
-                string = f"{element}" + "<br>\n"
+                string = f"{element}<br>\n"
             case 1:  # lvl=1 >>> Start list
                 string = f"<ul>{element}" + "\n"
             case 2:  # lvl=2 >>> List item
