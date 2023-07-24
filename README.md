@@ -40,14 +40,14 @@ The Tasker backup xml can either be manually uploaded to your Mac/Google Drive, 
 
 ### Installation
 
-- Install maptasker by entering the following command into Terminal:    
+- Install MapTasker by entering the following command into Terminal:    
  
 
      `pip3 install maptasker`        
 
-- To install it to a virtual environment, enter the following command into Terminal:    
+- To install it into a virtual environment, enter the following command into Terminal:    
 
-     `cd xxx`, where 'xxx' is a directory into which you want to set-up the virtual environment    
+     `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment    
      `python -m venv venv`    
      `set VIRTUAL_ENV {directory path to 'xxx'}/venv`    
      `source {directory path to 'xxx'}/venv/bin/activate`  
@@ -68,7 +68,7 @@ The Tasker backup xml can either be manually uploaded to your Mac/Google Drive, 
  
  See below for runtime options.
  
-If running from the sourced github zip file, then do the following to run the program:
+If running from the sourced GITHUB zip file, then do the following to run the program:
 
      `pip install -r requirements.txt`   ...one time only, to first install the prerequisites 
      `python main.py (runtime options...se below)`   ...to run Map-Tasker
