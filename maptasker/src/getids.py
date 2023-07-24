@@ -29,18 +29,17 @@ def get_ids(
     :param head_xml_element: head_xml_element xml element
     :param head_xml_element_name: name of head_xml_element
     :param head_xml_elements_without_profiles: list of elements without ids
-    :return:
+    :return: list of found IDs, or empty list if none found
     """
     # Get Profiles
     found_ids = ""
     if doing_head_xml_element:
         found_ids = ""
-        ids_to_find = 'pids'
-        primary_items["output_lines"].add_line_to_output(
-            primary_items, 1, ""
-        )  # Start Profile list
+        ids_to_find = "pids"
+        # Start Profile list
+        primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
     else:
-        ids_to_find = 'tids'
+        ids_to_find = "tids"
     try:
         # Get a list of the Profiles for this head_xml_element
         found_ids = head_xml_element.find(ids_to_find).text

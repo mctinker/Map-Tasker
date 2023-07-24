@@ -22,7 +22,7 @@ def format_line(primary_items: dict, num: int, item: str) -> str:
         and (
             primary_items["output_lines"].output_lines[num - 1][:5] == "</ul>"
             and primary_items["output_lines"].output_lines[num - 2][:5] == "</ul>"
-            and primary_items["output_lines"].output_lines[num + 1][:4] == "<br>"
+            and primary_items["output_lines"].output_lines[num + 1][:4] == "<ul>"
         )
     ):
         return ""

@@ -39,7 +39,7 @@ def format_html(
             f'<span style="color:{color_to_use};font-family:Courier"><span', "<span"
         )
         return (
-            f'{text_before}<span'
+            f"{text_before}<span"
             f' style="color:{color_to_use}{FONT_TO_USE}">{text_after}{trailing_span}'
         )
     else:

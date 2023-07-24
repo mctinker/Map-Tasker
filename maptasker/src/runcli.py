@@ -36,17 +36,23 @@ from maptasker.src.error import error_handler
 # Get arguments from command line and put them to the proper settings
 # #######################################################################################
 def process_arguments(primary_items: dict, args: object) -> dict:
-
     # Color help?
     if getattr(args, "ch"):
         validate_color("h")
     # Not GUI.  Get input from command line arguments
     if getattr(args, "e"):  # Everything?
         primary_items["program_arguments"]["display_detail_level"] = 3
-        primary_items["program_arguments"]["display_profile_conditions"] = \
-        primary_items["program_arguments"]["display_preferences"] = \
-            primary_items["program_arguments"]["directory"] = \
-        primary_items["program_arguments"]["display_taskernet"] = True
+        primary_items["program_arguments"][
+            "display_profile_conditions"
+        ] = primary_items["program_arguments"]["display_preferences"] = primary_items[
+            "program_arguments"
+        ][
+            "directory"
+        ] = primary_items[
+            "program_arguments"
+        ][
+            "display_taskernet"
+        ] = True
     else:
         primary_items["program_arguments"]["display_detail_level"] = getattr(
             args, "detail"  # Display detail level
@@ -105,10 +111,11 @@ def process_arguments(primary_items: dict, args: object) -> dict:
 
     # Save the arguments
     if getattr(args, "s"):
-        primary_items["program_arguments"], primary_items["colors_to_use"] = (
-            save_restore_args(
-                primary_items["program_arguments"], primary_items["colors_to_use"], True
-            )
+        (
+            primary_items["program_arguments"],
+            primary_items["colors_to_use"],
+        ) = save_restore_args(
+            primary_items["program_arguments"], primary_items["colors_to_use"], True
         )
 
     return primary_items

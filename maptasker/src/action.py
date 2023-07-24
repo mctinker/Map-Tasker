@@ -307,9 +307,9 @@ def get_label_disabled_condition(
                     "action_condition_color",
                     "",
                     (
-                        f' ({boolean_to_inject}condition:  '
-                        f'If {string1}{operator}'
-                        f'{string2})'
+                        f" ({boolean_to_inject}condition:  "
+                        f"If {string1}{operator}"
+                        f"{string2})"
                     ),
                     True,
                 )
@@ -319,9 +319,7 @@ def get_label_disabled_condition(
                 "condition:  If", "<em>UNTIL</em>"
             )
         # Just make all "":conditional: If" as "IF"
-        task_conditions = task_conditions.replace(
-                "condition:  If", "<em>IF</em>"
-            )
+        task_conditions = task_conditions.replace("condition:  If", "<em>IF</em>")
 
     return task_conditions + action_disabled + task_label
 
@@ -349,7 +347,7 @@ def clean_label(lbl: str, colormap: dict) -> str:
 # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
 # Get the: label, whether to continue Task after error, etc.
 # ####################################################################################################
-'''
+"""
 Objective:
 - The objective of the 'get_extra_stuff' function is to retrieve extra details about a Task Action, such as its label, disabled status, and conditions, and format them for output.
 
@@ -377,7 +375,7 @@ Additional aspects:
 - The function formats the output using the 'format_html' function.
 - The function removes any empty '<span>' elements from the output.
 - The function only retrieves extra details if the code represents a Task Action and the display detail level is set to 3.
-'''
+"""
 
 
 def get_extra_stuff(
@@ -427,7 +425,7 @@ def get_extra_stuff(
         )
 
     # See if Task action is to be continued after error
-    if primary_items["program_arguments"]["display_detail_level"] == 3: 
+    if primary_items["program_arguments"]["display_detail_level"] == 3:
         child = code_action.find("se")
         if child is not None and child.text == "false":
             extra_stuff = (
@@ -444,7 +442,7 @@ def get_extra_stuff(
     # For some reason, we're left with an empty "<span..." element.  Remove it.
     extra_stuff = extra_stuff.replace(
         '<span style="color:Yellow;font-family:Courier"><span ',
-        '<span ',
+        "<span ",
     )
 
     return f"{extra_stuff}"

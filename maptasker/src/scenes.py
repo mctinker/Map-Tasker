@@ -13,10 +13,11 @@
 import contextlib
 
 import defusedxml.ElementTree  # Need for type hints
+
 import maptasker.src.tasks as tasks
-from maptasker.src.xmldata import tag_in_type
-from maptasker.src.proclist import process_list
 from maptasker.src.frmthtml import format_html
+from maptasker.src.proclist import process_list
+from maptasker.src.xmldata import tag_in_type
 
 SCENE_TASK_TYPES = {
     "checkchangeTask": "Check Change",
@@ -36,11 +37,11 @@ SCENE_TASK_TYPES = {
     "itemlongclickTask": "ITEM LONG TAP",
 }
 SCENE_TAGS_TO_IGNORE = [
-    'cdate',
-    'edate',
-    'heightLand',
-    'nme',
-    'widthLand',
+    "cdate",
+    "edate",
+    "heightLand",
+    "nme",
+    "widthLand",
 ]
 
 
@@ -70,11 +71,11 @@ def get_scene_elements(
         :param child: pointer to '<xxxElement' Scene xml statement
         :return: nothing
     """
-    element_type = child.tag.split('Element')
+    element_type = child.tag.split("Element")
     # First string is the name of the element
-    name_xml_element = child.find('Str')
+    name_xml_element = child.find("Str")
     # Get the element's geometry
-    geometry_xml_element = child.find('geom').text
+    geometry_xml_element = child.find("geom").text
     geometry = geometry_xml_element.split(",")
     element_name = name_xml_element.text
     primary_items["output_lines"].add_line_to_output(
@@ -155,47 +156,46 @@ def process_scene(
 
         elif tag_in_type(child.tag, True):  # xxxElement?
             # Display the Element details
-            if primary_items["program_arguments"]['display_detail_level'] == 3:
+            if primary_items["program_arguments"]["display_detail_level"] == 3:
                 get_scene_elements(primary_items, child)
+
+            # Look for Tasks associated with this element
             for sub_child in child:  # Go through Element sub-items
                 # Task-Click (<xxxClick>, <xxxTask>, etc.) associated with this Scene's element?
                 if tag_in_type(sub_child.tag, False):
                     # Start Scene's Task list
                     temp_task_list = [sub_child.text]
-                    # Check for valid Task ID
-                    if '-' not in temp_task_list[0]:
-                        primary_items["output_lines"].add_line_to_output(
-                            primary_items, 1, ""
-                        )
-                        task_element, name_of_task = tasks.get_task_name(
-                            primary_items,
-                            sub_child.text,
-                            tasks_found,
-                            temp_task_list,
-                            "",
-                        )
-
-                        # reset to task name since get_task_name changes its value
-                        temp_task_list = [sub_child.text]
-                        extra = "&nbsp;&nbsp;ID:"
-                        task_type = (
-                            "&nbsp;&#45;&#45;Task:"
-                            f" {SCENE_TASK_TYPES[sub_child.tag]}{extra}"
-                        )
-                        # process the Scene's Task
-                        process_list(
-                            primary_items,
-                            task_type,
-                            temp_task_list,
-                            task_element,
-                            tasks_found,
-                        )
-                        # Start a list
-                        primary_items["output_lines"].add_line_to_output(
-                            primary_items, 1, ""
-                        )
-                    else:
+                    if "-" in temp_task_list[0]:
                         break
+                    # Start a list
+                    primary_items["output_lines"].add_line_to_output(
+                        primary_items, 1, ""
+                    )
+                    # Get the name of Task
+                    task_element, name_of_task = tasks.get_task_name(
+                        primary_items,
+                        sub_child.text,
+                        tasks_found,
+                        temp_task_list,
+                        "",
+                    )
+
+                    # reset to task name since get_task_name changes its value
+                    temp_task_list = [sub_child.text]
+                    extra = "&nbsp;&nbsp;ID:"
+                    task_type = (
+                        "&nbsp;&#45;&#45;Task:"
+                        f" {SCENE_TASK_TYPES[sub_child.tag]}{extra}"
+                    )
+                    # process the Scene's Task
+                    process_list(
+                        primary_items,
+                        task_type,
+                        temp_task_list,
+                        task_element,
+                        tasks_found,
+                    )
+
                 elif sub_child.tag == "Str":
                     break
 
@@ -215,14 +215,14 @@ def process_project_scenes(
     project: defusedxml.ElementTree.XML,
     our_task_element: defusedxml.ElementTree.XML,
     found_tasks: list,
-) -> None:
+) -> bool:
     """
     Go through all Scenes for Project, get their detail and output it
         :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param project: xml element of Project we are processing
         :param our_task_element: xml element pointing to our Task
         :param found_tasks: list of Tasks found so far
-        :return: nada
+        :return: True if a Scene was output, False if not
     """
     scene_names = None
     primary_items["scene_count"] = 0
@@ -230,16 +230,21 @@ def process_project_scenes(
         scene_names = project.find("scenes").text
     if scene_names is not None:
         scene_list = scene_names.split(",")
+        
+        # If 2nd and 3rd last output lines are </ul>, then there is one too many.
+        # Counter by adding a new line for the Scene.
+        if primary_items["output_lines"].output_lines[-2][:5] == "</ul>" and primary_items["output_lines"].output_lines[-3][:5] == "</ul>":
+            primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
 
-        # If last line in output has an end underline, then it must have been
+        # If last line in output has an end-ordered-list, then it must have been
         # for the list of Tasks not found in any Profile...and it has to be removed
         # to avoid a double end underline casing mis-alignment of Scene: statements in output
         if primary_items["output_lines"].output_lines[-1] == "</ul>":
-            primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
+            primary_items["output_lines"].delete_last_line(primary_items)
 
+        # If we have at least one Scene, process it
         if scene_list[0]:
             primary_items["scene_count"] = len(scene_list)
-            # # If we have Scene(s), process it/them
             process_list(
                 primary_items,
                 "Scene:",
@@ -251,4 +256,4 @@ def process_project_scenes(
             # Force a line break
             primary_items["output_lines"].add_line_to_output(primary_items, 4, "")
 
-    return
+    return bool(scene_names)

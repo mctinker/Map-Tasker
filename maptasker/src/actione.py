@@ -19,6 +19,7 @@ import maptasker.src.actionr as action_results
 from maptasker.src.action import get_extra_stuff
 from maptasker.src.frmthtml import format_html
 from maptasker.src.error import error_handler
+from maptasker.src.debug import not_in_dictionary
 from maptasker.src.actionc import action_codes
 from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import FONT_TO_USE
@@ -135,7 +136,7 @@ def get_action_code(
             f"Code {the_action_code_plus} not yet"
             f" mapped{get_extra_stuff(primary_items, code_action, action_type)}"
         )
-        logger.debug(f"unmapped task code: {the_action_code_plus} ")
+        not_in_dictionary(primary_items, "Action/Condition", f"'display' for code {the_action_code_plus}")
 
     else:
         # The code is in our dictionary.  Add the display name
@@ -234,6 +235,8 @@ def build_action(
                 True,
             )
         )
+        # Handle this
+        not_in_dictionary(primary_items, "Action", code_element.text)
     else:  # We have Task Action details
         newline = task_code_line.find("\n")  # Break-up new line breaks
         task_code_line_len = len(task_code_line)
@@ -254,16 +257,16 @@ def build_action(
                     alist.append(f"...{item}")
                 count += 1
                 # Only display up to so many continued lines
-                if count == CONTINUE_LIMIT:
+                if count == CONTINUE_LIMIT:  
                     # Add comment that we have reached the limit for continued details
                     alist[-1] = f"{alist[-1]}</span>" + format_html(
                         primary_items,
                         "Red",
                         "",
                         (
-                            f' ... continue limit of {str(CONTINUE_LIMIT)} '
+                            f" ... continue limit of {str(CONTINUE_LIMIT)} "
                             'reached.  See "CONTINUE_LIMIT =" in config.py for '
-                            'details'
+                            "details"
                         ),
                         True,
                     )

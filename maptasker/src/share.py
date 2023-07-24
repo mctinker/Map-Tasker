@@ -42,7 +42,6 @@ def share(
         search_element = share_element.find("g")
         if search_element is not None and search_element.text:
             # Found search...format and output
-            # add_line_to_output(primary_items, 4, "")  # Force new line
             out_string = format_html(
                 primary_items["colors_to_use"],
                 "taskernet_color",
@@ -74,7 +73,7 @@ def description_element_output(
         True,
     )
     indent_html = (
-        '</p><p'
+        "</p><p"
         f' style="margin-left:20px;margin-right:50px;color:{primary_items["colors_to_use"]["taskernet_color"]}{FONT_TO_USE}">'
     )
 
@@ -87,12 +86,12 @@ def description_element_output(
     out_string = out_string.replace("<br/>", indent_html)
     out_string = out_string.replace("<h1>", indent_html)
     out_string = out_string.replace("\r", indent_html)
-    out_string = out_string.replace("<li>", f'{indent_html}')
+    out_string = out_string.replace("<li>", f"{indent_html}")
     out_string = out_string.replace("</li>", "")
     out_string = out_string.replace(
         "<table>",
         (
-            '\n<style>\n.myTable2 {\n color:'
+            "\n<style>\n.myTable2 {\n color:"
             + primary_items["colors_to_use"]["taskernet_color"]
             + ';}\n</style>\n<table class="myTable2">'
         ),

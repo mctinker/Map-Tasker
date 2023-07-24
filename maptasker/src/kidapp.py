@@ -44,7 +44,7 @@ def get_kid_app(element: defusedxml.ElementTree) -> str:
         kid_plugins = f"<br>{four_spaces}Plugins:{kid_plugins[:len(kid_plugins)-2]}"
 
     return (
-        f'<br>&nbsp;&nbsp;&nbsp;[Kid App: Package:{kid_package}, Version'
-        f' Name:{kid_version}, Target Android'
-        f' Version:{kid_target} {kid_features} {kid_plugins}]'
+        f"<br>&nbsp;&nbsp;&nbsp;[Kid App: Package:{kid_package}, Version"
+        f" Name:{kid_version}, Target Android"
+        f" Version:{kid_target} {kid_features} {kid_plugins}]"
     )

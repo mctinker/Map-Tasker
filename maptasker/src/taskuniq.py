@@ -45,7 +45,6 @@ def process_missing_tasks_and_profiles(
         len(projects_with_no_tasks) > 0
         and not primary_items["found_named_items"]["single_task_found"]
     ):
-
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             1,
@@ -75,7 +74,6 @@ def process_missing_tasks_and_profiles(
 
     # List all Projects without Profiles
     if projects_without_profiles:
-
         # Add heading
         primary_items["output_lines"].add_line_to_output(
             primary_items,
@@ -278,7 +276,7 @@ def process_tasks_not_called_by_profile(
     if save_twisty:
         remove_twisty(primary_items)
 
-    # Provide total number of unnamed Tasks
+    # Provide spacing and end list if we have Tasks
     if task_count > 0:
         if primary_items["program_arguments"]["display_detail_level"] > 0:
             primary_items["output_lines"].add_line_to_output(

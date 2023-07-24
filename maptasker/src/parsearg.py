@@ -108,7 +108,7 @@ def runtime_parser():
         action="store_true",
         default=False,
     )
-       # Display directory
+    # Display directory
     parser.add_argument(
         "-directory",
         help="Display a directory of all Projects/Profiles/Tasks/Scenes",

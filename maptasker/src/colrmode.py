@@ -45,7 +45,7 @@ def set_color_mode(appearance_mode: str) -> dict:
             "background_color": "DarkBlue",
             "trailing_comments_color": "PeachPuff",
             "taskernet_color": "LightPink",
-            "preferences_color": 'PeachPuff',
+            "preferences_color": "PeachPuff",
         }
     else:
         return {
@@ -66,5 +66,5 @@ def set_color_mode(appearance_mode: str) -> dict:
             "background_color": "Lavender",
             "trailing_comments_color": "Tomato",
             "taskernet_color": "RoyalBlue",
-            "preferences_color": 'DodgerBlue',
+            "preferences_color": "DodgerBlue",
         }

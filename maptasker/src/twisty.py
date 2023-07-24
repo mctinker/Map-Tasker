@@ -12,6 +12,7 @@
 #                                                                                            #
 # ########################################################################################## #
 from maptasker.src.frmthtml import format_html
+from maptasker.src.sysconst import logger
 
 
 def add_twisty(
@@ -45,7 +46,18 @@ def remove_twisty(primary_items: dict) -> None:
         :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :return: nothing.  The output line is modified to include "</details>"
     """
-    # Replace the last line (</ul>) with </details> to end the twisty/hidden items
-    primary_items["output_lines"].output_lines[-1] = "</ul></details>\n"
+    # Replace the last line (</ul>) with </ul></details> to end the twisty/hidden items
+    # If our unordered list counter is zero, then only insert the </details>
+    if primary_items["unordered_list_count"] == 0:
+        primary_items["output_lines"].output_lines[-1] = "</details>\n"
+    elif primary_items["unordered_list_count"] > 0:
+        primary_items["unordered_list_count"] -= 1
+        primary_items["output_lines"].output_lines[-1] = "</ul></details>\n"
+        logger.info("linout twisty counter deducted: " + str(primary_items["unordered_list_count"]))
+    else:
+        print("Rutroh!")
+        import traceback
+        traceback.print_tb()
+        exit()
 
     return

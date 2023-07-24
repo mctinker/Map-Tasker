@@ -37,11 +37,11 @@ def display_caveats(primary_items: dict) -> None:
     )
     caveat4 = (
         '- Tasks that are identified as "Unnamed/Anonymous" have no name and are'
-        ' considered Anonymous.\n'
+        " considered Anonymous.\n"
     )
     caveat6 = (
         '- All attempts are made to retain embedded HTML (e.g. color=...>") in Tasker'
-        ' fields, but is stripped out of Action labels and TaskerNet comments.'
+        " fields, but is stripped out of Action labels and TaskerNet comments."
     )
     primary_items["output_lines"].add_line_to_output(primary_items, 0, "<hr>")  # line
     primary_items["output_lines"].add_line_to_output(
@@ -68,7 +68,7 @@ def display_caveats(primary_items: dict) -> None:
     ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
         caveat5 = (
             '- For option -d0, Tasks that are identified as "Unnamed/Anonymous" will'
-            ' have their first Action only listed....\n  just like Tasker does.\n'
+            " have their first Action only listed....\n  just like Tasker does.\n"
         )
         primary_items["output_lines"].add_line_to_output(
             primary_items, 4, caveat5

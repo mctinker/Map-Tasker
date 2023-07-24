@@ -65,7 +65,7 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
                     evaluated_results["result_bun"].pop(0)
             case _:
                 error_msg = (
-                    'Function get_results_in_arg_order mapped error: no match for'
+                    "Function get_results_in_arg_order mapped error: no match for"
                     f' "arg":{arg}'
                 )
                 logger.debug(error_msg)

@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 import defusedxml.ElementTree
 
+import maptasker.src.actiond as process_action_codes
+
 # ########################################################################################## #
 #                                                                                            #
 # condition: Process profile condition: time, date, state, event, location, app              #
@@ -13,24 +15,23 @@ import defusedxml.ElementTree
 #                                                                                            #
 # ########################################################################################## #
 import maptasker.src.actione as action_evaluate
-import maptasker.src.actiond as process_action_codes
 
 # action_codes: Master dictionary of Task action and Profile condition codes
-from maptasker.src.actionc import (
-    action_codes,
-)
-from maptasker.src.taskflag import get_priority
+from maptasker.src.actionc import action_codes
+from maptasker.src.debug import not_in_dictionary
 from maptasker.src.sysconst import logger
+from maptasker.src.taskflag import get_priority
 
 
 # #######################################################################################
 # Profile condition: Time
 # #######################################################################################
-def condition_time(
+def condition_time(primary_items: dict,
     the_item: defusedxml.ElementTree.XML, the_output_condition: str
 ) -> str:
     """
     Handle the "Time" condition
+        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
         :param the_item: the xml element with the Condition
         :param the_output_condition: text into which the condition output is to be formated
         :return: the formatted condition's output string
@@ -91,7 +92,8 @@ def condition_time(
             f"{the_output_condition}Time: from {from_variable} to {to_variable} {rep}"
         )
     else:
-        the_output_condition = f'{the_output_condition}{child.text} not yet mapped!'
+        the_output_condition = f"{the_output_condition}{child.text} not yet mapped!"
+        not_in_dictionary(primary_items, "Condition Time", child.text)
     return the_output_condition
 
 
@@ -230,7 +232,7 @@ def condition_event(
         "e",
     )
     # Get the event priority
-    event = f'{event}{get_priority(the_item, True)}'
+    event = f"{event}{get_priority(the_item, True)}"
 
     the_output_condition = f"{the_output_condition}Event: {event}"
     if primary_items["program_arguments"][
@@ -265,7 +267,7 @@ def parse_profile_condition(
         # Find out what the condition is and handle it
         match item.tag:
             case "Time":
-                condition = condition_time(item, condition)  # Get the Time condition
+                condition = condition_time(primary_items, item, condition)  # Get the Time condition
 
             case "Day":
                 condition = condition_day(item, condition)

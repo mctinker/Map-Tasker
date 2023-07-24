@@ -13,11 +13,9 @@
 # ########################################################################################## #
 import defusedxml
 
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME, logger
 from maptasker.src.taskactn import get_task_actions_and_output
-from maptasker.src.sysconst import logger
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME
-from maptasker.src.twisty import add_twisty
-from maptasker.src.twisty import remove_twisty
+from maptasker.src.twisty import add_twisty, remove_twisty
 
 
 # #######################################################################################
@@ -81,9 +79,9 @@ def process_item(
             task_name = task_name_element.text
             if task_name not in primary_items["directory_items"]["tasks"]:
                 # Hyperlink name can not have any embedded blanks.  Substitute a dash for each blank
-                primary_items[
-                    "directory_items"
-                ]["current_item"] = f"task_{task_name.replace(' ', '_')}"  # Save name for directory
+                primary_items["directory_items"][
+                    "current_item"
+                ] = f"task_{task_name.replace(' ', '_')}"  # Save name for directory
                 primary_items["directory_items"]["tasks"].append(task_name)
             else:
                 primary_items["directory_items"]["current_item"] = ""
@@ -92,21 +90,25 @@ def process_item(
 
     # Insert a hyperlink if this is a Task...it has to go before a twisty
     if (
-                primary_items["program_arguments"]["directory"]
-                and primary_items["directory_items"]["current_item"]
-                and "Task:" in list_type
-                and "&#45;&#45;Task:" not in list_type
-            ):
-                directory_item = f'"{primary_items["directory_items"]["current_item"]}"'
-                directory = f"<a id={directory_item}></a>\n"
-                primary_items["output_lines"].add_line_to_output(primary_items, 5, directory)
-                
+        primary_items["program_arguments"]["directory"]
+        and primary_items["directory_items"]["current_item"]
+        and "Task:" in list_type
+        and "&#45;&#45;Task:" not in list_type
+    ):
+        directory_item = f'"{primary_items["directory_items"]["current_item"]}"'
+        directory = f"<a id={directory_item}></a>\n"
+        primary_items["output_lines"].add_line_to_output(primary_items, 5, directory)
+        
+    if list_type == "Scene:":
+        # Force a line break first
+        primary_items["output_lines"].add_line_to_output(primary_items, 0, "")
+
     # Add the "twisty" to hide the Task details
     if primary_items["program_arguments"]["twisty"] and "Task:" in list_type:
         # Add the twisty magic
         add_twisty(primary_items, color_to_use, output_line)
 
-    # Add this Task/Scene to the output
+    # Add this Task/Scene to the output as a list item
     primary_items["output_lines"].add_line_to_output(primary_items, 2, output_line)
     # Put the_item back with the 'ID: nnn' portion included.
     if temp_item:
@@ -131,8 +133,10 @@ def process_item(
         # End the twisty hidden lines if not a Task in a Scene
         if primary_items["program_arguments"]["twisty"]:
             remove_twisty(primary_items)
+        # If not a twisty but is a digit, then this is a Scene's Task...delete previous </ul>
+        elif the_item.isdigit:
+            primary_items["output_lines"].delete_last_line(primary_items)
 
-    # Do we have a Scene?
     elif (
         list_type == "Scene:"
         and primary_items["program_arguments"]["display_detail_level"] > 1
@@ -144,7 +148,6 @@ def process_item(
             tasks_found,
         )
 
-    # End twisty if named Task
     elif primary_items["program_arguments"]["twisty"]:
         remove_twisty(primary_items)
     return
@@ -172,6 +175,7 @@ def process_list(
 
     # Go through all Tasks in the list
     for the_item in the_list:
+        # Process the item (list of items)
         process_item(
             primary_items, the_item, list_type, the_list, the_task, tasks_found
         )

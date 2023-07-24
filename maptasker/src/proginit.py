@@ -38,6 +38,7 @@ from maptasker.src.sysconst import COUNTER_FILE
 from maptasker.src.sysconst import MY_VERSION
 from maptasker.src.sysconst import logger
 from maptasker.src.sysconst import logging
+from maptasker.src.sysconst  import debug_file
 from maptasker.src.taskerd import get_the_xml_data
 
 
@@ -161,7 +162,7 @@ def setup_colors() -> dict:
         :return: color map dictionary
     """
 
-    appearance = 'Dark' if DARK_MODE else "Light"
+    appearance = "Dark" if DARK_MODE else "Light"
     return set_color_mode(appearance)
 
 
@@ -238,8 +239,13 @@ def setup(
     # If we are debugging, output the runtime arguments and colors
     if primary_items["program_arguments"]["debug"]:
         display_debug_info(primary_items)
+        # Redirect print to a debug log
+        log = open(debug_file, "w")
+        # sys.stdout = log
+        sys.stderr = log
 
-    # Start a list (<ul>)
+    # Start a list (<ul>) to force everything to tab over
+    primary_items["unordered_list_count"] = 0
     primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
 
     return primary_items
@@ -254,7 +260,7 @@ def display_starting_info(primary_items: dict) -> None:
         :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
     """
     # Get the screen dimensions from <dmetric> xml
-    screen_element = primary_items['xml_root'].find("dmetric")
+    screen_element = primary_items["xml_root"].find("dmetric")
     screen_size = (
         f'&nbsp;&nbsp;Device screen size: {screen_element.text.replace(",", " X ")}'
         if screen_element is not None
@@ -269,7 +275,7 @@ def display_starting_info(primary_items: dict) -> None:
             "LawnGreen",
             "",
             (
-                "<h2>MapTasker</h2><br Tasker Mapping................&nbsp;&nbsp;&nbsp;Tasker"
+                "<h2>MapTasker</h2><br> Tasker Mapping................&nbsp;&nbsp;&nbsp;Tasker"
                 " version:"
                 f" {primary_items['xml_root'].attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;Map-Tasker"
                 f" version: {MY_VERSION}{screen_size}"
@@ -286,7 +292,7 @@ def display_starting_info(primary_items: dict) -> None:
     # Did we restore the backup from Android?
     if primary_items["program_arguments"]["fetched_backup_from_android"]:
         source_file = (
-            'From Android device'
+            "From Android device"
             f' {primary_items["program_arguments"]["backup_file_http"]} at'
             f' {primary_items["program_arguments"]["backup_file_location"]}'
         )
@@ -360,15 +366,15 @@ def start_up(primary_items: dict) -> dict:
         "named_tasks": 0,
         "scenes": 0,
     }
-    
+
     # Set up directory items
     primary_items["directory_items"] = {
         "current_item": "",
         "projects": [],
-        "profiles": [], 
+        "profiles": [],
         "tasks": [],
-        "scenes": []
+        "scenes": [],
     }
-
+    
     logger.info("exit")
     return primary_items

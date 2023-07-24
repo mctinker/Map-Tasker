@@ -301,8 +301,8 @@ def output_directory(primary_items: dict) -> None:
     do_tasker_element(primary_items, "scene")
 
     do_trailing_matters(primary_items)
-    
-     # Add final rule and break
+
+    # Add final rule and break
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         5,

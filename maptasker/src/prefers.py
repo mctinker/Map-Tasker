@@ -41,7 +41,7 @@ def process_service(
     # Get the name to display
     output_service_name = service_codes[service_name]["display"]
     # Left justify and fill to 15 characters
-    output_service_name = output_service_name.ljust(45, '.')
+    output_service_name = output_service_name.ljust(45, ".")
 
     # If value is a selected item from list, get the item
     if "values" in service_codes[service_name]:
@@ -56,17 +56,15 @@ def process_service(
     elif service_name == "PREF_KEEP_ACCESSIBILITY_SERVICES_RUNNING":
         package_names = ""
         packages = [m.start() for m in re.finditer('"packageName":', service_value)]
-        packages_end = [m.start() for m in re.finditer('}', service_value)]
+        packages_end = [m.start() for m in re.finditer("}", service_value)]
         for number, position in enumerate(packages):
-            package_names = (
-                f"{package_names}<br>{blank * 50}{service_value[position + 14:packages_end[number]]}"
-            )
+            package_names = f"{package_names}<br>{blank * 50}{service_value[position + 14:packages_end[number]]}"
         service_value = package_names
 
     # Add the service name to the output list
     temp_output_lines.append(
         [
-            service_codes[service_name]['num'],
+            service_codes[service_name]["num"],
             (
                 format_html(
                     primary_items["colors_to_use"],

@@ -21,7 +21,10 @@ def error_handler(error_message: str, exit_code: int) -> None:
         :param exit_code: error code to exit with
     """
     # Add our heading to more easily identify the problem
-    final_error_message = f"MapTasker error: {error_message}"
+    if exit_code in {0, 99}:
+        final_error_message = error_message
+    else:
+        final_error_message = f"MapTasker error: {error_message}"
 
     # Print it out for the user
     print(final_error_message)

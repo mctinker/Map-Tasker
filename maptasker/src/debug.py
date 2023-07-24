@@ -58,20 +58,24 @@ def display_debug_info(primary_items: dict) -> None:
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         4,
-        '',
+        "",
     )
     for key, value in primary_items["program_arguments"].items():
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             4,
             format_html(
-                primary_items["colors_to_use"], "unknown_task_color", "", f"{key}: {value}", True
+                primary_items["colors_to_use"],
+                "unknown_task_color",
+                "",
+                f"{key}: {value}",
+                True,
             ),
         )
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         4,
-        '',
+        "",
     )
     for key, value in primary_items["colors_to_use"].items():
         primary_items["output_lines"].add_line_to_output(
@@ -89,5 +93,21 @@ def display_debug_info(primary_items: dict) -> None:
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         4,
-        '',
+        "",
     )
+
+
+def not_in_dictionary(primary_items: dict, type: str, code: str) -> None:
+    """_summary_
+Handle condition if Action/Event/State code not found in our dictionary (actionc.py)
+    Args:
+        primary_items (dict): dictionary of the primary items used throughout the module.  See mapit.py for details
+        type (str): name of condition: Action, State, Event
+        code (str): the xml code
+    """
+    logger.debug(
+        f"Error action code {code} not in the dictionary!",
+    )
+    if primary_items["program_arguments"]["debug"]:
+        print(f"{type} code {code} not found in actionc!")
+    return

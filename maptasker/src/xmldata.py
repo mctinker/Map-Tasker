@@ -157,5 +157,5 @@ def remove_html_tags(text: str, replacement: str) -> str:
     """
     import re
 
-    clean = re.compile('<.*?>')
+    clean = re.compile("<.*?>")
     return re.sub(clean, replacement, text)

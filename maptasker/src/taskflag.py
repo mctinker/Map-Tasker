@@ -26,9 +26,9 @@ def get_priority(element: defusedxml.ElementTree.XML, event: bool) -> str:
     if priority_element is None:
         return ""
     elif event:
-        return f' Priority:{priority_element.text}'
+        return f" Priority:{priority_element.text}"
     else:
-        return f'&nbsp;&nbsp;[Priority: {priority_element.text}]'
+        return f"&nbsp;&nbsp;[Priority: {priority_element.text}]"
 
 
 def get_collision(element: defusedxml.ElementTree.XML) -> str:
@@ -49,7 +49,7 @@ def get_collision(element: defusedxml.ElementTree.XML) -> str:
     else:
         collision_text = "Abort New Task"
 
-    return f'&nbsp;&nbsp;[Collision: {collision_text}]'
+    return f"&nbsp;&nbsp;[Collision: {collision_text}]"
 
 
 def get_awake(element: defusedxml.ElementTree.XML) -> str:
@@ -60,4 +60,4 @@ def get_awake(element: defusedxml.ElementTree.XML) -> str:
     """
 
     awake_element = element.find("stayawake")
-    return "" if awake_element is None else '&nbsp;&nbsp;[Keep Device Awake]'
+    return "" if awake_element is None else "&nbsp;&nbsp;[Keep Device Awake]"

@@ -119,17 +119,7 @@ def build_action_codes(
         update_action_codes(action, the_action_code_plus)
     else:
         build_new_action_codes(action, the_action_code_plus)
-        logger.debug(
-            f"build_new_action_codes: {the_action_code_plus} ",
-            action_codes[the_action_code_plus],
-        )
-        if primary_items["program_arguments"]["debug"]:
-            print(
-                "build_new_action_codes: ",
-                the_action_code_plus,
-                " ",
-                action_codes[the_action_code_plus],
-            )
+ 
     return
 
 
@@ -156,7 +146,9 @@ def add_name_to_action_codes(
 # ####################################################################################################
 # Given a child xml element, determine if it is a boolean of condtion add return if in a list
 # ####################################################################################################
-def get_boolean_or_condition(child: defusedxml.ElementTree, condition_list: list, boolean_list: list) -> tuple[list, list]:
+def get_boolean_or_condition(
+    child: defusedxml.ElementTree, condition_list: list, boolean_list: list
+) -> tuple[list, list]:
     """
     Evaluates the condition/boolean and updates the condition_list and boolean_list.
 
@@ -198,5 +190,7 @@ def process_condition_list(
     condition_list_str = code_action.find("ConditionList")
     if condition_list_str is not None:
         for child in condition_list_str:
-            condition_list, boolean_list = get_boolean_or_condition(child, condition_list, boolean_list)
+            condition_list, boolean_list = get_boolean_or_condition(
+                child, condition_list, boolean_list
+            )
     return condition_list, boolean_list

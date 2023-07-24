@@ -169,7 +169,7 @@ def get_task_name(
                 )
     else:
         task = None
-        task_name = ''
+        task_name = ""
 
     return task, task_name
 
@@ -257,9 +257,9 @@ def do_single_task(
     from maptasker.src.proclist import process_list
 
     logger.debug(
-        'tasks single task'
+        "tasks single task"
         f' name:{primary_items["program_arguments"]["single_task_name"]} our Task'
-        f' name:{our_task_name}'
+        f" name:{our_task_name}"
     )
     if primary_items["program_arguments"]["single_task_name"] == our_task_name:
         # We have the single Task we are looking for
@@ -291,9 +291,8 @@ def do_single_task(
             our_task_element,
             list_of_found_tasks,
         )
-    elif (
-        len(task_list) > 1
-    ):  # If multiple Tasks in this Profile, just get the one we want
+    # If multiple Tasks in this Profile, just get the one we want
+    elif len(task_list) > 1:
         for task_item in task_list:
             if primary_items["program_arguments"]["single_task_name"] in task_item:
                 # Start a new line
@@ -307,6 +306,8 @@ def do_single_task(
                     our_task_element,
                     list_of_found_tasks,
                 )
+                # End Task list
+                primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
                 break
 
 
@@ -344,13 +345,13 @@ def output_task(
             kid_app_info = format_html(
                 primary_items["colors_to_use"], "task_color", "", kid_app_info, True
             )
-            task_list[0] = f'{task_list[0]} {kid_app_info}'
+            task_list[0] = f"{task_list[0]} {kid_app_info}"
         if priority := task_flags.get_priority(our_task_element, False):
-            task_list[0] = f'{task_list[0]} {priority}'
+            task_list[0] = f"{task_list[0]} {priority}"
         if collision := task_flags.get_collision(our_task_element):
-            task_list[0] = f'{task_list[0]} {collision}'
+            task_list[0] = f"{task_list[0]} {collision}"
         if stay_awake := task_flags.get_awake(our_task_element):
-            task_list[0] = f'{task_list[0]} {stay_awake}'
+            task_list[0] = f"{task_list[0]} {stay_awake}"
 
     # Looking for a single Task?  If so, then process it.
     if our_task_name != "" and primary_items["program_arguments"]["single_task_name"]:

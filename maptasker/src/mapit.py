@@ -31,6 +31,7 @@
 # ########################################################################################## #
 
 import contextlib
+import gc
 import sys
 import webbrowser  # To be removed in Python 10.13 (2023?)
 from os import getcwd
@@ -39,15 +40,13 @@ import maptasker.src.proginit as initialize
 import maptasker.src.projects as projects
 import maptasker.src.taskuniq as special_tasks
 from maptasker.src.caveats import display_caveats
-from maptasker.src.prefers import get_preferences
+from maptasker.src.dirout import output_directory
 from maptasker.src.error import error_handler
-from maptasker.src.sysconst import logger
-from maptasker.src.sysconst import debug_out
-from maptasker.src.lineout import LineOut
 from maptasker.src.frmthtml import format_html
 from maptasker.src.frmtline import format_line
-from maptasker.src.dirout import output_directory
-
+from maptasker.src.lineout import LineOut
+from maptasker.src.prefers import get_preferences
+from maptasker.src.sysconst import debug_file, debug_out, logger
 
 # import os
 # print('Path:', os.getcwd())
@@ -67,14 +66,22 @@ def on_crash(exctype, value, traceback):
         # sys.__excepthook__ is the default excepthook that prints the stack trace
         # So we use it directly if we want to see it
         sys.__excepthook__(exctype, value, traceback)
+        print("MapTasker encountered a runtime error!  Error in maptasker_debug.log")
     # Give the user a more graceful error message.
     else:
         # Instead of the stack trace, we print an error message to stderr
-        print("MapTasker encountered a runtime error!", file=sys.stderr)
+        print("\nMapTasker encountered a runtime error!", file=sys.stderr)
+        # print("Exception type:", exctype, " value:", value)
+        print(f"The error log can be found in {debug_file}.")
         print(
-            "Or go to https://github.com/mctinker/Map-Tasker/issues for more help",
+            "Go to https://github.com/mctinker/Map-Tasker/issues to report the problem.\n",
             file=sys.stderr,
         )
+        # Redirect print to a debug log
+        log = open(debug_file, "w")
+        # sys.stdout = log
+        sys.stderr = log
+        sys.__excepthook__(exctype, value, traceback)
 
 
 # #######################################################################################
@@ -96,6 +103,7 @@ def clean_up_memory(
     primary_items["tasker_root_elements"]["all_scenes"].clear()
     primary_items["xml_root"].clear()
     primary_items["output_lines"].output_lines.clear()
+    gc.collect
     return
 
 
@@ -115,6 +123,7 @@ def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> 
         # Output the rest that is in our output queue
         for num, item in enumerate(primary_items["output_lines"].output_lines):
             # Format the output line
+            # logger.info(item)
             output_line = format_line(primary_items, num, item)
             if not output_line:
                 continue
@@ -180,6 +189,8 @@ def output_grand_totals(primary_items: dict) -> None:
             5,
             '<a id="grand_totals"></a>',
         )
+    
+    total_number = "Total number of "
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         1,
@@ -188,10 +199,9 @@ def output_grand_totals(primary_items: dict) -> None:
             "trailing_comments_color",
             "",
             (
-                f"<br>Total number of Projects: {grand_total_projects}<br>Total number"
-                f" of Profiles:  {grand_total_profiles}<br>Total number of Tasks:"
+                f"<hr><br>{total_number}Projects: {grand_total_projects}<br>{total_number}Profiles:  {grand_total_profiles}<br>{total_number}Tasks:"
                 f" {grand_total_unnamed_tasks + grand_total_named_tasks} ({grand_total_unnamed_tasks} unnamed,"
-                f" {grand_total_named_tasks} named)<br>Total number of Scenes:"
+                f" {grand_total_named_tasks} named)<br>{total_number}Scenes:"
                 f" {grand_total_scenes}<br><br>"
             ),
             True,
@@ -203,11 +213,11 @@ def output_grand_totals(primary_items: dict) -> None:
 # ###############################################################################################
 # Set up the major variables used within this program, and set up crash routine
 # ###############################################################################################
-def initialize_everything(file_to_get: str) -> tuple[dict, list, list, list]:
+def initialize_everything(file_to_get: str) -> dict:
     """
     Set up all the variables and logic in case program craps out
         :param file_to_get: file name to get
-        :return: dictionary of primary items used throughout project, and empty staring lists for found_tasks, projects_without_profiles, projects_with_no_tasks
+        :return: dictionary of primary items used throughout project, and empty staring
     """
     # Initialize local variables and other stuff
     output_lines = LineOut()
@@ -228,6 +238,7 @@ def initialize_everything(file_to_get: str) -> tuple[dict, list, list, list]:
     #  task_count_unnamed: number of unnamed Tasks for Project being processed
     #  task_count_no_profile: number of Profiles in Project being processed.
     #  directory_itemd: if displaying a directory then this is a dictionary of items for the directory
+    #  ordered_list_count: count of number of <ul> we currently have in output queue
     primary_items = {
         "xml_tree": None,
         "xml_root": None,
@@ -239,6 +250,7 @@ def initialize_everything(file_to_get: str) -> tuple[dict, list, list, list]:
         "file_to_get": file_to_get,
         "task_count_for_Profile": 0,
         "directory_items": [],
+        "unordered_list_count": 0,
     }
 
     # Get colors to use, runtime arguments etc...all of our primary items we need throughout
@@ -250,13 +262,103 @@ def initialize_everything(file_to_get: str) -> tuple[dict, list, list, list]:
         if primary_items["program_arguments"]["debug"]:
             crash_debug = True
         sys.excepthook = on_crash
-        
- 
+
     # If debugging, force an ESC so that the full command/path are not displayed in VsCode terminal window.
     if primary_items["program_arguments"]["debug"]:
         print("\033c")
 
     return primary_items, [], [], []
+
+
+# ###############################################################################################
+# If not doing a single named item, then output unique Project/Profile situations
+# ###############################################################################################
+def process_unique_situations(
+    primary_items,
+    projects_with_no_tasks,
+    projects_without_profiles,
+    found_tasks,
+    single_project_name,
+    single_profile_name,
+    single_task_name,
+):
+    # Don't do anything if we are looking for a specific named item
+    if single_task_name or single_project_name or single_profile_name:
+        return
+
+    # Get and output all Tasks not called by any Profile
+    special_tasks.process_tasks_not_called_by_profile(
+        primary_items,
+        projects_with_no_tasks,
+        found_tasks,
+    )
+
+    # Get and output all Projects that don't have any Tasks or Profiles
+    special_tasks.process_missing_tasks_and_profiles(
+        primary_items,
+        projects_with_no_tasks,
+        projects_without_profiles,
+    )
+    return
+
+
+# #############################################################################################
+# Display the output in the default web browser
+# #############################################################################################
+def display_output(my_output_dir: str, my_file_name: str) -> None:
+    """_summary_
+
+    Args:
+        my_output_dir (str): _description_
+        my_file_name (str): _description_
+    """
+    logger.debug("MapTasker program ended normally")
+    try:
+        webbrowser.open(f"file://{my_output_dir}{my_file_name}", new=2)
+    except webbrowser.Error:
+        error_handler(
+            "Error: Failed to open output in browser: your browser is not supported.", 1
+        )
+
+    print("You can find 'MapTasker.html' in the current folder.  Program end.")
+
+
+# #############################################################################################
+# Check if doing a single item and if not found, then clean up and exit
+# #############################################################################################
+def check_single_item(
+    primary_items: dict,
+    single_project_name: str,
+    single_project_found: bool,
+    single_profile_name: str,
+    single_profile_found: bool,
+) -> None:
+    """_summary_
+    Check if doing a single item and if not found, then clean up and exit
+        Args:
+            primary_items (dict): dictionary of the primary items used throughout the module.  See mapit.py for details
+            single_project_name (str): name of single Project to find, or empty
+            single_project_found (bool): True if single Project was found
+            single_profile_name (str): name of single Profile to find, or empty
+            single_profile_found (bool): True if single Profile was found
+
+        Returns:
+            None: nothing
+    """
+    # If only doing a single named Project and didn't find it, clean up and exit
+    if single_project_name and not single_project_found:
+        clean_up_and_exit(
+            primary_items,
+            "Project",
+            single_project_name,
+        )
+    # If only doing a single named Profile and didn't find it, clean up and exit
+    if single_profile_name and not single_profile_found:
+        clean_up_and_exit(
+            primary_items,
+            "Profile",
+            single_profile_name,
+        )
 
 
 ##############################################################################################################
@@ -308,13 +410,7 @@ def initialize_everything(file_to_get: str) -> tuple[dict, list, list, list]:
 
 
 def mapit_all(file_to_get: str) -> int:
-    """
-    The primary code starts here
-        :param file_to_get: file name of input backup.xml file or none
-        :return: return code (zero or error code)
-    """
-
-    # Prime all the key variables
+    # Intialize variables and get the backup xml file
     (
         primary_items,
         found_tasks,
@@ -322,119 +418,87 @@ def mapit_all(file_to_get: str) -> int:
         projects_with_no_tasks,
     ) = initialize_everything(file_to_get)
 
-    #######################################################################################
-    # Output directory
-    #######################################################################################
+    # Developer/debug stuff only
+    # primary_items["program_arguments"]["directory"] = True
+    # primary_items["program_arguments"]["debug"] = True
+    # primary_items["program_arguments"]["twisty"] = True
+    # primary_items["program_arguments"]["single_project_name"] = "Base"
+
+    # Set up key variables
+    single_project_name = primary_items["program_arguments"]["single_project_name"]
+    single_profile_name = primary_items["program_arguments"]["single_profile_name"]
+    single_task_name = primary_items["program_arguments"]["single_task_name"]
+
+    # Output the directory first, if requested
     if primary_items["program_arguments"]["directory"]:
         output_directory(primary_items)
 
-    #######################################################################################
-    # Process Tasker Preferences
-    #######################################################################################
+    # If doing Tasker preferencesa, get them
     if primary_items["program_arguments"]["display_preferences"]:
         get_preferences(primary_items)
 
-    # #######################################################################################
-    # Go through XML and Process all Projects
-    # #######################################################################################
+    # Process all Projects and their Profiles
     found_tasks = projects.process_projects_and_their_profiles(
         primary_items,
         found_tasks,
         projects_without_profiles,
     )
 
-    # If we were looking for a specific Project and didn't find it, then quit
-    if (
-        primary_items["program_arguments"]["single_project_name"]
-        and not primary_items["found_named_items"]["single_project_found"]
-    ):
-        clean_up_and_exit(
-            primary_items,
-            "Project",
-            primary_items["program_arguments"]["single_project_name"],
-        )
-    # If we were looking for a specific Profile and didn't find it, then quit
-    if (
-        primary_items["program_arguments"]["single_profile_name"]
-        and not primary_items["found_named_items"]["single_profile_found"]
-    ):
-        clean_up_and_exit(
-            primary_items,
-            "Profile",
-            primary_items["program_arguments"]["single_profile_name"],
-        )
+    # Store results in local variables
+    single_project_found = primary_items["found_named_items"]["single_project_found"]
+    single_profile_found = primary_items["found_named_items"]["single_profile_found"]
+    single_task_found = primary_items["found_named_items"]["single_task_found"]
 
-    # #########################################################################################
-    # Disable directory for next two parts
-    # #########################################################################################
+    check_single_item(
+        primary_items,
+        single_project_name,
+        single_project_found,
+        single_profile_name,
+        single_profile_found,
+    )
+
+    # Turn of the directory temporarily so we don't get duplicates
     temp_dir = primary_items["program_arguments"]["directory"]
     primary_items["program_arguments"]["directory"] = False
 
-    # #########################################################################################
-    # Now let's look for Tasks that are not referenced by any Profile and display a total count
-    # #########################################################################################
-    if (
-        not primary_items["program_arguments"]["single_task_name"]
-        and not primary_items["program_arguments"]["single_project_name"]
-        and not primary_items["program_arguments"]["single_profile_name"]
-    ):
-        special_tasks.process_tasks_not_called_by_profile(
-            primary_items,
-            projects_with_no_tasks,
-            found_tasks,
-        )
+    # Get the list of Tasks not called by a Porfile,
+    # and a list of Projects without Profiles/Tasks
+    process_unique_situations(
+        primary_items,
+        projects_with_no_tasks,
+        projects_without_profiles,
+        found_tasks,
+        single_project_name,
+        single_profile_name,
+        single_task_name,
+    )
 
-        # #######################################################################################
-        # List any Projects without Tasks and Projects without Profiles
-        # #######################################################################################
-        special_tasks.process_missing_tasks_and_profiles(
-            primary_items,
-            projects_with_no_tasks,
-            projects_without_profiles,
-        )
-        
-    # #########################################################################################
-    # Re-enable directory for next two parts
-    # #########################################################################################
+    # Restore the directory setting for the final directory of Totals
     primary_items["program_arguments"]["directory"] = temp_dir
 
-    # #########################################################################################
-    # Output the final tally of Projects/Profiles/Tasks/Scenes
-       # #########################################################################################
-    if primary_items["program_arguments"]["display_detail_level"] > 0:
-        output_grand_totals(primary_items)
+    # Output the grand total (Projects/Profiles/Tasks/Scenes)
+    output_grand_totals(primary_items)
 
-    # Requested single item but invalid item name provided (i.e. no specific Project/Profile/Task found)?
+    # If doing a single named item and the item was not found, clean up and exit
     if (
-        primary_items["program_arguments"]["single_task_name"]
-        and not primary_items["found_named_items"]["single_task_found"]
-        and (
-            not primary_items["program_arguments"]["single_profile_name"]
-            or primary_items["found_named_items"]["single_profile_found"]
-        )
-        and (
-            not primary_items["program_arguments"]["single_project_name"]
-            or primary_items["found_named_items"]["single_project_found"]
-        )
+        (single_task_name and not single_task_found)
+        and (not single_profile_name or single_profile_found)
+        and (not single_project_name or single_project_found)
     ):
         clean_up_and_exit(
             primary_items,
             "Task",
-            primary_items["program_arguments"]["single_task_name"],
+            single_task_name,
         )
 
-    # #######################################################################################
-    # Let's wrap things up...
-    # #######################################################################################
-    # Output caveats if we are displaying the Actions
+    # Display the program caveats
     display_caveats(primary_items)
 
-    # Add html complete code
+    # Finalize the HTML
     final_msg = "\n</body>\n</html>"
     primary_items["output_lines"].add_line_to_output(primary_items, 5, final_msg)
 
-    # Okay, lets generate the actual output file.
-    # Store the output in the current directory
+    # Get the output directory
     my_output_dir = getcwd()
     logger.debug(f"output directory:{my_output_dir}")
     if my_output_dir is None:
@@ -442,25 +506,17 @@ def mapit_all(file_to_get: str) -> int:
         clean_up_memory(primary_items)
         sys.exit(2)
 
+    # Finally, write out alol of the outp[ut that is queied up
     my_file_name = "/MapTasker.html"
-    # Output the generated html
     write_out_the_file(primary_items, my_output_dir, my_file_name)
 
-    # Clean up memory
+    # Clean up
     clean_up_memory(primary_items)
 
-    # Display final output
-    logger.debug("MapTasker program ended normally")
-    try:
-        webbrowser.open(f"file://{my_output_dir}{my_file_name}", new=2)
-    except webbrowser.Error:
-        error_handler(
-            "Error: Failed to open output in browser: your browser is not supported.", 1
-        )
+    # Display the final results in the default web browser
+    display_output(my_output_dir, my_file_name)
 
-    print("You can find 'MapTasker.html' in the current folder.  Program end.")
-
-    # If in ReRun mode, let's do it all again :o)
+    # Rerun this program if "Rerun" was slected from GUI
     with contextlib.suppress(KeyError):
         if primary_items["program_arguments"]["rerun"]:
             mapit_all(primary_items["file_to_get"].name)

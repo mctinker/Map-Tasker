@@ -96,9 +96,10 @@ def migrate(primary_items: dict) -> dict:
 
     # Now, if we have the old binary file saved via pickle, convert it to JSON
     if file_to_check.is_file():
-        primary_items["program_arguments"], primary_items["colors_to_use"] = (
-            restore_old_args(file_to_check)
-        )
+        (
+            primary_items["program_arguments"],
+            primary_items["colors_to_use"],
+        ) = restore_old_args(file_to_check)
         # Save as JSON file.  We don't care about the returned values
         _, _ = save_restore_args(
             primary_items["colors_to_use"], primary_items["program_arguments"], True

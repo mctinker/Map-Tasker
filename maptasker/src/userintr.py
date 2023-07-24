@@ -597,10 +597,10 @@ class MyGui(customtkinter.CTk):
         #  Clear any prior error message
         self.textbox.delete("1.0", "end")
 
-        # Turn off Project and Profile buttons
+        # Turn off Proje1ct and Profile buttons
         self.string_input_button1.deselect()
         self.string_input_button2.deselect()
-        # Display prompt for name
+        # Display prompt for the name
         dialog = customtkinter.CTkInputDialog(
             text=f"Enter Task name:{cancel_button_msg}",
             title="Display Specific Task",
@@ -699,14 +699,12 @@ class MyGui(customtkinter.CTk):
     # #######################################################################################
     # Process the 'Twisty' checkbox
     # #######################################################################################
-
     def twisty_event(self):
         self.twisty = self.twisty_button.get()
 
     # #######################################################################################
     # Process the 'Display directory' checkbox
     # #######################################################################################
-
     def directory_event(self):
         self.directory = self.directory_button.get()
 
@@ -848,7 +846,7 @@ class MyGui(customtkinter.CTk):
     # #######################################################################################
     def get_backup_event(self):
         # Set up default values
-        if self.backup_file_http == "":
+        if self.backup_file_http == "" or self.backup_file_http == None:
             self.backup_file_http = "192.168.0.210:1821"
         if not self.backup_file_location:
             self.backup_file_location = "/Tasker/configs/user/backup.xml"
