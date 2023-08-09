@@ -1,26 +1,28 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# rungui: process GUI for MapTasker                                                          #
-#                                                                                            #
-# Add the following statement (without quotes) to your Terminal Shell configuration file     #
-#  (BASH, Fish, etc.) to eliminate the runtime msg:                                          #
-#  DEPRECATION WARNING: The system version of Tk is deprecated ...                           #
-#  "export TK_SILENCE_DEPRECATION = 1"                                                       #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# rungui: process GUI for MapTasker                                                    #
+#                                                                                      #
+# Add the following statement (without quotes) to your Terminal Shell config file.     #
+#  (BASH, Fish, etc.) to eliminate the runtime msg:                                    #
+#  DEPRECATION WARNING: The system version of Tk is deprecated ...                     #
+#  "export TK_SILENCE_DEPRECATION = 1"                                                 #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 
-from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.colrmode import set_color_mode
+from maptasker.src.debug import display_debug_info
 from maptasker.src.error import error_handler
-from maptasker.src.sysconst import ARGUMENT_NAMES
+from maptasker.src.frmthtml import format_html
+from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.sysconst import ARGUMENT_NAMES, logger
 
 
 def delete_gui(MyGui, user_input):
@@ -31,18 +33,16 @@ def delete_gui(MyGui, user_input):
     del user_input
     del MyGui
 
-
-# #######################################################################################
+# ##################################################################################
 # Get the program arguments from GUI
-# #######################################################################################
+# ##################################################################################
 def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
     """
     Present the GUI and get the runtime details
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param use_gui: flag if usijng the GUI, make sure we import it
         :return: program runtime arguments and colors to use in the output
     """
-
     global MyGui
     if use_gui:
         from maptasker.src.userintr import MyGui
@@ -82,6 +82,7 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
         else:
             # Grab GUI value and put into our runtime arguments dictonary (of same name)
             primary_items["program_arguments"][value] = getattr(user_input, value)
+            logger.info(f"GUI arg: {value} set to: {getattr(user_input, value)}") 
 
     # Make sure our detail_level is an int
     if isinstance(primary_items["program_arguments"]["display_detail_level"], str):
@@ -99,6 +100,15 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
 
     # Delete the GUI
     delete_gui(MyGui, user_input)
+
+    # If we are debugging, output the runtime arguments and colors
+    if primary_items["program_arguments"]["debug"]:
+        GUI = "*** GUI ***"
+        primary_items["output_lines"].add_line_to_output(primary_items, 0, format_html(
+            primary_items["colors_to_use"],
+            "unknown_task_color",
+            "",f"<hr<br>{GUI*10}", True))  # line
+        display_debug_info(primary_items)
 
     return (
         primary_items["program_arguments"],

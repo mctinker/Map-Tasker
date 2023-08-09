@@ -1,21 +1,21 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# getbakup: get the backup file directly from the Android device                             #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# getbakup: get the backup file directly from the Android device                       #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
+
+import os.path
+from os import getcwd
 
 import requests
-from os import getcwd
-import os.path
-
 from requests.exceptions import InvalidSchema
 
 from maptasker.src.error import error_handler
@@ -25,7 +25,7 @@ from maptasker.src.sysconst import logger
 def write_out_backup_file(primary_items: dict, file_contents: bin) -> None:
     """
     We've read in the xml backup file.  Now save it for processing.
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param file_contents: binary contents of backup xml file
         :return: Nothing
     """
@@ -81,9 +81,11 @@ def request_file(
     https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example
         :param backup_file_http: the port to use for the Android device's Tasker server
         :param backup_file_location: location of
-        :return: return code, response: eitherr text string with error message or the contrents of the backup file
+        :return: return code, response: eitherr text string with error message or the 
+        contents of the backup file
     """
-    # Create the URL to request the backup xml file from the Android device running the Tasker server.
+    # Create the URL to request the backup xml file from the Android device running the 
+    # Tasker server.
     url = f"{backup_file_http}/file{backup_file_location}?download=1"
 
     # Make the request.
@@ -110,8 +112,9 @@ def request_file(
 
 def get_backup_file(primary_items: dict) -> None:
     """
-    Set up to fetch the Tasker backup xml file from the Android device running the Tasker server
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+    Set up to fetch the Tasker backup xml file from the Android device running 
+    the Tasker server
+        :param primary_items:  program registry.  See mapit.py for details.
         :return nothing
     """
     # Get the contents of the file.

@@ -1,29 +1,23 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# runcli: intialize command line interface arguments for MapTasker                           #
-#                                                                                            #
-# Add the following statement (without quotes) to your Terminal Shell configuration file     #
-#  (BASH, Fish, etc.) to eliminate the runtime msg:                                          #
-#  DEPRECATION WARNING: The system version of Tk is deprecated ...                           #
-#  "export TK_SILENCE_DEPRECATION = 1"                                                       #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# runcli: intialize command line interface arguments for MapTasker                     #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
+from maptasker.src.config import BACKUP_FILE_HTTP, BACKUP_FILE_LOCATION
 from maptasker.src.sysconst import FONT_TO_USE
-from maptasker.src.config import BACKUP_FILE_HTTP
-from maptasker.src.config import BACKUP_FILE_LOCATION
 
 
 #######################################################################################
 # Initialize Program runtime arguments to default values
-# #######################################################################################
+# ##################################################################################
 # Command line parameters
 def initialize_runtime_arguments() -> dict:
     """
@@ -54,4 +48,9 @@ def initialize_runtime_arguments() -> dict:
         ),  # Backup file was fetched from Android device
         "twisty": False,  # Add Task twisty "▶︎" clickable icons for Task details
         "directory": False,  # Display directory
+        "bold": False,  # Display Project/Profile?Task/Scene names in bold text
+        "highlight": False,  # Highlight Project/Profile?Task/Scene names
+        "italicize": False,  # Italicise Project/Profile?Task/Scene names
+        "underline": False,   # Underline Project/Profile?Task/Scene names
+        "appearance_mode": "system",  # Appearance mode: "system", "dark", or "light"
     }

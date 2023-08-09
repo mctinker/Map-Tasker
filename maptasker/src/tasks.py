@@ -1,42 +1,41 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# tasks: Process Tasks                                                                       #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# tasks: Process Tasks                                                                 #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
-import maptasker.src.actione as action_evaluate
 
-from maptasker.src.xmldata import tag_in_type
-from maptasker.src.kidapp import get_kid_app
-from maptasker.src.getids import get_ids
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME
-from maptasker.src.sysconst import NO_PROJECT
-from maptasker.src.sysconst import logger
+import maptasker.src.actione as action_evaluate
+import maptasker.src.taskflag as task_flags
 from maptasker.src.error import error_handler
 from maptasker.src.frmthtml import format_html
+from maptasker.src.getids import get_ids
+from maptasker.src.kidapp import get_kid_app
+from maptasker.src.proclist import process_list
 from maptasker.src.shellsort import shell_sort
-import maptasker.src.taskflag as task_flags
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME, logger
+from maptasker.src.xmldata import tag_in_type
 
 
-# #######################################################################################
+# ##################################################################################
 # Navigate through Task's Actions and identify each
 # Return a list of Task's actions for the given Task
-# #######################################################################################
+# ##################################################################################
 def get_actions(
     primary_items: dict,
     current_task: defusedxml.ElementTree.XML,
 ) -> list:
     """
     Return a list of Task's actions for the given Task
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param current_task: xml element of the Task we are getting actions for
         :return: list of Task 'action' output lines
     """
@@ -54,8 +53,10 @@ def get_actions(
     if task_actions:
         indentation_amount = ""
         indentation = 0
-        # Task's Action statements can be out-of-order, and we need them in proper-order/sequence
-        # sort the Task's Actions by attrib sr (e.g. sr='act0', act1, act2, etc.) to get them in true order
+        # Task's Action statements can be out-of-order, and we need them in 
+        # proper-order/sequence.
+        # sort the Task's Actions by attrib sr (e.g. sr='act0', act1, act2, etc.) 
+        # to get them in true order.
         if len(task_actions) > 0:
             shell_sort(task_actions, True, False)
 
@@ -108,10 +109,12 @@ def get_actions(
     return tasklist
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Get the name of the task given the Task ID
 # return the Task's element and the Task's name
-# #######################################################################################
+# ##################################################################################
 def get_task_name(
     primary_items,
     the_task_id: str,
@@ -121,7 +124,7 @@ def get_task_name(
 ) -> tuple[defusedxml.ElementTree.XML, str]:
     """
     Get the name of the task given the Task ID
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param the_task_id: the Task's ID (e.g. '47')
         :param tasks_that_have_been_found: list of Tasks found so far
         :param task_output_lines: list of Tasks
@@ -174,9 +177,11 @@ def get_task_name(
     return task, task_name
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Find the Project belonging to the Task id passed in
-# #######################################################################################
+# ##################################################################################
 def get_project_for_solo_task(
     primary_items: dict,
     the_task_id: str,
@@ -184,28 +189,37 @@ def get_project_for_solo_task(
 ) -> tuple[str, defusedxml.ElementTree.XML]:
     """
     Find the Project belonging to the Task id passed in
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
-        :param the_task_id: the ID of the Task
-        :param projects_with_no_tasks: list of Projects that do not have any Tasks
-        :return: name of the Project that belongs to this task and the Project xml element
+    :param primary_items: dictionary of the primary items used throughout the module. See mapit.py for details
+    :param the_task_id: the ID of the Task
+    :param projects_with_no_tasks: list of Projects that do not have any Tasks
+    :return: name of the Project that belongs to this task and the Project xml element
     """
-    proj_name = NO_PROJECT
-    project = None
-    if primary_items["tasker_root_elements"]["all_projects"] is not None:
-        # Go through each Project
-        for project in primary_items["tasker_root_elements"]["all_projects"]:
-            proj_name = project.find("name").text
+    NO_PROJECT = "No Project"
+    project_name = NO_PROJECT
+    project_element = None
+
+    all_projects = primary_items["tasker_root_elements"]["all_projects"]
+    if all_projects is not None:
+        for project_element in all_projects:
+            project_name = project_element.find("name").text
             task_ids = get_ids(
-                primary_items, False, project, proj_name, projects_with_no_tasks
+                primary_items,
+                False,
+                project_element,
+                project_name,
+                projects_with_no_tasks,
             )
             if the_task_id in task_ids:
-                return proj_name, project
-    return proj_name, project
+                return project_name, project_element
+
+    return project_name, project_element
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Identify whether the Task passed in is part of a Scene: True = yes, False = no
-# #######################################################################################
+# ##################################################################################
 def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
     """
     Identify whether the Task passed in is part of a Scene: True = yes, False = no
@@ -231,9 +245,11 @@ def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
     return False
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # We're processing a single task only
-# #######################################################################################
+# ##################################################################################
 def do_single_task(
     primary_items: dict,
     our_task_name: str,
@@ -245,7 +261,7 @@ def do_single_task(
 ) -> None:
     """
     Process a single Task only
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param our_task_name: name of Task we are to process
         :param project_name: name of the Project Task belongs to
         :param profile_name: name of the Profile the Task belongs to
@@ -253,14 +269,15 @@ def do_single_task(
         :param our_task_element: the xml element for this Task
         :param list_of_found_tasks: all Tasks processed so far
     """
-    # Do NOT move this import.  Otherwise, will get recursion error
-    from maptasker.src.proclist import process_list
 
     logger.debug(
         "tasks single task"
         f' name:{primary_items["program_arguments"]["single_task_name"]} our Task'
         f" name:{our_task_name}"
     )
+    # ##################################################################################
+    # We are looking for a specific Task...
+    # ##################################################################################
     if primary_items["program_arguments"]["single_task_name"] == our_task_name:
         # We have the single Task we are looking for
         primary_items["found_named_items"]["single_task_found"] = True
@@ -273,14 +290,16 @@ def do_single_task(
             profile_name,
         )
 
-        # Go get the Task's details
+        # Go get the Task's details if we have a Task list
+        #  Note: we need to save the task_list since process_list will alter it.
         temporary_task_list = []
-        if len(task_list) > 1:  # Make sure task_list has only our found Task
+        if task_list:
             the_task_name_length = len(our_task_name)
-            for item in task_list:
-                if our_task_name == item[:the_task_name_length]:
-                    temporary_task_list = [item]
-                    break
+            temporary_task_list = [
+                item
+                for item in task_list
+                if our_task_name == item[:the_task_name_length]
+            ]
         else:
             temporary_task_list = task_list
         # Go process the Task/Task list
@@ -291,6 +310,7 @@ def do_single_task(
             our_task_element,
             list_of_found_tasks,
         )
+
     # If multiple Tasks in this Profile, just get the one we want
     elif len(task_list) > 1:
         for task_item in task_list:
@@ -311,9 +331,11 @@ def do_single_task(
                 break
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # output_task: we have a Task and need to generate the output
-# #######################################################################################
+# ##################################################################################
 def output_task(
     primary_items: dict,
     our_task_name: str,
@@ -326,7 +348,7 @@ def output_task(
 ) -> bool:
     """
     We have a single Task or a list of Tasks.  Output it/them.
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param our_task_name: name of Task
         :param our_task_element: Task xml element
         :param task_list: Task list
@@ -376,6 +398,7 @@ def output_task(
             our_task_element,
             list_of_found_tasks,
         )
+
         # End Task list
         primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
 

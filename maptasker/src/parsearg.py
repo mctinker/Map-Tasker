@@ -1,34 +1,35 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# parsearg: MapTasker GUI                                                                    #
-#                                                                                            #
-# Add the following statement (without quotes) to your Terminal Shell configuration file     #
-#  (BASH, Fish, etc.) to eliminate the runtime msg:                                          #
-#  DEPRECATION WARNING: The system version of Tk is deprecated ...                           #
-#  "export TK_SILENCE_DEPRECATION = 1"                                                       #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# parsearg: MapTasker GUI                                                              #
+#                                                                                      #
+# Add the following statement (without quotes) to your Terminal Shell config file      #
+#  (BASH, Fish, etc.) to eliminate the runtime msg:                                    #
+#  DEPRECATION WARNING: The system version of Tk is deprecated ...                     #
+#  "export TK_SILENCE_DEPRECATION = 1"                                                 #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# To add an argument, see Program_Guide as reference to necessary changes.             #
+#                                                                                      #
+# #################################################################################### #
 
 import argparse
 import textwrap
 from argparse import ArgumentParser
 
 from maptasker.src.config import GUI
-from maptasker.src.sysconst import TYPES_OF_COLORS
-from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import TYPES_OF_COLORS, logger
 
 
-# #######################################################################################
+# ##################################################################################
 # Get the program arguments using via a GUI (Gooey)
-# #######################################################################################
+# ##################################################################################
 def runtime_parser():
     if GUI:
         return None
@@ -57,10 +58,25 @@ def runtime_parser():
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
+    # Display Project/Profile/Task/Scene names in bold
+    parser.add_argument(
+        "-a",
+        "-appearance",
+        choices=["system", "light", "dark"],
+        help=textwrap.dedent(
+            """ \
+                        Display appearance mode: system (default), light, dark
+                            Example: appearance dark
+                            """
+        ),
+        nargs=1,
+        required=False,
+        default="system",
+    )
     # Get Backup (get backup xml) preferences
     parser.add_argument(
         "-b",
-        "-backup",
+        "-backups",
         metavar="http+location",
         nargs=1,
         required=False,
@@ -82,6 +98,13 @@ def runtime_parser():
         action="store_true",
         default=False,
     )
+    # Debug
+    parser.add_argument(
+        "-debug",
+        help="Print and log debug information",
+        action="store_true",
+        default=False,
+    )
     # Level of detail to display
     parser.add_argument(
         "-detail",
@@ -98,20 +121,13 @@ def runtime_parser():
         choices=[0, 1, 2, 3],
         required=False,
         type=int,
+        nargs=1,
         default=3,
-    )
-    # Debug
-    parser.add_argument(
-        "-d",
-        "-debug",
-        help="Print and log debug information",
-        action="store_true",
-        default=False,
     )
     # Display directory
     parser.add_argument(
         "-directory",
-        help="Display a directory of all Projects/Profiles/Tasks/Scenes",
+        help="Display a directory of hotlinks for all Projects/Profiles/Tasks/Scenes",
         action="store_true",
         default=False,
     )
@@ -122,7 +138,7 @@ def runtime_parser():
         help=textwrap.dedent(
             """ \
                         Display everything: full detail, Profile/Task conditions,
-                        and TaskerNet information
+                        TaskerNet information, directory, etc.
                             """
         ),
         action="store_true",
@@ -140,6 +156,20 @@ def runtime_parser():
         ),
         action="store_true",
         default=False,
+    )
+    # Display Project/Profile/Task/Scene names in bold
+    parser.add_argument(
+        "-names",
+        choices=["bold", "highlight", "underline", "italicize"],
+        help=textwrap.dedent(
+            """ \
+                        Display all Projects/Profiles/Tasks/Scenes in bold, underlined, italicized and/or highlighted text.
+                            Example: names underline italicize
+                            """
+        ),
+        nargs="+",
+        required=False,
+        default="",
     )
     # Display Tasker preferences
     parser.add_argument(
@@ -196,6 +226,15 @@ def runtime_parser():
         action="store_true",
         default=False,
     )
+   
+    group.add_argument(
+        "-task",
+        nargs=1,
+        required=False,
+        type=str,
+        help='Display the details for a single Task only (forces option "-detail 3")',
+    )
+    
     # Display Task details under "hide/twisty"
     parser.add_argument(
         "-twisty",
@@ -206,13 +245,6 @@ def runtime_parser():
         default=False,
     )
 
-    group.add_argument(
-        "-task",
-        nargs=1,
-        required=False,
-        type=str,
-        help='Display the details for a single Task only (forces option "-detail 3")',
-    )
     # Version argument
     parser.add_argument(
         "-v",
@@ -252,9 +284,11 @@ def runtime_parser():
     return args
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Get the program arguments using via a GUI (Gooey)
-# #######################################################################################
+# ##################################################################################
 def output_results(args):
     # Arguments have been provided
     message_out = f"Arguments: {args}"

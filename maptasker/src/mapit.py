@@ -1,34 +1,34 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# mapit: Main Program                                                                        #
-#            Read the Tasker backup file to build a visual map of its configuration:         #
-#            Projects, Profiles, Tasks, Scenes                                               #
-#                                                                                            #
-# mapitall: Kick-off function                                                                #
-#                                                                                            #
-# Requirements                                                                               #
-#      1- Python version 3.10 or higher                                                      #
-#      2- Your Tasker backup.xml file, uploaded to your MAC                                  #
-#                                                                                            #
-# Note: This should work on PC OS's other than a MAC, but it has not been tested             #
-#       on any other platform.                                                               #
-#                                                                                            #
-# Add the following statement (without quotes) to your Terminal Shell configuration file     #
-#  (BASH, Fish, etc.) to eliminate the runtime msg:                                          #
-#  DEPRECATION WARNING: The system version of Tk is deprecated ...                           #
-#  "export TK_SILENCE_DEPRECATION = 1"                                                       #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# Reference: https://github.com/Taskomater/Tasker-XML-Info                                   #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# mapit: Main Program                                                                  #
+#            Read the Tasker backup file to build a visual map of its configuration:   #
+#            Projects, Profiles, Tasks, Scenes                                         #
+#                                                                                      #
+# mapitall: Kick-off function                                                          #
+#                                                                                      #
+# Requirements                                                                         #
+#      1- Python version 3.10 or higher                                                #
+#      2- Your Tasker backup.xml file, uploaded to your MAC                            #
+#                                                                                      #
+# Note: This should work on PC OS's other than a MAC, but it has not been tested       #
+#       on any other platform.                                                         #
+#                                                                                      #
+# Add the following statement (without quotes) to your Terminal Shell config file      #
+#  (BASH, Fish, etc.) to eliminate the runtime msg:                                    #
+#  DEPRECATION WARNING: The system version of Tk is deprecated ...                     #
+#  "export TK_SILENCE_DEPRECATION = 1"                                                 #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# Reference: https://github.com/Taskomater/Tasker-XML-Info                             #
+#                                                                                      #
+# #################################################################################### #
 
 import contextlib
 import gc
@@ -50,17 +50,22 @@ from maptasker.src.sysconst import debug_file, debug_out, logger
 
 # import os
 # print('Path:', os.getcwd())
-# print('__file__={0:<35} | __name__={1:<25} | __package__={2:<25}'.format(__file__,__name__,str(__package__)))
+# print(
+#     "__file__={0:<35} | __name__={1:<25} | __package__={2:<25}".format(
+#         __file__, __name__, str(__package__)
+#     )
+# )
+# print(sys.argv)
 
-# This is the one-and-only global variable needed for a special circumstance: program crash
+# This is the one-and-only global variable needed for a special circumstance:
+#   ...program crash
 crash_debug = False
 
 
-# #######################################################################################
+# ##################################################################################
 # Handle program error gracefully if not in debug mode
-# #######################################################################################
+# ##################################################################################
 def on_crash(exctype, value, traceback):
-    # print(exctype, '-', value, '-', traceback)
     # Display the crash report if in debug mode
     if crash_debug:
         # sys.__excepthook__ is the default excepthook that prints the stack trace
@@ -78,21 +83,21 @@ def on_crash(exctype, value, traceback):
             file=sys.stderr,
         )
         # Redirect print to a debug log
-        log = open(debug_file, "w")
-        # sys.stdout = log
-        sys.stderr = log
-        sys.__excepthook__(exctype, value, traceback)
+        with open(debug_file, "w") as log:
+            # sys.stdout = log
+            sys.stderr = log
+            sys.__excepthook__(exctype, value, traceback)
 
 
-# #######################################################################################
+# ##################################################################################
 # Clean up our memory hogs
-# #######################################################################################
+# ##################################################################################
 def clean_up_memory(
     primary_items: dict,
 ) -> None:
     """
     Clean up our memory hogs
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :return:
     """
     for elem in primary_items["xml_tree"].iter():
@@ -107,13 +112,15 @@ def clean_up_memory(
     return
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # write_out_the_file: we have a list of output lines.  Write them out.
-# #######################################################################################
+# ##################################################################################
 def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> None:
     """
     write_out_the_file: we have a list of output lines.  Write them out.
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param my_output_dir: directory to output to
         :param my_file_name: name of file to use
         :return: nothing
@@ -136,7 +143,8 @@ def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> 
                 output_line = f"    {output_line[details_position + 9:]}"
 
             # Write the actual final line out as html
-            if output_line:
+            if output_line.strip():  # Write out if not blank
+                logger.info(f"Writing: {output_line}")
                 out_file.write(output_line)
             if debug_out:
                 logger.debug(f"mapit output line:{output_line}")
@@ -144,9 +152,11 @@ def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> 
     return
 
 
-# ###############################################################################################
+# ##################################################################################
+
+
 # Cleanup memory and let user know there was no match found for Task/Profile
-# ###############################################################################################
+# ##################################################################################
 def clean_up_and_exit(
     primary_items: dict,
     name: str,
@@ -154,7 +164,7 @@ def clean_up_and_exit(
 ) -> None:
     """
     Cleanup memory and let user know there was no match found for Task/Profile/Project
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param name: the name to add to the log/print output
         :param profile_or_task_name: name of the Profile or Task to clean
     """
@@ -169,13 +179,13 @@ def clean_up_and_exit(
     sys.exit(5)
 
 
-# ###############################################################################################
-# OPutput grand totals
-# ###############################################################################################
+# ##################################################################################
+# Output grand totals
+# ##################################################################################
 def output_grand_totals(primary_items: dict) -> None:
     """
     Output the grand totals of Projects/Profiles/Tasks/Scenes
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
     """
     grand_total_projects = primary_items["grand_totals"]["projects"]
     grand_total_profiles = primary_items["grand_totals"]["profiles"]
@@ -189,7 +199,7 @@ def output_grand_totals(primary_items: dict) -> None:
             5,
             '<a id="grand_totals"></a>',
         )
-    
+
     total_number = "Total number of "
     primary_items["output_lines"].add_line_to_output(
         primary_items,
@@ -210,9 +220,11 @@ def output_grand_totals(primary_items: dict) -> None:
     primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
 
 
-# ###############################################################################################
+# ##################################################################################
+
+
 # Set up the major variables used within this program, and set up crash routine
-# ###############################################################################################
+# ##################################################################################
 def initialize_everything(file_to_get: str) -> dict:
     """
     Set up all the variables and logic in case program craps out
@@ -232,13 +244,16 @@ def initialize_everything(file_to_get: str) -> dict:
     #  output_lines: class for all lines added to output thus far
     #  found_named_items: names/found-flags for single (if any) Project/Profile/Task
     #  file_to_get: file object/name of Tasker backup file to read and parse
-    #  grand_totals: Total count of Projects/Profiles/Named Tasks, Unnamed Taks/All Tasks
-    #  task_count_for_profile: number of Tasks in the specific Profile for Project being processed
+    #  grand_totals: Total count of Projects/Profiles/Named Tasks, Unnamed Task, etc.
+    #  task_count_for_profile: number of Tasks in the specific Profile for Project
+    #    being processed
     #  named_task_count_total: number of named Tasks for Project being processed
     #  task_count_unnamed: number of unnamed Tasks for Project being processed
     #  task_count_no_profile: number of Profiles in Project being processed.
-    #  directory_itemd: if displaying a directory then this is a dictionary of items for the directory
+    #  directory_items: if displaying a directory then this is a dictionary of items
+    #    for the directory
     #  ordered_list_count: count of number of <ul> we currently have in output queue
+    #  name_list: list of names of Projects/Profiles/Tasks/Scenes found thus far
     primary_items = {
         "xml_tree": None,
         "xml_root": None,
@@ -263,16 +278,18 @@ def initialize_everything(file_to_get: str) -> dict:
             crash_debug = True
         sys.excepthook = on_crash
 
-    # If debugging, force an ESC so that the full command/path are not displayed in VsCode terminal window.
-    if primary_items["program_arguments"]["debug"]:
-        print("\033c")
+    # If debugging, force an ESC so that the full command/path are not displayed in
+    #   VsCode terminal window.
+
+    # if primary_items["program_arguments"]["debug"]:
+    #     print("\033c")
 
     return primary_items, [], [], []
 
 
-# ###############################################################################################
+# ##################################################################################
 # If not doing a single named item, then output unique Project/Profile situations
-# ###############################################################################################
+# ##################################################################################
 def process_unique_situations(
     primary_items,
     projects_with_no_tasks,
@@ -302,9 +319,9 @@ def process_unique_situations(
     return
 
 
-# #############################################################################################
+# ##################################################################################
 # Display the output in the default web browser
-# #############################################################################################
+# ##################################################################################
 def display_output(my_output_dir: str, my_file_name: str) -> None:
     """_summary_
 
@@ -323,9 +340,9 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
     print("You can find 'MapTasker.html' in the current folder.  Program end.")
 
 
-# #############################################################################################
+# ##################################################################################
 # Check if doing a single item and if not found, then clean up and exit
-# #############################################################################################
+# ##################################################################################
 def check_single_item(
     primary_items: dict,
     single_project_name: str,
@@ -336,7 +353,7 @@ def check_single_item(
     """_summary_
     Check if doing a single item and if not found, then clean up and exit
         Args:
-            primary_items (dict): dictionary of the primary items used throughout the module.  See mapit.py for details
+            :param primary_items:  Program registry.  See mapit.py for details.
             single_project_name (str): name of single Project to find, or empty
             single_project_found (bool): True if single Project was found
             single_profile_name (str): name of single Profile to find, or empty
@@ -361,41 +378,51 @@ def check_single_item(
         )
 
 
-##############################################################################################################
-#                                                                                                            #
-#   Main Program Starts Here                                                                                 #
-#                                                                                                            #
-##############################################################################################################
+########################################################################################
+#                                                                                      #
+#   Main Program Starts Here                                                           #
+#                                                                                      #
+########################################################################################
 """
--The function 'mapit_all' is the main function of the MapTasker program, which maps the Tasker environment and generates an HTML output file.
+-The function 'mapit_all' is the main function of the MapTasker program, which maps the 
+Tasker environment and generates an HTML output file.
 
 
 
 - The function initializes local variables and other necessary stuff.
 
-- It gets colors to use, runtime arguments, found items, and heading by calling the 'start_up' function from the 'proginit' module.
+- It gets colors to use, runtime arguments, found items, and heading by calling the 
+'start_up' function from the 'proginit' module.
 
-- It prompts the user to locate the Tasker backup XML file to use to map the Tasker environment.
+- It prompts the user to locate the Tasker backup XML file to use to map the Tasker 
+environment.
 
-- It opens and reads the file by calling the 'open_and_get_backup_xml_file' function from the 'proginit' module.
+- It opens and reads the file by calling the 'open_and_get_backup_xml_file' function 
+from the 'proginit' module.
 
-- It gets all the XML data by calling the 'get_the_xml_data' function from the 'taskerd' module.
+- It gets all the XML data by calling the 'get_the_xml_data' function from the 'taskerd'
+module.
 
 - It checks for a valid Tasker backup XML file.
 
-- It processes Tasker preferences and displays them if the 'display_preferences' argument is True.
+- It processes Tasker preferences and displays them if the 'display_preferences' 
+argument is True.
 
-- It processes all projects and their profiles by calling the 'process_projects_and_their_profiles' function from the 'projects' module.
+- It processes all projects and their profiles by calling the 
+'process_projects_and_their_profiles' function from the 'projects' module.
 
-- If a specific project or profile is requested but not found, it exits the program by calling the 'clean_up_and_exit' function.
+- If a specific project or profile is requested but not found, it exits the program by 
+calling the 'clean_up_and_exit' function.
 
 - It looks for tasks that are not referenced by profiles and displays a total count.
 
 - It lists any projects without tasks and projects without profiles.
 
-- If a specific task is requested but not found, it exits the program by calling the 'clean_up_and_exit' function.
+- If a specific task is requested but not found, it exits the program by calling the 
+'clean_up_and_exit' function.
 
-- It outputs caveats if the 'display_detail_level' argument is greater than or equal to 3.
+- It outputs caveats if the 'display_detail_level' argument is greater than or equal 
+to 3.
 
 - It adds HTML complete code to the output.
 
@@ -417,12 +444,6 @@ def mapit_all(file_to_get: str) -> int:
         projects_without_profiles,
         projects_with_no_tasks,
     ) = initialize_everything(file_to_get)
-
-    # Developer/debug stuff only
-    # primary_items["program_arguments"]["directory"] = True
-    # primary_items["program_arguments"]["debug"] = True
-    # primary_items["program_arguments"]["twisty"] = True
-    # primary_items["program_arguments"]["single_project_name"] = "Base"
 
     # Set up key variables
     single_project_name = primary_items["program_arguments"]["single_project_name"]
@@ -457,7 +478,7 @@ def mapit_all(file_to_get: str) -> int:
         single_profile_found,
     )
 
-    # Turn of the directory temporarily so we don't get duplicates
+    # Turn off the directory temporarily so we don't get duplicates
     temp_dir = primary_items["program_arguments"]["directory"]
     primary_items["program_arguments"]["directory"] = False
 

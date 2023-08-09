@@ -1,16 +1,16 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# lineout: format the output for a line and adding it to an output queue (List)              #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# lineout: format the output for a line and adding it to an output queue (List)        #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 """_summary_
 The LineOut class is responsible for generating the output lines that will be displayed 
 to the user.
@@ -24,21 +24,17 @@ with the appropriate HTML styling applied. This is used to add colors, fonts, et
 
 The format_line_list_item() method takes an element string and formats it with styling 
 based on whether it is a Project, Profile, Task, Action, etc. It calls specific handler 
-methods like handle_project(), handle_profile(), etc. to generate the properly formatted 
+methods like handle_project(), handle_profile(), etc. to generate the properly formatted
 output line.
 
 So in summary, LineOut handles generating and formatting each line of output with 
 styling and structure based on the type of element being displayed. The output lines 
 are accumulated and ultimately used to generate the final HTML output file.
 """
-import sys
 import maptasker.src.actione as action_evaluate
 from maptasker.src.debug import display_debug_info
 from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import FONT_TO_USE
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME
-from maptasker.src.sysconst import debug_out
-from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import FONT_TO_USE, UNKNOWN_TASK_NAME, debug_out, logger
 
 
 class LineOut:
@@ -54,8 +50,9 @@ class LineOut:
     ) -> None:
         """
         For whatever reason, we need to clear out the existing output and start anew.
-                :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
-                :param include_the_profile: Boolean flag to indicate whether this is a Profile to be included
+                :param primary_items:  program registry.  See mapit.py for details.
+                :param include_the_profile: Boolean flag to indicate whether this is
+                    a Profile to be included
                 :param project_name: name of the Project, if any
                 :param profile_name: name of the Profile, if any
                 :return: nothing
@@ -105,7 +102,8 @@ class LineOut:
             self.add_line_to_output(primary_items, 1, "")  # Start Project list
         return
 
-    # #############################################################################################
+    # ##################################################################################
+
     # Generate an updated output line with HTML style details
     # Input is a dictionary containing the requirements:
     #  color1 - color to user
@@ -114,7 +112,7 @@ class LineOut:
     #  is_list - boolean: True= is a list HTML element
     #  span - boolean: True= requires a <span> element
     #  font - font to use
-    # #############################################################################################
+    # ##################################################################################
     def add_style(self, style_details: dict) -> str:
         """
         Add appropriate HTML style tags based on parameters in dictionary passed in
@@ -141,15 +139,16 @@ class LineOut:
 
         return line_with_style
 
-    # #############################################################################################
-    # Given a text string to output, format it based on it's contents: Project/Profile/Task/Actrion/Scene
-    # #############################################################################################
+    # ##################################################################################
+    # Given a text string to output, format it based on it's contents:
+    #   Project/Profile/Task/Actrion/Scene
+    # ##################################################################################
     def format_line_list_item(
         self, primary_items: dict, element: str, colormap: dict, font_to_use: str
     ) -> str:
         """
         Generate the output list (<li>) string based on the input XML <code> passed in
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param element: text string to be added to output
         :param colormap: dictionary of colors to use in the output
         :param font_to_use: the font to use in the output
@@ -179,14 +178,14 @@ class LineOut:
 
     def handle_project(self, primary_items: dict, element: str, colormap: dict):
         """_summary_
-Insert the hyperlink target if doing a the directory
-        Args:
-            primary_items (dict): dictionary of the primary items used throughout the module.  See mapit.py for details
-            element (str): text to incorporate after the target
-            colormap (dict): dictionary of colors to use in the output
+        Insert the hyperlink target if doing a the directory
+                Args:
+                    :param primary_items:  Program registry.  See mapit.py for details.
+                    element (str): text to incorporate after the target
+                    colormap (dict): dictionary of colors to use in the output
 
-        Returns:
-            _type_: output text with hyperlink target embedded
+                Returns:
+                    _type_: output text with hyperlink target embedded
         """
         directory = ""
         if (
@@ -213,9 +212,11 @@ Insert the hyperlink target if doing a the directory
             "color1": colormap["bullet_color"],
             "font": font_to_use,
             "element": element,
-            "color2": (colormap["unknown_task_color"]
-            if UNKNOWN_TASK_NAME in element
-            else colormap["task_color"]),
+            "color2": (
+                colormap["unknown_task_color"]
+                if UNKNOWN_TASK_NAME in element
+                else colormap["task_color"]
+            ),
         }
         return self.add_style(style_details)
 
@@ -226,6 +227,14 @@ Insert the hyperlink target if doing a the directory
             and primary_items["directory_items"]["current_item"]
         ):
             scene_name = f'scene_{element.split("Scene:&nbsp;")[1]}'
+            # Get rid of any name attributions
+            if (
+                primary_items["program_arguments"]["bold"]
+                or primary_items["program_arguments"]["italicize"]
+                or primary_items["program_arguments"]["highlight"]
+                or primary_items["program_arguments"]["underline"]
+            ):
+                scene_name = self.remove_attributes(scene_name)
             primary_items["directory_items"]["scenes"] = scene_name
             directory = f'<a id="{scene_name.replace(" ","_")}"></a>\n'
         style_details = {
@@ -236,6 +245,17 @@ Insert the hyperlink target if doing a the directory
             "element": element,
         }
         return directory + self.add_style(style_details)
+
+    def remove_attributes(self, scene_name):
+        scene_name = scene_name.replace("<em>", "")
+        scene_name = scene_name.replace("</em>", "")
+        scene_name = scene_name.replace("<b>", "")
+        scene_name = scene_name.replace("</b>", "")
+        scene_name = scene_name.replace("<mark>", "")
+        scene_name = scene_name.replace("</mark>", "")
+        scene_name = scene_name.replace("<u>", "")
+        scene_name = scene_name.replace("</u>", "")
+        return scene_name
 
     def handle_action(self, element, colormap):
         if "Action: ..." in element:
@@ -257,33 +277,36 @@ Insert the hyperlink target if doing a the directory
         if primary_items["unordered_list_count"] > 0:
             primary_items["unordered_list_count"] -= 1
         return "</ul>" if primary_items["unordered_list_count"] >= 0 else ""
-    
+
     def delete_last_line(self, primary_items):
         # self.my_traceback("3", f"delete last element:{self.output_lines[-1]}")
         if primary_items["unordered_list_count"] > 0:
-            if  self.output_lines[-1] == "</ul>":
+            if self.output_lines[-1] == "</ul>":
                 primary_items["unordered_list_count"] += 1
             else:
                 primary_items["unordered_list_count"] -= 1
         self.output_lines[-1] = ""
-            
+
     def my_traceback(self, key, element):
-        import traceback, sys
-        from maptasker.src.sysconst import logger
+        import sys
+        import traceback
+
         print(f"--------------------------- Traceback:{key}", file=sys.stderr)
         print(element, file=sys.stderr)
         traceback.print_stack()
 
-    # #############################################################################################
+    # ##################################################################################
+
     # Generate the output string based on the input XML <code> passed in
     # Returns a formatted string for output based on the input codes
-    # #############################################################################################
+    # ##################################################################################
     def format_line(self, primary_items: dict, element: str, lvl: int) -> str:
         """
         Start formatting the output line with appropriate HTML
-                :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+                :param primary_items:  program registry.  See mapit.py for details.
                 :param element: the text line being formatted
-                :param lvl: the hierarchical list level for output- 0=heading, 1=start list, 2= list item, 3= end list, 4= plain text
+                :param lvl: the hierarchical list level for output- 0=heading,
+                    1=start list, 2= list item, 3= end list, 4= plain text
                 :return: modified output line
         """
         # list lvl: 0=heading 1=start list 2=Task/Profile/Scene 3=end list 4=special Task
@@ -294,7 +317,7 @@ Insert the hyperlink target if doing a the directory
         # Look at level and set up accordingly: 0=str and break, 1=start list, 2=list item, 3= end list, 4=heading, 5=simple string
         match lvl:
             case 0:
-                string = f"{element}<br>\n"
+                string = f"{element}<br>"
             case 1:  # lvl=1 >>> Start list
                 # self.my_traceback(" <ul>", element)
                 string = f"<ul>{element}" + "\n"
@@ -316,14 +339,15 @@ Insert the hyperlink target if doing a the directory
                 # self.my_traceback(" </ul>", element)
                 string = primary_items["output_lines"].end_unordered_list(primary_items)
             case 4:  # lvl=4 >>> Heading or plain text line
-                string = f"{element}<br>\n"
+                string = f"{element}<br>"
             case 5:  # lvl=5 >>> Plain text line
                 string = element + "\n"
         return string
 
-    # #############################################################################################
+    # ##################################################################################
+
     # Write line of output
-    # #############################################################################################
+    # ##################################################################################
     def add_line_to_output(
         self,
         primary_items: dict,
@@ -332,7 +356,7 @@ Insert the hyperlink target if doing a the directory
     ) -> None:
         """
         Add line to the list of output lines.  The output entry is based on the list_level and the contents of the output_str
-            :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+            :param primary_items:  program registry.  See mapit.py for details.
             :param list_level: level we are outputting
             :param out_string: the string to add to the output
             :return: none

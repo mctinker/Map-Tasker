@@ -1,16 +1,16 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# proginit: perform program initialization functions                                         #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# proginit: perform program initialization functions                                   #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 
 import atexit
 import datetime
@@ -19,8 +19,7 @@ from json import dumps, loads  # For write and read counter
 from pathlib import Path
 
 # importing tkinter and tkinter.ttk and all their functions and classes
-from tkinter import Tk
-from tkinter import messagebox
+from tkinter import Tk, messagebox
 
 # importing askopenfile (from class filedialog) and messagebox functions
 from tkinter.filedialog import askopenfile
@@ -28,24 +27,25 @@ from tkinter.filedialog import askopenfile
 import maptasker.src.migrate as old_to_new
 import maptasker.src.progargs as get_arguments
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.config import DARK_MODE
-from maptasker.src.config import GUI
+from maptasker.src.config import DARK_MODE, GUI
 from maptasker.src.debug import display_debug_info
 from maptasker.src.error import error_handler
 from maptasker.src.frmthtml import format_html
 from maptasker.src.getbakup import get_backup_file
-from maptasker.src.sysconst import COUNTER_FILE
-from maptasker.src.sysconst import MY_VERSION
-from maptasker.src.sysconst import logger
-from maptasker.src.sysconst import logging
-from maptasker.src.sysconst  import debug_file
+from maptasker.src.sysconst import (
+    COUNTER_FILE,
+    MY_VERSION,
+    TYPES_OF_COLOR_NAMES,
+    logger,
+    logging,
+)
 from maptasker.src.taskerd import get_the_xml_data
 
 
-# #############################################################################################
+# ##################################################################################
 # Use a counter to determine if this is the first time run.
 #  If first time only, then provide a user prompt to locate the backup file
-# #############################################################################################
+# ##################################################################################
 def read_counter():
     """Read the program counter
     Get the count of the number of times MapTasker has been called
@@ -76,14 +76,14 @@ run_counter = read_counter()
 atexit.register(write_counter)
 
 
-# #######################################################################################
+# ##################################################################################
 # Open and read the Tasker backup XML file
 # Return the file name for use for
-# #######################################################################################
+# ##################################################################################
 def open_and_get_backup_xml_file(primary_items: dict) -> dict:
     """
     Open the Tasker backup file and return the file object
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :return: primary_items
     """
     # Fetch backup xml directly from Android device?
@@ -107,7 +107,8 @@ def open_and_get_backup_xml_file(primary_items: dict) -> dict:
     dir_path = Path.cwd()
     logger.info(f"dir_path: {dir_path}")
 
-    # If debug and we didn't fetch the backup file from Android device, default to "backup.xml" file as backup to restore
+    # If debug and we didn't fetch the backup file from Android device, default to
+    # "backup.xml" file as backup to restore
     if (
         primary_items["program_arguments"]["debug"]
         and not primary_items["program_arguments"]["fetched_backup_from_android"]
@@ -153,22 +154,45 @@ def open_and_get_backup_xml_file(primary_items: dict) -> dict:
     return primary_items
 
 
-# #############################################################################################
+# ##################################################################################
 # Build color dictionary
-# #############################################################################################
-def setup_colors() -> dict:
+# ##################################################################################
+def setup_colors(primary_items: dict) -> dict:
+    """_summary_
+    Determine and set colors to use in the output
+        Args:
+            primary_items (dict): program registry.  See mapit.py for details.
+
+        Returns:
+            dict: dictionary of colors to use.
     """
-    Set up the initial colors to use.
-        :return: color map dictionary
-    """
 
-    appearance = "Dark" if DARK_MODE else "Light"
-    return set_color_mode(appearance)
+    # Runtime argument "appearance" establishes the mode.
+    # If it is not specified, then DARK_MODE from config.py sets mode.
+    appearance = primary_items["program_arguments"]["appearance_mode"] or (
+        "dark" if DARK_MODE else "light"
+    )
+
+    colors_to_use = set_color_mode(appearance)
+
+    # See if a color has already been assigned.  If so, keep it.  Otherwise,
+    # use default from set_color_mode.
+    if primary_items["colors_to_use"]:
+        for color_argument_name in TYPES_OF_COLOR_NAMES.values():
+            try:
+                if primary_items["colors_to_use"][color_argument_name]:
+                    colors_to_use[color_argument_name] = primary_items["colors_to_use"][
+                        color_argument_name
+                    ]
+            except KeyError:
+                continue
+
+    return colors_to_use
 
 
-# #############################################################################################
+# ##################################################################################
 # Setup logging
-# #############################################################################################
+# ##################################################################################
 def setup_logging() -> None:
     """
     Set up the logging: name the file and establish the log type and format
@@ -183,13 +207,13 @@ def setup_logging() -> None:
     logger.info(sys.version_info)
 
 
-##############################################################################################
+# ##################################################################################
 # Log the arguments
-# ############################################################################################
+# ##################################################################################
 def log_startup_values(primary_items: dict) -> None:
     """
     Log the runtime arguments
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
     """
     setup_logging()  # Get logging going
     logger.info(f"{MY_VERSION} {str(datetime.datetime.now())}")
@@ -200,16 +224,17 @@ def log_startup_values(primary_items: dict) -> None:
         logger.info(f"colormap for {key} set to {value}")
 
 
-##############################################################################################
+# ##################################################################################
 # Program setup: initialize key elements
-# ############################################################################################
+# ##################################################################################
 def setup(
     primary_items: dict,
 ) -> dict:
     """
     Perform basic setup
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
-        :return xml tree, xml root, all Tasker Projects/Profiles/Tasks/Scenes, output lines, the heading
+        :param primary_items:  program registry.  See mapit.py for details.
+        :return xml tree, xml root, all Tasker Projects/Profiles/Tasks/Scenes,
+            output lines, the heading
     """
 
     primary_items["program_arguments"]["file"] = primary_items["file_to_get"]
@@ -239,10 +264,6 @@ def setup(
     # If we are debugging, output the runtime arguments and colors
     if primary_items["program_arguments"]["debug"]:
         display_debug_info(primary_items)
-        # Redirect print to a debug log
-        log = open(debug_file, "w")
-        # sys.stdout = log
-        sys.stderr = log
 
     # Start a list (<ul>) to force everything to tab over
     primary_items["unordered_list_count"] = 0
@@ -251,13 +272,13 @@ def setup(
     return primary_items
 
 
-##############################################################################################
+# ##################################################################################
 # Display/output the start up information
-# ############################################################################################
+# ##################################################################################
 def display_starting_info(primary_items: dict) -> None:
     """
     Display the heading and source file details
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
     """
     # Get the screen dimensions from <dmetric> xml
     screen_element = primary_items["xml_root"].find("dmetric")
@@ -266,13 +287,25 @@ def display_starting_info(primary_items: dict) -> None:
         if screen_element is not None
         else ""
     )
+
+    # Set up highlight background color if needed
+    if primary_items["program_arguments"]["highlight"]:
+        background_color_html = (
+            "<style>\nmark { \nbackground-color: "
+            + primary_items["colors_to_use"]["highlight_color"]
+            + ";\n}\n</style>\n"
+        )
+    else:
+        background_color_html = ""
+
     # Format the output heading
+    heading_color = primary_items["colors_to_use"]["heading_color"]
     primary_items["heading"] = (
-        "<!doctype html>\n<html lang=”en”>\n<head>\n<title>MapTasker</title>\n<body"
+        f"<!doctype html>\n<html lang=”en”>\n<head>\n{background_color_html}<title>MapTasker</title>\n<body"
         f" style=\"background-color:{primary_items['colors_to_use']['background_color']}\">\n"
         + format_html(
             primary_items["colors_to_use"],
-            "LawnGreen",
+            heading_color,
             "",
             (
                 "<h2>MapTasker</h2><br> Tasker Mapping................&nbsp;&nbsp;&nbsp;Tasker"
@@ -309,7 +342,7 @@ def display_starting_info(primary_items: dict) -> None:
         0,
         format_html(
             primary_items["colors_to_use"],
-            "LawnGreen",
+            heading_color,
             "",
             f"<br><br>Source backup file: {source_file}",
             True,
@@ -317,25 +350,28 @@ def display_starting_info(primary_items: dict) -> None:
     )
 
 
-##############################################################################################
+# ##################################################################################
 # Perform maptasker program initialization functions
-# #############################################################################################
+# ##################################################################################
 def start_up(primary_items: dict) -> dict:
     """
     Perform maptasker program initialization functions
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :return: primary_items...See mapit.py for details
     """
-    primary_items["colors_to_use"] = setup_colors()  # Get our map of colors
 
     # Get any arguments passed to program
     logger.info(f"sys.argv{str(sys.argv)}")
 
-    # Rename/convert any old argument file to new name/format for clarity (one time only operation)
+    # Rename/convert any old argument file to new name/format for clarity
+    # (one time only operation)
     primary_items = old_to_new.migrate(primary_items)
 
     # Get runtime arguments (from CLI or GUI)
     primary_items = get_arguments.get_program_arguments(primary_items)
+
+    # Get our map of colors
+    primary_items["colors_to_use"] = setup_colors(primary_items)
 
     # Setup program key elements
     primary_items = setup(primary_items)
@@ -375,6 +411,6 @@ def start_up(primary_items: dict) -> dict:
         "tasks": [],
         "scenes": [],
     }
-    
+
     logger.info("exit")
     return primary_items

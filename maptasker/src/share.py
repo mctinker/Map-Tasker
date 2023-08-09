@@ -1,20 +1,20 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
+# #################################################################################### #
+#                                                                                      #
 # share: process TaskerNet "Share" information                                               #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
 
-from maptasker.src.sysconst import FONT_TO_USE
 from maptasker.src.frmthtml import format_html
+from maptasker.src.sysconst import FONT_TO_USE
 
 
 def share(
@@ -23,7 +23,7 @@ def share(
 ) -> None:
     """
     Go through xml <Share> elements to grab and output TaskerNet description and search-on lines
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param root_element: beginning xml element (e.g. Project or Task)
     """
     # Get the <share> element, if any
@@ -61,7 +61,7 @@ def description_element_output(
 ) -> None:
     """
     We have a Taskernet description (<Share>).  Clean it uip and add it to the output list
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param description_element: xml element <d> TaskerNet description
     """
     # We need to properly format this since it has embedded stuff that screws it up

@@ -1,36 +1,35 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# action: Find Task's Action arguments (<argn>) and return as sorted list                    #
-#                                                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# action: Find Task's Action arguments (<argn>) and return as sorted list              #
+#                                                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 
 import defusedxml.ElementTree
 
-from maptasker.src.shellsort import shell_sort
-from maptasker.src.frmthtml import format_html
-from maptasker.src.xmldata import remove_html_tags
 from maptasker.src.error import error_handler
+from maptasker.src.frmthtml import format_html
+from maptasker.src.shellsort import shell_sort
+from maptasker.src.xmldata import remove_html_tags
 
 
-# #######################################################################################
+# ##################################################################################
 # Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
-#  This is only called if the action code is not already in our master dictionary actionc.py
+#  This is only called if the action code is not already in our master dictionary
+#   actionc.py
 # Input:
 #   action: list of actions or parameters
 #   ignore_list: xml to ignore (e.g. label, on, etc.
 # Output:
 #   arg_lst: list of sorted args as numbers only (e.g. 'arg' removed from 'arg0')
 #   type_list: list of sorted types (e.g. 'Int', 'Str', etc.)
-
-
-# #######################################################################################
+# ##################################################################################
 def get_args(
     action: defusedxml.ElementTree, ignore_list: list
 ) -> tuple[list, list, list]:
@@ -67,23 +66,24 @@ def get_args(
     return arguments, argument_types, arg_nums
 
 
-# ####################################################################################################
+# ##################################################################################
 # Check a value for '0' and return the appropriate string if it is/isn't
-# ####################################################################################################
+# ##################################################################################
 def if_zero_else(the_value: str, if_zero_string: str, if_not_zero_string: str) -> str:
     """
     Returns string #1 if the value is 0, otherwise return string #2
         :param the_value: the value to evaluate
         :param if_zero_string: the string to return if the value to evaluate is zero
-        :param if_not_zero_string: the string to return if the value to evaluate is not zero
+        :param if_not_zero_string: the string to return if the value to evaluate 
+                is not zero
         :return: the value set by the above evaluation
     """
     return if_zero_string if the_value == "0" else if_not_zero_string
 
 
-# ####################################################################################################
+# ##################################################################################
 # Evaluate the If statement and return the operation
-# ####################################################################################################
+# ##################################################################################
 def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
     """
     Evaluate the If statement and return the operation
@@ -138,14 +138,15 @@ def drop_trailing_comma(match_results: str) -> str:
     return match_results
 
 
-# ####################################################################################################
+# ##################################################################################
 # Define a class for converting string '1' setting to its value
-# code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
+# code_flag identifies the type of xml data to go after based on the specific code 
+#   in <code>xxx</code>
 # *args is an undetermined number of lists, each consisting of 3 pairs:
 #   1: True=it is a string, False it is an integer,
 #   2: the value to test
 #   3: the value to plug in if it meets the test
-# ####################################################################################################
+# ##################################################################################
 def evaluate_action_setting(*args: list) -> list:
     """
     Define a class for converting string '1' setting to its value
@@ -164,14 +165,16 @@ def evaluate_action_setting(*args: list) -> list:
     return results
 
 
-# ####################################################################################################
-# Given a required value logic and its position, evaluate the found integer and add to match_results
-# code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
+# ##################################################################################
+# Given a required value logic and its position, evaluate the found integer and add 
+#   to match_results
+# code_flag identifies the type of xml data to go after based on the specific code 
+#   in <code>xxx</code>
 # *args is an undetermined number of lists, each consisting of 3 pairs:
 #   1: True=it is a string, False it is an integer,
 #   2: the value to test
 #   3: the value to plug in if it meets the test
-# ####################################################################################################
+# ##################################################################################
 def process_xml_list(
     names: list,
     arg_location: int,
@@ -180,8 +183,10 @@ def process_xml_list(
     arguments: defusedxml.ElementTree,
 ) -> None:
     """
-    Given a required value logic and its position, evaluate the found integer and add to match_results
-    # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
+    Given a required value logic and its position, evaluate the found integer and add 
+        to match_results
+    # code_flag identifies the type of xml data to go after based on the specific code 
+    #   in <code>xxx</code>
     # *args is an undetermined number of lists, each consisting of 3 pairs:
     #   1: True=it is a string, False it is an integer,
     #   2: the value to test
@@ -201,7 +206,8 @@ def process_xml_list(
     the_title = the_list[0]  # Title is first element in the list
     idx = 0
     running = True
-    # Loop through list two items at a time: 1st element is digit, 2nd element is the name
+    # Loop through list two items at a time: 1st element is digit, 
+    #   2nd element is the name
     # to apply if it matches.
     while running:
         idx = (idx + 1) % len(the_list)  # Get next element = first element in pair
@@ -239,7 +245,8 @@ def process_xml_list(
                         f" in lookup_values (actiont) for item {the_list[idx]} which is"
                         f" {[lookup_values[the_list[idx]]]}"
                     )
-            # Error: the element is not in the lookup table.  OHandle the error and exit.
+            # Error: the element is not in the lookup table.  
+            # Handle the error and exit.
             else:
                 match_results.append(
                     f"MapTasker 'mapped' error in action: {the_list[idx]} is not in"
@@ -261,9 +268,9 @@ def process_xml_list(
     return
 
 
-# ####################################################################################################
+# ##################################################################################
 # Get Task's label, disabled flag and any conditions
-# ####################################################################################################
+# ##################################################################################
 def get_label_disabled_condition(
     child: defusedxml.ElementTree.XML, colormap: dict
 ) -> str:
@@ -324,46 +331,55 @@ def get_label_disabled_condition(
     return task_conditions + action_disabled + task_label
 
 
-# ####################################################################################################
-# Given the Task action's label, get rid of anything that could be problematic for the output format
-# ####################################################################################################
+# ##################################################################################
+# Given the Task action's label, get rid of anything that could be problematic 
+# for the output format
+# ##################################################################################
 def clean_label(lbl: str, colormap: dict) -> str:
     """
-    Given the Task action's label, get rid of anything that could be problematic for the output format
+    Given the Task action's label, get rid of anything that could be problematic 
+    for the output format
         :param lbl: the label to clean up
         :param colormap: the colors to use in the output
         :return: the cleaned up label with added html tags for a label's color
     """
     # Look for label with <font color=...> embedded
     lbl = remove_html_tags(lbl, "")
-
+    print("action: ", colormap["action_label_color"])
     return format_html(
-        colormap, "action_label_color", "", f" ...with label: {lbl}", True
+        colormap, colormap["action_label_color"], "", f" ...with label: {lbl}", True
     )
 
 
-# ####################################################################################################
+# ##################################################################################
 # Chase after relevant data after <code> Task action
-# code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
+# code_flag identifies the type of xml data to go after based on the specific code 
+# in <code>xxx</code>
 # Get the: label, whether to continue Task after error, etc.
-# ####################################################################################################
+# ##################################################################################
 """
 Objective:
-- The objective of the 'get_extra_stuff' function is to retrieve extra details about a Task Action, such as its label, disabled status, and conditions, and format them for output.
+- The objective of the 'get_extra_stuff' function is to retrieve extra details about 
+    a Task Action, such as its label, disabled status, and conditions, and format 
+    them for output.
 
 Inputs:
 - 'code_action': an xml element representing the Task Action code
-- 'action_type': a boolean indicating whether the code represents a Task Action or a Profile condition
+- 'action_type': a boolean indicating whether the code represents a Task Action or 
+                    a Profile condition
 - 'colormap': a dictionary containing colors to use in output
 - 'program_args': a dictionary containing runtime arguments
 
 Flow:
-- Check if the code represents a Task Action and if the display detail level is set to 3.
-- If so, retrieve the label, disabled status, and conditions of the Task Action using the 'get_label_disabled_condition' function and format them for output.
+- Check if the code represents a Task Action and if the display detail level 
+    is set to 3.
+- If so, retrieve the label, disabled status, and conditions of the Task Action using 
+    the 'get_label_disabled_condition' function and format them for output.
 - Check if the debug mode is enabled and if the code represents a Task Action.
 - If so, add the code to the output.
 - Check if the display detail level is set to 3.
-- If so, check if the Task Action is set to continue after an error and add it to the output.
+- If so, check if the Task Action is set to continue after an error and add it 
+    to the output.
 - Remove any empty '<span>' elements from the output.
 - Return the formatted output.
 
@@ -371,10 +387,12 @@ Outputs:
 - A string containing the formatted extra details about the Task Action.
 
 Additional aspects:
-- The function uses the 'get_label_disabled_condition' function to retrieve the label, disabled status, and conditions of the Task Action.
+- The function uses the 'get_label_disabled_condition' function to retrieve the label, 
+    disabled status, and conditions of the Task Action.
 - The function formats the output using the 'format_html' function.
 - The function removes any empty '<span>' elements from the output.
-- The function only retrieves extra details if the code represents a Task Action and the display detail level is set to 3.
+- The function only retrieves extra details if the code represents a Task Action and 
+    the display detail level is set to 3.
 """
 
 
@@ -387,7 +405,7 @@ def get_extra_stuff(
     # Chase after relevant data after <code> Task action
     # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
     # Get the: label, whether to continue Task after error, etc.
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param code_action: action code (e.g. "543") xml element
         :param action_type: True if this is a Task Action, otherwise False
         :return: formatted line of extra details about Task Action
@@ -448,15 +466,15 @@ def get_extra_stuff(
     return f"{extra_stuff}"
 
 
-# ####################################################################################################
+# ##################################################################################
 # Get the application specifics for the given code
-# ####################################################################################################
+# ##################################################################################
 def get_app_details(
     primary_items: dict, code_child: defusedxml.ElementTree.XML, action_type: bool
 ) -> tuple[str, str, str, str]:
     """
     Get the application specifics for the given code (<App>)
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param code_child: Action xml element
         :param action_type: True if this is a Task, False if a condition
         :return: the aplication specifics - class, package name, app name, extra stuff

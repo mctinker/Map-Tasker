@@ -1,38 +1,34 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# userintr: provide GUI and process input for program arguments                              #
-#                                                                                            #
-# Add the following statement (without quotes) to your Terminal Shell configuration file     #
-#  (BASH, Fish, etc.) to eliminate the runtime msg:                                          #
-#  DEPRECATION WARNING: The system version of Tk is deprecated ...                           #
-#  "export TK_SILENCE_DEPRECATION = 1"                                                       #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# userintr: provide GUI and process input for program arguments                        #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import contextlib
-import customtkinter
 from pathlib import Path
+
+import customtkinter
 from CTkColorPicker.ctk_color_picker import AskColor
-from maptasker.src.getputarg import save_restore_args
-from maptasker.src.proginit import setup
-from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES
-from maptasker.src.sysconst import ARGUMENT_NAMES
+
 from maptasker.src.colrmode import set_color_mode
+from maptasker.src.getputarg import save_restore_args
+from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
+from maptasker.src.proginit import setup
+from maptasker.src.sysconst import ARGUMENT_NAMES, TYPES_OF_COLOR_NAMES
 
 # Color Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_appearance_mode("System")
 # Themes: "blue" (standard), "green", "dark-blue"
 customtkinter.set_default_color_theme("blue")
-
+#  FIX for names
 INFO_TEXT = (
     "MapTasker displays your Android Tasker configuration based on your uploaded Tasker"
     ' backup file (e.g. "backup.xml").  The display will optionally include all'
@@ -45,28 +41,30 @@ INFO_TEXT = (
     " display of Profile and Task conditions.\n\n* Display TaskerNet Info - If"
     " available, display TaskerNet publishing information\n\n* Display Tasker"
     " Preferences - display Tasker's system Preferences\n\n* Hide Task Details"
-    " under Twisty: hide Task information within ► and click to display.\n\n* Display directory of hyperlinks at beginning\n\n* Save"
+    " under Twisty: hide Task information within ► and click to display.\n\n* Display"
+    " directory of hyperlinks at beginning\n\n* Project/Profile/Task/Scene Names"
+    " options to italicize, bold, underline and/or highlight their names\n\n * Save"
     " Settings - Save these settings for later use.\n\n* Restore Settings - Restore the"
     " settings from a previously saved session.\n\n* Appearance Mode: Dark, Light, or"
     " System default.\n\n* Reset Options: Clear everything and start anew.\n\n* Get"
-    " Backup from Android Device: fetch the backup xml file from device\n* Run: Run the"
-    " program with the settings provided.\n* ReRun: Run multiple times (with different"
+    " Backup from Android Device: fetch the backup xml file from device\n\n* Run: Run the"
+    " program with the settings provided.\n* ReRun: Run multiple times (each time with different"
     " settings).\n\n* Specific Name tab: enter a single, specific named item to"
     " display...\n   - Project Name: enter a specific Project to display\n   - Profile"
     " Name: enter a specific Profile to display\n   - Task Name: enter a specific Task"
     " to display\n   (These three are exclusive: enter one only)\n\n* Colors tab:"
     " select colors for various elements of the display\n              (e.g. color for"
     " Projects, Profiles, Tasks, etc.)\n\n* Exit: Exit the program (quit).\n\nNote: You"
-    " will be prompted to identify your Tasker backup file once\n      you hit the"
+    " will be prompted to identify your Tasker backup file once\n          you hit the"
     " 'Run' button"
 )
 
 cancel_button_msg = '\n\nNote: "Cancel" button does not work at this time.'
 
 
-# #######################################################################################
+# ##################################################################################
 # Class to define the GUI configuration
-# #######################################################################################
+# ##################################################################################
 class MyGui(customtkinter.CTk):
     def __init__(self):
         super().__init__()
@@ -93,9 +91,14 @@ class MyGui(customtkinter.CTk):
         self.display_preferences = None
         self.display_taskernet = None
         self.debug = None
+        self.bold = None
+        self.highlight = None
+        self.italicize = None
+        self.underline = None
 
         self.title("MapTasker Runtime Options")
-        self.geometry("1100x600")
+        # Overall window dimensions
+        self.geometry("1100x800")
 
         # configure grid layout (4x4)
         self.grid_columnconfigure(1, weight=1)
@@ -104,9 +107,10 @@ class MyGui(customtkinter.CTk):
 
         # create sidebar frame with widgets
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
-        self.sidebar_frame.grid(row=0, column=0, rowspan=10, sticky="nsew")
-        # Define sidebar background frame with 10 rows
-        self.sidebar_frame.grid_rowconfigure(11, weight=1)
+        # self.sidebar_frame.configure(height=self._apply_window_scaling(800))
+        self.sidebar_frame.grid(row=0, column=0, rowspan=13, sticky="nsew")
+        # Define sidebar background frame with 14 rows
+        self.sidebar_frame.grid_rowconfigure(14, weight=1)
 
         # Add grid title
         self.logo_label = customtkinter.CTkLabel(
@@ -128,61 +132,103 @@ class MyGui(customtkinter.CTk):
             values=["0", "1", "2", "3"],
             command=self.detail_selected_event,
         )
-        self.sidebar_detail_option.grid(row=2, column=0, padx=20, pady=(10, 0))
+        self.sidebar_detail_option.grid(row=2, column=0, padx=20, pady=(10, 10))
 
-        # Display 'Condition' button
-        self.condition_button = customtkinter.CTkCheckBox(
+        # Display 'Condition' checkbox
+        self.condition_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
             command=self.condition_event,
-            text="Display Conditions",
+            text="Display Profile/Task Conditions",
             onvalue=True,
             offvalue=False,
         )
-        self.condition_button.grid(row=3, column=0, padx=20, pady=10, sticky="w")
+        self.condition_checkbox.grid(row=3, column=0, padx=20, pady=10, sticky="w")
 
-        # Display 'TaskerNet' button
-        self.display_taskernet_button = customtkinter.CTkCheckBox(
+        # Display 'TaskerNet' checkbox
+        self.display_taskernet_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
             command=self.display_taskernet_event,
             text="Display TaskerNet Info",
             onvalue=True,
             offvalue=False,
         )
-        self.display_taskernet_button.grid(
+        self.display_taskernet_checkbox.grid(
             row=4, column=0, padx=20, pady=10, sticky="w"
         )
 
-        # Display 'Tasker Preferences' button
-        self.display_preferences_button = customtkinter.CTkCheckBox(
+        # Display 'Tasker Preferences' checkbox
+        self.display_preferences_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
             command=self.display_preferences_event,
             text="Display Tasker Preferences",
             onvalue=True,
             offvalue=False,
         )
-        self.display_preferences_button.grid(
+        self.display_preferences_checkbox.grid(
             row=5, column=0, padx=20, pady=10, sticky="w"
         )
 
-        # Display 'Twisty' button
-        self.twisty_button = customtkinter.CTkCheckBox(
+        # Display 'Twisty' checkbox
+        self.twisty_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
             command=self.twisty_event,
             text="Hide Task Details Under Twisty",
             onvalue=True,
             offvalue=False,
         )
-        self.twisty_button.grid(row=6, column=0, padx=20, pady=10, sticky="w")
+        self.twisty_checkbox.grid(row=6, column=0, padx=20, pady=10, sticky="w")
 
-        # Display 'directory' button
-        self.directory_button = customtkinter.CTkCheckBox(
+        # Display 'directory' checkbox
+        self.directory_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
             command=self.directory_event,
             text="Display directory",
             onvalue=True,
             offvalue=False,
         )
-        self.directory_button.grid(row=7, column=0, padx=20, pady=10, sticky="w")
+        self.directory_checkbox.grid(row=7, column=0, padx=20, pady=10, sticky="w")
+
+        # Names: Bold / Highlight / Italicise
+        self.display_names_label = customtkinter.CTkLabel(
+            self.sidebar_frame, text="Project/Profile/Task/Scene Names:", anchor="s"
+        )
+        self.display_names_label.grid(row=8, column=0, padx=20, pady=10)
+        # Bold
+        self.bold_checkbox = customtkinter.CTkCheckBox(
+            self.sidebar_frame,
+            command=self.names_bold_event,
+            text="Bold",
+            onvalue=True,
+            offvalue=False,
+        )
+        self.bold_checkbox.grid(row=9, column=0, padx=20, pady=0, sticky="ne")
+        # Italicize
+        self.italicize_checkbox = customtkinter.CTkCheckBox(
+            self.sidebar_frame,
+            command=self.names_italicize_event,
+            text="Italicize",
+            onvalue=True,
+            offvalue=False,
+        )
+        self.italicize_checkbox.grid(row=9, column=0, padx=20, pady=0, sticky="nw")
+        # Highlight
+        self.highlight_checkbox = customtkinter.CTkCheckBox(
+            self.sidebar_frame,
+            command=self.names_highlight_event,
+            text="Highlight",
+            onvalue=True,
+            offvalue=False,
+        )
+        self.highlight_checkbox.grid(row=10, column=0, padx=20, pady=5, sticky="ne")
+        # Underline
+        self.underline_checkbox = customtkinter.CTkCheckBox(
+            self.sidebar_frame,
+            command=self.names_underline_event,
+            text="Underline",
+            onvalue=True,
+            offvalue=False,
+        )
+        self.underline_checkbox.grid(row=10, column=0, padx=20, pady=5, sticky="nw")
 
         # Save settings button
         self.save_settings_button = customtkinter.CTkButton(
@@ -192,7 +238,9 @@ class MyGui(customtkinter.CTk):
             text="Save Settings",
             command=self.save_settings_event,
         )
-        self.save_settings_button.grid(row=8, column=0, padx=10, pady=20, sticky="s")
+        self.save_settings_button.grid(
+            row=11, column=0, padx=20, pady=(35, 5), sticky="s"
+        )
 
         # Restore settings button
         self.restore_settings_button = customtkinter.CTkButton(
@@ -202,31 +250,30 @@ class MyGui(customtkinter.CTk):
             text="Restore Settings",
             command=self.restore_settings_event,
         )
-        self.restore_settings_button.grid(row=9, column=0, padx=10, pady=0, sticky="n")
+        self.restore_settings_button.grid(row=12, column=0, padx=20, pady=10, sticky="")
 
         # Screen Appearance: Light / Dark / System
         self.appearance_mode_label = customtkinter.CTkLabel(
             self.sidebar_frame, text="GUI Appearance Mode:", anchor="w"
         )
-        self.appearance_mode_label.grid(row=10, column=0, padx=20, pady=10)
+        self.appearance_mode_label.grid(row=13, column=0, padx=20, pady=10)
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(
             self.sidebar_frame,
             values=["Light", "Dark", "System"],
             command=self.change_appearance_mode_event,
         )
-        self.appearance_mode_optionemenu.grid(row=11, column=0, padx=0, sticky="n")
+        self.appearance_mode_optionemenu.grid(row=14, column=0, padx=0, sticky="n")
 
         # 'Reset Settings' button definition
         self.reset_button = customtkinter.CTkButton(
-            master=self,
+            # master=self,
+            self.sidebar_frame,
             fg_color="#246FB6",
             border_width=2,
             text="Reset Options",
             command=self.reset_settings_event,
         )
-        self.reset_button.grid(
-            row=11, column=0, padx=(20, 20), pady=(20, 20), sticky="sew"
-        )
+        self.reset_button.grid(row=15, column=0, padx=20, pady=20, sticky="")
 
         # Start second grid / column definitions
 
@@ -240,7 +287,7 @@ class MyGui(customtkinter.CTk):
             text_color=("#0BF075", "#1AD63D"),
         )
         self.get_backup_button.grid(
-            row=6, column=1, padx=(120, 120), pady=(20, 20), sticky="nsew"
+            row=8, column=1, padx=(120, 120), pady=(20, 20), sticky="sew"
         )
 
         # 'Run' button definition
@@ -252,9 +299,7 @@ class MyGui(customtkinter.CTk):
             command=self.run_program,
             text_color=("#0BF075", "#1AD63D"),
         )
-        self.run_button.grid(
-            row=7, column=1, padx=(200, 200), pady=(20, 20), sticky="nsew"
-        )
+        self.run_button.grid(row=6, column=2, padx=(20, 20), pady=(20, 20))
 
         # 'ReRun' button definition
         self.rerun_button = customtkinter.CTkButton(
@@ -265,9 +310,7 @@ class MyGui(customtkinter.CTk):
             command=self.rerun_the_program,
             text_color=("#0BF075", "#1AD63D"),
         )
-        self.rerun_button.grid(
-            row=8, column=1, padx=(200, 200), pady=(20, 20), sticky="nsew"
-        )
+        self.rerun_button.grid(row=7, column=2, padx=(20, 20), pady=(20, 20))
 
         # 'Exit' button definition
         self.exit_button = customtkinter.CTkButton(
@@ -278,16 +321,15 @@ class MyGui(customtkinter.CTk):
             command=self.exit_program,
             text_color="Red",
         )
-        self.exit_button.grid(row=7, column=2, padx=(20, 20), pady=(20, 20))
+        self.exit_button.grid(row=8, column=2, padx=(20, 20), pady=(20, 20))
 
         # create textbox for Help information
-        self.textbox = customtkinter.CTkTextbox(self, height=100, width=250)
-        self.textbox.configure(scrollbar_button_color="#6563ff")
-        self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="nsew")
+        self.textbox = customtkinter.CTkTextbox(self, height=600, width=250)
+        self.textbox.configure(scrollbar_button_color="#6563ff", wrap="word")
+        self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
 
         # Start thrid grid / column definitions
-
-        # create tabview for Name, Color, and Debug
+        # create tabview for Name, Color, and Deub
         self.tabview = customtkinter.CTkTabview(
             self, width=250, segmented_button_fg_color="#6563ff"
         )
@@ -366,6 +408,8 @@ class MyGui(customtkinter.CTk):
                 "Bullets",
                 "TaskerNet Information",
                 "Tasker Preferences",
+                "Highlight",
+                "Heading",
             ],
             command=self.colors_event,
         )
@@ -385,11 +429,12 @@ class MyGui(customtkinter.CTk):
         # set default values
         self.set_defaults(True)
 
-    # #######################################################################################
+    # ##################################################################################
     # Establish all of the default values used
-    # #######################################################################################
+    # ##################################################################################
     def set_defaults(self, first_time: bool):
-        # Item names must be the same as their value in primary_items["program_arguments"]
+        # Item names must be the same as their value in
+        #  primary_items["program_arguments"]
         self.sidebar_detail_option.configure(values=["0", "1", "2", "3"])
         self.sidebar_detail_option.set("3")
         self.display_detail_level = 3
@@ -405,19 +450,30 @@ class MyGui(customtkinter.CTk):
             self.reset
         ) = (
             self.exit
+        ) = (
+            self.bold
+        ) = (
+            self.highlight
+        ) = (
+            self.italicize
+        ) = (
+            self.undereline
         ) = self.go_program = self.rerun = self.twisty = self.directory = False
         self.single_project_name = self.single_profile_name = self.single_task_name = ""
         self.color_text_row = 2
         self.appearance_mode_optionemenu.set("System")
+        self.appearance_mode = "system"
         self.color_labels = []
-        self.appearance_mode = "System"
         if first_time:
             self.textbox.insert("0.0", "MapTasker Help\n\n" + INFO_TEXT)
+            self.all_messages = ""
         self.color_lookup = {}  # Setup default dictionary as empty list
         self.file = None
-        # We only want to initialize the next two variables only if they have not yet been defined.
-        #  Ignore sourcery recommendation to reformat these.
-        try:  # The following will fail with an attribute error if it does not already exist
+        # We only want to initialize the next two variables only if they have not yet
+        # been defined.
+        #  Ignore sourcery recommendation to reformat these!!
+        # The following will fail with an attribute error if it does not already exist
+        try:
             if self.backup_file_http:
                 pass
         except AttributeError:
@@ -428,9 +484,9 @@ class MyGui(customtkinter.CTk):
         except AttributeError:
             self.backup_file_location = ""
 
-    # #######################################################################################
+    # ##################################################################################
     # Display Message Box
-    # #######################################################################################
+    # ##################################################################################
     def display_message_box(self, message, good):
         # If "good", display in green.  Otherwise, must be bad and display in red.
         color = "Green" if good else "Red"
@@ -442,15 +498,16 @@ class MyGui(customtkinter.CTk):
         # Recreate text box
         self.textbox = customtkinter.CTkTextbox(self, height=500, width=600)
         self.textbox.grid(row=0, column=1, padx=20, pady=40, sticky="nsew")
-        self.textbox.insert("0.0", f"{message}\n")  # insert at line 0 character 0
-        self.textbox.configure(
-            state="disabled", text_color=color
-        )  # configure textbox to be read-only
+        self.all_messages = f"{self.all_messages}{message}\n"
+        # insert at line 0 character 0
+        self.textbox.insert("0.0", self.all_messages)
+        # Set read-only and set color
+        self.textbox.configure(state="disabled", text_color=color)
         self.textbox.focus_set()
 
-    # #######################################################################################
+    # ##################################################################################
     # Validate name entered
-    # #######################################################################################
+    # ##################################################################################
     def check_name(self, the_name, element_name):
         error_message = ""
         # Check for missing name
@@ -496,9 +553,10 @@ class MyGui(customtkinter.CTk):
                 f"Display only the '{the_name}' {element_name}", True
             )
 
-    # #######################################################################################
+    # ##################################################################################
+
     # Make sure the single named item exists...that it is a valid name
-    # #######################################################################################
+    # ##################################################################################
     def valid_item(self, the_name, element_name):
         # We need to get all tasker items from the backup xml file
         temp_primary_items = {"program_arguments": initialize_runtime_arguments()}
@@ -550,9 +608,9 @@ class MyGui(customtkinter.CTk):
 
         return False
 
-    # #######################################################################################
+    # ##################################################################################
     # Process the Project Name entry
-    # #######################################################################################
+    # ##################################################################################
     def single_project_name_event(self):
         #  Clear any prior error message
         self.textbox.delete("1.0", "end")
@@ -570,9 +628,9 @@ class MyGui(customtkinter.CTk):
         # Validate the name
         self.check_name(self.single_project_name, "Project")
 
-    # #######################################################################################
+    # ##################################################################################
     # Process the Profile Name entry
-    # #######################################################################################
+    # ##################################################################################
     def single_profile_name_event(self):
         #  Clear any prior error message
         self.textbox.delete("1.0", "end")
@@ -590,9 +648,9 @@ class MyGui(customtkinter.CTk):
         # Validate the name
         self.check_name(self.single_profile_name, "Profile")
 
-    # #######################################################################################
+    # ##################################################################################
     # Process the Task Name entry
-    # #######################################################################################
+    # ##################################################################################
     def single_task_name_event(self):
         #  Clear any prior error message
         self.textbox.delete("1.0", "end")
@@ -610,23 +668,29 @@ class MyGui(customtkinter.CTk):
         # Validate the name
         self.check_name(self.single_task_name, "Task")
 
-    # #######################################################################################
+    # ##################################################################################
     # Process the screen mode: dark, light, system
-    # #######################################################################################
+    # ##################################################################################
     def change_appearance_mode_event(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)
-        self.appearance_mode = new_appearance_mode
+        self.appearance_mode = new_appearance_mode.lower()
 
-    # #######################################################################################
+    # ##################################################################################
     # Process the Display Detail Level selection
-    # #######################################################################################
+    # ##################################################################################
     def detail_selected_event(self, display_detail: str):
         self.display_detail_level = display_detail
         self.sidebar_detail_option.set(display_detail)
+        self.inform_message("Display Detail Level", True, display_detail)
+        if self.twisty:
+            self.display_message_box(
+                "Hiding Tasks with Twisty has no effect with Display Detail Level of 0.",
+                False,
+            )
 
-    # #######################################################################################
+    # ##################################################################################
     # Process color selection
-    # #######################################################################################
+    # ##################################################################################
     def colors_event(self, color_selected_item: str):
         warning_check = [
             "Profile Conditions",
@@ -641,8 +705,8 @@ class MyGui(customtkinter.CTk):
             self.display_preferences,
         ]
 
-        # Let's first make sure that if a color has been chosen for a display flag, that the flag is True (e.g.
-        # display this colored item)
+        # Let's first make sure that if a color has been chosen for a display flag,
+        # that the flag is True (e.g. display this colored item)
         with contextlib.suppress(Exception):
             the_index = warning_check.index(color_selected_item)
             if not check_against[the_index]:
@@ -657,66 +721,104 @@ class MyGui(customtkinter.CTk):
         color = pick_color.get()  # Get the color
         if color is not None:
             self.display_message_box(
-                f"{color_selected_item} color changed to {color}", False
+                f"{color_selected_item} color changed to {color}", True
             )
 
             # Okay, plug in the selected color for the selected named item
             self.extract_color_from_event(color, color_selected_item)
 
-    # #######################################################################################
+    # ##################################################################################
     # Color selected...process it.
-    # #######################################################################################
+    # ##################################################################################
     def extract_color_from_event(self, color, color_selected_item):
-        # row = self.color_text_row
         self.color_lookup[
             TYPES_OF_COLOR_NAMES[color_selected_item]
         ] = color  # Add color for the selected item to our dictionary
-        self.color_labels.append(
-            customtkinter.CTkLabel(
-                self.tabview.tab("Colors"),
-                text=f"{color_selected_item} << color",
-                text_color=color,
-            )
-        )
-        self.color_labels[-1].grid(row=self.color_text_row, column=0, padx=0, pady=0)
-        self.color_text_row += 1
-        self.display_message_box(
-            f"{color_selected_item} color changed to {color}", True
-        )
 
-    # #######################################################################################
+    # ##################################################################################
     # Process the 'conditions' checkbox
-    # #######################################################################################
+    # ##################################################################################
     def condition_event(self):
-        self.display_profile_conditions = self.condition_button.get()
+        self.display_profile_conditions = self.condition_checkbox.get()
+        self.inform_message(
+            "Display Profile/Task Conditions", self.display_profile_conditions, ""
+        )
 
-    # #######################################################################################
+    # ##################################################################################
     # Process the 'Tasker Preferences' checkbox
-    # #######################################################################################
+    # ##################################################################################
     def display_preferences_event(self):
-        self.display_preferences = self.display_preferences_button.get()
+        self.display_preferences = self.display_preferences_checkbox.get()
+        self.inform_message("Display Tasker Preferences", self.display_preferences, "")
 
-    # #######################################################################################
+    # ##################################################################################
     # Process the 'Twisty' checkbox
-    # #######################################################################################
+    # ##################################################################################
     def twisty_event(self):
-        self.twisty = self.twisty_button.get()
+        self.twisty = self.twisty_checkbox.get()
+        self.inform_message("Hide Task Details Under Twisty", self.twisty, "")
+        if self.display_detail_level == "0":
+            self.display_message_box(
+                "This has no effect with Display Detail Level of 0", False
+            )
 
-    # #######################################################################################
-    # Process the 'Display directory' checkbox
-    # #######################################################################################
+    # ##################################################################################
+    # Process the 'Display Directory' checkbox
+    # ##################################################################################
     def directory_event(self):
-        self.directory = self.directory_button.get()
+        self.directory = self.directory_checkbox.get()
+        self.inform_message("Display Directory", self.directory, "")
 
-    # #######################################################################################
-    # Process the 'taskernet' checkbox
-    # #######################################################################################
+    # ##################################################################################
+    # Process the 'Bold Names' checkbox
+    # ##################################################################################
+    def names_bold_event(self):
+        self.bold = self.bold_checkbox.get()
+        self.inform_message("Display Names in Bold", self.bold, "")
+
+    # ##################################################################################
+    # Process the 'Highlight Names' checkbox
+    # ##################################################################################
+    def names_highlight_event(self):
+        self.highlight = self.highlight_checkbox.get()
+        self.inform_message("Display Names Highlighted", self.highlight, "")
+
+    # ##################################################################################
+    # Process the 'Italicize Names' checkbox
+    # ##################################################################################
+    def names_italicize_event(self):
+        self.italicize = self.italicize_checkbox.get()
+        self.inform_message("Display Names Italicized", self.italicize, "")
+
+    # ##################################################################################
+    # Process the 'Underline Names' checkbox
+    # ##################################################################################
+    def names_underline_event(self):
+        self.underline = self.underline_checkbox.get()
+        self.inform_message("Display Names Underlined", self.underline, "")
+
+    # ##################################################################################
+    # Process the 'Taskernet' checkbox
+    # ##################################################################################
     def display_taskernet_event(self):
-        self.display_taskernet = self.display_taskernet_button.get()
+        self.display_taskernet = self.display_taskernet_checkbox.get()
+        self.inform_message("Display TaskerNet Info", self.display_taskernet, "")
 
-    # #######################################################################################
+    # ################################################################################
+    # Inform user of toggle selection
+    # ################################################################################
+    def inform_message(self, toggle_name, toggle_value, number_value):
+        if number_value:
+            response = number_value
+        elif toggle_value:
+            response = "On"
+        else:
+            response = "Off"
+        self.display_message_box(f"{toggle_name} set {response}", True)
+
+    # ##################################################################################
     # Process the 'Save Settings' checkbox
-    # #######################################################################################
+    # ##################################################################################
     def save_settings_event(self):
         # Get program arguments from GUI and store in a temporary dictionary
         temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
@@ -727,9 +829,9 @@ class MyGui(customtkinter.CTk):
         )
         self.display_message_box("Settings saved.", True)
 
-    # #######################################################################################
+    # ##################################################################################
     # Restore displays settings from restored values
-    # #######################################################################################
+    # ##################################################################################
     def restore_display(self, key, value):
         message = ""
         match key:
@@ -744,21 +846,21 @@ class MyGui(customtkinter.CTk):
                 message = f"Display Detail Level set to {str(value)}.\n"
             case "display_profile_conditions":
                 if value:
-                    self.condition_button.select()
+                    self.condition_checkbox.select()
                 else:
-                    self.condition_button.deselect()
+                    self.condition_checkbox.deselect()
                 message = f"Display Conditions set to {value}.\n"
             case "display_preferences":
                 if value:
-                    self.display_preferences_button.select()
+                    self.display_preferences_checkbox.select()
                 else:
-                    self.display_preferences_button.deselect()
+                    self.display_preferences_checkbox.deselect()
                 message = f"Display Tasker Preferences set to {value}.\n"
             case "display_taskernet":
                 if value:
-                    self.display_taskernet_button.select()
+                    self.display_taskernet_checkbox.select()
                 else:
-                    self.display_taskernet_button.deselect()
+                    self.display_taskernet_checkbox.deselect()
                 message = f"Display TaskerNet set to {value}.\n"
             case "single_project_name":
                 if value:
@@ -777,27 +879,57 @@ class MyGui(customtkinter.CTk):
                     message = f"Get Backup File Location set to {value}\n"
             case "twisty":
                 if value:
-                    self.twisty_button.select()
+                    self.twisty_checkbox.select()
                 else:
-                    self.twisty_button.deselect()
+                    self.twisty_checkbox.deselect()
                 message = f"Twisty set to {value}\n"
             case "directory":
                 if value:
-                    self.directory_button.select()
+                    self.directory_checkbox.select()
                 else:
-                    self.directory_button.deselect()
+                    self.directory_checkbox.deselect()
                 message = f"Display directory set to {value}\n"
+            case "highlight":
+                if value:
+                    self.highlight_checkbox.select()
+                else:
+                    self.highlight_checkbox.deselect()
+                message = f"Display highlighted names set to {value}\n"
+            case "bold":
+                if value:
+                    self.bold_checkbox.select()
+                else:
+                    self.bold_checkbox.deselect()
+                message = f"Display bold names set to {value}\n"
+            case "italicize":
+                if value:
+                    self.italicize_checkbox.select()
+                else:
+                    self.italicize_checkbox.deselect()
+                message = f"Display italicized names set to {value}\n"
+            case "underline":
+                if value:
+                    self.underline_checkbox.select()
+                else:
+                    self.underline_checkbox.deselect()
+                message = f"Display underline names set to {value}\n"
             case "rerun":
                 pass
+            case "appearance_mode":
+                if value:
+                    self.appearance_mode_optionemenu.set(value.capitalize())
+                    customtkinter.set_appearance_mode(value)
+                    self.appearance_mode = value
+                message = f"Appearance mode set to {value}\n"
             case _:
                 self.display_message_box(
                     f"Rutroh!  Undefined argument: key={key} value={value}", False
                 )
         return message
 
-    # #######################################################################################
+    # ##################################################################################
     # Process the 'Restore Settings' checkbox
-    # #######################################################################################
+    # ##################################################################################
     def restore_settings_event(self):
         self.set_defaults(False)  # Reset all values
         temp_args = self.color_lookup = {}
@@ -817,9 +949,9 @@ class MyGui(customtkinter.CTk):
         else:  # Empty?
             self.display_message_box("No settings file found.", False)
 
-    # #######################################################################################
+    # ##################################################################################
     # We have read colors and runtime args from backup file.  Now extract them for use.
-    # #######################################################################################
+    # ##################################################################################
     def extract_settings(self, temp_args: dict) -> None:
         all_messages, new_message = "", ""
         for key, value in temp_args.items():
@@ -827,7 +959,8 @@ class MyGui(customtkinter.CTk):
                 setattr(self, key, value)
                 if new_message := self.restore_display(key, value):
                     all_messages = all_messages + new_message
-        # Display the restored color changes, using the reverse dictionary of TYPES_OF_COLOR_NAMES
+        # Display the restored color changes, using the reverse dictionary of
+        #   TYPES_OF_COLOR_NAMES (found in sysconst.py)
         inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
         for key, value in self.color_lookup.items():
             if key is not None:
@@ -841,12 +974,12 @@ class MyGui(customtkinter.CTk):
         # Display the queue of messages
         self.display_message_box(f"{all_messages}\nSettings restored.", True)
 
-    # #######################################################################################
+    # ##################################################################################
     # Process the 'Backup' IP Address
-    # #######################################################################################
+    # ##################################################################################
     def get_backup_event(self):
         # Set up default values
-        if self.backup_file_http == "" or self.backup_file_http == None:
+        if self.backup_file_http == "" or self.backup_file_http is None:
             self.backup_file_http = "192.168.0.210:1821"
         if not self.backup_file_location:
             self.backup_file_location = "/Tasker/configs/user/backup.xml"
@@ -919,29 +1052,33 @@ class MyGui(customtkinter.CTk):
             True,
         )
 
-    # #######################################################################################
+    # ##################################################################################
     # Process the 'Reset Settings' button
-    # #######################################################################################
+    # ##################################################################################
     def reset_settings_event(self):
         self.sidebar_detail_option.set("1")  # display detail level
-        self.condition_button.deselect()  # Conditions
-        self.display_preferences_button.deselect()  # Tasker Preferences
-        self.display_taskernet_button.deselect()  # TaskerNet
+        self.condition_checkbox.deselect()  # Conditions
+        self.display_preferences_checkbox.deselect()  # Tasker Preferences
+        self.display_taskernet_checkbox.deselect()  # TaskerNet
         self.appearance_mode_optionemenu.set("System")  # Appearance
         customtkinter.set_appearance_mode("System")  # Enforce appearance
         self.debug_checkbox.deselect()  # Debug
         self.display_message_box("Settings reset.", True)
-        self.twisty_button.deselect()  # Twisty
-        self.directory_button.deselect()  # directory
+        self.twisty_checkbox.deselect()  # Twisty
+        self.directory_checkbox.deselect()  # directory
+        self.bold_checkbox.deselect()  # bold
+        self.italicize_checkbox.deselect()  # italicize
+        self.highlight_checkbox.deselect()  # highlight
+        self.underline_checkbox.deselect()  # underline
         self.backup_file_location = self.backup_file_http = ""
         if self.color_labels:  # is there any color text?
             for label in self.color_labels:
                 label.configure(text="")
         self.set_defaults(False)  # Reset all defaults
 
-    # #######################################################################################
+    # ##################################################################################
     # Process Debug Mode checkbox
-    # #######################################################################################
+    # ##################################################################################
     def debug_checkbox_event(self):
         self.debug = self.debug_checkbox.get()
         if self.debug:
@@ -959,25 +1096,26 @@ class MyGui(customtkinter.CTk):
         else:
             self.display_message_box("Debug mode disabled.", True)
 
-    # #######################################################################################
+    # ##################################################################################
     # The 'Run' program button has been pressed.  Set the run flag and close the GUI
-    # #######################################################################################
+    # ##################################################################################
     def run_program(self):
         self.go_program = True
         self.quit()
 
-    # #######################################################################################
+    # ##################################################################################
     # The 'ReRun' program button has been pressed.  Set the run flag and close the GUI
-    # #######################################################################################
+    # ##################################################################################
     def rerun_the_program(self):
         self.rerun = True
         # MyGui.destroy(self)
         self.withdraw()
         self.quit()
 
-    # #######################################################################################
+    # ##################################################################################
     # The 'Exit' program button has been pressed.  Call it quits
-    # #######################################################################################
+    # ##################################################################################
     def exit_program(self):
         self.exit = True
+        self.quit()
         self.quit()

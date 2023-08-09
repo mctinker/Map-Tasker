@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-######################################################################################################################
+# ####################################################################################
 #                                                                                                                    #
 #  actione: action evaluation                                                                                        #
 #           given the xml <code>nn</code>, figure out what (action) code it is and return the translation            #
@@ -9,28 +9,26 @@
 #          code_action: the nnn in <code>nnn</code> xml                                                              #
 #          action_type: true if Task action, False if not (e.g. a Profile state or event condition)                  #
 #                                                                                                                    #
-######################################################################################################################
+# ####################################################################################
 import copy
 import re
+
 import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.actionr as action_results
-
 from maptasker.src.action import get_extra_stuff
-from maptasker.src.frmthtml import format_html
-from maptasker.src.error import error_handler
-from maptasker.src.debug import not_in_dictionary
 from maptasker.src.actionc import action_codes
-from maptasker.src.sysconst import logger
-from maptasker.src.sysconst import FONT_TO_USE
-
+from maptasker.src.debug import not_in_dictionary
+from maptasker.src.error import error_handler
+from maptasker.src.frmthtml import format_html
+from maptasker.src.sysconst import FONT_TO_USE, logger
 
 # pattern1 = re.compile(r'<.*?>')  # Get rid of all <something> html code
 
 
-# ####################################################################################################
+# ##################################################################################
 # Delete crap that might be in the label
-# ####################################################################################################
+# ##################################################################################
 def cleanup_the_result(results: str) -> str:
     """
     Delete html crap that might be in the label, and which would screw up the output formatting
@@ -57,9 +55,11 @@ def cleanup_the_result(results: str) -> str:
     return results
 
 
-# ####################################################################################################
+# ##################################################################################
+
+
 # For debug purposes, this searches dictionary for missing keys: 'reqargs' and 'display'
-# ####################################################################################################
+# ##################################################################################
 def look_for_missing_req() -> None:
     """
     For debug purposes, this searches dictionary for missing keys: 'reqargs' and 'display'
@@ -82,9 +82,11 @@ def look_for_missing_req() -> None:
     return
 
 
-# ####################################################################################################
+# ##################################################################################
+
+
 # See if this Task or Profile code isa deprecated
-# ####################################################################################################
+# ##################################################################################
 def check_for_deprecation(the_action_code_plus: str) -> None:
     """
     See if this Task or Profile code isa deprecated
@@ -104,9 +106,11 @@ def check_for_deprecation(the_action_code_plus: str) -> None:
     return
 
 
-# ####################################################################################################
+# ##################################################################################
+
+
 # Given an action code, evaluate it for display
-# ####################################################################################################
+# ##################################################################################
 def get_action_code(
     primary_items: dict,
     code_child: defusedxml.ElementTree.XML,
@@ -116,7 +120,7 @@ def get_action_code(
 ) -> str:
     """
     Given an action code, evaluate it for display
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param code_child: xml element of the <code>
         :param code_action: value of <code> (e.g. "549")
         :param action_type:
@@ -136,7 +140,11 @@ def get_action_code(
             f"Code {the_action_code_plus} not yet"
             f" mapped{get_extra_stuff(primary_items, code_action, action_type)}"
         )
-        not_in_dictionary(primary_items, "Action/Condition", f"'display' for code {the_action_code_plus}")
+        not_in_dictionary(
+            primary_items,
+            "Action/Condition",
+            f"'display' for code {the_action_code_plus}",
+        )
 
     else:
         # The code is in our dictionary.  Add the display name
@@ -191,9 +199,11 @@ def get_action_code(
     return the_result
 
 
-# #############################################################################################
+# ##################################################################################
+
+
 # Construct Task Action output line
-# #############################################################################################
+# ##################################################################################
 def build_action(
     primary_items: dict,
     alist: list,
@@ -204,7 +214,7 @@ def build_action(
 ) -> list:
     """
     Construct Task Action output line
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param alist: list of actions (all <Actions> for task
         :param task_code_line: output text of Task
         :param code_element: xml element of <code> under <Action>
@@ -257,7 +267,7 @@ def build_action(
                     alist.append(f"...{item}")
                 count += 1
                 # Only display up to so many continued lines
-                if count == CONTINUE_LIMIT:  
+                if count == CONTINUE_LIMIT:
                     # Add comment that we have reached the limit for continued details
                     alist[-1] = f"{alist[-1]}</span>" + format_html(
                         primary_items,

@@ -1,18 +1,20 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# dirout: Add the directory to the output queue                                      #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
-import darkdetect
+# #################################################################################### #
+#                                                                                      #
+# dirout: Add the directory to the output queue                                        #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import math
+
+import darkdetect
+
 from maptasker.src.frmthtml import format_html
 
 period = "."
@@ -55,11 +57,13 @@ def output_table(primary_items: dict, hyperlinks: list, max_columns: int) -> Non
     """
     Generates a Python docstring for the `output_table` function.
 
-    The function takes two parameters: `primary_items` and `hyperlinks`. It outputs a table based on the provided primary items and hyperlinks.
+    The function takes two parameters: `primary_items` and `hyperlinks`.
+    It outputs a table based on the provided primary items and hyperlinks.
 
     Args:
         primary_items (list): A list of primary items for the table.
-        hyperlinks (bool): A boolean value indicating whether hyperlinks should be included in the table.
+        hyperlinks (bool): A boolean value indicating whether hyperlinks should be
+            included in the table.
         max_columns: Integer for the number of columns to make the table.
 
     Returns:
@@ -170,7 +174,7 @@ def do_trailing_matters(primary_items: dict) -> None:
     Create a hyperlinks for key items that are at the bottom of the output
 
     Args:
-        primary_items (dict):dictionary of the primary items used throughout the module.  See mapit.py for details
+        primary_items (dict): Program registry. See mapit.py for details.
 
     Returns:
         None
@@ -188,7 +192,8 @@ def do_trailing_matters(primary_items: dict) -> None:
         ),
     )
 
-    # Do Tasks that are not associated with any Profile, Projects without Tasks and without Profiles
+    # Do Tasks that are not associated with any Profile, Projects without Tasks
+    #   and without Profiles
     trailing_matter = [
         "<a href=#grand_totals>Grand Totals</a>",
     ]
@@ -204,13 +209,14 @@ def do_trailing_matters(primary_items: dict) -> None:
 #######################################################################################
 def do_tasker_element(primary_items: dict, name: str) -> None:
     """
-    Build an html table and output it for the given Tasker element: Project, Profile, or Task
+    Build an html table and output it for the given Tasker element: Project, Profile,
+        Scene or Task
 
     This function adds project information to the output lines of primary_items.
-    It generates hyperlinks for each project and builds an HTML table with the hyperlinks.
+    It generates hyperlinks for each project and builds an HTML table with hyperlinks.
 
     Args:
-        primary_items (dict):dictionary of the primary items used throughout the module.  See mapit.py for details
+        primary_items (dict): Program registry. See mapit.py for details.
         name: element name: "project", "profile", "task", "scene"
 
     Returns:
@@ -247,7 +253,8 @@ def do_tasker_element(primary_items: dict, name: str) -> None:
         case _:
             return
 
-    # Go through each item and accumulate the names to be used for the directory hyperlinks
+    # Go through each item and accumulate the names to be used for
+    # the directory hyperlinks
     directory_hyperlinks = []
     for item in root:
         if not doing_project:
@@ -255,7 +262,8 @@ def do_tasker_element(primary_items: dict, name: str) -> None:
         if item.find(key_to_find) is None:
             continue
 
-        # Hyperlink name can not have any embedded blanks.  Substitute a dash for each blank
+        # Hyperlink name can not have any embedded blanks.
+        # Substitute a dash for each blank.
         display_name = item.find(key_to_find).text
         hyperlink_name = display_name.replace(" ", "_")
         # Append our hyperlink to this Project to the list
@@ -276,7 +284,7 @@ def output_directory(primary_items: dict) -> None:
     Writes the directory to the output queue.
 
     Args:
-        primary_items (dict): dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  Program registry.  See mapit.py for details.
 
     Returns:
         None
@@ -290,14 +298,15 @@ def output_directory(primary_items: dict) -> None:
             primary_items["colors_to_use"],
             "profile_color",
             "",
-            "<h2>directory</h2><br><br>",
+            "<h2>Directory</h2><br><br>",
             True,
         ),
     )
     # Ok, run through the Tasker key elements and output the directory for each
     do_tasker_element(primary_items, "project")
     do_tasker_element(primary_items, "profile")
-    do_tasker_element(primary_items, "task")
+    if primary_items["program_arguments"]["display_detail_level"] != 0:
+        do_tasker_element(primary_items, "task")
     do_tasker_element(primary_items, "scene")
 
     do_trailing_matters(primary_items)

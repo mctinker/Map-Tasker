@@ -1,22 +1,23 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# sysconst: System constants                                                                 #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
-from maptasker.src.config import OUTPUT_FONT
+# #################################################################################### #
+#                                                                                      #
+# sysconst: System constants                                                           #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import logging
+
+from maptasker.src.config import OUTPUT_FONT
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 2.0.10"
+MY_VERSION = "MapTasker version 2.1.0"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -63,6 +64,8 @@ TYPES_OF_COLOR_NAMES = {
     "Preferences": "preferences_color",
     "Trailing Comments": "trailing_comments_color",
     "TrailingComments": "trailing_comments_color",
+    "Highlight": "highlight_color",
+    "Heading": "heading_color",
 }
 
 # Used to parse arguments
@@ -85,9 +88,11 @@ TYPES_OF_COLORS = {
     "TaskerNetInfo": "TaskerNet 'information'",
     "Preferences": "Tasker 'preferences'",
     "TrailingComments": "Trailing Comments",
+    "Highlight": "Highlight",
+    "Heading": "Heading",
 }
 
-# Runtime argument names/keywords
+# Runtime argument names/keywords that are used throughout the program
 ARGUMENT_NAMES = [
     "display_detail_level",
     "display_profile_conditions",
@@ -102,9 +107,15 @@ ARGUMENT_NAMES = [
     "debug",
     "rerun",
     "directory",
+    "bold",
+    "highlight",
+    "italicize",
+    "underline",
+    "appearance_mode",
 ]
 
 logger = logging.getLogger("MapTasker")
 debug_out = False  # Prints the line to be added to the output
 DEBUG_PROGRAM = False
+debug_file = "maptasker_debug.log"
 debug_file = "maptasker_debug.log"

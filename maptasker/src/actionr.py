@@ -1,15 +1,15 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
+# #################################################################################### #
+#                                                                                      #
 # actionr: process Task "Action" and return the result                                       #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-# ########################################################################################## #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+# #################################################################################### #
 import contextlib
 from collections import defaultdict
 
@@ -20,13 +20,15 @@ from maptasker.src.actargs import action_args
 from maptasker.src.actionc import action_codes
 from maptasker.src.frmthtml import format_html
 from maptasker.src.sysconst import logger
-from maptasker.src.xmldata import get_xml_int_argument_to_value
-from maptasker.src.xmldata import get_xml_str_argument_to_value
+from maptasker.src.xmldata import (
+    get_xml_int_argument_to_value,
+    get_xml_str_argument_to_value,
+)
 
 
-# ####################################################################################################
+# ##################################################################################
 # Given a list of positional items, return a string in the correct order based on position
-# ####################################################################################################
+# ##################################################################################
 def get_results_in_arg_order(evaluated_results: dict) -> str:
     """
     Given a list of positional items, return a string in the correct order based on position
@@ -74,10 +76,12 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
     return return_result
 
 
-# ####################################################################################################
+# ##################################################################################
+
+
 # For the given code, save the display_name, required arg list and associated type list in dictionary
 # Then evaluate the data against the master dictionary of actions
-# ####################################################################################################
+# ##################################################################################
 def evaluate_action_args(
     primary_items: dict,
     the_action_code_plus: defusedxml.ElementTree.XML,
@@ -91,7 +95,7 @@ def evaluate_action_args(
     """
     For the given code, save the display_name, required arg list and associated type list in dictionary
      Then evaluate the data against the master dictionary of actions
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param the_action_code_plus: the code found in <code> for the Action (<Action>) plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
         :param arg_list: list of arguments (<argn>) under Action
         :param code_action: Action code found in <code>
@@ -136,10 +140,12 @@ def evaluate_action_args(
     return evaluated_results
 
 
-# ####################################################################################################
+# ##################################################################################
+
+
 # For the given code, save the display_name, required arg list and associated type list in dictionary
 # Then evaluate the data against the master dictionary of actions
-# ####################################################################################################
+# ##################################################################################
 def get_action_results(
     primary_items: dict,
     the_action_code_plus: str,
@@ -152,7 +158,7 @@ def get_action_results(
     """
     For the given code, save the display_name, required arg list and associated type list in dictionary
     Then evaluate the data against the master dictionary of actions
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param the_action_code_plus: the code found in <code> for the Action (<Action>) plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
         :param lookup_code_entry: The key to our Action code dictionary in actionc.py
         :param code_action: the <code> xml element

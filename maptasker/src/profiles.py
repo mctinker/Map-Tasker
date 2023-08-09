@@ -1,16 +1,16 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# profiles: process Profiles for given project                                               #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# profiles: process Profiles for given project                                         #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.condition as condition
@@ -18,15 +18,16 @@ import maptasker.src.tasks as tasks
 
 # from maptasker.src.kidapp import get_kid_app
 from maptasker.src.frmthtml import format_html
-from maptasker.src.xmldata import remove_html_tags
-
+from maptasker.src.nameattr import add_name_attribute
+from maptasker.src.property import get_properties
 from maptasker.src.share import share
 from maptasker.src.sysconst import NO_PROFILE
+from maptasker.src.xmldata import remove_html_tags
 
 
-# #######################################################################################
+# ##################################################################################
 # Get a specific Profile's Tasks (maximum of two:entry and exit)
-# #######################################################################################
+# ##################################################################################
 def get_profile_tasks(
     primary_items: dict,
     the_profile: defusedxml.ElementTree.XML,
@@ -41,7 +42,7 @@ def get_profile_tasks(
     It also checks if a single task name is specified and sets a flag if the task name matches.
 
     Args:
-        primary_items (dict): dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  Program registry.  See mapit.py for details.
         the_profile (defusedxml.ElementTree.XML): The XML profile element.
         found_tasks_list (list): A list of found tasks.
         task_output_line (list): A list of task output lines.
@@ -83,16 +84,18 @@ def get_profile_tasks(
     return the_task_element, the_task_name
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Get a specific Profile's name
-# #######################################################################################
+# ##################################################################################
 def get_profile_name(
     primary_items: dict,
     profile: defusedxml.ElementTree,
 ) -> tuple[str, str]:
     """
     Get a specific Profile's name
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param profile: xml element pointing to the Profile
         :return: Profile name with appropriate html and the profile name itself
     """
@@ -101,12 +104,15 @@ def get_profile_name(
     except AttributeError:  # no Profile name
         the_profile_name = NO_PROFILE
 
+    # Make the Project name bold, italicize, underline and/or highlighted if requested
+    altered_profile_name = add_name_attribute(primary_items, the_profile_name)
+
     # Add html color and font for Profile name
     profile_name_with_html = format_html(
         primary_items["colors_to_use"],
         "profile_color",
         "",
-        f"Profile: {the_profile_name} ",
+        f"Profile: {altered_profile_name} ",
         True,
     )
 
@@ -117,9 +123,11 @@ def get_profile_name(
     return profile_name_with_html, the_profile_name
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Get the Profile's key attributes: limit, launcher task, run conditions
-# #######################################################################################
+# ##################################################################################
 def build_profile_line(
     primary_items: dict,
     project: defusedxml.ElementTree.XML,
@@ -127,7 +135,7 @@ def build_profile_line(
 ) -> str:
     """
     Get the Profile's key attributes: limit, launcher task, run conditions and output it
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param project: the Project xml element
         :param profile: the Profile xml element
         :return: Profile name
@@ -225,9 +233,11 @@ def build_profile_line(
     return profile_name
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # process_projects: go through all Projects Profiles...and output them
-# #######################################################################################
+# ##################################################################################
 def process_profiles(
     primary_items: dict,
     project: defusedxml.ElementTree.XML,
@@ -291,30 +301,43 @@ def process_profiles(
             profile,
         )
 
+        # Process Project Properties
+        if primary_items["program_arguments"]["display_detail_level"] == 3:
+            get_properties(
+                primary_items, profile, primary_items["colors_to_use"]["profile_color"]
+            )
+
         # Process any <Share> information from TaskerNet
         if primary_items["program_arguments"]["display_taskernet"]:
             share(primary_items, profile)
+            # Add a spacer if detail is 0
+            if primary_items["program_arguments"]["display_detail_level"] == 0:
+                primary_items["output_lines"].add_line_to_output(primary_items, 0, "")
 
         # We have the Tasks for this Profile.  Now let's output them.
         # True = we're looking for a specific Task
         # False = this is a normal Task
-        specific_task = tasks.output_task(
-            primary_items,
-            our_task_name,
-            our_task_element,
-            task_list,
-            project_name,
-            profile_name,
-            list_of_found_tasks,
-            True,
-        )
-        
+        if primary_items["program_arguments"]["display_detail_level"] != 0:
+            specific_task = tasks.output_task(
+                primary_items,
+                our_task_name,
+                our_task_element,
+                task_list,
+                project_name,
+                profile_name,
+                list_of_found_tasks,
+                True,
+            )
+        else:
+            specific_task = False
+
         # Get out if doing a specific Task, and it was found
         if (
             specific_task
             and primary_items["program_arguments"]["single_task_name"]
             and primary_items["found_named_items"]["single_task_found"]
-            or not specific_task
+        ) or (
+            not specific_task
             and primary_items["found_named_items"]["single_profile_found"]
         ):  # Get out if we've got the Task we're looking for
             break

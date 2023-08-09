@@ -1,30 +1,31 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# migrate: migrate old formatted files to new formats to retain settings                     #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
-import _pickle
+# #################################################################################### #
+#                                                                                      #
+# migrate: migrate old formatted files to new formats to retain settings               #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import contextlib
 import pickle
-from os import rename, path
+from os import path, rename
 from pathlib import Path
+
+import _pickle
 
 from maptasker.src.error import error_handler
 from maptasker.src.getputarg import save_restore_args
 from maptasker.src.sysconst import ARGUMENTS_FILE
 
 
-# #######################################################################################
+# ##################################################################################
 # Save program arguments
-# #######################################################################################
+# ##################################################################################
 def restore_old_args(file_to_check: Path) -> tuple[dict, dict]:
     """
     Save program arguments
@@ -74,16 +75,15 @@ def process_error(error_msg: str) -> tuple[dict, dict]:
     error_handler(error_msg, 0)
     return {}, {}
 
-
-# #######################################################################################
+# ##################################################################################
 # Migrate from old filename/format to new for saved runtime arguments
-# #######################################################################################
+# ##################################################################################
 def migrate(primary_items: dict) -> dict:
     """
     Migrate from old filename/format to new for saved runtime arguments
       We have changed from using the unsecure "pickle" code to using "json"
       to save the program arguments and colors
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :return: nothing
     """
     old_arguments_file = ".MapTasker_arguments.txt"

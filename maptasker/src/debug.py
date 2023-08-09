@@ -1,25 +1,26 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# debug: special debug code for MapTasker                                                    #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# debug: special debug code for MapTasker                                              #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import sys
 
 from maptasker.src.frmthtml import format_html
+from maptasker.src.sysconst import logger
 
 
 def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
     """
     Put out a line that identifies the following output as DEBUG
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param begin_or_end: text identiying the beginning or end of debug
     """
     arrow = ">"
@@ -36,10 +37,13 @@ def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
     )
 
 
+# ################################################################################
+# Display the program arguments and colors to use in output for debug purposes
+# ################################################################################
 def display_debug_info(primary_items: dict) -> None:
     """
     Output our runtime arguments
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
     """
     # Identify the output as debug stuff
     output_debug_line(primary_items, "Start")
@@ -99,11 +103,11 @@ def display_debug_info(primary_items: dict) -> None:
 
 def not_in_dictionary(primary_items: dict, type: str, code: str) -> None:
     """_summary_
-Handle condition if Action/Event/State code not found in our dictionary (actionc.py)
-    Args:
-        primary_items (dict): dictionary of the primary items used throughout the module.  See mapit.py for details
-        type (str): name of condition: Action, State, Event
-        code (str): the xml code
+    Handle condition if Action/Event/State code not found in our dictionary (actionc.py)
+        Args:
+            :param primary_items:  Program registry.  See mapit.py for details.
+            type (str): name of condition: Action, State, Event
+            code (str): the xml code
     """
     logger.debug(
         f"Error action code {code} not in the dictionary!",

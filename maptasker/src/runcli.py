@@ -1,41 +1,46 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# runcli: process command line interface arguments for MapTasker                            #
-#                                                                                            #
-# Add the following statement (without quotes) to your Terminal Shell configuration file     #
-#  (BASH, Fish, etc.) to eliminate the runtime msg:                                          #
-#  DEPRECATION WARNING: The system version of Tk is deprecated ...                           #
-#  "export TK_SILENCE_DEPRECATION = 1"                                                       #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# runcli: process command line interface arguments for MapTasker                       #
+#                                                                                      #
+# Add the following statement (without quotes) to your Terminal Shell config file.     #
+#  (BASH, Fish, etc.) to eliminate the runtime msg:                                    #
+#  DEPRECATION WARNING: The system version of Tk is deprecated ...                     #
+#  "export TK_SILENCE_DEPRECATION = 1"                                                 #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import sys
 
-from maptasker.src.colors import get_and_set_the_color
-from maptasker.src.colors import validate_color
+from maptasker.src.colors import get_and_set_the_color, validate_color
+from maptasker.src.error import error_handler
 from maptasker.src.getputarg import save_restore_args
+from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.parsearg import runtime_parser
 from maptasker.src.rungui import process_gui
-from maptasker.src.initparg import initialize_runtime_arguments
-
-from maptasker.src.sysconst import MY_LICENSE
-from maptasker.src.sysconst import MY_VERSION
-from maptasker.src.sysconst import TYPES_OF_COLORS
-from maptasker.src.sysconst import logger
-from maptasker.src.error import error_handler
+from maptasker.src.sysconst import MY_LICENSE, MY_VERSION, TYPES_OF_COLORS, logger
 
 
-# #######################################################################################
+# ##################################################################################
 # Get arguments from command line and put them to the proper settings
-# #######################################################################################
+# ##################################################################################
 def process_arguments(primary_items: dict, args: object) -> dict:
+    """_summary_
+    Get arguments from command line and put them to the proper settings
+        Args:
+            primary_items (dict): dictionary of the primary items used throughout the
+            module.  See mapit.py for details
+            args (object): program arguments passed from command line
+
+        Returns:
+            dict: modfgied primary_items based on program arguments
+    """
     # Color help?
     if getattr(args, "ch"):
         validate_color("h")
@@ -54,9 +59,15 @@ def process_arguments(primary_items: dict, args: object) -> dict:
             "display_taskernet"
         ] = True
     else:
-        primary_items["program_arguments"]["display_detail_level"] = getattr(
-            args, "detail"  # Display detail level
-        )
+        detail = getattr(args, "detail")
+        if detail is not None:
+            if isinstance(detail, list):
+                primary_items["program_arguments"]["display_detail_level"] = int(
+                    detail[0]
+                )
+            else:
+                primary_items["program_arguments"]["display_detail_level"] = int(detail)
+
         primary_items["program_arguments"]["display_profile_conditions"] = getattr(
             args, "conditions"  # Display conditions
         )
@@ -75,7 +86,7 @@ def process_arguments(primary_items: dict, args: object) -> dict:
     the_name = getattr(args, "task")  # Display single task
     if the_name is not None:
         primary_items["program_arguments"]["single_task_name"] = the_name[0]
-    if getattr(args, "d"):  # Debug mode
+    if getattr(args, "debug"):  # Debug mode
         primary_items["program_arguments"]["debug"] = True
     if getattr(args, "v"):  # Display version info
         print(f"{MY_VERSION}, under license {MY_LICENSE}")
@@ -84,10 +95,23 @@ def process_arguments(primary_items: dict, args: object) -> dict:
         primary_items["program_arguments"]["twisty"] = True
     if getattr(args, "directory"):  # Directory
         primary_items["program_arguments"]["directory"] = True
-    if backup_file_info := getattr(
-        args, "b"
-    ):  # Get backup file directly from Android device
-        # It is a list if coming from program arguments.  Otherwise, just a string if coming from run_test (unit test)
+    # Get names (bold, highlight, underline and/or highlight)
+    if value := getattr(args, "names"):
+        # Get names (bold, highlight, underline and/or highlight)
+        # If value is a list, convert it to a string first
+        name_attributes = " ".join(value) if isinstance(value, list) else value
+        if "bold" in name_attributes:
+            primary_items["program_arguments"]["bold"] = True
+        if "highlight" in name_attributes:
+            primary_items["program_arguments"]["highlight"] = True
+        if "italicize" in name_attributes:
+            primary_items["program_arguments"]["italicize"] = True
+        if "underline" in name_attributes:
+            primary_items["program_arguments"]["underline"] = True
+    # Get backup file directly from Android device
+    # It is a list if coming from program arguments.
+    # Otherwise, just a string if coming from run_test (unit test)
+    if backup_file_info := getattr(args, "b"):
         if type(backup_file_info) == list:
             backup_details = backup_file_info[0].split("+")
         else:
@@ -99,6 +123,12 @@ def process_arguments(primary_items: dict, args: object) -> dict:
             primary_items["program_arguments"]["backup_file_location"] = backup_details[
                 1
             ]
+    # Appearance mode
+    if appearance := getattr(args, "a"):
+        if type(appearance) == list:
+            primary_items["program_arguments"]["appearance_mode"] = appearance[0]
+        else:
+            primary_items["program_arguments"]["appearance_mode"] = appearance
 
     # Process colors
     for item in TYPES_OF_COLORS:
@@ -121,13 +151,13 @@ def process_arguments(primary_items: dict, args: object) -> dict:
     return primary_items
 
 
-# #######################################################################################
+# ##################################################################################
 # Get arguments from saved file and restore them to the proper settings
-# #######################################################################################
+# ##################################################################################
 def restore_arguments(primary_items: dict) -> dict:
     """
     Get arguments from saved file and restore them to the proper settings
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :return: primary items
     """
     temp_arguments = temp_colors = {}
@@ -136,29 +166,12 @@ def restore_arguments(primary_items: dict) -> dict:
         "program_arguments"
     ].items():  # Map the prog_arg keys and values restored
         if key is not None:
-            match key:
-                case "debug":
-                    primary_items["program_arguments"]["debug"] = value
-                case "display_detail_level":
-                    primary_items["program_arguments"]["display_detail_level"] = int(
-                        value
-                    )
-                case "display_profile_conditions":
-                    primary_items["program_arguments"][
-                        "display_profile_conditions"
-                    ] = value
-                case "display_preferences":
-                    primary_items["program_arguments"]["display_preferences"] = value
-                case "display_taskernet":
-                    primary_items["program_arguments"]["display_taskernet"] = value
-                case "single_profile_name":
-                    primary_items["program_arguments"]["single_profile_name"] = value
-                case "single_project_name":
-                    primary_items["program_arguments"]["single_project_name"] = value
-                case "single_task_name":
-                    primary_items["program_arguments"]["single_task_name"] = value
-                case _:
-                    error_handler("Invalid argument restored: {key}!", 0)
+            try:
+                primary_items["program_arguments"][key] = value
+            except KeyError:
+                error_handler("Error...runcli invalid argument restored: {key}!", 0)
+            if key == "display_detail_level":
+                primary_items["program_arguments"]["display_detail_level"] = int(value)
 
     # Map the colormap keys and values restored
     for key, value in temp_colors.items():
@@ -168,9 +181,9 @@ def restore_arguments(primary_items: dict) -> dict:
     return primary_items
 
 
-# #######################################################################################
+# ##################################################################################
 # We're running a unit test. Get the unit test arguments
-# #######################################################################################
+# ##################################################################################
 def unit_test() -> object:
     """
     # Get arguments from run_test.py and process them for unit testing
@@ -182,7 +195,10 @@ def unit_test() -> object:
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
-    # Setup default argument Namespace
+    # Setup default argument Namespace based on parsearg.py add_argument
+    # Update this if adding a new program argument !!!
+    # single letter if the first name is a single letter, otherwise full name
+    # Example: parser.add_argument( "-g","-gui",... then -g is the short name
     args = Namespace(
         detail=3,
         conditions=False,
@@ -193,6 +209,7 @@ def unit_test() -> object:
         taskernet=False,
         twisty=False,
         directory=False,
+        names=False,
         project=None,
         profile=None,
         task=None,
@@ -214,25 +231,37 @@ def unit_test() -> object:
         cTaskerNetInfo=None,
         cPreferences=None,
         cTrailingComments=None,
+        cHighlight=None,
+        cHeading=None,
         ch=False,
-        d=True,
+        debug=True,
         s=False,
         r=False,
         v=False,
+        a=None,
     )
     # Go through each argument from runtest
     for the_argument in sys.argv:
         if the_argument == "-test=yes":  # Remove unit test trigger
             continue
         new_arg = the_argument.split("=")
-        # Handle boolean (True) values
+        # Handle boolean (True) values and colors
         if len(new_arg) == 1:
-            new_arg.append("1")
+            # Handle color
+            if new_arg[0][0]  == "c" and new_arg[0] != "conditions":
+                color_arg = new_arg[0].split()
+                setattr(args, color_arg[0], color_arg[1])
+            else:
+                # Boolean argument.  Set as True.
+                setattr(args, new_arg[0], True)
+                
         # Handle display_detail_level, which requires an int
-        if new_arg[0] == "detail":
+        elif new_arg[0] == "detail":
             new_arg[1] = int(new_arg[1])
+            setattr(args, new_arg[0], new_arg[1])
+            
         # replace the default Namespace value with unit test value
-        if new_arg[0] in single_names:
+        elif new_arg[0] in single_names:
             setattr(args, new_arg[0], [new_arg[1]])
         else:
             setattr(args, new_arg[0], new_arg[1])
@@ -240,9 +269,9 @@ def unit_test() -> object:
     return args
 
 
-# #######################################################################################
+# ##################################################################################
 # Get the program arguments (e.g. python mapit.py -x)
-# #######################################################################################
+# ##################################################################################
 # Command line parameters
 def process_cli(primary_items: dict) -> dict:
     # Convert runtime argument default values to a dictionary

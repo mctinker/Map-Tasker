@@ -2,24 +2,25 @@
 
 import defusedxml.cElementTree as ET
 
-# ########################################################################################## #
-#                                                                                            #
-# taskerd: get Tasker data from backup xml                                                   #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
-from maptasker.src.sysconst import logger
 from maptasker.src.error import error_handler
 
+# #################################################################################### #
+#                                                                                      #
+# taskerd: get Tasker data from backup xml                                                   #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
+from maptasker.src.sysconst import logger
 
-# ###############################################################################################
+
+# ##################################################################################
 # Convert list of xml to dictionary
-# ###############################################################################################
+# ##################################################################################
 def move_xml_to_table(all_xml: list, is_scene: bool) -> dict:
     """
     Given a list of Profile/Task/Scene elements, find each name and store the element and name in a dictionary
@@ -36,13 +37,15 @@ def move_xml_to_table(all_xml: list, is_scene: bool) -> dict:
     return new_table
 
 
-# ###############################################################################################
+# ##################################################################################
+
+
 # Load all of the Projects, Profiles and Tasks into a format we can easily navigate through
-# ###############################################################################################
+# ##################################################################################
 def get_the_xml_data(primary_items: dict) -> dict:
     """
     Load all the Projects, Profiles and Tasks into a format we can easily navigate through
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :return: primary_items
     """
 
@@ -80,4 +83,5 @@ def get_the_xml_data(primary_items: dict) -> dict:
         "all_services": all_services,
     }
     logger.info("exit")
+    return primary_items
     return primary_items

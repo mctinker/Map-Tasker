@@ -1,31 +1,29 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
+# #################################################################################### #
+#                                                                                      #
 # taskuniq: deal with unique Tasks                                                           #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 from typing import List, Union
 
 import defusedxml.ElementTree
 
 import maptasker.src.tasks as tasks
 from maptasker.src.frmthtml import format_html
-from maptasker.src.twisty import add_twisty
-from maptasker.src.twisty import remove_twisty
-from maptasker.src.sysconst import NO_PROJECT
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME
+from maptasker.src.sysconst import NO_PROJECT, UNKNOWN_TASK_NAME
+from maptasker.src.twisty import add_twisty, remove_twisty
 
 
-# ###############################################################################################
+# ##################################################################################
 # Output Projects Without Tasks and Projects Without Profiles
-# ###############################################################################################
+# ##################################################################################
 def process_missing_tasks_and_profiles(
     primary_items: dict,
     projects_with_no_tasks: Union[List[str], List],
@@ -103,13 +101,15 @@ def process_missing_tasks_and_profiles(
     return
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Add heading to output for named Tasks not in any Profile
-# #######################################################################################
+# ##################################################################################
 def add_heading(primary_items: dict, save_twisty: bool) -> bool:
     """
     Add a header to the output for the solo Tasks
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param save_twisty: flag to indicate whether or not we are doing the twisty/hidden Tasks
         :return: True...flag that the heading has been created/output
     """
@@ -140,10 +140,12 @@ def add_heading(primary_items: dict, save_twisty: bool) -> bool:
     return True
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Process a single Task that does not belong to any Profile
 # This function is called recursively
-# #######################################################################################
+# ##################################################################################
 def process_solo_task_with_no_profile(
     primary_items: dict,
     task_id: str,
@@ -155,7 +157,7 @@ def process_solo_task_with_no_profile(
 ) -> tuple[int, defusedxml.ElementTree.XML, int]:
     """
     Process a single Task that does not belong to any Profile
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param task_id: the ID of the Task being displayed
         :param found_tasks: list of Tasks that we have found
         :param task_count: count of the unnamed Tasks
@@ -230,9 +232,11 @@ def process_solo_task_with_no_profile(
     return have_heading, specific_task, task_count
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # process_tasks: go through all tasks and output them
-# #######################################################################################
+# ##################################################################################
 def process_tasks_not_called_by_profile(
     primary_items: dict,
     projects_with_no_tasks: List,
@@ -240,7 +244,7 @@ def process_tasks_not_called_by_profile(
 ) -> None:
     """
     Go through all tasks and output them
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param projects_with_no_tasks: list of Project xml roots for which there are no Tasks
         :param found_tasks_list: list of all Tasks found so far
         :return: nothing

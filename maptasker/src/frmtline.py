@@ -1,10 +1,21 @@
-import contextlib
+#! /usr/bin/env python3
+
+# #################################################################################### #
+#                                                                                      #
+# format_line: Format the output line before it gets written to file                   #
+#                                                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 
 
 def format_line(primary_items: dict, num: int, item: str) -> str:
     """
     Given a line in our list of output lines, do some additional formatting to clean it up
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param num: the numeric line number from the list of output lines
         :param item: the specific text to reformat from the list of output lines
         :return: the reformatted text line for output

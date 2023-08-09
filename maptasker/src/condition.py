@@ -3,17 +3,17 @@ import defusedxml.ElementTree
 
 import maptasker.src.actiond as process_action_codes
 
-# ########################################################################################## #
-#                                                                                            #
+# #################################################################################### #
+#                                                                                      #
 # condition: Process profile condition: time, date, state, event, location, app              #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import maptasker.src.actione as action_evaluate
 
 # action_codes: Master dictionary of Task action and Profile condition codes
@@ -23,15 +23,15 @@ from maptasker.src.sysconst import logger
 from maptasker.src.taskflag import get_priority
 
 
-# #######################################################################################
+# ##################################################################################
 # Profile condition: Time
-# #######################################################################################
-def condition_time(primary_items: dict,
-    the_item: defusedxml.ElementTree.XML, the_output_condition: str
+# ##################################################################################
+def condition_time(
+    primary_items: dict, the_item: defusedxml.ElementTree.XML, the_output_condition: str
 ) -> str:
     """
     Handle the "Time" condition
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param the_item: the xml element with the Condition
         :param the_output_condition: text into which the condition output is to be formated
         :return: the formatted condition's output string
@@ -97,9 +97,11 @@ def condition_time(primary_items: dict,
     return the_output_condition
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Profile condition: Day
-# #######################################################################################
+# ##################################################################################
 def condition_day(
     the_item: defusedxml.ElementTree.XML, the_output_condition: str
 ) -> str:
@@ -154,15 +156,17 @@ def condition_day(
     return the_output_condition
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Profile condition: State
-# #######################################################################################
+# ##################################################################################
 def condition_state(
     primary_items: dict, the_item: defusedxml.ElementTree, the_output_condition: str
 ) -> str:
     """
     Handle the "State" condition
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param the_item: the xml element with the Condition
         :param the_output_condition: text into which the condition output is to be formated
         :return: the formatted condition's output string
@@ -197,15 +201,17 @@ def condition_state(
     return ""
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Profile condition: Event
-# #######################################################################################
+# ##################################################################################
 def condition_event(
     primary_items: dict, the_item: defusedxml.ElementTree, the_output_condition: str
 ) -> str:
     """
     Handle the "Event" condition
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param the_item: the xml element with the Condition
         :param the_output_condition: text into which the condition output is to be formatted
         :return: the formatted condition's output string
@@ -242,15 +248,17 @@ def condition_event(
     return the_output_condition
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Given a Profile, return its list of conditions
-# #######################################################################################
+# ##################################################################################
 def parse_profile_condition(
     primary_items: dict, the_profile: defusedxml.ElementTree
 ) -> str:
     """
     Given a Profile, return its list of conditions
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param the_profile: the xml element pointing to <Profile object
         :return: the formatted condition's output string
     """
@@ -267,7 +275,9 @@ def parse_profile_condition(
         # Find out what the condition is and handle it
         match item.tag:
             case "Time":
-                condition = condition_time(primary_items, item, condition)  # Get the Time condition
+                condition = condition_time(
+                    primary_items, item, condition
+                )  # Get the Time condition
 
             case "Day":
                 condition = condition_day(item, condition)

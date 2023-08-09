@@ -1,25 +1,25 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# colors: get and set the program colors                                                     #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# colors: get and set the program colors                                               #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import string
-from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES
-from maptasker.src.sysconst import logger
+
 from maptasker.src.error import error_handler
+from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES, logger
 
 
-# #######################################################################################
+# ##################################################################################
 # Given a list [x,y,z] , print as x y z
-# #######################################################################################
+# ##################################################################################
 def print_list(title: str, parse_items: list) -> None:
     """
     Given a list [x,y,z] , print as x y z
@@ -40,9 +40,9 @@ def print_list(title: str, parse_items: list) -> None:
     return
 
 
-# #######################################################################################
+# ##################################################################################
 # Validate the color name provided.  If color name is 'h', simply display all the colors
-# #######################################################################################
+# ##################################################################################
 def validate_color(the_color: str) -> object:
     """
     Validate the color name provided.
@@ -252,13 +252,13 @@ def validate_color(the_color: str) -> object:
     exit(0)
 
 
-# #######################################################################################
+# ##################################################################################
 # Get the runtime option for a color change and set it
-# #######################################################################################
+# ##################################################################################
 def get_and_set_the_color(primary_items: dict, the_arg: str) -> None:
     """
     Get the runtime option for a color change and set it
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param the_arg: the color runtime argument (e.g. "cProfile=Blue" or "cProfile Blue")
         :return: nothing
     """

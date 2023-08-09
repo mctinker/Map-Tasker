@@ -1,15 +1,15 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# scenes: Process the Tasker Scene passed as input                                           #
-#                                                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# scenes: Process the Tasker Scene passed as input                                     #
+#                                                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import contextlib
 
 import defusedxml.ElementTree  # Need for type hints
@@ -67,7 +67,7 @@ def get_scene_elements(
 ) -> None:
     """
     Go through Scene's <xxxElement> tags and output them
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param child: pointer to '<xxxElement' Scene xml statement
         :return: nothing
     """
@@ -122,7 +122,7 @@ def process_scene(
 ) -> None:
     """
     Process the Project's Scene(s), one at a time
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param my_scene: name of Scene to process
         :param tasks_found: list of Tasks found so far
         :return:
@@ -146,12 +146,16 @@ def process_scene(
         ),
     )
 
-    # Go through all the children of the Scene looking for width/height and 'click' Tasks
+    # Go through all the children of the Scene looking for width/height
+    # and 'click' Tasks
     for child in primary_items["tasker_root_elements"]["all_scenes"][my_scene]:
         if child.tag in SCENE_TAGS_TO_IGNORE:
             continue
         # End of "xxxElement"?
-        if child.tag == "PropertiesElement":
+        if (
+            child.tag == "PropertiesElement"
+            and primary_items["program_arguments"]["display_detail_level"] != 2
+        ):
             primary_items["output_lines"].output_lines.append("<br>")
 
         elif tag_in_type(child.tag, True):  # xxxElement?
@@ -161,7 +165,8 @@ def process_scene(
 
             # Look for Tasks associated with this element
             for sub_child in child:  # Go through Element sub-items
-                # Task-Click (<xxxClick>, <xxxTask>, etc.) associated with this Scene's element?
+                # Task-Click (<xxxClick>, <xxxTask>, etc.) associated with this
+                #  Scene's element?
                 if tag_in_type(sub_child.tag, False):
                     # Start Scene's Task list
                     temp_task_list = [sub_child.text]
@@ -207,9 +212,9 @@ def process_scene(
     return
 
 
-# #############################################################################################
+# ##################################################################################
 # Go through all Scenes for Project, get their detail and output it
-# #############################################################################################
+# ##################################################################################
 def process_project_scenes(
     primary_items: dict,
     project: defusedxml.ElementTree.XML,
@@ -218,7 +223,7 @@ def process_project_scenes(
 ) -> bool:
     """
     Go through all Scenes for Project, get their detail and output it
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param project: xml element of Project we are processing
         :param our_task_element: xml element pointing to our Task
         :param found_tasks: list of Tasks found so far
@@ -230,15 +235,19 @@ def process_project_scenes(
         scene_names = project.find("scenes").text
     if scene_names is not None:
         scene_list = scene_names.split(",")
-        
+
         # If 2nd and 3rd last output lines are </ul>, then there is one too many.
         # Counter by adding a new line for the Scene.
-        if primary_items["output_lines"].output_lines[-2][:5] == "</ul>" and primary_items["output_lines"].output_lines[-3][:5] == "</ul>":
+        if (
+            primary_items["output_lines"].output_lines[-2][:5] == "</ul>"
+            and primary_items["output_lines"].output_lines[-3][:5] == "</ul>"
+        ):
             primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
 
         # If last line in output has an end-ordered-list, then it must have been
         # for the list of Tasks not found in any Profile...and it has to be removed
-        # to avoid a double end underline casing mis-alignment of Scene: statements in output
+        # to avoid a double end underline causing mis-alignment of Scene:
+        #   statements in output
         if primary_items["output_lines"].output_lines[-1] == "</ul>":
             primary_items["output_lines"].delete_last_line(primary_items)
 
@@ -255,5 +264,9 @@ def process_project_scenes(
 
             # Force a line break
             primary_items["output_lines"].add_line_to_output(primary_items, 4, "")
+            
+            if primary_items["program_arguments"]["display_detail_level"] == 0:
+                # End list if displaying level 0
+                primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
 
     return bool(scene_names)

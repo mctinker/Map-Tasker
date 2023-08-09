@@ -1,32 +1,33 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# colrmode: set the program colors based on color mode: dark or light                        #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# colrmode: set the program colors based on color mode: dark or light                  #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import darkdetect
 
 
 def set_color_mode(appearance_mode: str) -> dict:
     """
-    Given the color mode to use (Dark or Light), set the colors appropriately
-       :param appearance_mode: color mode: Dark or Light
+    Given the color mode to use (dark or light), set the colors appropriately
+       :param appearance_mode: color mode: dark or light
        :return new colormap of colors to use in the output
     """
     # Deal with "System" color mode
-    if appearance_mode == "System":
-        mode = "Dark" if darkdetect.isDark() else "Light"
+    if appearance_mode == "system":
+        mode = "dark" if darkdetect.isDark() else "light"
     else:
         mode = appearance_mode
-
-    if mode == "Dark":
+        
+    # Now set the colors to use based on the appearance mode
+    if mode == "dark":
         return {
             "project_color": "White",
             "profile_color": "Aqua",
@@ -46,6 +47,8 @@ def set_color_mode(appearance_mode: str) -> dict:
             "trailing_comments_color": "PeachPuff",
             "taskernet_color": "LightPink",
             "preferences_color": "PeachPuff",
+            "highlight_color": "DarkTurquoise",
+            "heading_color": "LimeGreen",
         }
     else:
         return {
@@ -67,4 +70,6 @@ def set_color_mode(appearance_mode: str) -> dict:
             "trailing_comments_color": "Tomato",
             "taskernet_color": "RoyalBlue",
             "preferences_color": "DodgerBlue",
+            "highlight_color": "Yellow",
+            "heading_color": "DarkSlateGray",
         }

@@ -1,20 +1,21 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# actargs: process Task "Action" arguments                                                   #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-# ########################################################################################## #
-from maptasker.src.actiond import process_condition_list
-from maptasker.src.sysconst import logger
+# #################################################################################### #
+#                                                                                      #
+# actargs: process Task "Action" arguments                                             #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+# #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
+
 import maptasker.src.action as get_action
+from maptasker.src.actiond import process_condition_list
 from maptasker.src.frmthtml import format_html
+from maptasker.src.sysconst import logger
 
 
 def get_action_arguments(
@@ -28,7 +29,7 @@ def get_action_arguments(
 ) -> dict:
     """
     Given an <argn> element, evaluate it's contents based on our Action code dictionary (actionc.py)
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param evaluated_results: all the Action argument "types" and "arguments" as a dictionary
         :param arg: the incoming argument location/number (e.g. "0" for <arg0>)
         :param argeval: the evaluation argument from our action code table (actionc.py) e.g. "Timeout:" in "evalargs": ["", "Timeout:", ["", "e", ", Structure Output (JSON, etc)"]],
@@ -104,9 +105,11 @@ def get_action_arguments(
     return evaluated_results
 
 
-# ####################################################################################################
+# ##################################################################################
+
+
 # Go through the arguments and parse each one based on its argument 'type'
-# ####################################################################################################
+# ##################################################################################
 def action_args(
     primary_items: dict,
     arg_list: list,
@@ -119,7 +122,7 @@ def action_args(
 ) -> object:
     """
     Go through the arguments and parse each one based on its argument 'type'
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param arg_list: list of arguments (xml "<argn>") to process
         :param the_action_code_plus: the lookup the Action code from actionc with "action type" (e.g. 861t, t=Task, e=Event, s=State)
         :param lookup_code_entry: dictionary entry for code nnnx (e.g. for entry "846t")
@@ -175,4 +178,5 @@ def action_args(
             action_type,
         )
 
+    return evaluated_results
     return evaluated_results

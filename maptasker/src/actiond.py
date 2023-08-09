@@ -1,37 +1,40 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
+# #################################################################################### #
+#                                                                                      #
 # actiond: Task Action dictionary functions for MapTasker                                    #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
-import defusedxml.ElementTree  # Need for type hints
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 from typing import Any
 
+import defusedxml.ElementTree  # Need for type hints
+
 import maptasker.src.action as get_action
-from maptasker.src.sysconst import logger
 from maptasker.src.actionc import action_codes
+from maptasker.src.sysconst import logger
 
 IGNORE_ITEMS = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
 
 
-# #######################################################################################
+# ##################################################################################
 # Provide the Action dictionary to the caller
-# #######################################################################################
+# ##################################################################################
 def get_dict() -> defusedxml.ElementTree:
     return action_codes
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Update the dictionary for the Action code
 #  This is only called if the action code is not already in our master dictionary of codes
-# #######################################################################################
+# ##################################################################################
 def update_action_codes(
     action: defusedxml.ElementTree.XML, the_action_code_plus: defusedxml.ElementTree
 ) -> defusedxml.ElementTree:
@@ -41,12 +44,12 @@ def update_action_codes(
         :param the_action_code_plus: the Action code with "action type" (e.g. 861t, t=Task, e=Event, s=State)
         :return: nothing
     """
-    # #######################################################################################
+    # ##################################################################################
     # Update dictionary entry for this code in the format of an output line
     # dict = { 'the_code':
     #               {num_args: num,
     #                args: arg0, arg1, ... type: Int/Str  }
-    # #######################################################################################
+    # ##################################################################################
     arg_list, type_list, arg_nums = get_action.get_args(action, IGNORE_ITEMS)
     arg_count = len(arg_list)
 
@@ -64,9 +67,11 @@ def update_action_codes(
     return
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Build the dictionary for the Action code
-# #######################################################################################
+# ##################################################################################
 def build_new_action_codes(
     action: defusedxml.ElementTree.XML, the_action_code_plus: defusedxml.ElementTree
 ) -> defusedxml.ElementTree:
@@ -78,11 +83,11 @@ def build_new_action_codes(
     """
     logger.info(f"...for {the_action_code_plus}")
 
-    # #######################################################################################
+    # ##################################################################################
     # Create a dictionary entry for this code in the format of an output line
     # dict = { 'the_code':
     #               {num_args: num, args: ['arg0', 'arg1', ...], types: ['Str', 'Int', ...]
-    # #######################################################################################
+    # ##################################################################################
     arg_list, type_list, arg_nums = get_action.get_args(action, IGNORE_ITEMS)
     arg_count = len(arg_list)
     action_codes[the_action_code_plus] = {
@@ -93,13 +98,15 @@ def build_new_action_codes(
     return
 
 
-# #######################################################################################
+# ##################################################################################
+
+
 # Build the dictionary for each Action code
 #  This is only called if the action code is not already in our master dictionary of codes
 # child = pointer to <code> xml
 # action = pointer to root xml (<Action> or <Profile>)
 # adder = empty if <action>.  Else it is a Profile condition, and we need to make key unique
-# #######################################################################################
+# ##################################################################################
 def build_action_codes(
     primary_items: dict,
     action: defusedxml.ElementTree.XML,
@@ -108,7 +115,7 @@ def build_action_codes(
     """
     Build the dictionary for each Action code
     We first check if the_action_code_plus is already in action_codes. If it is, we call the update_action_codes() function. Otherwise, we call the build_new_action_codes() function followed by some logging and debugging output (if debug mode is enabled) as before.
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param action: xml element with Task action's "<code>nnn</code>"
         :param child: xml root element of Task action
         :return:
@@ -119,13 +126,15 @@ def build_action_codes(
         update_action_codes(action, the_action_code_plus)
     else:
         build_new_action_codes(action, the_action_code_plus)
- 
+
     return
 
 
-# ####################################################################################################
+# ##################################################################################
+
+
 # See if the display name is already in our Action dictionary.  If not, add it.
-# ####################################################################################################
+# ##################################################################################
 def add_name_to_action_codes(
     the_action_code_plus: defusedxml.ElementTree.XML,
     display_name: defusedxml.ElementTree,
@@ -143,9 +152,11 @@ def add_name_to_action_codes(
     return
 
 
-# ####################################################################################################
+# ##################################################################################
+
+
 # Given a child xml element, determine if it is a boolean of condtion add return if in a list
-# ####################################################################################################
+# ##################################################################################
 def get_boolean_or_condition(
     child: defusedxml.ElementTree, condition_list: list, boolean_list: list
 ) -> tuple[list, list]:
@@ -174,10 +185,12 @@ def get_boolean_or_condition(
     return condition_list, boolean_list
 
 
-# ####################################################################################################
+# ##################################################################################
+
+
 # Trundle through ConditionList "If" conditions
 # Return the list of conditions and list of associated booleans
-# ####################################################################################################
+# ##################################################################################
 def process_condition_list(
     code_action: defusedxml.ElementTree.XML,
 ) -> tuple[list[list[Any]], list[str]]:
@@ -193,4 +206,5 @@ def process_condition_list(
             condition_list, boolean_list = get_boolean_or_condition(
                 child, condition_list, boolean_list
             )
+    return condition_list, boolean_list
     return condition_list, boolean_list

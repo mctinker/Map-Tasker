@@ -1,23 +1,23 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
+# #################################################################################### #
+#                                                                                      #
 # prefers: Process Tasker's Preferences                                                      #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 
 import re
 from operator import itemgetter
 
+from maptasker.src.error import error_handler
 from maptasker.src.frmthtml import format_html
 from maptasker.src.servicec import service_codes
-from maptasker.src.error import error_handler
 
 
 def process_service(
@@ -28,7 +28,7 @@ def process_service(
 ) -> None:
     """
     We have a service xml element that we have mapped as a preference.  Process it.
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param service_name: name of the preference in <Service xml
         :param service_value: value of the preference in <Service xml
         :param temp_output_lines: list of service/preference output lines
@@ -83,7 +83,7 @@ def process_service(
 def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
     """
     Go through all of the <service> xml elements to process the Tasker preferences
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param temp_output_lines: list of service/preference output lines
         :return: nothing
     """
@@ -163,7 +163,6 @@ def get_preferences(primary_items: dict) -> None:
         "Unlisted (Perhaps Deprecated)",
     ]
     temp_output_lines = []
-    blank = "&nbsp;"
 
     # Output title line
     primary_items["output_lines"].add_line_to_output(

@@ -1,23 +1,23 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
+# #################################################################################### #
+#                                                                                      #
 # tasks: shell_sort   Sort Actions, args and misc.                                           #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 
 from maptasker.src.sysconst import logger
 
 
-# #############################################################################################
+# ##################################################################################
 # Shell sort for Action list (Actions are not necessarily in numeric order in XML backup file).
-# #############################################################################################
+# ##################################################################################
 def shell_sort(arr, do_arguments, by_numeric):
     n = len(arr)
     gap = n // 2

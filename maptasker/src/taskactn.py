@@ -1,16 +1,16 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
+# #################################################################################### #
+#                                                                                      #
 # taskactn: deal with Task Actions                                                           #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.tasks as tasks
@@ -19,11 +19,9 @@ from maptasker.src.frmthtml import format_html
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME
 
 
-
-
-# #######################################################################################
+# ##################################################################################
 # Go through list of actions and output them
-# #######################################################################################
+# ##################################################################################
 def output_list_of_actions(
     primary_items: dict,
     action_count: int,
@@ -33,7 +31,7 @@ def output_list_of_actions(
     """output the list of Task Actions
 
     Parameters:
-        :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+        :param primary_items:  program registry.  See mapit.py for details.
         :param action_count: count of Task actions
         :param alist: list of task actions
         :param the_item: the specific Task's detailed line
@@ -89,9 +87,12 @@ def output_list_of_actions(
         primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
     return
 
-# #######################################################################################
+
+# ##################################################################################
+
+
 # For this specific Task, get its Actions and output the Task and Actions
-# #######################################################################################
+# ##################################################################################
 def get_task_actions_and_output(
     primary_items,
     the_task: defusedxml.ElementTree.XML,
