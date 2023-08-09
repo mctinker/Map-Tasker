@@ -1,19 +1,38 @@
 MapTasker Change log
 
-## [2.0.10] - 2023-07-24   
-### Added: Support for new "Work Profile" Task Action and Profile State (Tasker version 6.2.9-rc)    
-### Added: Added missing "Close After" sub-action on Pick Input Dialog Action
-### Changed: Display Grand Totals regardless of detail display level      
-### Changed: If debug, redirect program abends (stack trace/error) to a debug log file    
-### Fixed: Exit from GUI displays "Error" in print out when it is not an error.    
-### Fixed: Under certain circumstances, fetching the backup xml file from Android device not working    
-### Fixed: Spurious indentation problems in output for Projects and Profiles    
-### Fixed: Gracefully handle conmdition when Action/State/Event code not found    
-### Fixed: Heading with Tasker and program versions was missing
+## [2.1.0] - 2023-07-08 
+### Added: Display Project/Profile/Task "properties" if display detail level is 3.   
+### Added: New runtime argument '-names {bold,highlight,underline,italicize}' to make all Project/Profile/Task/Scene 'names' display bold, highlighted, underlined and/or italicised.       
+### Added: New runtime argument '-cHeading' to assign a color to the output heading lines.   
+### Added: New runtime argument '-appearance' {system, light, dark} to switch between color themes.
+### Added: GUI: If a checkbox is selected or deselected, display the change in the message window. 
+### Added: GUI: Colors for 'highlight' names, and for 'Heading'
+### Added: GUI support new "names" bold/highlight/italicize display options.   
+### Changed: GUI message box now shows all previous messages along with new message at bottom.   
+### Fixed: If displaying the directory, some Project names incorrectly have an underscore embeddded.   
+### Fixed: Runtime argument "-restore" is not restoring all options correctly.   
+### Fixed: Display level of 0 includes too much information.   
+### Fixed: Cleaned up the README file.   
+### Fixed: Default display detail level caused a program error.   
+### FIxed: GUI color change resulted in two rather than a single notification.   
+### Fixed: Output heading color was hard to see in light-mode.
+### Fixed: Appearance mode not being saved correctly across sessions.
+### Fixed: Unit Test code was not handling program arguments properly.
+### Fixed: Setting Action label color had no effect
 
 
 Older History Log
 
+- [2.0.10] - 2023-07-24   
+       -   Added: Support for new "Work Profile" Task Action and Profile State (Tasker version 6.2.9-rc)    
+       -   Added: Added missing "Close After" sub-action on Pick Input Dialog Action
+       -   Changed: Display Grand Totals regardless of detail display level      
+       -   Changed: If debug, redirect program abends (stack trace/error) to a debug log file    
+       -   Fixed: Exit from GUI displays "Error" in printout when it is not an error.    
+       -   Fixed: Under certain circumstances, fetching the backup xml file from Android device not working    
+       -   Fixed: Spurious indentation problems in output for Projects and Profiles    
+       -   Fixed: Gracefully handle condition when Action/State/Event code not found    
+       -   Fixed: Heading with Tasker and program versions was missing   
 - [2.0.9] - 2023-07-12  
        -  Fixed: Rewrite directory code to elliminate problems with duplicate hyperlinks    
        -  Fixed: "▶︎ Detail" still appearing if both -twisty and -direectory options selected     

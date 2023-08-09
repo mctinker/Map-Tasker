@@ -42,14 +42,14 @@ The Tasker backup xml can either be manually uploaded to your Mac/Google Drive, 
 
 - Install MapTasker by entering the following command into Terminal:    
  
-
+D
      `pip3 install maptasker`        
 
 - To install it into a virtual environment, enter the following command into Terminal:    
 
      `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment    
      `python -m venv venv`    
-     `set VIRTUAL_ENV {directory path to 'xxx'}/venv`    
+     `set VIRTUAL_ENV {directory path to 'xxx'}/venv`    D
      `source {directory path to 'xxx'}/venv/bin/activate`  
      `pip3 install maptasker` 
      
@@ -81,9 +81,11 @@ Runtime: `maptasker -option1 -option2` ...
  
     `-h` for help. 
 
-        Get the backup file directly from the Android device (*):
+    `-a` for appearance mode, one of system, light, dark.
 
     `-b ip_addr:port+file_location`  example: 192.168.0.210:8120+//Tasker/configs/user/backup.xml
+
+        Get the backup file directly from the Android device (* = use default):
 
         * For the "Get backup" option to work, you must have the following prerequisites:
           1- Both the MAC and Android devices must be on the same network
@@ -96,7 +98,8 @@ Runtime: `maptasker -option1 -option2` ...
 
       'Project' 'Profile' 'Task' 'Action' 'DisabledProfile' 'UnknownTask' 
       'DisabledAction' 'ActionCondition' 'ProfileCondition' 'LauncherTask' 
-      'Background' 'ActionLabel' 'Bullets' 'TaskerNetInfo', "Preferences'
+      'Background' 'ActionLabel' 'Bullets' 'TaskerNetInfo', "Preferences',
+      "Heading', 'Highlight'
 
       Example color options: -cTask Green -cBackground Black cProfile 19c8ff   
 
@@ -107,28 +110,24 @@ Runtime: `maptasker -option1 -option2` ...
     `-detail 2` to display Action list names for *all* Tasks,    
     `-detail 3` to display Action list names with *all* parameters for all Tasks,    
   
-    `-dir`  display a directory of all Projects/Profiles/Tasks/Scenes.,
+    `-directory` to display a directory of all Projects/Profiles/Tasks/Scenes,
     `-e` to display 'everything': Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details,    
-    `-g` to get arguments from the GUI rather than via the command line,   
+    `-g` to get arguments from the GUI rather than via the command line,
+    `-n {bold highlight italicize}` to add formatting options to Project/Profile/Task/Scene names,   
+    `-preferences` to display Tasker's preference settings,  
+    `-twisty` to display Task details hidden by a twisty "▶︎".  Click on twisty to reveal.   
+    `-taskernet` to display any TaskerNet share details,  
     
-    The following three arguments are mutually exclusive.  Use one only:
+    The following three arguments are mutually exclusive.  Use one only:   
 
     `-project 'name of the project'` to display a single Project, its Profiles and Tasks only,    
     `-profile 'profile name'` to display a single Profile and its Tasks only,    
-    `-task 'task name'` to display a single Task only (forces option -detail 3),   
-        
-    `-taskernet` to display any TaskerNet share details,  
-    `-preferences` to display Tasker's preference settings,  
-   
-
-
+    `-task 'task name'` to display a single Task only (forces option -detail 3),  
 
     The following two arguments are exclusive.  Use one only:
 
     `-s`  save these settings for later reuse.    
     `-r` restores previously saved settings.
-
-    `-twisty`  display Task/Scene details hidden by a twisty "▶︎".  Click on twisty to reveal.
   
 
     Get the backup file directly from the Android device (*):
@@ -156,7 +155,7 @@ Sample output with runtime option '-detail 2':
 
 <img src="/documentation_images/display_level-d2.png" width="600"/>
 
-Sample output with runtime options '-detail 3 -profcon':
+Sample output with runtime options '-detail 3 -conditions':
 
 <img src="/documentation_images/display_level-d3.png" width="600"/>
 
