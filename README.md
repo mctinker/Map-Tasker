@@ -13,6 +13,7 @@
 ![PyPI - License](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 </div>
 
@@ -42,7 +43,6 @@ The Tasker backup xml can either be manually uploaded to your Mac/Google Drive, 
 
 - Install MapTasker by entering the following command into Terminal:    
  
-D
      `pip3 install maptasker`        
 
 - To install it into a virtual environment, enter the following command into Terminal:    
@@ -113,6 +113,7 @@ Runtime: `maptasker -option1 -option2` ...
     `-directory` to display a directory of all Projects/Profiles/Tasks/Scenes,
     `-e` to display 'everything': Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details,    
     `-g` to get arguments from the GUI rather than via the command line,
+    `-i` the amount of indentation for If/Then/Else Task actions (default=4),
     `-n {bold highlight italicize}` to add formatting options to Project/Profile/Task/Scene names,   
     `-preferences` to display Tasker's preference settings,  
     `-twisty` to display Task details hidden by a twisty "▶︎".  Click on twisty to reveal.   
@@ -180,3 +181,4 @@ Alternatively, see *config.py* for some user-customizable options.  Make user-sp
 
 [] Complete insertion of Python docstrings for programming etiquette
 
+<a href="https://www.buymeacoffee.com/mctinker"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=mctinker&button_colour=FFDD00&font_colour=000000&font_family=Poppins&outline_colour=000000&coffee_colour=ffffff" /></a>

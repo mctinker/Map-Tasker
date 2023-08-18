@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maptasker"
-version = "2.1.0"
+version = "2.1.2"
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README_PyPl.md"
@@ -37,6 +37,12 @@ priority = "primary"
 [[tool.poetry.source]]
 name = "PyPI"
 priority = "primary"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.pycodestyle]
+ignore-overlong-task-comments = true
 
 [build-system]
 requires = ["poetry-core"]

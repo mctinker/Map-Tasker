@@ -1,28 +1,43 @@
 MapTasker Change log
 
-## [2.1.0] - 2023-07-08 
-### Added: Display Project/Profile/Task "properties" if display detail level is 3.   
-### Added: New runtime argument '-names {bold,highlight,underline,italicize}' to make all Project/Profile/Task/Scene 'names' display bold, highlighted, underlined and/or italicised.       
-### Added: New runtime argument '-cHeading' to assign a color to the output heading lines.   
-### Added: New runtime argument '-appearance' {system, light, dark} to switch between color themes.
-### Added: GUI: If a checkbox is selected or deselected, display the change in the message window. 
-### Added: GUI: Colors for 'highlight' names, and for 'Heading'
-### Added: GUI support new "names" bold/highlight/italicize display options.   
-### Changed: GUI message box now shows all previous messages along with new message at bottom.   
-### Fixed: If displaying the directory, some Project names incorrectly have an underscore embeddded.   
-### Fixed: Runtime argument "-restore" is not restoring all options correctly.   
-### Fixed: Display level of 0 includes too much information.   
-### Fixed: Cleaned up the README file.   
-### Fixed: Default display detail level caused a program error.   
-### FIxed: GUI color change resulted in two rather than a single notification.   
-### Fixed: Output heading color was hard to see in light-mode.
-### Fixed: Appearance mode not being saved correctly across sessions.
-### Fixed: Unit Test code was not handling program arguments properly.
-### Fixed: Setting Action label color had no effect
+## [2.1.2] - 2023-07-18
+### Added: New '-indent' runtime argument to control amount of indentation of if/then/else Task actions. Default is 4 spaces.
+### Fixed: Properties not showing variable name.   
+### Fixed: Project Properties and Taskernet information was not displaying for a specific Project.   
+### Fixed: Don't display Task Properties if displaying Tasks that are not in any Profile.   
+### Fixed: Underlining names caused extra blanks to be added to the names.   
+### Fixed: Added appropriate spaces to deal with TaskerNet description formatting.   
+### Fixed: Not picking up Tap Tap plugin Profile event.   
+### Fixed: Added missing "AutoWear", "Locus Map" and "KWGT Custom Widget Maker" plugin Actions.   
+### Fixed: Remove empty parameters from appearing in Task actions and extra spaces before commas
+### Changed: Continued Task actions are now indented properly underneath If/Else conditions   
+### Changed: Optimized code   
 
 
 Older History Log
 
+- [2.1.1] - 2023-07-09
+       -   Fixed: Minor cosmetic issues with sample output and README file.   
+       -   Fixed: Removed extraneous print color.    
+- [2.1.0] - 2023-07-09 
+       -   Added: Display Project/Profile/Task "properties" if display detail level is 3.   
+       -   Added: New runtime argument '-names {bold,highlight,underline,italicize}' to make all Project/Profile/Task/Scene 'names' display bold, highlighted, underlined and/or italicised.       
+       -   Added: New runtime argument '-cHeading' to assign a color to the output heading lines.   
+       -   Added: New runtime argument '-appearance' {system, light, dark} to switch between color themes.
+       -   Added: GUI: If a checkbox is selected or deselected, display the change in the message window. 
+       -   Added: GUI: Colors for 'highlight' names, and for 'Heading'
+       -   Added: GUI support new "names" bold/highlight/italicize/underline display options.   
+       -   Changed: GUI message box now shows all previous messages along with new message at bottom.   
+       -   Fixed: If displaying the directory, some Project names incorrectly have an underscore embeddded.   
+       -   Fixed: Runtime argument "-restore" is not restoring all options correctly.   
+       -   Fixed: Display level of 0 includes too much information.   
+       -   Fixed: Cleaned up the README file.   
+       -   Fixed: Default display detail level caused a program error.   
+       -   FIxed: GUI color change resulted in two rather than a single notification.   
+       -   Fixed: Output heading color was hard to see in light-mode.
+       -   Fixed: Appearance mode not being saved correctly across sessions.
+       -   Fixed: Unit Test code was not handling program arguments properly.
+       -   Fixed: Setting Action label color had no effect
 - [2.0.10] - 2023-07-24   
        -   Added: Support for new "Work Profile" Task Action and Profile State (Tasker version 6.2.9-rc)    
        -   Added: Added missing "Close After" sub-action on Pick Input Dialog Action
