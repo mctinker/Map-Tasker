@@ -61,9 +61,12 @@ def process_projects_and_their_profiles(
     return list(dict.fromkeys(found_tasks).keys())
 
 
+# ################################################################################
+# Identify and format launcher Task for Project
+# ################################################################################
 def get_launcher_task(primary_items, project: defusedxml.ElementTree.XML) -> str:
     """
-    If Project has a launcher Task, get it
+    If Project has a launcher Task, get it and format it for output
         :param primary_items:  program registry.  See mapit.py for details.
         :param project: xml element of Project we are processing
         :return: information related to launcher Task
@@ -387,17 +390,14 @@ def finish_up(
 
     tasks_not_in_profile = have_scenes = False
     task_ids = []
-    
+
     # Close Profile list
     primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
 
     # # See if there are Tasks in Project that have no Profile
 
     task_ids = get_ids(primary_items, False, project, project_name, [])
-    if (
-        task_ids
-        and primary_items["program_arguments"]["display_detail_level"] != 0
-    ):
+    if task_ids and primary_items["program_arguments"]["display_detail_level"] != 0:
         # Process Tasks in Project that are not referenced by a Profile
         tasks_not_in_profile = tasks_not_in_profiles(
             primary_items,
@@ -426,9 +426,9 @@ def finish_up(
     # If we are not inserting the twisties, then close the unordered list
     # Twisties screw with the indentation, as well as not having Scenes
     if not primary_items["program_arguments"]["twisty"] and (
-                primary_items["program_arguments"]["display_detail_level"] > 0
-                or not have_scenes
-            ):
+        primary_items["program_arguments"]["display_detail_level"] > 0
+        or not have_scenes
+    ):
         primary_items["output_lines"].add_line_to_output(
             primary_items, 3, ""
         )  # Close Profile list
@@ -439,6 +439,7 @@ def finish_up(
 # ##################################################################################
 # Helper functions to process_projects function, below
 # ##################################################################################
+# Return the flags for single-task-found and single-profile-found
 def is_single_task_or_profile_found(primary_items: dict) -> bool:
     return (
         primary_items["found_named_items"]["single_task_found"]
@@ -471,6 +472,7 @@ def get_profile_ids(
     )
 
 
+# Return True if we are doing a single Profile and it was not found, False otherwise
 def is_single_profile_not_found(primary_items: dict) -> bool:
     return (
         primary_items["program_arguments"]["single_profile_name"]
@@ -504,6 +506,108 @@ def add_close_project_list_line_to_output(primary_items: dict):
     primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
 
 
+# ################################################################################
+# Get this Project's details and output them
+# ################################################################################
+def get_profile_details_and_output(
+    primary_items: dict, project: defusedxml.ElementTree
+) -> tuple[bool, int, str, bool]:
+    """_summary_
+    Get this Project's details and output them
+        Args:
+            primary_items (dict): program registry.  See mapit.py for details.
+            project (defusedxml.ElementTree): XML head of Project we are outputing
+
+        Returns:
+            tuple[bool, int, str,  bool]: True if this is a Task or Profile we want,
+                profile count, project name, True if we have the single Project we want
+    """
+    # Initialize Project's total counts to zeroes.
+    profile_count = setup_summary_counts(primary_items)
+
+    # Bail if we are doing a single Task/Profile and it was found
+    if is_single_task_or_profile_found(primary_items):
+        return True, profile_count, "", False
+
+    # Get the Project name formatted for the directory hotlink (with +++s)
+    project_name_hyperlink, project_name = format_project_name(project)
+
+    # If doing a directory, save the project name for it
+    if primary_items["program_arguments"]["directory"]:
+        set_directory_item(primary_items, project_name_hyperlink)
+
+    # Get any Project launch details
+    launcher_task_info = get_launcher_task(primary_items, project)
+
+    # Check for extra details to include.
+    # This comes back as True if we have the specific Project we are looking for.
+    have_project_wanted = get_extra_and_output_project(
+        primary_items, project, project_name, launcher_task_info
+    )
+
+    # Process Project Properties
+    if primary_items["program_arguments"]["display_detail_level"] == 3:
+        get_properties(
+            primary_items, project, primary_items["colors_to_use"]["project_color"]
+        )
+
+    # Process TaskerNet details if requested
+    if primary_items["program_arguments"]["display_taskernet"]:
+        share(primary_items, project)
+
+    return False, profile_count, project_name, have_project_wanted
+
+
+# ################################################################################
+# Process all of the Profiles for this Project
+# ################################################################################
+def process_project_profiles(
+    primary_items: dict,
+    project: defusedxml.ElementTree,
+    project_name: str,
+    projects_without_profiles: list,
+    found_tasks: list,
+    our_task_element: defusedxml.ElementTree,
+    profile_count: int,
+) -> tuple[bool, defusedxml.ElementTree.XML, int]:
+    """_summary_
+    Process all of the Profiles for this Project
+        Args:
+            primary_items (dict): program registry.  See mapit.py for details.
+            project (defusedxml.ElementTree): XML element for the Project we are doing
+            project_name (str): Name of the Project we are doing
+            projects_without_profiles (list): List of Project XML elements that have
+                    no Profiles
+            found_tasks (list): list of Tasks found so far
+            our_task_element(defusedxml.ElementTree): effectivewly empty for Projects,
+                    but needed for Profile processing further down the chain of code
+            profile_count(int): count of the number of Profiles for this Project
+
+        Returns:
+            tuple[bool, defusedxml.ElementTree.XML, int]: True if no Profiles found, 
+                False otherwise; our Task XML element, count of Profiles in Project
+    """
+    # Get the Profile IDs for this Project and process them
+    # True if we have Profiles for this Project
+    if profile_ids := get_profile_ids(
+        primary_items, project, project_name, projects_without_profiles
+    ):
+        profile_count = len(profile_ids)
+        our_task_element = process_profiles(
+            primary_items, project, project_name, profile_ids, found_tasks
+        )
+
+        # Are we searching for a single Profile and it wasn't found (result=True)?
+        if is_single_profile_not_found(primary_items):
+            return True, our_task_element, profile_count
+
+    else:
+        # Add a line saying "No Profiles Found"
+        add_no_profiles_line_to_output(primary_items)
+
+    return False, our_task_element, profile_count
+
+
 # ##################################################################################
 # Go through all the Projects, get their detail and output it
 # ##################################################################################
@@ -524,53 +628,32 @@ def process_projects(
 
     # Go through each Project in backup file
     for project in primary_items["tasker_root_elements"]["all_projects"]:
-        # Initialize Project's total counts to zeroes.
-        profile_count = setup_summary_counts(primary_items)
+        # Get the Project line item details and output them
+        (
+            single_task_or_profile_found,
+            profile_count,
+            project_name,
+            have_project_wanted,
+        ) = get_profile_details_and_output(primary_items, project)
 
-        # Bail if we are doing a single Task/Profile and it was found
-        if is_single_task_or_profile_found(primary_items):
-            break
-
-        # Get the Project name formatted for the directory hotlink (with underscores)
-        project_name_hyperlink, project_name = format_project_name(project)
-
-        # If doing a directory, save the project name for it
-        if primary_items["program_arguments"]["directory"]:
-            set_directory_item(primary_items, project_name_hyperlink)
-
-        # Get any Project launch details
-        launcher_task_info = get_launcher_task(primary_items, project)
-
-        # Check for extra details to include
-        if get_extra_and_output_project(
-            primary_items, project, project_name, launcher_task_info
-        ):
+        # If we are searching for a specific Project and we found it, then bail out
+        if have_project_wanted:
             continue
 
-        # Process Project Properties
-        if primary_items["program_arguments"]["display_detail_level"] == 3:
-            get_properties(
-                primary_items, project, primary_items["colors_to_use"]["project_color"]
-            )
-
-        # Process TaskerNet details if requested
-        if primary_items["program_arguments"]["display_taskernet"]:
-            share(primary_items, project)
-
-        # Get the Profile IDs for this Project and process them
-        if profile_ids := get_profile_ids(
-            primary_items, project, project_name, projects_without_profiles
-        ):
-            profile_count = len(profile_ids)
-            our_task_element = process_profiles(
-                primary_items, project, project_name, profile_ids, found_tasks
-            )
-
-            if is_single_profile_not_found(primary_items):
-                continue
-
-        else:
-            add_no_profiles_line_to_output(primary_items)
+        # Process all of the Profiles for this Project
+        (
+            single_profile_not_found,
+            our_task_element,
+            profile_count,
+        ) = process_project_profiles(
+            primary_items,
+            project,
+            project_name,
+            projects_without_profiles,
+            found_tasks,
+            our_task_element,
+            profile_count,
+        )
 
         # Finish the output for this Project
         finish_up(
@@ -582,6 +665,7 @@ def process_projects(
             profile_count,
         )
 
+        # If we are doing a single item and it was found, return the Tasks list
         if is_single_project_or_profile_or_task_found(primary_items):
             add_close_project_list_line_to_output(primary_items)
             return found_tasks

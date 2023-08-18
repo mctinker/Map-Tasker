@@ -74,7 +74,7 @@ def if_zero_else(the_value: str, if_zero_string: str, if_not_zero_string: str) -
     Returns string #1 if the value is 0, otherwise return string #2
         :param the_value: the value to evaluate
         :param if_zero_string: the string to return if the value to evaluate is zero
-        :param if_not_zero_string: the string to return if the value to evaluate 
+        :param if_not_zero_string: the string to return if the value to evaluate
                 is not zero
         :return: the value set by the above evaluation
     """
@@ -118,6 +118,9 @@ def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
     return first_string, the_operation, second_operation
 
 
+# ################################################################################
+# Given an action line, remove trailing and empty
+# ################################################################################
 def drop_trailing_comma(match_results: str) -> str:
     """
     Delete any trailing comma in output line
@@ -126,6 +129,7 @@ def drop_trailing_comma(match_results: str) -> str:
     """
     last_valid_entry = len(match_results) - 1  # Point to last item in list
     if last_valid_entry > 0:
+        # Go through last item, character by character, in reverse order
         for i in range(last_valid_entry, -1, -1):
             item = match_results[i]
             if item == "":
@@ -135,17 +139,18 @@ def drop_trailing_comma(match_results: str) -> str:
                 return match_results
             else:
                 break
+
     return match_results
 
 
 # ##################################################################################
 # Define a class for converting string '1' setting to its value
-# code_flag identifies the type of xml data to go after based on the specific code 
+# code_flag identifies the type of xml data to go after based on the specific code
 #   in <code>xxx</code>
 # *args is an undetermined number of lists, each consisting of 3 pairs:
-#   1: True=it is a string, False it is an integer,
-#   2: the value to test
-#   3: the value to plug in if it meets the test
+#   0: True=it is a string, False it is an integer,
+#   1: the value to test
+#   2: the value to plug in if it meets the test
 # ##################################################################################
 def evaluate_action_setting(*args: list) -> list:
     """
@@ -166,9 +171,9 @@ def evaluate_action_setting(*args: list) -> list:
 
 
 # ##################################################################################
-# Given a required value logic and its position, evaluate the found integer and add 
+# Given a required value logic and its position, evaluate the found integer and add
 #   to match_results
-# code_flag identifies the type of xml data to go after based on the specific code 
+# code_flag identifies the type of xml data to go after based on the specific code
 #   in <code>xxx</code>
 # *args is an undetermined number of lists, each consisting of 3 pairs:
 #   1: True=it is a string, False it is an integer,
@@ -183,9 +188,9 @@ def process_xml_list(
     arguments: defusedxml.ElementTree,
 ) -> None:
     """
-    Given a required value logic and its position, evaluate the found integer and add 
+    Given a required value logic and its position, evaluate the found integer and add
         to match_results
-    # code_flag identifies the type of xml data to go after based on the specific code 
+    # code_flag identifies the type of xml data to go after based on the specific code
     #   in <code>xxx</code>
     # *args is an undetermined number of lists, each consisting of 3 pairs:
     #   1: True=it is a string, False it is an integer,
@@ -206,7 +211,7 @@ def process_xml_list(
     the_title = the_list[0]  # Title is first element in the list
     idx = 0
     running = True
-    # Loop through list two items at a time: 1st element is digit, 
+    # Loop through list two items at a time: 1st element is digit,
     #   2nd element is the name
     # to apply if it matches.
     while running:
@@ -245,7 +250,7 @@ def process_xml_list(
                         f" in lookup_values (actiont) for item {the_list[idx]} which is"
                         f" {[lookup_values[the_list[idx]]]}"
                     )
-            # Error: the element is not in the lookup table.  
+            # Error: the element is not in the lookup table.
             # Handle the error and exit.
             else:
                 match_results.append(
@@ -332,12 +337,12 @@ def get_label_disabled_condition(
 
 
 # ##################################################################################
-# Given the Task action's label, get rid of anything that could be problematic 
+# Given the Task action's label, get rid of anything that could be problematic
 # for the output format
 # ##################################################################################
 def clean_label(lbl: str, colormap: dict) -> str:
     """
-    Given the Task action's label, get rid of anything that could be problematic 
+    Given the Task action's label, get rid of anything that could be problematic
     for the output format
         :param lbl: the label to clean up
         :param colormap: the colors to use in the output
@@ -345,7 +350,6 @@ def clean_label(lbl: str, colormap: dict) -> str:
     """
     # Look for label with <font color=...> embedded
     lbl = remove_html_tags(lbl, "")
-    print("action: ", colormap["action_label_color"])
     return format_html(
         colormap, colormap["action_label_color"], "", f" ...with label: {lbl}", True
     )
@@ -353,7 +357,7 @@ def clean_label(lbl: str, colormap: dict) -> str:
 
 # ##################################################################################
 # Chase after relevant data after <code> Task action
-# code_flag identifies the type of xml data to go after based on the specific code 
+# code_flag identifies the type of xml data to go after based on the specific code
 # in <code>xxx</code>
 # Get the: label, whether to continue Task after error, etc.
 # ##################################################################################

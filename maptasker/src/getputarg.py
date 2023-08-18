@@ -31,7 +31,8 @@ def corrupted_file(program_arguments, colors_to_use):
     # if needed.
     program_arguments = colors_to_use = {
         "msg": (
-            "The settings file is corrupt or not compatible with the new verison of MapTasker!"
+            "The settings file is corrupt or not compatible with the new verison of \
+            MapTasker!"
             "The old settings can not be restored.  Re-save your settings."
         )
     }

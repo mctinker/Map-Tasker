@@ -5,7 +5,7 @@ import maptasker.src.actiond as process_action_codes
 
 # #################################################################################### #
 #                                                                                      #
-# condition: Process profile condition: time, date, state, event, location, app              #
+# condition: Process profile condition: time, date, state, event, location, app        #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
@@ -33,7 +33,8 @@ def condition_time(
     Handle the "Time" condition
         :param primary_items:  program registry.  See mapit.py for details.
         :param the_item: the xml element with the Condition
-        :param the_output_condition: text into which the condition output is to be formated
+        :param the_output_condition: text into which the condition output is to 
+            be formated
         :return: the formatted condition's output string
     """
 
@@ -108,7 +109,8 @@ def condition_day(
     """
     Handle the "Day" condition
         :param the_item: the xml element with the Condition
-        :param the_output_condition: text into which the condition output is to be formated
+        :param the_output_condition: text into which the condition output is to 
+            be formated
         :return: the formatted condition's output string
     """
     weekdays = [
@@ -168,7 +170,8 @@ def condition_state(
     Handle the "State" condition
         :param primary_items:  program registry.  See mapit.py for details.
         :param the_item: the xml element with the Condition
-        :param the_output_condition: text into which the condition output is to be formated
+        :param the_output_condition: text into which the condition output is to 
+            be formated
         :return: the formatted condition's output string
     """
     for child in the_item:
@@ -213,7 +216,8 @@ def condition_event(
     Handle the "Event" condition
         :param primary_items:  program registry.  See mapit.py for details.
         :param the_item: the xml element with the Condition
-        :param the_output_condition: text into which the condition output is to be formatted
+        :param the_output_condition: text into which the condition output is to 
+            be formatted
         :return: the formatted condition's output string
     """
     the_event_code = the_item.find("code")

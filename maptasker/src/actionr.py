@@ -2,7 +2,7 @@
 
 # #################################################################################### #
 #                                                                                      #
-# actionr: process Task "Action" and return the result                                       #
+# actionr: process Task "Action" and return the result                                 #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
@@ -17,9 +17,8 @@ import defusedxml.ElementTree
 
 import maptasker.src.action as get_action
 from maptasker.src.actargs import action_args
-from maptasker.src.actionc import action_codes
 from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import logger, pattern1, pattern2, pattern3, pattern4
 from maptasker.src.xmldata import (
     get_xml_int_argument_to_value,
     get_xml_str_argument_to_value,
@@ -27,11 +26,13 @@ from maptasker.src.xmldata import (
 
 
 # ##################################################################################
-# Given a list of positional items, return a string in the correct order based on position
+# Given a list of positional items, return a string in the correct order based
+# on position
 # ##################################################################################
 def get_results_in_arg_order(evaluated_results: dict) -> str:
     """
-    Given a list of positional items, return a string in the correct order based on position
+    Given a list of positional items, return a string in the correct order based
+    on position.
         :param evaluated_results: dictionary of the argument <argn> evaluated results
         :return: all the evaluated results for Action
     """
@@ -72,14 +73,16 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
                 )
                 logger.debug(error_msg)
                 the_item = error_msg
+        # Eliminate empty values
+        if the_item == ", ":
+            continue
         return_result = f"{return_result} {the_item}"  # Get the appropriate item
     return return_result
 
 
 # ##################################################################################
-
-
-# For the given code, save the display_name, required arg list and associated type list in dictionary
+# For the given code, save the display_name, required arg list and associated
+# type list in dictionary
 # Then evaluate the data against the master dictionary of actions
 # ##################################################################################
 def evaluate_action_args(
@@ -93,10 +96,12 @@ def evaluate_action_args(
     evaluated_results: dict,
 ) -> object:
     """
-    For the given code, save the display_name, required arg list and associated type list in dictionary
+    For the given code, save the display_name, required arg list and associated type
+    list in dictionary
      Then evaluate the data against the master dictionary of actions
         :param primary_items:  program registry.  See mapit.py for details.
-        :param the_action_code_plus: the code found in <code> for the Action (<Action>) plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
+        :param the_action_code_plus: the code found in <code> for the Action (<Action>)
+            plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
         :param arg_list: list of arguments (<argn>) under Action
         :param code_action: Action code found in <code>
         :param action_type: True if this is for a Task, False if for a Condition
@@ -120,8 +125,10 @@ def evaluate_action_args(
     # If we had at least one Int or Str then deal with them
 
     # If TypeError, then we haven't properly mapped the action code in actionc.py.
-    #   evaluated_results["error"] will have been filled with an error msg by actarg.py...just return with error msg
-    # Otherwise, get the results by evaluating and formatting the str arguments and int arguments from xml
+    #   evaluated_results["error"] will have been filled with an error msg by actarg.py
+    #   ...just return with error msg
+    # Otherwise, get the results by evaluating and formatting the str arguments and
+    # int arguments from xml
     with contextlib.suppress(TypeError):
         if evaluated_results["get_xml_flag"]:
             if evaluated_results["strargs"]:
@@ -141,9 +148,8 @@ def evaluate_action_args(
 
 
 # ##################################################################################
-
-
-# For the given code, save the display_name, required arg list and associated type list in dictionary
+# For the given code, save the display_name, required arg list and associated
+# type list in dictionary
 # Then evaluate the data against the master dictionary of actions
 # ##################################################################################
 def get_action_results(
@@ -156,10 +162,12 @@ def get_action_results(
     evaluate_list: list[str],
 ) -> str:
     """
-    For the given code, save the display_name, required arg list and associated type list in dictionary
+    For the given code, save the display_name, required arg list and associated type
+    list in dictionary
     Then evaluate the data against the master dictionary of actions
         :param primary_items:  program registry.  See mapit.py for details.
-        :param the_action_code_plus: the code found in <code> for the Action (<Action>) plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
+        :param the_action_code_plus: the code found in <code> for the Action (<Action>)
+        plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
         :param lookup_code_entry: The key to our Action code dictionary in actionc.py
         :param code_action: the <code> xml element
         :param action_type: True if this is for a Task, false if for a Condition
@@ -167,15 +175,16 @@ def get_action_results(
         :param evaluate_list: list of argument evaluations
         :return: the output line containing the Action details
     """
-    evaluated_results = defaultdict(
-        lambda: []
-    )  # Setup default dictionary as empty list
+    # Setup default dictionary as empty list
+    evaluated_results = defaultdict(list)
     result = ""
+    our_action_code = lookup_code_entry[the_action_code_plus]
 
     # Save the associated data
-    lookup_code_entry[the_action_code_plus]["reqargs"] = arg_list
-    lookup_code_entry[the_action_code_plus]["evalargs"] = evaluate_list
-    # If just displaying action names or there are no action details, then just display the name
+    our_action_code["reqargs"] = arg_list
+    our_action_code["evalargs"] = evaluate_list
+    # If just displaying action names or there are no action details, then just
+    # display the name
     if arg_list and primary_items["program_arguments"]["display_detail_level"] != 2:
         # Evaluate the required args per arg_list
         evaluated_results = evaluate_action_args(
@@ -196,32 +205,29 @@ def get_action_results(
     elif evaluated_results["error"]:
         result = evaluated_results["error"]
 
-    # Clean up the arguments, if any.  Replace <> so they appear properly and by remove any html
+    # Clean up the arguments, if any.  Replace <> so they appear properly
+    # Eliminate extra commas
     if result:
-        result = result.replace("<", "&lt;")
-        result = result.replace(">", "&gt;")
-        two_blanks = "&nbsp;&nbsp;"
-        result = format_html(
-            primary_items["colors_to_use"],
-            "action_color",
-            "",
-            f"{two_blanks}{result}",
-            True,
-        )
+        result = pattern3.sub("&lt;", result)  # Replace "<" with "&lt;"
+        result = pattern4.sub("&gt;", result)  # Replace ">" with "&gt;"
+        result = pattern1.sub(",", result)  # Replace ",  ," with ","
+        result = pattern2.sub(",", result)  # Replace " ," with ","
+        result = pattern2.sub(",", result)  # Do it again to catch any missed
+        result = f"&nbsp;&nbsp{result}"
 
     # Return the properly formatted HTML with the Action name and extra stuff
+    colors_to_use = primary_items["colors_to_use"]
     return format_html(
-        primary_items["colors_to_use"],
+        colors_to_use,
         "action_name_color",
         "",
-        action_codes[the_action_code_plus]["display"],
+        our_action_code["display"],
         True,
     ) + format_html(
-        primary_items["colors_to_use"],
+        colors_to_use,
         "action_color",
         "",
         (
-            # f"<span>{two_blanks}{result}</span>"
             f"{result}{get_action.get_extra_stuff(primary_items, code_action, action_type)}"
         ),
         False,

@@ -103,7 +103,6 @@ class LineOut:
         return
 
     # ##################################################################################
-
     # Generate an updated output line with HTML style details
     # Input is a dictionary containing the requirements:
     #  color1 - color to user
@@ -168,7 +167,7 @@ class LineOut:
             return self.handle_scene(primary_items, element, colormap, font_to_use)
 
         elif "Action:" in element:
-            return self.handle_action(element, colormap)
+            return self.handle_action(primary_items, element, colormap)
 
         elif "TaskerNet " in element:
             return self.handle_taskernet(element)
@@ -257,12 +256,27 @@ class LineOut:
         scene_name = scene_name.replace("</u>", "")
         return scene_name
 
-    def handle_action(self, element, colormap):
+    def handle_action(self, primary_items, element, colormap):
+        blanks = (
+            f'{"&nbsp;"*primary_items["program_arguments"]["indent"]}&nbsp;&nbsp;&nbsp;'
+        )
         if "Action: ..." in element:
             if element[11:] == "":
                 return ""
+            # We have a continuation line: Action: ...indent=nitem=remaindertheline
+            # Example:
+            # '<span ...">Action: ...indent=2item=Attribute</span><span ...</span>>'
+            start1 = element.split("indent=")
+            start2 = start1[1].split("item=")
+            # Force an indent of at least 1
+            if start2[0] == "0":
+                indentation = f'{"&nbsp;"*5}'
+            else:
+                indentation = f'{blanks*int(start2[0])}{"&nbsp;"*int(start2[0])}&nbsp;'
             tmp = action_evaluate.cleanup_the_result(
-                element.replace("Action: ...", "&nbsp;&nbsp;continued >>> ")
+                start1[0].replace(
+                    "Action: ...", f"{indentation}continued >>> {start2[1]}"
+                )
             )
             element = tmp
         return f'<li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
@@ -296,7 +310,6 @@ class LineOut:
         traceback.print_stack()
 
     # ##################################################################################
-
     # Generate the output string based on the input XML <code> passed in
     # Returns a formatted string for output based on the input codes
     # ##################################################################################
@@ -309,12 +322,14 @@ class LineOut:
                     1=start list, 2= list item, 3= end list, 4= plain text
                 :return: modified output line
         """
-        # list lvl: 0=heading 1=start list 2=Task/Profile/Scene 3=end list 4=special Task
+        # list lvl: 0=heading 1=start list 2=Task/Profile/Scene 3=end list
+        #           4=special Task
         string = ""
         # if primary_items["program_arguments"]["debug"]:
         #     print(f"lineout element:{element}", file=sys.stderr)
 
-        # Look at level and set up accordingly: 0=str and break, 1=start list, 2=list item, 3= end list, 4=heading, 5=simple string
+        # Look at level and set up accordingly: 0=str and break, 1=start list,
+        #   2=list item, 3= end list, 4=heading, 5=simple string
         match lvl:
             case 0:
                 string = f"{element}<br>"
@@ -330,7 +345,8 @@ class LineOut:
                     primary_items["program_arguments"]["font_to_use"],
                 )
                 # print("linout list item:", element, file=sys.stderr)
-                # If we are doing twisty and this is a Scene, then we need to add an extra <ul>
+                # If we are doing twisty and this is a Scene, then we need to add
+                # an extra <ul>
                 if primary_items["program_arguments"]["twisty"] and "Scene:" in string:
                     string = f"<ul>{string}"
                     primary_items["unordered_list_count"] += 1
@@ -345,7 +361,6 @@ class LineOut:
         return string
 
     # ##################################################################################
-
     # Write line of output
     # ##################################################################################
     def add_line_to_output(
@@ -355,7 +370,8 @@ class LineOut:
         out_string: str,
     ) -> None:
         """
-        Add line to the list of output lines.  The output entry is based on the list_level and the contents of the output_str
+        Add line to the list of output lines.  The output entry is based on the
+        list_level and the contents of the output_str
             :param primary_items:  program registry.  See mapit.py for details.
             :param list_level: level we are outputting
             :param out_string: the string to add to the output
@@ -369,7 +385,8 @@ class LineOut:
             temp_element = out_string.split("Task ID:")
             out_string = temp_element[0]
 
-        # Go configure the output based on the contents of the element and the list level
+        # Go configure the output based on the contents of the element and the
+        #   list level
         self.output_lines.append(
             self.format_line(
                 primary_items,

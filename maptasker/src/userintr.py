@@ -28,35 +28,69 @@ from maptasker.src.sysconst import ARGUMENT_NAMES, TYPES_OF_COLOR_NAMES
 customtkinter.set_appearance_mode("System")
 # Themes: "blue" (standard), "green", "dark-blue"
 customtkinter.set_default_color_theme("blue")
-#  FIX for names
+
+# Help Text
 INFO_TEXT = (
-    "MapTasker displays your Android Tasker configuration based on your uploaded Tasker"
-    ' backup file (e.g. "backup.xml").  The display will optionally include all'
-    " Projects, Profiles, Tasks and their actions, Profile/Task conditions and other"
-    " Profile/Task related information.\n\n* Display options are:\n    Level 0: display"
-    " first Task action only, for unnamed Tasks only (silent)\n    Level 1 = display"
-    " all Task action details for unknown Tasks only (default)\n    Level 2 = display"
-    " full Task action name on every Task\n    Level 3 = display full Task action"
-    " details on every Task with action details\n\n* Display Conditions: Turn on the"
-    " display of Profile and Task conditions.\n\n* Display TaskerNet Info - If"
-    " available, display TaskerNet publishing information\n\n* Display Tasker"
-    " Preferences - display Tasker's system Preferences\n\n* Hide Task Details"
-    " under Twisty: hide Task information within ► and click to display.\n\n* Display"
-    " directory of hyperlinks at beginning\n\n* Project/Profile/Task/Scene Names"
-    " options to italicize, bold, underline and/or highlight their names\n\n * Save"
-    " Settings - Save these settings for later use.\n\n* Restore Settings - Restore the"
-    " settings from a previously saved session.\n\n* Appearance Mode: Dark, Light, or"
-    " System default.\n\n* Reset Options: Clear everything and start anew.\n\n* Get"
-    " Backup from Android Device: fetch the backup xml file from device\n\n* Run: Run the"
-    " program with the settings provided.\n* ReRun: Run multiple times (each time with different"
-    " settings).\n\n* Specific Name tab: enter a single, specific named item to"
-    " display...\n   - Project Name: enter a specific Project to display\n   - Profile"
-    " Name: enter a specific Profile to display\n   - Task Name: enter a specific Task"
-    " to display\n   (These three are exclusive: enter one only)\n\n* Colors tab:"
-    " select colors for various elements of the display\n              (e.g. color for"
-    " Projects, Profiles, Tasks, etc.)\n\n* Exit: Exit the program (quit).\n\nNote: You"
-    " will be prompted to identify your Tasker backup file once\n          you hit the"
-    " 'Run' button"
+    "MapTasker displays your Android Tasker "
+    "configuration based on your uploaded Tasker backup "
+    "file (e.g. 'backup.xml'). The display will "
+    "optionally include all Projects, Profiles, Tasks "
+    "and their actions, Profile/Task conditions and "
+    "other Profile/Task related information.\n\n"
+    "* Display options are:\n"
+    "    Level 0: display first Task action only, for "
+    "unnamed Tasks only (silent).\n"
+    "    Level 1 = display all Task action details for "
+    "unknown Tasks only (default).\n"
+    "    Level 2 = display full Task action name on "
+    "every Task.\n"
+    "    Level 3 = display full Task action details on "
+    "every Task with action details.\n\n"
+    "* Display Conditions: Turn on the display of "
+    "Profile and Task conditions.\n\n"
+    "* Display TaskerNet Info - If available, display "
+    "TaskerNet publishing information.\n\n"
+    "* Display Tasker Preferences - display Tasker's "
+    "system Preferences.\n\n"
+    "* Hide Task Details under Twisty: hide Task "
+    "information within ► and click to display.\n\n"
+    "* Display directory of hyperlinks at beginning."
+    "\n\n"
+    "* Project/Profile/Task/Scene Names options to "
+    "italicize, bold, underline and/or highlight their "
+    "names.\n\n"
+    "* Indentation amount for If/Then/Else Task Actions.\n\n"
+    "* Save Settings - Save these settings for later "
+    "use.\n\n"
+    "* Restore Settings - Restore the settings from a "
+    "previously saved session.\n\n"
+    "* Appearance Mode: Dark, Light, or System "
+    "default.\n\n"
+    "* Reset Options: Clear everything and start "
+    "anew.\n\n"
+    "* Get Backup from Android Device: fetch the backup "
+    "xml file from device.\n\n"
+    "* Run: Run the program with the settings "
+    "provided.\n"
+    "* ReRun: Run multiple times (each time with "
+    "different settings).\n\n"
+    "* Specific Name tab: enter a single, specific "
+    "named item to display...\n"
+    "   - Project Name: enter a specific Project to "
+    "display.\n"
+    "   - Profile Name: enter a specific Profile to "
+    "display.\n"
+    "   - Task Name: enter a specific Task to "
+    "display.\n"
+    "   (These three are exclusive: enter one "
+    "only)\n\n"
+    "* Colors tab: select colors for various elements "
+    "of the display.\n"
+    "              (e.g. color for Projects, Profiles, "
+    "Tasks, etc.).\n\n"
+    "* Exit: Exit the program (quit).\n\n"
+    "Note: You will be prompted to identify your Tasker "
+    "backup file once you hit the 'Run' button."
 )
 
 cancel_button_msg = '\n\nNote: "Cancel" button does not work at this time.'
@@ -95,6 +129,7 @@ class MyGui(customtkinter.CTk):
         self.highlight = None
         self.italicize = None
         self.underline = None
+        self.indent = None
 
         self.title("MapTasker Runtime Options")
         # Overall window dimensions
@@ -230,6 +265,31 @@ class MyGui(customtkinter.CTk):
         )
         self.underline_checkbox.grid(row=10, column=0, padx=20, pady=5, sticky="nw")
 
+        # Indentation
+        self.indent_label = customtkinter.CTkLabel(
+            self.sidebar_frame, text="If/Then/Else Indentation Amount:", anchor="s"
+        )
+        self.indent_label.grid(row=11, column=0, padx=20, pady=(10, 0))
+        # Indentation Amount
+        self.indent_option = customtkinter.CTkOptionMenu(
+            self.sidebar_frame,
+            values=[
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "10",
+            ],
+            command=self.indent_selected_event,
+        )
+        self.indent_option.grid(row=12, column=0, padx=20, pady=(10, 10))
+
         # Save settings button
         self.save_settings_button = customtkinter.CTkButton(
             self.sidebar_frame,
@@ -239,7 +299,7 @@ class MyGui(customtkinter.CTk):
             command=self.save_settings_event,
         )
         self.save_settings_button.grid(
-            row=11, column=0, padx=20, pady=(35, 5), sticky="s"
+            row=13, column=0, padx=20, pady=(20, 2), sticky="s"
         )
 
         # Restore settings button
@@ -250,19 +310,19 @@ class MyGui(customtkinter.CTk):
             text="Restore Settings",
             command=self.restore_settings_event,
         )
-        self.restore_settings_button.grid(row=12, column=0, padx=20, pady=10, sticky="")
+        self.restore_settings_button.grid(row=14, column=0, padx=20, pady=10, sticky="")
 
         # Screen Appearance: Light / Dark / System
         self.appearance_mode_label = customtkinter.CTkLabel(
             self.sidebar_frame, text="GUI Appearance Mode:", anchor="w"
         )
-        self.appearance_mode_label.grid(row=13, column=0, padx=20, pady=10)
+        self.appearance_mode_label.grid(row=15, column=0, padx=20, pady=10)
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(
             self.sidebar_frame,
             values=["Light", "Dark", "System"],
             command=self.change_appearance_mode_event,
         )
-        self.appearance_mode_optionemenu.grid(row=14, column=0, padx=0, sticky="n")
+        self.appearance_mode_optionemenu.grid(row=16, column=0, padx=0, sticky="n")
 
         # 'Reset Settings' button definition
         self.reset_button = customtkinter.CTkButton(
@@ -273,7 +333,7 @@ class MyGui(customtkinter.CTk):
             text="Reset Options",
             command=self.reset_settings_event,
         )
-        self.reset_button.grid(row=15, column=0, padx=20, pady=20, sticky="")
+        self.reset_button.grid(row=17, column=0, padx=20, pady=20, sticky="")
 
         # Start second grid / column definitions
 
@@ -463,6 +523,7 @@ class MyGui(customtkinter.CTk):
         self.color_text_row = 2
         self.appearance_mode_optionemenu.set("System")
         self.appearance_mode = "system"
+        self.indent_option.set("4")
         self.color_labels = []
         if first_time:
             self.textbox.insert("0.0", "MapTasker Help\n\n" + INFO_TEXT)
@@ -689,6 +750,14 @@ class MyGui(customtkinter.CTk):
             )
 
     # ##################################################################################
+    # Process the Identation Amout selection
+    # ##################################################################################
+    def indent_selected_event(self, ident_amount: str):
+        self.indent = ident_amount
+        self.indent_option.set(ident_amount)
+        self.inform_message("Indentation Amount", True, ident_amount)
+
+    # ##################################################################################
     # Process color selection
     # ##################################################################################
     def colors_event(self, color_selected_item: str):
@@ -808,13 +877,15 @@ class MyGui(customtkinter.CTk):
     # Inform user of toggle selection
     # ################################################################################
     def inform_message(self, toggle_name, toggle_value, number_value):
+        extra = " "
         if number_value:
             response = number_value
+            extra = " to "
         elif toggle_value:
             response = "On"
         else:
             response = "Off"
-        self.display_message_box(f"{toggle_name} set {response}", True)
+        self.display_message_box(f"{toggle_name} set{extra}{response}", True)
 
     # ##################################################################################
     # Process the 'Save Settings' checkbox
@@ -829,6 +900,15 @@ class MyGui(customtkinter.CTk):
         )
         self.display_message_box("Settings saved.", True)
 
+    # ################################################################################
+    # Select or deselect a checkbox based on the value passed in
+    # ################################################################################
+    def select_deselect_checkbox(
+        self, checkbox: customtkinter.CHECKBUTTON, checked: bool, argument_name: str
+    ):
+        checkbox.select() if checked else checkbox.deselect()
+        return f"{argument_name} set to {str(checked)}.\n"
+
     # ##################################################################################
     # Restore displays settings from restored values
     # ##################################################################################
@@ -836,32 +916,27 @@ class MyGui(customtkinter.CTk):
         message = ""
         match key:
             case "debug":
-                if value:
-                    self.debug_checkbox.select()
-                else:
-                    self.debug_checkbox.deselect()
-                message = f"Debug set to {str(value)}.\n"
+                message = self.select_deselect_checkbox(
+                    self.debug_checkbox, value, "Debug"
+                )
             case "display_detail_level":
                 self.sidebar_detail_option.set(str(value))
                 message = f"Display Detail Level set to {str(value)}.\n"
+            case "indent":
+                self.indent_option.set(str(value))
+                message = f"Indentation amount set to {str(value)}.\n"
             case "display_profile_conditions":
-                if value:
-                    self.condition_checkbox.select()
-                else:
-                    self.condition_checkbox.deselect()
-                message = f"Display Conditions set to {value}.\n"
+                message = self.select_deselect_checkbox(
+                    self.condition_checkbox, value, "Condition"
+                )
             case "display_preferences":
-                if value:
-                    self.display_preferences_checkbox.select()
-                else:
-                    self.display_preferences_checkbox.deselect()
-                message = f"Display Tasker Preferences set to {value}.\n"
+                message = self.select_deselect_checkbox(
+                    self.display_preferences_checkbox, value, "Tasker Preferences"
+                )
             case "display_taskernet":
-                if value:
-                    self.display_taskernet_checkbox.select()
-                else:
-                    self.display_taskernet_checkbox.deselect()
-                message = f"Display TaskerNet set to {value}.\n"
+                message = self.select_deselect_checkbox(
+                    self.display_taskernet_checkbox, value, "Display TaskerNet"
+                )
             case "single_project_name":
                 if value:
                     message = f"Project set to {value}.\n"
@@ -878,41 +953,29 @@ class MyGui(customtkinter.CTk):
                 if value:
                     message = f"Get Backup File Location set to {value}\n"
             case "twisty":
-                if value:
-                    self.twisty_checkbox.select()
-                else:
-                    self.twisty_checkbox.deselect()
-                message = f"Twisty set to {value}\n"
+                message = self.select_deselect_checkbox(
+                    self.twisty_checkbox, value, "Twisty"
+                )
             case "directory":
-                if value:
-                    self.directory_checkbox.select()
-                else:
-                    self.directory_checkbox.deselect()
-                message = f"Display directory set to {value}\n"
+                message = self.select_deselect_checkbox(
+                    self.directory_checkbox, value, "Display Directory"
+                )
             case "highlight":
-                if value:
-                    self.highlight_checkbox.select()
-                else:
-                    self.highlight_checkbox.deselect()
-                message = f"Display highlighted names set to {value}\n"
+                message = self.select_deselect_checkbox(
+                    self.highlight_checkbox, value, "Display Highlighted names"
+                )
             case "bold":
-                if value:
-                    self.bold_checkbox.select()
-                else:
-                    self.bold_checkbox.deselect()
-                message = f"Display bold names set to {value}\n"
+                message = self.select_deselect_checkbox(
+                    self.bold_checkbox, value, "Display Bold names"
+                )
             case "italicize":
-                if value:
-                    self.italicize_checkbox.select()
-                else:
-                    self.italicize_checkbox.deselect()
-                message = f"Display italicized names set to {value}\n"
+                message = self.select_deselect_checkbox(
+                    self.italicize_checkbox, value, "Display Italicized names"
+                )
             case "underline":
-                if value:
-                    self.underline_checkbox.select()
-                else:
-                    self.underline_checkbox.deselect()
-                message = f"Display underline names set to {value}\n"
+                message = self.select_deselect_checkbox(
+                    self.underline_checkbox, value, "Display Underlined names"
+                )
             case "rerun":
                 pass
             case "appearance_mode":
@@ -1056,7 +1119,8 @@ class MyGui(customtkinter.CTk):
     # Process the 'Reset Settings' button
     # ##################################################################################
     def reset_settings_event(self):
-        self.sidebar_detail_option.set("1")  # display detail level
+        self.sidebar_detail_option.set("3")  # display detail level
+        self.indent_option.set("4")  # Indentation amount
         self.condition_checkbox.deselect()  # Conditions
         self.display_preferences_checkbox.deselect()  # Tasker Preferences
         self.display_taskernet_checkbox.deselect()  # TaskerNet

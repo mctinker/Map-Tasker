@@ -27,6 +27,23 @@ from maptasker.src.rungui import process_gui
 from maptasker.src.sysconst import MY_LICENSE, MY_VERSION, TYPES_OF_COLORS, logger
 
 
+# ################################################################################
+# Determine if the argument is a list or string, and return the value as appropriate
+# ################################################################################
+def get_arg_if_in_list(args, the_argument: str) -> str:
+    """_summary_
+    Determine if the argument is a list or string, and return the value as appropriate
+        Args:
+            args (_type_): the args Namespace
+            the_argument (str): the arguemnt to get
+
+        Returns:
+            str: the value for the argument that was gotten
+    """
+    if the_value := getattr(args, the_argument):
+        return int(the_value[0]) if type(the_value) == list else int(the_value)
+
+
 # ##################################################################################
 # Get arguments from command line and put them to the proper settings
 # ##################################################################################
@@ -44,6 +61,7 @@ def process_arguments(primary_items: dict, args: object) -> dict:
     # Color help?
     if getattr(args, "ch"):
         validate_color("h")
+        
     # Not GUI.  Get input from command line arguments
     if getattr(args, "e"):  # Everything?
         primary_items["program_arguments"]["display_detail_level"] = 3
@@ -58,15 +76,13 @@ def process_arguments(primary_items: dict, args: object) -> dict:
         ][
             "display_taskernet"
         ] = True
+    # Not everything.  Get input from command line arguments
     else:
         detail = getattr(args, "detail")
         if detail is not None:
-            if isinstance(detail, list):
-                primary_items["program_arguments"]["display_detail_level"] = int(
-                    detail[0]
-                )
-            else:
-                primary_items["program_arguments"]["display_detail_level"] = int(detail)
+            primary_items["program_arguments"][
+                "display_detail_level"
+            ] = get_arg_if_in_list(args, "detail")
 
         primary_items["program_arguments"]["display_profile_conditions"] = getattr(
             args, "conditions"  # Display conditions
@@ -123,12 +139,12 @@ def process_arguments(primary_items: dict, args: object) -> dict:
             primary_items["program_arguments"]["backup_file_location"] = backup_details[
                 1
             ]
-    # Appearance mode
+    # Appearance
     if appearance := getattr(args, "a"):
-        if type(appearance) == list:
-            primary_items["program_arguments"]["appearance_mode"] = appearance[0]
-        else:
-            primary_items["program_arguments"]["appearance_mode"] = appearance
+        primary_items["program_arguments"]["appearance_mode"] = appearance
+        
+    # Indentation amount
+    primary_items["program_arguments"]["indent"] = get_arg_if_in_list(args, "i")
 
     # Process colors
     for item in TYPES_OF_COLORS:
@@ -206,6 +222,7 @@ def unit_test() -> object:
         g=False,
         p=False,
         b=False,
+        i=4,
         taskernet=False,
         twisty=False,
         directory=False,
@@ -248,18 +265,18 @@ def unit_test() -> object:
         # Handle boolean (True) values and colors
         if len(new_arg) == 1:
             # Handle color
-            if new_arg[0][0]  == "c" and new_arg[0] != "conditions":
+            if new_arg[0][0] == "c" and new_arg[0] != "conditions":
                 color_arg = new_arg[0].split()
                 setattr(args, color_arg[0], color_arg[1])
             else:
                 # Boolean argument.  Set as True.
                 setattr(args, new_arg[0], True)
-                
+
         # Handle display_detail_level, which requires an int
         elif new_arg[0] == "detail":
             new_arg[1] = int(new_arg[1])
             setattr(args, new_arg[0], new_arg[1])
-            
+
         # replace the default Namespace value with unit test value
         elif new_arg[0] in single_names:
             setattr(args, new_arg[0], [new_arg[1]])

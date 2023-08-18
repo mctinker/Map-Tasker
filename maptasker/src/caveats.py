@@ -1,16 +1,16 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
-# caveats: display program caveats                                                           #
-#                                                                                            #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-#                                                                                            #
-# ########################################################################################## #
+# #################################################################################### #
+#                                                                                      #
+# caveats: display program caveats                                                     #
+#                                                                                      #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
 
 from maptasker.src.frmthtml import format_html
 
@@ -19,7 +19,7 @@ def display_caveats(primary_items: dict) -> None:
     """
     Output the program caveats at the very end
     Inputs:
-    - primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+    - primary_items: Primary items used throughout the module.  See mapit.py for details
     Outputs:
     - None
     """

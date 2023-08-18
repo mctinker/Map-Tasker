@@ -37,9 +37,11 @@ def get_profile_tasks(
     """
     Get the task element and task name from the profile.
 
-    This function iterates over the XML elements in the profile and extracts the task element and task name.
+    This function iterates over the XML elements in the profile and extracts
+    the task element and task name.
     It counts the task under the profile if it hasn't been counted before.
-    It also checks if a single task name is specified and sets a flag if the task name matches.
+    It also checks if a single task name is specified and sets a flag if
+    the task name matches.
 
     Args:
         :param primary_items:  Program registry.  See mapit.py for details.
@@ -48,7 +50,8 @@ def get_profile_tasks(
         task_output_line (list): A list of task output lines.
 
     Returns:
-        tuple[defusedxml.ElementTree.XML, str]: A tuple containing the task element and task name.
+        tuple[defusedxml.ElementTree.XML, str]: A tuple containing the task element
+        and task name.
 
     """
     keys_we_dont_want = ["cdate", "edate", "flags", "id"]
@@ -119,7 +122,9 @@ def get_profile_name(
     # If we are debugging, add the Profile ID
     if primary_items["program_arguments"]["debug"]:
         profile_id = profile.find("id").text
-        profile_name_with_html = f'{profile_name_with_html} {format_html(primary_items["colors_to_use"], "Red", "", f"ID:{profile_id}", True)}'
+        profile_name_with_html = \
+        f'{profile_name_with_html} '
+        f'{format_html(primary_items["colors_to_use"], "Red", "", f"ID:{profile_id}", True)}'
     return profile_name_with_html, the_profile_name
 
 
@@ -208,8 +213,9 @@ def build_profile_line(
             primary_items,
             profile,
         ):
-            # Strip pre-existing HTML from conmditions, since some condition codes may be same as Actions
-            # And the Actions would have plugged in the action_color HTML
+            # Strip pre-existing HTML from conmditions, since some condition codes
+            # may be same as Actions.
+            # And the Actions would have plugged in the action_color HTML.
             profile_conditions = remove_html_tags(profile_conditions, "")
             condition_text = format_html(
                 primary_items["colors_to_use"],
@@ -234,9 +240,7 @@ def build_profile_line(
 
 
 # ##################################################################################
-
-
-# process_projects: go through all Projects Profiles...and output them
+# Go through all Projects Profiles...and output them
 # ##################################################################################
 def process_profiles(
     primary_items: dict,
@@ -247,7 +251,8 @@ def process_profiles(
 ) -> defusedxml.ElementTree:
     """
     Go through Project's Profiles and output each
-        :param primary_items: a dictionary containing program runtime arguments, colors to use in output,
+        :param primary_items: a dictionary containing program runtime arguments,
+                colors to use in output,
         all Tasker xml root elements, and a list of all output lines.
         :param project: Project to process
         :param project_name: Project's name

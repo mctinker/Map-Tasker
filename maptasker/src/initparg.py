@@ -51,6 +51,7 @@ def initialize_runtime_arguments() -> dict:
         "bold": False,  # Display Project/Profile?Task/Scene names in bold text
         "highlight": False,  # Highlight Project/Profile?Task/Scene names
         "italicize": False,  # Italicise Project/Profile?Task/Scene names
-        "underline": False,   # Underline Project/Profile?Task/Scene names
+        "underline": False,  # Underline Project/Profile?Task/Scene names
         "appearance_mode": "system",  # Appearance mode: "system", "dark", or "light"
+        "indent": 4,
     }

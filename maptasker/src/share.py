@@ -2,7 +2,7 @@
 
 # #################################################################################### #
 #                                                                                      #
-# share: process TaskerNet "Share" information                                               #
+# share: process TaskerNet "Share" information                                         #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
@@ -38,7 +38,7 @@ def share(
                 description_element,
             )
 
-        # Look for search parameters
+        # Look for TaskerNet search parameters
         search_element = share_element.find("g")
         if search_element is not None and search_element.text:
             # Found search...format and output
@@ -54,7 +54,9 @@ def share(
             )
 
 
+# ################################################################################
 # Process the description <d> element
+# ################################################################################
 def description_element_output(
     primary_items: dict,
     description_element: defusedxml.ElementTree,
@@ -76,18 +78,21 @@ def description_element_output(
         "</p><p"
         f' style="margin-left:20px;margin-right:50px;color:{primary_items["colors_to_use"]["taskernet_color"]}{FONT_TO_USE}">'
     )
-
+        
     # Indent the description and override various embedded HTML attributes
     out_string = out_string.replace("<p>", indent_html)
     out_string = out_string.replace("<P>", indent_html)
     out_string = out_string.replace("</p>", "")
     out_string = out_string.replace("</P>", "")
     out_string = out_string.replace("<b>", "")
-    out_string = out_string.replace("<br/>", indent_html)
+    out_string = out_string.replace("<br>", indent_html)
     out_string = out_string.replace("<h1>", indent_html)
     out_string = out_string.replace("\r", indent_html)
-    out_string = out_string.replace("<li>", f"{indent_html}")
+    out_string = out_string.replace("<li>", indent_html)
     out_string = out_string.replace("</li>", "")
+    out_string = out_string.replace("<strong>", "")
+    out_string = out_string.replace("\n", indent_html)
+
     out_string = out_string.replace(
         "<table>",
         (

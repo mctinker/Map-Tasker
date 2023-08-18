@@ -40,6 +40,7 @@ def get_actions(
         :return: list of Task 'action' output lines
     """
     tasklist = []
+    blanks = f'{"&nbsp;" * primary_items["program_arguments"]["indent"]}'
 
     # Get the Task's Actions (<Action> elements)
     try:
@@ -53,9 +54,9 @@ def get_actions(
     if task_actions:
         indentation_amount = ""
         indentation = 0
-        # Task's Action statements can be out-of-order, and we need them in 
+        # Task's Action statements can be out-of-order, and we need them in
         # proper-order/sequence.
-        # sort the Task's Actions by attrib sr (e.g. sr='act0', act1, act2, etc.) 
+        # sort the Task's Actions by attrib sr (e.g. sr='act0', act1, act2, etc.)
         # to get them in true order.
         if len(task_actions) > 0:
             shell_sort(task_actions, True, False)
@@ -90,7 +91,11 @@ def get_actions(
             ):  # Do we un-indent?
                 indentation -= 1
                 length_indent = len(indentation_amount)
-                indentation_amount = indentation_amount[24:length_indent]
+                # Total indentation = 6 characters (&nbsp;) times the indent argument
+                total_indentation = int(
+                    f'{primary_items["program_arguments"]["indent"]*6}'
+                )
+                indentation_amount = indentation_amount[total_indentation:length_indent]
             tasklist = action_evaluate.build_action(
                 primary_items,
                 tasklist,
@@ -104,14 +109,12 @@ def get_actions(
                 ">If" in task_code or ">Else" in task_code or ">For<" in task_code
             ):  # Do we indent?
                 indentation += 1
-                indentation_amount = f"{indentation_amount}&nbsp;&nbsp;&nbsp;&nbsp;"
+                indentation_amount = f"{indentation_amount}{blanks}"
 
     return tasklist
 
 
 # ##################################################################################
-
-
 # Get the name of the task given the Task ID
 # return the Task's element and the Task's name
 # ##################################################################################
@@ -131,6 +134,7 @@ def get_task_name(
         :param task_type: Type of Task (Entry, Exit, Scene)
         :return: Task's xml element, Task's name
     """
+
     if the_task_id.isdigit():
         task = primary_items["tasker_root_elements"]["all_tasks"][the_task_id]
         duplicate_task = False
@@ -142,6 +146,7 @@ def get_task_name(
             extra = f"&nbsp;&nbsp;Task ID: {the_task_id}"
         else:
             extra = ""
+        blanks = f'{"&nbsp;" * primary_items["program_arguments"]["indent"]}'
         # Determine if this is an "Entry" or "Exit" Task
         try:
             task_name = task.find("nme").text
@@ -156,19 +161,20 @@ def get_task_name(
                 )
         except AttributeError:
             task_name = UNKNOWN_TASK_NAME
-            # Count this as an unnamed Task if it hasn't yet been counted and it is a normal Task
+            # Count this as an unnamed Task if it hasn't yet been counted and it
+            # is a normal Task
             if not duplicate_task and task_type in {"Entry", "Exit"}:
                 primary_items["task_count_unnamed"] = (
                     primary_items["task_count_unnamed"] + 1
                 )
             if task_type == "Exit":
                 task_output_lines.append(
-                    f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task{extra}"
+                    f"{UNKNOWN_TASK_NAME}{blanks}<<< Exit Task{extra}"
                 )
 
             else:
                 task_output_lines.append(
-                    f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task{extra}"
+                    f"{UNKNOWN_TASK_NAME}{blanks}<<< Entry Task{extra}"
                 )
     else:
         task = None
@@ -178,8 +184,6 @@ def get_task_name(
 
 
 # ##################################################################################
-
-
 # Find the Project belonging to the Task id passed in
 # ##################################################################################
 def get_project_for_solo_task(
@@ -216,8 +220,6 @@ def get_project_for_solo_task(
 
 
 # ##################################################################################
-
-
 # Identify whether the Task passed in is part of a Scene: True = yes, False = no
 # ##################################################################################
 def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
@@ -246,8 +248,6 @@ def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
 
 
 # ##################################################################################
-
-
 # We're processing a single task only
 # ##################################################################################
 def do_single_task(
@@ -332,8 +332,6 @@ def do_single_task(
 
 
 # ##################################################################################
-
-
 # output_task: we have a Task and need to generate the output
 # ##################################################################################
 def output_task(

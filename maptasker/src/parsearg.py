@@ -27,6 +27,16 @@ from maptasker.src.config import GUI
 from maptasker.src.sysconst import TYPES_OF_COLORS, logger
 
 
+# ################################################################################
+# Validate amount of indentation -i argument
+# ################################################################################
+def indentation_validation(x):
+    print(x)
+    x = int(x)
+    if x > 10:
+        raise argparse.ArgumentTypeError("Maximum indentation is 10")
+    return x
+
 # ##################################################################################
 # Get the program arguments using via a GUI (Gooey)
 # ##################################################################################
@@ -157,6 +167,16 @@ def runtime_parser():
         action="store_true",
         default=False,
     )
+     # Indentation amount (number of spaces)
+    parser.add_argument(
+        "-i",
+        "-indent",
+        help="Number of spaces to indent Task If/Then/Else Actions (default = 4)",
+        required=False,
+        type=indentation_validation,
+        nargs=1,
+        default=4,
+    )
     # Display Project/Profile/Task/Scene names in bold
     parser.add_argument(
         "-names",
@@ -226,7 +246,7 @@ def runtime_parser():
         action="store_true",
         default=False,
     )
-   
+
     group.add_argument(
         "-task",
         nargs=1,
@@ -234,7 +254,7 @@ def runtime_parser():
         type=str,
         help='Display the details for a single Task only (forces option "-detail 3")',
     )
-    
+
     # Display Task details under "hide/twisty"
     parser.add_argument(
         "-twisty",

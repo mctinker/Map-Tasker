@@ -14,10 +14,10 @@
 import defusedxml
 
 from maptasker.src.nameattr import add_name_attribute
+from maptasker.src.property import get_properties
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME, logger
 from maptasker.src.taskactn import get_task_actions_and_output
 from maptasker.src.twisty import add_twisty, remove_twisty
-from maptasker.src.property import get_properties
 
 
 # ################################################################################
@@ -49,42 +49,22 @@ def adjust_name(primary_items: dict, list_type: str, the_item: str) -> str:
     return f"{altered_name}{the_rest}"
 
 
-# ##################################################################################
-# Process Given a Task/Scene, process it.
-# ##################################################################################
-def process_item(
-    primary_items: dict,
-    the_item: str,
-    list_type: str,
-    the_list: list,
-    the_task: defusedxml.ElementTree.XML,
-    tasks_found: list,
-) -> None:
+# ################################################################################
+# Given an item, build output line for Task or Scene
+# ################################################################################
+def format_task_or_scene(
+    primary_items: dict, list_type: list, the_item: str
+) -> tuple[str, str]:
+    """_summary_
+    Given an item, build output line for Task or Scene
+       Args:
+           primary_items (dict): Program registry.  See mapit.py for details.
+           list_type (list): Either "Task:" or "Scene:"
+           the_item (str): text for Task or Scene
+
+       Returns:
+           tuple[str, str]: Our formatted output line and color to user
     """
-    Process the item and add it to the output.
-
-    Args:
-        :param primary_items:  Program registry.  See mapit.py for details.
-        the_item (str): The text item to process.
-        list_type (str): The type of the list.
-        the_list (str): The list to process.
-        the_task (str): The task to process.
-        tasks_found (list): The list of tasks found.
-
-    Returns:
-        None
-
-    """
-    # This import must stay here to avoid error
-    from maptasker.src.scenes import process_scene
-
-    temp_item = temp_list = ""
-
-    if primary_items["program_arguments"]["debug"]:  # Add Task ID if in debug mode
-        logger.debug(
-            f"process_list  the_item:{the_item} the_list:{the_list} list_type:{list_type}"
-        )
-
     # Format the Task/Scene name as needed
     if list_type in {"Task:", "Scene:"}:
         the_item_altered = adjust_name(primary_items, list_type, the_item)
@@ -97,8 +77,34 @@ def process_item(
     # Set up the correct color for twisty of needed
     color_to_use = "scene_color" if list_type == "Scene:" else "task_color"
 
-    # If "--Task:" then this is a Task under a Scene.
-    # Need to temporarily save the_item since add_line_to_output changes the_item
+    return output_line, color_to_use
+
+
+# ################################################################################
+# If doing a directory, format and add it.  If doing twisties, add a twisty
+# ################################################################################
+def add_dictionary_and_twisty(
+    primary_items: dict,
+    list_type: str,
+    the_item: str,
+    the_task: defusedxml,
+    output_line: str,
+    color_to_use: str,
+) -> tuple[str, str]:
+    """_summary_
+    If doing a directory, format and add it.  If doing twisties, add a twisty
+        Args:
+           primary_items (dict): Program registry.  See mapit.py for details.
+            list_type (list): Either "Task:" or "Scene:"
+            the_item (str): text for Task or Scene
+            the_task (defusedxml): XML pointer to our Task being procesed
+            output_line (str): The etxt satring containing the output
+            color_to_use (str): The color to use in the output
+
+        Returns:
+            tuple[str, str]: Our temporary item and temporary list item
+    """
+    temp_item = temp_list = ""
     if "&#45;&#45;Task:" in list_type:
         temp_item = the_item
         temp_list = list_type
@@ -108,7 +114,7 @@ def process_item(
             if id_loc != -1:
                 list_type = f"{list_type}{id_loc}"
 
-    # Insert directory for Task
+    # Insert directory for Task/Scene
     elif primary_items["program_arguments"]["directory"] and "Task:" in list_type:
         task_name_element = the_task.find("nme")
         if task_name_element is not None:
@@ -145,20 +151,100 @@ def process_item(
         # Add the twisty magic
         add_twisty(primary_items, color_to_use, output_line)
 
+    return temp_item, temp_list
+
+
+# ################################################################################
+# Given an item, format it with all of the particulars
+# ################################################################################
+def format_item(
+    primary_items: dict,
+    list_type: str,
+    the_item: str,
+    the_list: list,
+    the_task: defusedxml,
+    tasks_found: list,
+):
+    """_summary_
+    Given an item, format it with all of the particulars:
+        Proper html/color/font, twisty, direectory, properties, etc.
+        Args:
+            primary_items (dict): Program registry.  See mapit.py for details
+            list_type (str): Either "Task:" or "Scene:"
+            the_item (str): The string for the above type
+            the_list (list): List of Tasks or Scenes
+            the_task (defusedxml): The Task XML element
+            tasks_found (list): List of Tasks found so far.
+    """
+
+    # Log if in debug mode
+    if primary_items["program_arguments"]["debug"]:
+        logger.debug(
+            f"process_list  the_item:{the_item} the_list:{the_list} list_type:\
+            {list_type}"
+        )
+
+    # Format the Task or Scene
+    output_line, color_to_use = format_task_or_scene(primary_items, list_type, the_item)
+
+    # If "--Task:" then this is a Task under a Scene.
+    # Need to temporarily save the_item since add_line_to_output changes the_item
+    temp_item, temp_list = add_dictionary_and_twisty(
+        primary_items, list_type, the_item, the_task, output_line, color_to_use
+    )
+
     # Add this Task/Scene to the output as a list item
     primary_items["output_lines"].add_line_to_output(primary_items, 2, output_line)
     # Put the_item back with the 'ID: nnn' portion included.
     if temp_item:
         the_item = temp_item
         list_type = temp_list
-        
-    # Process Task Properties
-    if the_task and "Task:" in list_type and primary_items["program_arguments"]["display_detail_level"] == 3:
+
+    # Process Task Properties if this is a Task, display level is 3 and
+    # we are not at the end dispaying Tasks that are not in any Profile
+    if (
+        the_task
+        and "Task:" in list_type
+        and primary_items["program_arguments"]["display_detail_level"] == 3
+        and not primary_items["displaying_named_tasks_not_in_profile"]
+    ):
         get_properties(
             primary_items,
             the_task,
             primary_items["colors_to_use"]["task_color"],
         )
+
+
+# ##################################################################################
+# Process Given a Task/Scene, process it.
+# ##################################################################################
+def process_item(
+    primary_items: dict,
+    the_item: str,
+    list_type: str,
+    the_list: list,
+    the_task: defusedxml.ElementTree.XML,
+    tasks_found: list,
+) -> None:
+    """
+    Process the item and add it to the output.
+
+    Args:
+        :param primary_items:  Program registry.  See mapit.py for details.
+        the_item (str): The text item to process.
+        list_type (str): The type of the list.
+        the_list (str): The list to process.
+        the_task (str): The task to process.
+        tasks_found (list): The list of tasks found.
+
+    Returns:
+        None
+
+    """
+    # This import must stay here to avoid error
+    from maptasker.src.scenes import process_scene
+
+    format_item(primary_items, list_type, the_item, the_item, the_task, tasks_found)
 
     # Output Actions for this Task if Task is unknown
     #   and not part of output for Tasks with no Profile(s)
@@ -178,7 +264,8 @@ def process_item(
         # End the twisty hidden lines if not a Task in a Scene
         if primary_items["program_arguments"]["twisty"]:
             remove_twisty(primary_items)
-        # If not a twisty but is a digit, then this is a Scene's Task...delete previous </ul>
+        # If not a twisty but is a digit, then this is a Scene's Task...
+        # delete previous </ul>
         elif the_item.isdigit:
             primary_items["output_lines"].delete_last_line(primary_items)
 
@@ -194,21 +281,17 @@ def process_item(
         )
 
     # Remove twisty if not displaying level 0
-    elif (
-        primary_items["program_arguments"]["twisty"]
-    ):
+    elif primary_items["program_arguments"]["twisty"]:
         if primary_items["program_arguments"]["display_detail_level"] > 0:
             remove_twisty(primary_items)
         else:
             # End list if doing twisty and displaying level 0
             primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
-        
+
     return
 
 
 # ##################################################################################
-
-
 # Process Task/Scene text/line item: call recursively for Tasks within Scenes
 # ##################################################################################
 def process_list(

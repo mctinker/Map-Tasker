@@ -12,12 +12,6 @@
 #                                                                                      #
 # #################################################################################### #
 
-# Add the following statement to your Terminal Shell configuration file (BASH, Fish, etc.
-#  to eliminate the runtime msg: DEPRECATION WARNING: The system version of Tk is
-# deprecated and may be removed...
-#  'export TK_SILENCE_DEPRECATION = 1' (without quotes)
-
-
 # ##################################################################################
 #  START User-modifiable global constants
 # ##################################################################################
@@ -30,7 +24,7 @@ OUTPUT_FONT = "Courier"  # OS X Default monospace font
 # OUTPUT_FONT = 'Roboto Regular'  # Google monospace font
 
 # Graphical User Interface (True) vs. CLI Command Line Interface (False)
-GUI = False
+GUI = False  
 
 # Light vs Dark Mode (refer to colrmode.py to hardcode the output colors)
 DARK_MODE = True

@@ -1,14 +1,16 @@
 #! /usr/bin/env python3
 
 # ####################################################################################
-#                                                                                                                    #
-#  actione: action evaluation                                                                                        #
-#           given the xml <code>nn</code>, figure out what (action) code it is and return the translation            #
-#                                                                                                                    #
-#          code_child: used to parse the specific <code> xml for action details.                                     #
-#          code_action: the nnn in <code>nnn</code> xml                                                              #
-#          action_type: true if Task action, False if not (e.g. a Profile state or event condition)                  #
-#                                                                                                                    #
+#                                                                                    #
+#  actione: action evaluation                                                        #
+#           given the xml <code>nn</code>, figure out what (action) code it is and   #
+#               return the translation                                               #
+#                                                                                    #
+#          code_child: used to parse the specific <code> xml for action details.     #
+#          code_action: the nnn in <code>nnn</code> xml                              #
+#          action_type: true if Task action, False if not (e.g. a Profile state      #
+#                       or event condition)                                          #
+#                                                                                    #
 # ####################################################################################
 import copy
 import re
@@ -31,38 +33,39 @@ from maptasker.src.sysconst import FONT_TO_USE, logger
 # ##################################################################################
 def cleanup_the_result(results: str) -> str:
     """
-    Delete html crap that might be in the label, and which would screw up the output formatting
+    Delete html crap that might be in the label, and which would screw up the 
+    output formatting
         :param results: the string to clean
         :return: the cleaned string
     """
     # The following line works as well, going through each character in the string
-    # results = ', '.join([x.strip() for x in results.split(',') if not x.isspace() and x != ''])
-    results = results.replace(
-        ",  <font>", "<font>"
-    )  # Get rid of comma on last parameter
-    results = results.replace(", (", "")
-    pattern = re.compile(r",[, ]+")
-    results = pattern.sub(", ", results)  # Delete repeating commas
-    results = results.replace(", <span", "<span")
-    results = results.replace(",  <span", "  <span")
-    results = results.replace(", code:", "")
-    results = results.replace("<big>", "")
-    results = results.replace("<small>", "")
-    results = results.replace("<tt>", "")
-    results = results.replace("<i>", "")
-    results = results.replace("<u>", "")
-    results = results.replace(", <font", "<font")
+    # results = ', '.join([x.strip() for x in results.split(',') if not x.isspace() 
+    # and x != ''])
+    # results = results.replace(
+    #     ",  <font>", "<font>"
+    # )  # Get rid of comma on last parameter
+    # results = results.replace(", (", "")
+    # pattern = re.compile(r",[, ]+")
+    # results = pattern.sub(", ", results)  # Delete repeating commas
+    # results = results.replace(", <span", "<span")
+    # results = results.replace(",  <span", "  <span")
+    # results = results.replace(", code:", "")
+    # results = results.replace("<big>", "")
+    # results = results.replace("<small>", "")
+    # results = results.replace("<tt>", "")
+    # results = results.replace("<i>", "")
+    # results = results.replace("<u>", "")
+    # results = results.replace(", <font", "<font")
     return results
 
 
 # ##################################################################################
-
-
 # For debug purposes, this searches dictionary for missing keys: 'reqargs' and 'display'
 # ##################################################################################
 def look_for_missing_req() -> None:
     """
-    For debug purposes, this searches dictionary for missing keys: 'reqargs' and 'display'
+    For debug purposes, this searches dictionary for missing keys: 'reqargs'
+    and 'display'
         If found, the error is handled and the program exits
         :return: nothing
     """
@@ -83,14 +86,13 @@ def look_for_missing_req() -> None:
 
 
 # ##################################################################################
-
-
 # See if this Task or Profile code isa deprecated
 # ##################################################################################
 def check_for_deprecation(the_action_code_plus: str) -> None:
     """
     See if this Task or Profile code isa deprecated
-        :param the_action_code_plus: the action code plus the type of action (e.g. "861t", "t" = Task, "e" = Event, "s" = State)
+        :param the_action_code_plus: the action code plus the type of action
+            (e.g. "861t", "t" = Task, "e" = Event, "s" = State)
         :return: nothing
     """
     from maptasker.src.depricated import depricated
@@ -107,8 +109,6 @@ def check_for_deprecation(the_action_code_plus: str) -> None:
 
 
 # ##################################################################################
-
-
 # Given an action code, evaluate it for display
 # ##################################################################################
 def get_action_code(
@@ -171,7 +171,8 @@ def get_action_code(
                 action_codes[the_action_code_plus]["reqargs"],
                 action_codes[the_action_code_plus]["evalargs"],
             )
-        # If this is a redirected lookup entry, create a temporary mirror dictionary entry.
+        # If this is a redirected lookup entry, create a temporary mirror 
+        # dictionary entry.
         # Then grab the 'display' key and fill in rest with directed-to keys
         if "redirect" in action_codes[the_action_code_plus]:
             referral = action_codes[the_action_code_plus]["redirect"][
@@ -200,8 +201,6 @@ def get_action_code(
 
 
 # ##################################################################################
-
-
 # Construct Task Action output line
 # ##################################################################################
 def build_action(
@@ -234,7 +233,7 @@ def build_action(
     if count < 0:
         task_code_line = indent_amt + task_code_line
 
-    # Break-up very long actions at new line
+    # Flag Action if not yet known to us
     if not task_code_line:  # If no Action details
         alist.append(
             format_html(
@@ -247,11 +246,14 @@ def build_action(
         )
         # Handle this
         not_in_dictionary(primary_items, "Action", code_element.text)
-    else:  # We have Task Action details
+
+    # We have Task Action details
+    else:
         newline = task_code_line.find("\n")  # Break-up new line breaks
         task_code_line_len = len(task_code_line)
 
-        # If no new line break or line break less than width set for browser, just put it as is
+        # If no new line break or line break less than width set for browser,
+        # just put it as is
         # Otherwise, make it a continuation line using '...' has the continuation flag
         if newline == -1 and task_code_line_len > 80:
             alist.append(task_code_line)
@@ -264,8 +266,9 @@ def build_action(
                 if count == 0:
                     alist.append(item)
                 else:
-                    alist.append(f"...{item}")
+                    alist.append(f"...indent={indent}item={item}")
                 count += 1
+                
                 # Only display up to so many continued lines
                 if count == CONTINUE_LIMIT:
                     # Add comment that we have reached the limit for continued details

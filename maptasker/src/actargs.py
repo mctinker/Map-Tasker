@@ -28,16 +28,24 @@ def get_action_arguments(
     action_type: defusedxml.ElementTree.XML,
 ) -> dict:
     """
-    Given an <argn> element, evaluate it's contents based on our Action code dictionary (actionc.py)
+    Given an <argn> element, evaluate it's contents based on our Action code dictionary
+    (actionc.py)
         :param primary_items:  program registry.  See mapit.py for details.
-        :param evaluated_results: all the Action argument "types" and "arguments" as a dictionary
+        :param evaluated_results: all the Action argument "types" and "arguments" as
+            a dictionary
         :param arg: the incoming argument location/number (e.g. "0" for <arg0>)
-        :param argeval: the evaluation argument from our action code table (actionc.py) e.g. "Timeout:" in "evalargs": ["", "Timeout:", ["", "e", ", Structure Output (JSON, etc)"]],
+        :param argeval: the evaluation argument from our action code table (actionc.py)
+            e.g. "Timeout:" in "evalargs": ["", "Timeout:", ["", "e", ",
+            Structure Output (JSON, etc)"]],
         :param argtype: the argument "type"- Str, Int, App, ConditionList, Bundle, Img
         :param code_action: xml element of the Action code (<code>nnn</code>)
-        :param action_type: the Action type = True if this is a Task, False if it is a condition
+        :param action_type: the Action type = True if this is a Task, False if it is
+        a condition
         :return:  of results
     """
+
+    # Assume we are returing something
+    evaluated_results["returning_something"] = True
 
     # Evaluate the argument based on its type
     match argtype:
@@ -45,12 +53,12 @@ def get_action_arguments(
             evaluated_results["get_xml_flag"] = True
             evaluated_results["strargs"].append(f"arg{str(arg)}")
             evaluated_results["streval"].append(argeval)
-            evaluated_results["returning_something"] = True
+
         case "Int":
             evaluated_results["get_xml_flag"] = True
             evaluated_results["intargs"].append(f"arg{str(arg)}")
             evaluated_results["inteval"].append(argeval)
-            evaluated_results["returning_something"] = True
+
         case "App":
             evaluated_results["strargs"].append(f"arg{str(arg)}")
             evaluated_results["streval"].append(argeval)
@@ -58,7 +66,7 @@ def get_action_arguments(
                 primary_items, code_action, action_type
             )
             evaluated_results["result_app"].append(f"{app_class}, {app_pkg}, {app}")
-            evaluated_results["returning_something"] = True
+
         case "ConditionList":
             evaluated_results["strargs"].append(f"arg{str(arg)}")
             evaluated_results["streval"].append(argeval)
@@ -72,7 +80,7 @@ def get_action_arguments(
                 if boolean_list and len(boolean_list) > numx:
                     final_conditions = f"{final_conditions} {boolean_list[numx]} "
             evaluated_results["result_con"].append(final_conditions)
-            evaluated_results["returning_something"] = True
+
         case "Img":
             image, package = "", ""
             child = code_action.find("Img")
@@ -84,9 +92,10 @@ def get_action_arguments(
                 image = child.find("var").text
             if image:
                 evaluated_results["result_img"].append(f"{argeval}{image}{package}")
-                evaluated_results["returning_something"] = True
             else:
                 evaluated_results["result_img"].append(" ")
+                evaluated_results["returning_something"] = False
+
         case "Bundle":  # It's a plugin
             child1 = code_action.find("Bundle")
             child2 = child1.find("Vals")
@@ -95,19 +104,40 @@ def get_action_arguments(
             )  # 2:40 am...funny!
             if child3 is not None and child3.text is not None:
                 # Get rid of extraneous html in Action's label
-                clean_string = child3.text.replace("</font><br><br>", "<br><br>")
-                clean_string = clean_string.replace("&lt;", "<")
-                clean_string = clean_string.replace("&gt;", ">")
+                # clean_string = child3.text.replace("</font><br><br>", "<br><br>")
+                # clean_string = clean_string.replace("&lt;", "<")
+                # clean_string = clean_string.replace("&gt;", ">")
+                clean_string = child3.text
                 evaluated_results["result_bun"].append(clean_string)
-                evaluated_results["returning_something"] = True
+            else:
+                evaluated_results["returning_something"] = False
+
         case _:
             logger.debug(f"get_action_results  unknown argtype:{argtype}!!!!!")
+            evaluated_results["returning_something"] = False
     return evaluated_results
 
 
 # ##################################################################################
+# Action code not found...let user know
+# ##################################################################################
+def handle_missing_code(primary_items, the_action_code_plus, index):
+    error_message = format_html(
+        primary_items["colors_to_use"],
+        "action_color",
+        "",
+        (
+            "MapTasker actionc error the_action_code_plus"
+            f" {the_action_code_plus} 'types' for index {index} not mapped!"
+        ),
+        True,
+    )
+    logger.debug(error_message)
+    primary_items["output_lines"].add_line_to_output(primary_items, 4, error_message)
+    return ""
 
 
+# ##################################################################################
 # Go through the arguments and parse each one based on its argument 'type'
 # ##################################################################################
 def action_args(
@@ -124,21 +154,25 @@ def action_args(
     Go through the arguments and parse each one based on its argument 'type'
         :param primary_items:  program registry.  See mapit.py for details.
         :param arg_list: list of arguments (xml "<argn>") to process
-        :param the_action_code_plus: the lookup the Action code from actionc with "action type" (e.g. 861t, t=Task, e=Event, s=State)
+        :param the_action_code_plus: the lookup the Action code from actionc with
+            "action type" (e.g. 861t, t=Task, e=Event, s=State)
         :param lookup_code_entry: dictionary entry for code nnnx (e.g. for entry "846t")
         :param evaluate_list: dictionary into which we are supplying the results
         :param code_action: xml element of the action code (<code>)
-        :param action_type: True if this is for a Task, False if for a condition (State, Event, etc.)
+        :param action_type: True if this is for a Task, False if for a condition
+            (State, Event, etc.)
         :param evaluated_results: dictionary into which to store the results
         :return: dictionary of the stored results
     """
+    our_action_code = lookup_code_entry[the_action_code_plus]
+    our_action_args = our_action_code["args"]
+
+    # Go through each <arg> in list of args
     for num, arg in enumerate(arg_list):
-        # Find the location for this arg in dictionary key "types' since they can be non-sequential (e.g. '1', '3', '4', '6')
-        index = (
-            num
-            if arg == "if"
-            else lookup_code_entry[the_action_code_plus]["args"].index(arg)
-        )
+        # Find the location for this arg in dictionary key "types' since they can be
+        # non-sequential (e.g. '1', '3', '4', '6')
+        index = num if arg == "if" else our_action_args.index(arg)
+        
         # Get the arg name and type
         try:
             argeval = evaluate_list[num]
@@ -150,23 +184,11 @@ def action_args(
             )
             return evaluated_results
         try:
-            argtype = lookup_code_entry[the_action_code_plus]["types"][index]
+            argtype = our_action_code["types"][index]
         except IndexError:
-            argtype = ""
-            error_message = format_html(
-                primary_items["colors_to_use"],
-                "action_color",
-                "",
-                (
-                    "MapTasker actionc error the_action_code_plus"
-                    f" {the_action_code_plus} 'types' for index {index} not mapped!"
-                ),
-                True,
-            )
-            logger.debug(error_message)
-            primary_items["output_lines"].add_line_to_output(
-                primary_items, 4, error_message
-            )
+            argtype = handle_missing_code(primary_items, the_action_code_plus, index)
+
+        # Get the Action arguments
         evaluated_results["position_arg_type"].append(argtype)
         evaluated_results = get_action_arguments(
             primary_items,
@@ -178,5 +200,4 @@ def action_args(
             action_type,
         )
 
-    return evaluated_results
     return evaluated_results

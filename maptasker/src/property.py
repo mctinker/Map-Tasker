@@ -25,7 +25,7 @@ def parse_variable(
     """_summary_
     Parse Property's variable and output it
         Args:
-            primary_items (_type_):  dictionary of the primary items used throughout 
+            primary_items (_type_):  dictionary of the primary items used throughout
                                     the module.  See mapit.py for details
             variable_header (_type_): xml header of property's variable
             color_to_use (_type_): the color to use in the output
@@ -38,7 +38,7 @@ def parse_variable(
     value = "" if value_element is None else value_element.text
     display_name = variable_header.find("pvdn").text
     structured_variable = variable_header.find("strout").text
-    variable_header.find("pvn").text
+    variable_name = variable_header.find("pvn").text
     if variable_header.find("pvn").text == "1":
         exported_value = "Same as Value"
     else:
@@ -49,7 +49,8 @@ def parse_variable(
         primary_items["colors_to_use"],
         color_to_use,
         "",
-        f"<br>Properties Variable:{display_name}, clear-out:{clearout}, \
+        f"<br>Properties Variable Title:{display_name}, Variable:{variable_name}, \
+        clear-out:{clearout}, \
         Configure on Import:{configure_on_import}\
         , Structured Variable (JSON, etc.):{structured_variable}\
         , Immutable:{immutable}, Value:{value}, Display Name:{display_name}\
@@ -63,7 +64,7 @@ def parse_variable(
     )
 
 
-# Given the xml header to the Project/Profile/Task, get the properties belonging 
+# Given the xml header to the Project/Profile/Task, get the properties belonging
 # to this header and write them out
 def get_properties(
     primary_items: dict, header: defusedxml.ElementTree, color_to_use: str

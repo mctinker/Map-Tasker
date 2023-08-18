@@ -2,7 +2,7 @@
 
 # #################################################################################### #
 #                                                                                      #
-# prefers: Process Tasker's Preferences                                                      #
+# prefers: Process Tasker's Preferences                                                #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
@@ -58,7 +58,8 @@ def process_service(
         packages = [m.start() for m in re.finditer('"packageName":', service_value)]
         packages_end = [m.start() for m in re.finditer("}", service_value)]
         for number, position in enumerate(packages):
-            package_names = f"{package_names}<br>{blank * 50}{service_value[position + 14:packages_end[number]]}"
+            package_names = f"{package_names}<br>{blank * 50}\
+                            {service_value[position + 14:packages_end[number]]}"
         service_value = package_names
 
     # Add the service name to the output list
@@ -71,7 +72,8 @@ def process_service(
                     "preferences_color",
                     "",
                     (
-                        f"{preferences_html}{blank * 2}{output_service_name}{blank * 4}{service_value}"
+                        f"{preferences_html}{blank * 2}{output_service_name}\
+                            {blank * 4}{service_value}"
                     ),
                     True,
                 )
@@ -124,7 +126,8 @@ def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
                             "",
                             (
                                 f"{blank * 2}Not yet"
-                                f" mapped:{service_name}{blank * 4}type:{service_type}{blank * 4}value:{service_value}"
+                                f" mapped:{service_name}{blank * 4}type:{service_type}\
+                                {blank * 4}value:{service_value}"
                             ),
                             True,
                         ),
@@ -143,7 +146,7 @@ def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
 def get_preferences(primary_items: dict) -> None:
     """
     Go through the Tasker <service> xml elements, each representing a Tasker preference
-    :param primary_items: dictionary of the primary items used throughout the module.  See mapit.py for details
+    :param primary_items: program registry.  See mapit.py for details
     :rtype: nothing
     """
     section_names = [

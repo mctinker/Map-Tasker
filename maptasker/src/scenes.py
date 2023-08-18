@@ -264,7 +264,7 @@ def process_project_scenes(
 
             # Force a line break
             primary_items["output_lines"].add_line_to_output(primary_items, 4, "")
-            
+
             if primary_items["program_arguments"]["display_detail_level"] == 0:
                 # End list if displaying level 0
                 primary_items["output_lines"].add_line_to_output(primary_items, 3, "")

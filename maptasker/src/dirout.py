@@ -147,7 +147,8 @@ def generate_html_table(data: list, rows: int, columns: int) -> str:
     )
 
     # Set up the variables
-    html = f'{border}<table style="width:100%;text-align:left;background-color:{color_to_use};">\n'
+    html = f'{border}<table style="width:100%;text-align:left;background-color:\
+    {color_to_use};">\n'
     index = 0
     data.sort()
 

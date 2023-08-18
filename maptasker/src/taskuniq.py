@@ -2,7 +2,7 @@
 
 # #################################################################################### #
 #                                                                                      #
-# taskuniq: deal with unique Tasks                                                           #
+# taskuniq: deal with unique Tasks                                                     #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
@@ -102,8 +102,6 @@ def process_missing_tasks_and_profiles(
 
 
 # ##################################################################################
-
-
 # Add heading to output for named Tasks not in any Profile
 # ##################################################################################
 def add_heading(primary_items: dict, save_twisty: bool) -> bool:
@@ -134,6 +132,7 @@ def add_heading(primary_items: dict, save_twisty: bool) -> bool:
             True,
         ),
     )
+    primary_items["displaying_named_tasks_not_in_profile"] = True
     primary_items["output_lines"].add_line_to_output(
         primary_items, 1, ""
     )  # Start Task list
@@ -141,8 +140,6 @@ def add_heading(primary_items: dict, save_twisty: bool) -> bool:
 
 
 # ##################################################################################
-
-
 # Process a single Task that does not belong to any Profile
 # This function is called recursively
 # ##################################################################################
@@ -233,8 +230,6 @@ def process_solo_task_with_no_profile(
 
 
 # ##################################################################################
-
-
 # process_tasks: go through all tasks and output them
 # ##################################################################################
 def process_tasks_not_called_by_profile(

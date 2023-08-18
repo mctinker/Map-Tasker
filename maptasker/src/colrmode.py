@@ -25,7 +25,7 @@ def set_color_mode(appearance_mode: str) -> dict:
         mode = "dark" if darkdetect.isDark() else "light"
     else:
         mode = appearance_mode
-        
+
     # Now set the colors to use based on the appearance mode
     if mode == "dark":
         return {

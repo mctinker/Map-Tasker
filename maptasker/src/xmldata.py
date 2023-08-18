@@ -70,19 +70,20 @@ def tag_in_type(tag: str, flag: bool) -> bool:
         and tag in scene_task_click_types
     )  # Boolean
 
+
 # ##################################################################################
 #  Given an action code (xml), find Int (integer) args and match with names
 #  Example:
-#  3 Ints with arg0, arg1 and arg2, to be filled in with their matching name0, name1 
+#  3 Ints with arg0, arg1 and arg2, to be filled in with their matching name0, name1
 #   and name2 + the associated text
 #  action = xml element for Action <code>
 #  arguments = list of Int arguments to look for (e.g. arg1,arg5,arg9)
 #  names = list of entries to substitute the argn value against.
 #    ...It can be a list, which signifies a pull-down list of options to map against:
-#         [ preceding_text1, value1, evaluated_text1, preceding_text2, value2, 
+#         [ preceding_text1, value1, evaluated_text1, preceding_text2, value2,
 #           evaluated_text2, ...]
 #         ['', 'e', 'name'] > Test for '1' and plug in 'name' if '1'
-#         ['some_text', 'l', lookup_code] > use lookup_values dictionary to translate 
+#         ['some_text', 'l', lookup_code] > use lookup_values dictionary to translate
 #           code and plug in value
 # ##################################################################################
 def get_xml_int_argument_to_value(action, arguments, names):
@@ -126,10 +127,11 @@ def get_xml_int_argument_to_value(action, arguments, names):
 
     return drop_trailing_comma(match_results)
 
+
 # ##################################################################################
 #  Given an action code (xml), find Str (string) args and match with names
 #  Example:
-#  3 Strs with arg0, arg1 and arg2, to be filled in with their matching name0, name1 
+#  3 Strs with arg0, arg1 and arg2, to be filled in with their matching name0, name1
 #   and name2 + the associated text
 # ##################################################################################
 def get_xml_str_argument_to_value(action, arguments, names) -> list:
@@ -143,7 +145,7 @@ def get_xml_str_argument_to_value(action, arguments, names) -> list:
                 if arg == the_arg:
                     arg_location = arguments.index(arg)
                     if child.text is not None:
-                        match_results.append(names[arg_location] + child.text + ", ")
+                        match_results.append(names[arg_location] + child.text)
                     else:
                         match_results.append("")
                     break  # We have what we want.  Go to next child

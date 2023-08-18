@@ -18,9 +18,7 @@
 # #################################################################################### #
 
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.debug import display_debug_info
 from maptasker.src.error import error_handler
-from maptasker.src.frmthtml import format_html
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.sysconst import ARGUMENT_NAMES, logger
 
@@ -32,6 +30,26 @@ def delete_gui(MyGui, user_input):
     MyGui.quit(user_input)
     del user_input
     del MyGui
+
+
+# ################################################################################
+# Convert a value to integere, and if not an integer then use default value
+# ################################################################################
+def convert_to_integer(value_to_convert: str, default_value: int) -> int:
+    """_summary_
+    Convert a value to integere, and if not an integer then use default value
+        Args:
+            value_to_convert (str): The string value to convert to an integer
+            where_to_put_it (int): Where to place the converted integer
+            default_value (int):The default to plug in if the value to convert
+                is not an integer
+            :return: converted value as integer
+    """
+    try:
+        return int(value_to_convert)
+    except (ValueError, TypeError):
+        return default_value
+
 
 # ##################################################################################
 # Get the program arguments from GUI
@@ -63,12 +81,6 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
     primary_items["program_arguments"] = initialize_runtime_arguments()
 
     # 'Run' button hit.  Get all the input from GUI variables
-    try:
-        primary_items["program_arguments"]["display_detail_level"] = int(
-            user_input.display_detail_level
-        )
-    except TypeError:
-        primary_items["program_arguments"]["display_detail_level"] = 3
 
     # Do we already have the file object?
     if user_input.file:
@@ -82,13 +94,16 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
         else:
             # Grab GUI value and put into our runtime arguments dictonary (of same name)
             primary_items["program_arguments"][value] = getattr(user_input, value)
-            logger.info(f"GUI arg: {value} set to: {getattr(user_input, value)}") 
+            logger.info(f"GUI arg: {value} set to: {getattr(user_input, value)}")
 
-    # Make sure our detail_level is an int
-    if isinstance(primary_items["program_arguments"]["display_detail_level"], str):
-        primary_items["program_arguments"]["display_detail_level"] = int(
-            primary_items["program_arguments"]["display_detail_level"]
-        )
+    # Convert display_detail_level to integer
+    primary_items["program_arguments"]["display_detail_level"] = convert_to_integer(
+        primary_items["program_arguments"]["display_detail_level"], 3
+    )
+    # Convert indent to integer
+    primary_items["program_arguments"]["indent"] = convert_to_integer(
+        primary_items["program_arguments"]["indent"], 4
+    )
 
     # Appearance change: Dark or Light mode?
     colormap = set_color_mode(user_input.appearance_mode)
@@ -100,15 +115,6 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
 
     # Delete the GUI
     delete_gui(MyGui, user_input)
-
-    # If we are debugging, output the runtime arguments and colors
-    if primary_items["program_arguments"]["debug"]:
-        GUI = "*** GUI ***"
-        primary_items["output_lines"].add_line_to_output(primary_items, 0, format_html(
-            primary_items["colors_to_use"],
-            "unknown_task_color",
-            "",f"<hr<br>{GUI*10}", True))  # line
-        display_debug_info(primary_items)
 
     return (
         primary_items["program_arguments"],

@@ -12,12 +12,13 @@
 #                                                                                      #
 # #################################################################################### #
 import logging
+import re
 
 from maptasker.src.config import OUTPUT_FONT
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 2.1.0"
+MY_VERSION = "MapTasker version 2.1.2"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -112,6 +113,7 @@ ARGUMENT_NAMES = [
     "italicize",
     "underline",
     "appearance_mode",
+    "indent",
 ]
 
 logger = logging.getLogger("MapTasker")
@@ -119,3 +121,15 @@ debug_out = False  # Prints the line to be added to the output
 DEBUG_PROGRAM = False
 debug_file = "maptasker_debug.log"
 debug_file = "maptasker_debug.log"
+
+pattern1 = re.compile(",  ,")
+pattern2 = re.compile(" ,")
+pattern3 = re.compile("<")
+pattern4 = re.compile(">")
+
+pattern5 = re.compile("<ul>")
+pattern6 = re.compile("</ul>")
+pattern7 = re.compile("<li")
+pattern8 = re.compile("<br>")
+pattern9 = re.compile("</span></span>")
+pattern10 = re.compile("</p></p>")

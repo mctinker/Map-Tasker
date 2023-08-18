@@ -1,9 +1,9 @@
 #! /usr/bin/env python3
 
-# ########################################################################################## #
-#                                                                                            #
+# #################################################################################### #
+#                                                                                      #
 # actionc: Task "Action" and Profile "condition" dictionary                                  #
-#                                                                                            #
+#                                                                                      #
 #  Provide the master lookup for a given <code>nnn</code> xml statement                      #
 #  level 1 key = the code (nnn, above)                                                       #
 #   numargs subkey = the maximum number of argn xml lines in the action                      #
@@ -15,14 +15,14 @@
 #   evalargs subkey = formula for evaluation - optional                                      #
 #      'some_string:' for str or int xml values                                              #
 #      ['', 'e', 'some_string'] for boolean: 1 = display string, 0 = no display - optl       #
-#                                                                                            #
+#                                                                                      #
 #      ['some_string:', 'l', 'lookup-code] for actiont dictionary lookup for specific code   #
-# GNU General Public License v3.0                                                            #
-# Permissions of this strong copyleft license are conditioned on making available            #
-# complete source code of licensed works and modifications, which include larger works       #
-# using a licensed work, under the same license. Copyright and license notices must be       #
-# preserved. Contributors provide an express grant of patent rights.                         #
-# ########################################################################################## #
+# GNU General Public License v3.0                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+# #################################################################################### #
 
 action_codes = {
     "1000e": {
@@ -195,6 +195,7 @@ action_codes = {
         "reqargs": [],
         "evalargs": [],
     },
+    "1120274117t": {"redirect": ["1040876951t"], "display": "Locus Map"},
     "1132319851t": {"redirect": ["1040876951t"], "display": "AutoSheets Add Sheet"},
     "1133159835e": {
         "numargs": 4,
@@ -215,7 +216,7 @@ action_codes = {
     "1138588429t": {"redirect": ["1040876951t"], "display": "Join Send Query"},
     "113t": {"numargs": 0, "args": [], "types": [], "display": "WiFi Tether"},
     "114t": {"numargs": 0, "args": [], "types": [], "display": "USB Tether"},
-    "1150542767s": {"redirect": ["1040876951t"], "display": "Tap Tap Plugin"},
+    "1150542767e": {"redirect": ["1040876951t"], "display": "Tap Tap Plugin"},
     "116t": {"numargs": 0, "args": [], "types": [], "display": "HTTP Post"},
     "1164968315t": {"redirect": ["1040876951t"], "display": "AutoSpotify Play Media"},
     "1165325195t": {"redirect": ["1040876951t"], "display": "AutoTools Web Screen"},
@@ -236,6 +237,7 @@ action_codes = {
         "reqargs": [],
         "evalargs": [],
     },
+    "1186637727t": {"redirect": ["1040876951t"], "display": "KWGT Kustom Widget Maker"},
     "119t": {
         "numargs": 5,
         "args": ["0", "1", "2", "3", "4"],
@@ -949,6 +951,7 @@ action_codes = {
         "reqargs": [],
         "evalargs": [],
     },
+    "1804737413t": {"redirect": ["1040876951t"], "display": "AutoWear Secure Settings"},
     "1810865467t": {"redirect": ["1040876951t"], "display": "AutoSheets Get Data"},
     "1810891651t": {"redirect": ["1040876951t"], "display": "AutoSheets Get Cell"},
     "1825107102e": {
@@ -1126,7 +1129,7 @@ action_codes = {
         "reqargs": ["0", "1"],
         "evalargs": ["Width:", ", Height:"],
     },
-     "194s": {
+    "194s": {
         "numargs": 0,
         "args": [],
         "types": [],
@@ -2957,7 +2960,13 @@ action_codes = {
         "types": ["Bundle", "Str", "Str", "Str", "Str", "Int"],
         "display": "Pick Input Dialog",
         "reqargs": ["1", "2", "3", "4", "5"],
-        "evalargs": ["Type:", ", Title:", ",,, Text:", ", Default Input:", ", Close After (Seconds):"],
+        "evalargs": [
+            "Type:",
+            ", Title:",
+            ",,, Text:",
+            ", Default Input:",
+            ", Close After (Seconds):",
+        ],
     },
     "391t": {
         "numargs": 12,
@@ -5160,6 +5169,7 @@ action_codes = {
         "reqargs": ["0", "1"],
         "evalargs": ["Number Match:", ["", "e", "Info"]],
     },
+    "96585332t": {"redirect": ["1040876951t"], "display": "AutoWear Settings"},
     "97t": {
         "numargs": 3,
         "args": ["0", "1", "2"],

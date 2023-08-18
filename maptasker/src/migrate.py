@@ -75,6 +75,7 @@ def process_error(error_msg: str) -> tuple[dict, dict]:
     error_handler(error_msg, 0)
     return {}, {}
 
+
 # ##################################################################################
 # Migrate from old filename/format to new for saved runtime arguments
 # ##################################################################################

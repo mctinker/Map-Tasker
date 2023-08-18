@@ -79,7 +79,8 @@ def on_crash(exctype, value, traceback):
         # print("Exception type:", exctype, " value:", value)
         print(f"The error log can be found in {debug_file}.")
         print(
-            "Go to https://github.com/mctinker/Map-Tasker/issues to report the problem.\n",
+            "Go to https://github.com/mctinker/Map-Tasker/issues \
+            to report the problem.\n",
             file=sys.stderr,
         )
         # Redirect print to a debug log
@@ -209,8 +210,10 @@ def output_grand_totals(primary_items: dict) -> None:
             "trailing_comments_color",
             "",
             (
-                f"<hr><br>{total_number}Projects: {grand_total_projects}<br>{total_number}Profiles:  {grand_total_profiles}<br>{total_number}Tasks:"
-                f" {grand_total_unnamed_tasks + grand_total_named_tasks} ({grand_total_unnamed_tasks} unnamed,"
+                f"<hr><br>{total_number}Projects: {grand_total_projects}<br>\
+                {total_number}Profiles:  {grand_total_profiles}<br>{total_number}Tasks:"
+                f" {grand_total_unnamed_tasks + grand_total_named_tasks} (\
+                    {grand_total_unnamed_tasks} unnamed,"
                 f" {grand_total_named_tasks} named)<br>{total_number}Scenes:"
                 f" {grand_total_scenes}<br><br>"
             ),
@@ -254,6 +257,7 @@ def initialize_everything(file_to_get: str) -> dict:
     #    for the directory
     #  ordered_list_count: count of number of <ul> we currently have in output queue
     #  name_list: list of names of Projects/Profiles/Tasks/Scenes found thus far
+    #  displaying_named_tasks_not_in_profile: True if we are displaying, False if not
     primary_items = {
         "xml_tree": None,
         "xml_root": None,
@@ -266,9 +270,11 @@ def initialize_everything(file_to_get: str) -> dict:
         "task_count_for_Profile": 0,
         "directory_items": [],
         "unordered_list_count": 0,
+        "displaying_named_tasks_not_in_profile": False
     }
 
-    # Get colors to use, runtime arguments etc...all of our primary items we need throughout
+    # Get colors to use, runtime arguments etc...all of our primary items we need 
+    # throughout
     primary_items = initialize.start_up(primary_items)
 
     # Set up to catch all crashes gracefully
@@ -280,9 +286,8 @@ def initialize_everything(file_to_get: str) -> dict:
 
     # If debugging, force an ESC so that the full command/path are not displayed in
     #   VsCode terminal window.
-
-    # if primary_items["program_arguments"]["debug"]:
-    #     print("\033c")
+    if primary_items["program_arguments"]["debug"]:
+        print("\033c")
 
     return primary_items, [], [], []
 

@@ -81,10 +81,10 @@ def request_file(
     https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example
         :param backup_file_http: the port to use for the Android device's Tasker server
         :param backup_file_location: location of
-        :return: return code, response: eitherr text string with error message or the 
+        :return: return code, response: eitherr text string with error message or the
         contents of the backup file
     """
-    # Create the URL to request the backup xml file from the Android device running the 
+    # Create the URL to request the backup xml file from the Android device running the
     # Tasker server.
     url = f"{backup_file_http}/file{backup_file_location}?download=1"
 
@@ -112,7 +112,7 @@ def request_file(
 
 def get_backup_file(primary_items: dict) -> None:
     """
-    Set up to fetch the Tasker backup xml file from the Android device running 
+    Set up to fetch the Tasker backup xml file from the Android device running
     the Tasker server
         :param primary_items:  program registry.  See mapit.py for details.
         :return nothing
