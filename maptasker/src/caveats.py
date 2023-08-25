@@ -25,7 +25,7 @@ def display_caveats(primary_items: dict) -> None:
     """
 
     caveat1 = format_html(
-        primary_items["colors_to_use"],
+        primary_items,
         "trailing_comments_color",
         "",
         "CAVEATS:<br>",

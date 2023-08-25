@@ -10,6 +10,7 @@
 # using a licensed work, under the same license. Copyright and license notices must be #
 # preserved. Contributors provide an express grant of patent rights.                   #
 # #################################################################################### #
+import contextlib
 import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.action as get_action
@@ -18,6 +19,41 @@ from maptasker.src.frmthtml import format_html
 from maptasker.src.sysconst import logger
 
 
+# ##################################################################################
+# We have a <bundle>.   Process it
+# ##################################################################################
+def get_bundle(
+    code_action: defusedxml.ElementTree.XML, evaluated_results: dict
+) -> dict:
+    """_summary_
+Get the details regarding the <bundle> action argument type
+    Args:
+        code_action (defusedxml.ElementTree.XML): XML element of the action code <code>
+        evaluated_results (dict): We stuff the findings in here for passing to the caller
+
+    Returns:
+        dict: The results from the <bundle> argument
+    """
+    child1 = code_action.find("Bundle")
+    child2 = child1.find("Vals")
+    child3 = child2.find(
+        "com.twofortyfouram.locale.intent.extra.BLURB"
+    )  # 2:40 am...funny!
+    if child3 is not None and child3.text is not None:
+        # Get rid of extraneous html in Action's label
+        # clean_string = child3.text.replace("</font><br><br>", "<br><br>")
+        # clean_string = clean_string.replace("&lt;", "<")
+        # clean_string = clean_string.replace("&gt;", ">")
+        clean_string = child3.text
+        evaluated_results["result_bun"].append(clean_string)
+    else:
+        evaluated_results["returning_something"] = False
+    return evaluated_results
+
+
+# ##################################################################################
+# Given an <argn> element, evaluate it's contents based on our Action code dictionary
+# ##################################################################################
 def get_action_arguments(
     primary_items: dict,
     evaluated_results: dict,
@@ -65,7 +101,9 @@ def get_action_arguments(
             app_class, app_pkg, app, extra = get_action.get_app_details(
                 primary_items, code_action, action_type
             )
-            evaluated_results["result_app"].append(f"{app_class}, {app_pkg}, {app}")
+            evaluated_results["result_app"].append(
+                f"{app_class}, {app_pkg}, {app}"
+            )
 
         case "ConditionList":
             evaluated_results["strargs"].append(f"arg{str(arg)}")
@@ -74,43 +112,33 @@ def get_action_arguments(
             condition_list, boolean_list = process_condition_list(code_action)
             # Go through all conditions
             for numx, condition in enumerate(condition_list):
-                final_conditions = (
-                    f"{final_conditions} {condition[0]}{condition[1]}{condition[2]}"
-                )
+                final_conditions = f"{final_conditions} {condition[0]}{condition[1]}{condition[2]}"
                 if boolean_list and len(boolean_list) > numx:
-                    final_conditions = f"{final_conditions} {boolean_list[numx]} "
+                    final_conditions = (
+                        f"{final_conditions} {boolean_list[numx]} "
+                    )
             evaluated_results["result_con"].append(final_conditions)
 
         case "Img":
             image, package = "", ""
             child = code_action.find("Img")
-            if child.find("nme") is not None:
+            # if child.find("nme") is not None:
+            with contextlib.suppress(Exception):
                 image = child.find("nme").text
             if child.find("pkg") is not None:
-                package = ", Package:" + child.find("pkg").text
+                package = f'", Package:"{child.find("pkg").text}'
             elif child.find("var") is not None:  # There is a variable name?
                 image = child.find("var").text
             if image:
-                evaluated_results["result_img"].append(f"{argeval}{image}{package}")
+                evaluated_results["result_img"].append(
+                    f"{argeval}{image}{package}"
+                )
             else:
                 evaluated_results["result_img"].append(" ")
                 evaluated_results["returning_something"] = False
 
         case "Bundle":  # It's a plugin
-            child1 = code_action.find("Bundle")
-            child2 = child1.find("Vals")
-            child3 = child2.find(
-                "com.twofortyfouram.locale.intent.extra.BLURB"
-            )  # 2:40 am...funny!
-            if child3 is not None and child3.text is not None:
-                # Get rid of extraneous html in Action's label
-                # clean_string = child3.text.replace("</font><br><br>", "<br><br>")
-                # clean_string = clean_string.replace("&lt;", "<")
-                # clean_string = clean_string.replace("&gt;", ">")
-                clean_string = child3.text
-                evaluated_results["result_bun"].append(clean_string)
-            else:
-                evaluated_results["returning_something"] = False
+            evaluated_results = get_bundle(code_action, evaluated_results)
 
         case _:
             logger.debug(f"get_action_results  unknown argtype:{argtype}!!!!!")
@@ -123,7 +151,7 @@ def get_action_arguments(
 # ##################################################################################
 def handle_missing_code(primary_items, the_action_code_plus, index):
     error_message = format_html(
-        primary_items["colors_to_use"],
+        primary_items,
         "action_color",
         "",
         (
@@ -172,7 +200,7 @@ def action_args(
         # Find the location for this arg in dictionary key "types' since they can be
         # non-sequential (e.g. '1', '3', '4', '6')
         index = num if arg == "if" else our_action_args.index(arg)
-        
+
         # Get the arg name and type
         try:
             argeval = evaluate_list[num]

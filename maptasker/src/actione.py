@@ -13,7 +13,6 @@
 #                                                                                    #
 # ####################################################################################
 import copy
-import re
 
 import defusedxml.ElementTree  # Need for type hints
 
@@ -23,7 +22,7 @@ from maptasker.src.actionc import action_codes
 from maptasker.src.debug import not_in_dictionary
 from maptasker.src.error import error_handler
 from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import FONT_TO_USE, logger
+from maptasker.src.sysconst import FONT_FAMILY, logger
 
 # pattern1 = re.compile(r'<.*?>')  # Get rid of all <something> html code
 
@@ -33,16 +32,16 @@ from maptasker.src.sysconst import FONT_TO_USE, logger
 # ##################################################################################
 def cleanup_the_result(results: str) -> str:
     """
-    Delete html crap that might be in the label, and which would screw up the 
+    Delete html crap that might be in the label, and which would screw up the
     output formatting
         :param results: the string to clean
         :return: the cleaned string
     """
     # The following line works as well, going through each character in the string
-    # results = ', '.join([x.strip() for x in results.split(',') if not x.isspace() 
+    # results = ', '.join([x.strip() for x in results.split(',') if not x.isspace()
     # and x != ''])
     # results = results.replace(
-    #     ",  <font>", "<font>"
+    #     ",  <FONT>", "<FONT>"
     # )  # Get rid of comma on last parameter
     # results = results.replace(", (", "")
     # pattern = re.compile(r",[, ]+")
@@ -55,7 +54,7 @@ def cleanup_the_result(results: str) -> str:
     # results = results.replace("<tt>", "")
     # results = results.replace("<i>", "")
     # results = results.replace("<u>", "")
-    # results = results.replace(", <font", "<font")
+    # results = results.replace(", <FONT", "<FONT")
     return results
 
 
@@ -149,7 +148,7 @@ def get_action_code(
     else:
         # The code is in our dictionary.  Add the display name
         the_result = format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "action_name_color",
             "",
             action_codes[the_action_code_plus]["display"],
@@ -171,19 +170,17 @@ def get_action_code(
                 action_codes[the_action_code_plus]["reqargs"],
                 action_codes[the_action_code_plus]["evalargs"],
             )
-        # If this is a redirected lookup entry, create a temporary mirror 
+        # If this is a redirected lookup entry, create a temporary mirror
         # dictionary entry.
         # Then grab the 'display' key and fill in rest with directed-to keys
         if "redirect" in action_codes[the_action_code_plus]:
-            referral = action_codes[the_action_code_plus]["redirect"][
-                0
-            ]  # Get the referred-to dictionary item
+            # Get the referred-to dictionary item
+            referral = action_codes[the_action_code_plus]["redirect"][0]
             temp_lookup_codes = {
                 the_action_code_plus: copy.deepcopy(action_codes[referral])
             }
-            display_name = action_codes[the_action_code_plus][
-                "display"
-            ]  # Add this guy's display name
+            # Add this guy's display name
+            display_name = action_codes[the_action_code_plus]["display"]
             temp_lookup_codes["display"] = copy.deepcopy(display_name)
             # Get the results from the (copy of the) referred-to dictionary entry
             the_result = action_results.get_action_results(
@@ -226,9 +223,8 @@ def build_action(
     # Calculate total indentation to put in front of action
     count = indent
     if count != 0:
-        task_code_line = task_code_line.replace(
-            f'{FONT_TO_USE}">', f'{FONT_TO_USE}">{indent_amt}', 1
-        )
+        font = f'{FONT_FAMILY}{primary_items["program_arguments"]["font"]}'
+        task_code_line = task_code_line.replace(f'{font}">', f'{font}">{indent_amt}', 1)
         count = 0
     if count < 0:
         task_code_line = indent_amt + task_code_line
@@ -253,8 +249,8 @@ def build_action(
         task_code_line_len = len(task_code_line)
 
         # If no new line break or line break less than width set for browser,
-        # just put it as is
-        # Otherwise, make it a continuation line using '...' has the continuation flag
+        # just put it as is.
+        # Otherwise, make it a continuation line using '...' has the continuation flag.
         if newline == -1 and task_code_line_len > 80:
             alist.append(task_code_line)
         else:
@@ -268,7 +264,7 @@ def build_action(
                 else:
                     alist.append(f"...indent={indent}item={item}")
                 count += 1
-                
+
                 # Only display up to so many continued lines
                 if count == CONTINUE_LIMIT:
                     # Add comment that we have reached the limit for continued details
@@ -283,6 +279,7 @@ def build_action(
                         ),
                         True,
                     )
+                    # Done with this item...get out of loop.
                     break
 
     return alist

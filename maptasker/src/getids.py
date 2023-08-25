@@ -31,7 +31,7 @@ def get_ids(
     :param head_xml_elements_without_profiles: list of elements without ids
     :return: list of found IDs, or empty list if none found
     """
-    # Get Profiles
+    # Get Profiles by searching for <pids> element
     found_ids = ""
     if doing_head_xml_element:
         found_ids = ""
@@ -39,6 +39,7 @@ def get_ids(
         # Start Profile list
         primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
     else:
+        # If not doing head xml, just get Task IDs via <tids> xml element.
         ids_to_find = "tids"
     try:
         # Get a list of the Profiles for this head_xml_element

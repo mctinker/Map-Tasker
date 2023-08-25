@@ -17,6 +17,7 @@
 #                                                                                      #
 # #################################################################################### #
 
+import contextlib
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.initparg import initialize_runtime_arguments
@@ -77,24 +78,27 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
     if not user_input.go_program and not user_input.rerun:
         error_handler("Program cancelled be user (killed GUI)", 99)
 
-    # Convert runtime argument default values to a dictionary with default values
+        # Convert runtime argument default values to a dictionary with default values
     primary_items["program_arguments"] = initialize_runtime_arguments()
 
     # 'Run' button hit.  Get all the input from GUI variables
-
+    primary_items["program_arguments"]["gui"] = True
     # Do we already have the file object?
     if user_input.file:
         primary_items["file_to_get"] = user_input.file.name
 
     # Get the program arguments and save them in our dictionary
     for value in ARGUMENT_NAMES:
+        # Special handling for backup file
         if value == "backup_file_http":
             if http_info := getattr(user_input, value):
                 primary_items["program_arguments"][value] = f"http://{http_info}"
         else:
+            
             # Grab GUI value and put into our runtime arguments dictonary (of same name)
-            primary_items["program_arguments"][value] = getattr(user_input, value)
-            logger.info(f"GUI arg: {value} set to: {getattr(user_input, value)}")
+            with contextlib.suppress(AttributeError):
+                primary_items["program_arguments"][value] = getattr(user_input, value)
+                logger.info(f"GUI arg: {value} set to: {getattr(user_input, value)}")
 
     # Convert display_detail_level to integer
     primary_items["program_arguments"]["display_detail_level"] = convert_to_integer(
@@ -104,6 +108,9 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
     primary_items["program_arguments"]["indent"] = convert_to_integer(
         primary_items["program_arguments"]["indent"], 4
     )
+    # Get the font
+    if the_font := getattr(user_input, "font"):
+        primary_items["program_arguments"]["font"] = the_font
 
     # Appearance change: Dark or Light mode?
     colormap = set_color_mode(user_input.appearance_mode)

@@ -14,7 +14,7 @@
 import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import FONT_TO_USE
+from maptasker.src.sysconst import FONT_FAMILY
 
 
 def share(
@@ -43,7 +43,7 @@ def share(
         if search_element is not None and search_element.text:
             # Found search...format and output
             out_string = format_html(
-                primary_items["colors_to_use"],
+                primary_items,
                 "taskernet_color",
                 "",
                 f"\n<br><br>TaskerNet search on: {search_element.text}",
@@ -62,13 +62,14 @@ def description_element_output(
     description_element: defusedxml.ElementTree,
 ) -> None:
     """
-    We have a Taskernet description (<Share>).  Clean it uip and add it to the output list
+    We have a Taskernet description (<Share>).  Clean it uip and add it to 
+    the output list.
         :param primary_items:  program registry.  See mapit.py for details.
         :param description_element: xml element <d> TaskerNet description
     """
     # We need to properly format this since it has embedded stuff that screws it up
     out_string = format_html(
-        primary_items["colors_to_use"],
+        primary_items,
         "taskernet_color",
         "",
         f"TaskerNet description: {description_element.text}",
@@ -76,9 +77,11 @@ def description_element_output(
     )
     indent_html = (
         "</p><p"
-        f' style="margin-left:20px;margin-right:50px;color:{primary_items["colors_to_use"]["taskernet_color"]}{FONT_TO_USE}">'
+        f' style="margin-left:20px;margin-right:50px;color:'
+        f'{primary_items["colors_to_use"]["taskernet_color"]}'
+        f'{FONT_FAMILY}{primary_items["program_arguments"]["font"]}">'
     )
-        
+
     # Indent the description and override various embedded HTML attributes
     out_string = out_string.replace("<p>", indent_html)
     out_string = out_string.replace("<P>", indent_html)
@@ -108,7 +111,9 @@ def description_element_output(
         for position, character_index in enumerate(out_string):
             new_line = (
                 f'{new_line}<p style="margin-left:20px;'
-                f'margin-right:50px;color:{primary_items["colors_to_use"]["taskernet_color"]}{FONT_TO_USE}">'
+                f'margin-right:50px;color:'
+                f'{primary_items["colors_to_use"]["taskernet_color"]}'
+                f'{FONT_FAMILY}{primary_items["program_arguments"]["font"]}">'
                 if (character_index == " " and out_string[position + 1] == " ")
                 or (character_index == "-" and out_string[position + 1] == " ")
                 else new_line + character_index
@@ -117,7 +122,7 @@ def description_element_output(
         # Make certain we have proper html in front of string
         if "<span " not in out_string:
             out_string = format_html(
-                primary_items["colors_to_use"], "taskernet_color", "", new_line, True
+                primary_items, "taskernet_color", "", new_line, True
             )
         else:
             out_string = new_line

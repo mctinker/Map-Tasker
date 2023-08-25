@@ -62,7 +62,7 @@ def tag_in_type(tag: str, flag: bool) -> bool:
         "itemclickTask",
         "itemlongclickTask",
     ]
-
+    # Return a boolean: True if tag found in the appropriate list, False otherwise
     return (
         flag
         and tag in scene_task_element_types

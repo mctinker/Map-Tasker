@@ -363,7 +363,7 @@ def output_task(
     if do_extra and primary_items["program_arguments"]["display_detail_level"] == 3:
         if kid_app_info := get_kid_app(our_task_element):
             kid_app_info = format_html(
-                primary_items["colors_to_use"], "task_color", "", kid_app_info, True
+                primary_items, "task_color", "", kid_app_info, True
             )
             task_list[0] = f"{task_list[0]} {kid_app_info}"
         if priority := task_flags.get_priority(our_task_element, False):

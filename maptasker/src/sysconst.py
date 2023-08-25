@@ -14,16 +14,14 @@
 import logging
 import re
 
-from maptasker.src.config import OUTPUT_FONT
-
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 2.1.2"
+MY_VERSION = "MapTasker version 2.2.0"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
 ARGUMENTS_FILE = ".MapTasker_arguments.json"
-FONT_TO_USE = f";font-family:{OUTPUT_FONT}"
+FONT_FAMILY = ";font-family:"
 NO_PROFILE = "None or unnamed!"
 
 #  List of color arguments and their names
@@ -94,27 +92,34 @@ TYPES_OF_COLORS = {
 }
 
 # Runtime argument names/keywords that are used throughout the program
-ARGUMENT_NAMES = [
-    "display_detail_level",
-    "display_profile_conditions",
-    "display_preferences",
-    "display_taskernet",
-    "single_project_name",
-    "single_profile_name",
-    "single_task_name",
-    "backup_file_http",
-    "backup_file_location",
-    "twisty",
-    "debug",
-    "rerun",
-    "directory",
-    "bold",
-    "highlight",
-    "italicize",
-    "underline",
-    "appearance_mode",
-    "indent",
-]
+ARGUMENT_NAMES = {
+    "appearance_mode": "Appearance Mode",
+    "backup_file_http": "HTTP Backup File URL",
+    "backup_file_location": "Local Backup File Location",
+    "bold": "Bold Names",
+    "debug": "Debug Mode",
+    "directory": "Display Directory",
+    "display_detail_level": "Display Level",
+    "preferences": "Display Tasker Preferences",
+    "conditions": "Display Project/Profile/Task Conditions",
+    "taskernet": "Display TaskerNet Info",
+    "fetched_backup_from_android": "Fetched backup from Android device",
+    "file": "Get backup file named",
+    "font": "Font To Use",
+    "gui": "GUI Mode",
+    "highlight": "Highlight Names",
+    "indent": "Indentation Amount",
+    "italicize": "Italicize Names",
+    "rerun": "ReRun Program",
+    "restore": "Restore Settings",
+    "runtime": "Display Runtime Arguments/Settings",
+    "save": "Save Settings",
+    "single_profile_name": "Single Profile Name",
+    "single_project_name": "Single Project Name",
+    "single_task_name": "Single Task Name",
+    "twisty": "Hide Task Details under Twisty",
+    "underline": "Underline Names",
+}
 
 logger = logging.getLogger("MapTasker")
 debug_out = False  # Prints the line to be added to the output
@@ -122,6 +127,7 @@ DEBUG_PROGRAM = False
 debug_file = "maptasker_debug.log"
 debug_file = "maptasker_debug.log"
 
+pattern0 = re.compile(",,")
 pattern1 = re.compile(",  ,")
 pattern2 = re.compile(" ,")
 pattern3 = re.compile("<")

@@ -30,7 +30,7 @@ def add_twisty(
         primary_items,
         5,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             output_color_name,
             "",
             f"\n<details><summary>{line_to_output}</summary>\r",

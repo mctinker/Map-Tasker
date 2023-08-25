@@ -34,7 +34,11 @@ def process_service(
         :param temp_output_lines: list of service/preference output lines
     """
     preferences_html = format_html(
-        primary_items["colors_to_use"], "preferences_color", "", "", False
+        primary_items,
+        "preferences_color",
+        "",
+        "",
+        False,
     )
     blank = "&nbsp;"
 
@@ -68,7 +72,7 @@ def process_service(
             service_codes[service_name]["num"],
             (
                 format_html(
-                    primary_items["colors_to_use"],
+                    primary_items,
                     "preferences_color",
                     "",
                     (
@@ -121,7 +125,7 @@ def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
                     [
                         dummy_num,
                         format_html(
-                            primary_items["colors_to_use"],
+                            primary_items,
                             "preferences_color",
                             "",
                             (
@@ -172,7 +176,7 @@ def get_preferences(primary_items: dict) -> None:
         primary_items,
         4,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "preferences_color",
             "",
             "Tasker Preferences >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",
@@ -208,7 +212,7 @@ def get_preferences(primary_items: dict) -> None:
                 primary_items,
                 4,
                 format_html(
-                    primary_items["colors_to_use"],
+                    primary_items,
                     "preferences_color",
                     "",
                     f"<br>&nbsp;Section: {section_names[section]}",
@@ -223,7 +227,7 @@ def get_preferences(primary_items: dict) -> None:
         primary_items,
         4,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "preferences_color",
             "",
             "The remaining preferences are not yet mapped",

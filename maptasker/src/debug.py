@@ -12,9 +12,8 @@
 #                                                                                      #
 # #################################################################################### #
 import sys
-
 from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import ARGUMENT_NAMES, TYPES_OF_COLOR_NAMES, logger
 
 
 def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
@@ -28,10 +27,10 @@ def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
         primary_items,
         4,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "Red",
             "",
-            f"DEBUG {begin_or_end} {arrow * 80}",
+            f"Runtime Settings {begin_or_end} {arrow * 80}",
             True,
         ),
     )
@@ -45,51 +44,91 @@ def display_debug_info(primary_items: dict) -> None:
     Output our runtime arguments
         :param primary_items:  program registry.  See mapit.py for details.
     """
+    
     # Identify the output as debug stuff
     output_debug_line(primary_items, "Start")
-    primary_items["output_lines"].add_line_to_output(
+    if primary_items["program_arguments"]["debug"]:
+        primary_items["output_lines"].add_line_to_output(
         primary_items,
         4,
         format_html(
-            primary_items["colors_to_use"],
-            "unknown_task_color",
+            primary_items,
+            "Red",
             "",
             f"sys.argv (runtime arguments):{str(sys.argv)}",
             True,
         ),
     )
-    # )
+
+    # Copy our dictionary of runtime arguments and sort it alphabetically
+    mydict = ARGUMENT_NAMES.copy()
+    myKeys = sorted(mydict.keys())
+    mydict = {i: mydict[i] for i in myKeys}
+
+    # Go through dictionary of arguments and output each one.
+    for key, value in mydict.items():
+        try:
+            value = primary_items["program_arguments"][key]
+            if value is None or value == "":
+                value = "None"
+            primary_items["output_lines"].add_line_to_output(
+                primary_items,
+                4,
+                format_html(
+                    primary_items,
+                    "heading_color",
+                    "",
+                    f"{ARGUMENT_NAMES[key]}: {value}",
+                    True,
+                ),
+            )
+        except KeyError:
+            msg = f"{ARGUMENT_NAMES[key]}: Error...not found!"
+            primary_items["output_lines"].add_line_to_output(
+                primary_items,
+                4,
+                format_html(
+                    primary_items,
+                    "heading_color",
+                    "",
+                    msg,
+                    True,
+                ),
+            )
+            logger.debug(f"MapTasker Error ... {msg}")
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         4,
         "",
     )
-    for key, value in primary_items["program_arguments"].items():
-        primary_items["output_lines"].add_line_to_output(
-            primary_items,
-            4,
-            format_html(
-                primary_items["colors_to_use"],
-                "unknown_task_color",
-                "",
-                f"{key}: {value}",
-                True,
-            ),
-        )
-    primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        4,
-        "",
-    )
+
+    # Do colors to use in putput
+
+    # Get our color names by reversing the lookup dictionary
+    color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
+    # Go through each color
     for key, value in primary_items["colors_to_use"].items():
+        # Highlight background color.  Otherwise it won't be visible
+        if key == "background_color":
+            value = f'<mark>{value} (highlighted for visibility)</mark>'
+        # Convert the namee of the color to the color
+        the_color = format_html(
+            primary_items,
+            key,
+            "",
+            value,
+            True,
+        )
+
+        # Add the line formatted with HTML
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             4,
             format_html(
-                primary_items["colors_to_use"],
-                "unknown_task_color",
+                primary_items,
+                "heading_color",
                 "",
-                f"colormap for {key} set to {value}",
+                f"Color for {color_names[key]} set to {the_color}",
                 True,
             ),
         )
@@ -101,6 +140,9 @@ def display_debug_info(primary_items: dict) -> None:
     )
 
 
+# ##################################################################################
+# Argument not found in dictionary
+# ##################################################################################
 def not_in_dictionary(primary_items: dict, type: str, code: str) -> None:
     """_summary_
     Handle condition if Action/Event/State code not found in our dictionary (actionc.py)

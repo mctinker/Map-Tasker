@@ -2963,7 +2963,7 @@ action_codes = {
         "evalargs": [
             "Type:",
             ", Title:",
-            ",,, Text:",
+            ", Text:",
             ", Default Input:",
             ", Close After (Seconds):",
         ],

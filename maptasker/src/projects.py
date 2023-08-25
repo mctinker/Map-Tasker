@@ -77,7 +77,7 @@ def get_launcher_task(primary_items, project: defusedxml.ElementTree.XML) -> str
         launcher_task_element = share_element.find("t")
         if launcher_task_element is not None and launcher_task_element.text is not None:
             launcher_task_info = format_html(
-                primary_items["colors_to_use"],
+                primary_items,
                 "launcher_task_color",
                 "",
                 f"[Launcher Task: {launcher_task_element.text}] ",
@@ -166,7 +166,7 @@ def tasks_not_in_profiles(
                         primary_items,
                         4,
                         format_html(
-                            primary_items["colors_to_use"],
+                            primary_items,
                             "task_color",
                             "",
                             f"<br>{output_line}",
@@ -235,7 +235,7 @@ def get_extra_and_output_project(
         kid_app_info = get_kid_app(project)
         if kid_app_info:
             kid_app_info = format_html(
-                primary_items["colors_to_use"], "project_color", "", kid_app_info, True
+                primary_items, "project_color", "", kid_app_info, True
             )
         priority = get_priority(project, False)
 
@@ -244,7 +244,7 @@ def get_extra_and_output_project(
 
     # Get the name in a format with proper HTML code wrapped around it
     project_name_details = format_html(
-        primary_items["colors_to_use"],
+        primary_items,
         "project_color",
         "",
         f"Project: {project_name_altered}",
@@ -350,7 +350,7 @@ def summary_counts(primary_items: dict, project_name: str, profile_count: int) -
         primary_items,
         5,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "project_color",
             "",
             (
@@ -485,7 +485,7 @@ def add_no_profiles_line_to_output(primary_items: dict):
         primary_items,
         5,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "profile_color",
             "",
             "<em>Project has no Profiles</em>",
@@ -552,7 +552,7 @@ def get_profile_details_and_output(
         )
 
     # Process TaskerNet details if requested
-    if primary_items["program_arguments"]["display_taskernet"]:
+    if primary_items["program_arguments"]["taskernet"]:
         share(primary_items, project)
 
     return False, profile_count, project_name, have_project_wanted
@@ -584,7 +584,7 @@ def process_project_profiles(
             profile_count(int): count of the number of Profiles for this Project
 
         Returns:
-            tuple[bool, defusedxml.ElementTree.XML, int]: True if no Profiles found, 
+            tuple[bool, defusedxml.ElementTree.XML, int]: True if no Profiles found,
                 False otherwise; our Task XML element, count of Profiles in Project
     """
     # Get the Profile IDs for this Project and process them

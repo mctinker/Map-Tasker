@@ -30,6 +30,7 @@ from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DARK_MODE, GUI
 from maptasker.src.debug import display_debug_info
 from maptasker.src.error import error_handler
+from maptasker.src.fonts import get_fonts
 from maptasker.src.frmthtml import format_html
 from maptasker.src.getbakup import get_backup_file
 from maptasker.src.sysconst import (
@@ -91,9 +92,10 @@ def open_and_get_backup_xml_file(primary_items: dict) -> dict:
         primary_items["program_arguments"]["backup_file_http"]
         and primary_items["program_arguments"]["backup_file_location"]
     ):
-        get_backup_file(primary_items)
+        backup_file_name = get_backup_file(primary_items)
         # Make sure we automatically use the file we just fetched
-        primary_items["program_arguments"]["file"] = "backup.xml"
+        primary_items["program_arguments"]["file"] = backup_file_name
+        print(backup_file_name)
 
     logger.info("entry")
     file_error = False
@@ -109,10 +111,12 @@ def open_and_get_backup_xml_file(primary_items: dict) -> dict:
 
     # If debug and we didn't fetch the backup file from Android device, default to
     # "backup.xml" file as backup to restore
+
     if (
         primary_items["program_arguments"]["debug"]
-        and not primary_items["program_arguments"]["fetched_backup_from_android"]
+        and primary_items["program_arguments"]["fetched_backup_from_android"] is False
     ):
+        primary_items["program_arguments"]["file"] = ""
         try:
             primary_items["file_to_get"] = open(f"{dir_path}/backup.xml", "r")
         except OSError:
@@ -124,6 +128,7 @@ def open_and_get_backup_xml_file(primary_items: dict) -> dict:
                 3,
             )
 
+    # See if we already have the file
     elif primary_items["program_arguments"]["file"]:
         # We already have the file name...open it.
         try:
@@ -191,7 +196,7 @@ def setup_colors(primary_items: dict) -> dict:
 
 
 # ##################################################################################
-# Setup logging
+# Set up logging
 # ##################################################################################
 def setup_logging() -> None:
     """
@@ -225,13 +230,13 @@ def log_startup_values(primary_items: dict) -> None:
 
 
 # ##################################################################################
-# Program setup: initialize key elements
+# POpen and read xml and output the introduction/heading matter
 # ##################################################################################
-def setup(
+def get_data_and_output_intro(
     primary_items: dict,
 ) -> dict:
     """
-    Perform basic setup
+    Open and read xml and output the introduction/heading matter
         :param primary_items:  program registry.  See mapit.py for details.
         :return xml tree, xml root, all Tasker Projects/Profiles/Tasks/Scenes,
             output lines, the heading
@@ -253,20 +258,18 @@ def setup(
     # Close the file
     primary_items["file_to_get"].close()
 
-    # Check for valid Tasker backup.xml file
-    if primary_items["xml_root"].tag != "TaskerData":
-        error_msg = "You did not select a Tasker backup XML file...exit 2"
-        primary_items["output_lines"].add_line_to_output(primary_items, 0, error_msg)
-        logger.debug(f"{error_msg}exit 3")
-        sys.exit(3)
-    else:
-        display_starting_info(primary_items)
+    # Output the inital info: head, source, etc.
+    display_starting_info(primary_items)
+
     # If we are debugging, output the runtime arguments and colors
-    if primary_items["program_arguments"]["debug"]:
+    if (
+        primary_items["program_arguments"]["debug"]
+        or primary_items["program_arguments"]["runtime"]
+    ):
         display_debug_info(primary_items)
 
     # Start a list (<ul>) to force everything to tab over
-    primary_items["unordered_list_count"] = 0
+    # primary_items["unordered_list_count"] = 0
     primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
 
     return primary_items
@@ -304,7 +307,7 @@ def display_starting_info(primary_items: dict) -> None:
         f"<!doctype html>\n<html lang=”en”>\n<head>\n{background_color_html}<title>MapTasker</title>\n<body"
         f" style=\"background-color:{primary_items['colors_to_use']['background_color']}\">\n"
         + format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             heading_color,
             "",
             (
@@ -341,7 +344,7 @@ def display_starting_info(primary_items: dict) -> None:
         primary_items,
         0,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             heading_color,
             "",
             f"<br><br>Source backup file: {source_file}",
@@ -370,11 +373,14 @@ def start_up(primary_items: dict) -> dict:
     # Get runtime arguments (from CLI or GUI)
     primary_items = get_arguments.get_program_arguments(primary_items)
 
+    # Get our list of fonts
+    _ = get_fonts(primary_items, True)
+
     # Get our map of colors
     primary_items["colors_to_use"] = setup_colors(primary_items)
 
-    # Setup program key elements
-    primary_items = setup(primary_items)
+    # get_data_and_output_intro program key elements
+    primary_items = get_data_and_output_intro(primary_items)
 
     # If debug mode, log the arguments
     if primary_items["program_arguments"]["debug"]:
@@ -386,31 +392,6 @@ def start_up(primary_items: dict) -> dict:
             "Single Task=" + primary_items["program_arguments"]["single_task_name"]
         )
         primary_items["program_arguments"]["display_detail_level"] = 3
-
-    # Setup default for found Project / Profile / Task
-    primary_items["found_named_items"] = {
-        "single_project_found": False,
-        "single_profile_found": False,
-        "single_task_found": False,
-    }
-
-    # Setup grand total
-    primary_items["grand_totals"] = {
-        "projects": 0,
-        "profiles": 0,
-        "unnamed_tasks": 0,
-        "named_tasks": 0,
-        "scenes": 0,
-    }
-
-    # Set up directory items
-    primary_items["directory_items"] = {
-        "current_item": "",
-        "projects": [],
-        "profiles": [],
-        "tasks": [],
-        "scenes": [],
-    }
 
     logger.info("exit")
     return primary_items

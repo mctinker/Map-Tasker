@@ -88,7 +88,7 @@ def output_table(primary_items: dict, hyperlinks: list, max_columns: int) -> Non
         primary_items,
         5,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "profile_color",
             "",
             html_table,
@@ -185,7 +185,7 @@ def do_trailing_matters(primary_items: dict) -> None:
         primary_items,
         5,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "project_color",
             "",
             f"<br><br>Trailing Information{period*50}<br><br>",
@@ -228,7 +228,7 @@ def do_tasker_element(primary_items: dict, name: str) -> None:
         primary_items,
         5,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "project_color",
             "<br><br>",
             f"{name.capitalize()}s{period*60}<br><br>",
@@ -296,7 +296,7 @@ def output_directory(primary_items: dict) -> None:
         primary_items,
         5,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "profile_color",
             "",
             "<h2>Directory</h2><br><br>",

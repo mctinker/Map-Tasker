@@ -112,7 +112,7 @@ def get_profile_name(
 
     # Add html color and font for Profile name
     profile_name_with_html = format_html(
-        primary_items["colors_to_use"],
+        primary_items,
         "profile_color",
         "",
         f"Profile: {altered_profile_name} ",
@@ -122,9 +122,8 @@ def get_profile_name(
     # If we are debugging, add the Profile ID
     if primary_items["program_arguments"]["debug"]:
         profile_id = profile.find("id").text
-        profile_name_with_html = \
-        f'{profile_name_with_html} '
-        f'{format_html(primary_items["colors_to_use"], "Red", "", f"ID:{profile_id}", True)}'
+        profile_name_with_html = f"{profile_name_with_html} "
+        f'{format_html(primary_items, "Red", "", f"ID:{profile_id}", True)}'
     return profile_name_with_html, the_profile_name
 
 
@@ -150,10 +149,14 @@ def build_profile_line(
 
     # Set up HTML to use
     disabled_profile_html = format_html(
-        primary_items["colors_to_use"], "disabled_profile_color", "", "[DISABLED]", True
+        primary_items,
+        "disabled_profile_color",
+        "",
+        "[DISABLED]",
+        True,
     )
     launcher_task_html = format_html(
-        primary_items["colors_to_use"],
+        primary_items,
         "launcher_task_color",
         "",
         "[Launcher Task]",
@@ -182,7 +185,7 @@ def build_profile_line(
         flags = profile.find("flags")
         if flags is not None:
             flags = format_html(
-                primary_items["colors_to_use"],
+                primary_items,
                 "GreenYellow",
                 "",
                 f" flags: {flags.text}",
@@ -205,10 +208,7 @@ def build_profile_line(
         primary_items["directory_items"]["profiles"].append(profile_name)
 
     # Get the Profile's conditions
-    if (
-        primary_items["program_arguments"]["display_profile_conditions"]
-        or profile_name == "NO_PROFILE"
-    ):
+    if primary_items["program_arguments"]["conditions"] or profile_name == "NO_PROFILE":
         if profile_conditions := condition.parse_profile_condition(
             primary_items,
             profile,
@@ -218,7 +218,7 @@ def build_profile_line(
             # And the Actions would have plugged in the action_color HTML.
             profile_conditions = remove_html_tags(profile_conditions, "")
             condition_text = format_html(
-                primary_items["colors_to_use"],
+                primary_items,
                 "profile_condition_color",
                 "",
                 f" ({profile_conditions})",
@@ -313,7 +313,7 @@ def process_profiles(
             )
 
         # Process any <Share> information from TaskerNet
-        if primary_items["program_arguments"]["display_taskernet"]:
+        if primary_items["program_arguments"]["taskernet"]:
             share(primary_items, profile)
             # Add a spacer if detail is 0
             if primary_items["program_arguments"]["display_detail_level"] == 0:

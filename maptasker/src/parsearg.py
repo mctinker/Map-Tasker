@@ -22,6 +22,7 @@
 import argparse
 import textwrap
 from argparse import ArgumentParser
+from tkinter import font, Tk
 
 from maptasker.src.config import GUI
 from maptasker.src.sysconst import TYPES_OF_COLORS, logger
@@ -31,11 +32,25 @@ from maptasker.src.sysconst import TYPES_OF_COLORS, logger
 # Validate amount of indentation -i argument
 # ################################################################################
 def indentation_validation(x):
-    print(x)
     x = int(x)
     if x > 10:
-        raise argparse.ArgumentTypeError("Maximum indentation is 10")
+        raise argparse.ArgumentTypeError(f"Maximum indentation is 10.  You specified {x}.")
     return x
+
+
+################################################################################
+# Validate font entered
+################################################################################
+def font_validation(x):
+    valid_fonts = ["Courier"]
+    _ = Tk()
+    # Get all monospace ("f"=fixed) fonts
+    fonts = [font.Font(family=f) for f in font.families()]
+    valid_fonts.extend(f.actual("family") for f in fonts if f.metrics("fixed"))
+    if x != 'help' and x not in valid_fonts:
+        raise argparse.ArgumentTypeError(f"Invalid or non-monospace font name '{x}'.")
+    return x
+
 
 # ##################################################################################
 # Get the program arguments using via a GUI (Gooey)
@@ -137,7 +152,7 @@ def runtime_parser():
     # Display directory
     parser.add_argument(
         "-directory",
-        help="Display a directory of hotlinks for all Projects/Profiles/Tasks/Scenes",
+        help="Display a directory of hotlinks for all Projects/Profiles/Tasks/Scenes.",
         action="store_true",
         default=False,
     )
@@ -148,11 +163,26 @@ def runtime_parser():
         help=textwrap.dedent(
             """ \
                         Display everything: full detail, Profile/Task conditions,
-                        TaskerNet information, directory, etc.
+                        TaskerNet information, directory, etc..
                             """
         ),
         action="store_true",
         default=False,
+    )
+    # Font to use in output
+    parser.add_argument(
+        "-f",
+        "-font",
+         help=textwrap.dedent(
+            """ \
+                        Name of monospaced font to use in output (default = 'Courier').  
+                        Enter font name of 'help' for a list of valid fonts.
+                            """
+        ),
+        required=False,
+        type=font_validation,
+        nargs=1,
+        # default="Courier",
     )
     # Use the GUI
     parser.add_argument(
@@ -161,13 +191,13 @@ def runtime_parser():
         help=textwrap.dedent(
             """ \
                         Prompt for (these) settings via the graphical user interface (GUI):
-                            This argument overrides all other arguments
+                            This argument overrides all other arguments.
                             """
         ),
         action="store_true",
         default=False,
     )
-     # Indentation amount (number of spaces)
+    # Indentation amount (number of spaces)
     parser.add_argument(
         "-i",
         "-indent",
@@ -193,7 +223,6 @@ def runtime_parser():
     )
     # Display Tasker preferences
     parser.add_argument(
-        "-p",
         "-preferences",
         help="Display Tasker preferences",
         action="store_true",
@@ -207,20 +236,19 @@ def runtime_parser():
         nargs=1,
         required=False,
         type=str,
-        help="Display the details for a specific Project only",
+        help="Display the details for a specific Project only.",
     )
     group.add_argument(
         "-profile",
         nargs=1,
         required=False,
         type=str,
-        help="Display the details for a specific Profile only",
+        help="Display the details for a specific Profile only.",
     )
     # Save and Restore are mutually exclusive
     group1 = parser.add_mutually_exclusive_group()
     # Restore arguments
     group1.add_argument(
-        "-r",
         "-restore",
         action="store_true",
         default=False,
@@ -230,6 +258,13 @@ def runtime_parser():
                             This argument overrides all other arguments except '-g'
                             """
         ),
+    )
+     # Display runtime arguments/settings
+    parser.add_argument(
+        "-runtime",
+        help="Display all runtime arguments/settings at the top of the output.",
+        action="store_true",
+        default=False,
     )
     # Save arguments
     group1.add_argument(
@@ -242,7 +277,7 @@ def runtime_parser():
     # Display taskerNet info
     parser.add_argument(
         "-taskernet",
-        help="Display any TaskerNet information for Projects/Profiles",
+        help="Display any TaskerNet information for Projects/Profiles.",
         action="store_true",
         default=False,
     )
@@ -252,7 +287,7 @@ def runtime_parser():
         nargs=1,
         required=False,
         type=str,
-        help='Display the details for a single Task only (forces option "-detail 3")',
+        help='Display the details for a single Task only (forces option "-detail 3").',
     )
 
     # Display Task details under "hide/twisty"
@@ -269,7 +304,7 @@ def runtime_parser():
     parser.add_argument(
         "-v",
         "-version",
-        help="Display the program version and license information",
+        help="Display the program version and license information.",
         action="store_true",
         default=False,
     )
@@ -289,7 +324,7 @@ def runtime_parser():
     color_group.add_argument(
         "-ch",
         "-colorhelp",
-        help="Display a list of valid color names",
+        help="Display a list of valid color names.",
         required=False,
         action="store_true",
     )
@@ -305,8 +340,6 @@ def runtime_parser():
 
 
 # ##################################################################################
-
-
 # Get the program arguments using via a GUI (Gooey)
 # ##################################################################################
 def output_results(args):

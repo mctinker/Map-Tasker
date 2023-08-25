@@ -2,10 +2,10 @@
 
 # #################################################################################### #
 #                                                                                      #
-# servicec: Tasker Preferences <Service> Codes                                               #
+# servicec: Tasker Preferences <Service> Codes                                         #
 #                                                                                      #
-#  Provide the master lookup for a given <Service> xml statement                             #
-
+#  Provide the master lookup for a given <Service> xml statement                       #
+#                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
 # complete source code of licensed works and modifications, which include larger works #

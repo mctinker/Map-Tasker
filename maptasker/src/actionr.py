@@ -18,7 +18,14 @@ import defusedxml.ElementTree
 import maptasker.src.action as get_action
 from maptasker.src.actargs import action_args
 from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import logger, pattern1, pattern2, pattern3, pattern4
+from maptasker.src.sysconst import (
+    logger,
+    pattern0,
+    pattern1,
+    pattern2,
+    pattern3,
+    pattern4,
+)
 from maptasker.src.xmldata import (
     get_xml_int_argument_to_value,
     get_xml_str_argument_to_value,
@@ -213,18 +220,18 @@ def get_action_results(
         result = pattern1.sub(",", result)  # Replace ",  ," with ","
         result = pattern2.sub(",", result)  # Replace " ," with ","
         result = pattern2.sub(",", result)  # Do it again to catch any missed
+        result = pattern0.sub(",", result)  # Catch ",,"
         result = f"&nbsp;&nbsp{result}"
 
     # Return the properly formatted HTML with the Action name and extra stuff
-    colors_to_use = primary_items["colors_to_use"]
     return format_html(
-        colors_to_use,
+        primary_items,
         "action_name_color",
         "",
         our_action_code["display"],
         True,
     ) + format_html(
-        colors_to_use,
+        primary_items,
         "action_color",
         "",
         (

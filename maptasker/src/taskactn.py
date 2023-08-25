@@ -2,7 +2,7 @@
 
 # #################################################################################### #
 #                                                                                      #
-# taskactn: deal with Task Actions                                                           #
+# taskactn: deal with Task Actions                                                     #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
@@ -49,7 +49,7 @@ def output_list_of_actions(
                     primary_items,
                     2,
                     format_html(
-                        primary_items["colors_to_use"],
+                        primary_items,
                         "action_color",
                         "",
                         f"Action: {taction}",
@@ -62,7 +62,7 @@ def output_list_of_actions(
                     primary_items,
                     2,
                     format_html(
-                        primary_items["colors_to_use"],
+                        primary_items,
                         "action_color",
                         "",
                         f"Action: {str(action_count).zfill(2)}</span> {taction}",
@@ -89,8 +89,6 @@ def output_list_of_actions(
 
 
 # ##################################################################################
-
-
 # For this specific Task, get its Actions and output the Task and Actions
 # ##################################################################################
 def get_task_actions_and_output(

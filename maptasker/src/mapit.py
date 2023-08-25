@@ -46,6 +46,7 @@ from maptasker.src.frmthtml import format_html
 from maptasker.src.frmtline import format_line
 from maptasker.src.lineout import LineOut
 from maptasker.src.prefers import get_preferences
+from maptasker.src.primitem import initialize_primary_items
 from maptasker.src.sysconst import debug_file, debug_out, logger
 
 # import os
@@ -114,8 +115,6 @@ def clean_up_memory(
 
 
 # ##################################################################################
-
-
 # write_out_the_file: we have a list of output lines.  Write them out.
 # ##################################################################################
 def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> None:
@@ -154,8 +153,6 @@ def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> 
 
 
 # ##################################################################################
-
-
 # Cleanup memory and let user know there was no match found for Task/Profile
 # ##################################################################################
 def clean_up_and_exit(
@@ -206,7 +203,7 @@ def output_grand_totals(primary_items: dict) -> None:
         primary_items,
         1,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "trailing_comments_color",
             "",
             (
@@ -224,8 +221,6 @@ def output_grand_totals(primary_items: dict) -> None:
 
 
 # ##################################################################################
-
-
 # Set up the major variables used within this program, and set up crash routine
 # ##################################################################################
 def initialize_everything(file_to_get: str) -> dict:
@@ -234,46 +229,13 @@ def initialize_everything(file_to_get: str) -> dict:
         :param file_to_get: file name to get
         :return: dictionary of primary items used throughout project, and empty staring
     """
-    # Initialize local variables and other stuff
-    output_lines = LineOut()
+    # Initialize primary_items
+    primary_items = initialize_primary_items(file_to_get)
+    # We have to initialize output_lines here. Otherwise, we'll lose the output class
+    # with the upcoming call to start_up.
+    primary_items["output_lines"] = LineOut()
 
-    # Primary Items
-    # Set up an initial empty dictionary of primary items used throughout this project
-    #  xml_tree: main xml element of our Tasker xml tree
-    #  xml_root: root xml element of our Tasker xml tree
-    #  program_arguments: runtime arguments entered by user and parsed
-    #  colors_to_use: colors to use in the output
-    #  tasker_root_elements: root elements for all Projects/Profiles/Tasks/Scenes
-    #  output_lines: class for all lines added to output thus far
-    #  found_named_items: names/found-flags for single (if any) Project/Profile/Task
-    #  file_to_get: file object/name of Tasker backup file to read and parse
-    #  grand_totals: Total count of Projects/Profiles/Named Tasks, Unnamed Task, etc.
-    #  task_count_for_profile: number of Tasks in the specific Profile for Project
-    #    being processed
-    #  named_task_count_total: number of named Tasks for Project being processed
-    #  task_count_unnamed: number of unnamed Tasks for Project being processed
-    #  task_count_no_profile: number of Profiles in Project being processed.
-    #  directory_items: if displaying a directory then this is a dictionary of items
-    #    for the directory
-    #  ordered_list_count: count of number of <ul> we currently have in output queue
-    #  name_list: list of names of Projects/Profiles/Tasks/Scenes found thus far
-    #  displaying_named_tasks_not_in_profile: True if we are displaying, False if not
-    primary_items = {
-        "xml_tree": None,
-        "xml_root": None,
-        "program_arguments": {},
-        "colors_to_use": {},
-        "tasker_root_elements": {},
-        "output_lines": output_lines,
-        "found_named_items": {},
-        "file_to_get": file_to_get,
-        "task_count_for_Profile": 0,
-        "directory_items": [],
-        "unordered_list_count": 0,
-        "displaying_named_tasks_not_in_profile": False
-    }
-
-    # Get colors to use, runtime arguments etc...all of our primary items we need 
+    # Get colors to use, runtime arguments etc...all of our primary items we need
     # throughout
     primary_items = initialize.start_up(primary_items)
 
@@ -284,10 +246,10 @@ def initialize_everything(file_to_get: str) -> dict:
             crash_debug = True
         sys.excepthook = on_crash
 
-    # If debugging, force an ESC so that the full command/path are not displayed in
+    # If debugging, force an ESC so that the full command/path is not displayed in
     #   VsCode terminal window.
-    if primary_items["program_arguments"]["debug"]:
-        print("\033c")
+    # if primary_items["program_arguments"]["debug"]:
+    #     print("\033c")
 
     return primary_items, [], [], []
 
@@ -459,8 +421,8 @@ def mapit_all(file_to_get: str) -> int:
     if primary_items["program_arguments"]["directory"]:
         output_directory(primary_items)
 
-    # If doing Tasker preferencesa, get them
-    if primary_items["program_arguments"]["display_preferences"]:
+    # If doing Tasker preferences, get them
+    if primary_items["program_arguments"]["preferences"]:
         get_preferences(primary_items)
 
     # Process all Projects and their Profiles

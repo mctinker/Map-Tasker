@@ -21,10 +21,9 @@
 CONTINUE_LIMIT = 50
 # Monospace fonts work best for if/then/else/end indentation alignment
 OUTPUT_FONT = "Courier"  # OS X Default monospace font
-# OUTPUT_FONT = 'Roboto Regular'  # Google monospace font
 
 # Graphical User Interface (True) vs. CLI Command Line Interface (False)
-GUI = False  
+GUI = False
 
 # Light vs Dark Mode (refer to colrmode.py to hardcode the output colors)
 DARK_MODE = True

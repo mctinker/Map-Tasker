@@ -26,7 +26,7 @@ def format_line(primary_items: dict, num: int, item: str) -> str:
     output_lines = output_obj.output_lines      
     blank = " "
     # If item is a list, then get the actual output line
-    if type(item) is list:
+    if isinstance(item, list):
         item = item[1]
     # Get rid of trailing blanks
     item.rstrip()

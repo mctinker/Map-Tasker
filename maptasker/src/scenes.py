@@ -82,7 +82,7 @@ def get_scene_elements(
         primary_items,
         4,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "scene_color",
             "",
             (
@@ -102,7 +102,7 @@ def get_scene_elements(
             primary_items,
             4,
             format_html(
-                primary_items["colors_to_use"],
+                primary_items,
                 "scene_color",
                 "",
                 (
@@ -138,7 +138,7 @@ def process_scene(
         primary_items,
         4,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "scene_color",
             "",
             f"&nbsp;Width/Height: {width} X {height}<br>",

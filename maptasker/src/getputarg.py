@@ -64,14 +64,16 @@ def save_restore_args(
         with open(the_file, "w") as f:
             json.dump(list_to_save, f)
             f.close()
+            
+    # Restore dictionaries
     else:
-        # Restore dictionaries
         try:
             with open(the_file, "r") as f:
                 list_to_restore = json.load(f)
                 colors_to_use = list_to_restore[0]
                 program_arguments = list_to_restore[1]
                 f.close()
+                # Check for corruption by testing display_detail_level
                 try:
                     if isinstance(program_arguments["display_detail_level"], str):
                         program_arguments["display_detail_level"] = int(

@@ -16,6 +16,7 @@ import defusedxml.ElementTree
 from maptasker.src.error import error_handler
 from maptasker.src.frmthtml import format_html
 from maptasker.src.shellsort import shell_sort
+from maptasker.src.sysconst import FONT_FAMILY
 from maptasker.src.xmldata import remove_html_tags
 
 
@@ -214,21 +215,22 @@ def process_xml_list(
     # Loop through list two items at a time: 1st element is digit,
     #   2nd element is the name
     # to apply if it matches.
+    len_of_list = len(the_list)
     while running:
-        idx = (idx + 1) % len(the_list)  # Get next element = first element in pair
+        idx = (idx + 1) % len_of_list  # Get next element = first element in pair
         this_element = the_list[idx]
         if this_element.isdigit():  # First element of pair a digit?
             # Compare digit to that
-            idx = (idx + 1) % len(the_list)
+            idx = (idx + 1) % len_of_list
             next_element = the_list[idx]  # Second element in pair
             if this_element == the_int_value:
-                match_results.append(the_title + next_element + ", ")
+                match_results.append(f"{the_title}{next_element}, ")
                 break
             # idx = (idx + 1) % len(the_list)
-            if idx > len(the_list):
+            if idx > len_of_list:
                 break
         elif this_element in ["e", "if"]:  # Are we to just evaluate for 0 or 1?
-            idx = (idx + 1) % len(the_list)
+            idx = (idx + 1) % len_of_list
             next_element = the_list[idx]  # Second element in pair
             evaluated_value = evaluate_action_setting(
                 [False, the_int_value, next_element]
@@ -237,12 +239,12 @@ def process_xml_list(
             match_results.append(evaluated_value)
             break
         elif this_element == "l":  # Are we to do a table lookup for the value?
-            idx = (idx + 1) % len(the_list)
+            idx = (idx + 1) % len_of_list
             # next_element = the_list[idx]  # Second element in pair
             if the_list[idx] in lookup_values:
                 try:
                     evaluated_value = [lookup_values[the_list[idx]][int(the_int_value)]]
-                    evaluated_value = the_list[idx - 2] + evaluated_value[0] + ", "
+                    evaluated_value = f'{the_list[idx - 2]}{evaluated_value[0]}, '
                     match_results.append(evaluated_value)
                 except KeyError:
                     match_results.append(
@@ -277,10 +279,12 @@ def process_xml_list(
 # Get Task's label, disabled flag and any conditions
 # ##################################################################################
 def get_label_disabled_condition(
-    child: defusedxml.ElementTree.XML, colormap: dict
+    primary_items: dict, child: defusedxml.ElementTree.XML, colormap: dict
 ) -> str:
     """
     Get Task's label, disabled flag and any conditions
+        :param primary_items: dict containing all primary items.
+            See mapit.py for details
         :param child: head Action xml element
         :param colormap: the colors to use in the output
         :return: the string containing any found label, disabled flag and conditions
@@ -292,10 +296,16 @@ def get_label_disabled_condition(
     if child.find("label") is not None:
         lbl = child.find("label").text
         # Make sure the label doesn't have any HTML crap in it
-        task_label = clean_label(lbl, colormap)
+        task_label = clean_label(primary_items, lbl, colormap)
     # See if Action is disabled
     action_disabled = (
-        format_html(colormap, "disabled_action_color", "", " [DISABLED]", True)
+        format_html(
+            primary_items,
+            "disabled_action_color",
+            "",
+            " [DISABLED]",
+            True,
+        )
         if child.find("on") is not None
         else ""
     )
@@ -315,7 +325,7 @@ def get_label_disabled_condition(
                 if condition_count != 0:
                     boolean_to_inject = f"{booleans[condition_count - 1].upper()} "
                 task_conditions = format_html(
-                    colormap,
+                    primary_items,
                     "action_condition_color",
                     "",
                     (
@@ -340,10 +350,12 @@ def get_label_disabled_condition(
 # Given the Task action's label, get rid of anything that could be problematic
 # for the output format
 # ##################################################################################
-def clean_label(lbl: str, colormap: dict) -> str:
+def clean_label(primary_items: dict, lbl: str, colormap: dict) -> str:
     """
     Given the Task action's label, get rid of anything that could be problematic
     for the output format
+        :param primary_iterms: dict contining all primary items.
+            See mapit.py for details
         :param lbl: the label to clean up
         :param colormap: the colors to use in the output
         :return: the cleaned up label with added html tags for a label's color
@@ -351,7 +363,11 @@ def clean_label(lbl: str, colormap: dict) -> str:
     # Look for label with <font color=...> embedded
     lbl = remove_html_tags(lbl, "")
     return format_html(
-        colormap, colormap["action_label_color"], "", f" ...with label: {lbl}", True
+        primary_items,
+        colormap["action_label_color"],
+        "",
+        f" ...with label: {lbl}",
+        True,
     )
 
 
@@ -414,12 +430,14 @@ def get_extra_stuff(
         :param action_type: True if this is a Task Action, otherwise False
         :return: formatted line of extra details about Task Action
     """
+
     # Only get extras if this is a Task action (vs. a Profile condition)
     if action_type and primary_items["program_arguments"]["display_detail_level"] == 3:
         # Look for extra Task stiff: label, disabled, conditions
         extra_stuff = get_label_disabled_condition(
-            code_action, primary_items["colors_to_use"]
+            primary_items, code_action, primary_items["colors_to_use"]
         )
+        # Get rid of html that might screw up our output
         if (
             "<font" in extra_stuff and "</font>" not in extra_stuff
         ):  # Make sure we terminate any fonts
@@ -439,7 +457,7 @@ def get_extra_stuff(
         primary_items["program_arguments"]["debug"] and action_type
     ):  # Add the code if this is an Action and in debug mode
         extra_stuff = extra_stuff + format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "Red",
             "",
             f'&nbsp;&nbsp;code: {code_action.find("code").text}-',
@@ -452,7 +470,7 @@ def get_extra_stuff(
         if child is not None and child.text == "false":
             extra_stuff = (
                 format_html(
-                    primary_items["colors_to_use"],
+                    primary_items,
                     "action_color",
                     "",
                     " [Continue Task After Error]",
@@ -463,7 +481,8 @@ def get_extra_stuff(
 
     # For some reason, we're left with an empty "<span..." element.  Remove it.
     extra_stuff = extra_stuff.replace(
-        '<span style="color:Yellow;font-family:Courier"><span ',
+        f'<span style="color:{primary_items["colors_to_use"]["action_color"]};'
+        f'{FONT_FAMILY}{primary_items["program_arguments"]["font"]}"><span ',
         "<span ",
     )
 

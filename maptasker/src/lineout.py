@@ -34,7 +34,7 @@ are accumulated and ultimately used to generate the final HTML output file.
 import maptasker.src.actione as action_evaluate
 from maptasker.src.debug import display_debug_info
 from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import FONT_TO_USE, UNKNOWN_TASK_NAME, debug_out, logger
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME, debug_out, logger, FONT_FAMILY
 
 
 class LineOut:
@@ -61,14 +61,18 @@ class LineOut:
         # Clear whatever is already in the output queue
         self.output_lines.clear()
 
-        # Output the heading
-        self.add_line_to_output(
-            primary_items, 0, f'{FONT_TO_USE}{primary_items["heading"]}'
+        # Start the output with heading
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 0, primary_items["heading"]
         )
-        # If debugging, put out our runtime arguments first
-        if primary_items["program_arguments"]["debug"]:
+                
+        # If we are debugging, re-output the runtime arguments and colors
+        if (
+            primary_items["program_arguments"]["debug"]
+            or primary_items["program_arguments"]["runtime"]
+        ):
             display_debug_info(primary_items)
-
+    
         # Start the Project list (<ul>)
         self.add_line_to_output(primary_items, 1, "")
         # Output the Project name as list item (<li>)
@@ -76,7 +80,7 @@ class LineOut:
             primary_items,
             2,
             format_html(
-                primary_items["colors_to_use"],
+                primary_items,
                 "project_color",
                 "",
                 f"Project: {project_name}",
@@ -92,7 +96,7 @@ class LineOut:
                 primary_items,
                 2,
                 format_html(
-                    primary_items["colors_to_use"],
+                    primary_items,
                     "profile_color",
                     "",
                     f"Profile: {profile_name}",
@@ -112,7 +116,7 @@ class LineOut:
     #  span - boolean: True= requires a <span> element
     #  font - font to use
     # ##################################################################################
-    def add_style(self, style_details: dict) -> str:
+    def add_style(self, primary_items, style_details: dict) -> str:
         """
         Add appropriate HTML style tags based on parameters in dictionary passed in
             :param style_details: True if we are to output a list (<li>), False if not
@@ -123,14 +127,14 @@ class LineOut:
         if style_details["is_list"]:
             line_with_style = (
                 f'<li style="color:{style_details["color1"]}"><span style="color:'
-                f'{style_details["color2"]}{style_details["font"]}">'
+                f'{style_details["color2"]}{FONT_FAMILY}{style_details["font"]}">'
                 f'{style_details["element"]}</span></li>\n'
             )
 
         elif style_details["is_taskernet"]:
             line_with_style = (
                 '<p style="margin-left:20px;margin-right:50px;color:'
-                f'{style_details["color2"]}{FONT_TO_USE}">'
+                f'{style_details["color2"]}{FONT_FAMILY}{primary_items["program_arguments"]["font"]}">'
                 f'{style_details["element"]}</p>\n'
                 f'<p style="color:{style_details["color1"]}">'
             )
@@ -143,14 +147,14 @@ class LineOut:
     #   Project/Profile/Task/Actrion/Scene
     # ##################################################################################
     def format_line_list_item(
-        self, primary_items: dict, element: str, colormap: dict, font_to_use: str
+        self, primary_items: dict, element: str, colormap: dict, font: str
     ) -> str:
         """
         Generate the output list (<li>) string based on the input XML <code> passed in
         :param primary_items:  program registry.  See mapit.py for details.
         :param element: text string to be added to output
         :param colormap: dictionary of colors to use in the output
-        :param font_to_use: the font to use in the output
+        :param font: the font to use in the output
         :return: the formatted text to add to the output queue
         """
 
@@ -161,10 +165,10 @@ class LineOut:
             return self.handle_profile(primary_items, element, colormap)
 
         elif element.startswith("Task:") or "&#45;&#45;Task:" in element:
-            return self.handle_task(primary_items, element, colormap, font_to_use)
+            return self.handle_task(primary_items, element, colormap, font)
 
         elif element.startswith("Scene:"):
-            return self.handle_scene(primary_items, element, colormap, font_to_use)
+            return self.handle_scene(primary_items, element, colormap, font)
 
         elif "Action:" in element:
             return self.handle_action(primary_items, element, colormap)
@@ -205,11 +209,11 @@ class LineOut:
             directory = f"<a id={directory_item}></a>\n"
         return f'{directory}<br><li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
 
-    def handle_task(self, primary_items, element, colormap, font_to_use):
+    def handle_task(self, primary_items, element, colormap, font):
         style_details = {
             "is_list": True,
             "color1": colormap["bullet_color"],
-            "font": font_to_use,
+            "font": font,
             "element": element,
             "color2": (
                 colormap["unknown_task_color"]
@@ -217,9 +221,9 @@ class LineOut:
                 else colormap["task_color"]
             ),
         }
-        return self.add_style(style_details)
+        return self.add_style(primary_items, style_details)
 
-    def handle_scene(self, primary_items, element, colormap, font_to_use):
+    def handle_scene(self, primary_items, element, colormap, font):
         directory = ""
         if (
             primary_items["program_arguments"]["directory"]
@@ -240,10 +244,10 @@ class LineOut:
             "is_list": True,
             "color1": colormap["bullet_color"],
             "color2": colormap["scene_color"],
-            "font": font_to_use,
+            "font": font,
             "element": element,
         }
-        return directory + self.add_style(style_details)
+        return directory + self.add_style(primary_items, style_details)
 
     def remove_attributes(self, scene_name):
         scene_name = scene_name.replace("<em>", "")
@@ -325,8 +329,6 @@ class LineOut:
         # list lvl: 0=heading 1=start list 2=Task/Profile/Scene 3=end list
         #           4=special Task
         string = ""
-        # if primary_items["program_arguments"]["debug"]:
-        #     print(f"lineout element:{element}", file=sys.stderr)
 
         # Look at level and set up accordingly: 0=str and break, 1=start list,
         #   2=list item, 3= end list, 4=heading, 5=simple string
@@ -342,9 +344,8 @@ class LineOut:
                     primary_items,
                     element,
                     primary_items["colors_to_use"],
-                    primary_items["program_arguments"]["font_to_use"],
+                    primary_items["program_arguments"]["font"],
                 )
-                # print("linout list item:", element, file=sys.stderr)
                 # If we are doing twisty and this is a Scene, then we need to add
                 # an extra <ul>
                 if primary_items["program_arguments"]["twisty"] and "Scene:" in string:

@@ -47,7 +47,7 @@ def process_missing_tasks_and_profiles(
             primary_items,
             1,
             format_html(
-                primary_items["colors_to_use"],
+                primary_items,
                 "trailing_comments_color",
                 "",
                 "<hr><em>Projects Without Tasks...</em><br>",
@@ -60,7 +60,7 @@ def process_missing_tasks_and_profiles(
                 primary_items,
                 4,
                 format_html(
-                    primary_items["colors_to_use"],
+                    primary_items,
                     "trailing_comments_color",
                     "",
                     f"Project {item} has no <em>Named</em> Tasks",
@@ -77,7 +77,7 @@ def process_missing_tasks_and_profiles(
             primary_items,
             1,
             format_html(
-                primary_items["colors_to_use"],
+                primary_items,
                 "trailing_comments_color",
                 "<br>",
                 "<em>Projects Without Profiles...</em><br>",
@@ -89,7 +89,7 @@ def process_missing_tasks_and_profiles(
                 primary_items,
                 4,
                 format_html(
-                    primary_items["colors_to_use"],
+                    primary_items,
                     "trailing_comments_color",
                     "",
                     f"- Project {item} has no Profiles",
@@ -125,7 +125,7 @@ def add_heading(primary_items: dict, save_twisty: bool) -> bool:
         primary_items,
         1,
         format_html(
-            primary_items["colors_to_use"],
+            primary_items,
             "trailing_comments_color",
             "",
             text_line,
