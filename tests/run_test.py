@@ -29,10 +29,13 @@ def test_it():
 # Run these in small chunks, depending on the size of the backup file being used.
 def test_main():
     # # Test name attributes
+    # with patch("sys.argv", ["-test=yes", "restore", "debug" ]):
+    #     test_it()
+    # Test name attributes
     # with patch("sys.argv", ["-test=yes", "detail=2", "debug", "names=bold highlight", "cHighlight LightBlue"]):
     #     test_it()
     # with patch(
-    #     "sys.argv", ["-test=yes", "detail=2", "debug", "names=underline italicize"]
+    #     "sys.argv", ["-test=yes", "detail=2", "debug", "names=underline italicize", "f='Menlo'"]
     # ):
     #     test_it()
     # # Test light mode
@@ -41,8 +44,8 @@ def test_main():
     # # Test bold highlight ands directory
     # with patch("sys.argv", ["-test=yes", "detail=2", "debug", "names=bold highlight", "directory"]):
     #     test_it()
-    # # Test full detail
-    # with patch("sys.argv", ["-test=yes", "detail=3", "debug"]):
+    # Test full detail
+    # with patch("sys.argv", ["-test=yes", "detail=3", "debug", "i=10"]):
     #     test_it()
     # # Test limited detail
     # with patch("sys.argv", ["-test=yes", "detail=2", "debug"]):
@@ -61,19 +64,19 @@ def test_main():
     # # Test by Profile name
     # with patch(
     #     "sys.argv",
-    #     ["-test=yes", "profile=Check Smartthings Batteries", "detail=3", "debug"],
+    #     ["-test=yes", "profile=View File", "detail=3", "debug"],
     # ):
-    #     test_it()
+        #  test_it()
     # # Test by Task name
     # with patch("sys.argv", ["-test=yes", "task=Check Batteries", "debug"]):
     #     test_it()
     # # Test -pref
-    # with patch("sys.argv", ["-test=yes", "p", "debug", "taskernet", "detail=2"]):
+    # with patch("sys.argv", ["-test=yes", "preferences", "debug", "taskernet", "detail=2"]):
     #     test_it()
-    # # Test -dir
+    # Test -dir
     # with patch("sys.argv", ["-test=yes", "directory", "debug", "taskernet", "detail=3"]):
     #     test_it()
-    # # Test new -everything
+    # Test new -everything with twisty
     # with patch("sys.argv", ["-test=yes", "e", "twisty"]):
     #     test_it()
     # # Test -b fetch backup xml file
@@ -84,9 +87,6 @@ def test_main():
     #         "b=http://192.168.0.210:1821+/Tasker/configs/user/backup.xml",
     #     ],
     # ):
-    #     test_it()
-    # # Test -twisty
-    # with patch("sys.argv", ["-test=yes", "sys.argv", "debug", "twisty"]):
     #     test_it()
     # # Test colors
     # with patch(
