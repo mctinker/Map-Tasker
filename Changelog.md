@@ -1,21 +1,36 @@
 MapTasker Change log
 
-## [2.1.2] - 2023-07-18
-### Added: New '-indent' runtime argument to control amount of indentation of if/then/else Task actions. Default is 4 spaces.
-### Fixed: Properties not showing variable name.   
-### Fixed: Project Properties and Taskernet information was not displaying for a specific Project.   
-### Fixed: Don't display Task Properties if displaying Tasks that are not in any Profile.   
-### Fixed: Underlining names caused extra blanks to be added to the names.   
-### Fixed: Added appropriate spaces to deal with TaskerNet description formatting.   
-### Fixed: Not picking up Tap Tap plugin Profile event.   
-### Fixed: Added missing "AutoWear", "Locus Map" and "KWGT Custom Widget Maker" plugin Actions.   
-### Fixed: Remove empty parameters from appearing in Task actions and extra spaces before commas
-### Changed: Continued Task actions are now indented properly underneath If/Else conditions   
-### Changed: Optimized code   
+## [2.2.0] - 2023-07-25
+### Added: New '-font' runtime argument to specify a specific (monospace) font to use for the map display. Default is 'Courier'.   
+### Added: New '-runtime' runtime argument to display all of the runtime arguments and their settings at the beginning of the output.   
+### Added: GUI updated to include help information about the Debug tab.   
+### Changed: Updated GUI for 'Font To Use' selection option and 'Display Runtime Settings' checkbox (under 'Debug' tab).   
+### Changed: Optimized code.   
+### Changed: Updated README file with new runtime options.   
+### Changed: Runtime argument to display Tasker Preferences option -p remove.  Now only -preferences
+### Fixed: Fixed missing 'restore' runtime option.   
+### Fixed: Program error if restoring runtime settings and no indentation is specified.   
+### Fixed: Program error when runtime argument does not exist in saved settings file.   
+### Fixed: GUI 'Cancel' button now works.  Remove message saying that it doesn't work.
+### Fixed: Output contains uneeded extra commas.
+### Fixed: Ruintime option -e (everything) not including Tasker Preferences
+
 
 
 Older History Log
 
+- [2.1.2] - 2023-07-18
+       -   Added: New '-indent' runtime argument to control amount of indentation of if/then/else Task actions. Default is 4 spaces.
+       -   Fixed: Properties not showing variable name.   
+       -   Fixed: Project Properties and Taskernet information was not displaying for a specific Project.   
+       -   Fixed: Don't display Task Properties if displaying Tasks that are not in any Profile.   
+       -   Fixed: Underlining names caused extra blanks to be added to the names.   
+       -   Fixed: Added appropriate spaces to deal with TaskerNet description formatting.   
+       -   Fixed: Not picking up Tap Tap plugin Profile event.   
+       -   Fixed: Added missing "AutoWear", "Locus Map" and "KWGT Custom Widget Maker" plugin Actions.   
+       -   Fixed: Remove empty parameters from appearing in Task actions and extra spaces before commas
+       -   Changed: Continued Task actions are now indented properly underneath If/Else conditions   
+       -   Changed: Optimized code   
 - [2.1.1] - 2023-07-09
        -   Fixed: Minor cosmetic issues with sample output and README file.   
        -   Fixed: Removed extraneous print color.    

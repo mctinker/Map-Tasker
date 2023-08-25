@@ -14,6 +14,7 @@
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[!["Buy Me A Coffee"](/documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
 
@@ -111,11 +112,14 @@ Runtime: `maptasker -option1 -option2` ...
     `-detail 3` to display Action list names with *all* parameters for all Tasks,    
   
     `-directory` to display a directory of all Projects/Profiles/Tasks/Scenes,
-    `-e` to display 'everything': Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details,    
-    `-g` to get arguments from the GUI rather than via the command line,
-    `-i` the amount of indentation for If/Then/Else Task actions (default=4),
+    `-e` to display 'everything': Runtime settings, Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details,    
+    `-f` font to use (preferably a monospace font),   
+    `-g` to get arguments from the GUI rather than via the command line,   
+    `-i` the amount of indentation for If/Then/Else Task actions (default=4),   
     `-n {bold highlight italicize}` to add formatting options to Project/Profile/Task/Scene names,   
     `-preferences` to display Tasker's preference settings,  
+    `-restore` to restore previously saved runtime arguments,   
+    `-runtime` to display the runtime arguments and their settings at the top of the output,       
     `-twisty` to display Task details hidden by a twisty "▶︎".  Click on twisty to reveal.   
     `-taskernet` to display any TaskerNet share details,  
     
