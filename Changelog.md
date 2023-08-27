@@ -1,6 +1,6 @@
 MapTasker Change log
 
-## [2.2.0] - 2023-07-25
+## [2.2.0] - 2023-07-27
 ### Added: New '-font' runtime argument to specify a specific (monospace) font to use for the map display. Default is 'Courier'.   
 ### Added: New '-runtime' runtime argument to display all of the runtime arguments and their settings at the beginning of the output.   
 ### Added: GUI updated to include help information about the Debug tab.   
