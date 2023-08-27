@@ -1078,6 +1078,12 @@ class MyGui(customtkinter.CTk):
             case "fetched_backup_from_android":
                 if value:
                     message = f"Fetched from Android:{value}."
+            case "save":
+                if value:
+                    message = "Settings saved.\n"
+            case "restore":
+                if value:
+                    message = "Settings restored.\n"
             case _:
                 self.display_message_box(
                     f"Rutroh!  Key named {key} with value {value} no longer valid.  Resave settings!", False
