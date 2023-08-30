@@ -1,24 +1,28 @@
 MapTasker Change log
 
-## [2.2.0] - 2023-07-27
-### Added: New '-font' runtime argument to specify a specific (monospace) font to use for the map display. Default is 'Courier'.   
-### Added: New '-runtime' runtime argument to display all of the runtime arguments and their settings at the beginning of the output.   
-### Added: GUI updated to include help information about the Debug tab.   
-### Changed: Updated GUI for 'Font To Use' selection option and 'Display Runtime Settings' checkbox (under 'Debug' tab).   
-### Changed: Optimized code.   
-### Changed: Updated README file with new runtime options.   
-### Changed: Runtime argument to display Tasker Preferences option -p remove.  Now only -preferences
-### Fixed: Fixed missing 'restore' runtime option.   
-### Fixed: Program error if restoring runtime settings and no indentation is specified.   
-### Fixed: Program error when runtime argument does not exist in saved settings file.   
-### Fixed: GUI 'Cancel' button now works.  Remove message saying that it doesn't work.
-### Fixed: Output contains uneeded extra commas.
-### Fixed: Ruintime option -e (everything) not including Tasker Preferences
-
-
+## [2.2.1] - 2023-07-30
+### Fixed: Condition "matches regex" and "doesn't match regex" are incorrectly reversed.   
+### Fixed: If conditions missing compound counditions like AND and OR.    
+### Fixed: Profile compound condition format with "and" not consistent with If component "and" statements.   
+### Fixed: Enlarged the images in README file.   
+### Changed: Further optimized the code    
 
 Older History Log
 
+- [2.2.0] - 2023-07-27
+       -    Added: New '-font' runtime argument to specify a specific (monospace) font to use for the map display. Default is 'Courier'.   
+       -    Added: New '-runtime' runtime argument to display all of the runtime arguments and their settings at the beginning of the output.   
+       -    Added: GUI updated to include help information about the Debug tab.   
+       -    Changed: Updated GUI for 'Font To Use' selection option and 'Display Runtime Settings' checkbox (under 'Debug' tab).   
+       -    Changed: Optimized code.   
+       -    Changed: Updated README file with new runtime options.   
+       -    Changed: Runtime argument to display Tasker Preferences option -p remove.  Now only -preferences
+       -    Fixed: Fixed missing 'restore' runtime option.   
+       -    Fixed: Program error if restoring runtime settings and no indentation is specified.   
+       -    Fixed: Program error when runtime argument does not exist in saved settings file.   
+       -    Fixed: GUI 'Cancel' button now works.  Remove message saying that it doesn't work.
+       -    Fixed: Output contains uneeded extra commas.   
+       -    Fixed: Ruintime option -e (everything) not including Tasker Preferences.   
 - [2.1.2] - 2023-07-18
        -   Added: New '-indent' runtime argument to control amount of indentation of if/then/else Task actions. Default is 4 spaces.
        -   Fixed: Properties not showing variable name.   

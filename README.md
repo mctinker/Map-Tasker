@@ -50,7 +50,7 @@ The Tasker backup xml can either be manually uploaded to your Mac/Google Drive, 
 
      `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment    
      `python -m venv venv`    
-     `set VIRTUAL_ENV {directory path to 'xxx'}/venv`    D
+     `set VIRTUAL_ENV {directory path to 'xxx'}/venv`    
      `source {directory path to 'xxx'}/venv/bin/activate`  
      `pip3 install maptasker` 
      
@@ -60,7 +60,7 @@ The Tasker backup xml can either be manually uploaded to your Mac/Google Drive, 
 
 ### Usage 
 
-- Ensure the dependencies are already installed.
+- Ensure the dependencies are already installed.  Performing  `pip3 install maptasker` will automatically install the dependencies along with MapTasker. 
 - If installed from Github, open a terminal window and change to the directory into which the zip file was uncompressed
 - Enter the command:
 
@@ -146,23 +146,23 @@ Runtime: `maptasker -option1 -option2` ...
 
 The MapTasker GUI:
 
-<img src="/documentation_images/display_gui.png" width="600"/>
+<img src="/documentation_images/display_gui.png" width="800"/>
 
 Sample output with runtime option '-detail 0':
 
-<img src="/documentation_images/display_level-d0.png" width="600"/>
+<img src="/documentation_images/display_level-d0.png" width="800"/>
 
 Sample output with runtime option '-detail 1':
 
-<img src="/documentation_images/display_level-d1.png" width="600"/>
+<img src="/documentation_images/display_level-d1.png" width="800"/>
 
 Sample output with runtime option '-detail 2':
 
-<img src="/documentation_images/display_level-d2.png" width="600"/>
+<img src="/documentation_images/display_level-d2.png" width="800"/>
 
 Sample output with runtime options '-detail 3 -conditions':
 
-<img src="/documentation_images/display_level-d3.png" width="600"/>
+<img src="/documentation_images/display_level-d3.png" width="800"/>
 
 Example runtime options: 
     
@@ -170,7 +170,7 @@ Example runtime options:
         (show full detail including Profile/Task 'conditions' and TaskerNet 
          information, and save the settings)
 
-Example using GUI: 
+Example using the GUI: 
     
     'maptasker -g'
 
@@ -183,6 +183,9 @@ Alternatively, see *config.py* for some user-customizable options.  Make user-sp
 
 ### To Do List (in no particular order)
 
-[] Complete insertion of Python docstrings for programming etiquette
+[] On the output of totals, only show totals for what is displayed    
+[] Include/map more Tasker preferences    
+[] Support additional plugins   
+[] Complete insertion of Python docstrings for programming etiquette   
 
 <a href="https://www.buymeacoffee.com/mctinker"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=mctinker&button_colour=FFDD00&font_colour=000000&font_family=Poppins&outline_colour=000000&coffee_colour=ffffff" /></a>
