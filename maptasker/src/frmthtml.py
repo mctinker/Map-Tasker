@@ -12,6 +12,7 @@
 # #################################################################################### #
 from maptasker.src.sysconst import FONT_FAMILY
 
+
 def format_html(
     primary_items: dict,
     color_code: str,
@@ -21,9 +22,7 @@ def format_html(
 ) -> str:
     """
     Plug in the html for color and font, along with the text
-        :param primary_items: Program registry.  See mapit.py for details
-        :param colormap: dictionary from which to pull the appropriate color based
-            on color_code
+        :param primary_items: Program registry.  See primitem.py for details
         :param color_code: the code to use to find the color in colormap
         :param text_before: text to insert before the color/font html
         :param text_after: text to insert after the color/font html
@@ -32,12 +31,9 @@ def format_html(
     """
 
     # Determine and get the color to use
-    try:
-        color_to_use = primary_items["colors_to_use"][color_code]
-    except KeyError:
-        color_to_use = color_code
+    color_to_use = primary_items.get("colors_to_use", {}).get(color_code,color_code)
 
-    # Return completed HTML with color, font and text
+    # Return completed HTML with color, font and text with text after
     if text_after:
         font = f'{FONT_FAMILY}{primary_items["program_arguments"]["font"]}'
         text_after = text_after.replace(
@@ -47,5 +43,6 @@ def format_html(
         trailing_span = "</span>" if end_span else ""
         return f'{text_before}<span style="color:{color_to_use}{font}">{text_after}{trailing_span}'
 
+    # No text after...just return it.
     else:
         return text_after

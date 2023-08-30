@@ -106,7 +106,7 @@ def evaluate_action_args(
     For the given code, save the display_name, required arg list and associated type
     list in dictionary
      Then evaluate the data against the master dictionary of actions
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param the_action_code_plus: the code found in <code> for the Action (<Action>)
             plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
         :param arg_list: list of arguments (<argn>) under Action
@@ -172,7 +172,7 @@ def get_action_results(
     For the given code, save the display_name, required arg list and associated type
     list in dictionary
     Then evaluate the data against the master dictionary of actions
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param the_action_code_plus: the code found in <code> for the Action (<Action>)
         plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
         :param lookup_code_entry: The key to our Action code dictionary in actionc.py

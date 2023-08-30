@@ -18,6 +18,7 @@
 # #################################################################################### #
 
 import contextlib
+
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.initparg import initialize_runtime_arguments
@@ -58,7 +59,7 @@ def convert_to_integer(value_to_convert: str, default_value: int) -> int:
 def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
     """
     Present the GUI and get the runtime details
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param use_gui: flag if usijng the GUI, make sure we import it
         :return: program runtime arguments and colors to use in the output
     """
@@ -94,7 +95,6 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
             if http_info := getattr(user_input, value):
                 primary_items["program_arguments"][value] = f"http://{http_info}"
         else:
-            
             # Grab GUI value and put into our runtime arguments dictonary (of same name)
             with contextlib.suppress(AttributeError):
                 primary_items["program_arguments"][value] = getattr(user_input, value)

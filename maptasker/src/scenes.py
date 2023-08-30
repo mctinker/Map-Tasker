@@ -67,7 +67,7 @@ def get_scene_elements(
 ) -> None:
     """
     Go through Scene's <xxxElement> tags and output them
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param child: pointer to '<xxxElement' Scene xml statement
         :return: nothing
     """
@@ -122,7 +122,7 @@ def process_scene(
 ) -> None:
     """
     Process the Project's Scene(s), one at a time
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param my_scene: name of Scene to process
         :param tasks_found: list of Tasks found so far
         :return:
@@ -223,7 +223,7 @@ def process_project_scenes(
 ) -> bool:
     """
     Go through all Scenes for Project, get their detail and output it
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param project: xml element of Project we are processing
         :param our_task_element: xml element pointing to our Task
         :param found_tasks: list of Tasks found so far

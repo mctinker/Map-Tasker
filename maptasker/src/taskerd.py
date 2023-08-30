@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 import sys
+
 import defusedxml.cElementTree as ET
 
 from maptasker.src.error import error_handler
@@ -43,7 +44,7 @@ def move_xml_to_table(all_xml: list, is_scene: bool) -> dict:
 def get_the_xml_data(primary_items: dict) -> dict:
     """
     Load all the Projects, Profiles and Tasks into a format we can easily navigate through
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :return: primary_items
     """
 
@@ -61,7 +62,7 @@ def get_the_xml_data(primary_items: dict) -> dict:
 
     # Get the xml root
     primary_items["xml_root"] = primary_items["xml_tree"].getroot()
-    
+
     # Check for valid Tasker backup.xml file
     if primary_items["xml_root"].tag != "TaskerData":
         error_msg = "You did not select a Tasker backup XML file...exit 2"
@@ -89,6 +90,5 @@ def get_the_xml_data(primary_items: dict) -> dict:
         "all_services": all_services,
     }
     logger.info("exit")
-    
+
     return primary_items
-    

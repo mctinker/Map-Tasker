@@ -28,7 +28,7 @@ def process_service(
 ) -> None:
     """
     We have a service xml element that we have mapped as a preference.  Process it.
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param service_name: name of the preference in <Service xml
         :param service_value: value of the preference in <Service xml
         :param temp_output_lines: list of service/preference output lines
@@ -89,7 +89,7 @@ def process_service(
 def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
     """
     Go through all of the <service> xml elements to process the Tasker preferences
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param temp_output_lines: list of service/preference output lines
         :return: nothing
     """
@@ -150,7 +150,7 @@ def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
 def get_preferences(primary_items: dict) -> None:
     """
     Go through the Tasker <service> xml elements, each representing a Tasker preference
-    :param primary_items: program registry.  See mapit.py for details
+    :param primary_items: program registry.  See primitem.py for details
     :rtype: nothing
     """
     section_names = [

@@ -28,7 +28,7 @@ from maptasker.src.sysconst import logger
 def write_out_backup_file(primary_items: dict, file_contents: bin) -> None:
     """
     We've read in the xml backup file.  Now save it for processing.
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param file_contents: binary contents of backup xml file
         :return: Nothing
     """
@@ -117,22 +117,22 @@ def request_file(
 
 
 # ##################################################################################
-# Return the substring after the last occurance of a specific character in a string 
+# Return the substring after the last occurance of a specific character in a string
 # ##################################################################################
-def substring_after_last(string:str, char: chr) -> str:
+def substring_after_last(string: str, char: chr) -> str:
     """_summary_
-Return the substring after the last occurance of a specific character in a string 
-    Args:
-        string (str): The string to search for the substring
-        char (chr): The character to find (the last occurance of)
+    Return the substring after the last occurance of a specific character in a string
+        Args:
+            string (str): The string to search for the substring
+            char (chr): The character to find (the last occurance of)
 
-    Returns:
-        str: The substring in string after the last occurance of char
+        Returns:
+            str: The substring in string after the last occurance of char
     """
     index = string.rfind(char)
-    return "" if index == -1 else string[index+1:]
-    
-    
+    return "" if index == -1 else string[index + 1 :]
+
+
 # ##################################################################################
 # Set up to fetch the Tasker backup xml file from the Android device running
 # ##################################################################################
@@ -140,7 +140,7 @@ def get_backup_file(primary_items: dict) -> str:
     """
     Set up to fetch the Tasker backup xml file from the Android device running
     the Tasker server
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :return: The name of the backup file (e.g. backup.xml)
     """
     # Get the contents of the file.
@@ -154,5 +154,7 @@ def get_backup_file(primary_items: dict) -> str:
 
     # Process the backup file
     write_out_backup_file(primary_items, file_contents)
-    
-    return substring_after_last(primary_items["program_arguments"]["backup_file_location"], "/")
+
+    return substring_after_last(
+        primary_items["program_arguments"]["backup_file_location"], "/"
+    )

@@ -55,7 +55,7 @@ def process_backup(primary_items: dict, backup_file_info: list) -> None:
     """_summary_
     We have the "backup" argument.  Validate info and save it.
         Args:
-            primary_items (dict): Common items used throughout.  See mapit.py for details.
+            primary_items (dict): Common items used throughout.  See primitem.py for details.
             backup_file_info (list): A list of the values for the backup to use
     """
     if isinstance(backup_file_info, list):
@@ -76,7 +76,7 @@ def get_name_attributes(primary_items: dict, value: str) -> None:
     """_summary_
     We have a -name argument.  Get the name's attributes and save them
         Args:
-            primary_items (dict): Common items used throughout.  See mapit.py for details.
+            primary_items (dict): Common items used throughout.  See primitem.py for details.
             value (str): The attributes to assign to names: (bold, highlight, underline, italicize)
     """
     # Get names (bold, highlight, underline and/or highlight)
@@ -99,7 +99,7 @@ def get_and_set_booleans(
     """_summary_
     Go through all boolean settings, get each and if have it then set value to True
         Args:
-            primary_items (dict): Common items used throughout.  See mapit.py for details.
+            primary_items (dict): Common items used throughout.  See primitem.py for details.
             args (namedtuple): runtime arguments namespace
     """
     boolean_arguments = [
@@ -130,7 +130,7 @@ def get_the_other_arguments(
     """_summary_
     Get the remainder of the arguments
          Args:
-             primary_items (dict): Common items used throughout.  See mapit.py for details.
+             primary_items (dict): Common items used throughout.  See primitem.py for details.
              value (str): The attributes to assign to names: (bold, highlight, underline, italicize)
     """
     get_and_set_booleans(primary_items, args)
@@ -149,7 +149,7 @@ def get_runtime_arguments(
     """_summary_
     Get our parsed program arguments and save them to primary_items["program_args"]
         Args:
-            primary_items (dict): Common items used throughout.  See mapit.py for details.
+            primary_items (dict): Common items used throughout.  See primitem.py for details.
             args (list): runtime arguments namespace
     """
 
@@ -224,7 +224,7 @@ def process_arguments(primary_items: dict, args: object) -> dict:
     Get arguments from command line and put them to the proper settings
         Args:
             primary_items (dict): dictionary of the primary items used throughout the
-            module.  See mapit.py for details
+            module.  See primitem.py for details
             args (object): program arguments passed from command line
 
         Returns:
@@ -260,7 +260,7 @@ def process_arguments(primary_items: dict, args: object) -> dict:
 def restore_arguments(primary_items: dict) -> dict:
     """
     Get arguments from saved file and restore them to the proper settings
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :return: primary items
     """
     temp_arguments = temp_colors = {}
@@ -393,10 +393,10 @@ def process_cli(primary_items: dict) -> dict:
     """_summary_
     Get the program arguments from command line or via unit test (e.g. python mapit.py -x)
         Args:
-            primary_items (dict): program registry.  See mapit.py for details.
+            primary_items (dict): program registry.  See primitem.py for details.
 
         Returns:
-            dict: program registry.  See mapit.py for details.
+            dict: program registry.  See primitem.py for details.
     """
     # Convert runtime argument default values to a dictionary
     primary_items["program_arguments"] = initialize_runtime_arguments()

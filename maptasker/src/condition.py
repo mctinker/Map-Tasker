@@ -31,9 +31,9 @@ def condition_time(
 ) -> str:
     """
     Handle the "Time" condition
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param the_item: the xml element with the Condition
-        :param the_output_condition: text into which the condition output is to 
+        :param the_output_condition: text into which the condition output is to
             be formated
         :return: the formatted condition's output string
     """
@@ -109,7 +109,7 @@ def condition_day(
     """
     Handle the "Day" condition
         :param the_item: the xml element with the Condition
-        :param the_output_condition: text into which the condition output is to 
+        :param the_output_condition: text into which the condition output is to
             be formated
         :return: the formatted condition's output string
     """
@@ -168,9 +168,9 @@ def condition_state(
 ) -> str:
     """
     Handle the "State" condition
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param the_item: the xml element with the Condition
-        :param the_output_condition: text into which the condition output is to 
+        :param the_output_condition: text into which the condition output is to
             be formated
         :return: the formatted condition's output string
     """
@@ -214,9 +214,9 @@ def condition_event(
 ) -> str:
     """
     Handle the "Event" condition
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param the_item: the xml element with the Condition
-        :param the_output_condition: text into which the condition output is to 
+        :param the_output_condition: text into which the condition output is to
             be formatted
         :return: the formatted condition's output string
     """
@@ -262,7 +262,7 @@ def parse_profile_condition(
 ) -> str:
     """
     Given a Profile, return its list of conditions
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param the_profile: the xml element pointing to <Profile object
         :return: the formatted condition's output string
     """
@@ -274,7 +274,7 @@ def parse_profile_condition(
         ):  # Bypass junk we don't care about
             continue
         if condition:  # If we already have a condition, add 'and' (italicized)
-            condition = f"{condition} <em>and</em> "
+            condition = f"{condition} <em>AND</em> "
 
         # Find out what the condition is and handle it
         match item.tag:

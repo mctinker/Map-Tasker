@@ -175,7 +175,7 @@ def do_trailing_matters(primary_items: dict) -> None:
     Create a hyperlinks for key items that are at the bottom of the output
 
     Args:
-        primary_items (dict): Program registry. See mapit.py for details.
+        primary_items (dict): Program registry. See primitem.py for details.
 
     Returns:
         None
@@ -217,7 +217,7 @@ def do_tasker_element(primary_items: dict, name: str) -> None:
     It generates hyperlinks for each project and builds an HTML table with hyperlinks.
 
     Args:
-        primary_items (dict): Program registry. See mapit.py for details.
+        primary_items (dict): Program registry. See primitem.py for details.
         name: element name: "project", "profile", "task", "scene"
 
     Returns:
@@ -285,7 +285,7 @@ def output_directory(primary_items: dict) -> None:
     Writes the directory to the output queue.
 
     Args:
-        :param primary_items:  Program registry.  See mapit.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
 
     Returns:
         None

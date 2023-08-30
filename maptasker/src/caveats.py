@@ -19,7 +19,7 @@ def display_caveats(primary_items: dict) -> None:
     """
     Output the program caveats at the very end
     Inputs:
-    - primary_items: Primary items used throughout the module.  See mapit.py for details
+    - primary_items: Primary items used throughout the module.  See primitem.py for details
     Outputs:
     - None
     """

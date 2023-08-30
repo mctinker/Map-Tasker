@@ -23,7 +23,7 @@ def share(
 ) -> None:
     """
     Go through xml <Share> elements to grab and output TaskerNet description and search-on lines
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param root_element: beginning xml element (e.g. Project or Task)
     """
     # Get the <share> element, if any
@@ -62,9 +62,9 @@ def description_element_output(
     description_element: defusedxml.ElementTree,
 ) -> None:
     """
-    We have a Taskernet description (<Share>).  Clean it uip and add it to 
+    We have a Taskernet description (<Share>).  Clean it uip and add it to
     the output list.
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param description_element: xml element <d> TaskerNet description
     """
     # We need to properly format this since it has embedded stuff that screws it up
@@ -111,7 +111,7 @@ def description_element_output(
         for position, character_index in enumerate(out_string):
             new_line = (
                 f'{new_line}<p style="margin-left:20px;'
-                f'margin-right:50px;color:'
+                f"margin-right:50px;color:"
                 f'{primary_items["colors_to_use"]["taskernet_color"]}'
                 f'{FONT_FAMILY}{primary_items["program_arguments"]["font"]}">'
                 if (character_index == " " and out_string[position + 1] == " ")

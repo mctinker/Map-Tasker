@@ -19,7 +19,7 @@ def get_fonts(primary_items: dict, save_fonts: bool) -> dict:
     """_summary_
     Get and set up the available monospace fonts and optionally save them
         Args:
-            primary_items (dict): Our key program items.  See mapit.py for details
+            primary_items (dict): Our key program items.  See primitem.py for details
             save_fonts (bool): True if we are to save the fonts
 
         Returns:
@@ -31,12 +31,12 @@ def get_fonts(primary_items: dict, save_fonts: bool) -> dict:
 
     # Set up our list of fonts, including Courier
     mono_fonts = ["Courier"]
-    
+
     # If the font requested is 'help', then just display the fonts and exit
     if our_font == "help":
         print("Valid monospace fonts...")
         print('  "Courier" is the default')
-        
+
     # Go thru list of fonts from tkinter
     for f in fonts:
         # Monospace only

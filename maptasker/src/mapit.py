@@ -47,6 +47,7 @@ from maptasker.src.frmtline import format_line
 from maptasker.src.lineout import LineOut
 from maptasker.src.prefers import get_preferences
 from maptasker.src.primitem import initialize_primary_items
+from maptasker.src.outline import  outline_the_configuration
 from maptasker.src.sysconst import debug_file, debug_out, logger
 
 # import os
@@ -99,7 +100,7 @@ def clean_up_memory(
 ) -> None:
     """
     Clean up our memory hogs
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :return:
     """
     for elem in primary_items["xml_tree"].iter():
@@ -120,7 +121,7 @@ def clean_up_memory(
 def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> None:
     """
     write_out_the_file: we have a list of output lines.  Write them out.
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param my_output_dir: directory to output to
         :param my_file_name: name of file to use
         :return: nothing
@@ -162,7 +163,7 @@ def clean_up_and_exit(
 ) -> None:
     """
     Cleanup memory and let user know there was no match found for Task/Profile/Project
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param name: the name to add to the log/print output
         :param profile_or_task_name: name of the Profile or Task to clean
     """
@@ -183,7 +184,7 @@ def clean_up_and_exit(
 def output_grand_totals(primary_items: dict) -> None:
     """
     Output the grand totals of Projects/Profiles/Tasks/Scenes
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
     """
     grand_total_projects = primary_items["grand_totals"]["projects"]
     grand_total_profiles = primary_items["grand_totals"]["profiles"]
@@ -320,7 +321,7 @@ def check_single_item(
     """_summary_
     Check if doing a single item and if not found, then clean up and exit
         Args:
-            :param primary_items:  Program registry.  See mapit.py for details.
+            :param primary_items:  Program registry.  See primitem.py for details.
             single_project_name (str): name of single Project to find, or empty
             single_project_found (bool): True if single Project was found
             single_profile_name (str): name of single Profile to find, or empty
@@ -461,6 +462,10 @@ def mapit_all(file_to_get: str) -> int:
         single_task_name,
     )
 
+    # Output the outline
+    # TODO For future use
+    # outline_the_configuration(primary_items)
+    
     # Restore the directory setting for the final directory of Totals
     primary_items["program_arguments"]["directory"] = temp_dir
 

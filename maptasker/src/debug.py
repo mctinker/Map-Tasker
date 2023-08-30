@@ -12,6 +12,7 @@
 #                                                                                      #
 # #################################################################################### #
 import sys
+
 from maptasker.src.frmthtml import format_html
 from maptasker.src.sysconst import ARGUMENT_NAMES, TYPES_OF_COLOR_NAMES, logger
 
@@ -19,7 +20,7 @@ from maptasker.src.sysconst import ARGUMENT_NAMES, TYPES_OF_COLOR_NAMES, logger
 def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
     """
     Put out a line that identifies the following output as DEBUG
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param begin_or_end: text identiying the beginning or end of debug
     """
     arrow = ">"
@@ -42,23 +43,23 @@ def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
 def display_debug_info(primary_items: dict) -> None:
     """
     Output our runtime arguments
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
     """
-    
+
     # Identify the output as debug stuff
     output_debug_line(primary_items, "Start")
     if primary_items["program_arguments"]["debug"]:
         primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        4,
-        format_html(
             primary_items,
-            "Red",
-            "",
-            f"sys.argv (runtime arguments):{str(sys.argv)}",
-            True,
-        ),
-    )
+            4,
+            format_html(
+                primary_items,
+                "Red",
+                "",
+                f"sys.argv (runtime arguments):{str(sys.argv)}",
+                True,
+            ),
+        )
 
     # Copy our dictionary of runtime arguments and sort it alphabetically
     mydict = ARGUMENT_NAMES.copy()
@@ -110,7 +111,7 @@ def display_debug_info(primary_items: dict) -> None:
     for key, value in primary_items["colors_to_use"].items():
         # Highlight background color.  Otherwise it won't be visible
         if key == "background_color":
-            value = f'<mark>{value} (highlighted for visibility)</mark>'
+            value = f"<mark>{value} (highlighted for visibility)</mark>"
         # Convert the namee of the color to the color
         the_color = format_html(
             primary_items,
@@ -147,7 +148,7 @@ def not_in_dictionary(primary_items: dict, type: str, code: str) -> None:
     """_summary_
     Handle condition if Action/Event/State code not found in our dictionary (actionc.py)
         Args:
-            :param primary_items:  Program registry.  See mapit.py for details.
+            :param primary_items:  Program registry.  See primitem.py for details.
             type (str): name of condition: Action, State, Event
             code (str): the xml code
     """

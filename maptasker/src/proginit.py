@@ -84,7 +84,7 @@ atexit.register(write_counter)
 def open_and_get_backup_xml_file(primary_items: dict) -> dict:
     """
     Open the Tasker backup file and return the file object
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :return: primary_items
     """
     # Fetch backup xml directly from Android device?
@@ -166,7 +166,7 @@ def setup_colors(primary_items: dict) -> dict:
     """_summary_
     Determine and set colors to use in the output
         Args:
-            primary_items (dict): program registry.  See mapit.py for details.
+            primary_items (dict): program registry.  See primitem.py for details.
 
         Returns:
             dict: dictionary of colors to use.
@@ -218,7 +218,7 @@ def setup_logging() -> None:
 def log_startup_values(primary_items: dict) -> None:
     """
     Log the runtime arguments
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
     """
     setup_logging()  # Get logging going
     logger.info(f"{MY_VERSION} {str(datetime.datetime.now())}")
@@ -237,7 +237,7 @@ def get_data_and_output_intro(
 ) -> dict:
     """
     Open and read xml and output the introduction/heading matter
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :return xml tree, xml root, all Tasker Projects/Profiles/Tasks/Scenes,
             output lines, the heading
     """
@@ -281,7 +281,7 @@ def get_data_and_output_intro(
 def display_starting_info(primary_items: dict) -> None:
     """
     Display the heading and source file details
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
     """
     # Get the screen dimensions from <dmetric> xml
     screen_element = primary_items["xml_root"].find("dmetric")
@@ -359,8 +359,8 @@ def display_starting_info(primary_items: dict) -> None:
 def start_up(primary_items: dict) -> dict:
     """
     Perform maptasker program initialization functions
-        :param primary_items:  program registry.  See mapit.py for details.
-        :return: primary_items...See mapit.py for details
+        :param primary_items:  program registry.  See primitem.py for details.
+        :return: primary_items...See primitem.py for details
     """
 
     # Get any arguments passed to program

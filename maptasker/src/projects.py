@@ -39,7 +39,7 @@ def process_projects_and_their_profiles(
     """
     Go through all Projects, process them and their Profiles and Tasks
     (and add to our output list)
-        :param primary_items:program registry.  See mapit.py for details
+        :param primary_items:program registry.  See primitem.py for details
         :param found_tasks: list of Tasks found thus far
         :param projects_without_profiles: list of Projects that don't have any Profiles
         :return: list of Tasks found thus far, with duplicates removed
@@ -67,7 +67,7 @@ def process_projects_and_their_profiles(
 def get_launcher_task(primary_items, project: defusedxml.ElementTree.XML) -> str:
     """
     If Project has a launcher Task, get it and format it for output
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param project: xml element of Project we are processing
         :return: information related to launcher Task
     """
@@ -97,7 +97,7 @@ def tasks_not_in_profiles(
 ) -> bool:
     """
     Process all Tasks in Project that are not referenced by a Profile
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param task_ids: List of Task IDs
         :param found_tasks: list of Tasks found thus far
         :param project_name: name of current Project
@@ -219,7 +219,7 @@ def get_extra_and_output_project(
 ) -> bool:
     """
     Add extra info to Project output line as appropriate and then output it.
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param project: Project xml element
         :param project_name: name of Project
         :param launcher_task_info: details about (any) launcher Task
@@ -290,7 +290,7 @@ def get_extra_and_output_project(
 def setup_summary_counts(primary_items: dict) -> int:
     """
     Initialize summary counters for the Project
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :return: zero
     """
     # Set up Project counters for summary line
@@ -308,7 +308,7 @@ def setup_summary_counts(primary_items: dict) -> int:
 def summary_counts(primary_items: dict, project_name: str, profile_count: int) -> None:
     """
     Output Project's summary counts
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param project_name: name of the Project
         :param profile_count: number of Profiles under this Project
     """
@@ -379,7 +379,7 @@ def finish_up(
 ) -> None:
     """
     Output the remaining components related to the Project
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param project: Project XML element
         :param project_name: name of the Project
         :param found_tasks: list of all Tasks found so far
@@ -515,7 +515,7 @@ def get_profile_details_and_output(
     """_summary_
     Get this Project's details and output them
         Args:
-            primary_items (dict): program registry.  See mapit.py for details.
+            primary_items (dict): program registry.  See primitem.py for details.
             project (defusedxml.ElementTree): XML head of Project we are outputing
 
         Returns:
@@ -573,7 +573,7 @@ def process_project_profiles(
     """_summary_
     Process all of the Profiles for this Project
         Args:
-            primary_items (dict): program registry.  See mapit.py for details.
+            primary_items (dict): program registry.  See primitem.py for details.
             project (defusedxml.ElementTree): XML element for the Project we are doing
             project_name (str): Name of the Project we are doing
             projects_without_profiles (list): List of Project XML elements that have
@@ -619,7 +619,7 @@ def process_projects(
 ) -> list:
     """
     Go through all the Projects, get their detail and output it
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param projects_without_profiles: list of Projects with no Profiles
         :param found_tasks: list of Tasks found
         :param our_task_element: xml element of our Task

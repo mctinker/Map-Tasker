@@ -49,7 +49,7 @@ def validate_color(the_color: str) -> object:
         If color name is 'h', simply display all the colors and exit.
         IF the color passed in is hexidecimal, simply return True
         Else return the color if it is valid
-        param: the_color: the color as a hexidecimal number, "h" for help, or 
+        param: the_color: the color as a hexidecimal number, "h" for help, or
             a color name
         :rtype: object: True if a hexadecimal color was provided, or the color name
     """
@@ -259,8 +259,8 @@ def validate_color(the_color: str) -> object:
 def get_and_set_the_color(primary_items: dict, the_arg: str) -> None:
     """
     Get the runtime option for a color change and set it
-        :param primary_items:  program registry.  See mapit.py for details.
-        :param the_arg: the color runtime argument (e.g. "cProfile=Blue" or 
+        :param primary_items:  program registry.  See primitem.py for details.
+        :param the_arg: the color runtime argument (e.g. "cProfile=Blue" or
             "cProfile Blue")
         :return: nothing
     """

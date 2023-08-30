@@ -17,7 +17,7 @@ def add_name_attribute(primary_items: dict, name: str) -> str:
     """_summary_
     Format the Project/Profile?Task/Scene name with bold and/or highlighting
         Args:
-            :param primary_items:  Program registry.  See mapit.py for details.
+            :param primary_items:  Program registry.  See primitem.py for details.
             name (str): the Project/Profile/Task/Scene name
 
         Returns:

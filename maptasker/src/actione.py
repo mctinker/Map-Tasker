@@ -119,7 +119,7 @@ def get_action_code(
 ) -> str:
     """
     Given an action code, evaluate it for display
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param code_child: xml element of the <code>
         :param code_action: value of <code> (e.g. "549")
         :param action_type:
@@ -210,7 +210,7 @@ def build_action(
 ) -> list:
     """
     Construct Task Action output line
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param alist: list of actions (all <Actions> for task
         :param task_code_line: output text of Task
         :param code_element: xml element of <code> under <Action>

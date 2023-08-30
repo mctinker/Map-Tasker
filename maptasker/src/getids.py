@@ -24,7 +24,7 @@ def get_ids(
 ) -> list:
     """
     Find either head_xml_element 'pids' (Profile IDs) or 'tids' (Task IDs)
-    :param primary_items: Program registry.  See mapit.py for details
+    :param primary_items: Program registry.  See primitem.py for details
     :param doing_head_xml_element: True if this is searching for head_xml_element IDs
     :param head_xml_element: head_xml_element xml element
     :param head_xml_element_name: name of head_xml_element

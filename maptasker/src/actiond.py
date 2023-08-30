@@ -2,7 +2,7 @@
 
 # #################################################################################### #
 #                                                                                      #
-# actiond: Task Action dictionary functions for MapTasker                                    #
+# actiond: Task Action dictionary functions for MapTasker                              #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
@@ -30,10 +30,9 @@ def get_dict() -> defusedxml.ElementTree:
 
 
 # ##################################################################################
-
-
 # Update the dictionary for the Action code
-#  This is only called if the action code is not already in our master dictionary of codes
+#  This is only called if the action code is not already in our master 
+#  dictionary of codes
 # ##################################################################################
 def update_action_codes(
     action: defusedxml.ElementTree.XML, the_action_code_plus: defusedxml.ElementTree
@@ -68,8 +67,6 @@ def update_action_codes(
 
 
 # ##################################################################################
-
-
 # Build the dictionary for the Action code
 # ##################################################################################
 def build_new_action_codes(
@@ -99,8 +96,6 @@ def build_new_action_codes(
 
 
 # ##################################################################################
-
-
 # Build the dictionary for each Action code
 #  This is only called if the action code is not already in our master dictionary of codes
 # child = pointer to <code> xml
@@ -115,7 +110,7 @@ def build_action_codes(
     """
     Build the dictionary for each Action code
     We first check if the_action_code_plus is already in action_codes. If it is, we call the update_action_codes() function. Otherwise, we call the build_new_action_codes() function followed by some logging and debugging output (if debug mode is enabled) as before.
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param action: xml element with Task action's "<code>nnn</code>"
         :param child: xml root element of Task action
         :return:
@@ -131,8 +126,6 @@ def build_action_codes(
 
 
 # ##################################################################################
-
-
 # See if the display name is already in our Action dictionary.  If not, add it.
 # ##################################################################################
 def add_name_to_action_codes(
@@ -141,7 +134,8 @@ def add_name_to_action_codes(
 ) -> defusedxml.ElementTree:
     """
     See if the display name is already in our Action dictionary.  If not, add it.
-        :param the_action_code_plus: the Action code with "action type" (e.g. 861t, t=Task, e=Event, s=State)
+        :param the_action_code_plus: the Action code with "action type" 
+                (e.g. 861t, t=Task, e=Event, s=State)
         :param display_name: the name to appear in the output for this action
         :return: nothing
     """
@@ -153,9 +147,8 @@ def add_name_to_action_codes(
 
 
 # ##################################################################################
-
-
-# Given a child xml element, determine if it is a boolean of condtion add return if in a list
+# Given a child xml element, determine if it is a boolean of condtion 
+# add return if in a list
 # ##################################################################################
 def get_boolean_or_condition(
     child: defusedxml.ElementTree, condition_list: list, boolean_list: list
@@ -186,8 +179,6 @@ def get_boolean_or_condition(
 
 
 # ##################################################################################
-
-
 # Trundle through ConditionList "If" conditions
 # Return the list of conditions and list of associated booleans
 # ##################################################################################
@@ -206,5 +197,4 @@ def process_condition_list(
             condition_list, boolean_list = get_boolean_or_condition(
                 child, condition_list, boolean_list
             )
-    return condition_list, boolean_list
     return condition_list, boolean_list

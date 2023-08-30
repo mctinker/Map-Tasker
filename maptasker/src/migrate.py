@@ -84,7 +84,7 @@ def migrate(primary_items: dict) -> dict:
     Migrate from old filename/format to new for saved runtime arguments
       We have changed from using the unsecure "pickle" code to using "json"
       to save the program arguments and colors
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :return: nothing
     """
     old_arguments_file = ".MapTasker_arguments.txt"

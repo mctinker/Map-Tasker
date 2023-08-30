@@ -44,7 +44,7 @@ def get_profile_tasks(
     the task name matches.
 
     Args:
-        :param primary_items:  Program registry.  See mapit.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         the_profile (defusedxml.ElementTree.XML): The XML profile element.
         found_tasks_list (list): A list of found tasks.
         task_output_line (list): A list of task output lines.
@@ -98,7 +98,7 @@ def get_profile_name(
 ) -> tuple[str, str]:
     """
     Get a specific Profile's name
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param profile: xml element pointing to the Profile
         :return: Profile name with appropriate html and the profile name itself
     """
@@ -139,7 +139,7 @@ def build_profile_line(
 ) -> str:
     """
     Get the Profile's key attributes: limit, launcher task, run conditions and output it
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param project: the Project xml element
         :param profile: the Profile xml element
         :return: Profile name

@@ -107,7 +107,7 @@ def process_missing_tasks_and_profiles(
 def add_heading(primary_items: dict, save_twisty: bool) -> bool:
     """
     Add a header to the output for the solo Tasks
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param save_twisty: flag to indicate whether or not we are doing the twisty/hidden Tasks
         :return: True...flag that the heading has been created/output
     """
@@ -154,7 +154,7 @@ def process_solo_task_with_no_profile(
 ) -> tuple[int, defusedxml.ElementTree.XML, int]:
     """
     Process a single Task that does not belong to any Profile
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param task_id: the ID of the Task being displayed
         :param found_tasks: list of Tasks that we have found
         :param task_count: count of the unnamed Tasks
@@ -239,7 +239,7 @@ def process_tasks_not_called_by_profile(
 ) -> None:
     """
     Go through all tasks and output them
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param projects_with_no_tasks: list of Project xml roots for which there are no Tasks
         :param found_tasks_list: list of all Tasks found so far
         :return: nothing

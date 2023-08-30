@@ -26,7 +26,7 @@ def parse_variable(
     Parse Property's variable and output it
         Args:
             primary_items (_type_):  dictionary of the primary items used throughout
-                                    the module.  See mapit.py for details
+                                    the module.  See primitem.py for details
             variable_header (_type_): xml header of property's variable
             color_to_use (_type_): the color to use in the output
     """
@@ -72,7 +72,7 @@ def get_properties(
     """_summary_
 
     Args:
-        :param primary_items:  Program registry.  See mapit.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         header (defusedxml.ElementTree): xml header to Project/Profile/Task
         color_to_use: the color to output the property with
 

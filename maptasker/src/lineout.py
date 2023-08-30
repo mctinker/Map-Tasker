@@ -34,7 +34,7 @@ are accumulated and ultimately used to generate the final HTML output file.
 import maptasker.src.actione as action_evaluate
 from maptasker.src.debug import display_debug_info
 from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME, debug_out, logger, FONT_FAMILY
+from maptasker.src.sysconst import FONT_FAMILY, UNKNOWN_TASK_NAME, debug_out, logger
 
 
 class LineOut:
@@ -50,7 +50,7 @@ class LineOut:
     ) -> None:
         """
         For whatever reason, we need to clear out the existing output and start anew.
-                :param primary_items:  program registry.  See mapit.py for details.
+                :param primary_items:  program registry.  See primitem.py for details.
                 :param include_the_profile: Boolean flag to indicate whether this is
                     a Profile to be included
                 :param project_name: name of the Project, if any
@@ -65,14 +65,14 @@ class LineOut:
         primary_items["output_lines"].add_line_to_output(
             primary_items, 0, primary_items["heading"]
         )
-                
+
         # If we are debugging, re-output the runtime arguments and colors
         if (
             primary_items["program_arguments"]["debug"]
             or primary_items["program_arguments"]["runtime"]
         ):
             display_debug_info(primary_items)
-    
+
         # Start the Project list (<ul>)
         self.add_line_to_output(primary_items, 1, "")
         # Output the Project name as list item (<li>)
@@ -151,7 +151,7 @@ class LineOut:
     ) -> str:
         """
         Generate the output list (<li>) string based on the input XML <code> passed in
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param element: text string to be added to output
         :param colormap: dictionary of colors to use in the output
         :param font: the font to use in the output
@@ -183,7 +183,7 @@ class LineOut:
         """_summary_
         Insert the hyperlink target if doing a the directory
                 Args:
-                    :param primary_items:  Program registry.  See mapit.py for details.
+                    :param primary_items:  Program registry.  See primitem.py for details.
                     element (str): text to incorporate after the target
                     colormap (dict): dictionary of colors to use in the output
 
@@ -320,7 +320,7 @@ class LineOut:
     def format_line(self, primary_items: dict, element: str, lvl: int) -> str:
         """
         Start formatting the output line with appropriate HTML
-                :param primary_items:  program registry.  See mapit.py for details.
+                :param primary_items:  program registry.  See primitem.py for details.
                 :param element: the text line being formatted
                 :param lvl: the hierarchical list level for output- 0=heading,
                     1=start list, 2= list item, 3= end list, 4= plain text
@@ -373,7 +373,7 @@ class LineOut:
         """
         Add line to the list of output lines.  The output entry is based on the
         list_level and the contents of the output_str
-            :param primary_items:  program registry.  See mapit.py for details.
+            :param primary_items:  program registry.  See primitem.py for details.
             :param list_level: level we are outputting
             :param out_string: the string to add to the output
             :return: none

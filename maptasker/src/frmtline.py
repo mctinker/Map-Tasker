@@ -10,20 +10,27 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-from maptasker.src.sysconst import pattern5, pattern6, pattern7, pattern8, pattern9, pattern10
+from maptasker.src.sysconst import (
+    pattern5,
+    pattern6,
+    pattern7,
+    pattern8,
+    pattern9,
+    pattern10,
+)
 
 
 def format_line(primary_items: dict, num: int, item: str) -> str:
     """
     Given a line in our list of output lines, do some additional formatting
     to clean it up
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param num: the numeric line number from the list of output lines
         :param item: the specific text to reformat from the list of output lines
         :return: the reformatted text line for output
     """
     output_obj = primary_items["output_lines"]
-    output_lines = output_obj.output_lines      
+    output_lines = output_obj.output_lines
     blank = " "
     # If item is a list, then get the actual output line
     if isinstance(item, list):
@@ -47,8 +54,14 @@ def format_line(primary_items: dict, num: int, item: str) -> str:
     if action_position != -1:
         action_number_list = item[action_position + 8 :].split(" ")
         action_number = action_number_list[0]
-        temp = "".join([item[:action_position], action_number, ":",
-                item[action_position + 8 + len(action_number):]])
+        temp = "".join(
+            [
+                item[:action_position],
+                action_number,
+                ":",
+                item[action_position + 8 + len(action_number) :],
+            ]
+        )
         output_line = temp
     # No changes needed
     else:

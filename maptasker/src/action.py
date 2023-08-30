@@ -96,8 +96,8 @@ def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
         "1": " NEQ ",
         "2": " ~ ",
         "3": " !~ ",
-        "4": " !~R ",
-        "5": " ~R ",
+        "4": " ~R ",
+        "5": " !~R ",
         "6": " < ",
         "7": " > ",
         "8": " = ",
@@ -244,7 +244,7 @@ def process_xml_list(
             if the_list[idx] in lookup_values:
                 try:
                     evaluated_value = [lookup_values[the_list[idx]][int(the_int_value)]]
-                    evaluated_value = f'{the_list[idx - 2]}{evaluated_value[0]}, '
+                    evaluated_value = f"{the_list[idx - 2]}{evaluated_value[0]}, "
                     match_results.append(evaluated_value)
                 except KeyError:
                     match_results.append(
@@ -284,7 +284,7 @@ def get_label_disabled_condition(
     """
     Get Task's label, disabled flag and any conditions
         :param primary_items: dict containing all primary items.
-            See mapit.py for details
+            See primitem.py for details
         :param child: head Action xml element
         :param colormap: the colors to use in the output
         :return: the string containing any found label, disabled flag and conditions
@@ -309,41 +309,44 @@ def get_label_disabled_condition(
         if child.find("on") is not None
         else ""
     )
-    # Look for any conditions
+    # Look for any conditions:  <ConditionList sr="if">
     if child.find("ConditionList") is not None:  # If condition on Action?
-        condition_count = 0
-        boolean_to_inject = ""
-        booleans = []
-        # Go through <ConditionList> sub-elements
-        for children in child.find("ConditionList"):
-            if "bool" in children.tag:
-                booleans.append(children.text)
-            # We have a condition and this is not an "If" condition
-            elif children.tag == "Condition" and the_action_code != "37":
-                # Evaluate the condition to add to output
-                string1, operator, string2 = evaluate_condition(children)
-                if condition_count != 0:
-                    boolean_to_inject = f"{booleans[condition_count - 1].upper()} "
-                task_conditions = format_html(
-                    primary_items,
-                    "action_condition_color",
-                    "",
-                    (
-                        f" ({boolean_to_inject}condition:  "
-                        f"If {string1}{operator}"
-                        f"{string2})"
-                    ),
-                    True,
-                )
-                condition_count += 1
-        if the_action_code == "35":  # Wait Until?
-            task_conditions = task_conditions.replace(
-                "condition:  If", "<em>UNTIL</em>"
-            )
-        # Just make all "":conditional: If" as "IF"
-        task_conditions = task_conditions.replace("condition:  If", "<em>IF</em>")
+        task_conditions = get_conditions(child, the_action_code)
 
-    return task_conditions + action_disabled + task_label
+    # Format conditions if any
+    if task_conditions:
+        task_conditions = format_html(
+            primary_items, "action_condition_color", "", task_conditions, True
+        )
+
+    # Return the lot
+    return f"{task_conditions}{action_disabled}{task_label}"
+
+
+# Get any/all conditions associated with Action
+def get_conditions(child, the_action_code):
+    condition_count = 0
+    boolean_to_inject = result = ""
+    booleans = []
+    # Go through <ConditionList sr="if"> sub-elements
+    for children in child.find("ConditionList"):
+        if "bool" in children.tag:
+            booleans.append(children.text)
+        elif children.tag == "Condition" and the_action_code != "37":
+            # Evaluate the condition to add to output
+            string1, operator, string2 = evaluate_condition(children)
+            if condition_count != 0:
+                boolean_to_inject = f" {booleans[condition_count - 1].upper()} "
+                # Add this conditional statement to the chain of conditional statements
+            result = f"{result}{boolean_to_inject} condition: If {string1}{operator} {string2}"
+            condition_count += 1
+    if the_action_code == "35":  # Wait Until?
+        result = result.replace(" condition: If", "<em>UNTIL</em>")
+        # Just make all ":condition: If" as "IF"
+    if result:
+        result = f' ({result.replace(" condition: If", "<em>IF</em>")})'
+
+    return result
 
 
 # ##################################################################################
@@ -355,7 +358,7 @@ def clean_label(primary_items: dict, lbl: str, colormap: dict) -> str:
     Given the Task action's label, get rid of anything that could be problematic
     for the output format
         :param primary_iterms: dict contining all primary items.
-            See mapit.py for details
+            See primitem.py for details
         :param lbl: the label to clean up
         :param colormap: the colors to use in the output
         :return: the cleaned up label with added html tags for a label's color
@@ -425,7 +428,7 @@ def get_extra_stuff(
     # Chase after relevant data after <code> Task action
     # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
     # Get the: label, whether to continue Task after error, etc.
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param code_action: action code (e.g. "543") xml element
         :param action_type: True if this is a Task Action, otherwise False
         :return: formatted line of extra details about Task Action
@@ -497,7 +500,7 @@ def get_app_details(
 ) -> tuple[str, str, str, str]:
     """
     Get the application specifics for the given code (<App>)
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param code_child: Action xml element
         :param action_type: True if this is a Task, False if a condition
         :return: the aplication specifics - class, package name, app name, extra stuff

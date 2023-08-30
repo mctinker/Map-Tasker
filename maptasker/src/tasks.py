@@ -35,7 +35,7 @@ def get_actions(
 ) -> list:
     """
     Return a list of Task's actions for the given Task
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param current_task: xml element of the Task we are getting actions for
         :return: list of Task 'action' output lines
     """
@@ -127,7 +127,7 @@ def get_task_name(
 ) -> tuple[defusedxml.ElementTree.XML, str]:
     """
     Get the name of the task given the Task ID
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param the_task_id: the Task's ID (e.g. '47')
         :param tasks_that_have_been_found: list of Tasks found so far
         :param task_output_lines: list of Tasks
@@ -193,7 +193,7 @@ def get_project_for_solo_task(
 ) -> tuple[str, defusedxml.ElementTree.XML]:
     """
     Find the Project belonging to the Task id passed in
-    :param primary_items: dictionary of the primary items used throughout the module. See mapit.py for details
+    :param primary_items: dictionary of the primary items used throughout the module. See primitem.py for details
     :param the_task_id: the ID of the Task
     :param projects_with_no_tasks: list of Projects that do not have any Tasks
     :return: name of the Project that belongs to this task and the Project xml element
@@ -261,7 +261,7 @@ def do_single_task(
 ) -> None:
     """
     Process a single Task only
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param our_task_name: name of Task we are to process
         :param project_name: name of the Project Task belongs to
         :param profile_name: name of the Profile the Task belongs to
@@ -346,7 +346,7 @@ def output_task(
 ) -> bool:
     """
     We have a single Task or a list of Tasks.  Output it/them.
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param our_task_name: name of Task
         :param our_task_element: Task xml element
         :param task_list: Task list

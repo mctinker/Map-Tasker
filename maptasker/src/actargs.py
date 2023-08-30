@@ -11,6 +11,7 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 # #################################################################################### #
 import contextlib
+
 import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.action as get_action
@@ -26,13 +27,13 @@ def get_bundle(
     code_action: defusedxml.ElementTree.XML, evaluated_results: dict
 ) -> dict:
     """_summary_
-Get the details regarding the <bundle> action argument type
-    Args:
-        code_action (defusedxml.ElementTree.XML): XML element of the action code <code>
-        evaluated_results (dict): We stuff the findings in here for passing to the caller
+    Get the details regarding the <bundle> action argument type
+        Args:
+            code_action (defusedxml.ElementTree.XML): XML element of the action code <code>
+            evaluated_results (dict): We stuff the findings in here for passing to the caller
 
-    Returns:
-        dict: The results from the <bundle> argument
+        Returns:
+            dict: The results from the <bundle> argument
     """
     child1 = code_action.find("Bundle")
     child2 = child1.find("Vals")
@@ -66,7 +67,7 @@ def get_action_arguments(
     """
     Given an <argn> element, evaluate it's contents based on our Action code dictionary
     (actionc.py)
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param evaluated_results: all the Action argument "types" and "arguments" as
             a dictionary
         :param arg: the incoming argument location/number (e.g. "0" for <arg0>)
@@ -80,24 +81,24 @@ def get_action_arguments(
         :return:  of results
     """
 
-    # Assume we are returing something
+    # Assume we are returing something and that we have a <str> or <int> argument to get
     evaluated_results["returning_something"] = True
+    evaluated_results["get_xml_flag"] = True
 
     # Evaluate the argument based on its type
     match argtype:
         case "Str":
-            evaluated_results["get_xml_flag"] = True
             evaluated_results["strargs"].append(f"arg{str(arg)}")
             evaluated_results["streval"].append(argeval)
 
         case "Int":
-            evaluated_results["get_xml_flag"] = True
             evaluated_results["intargs"].append(f"arg{str(arg)}")
             evaluated_results["inteval"].append(argeval)
 
         case "App":
-            evaluated_results["strargs"].append(f"arg{str(arg)}")
-            evaluated_results["streval"].append(argeval)
+            extract_argument(
+                evaluated_results, arg, argeval
+            )
             app_class, app_pkg, app, extra = get_action.get_app_details(
                 primary_items, code_action, action_type
             )
@@ -106,44 +107,69 @@ def get_action_arguments(
             )
 
         case "ConditionList":
-            evaluated_results["strargs"].append(f"arg{str(arg)}")
-            evaluated_results["streval"].append(argeval)
-            final_conditions = ""
-            condition_list, boolean_list = process_condition_list(code_action)
-            # Go through all conditions
-            for numx, condition in enumerate(condition_list):
-                final_conditions = f"{final_conditions} {condition[0]}{condition[1]}{condition[2]}"
-                if boolean_list and len(boolean_list) > numx:
-                    final_conditions = (
-                        f"{final_conditions} {boolean_list[numx]} "
-                    )
-            evaluated_results["result_con"].append(final_conditions)
+            extract_condition(
+                evaluated_results, arg, argeval, code_action
+            )
 
         case "Img":
-            image, package = "", ""
-            child = code_action.find("Img")
-            # if child.find("nme") is not None:
-            with contextlib.suppress(Exception):
-                image = child.find("nme").text
-            if child.find("pkg") is not None:
-                package = f'", Package:"{child.find("pkg").text}'
-            elif child.find("var") is not None:  # There is a variable name?
-                image = child.find("var").text
-            if image:
-                evaluated_results["result_img"].append(
-                    f"{argeval}{image}{package}"
-                )
-            else:
-                evaluated_results["result_img"].append(" ")
-                evaluated_results["returning_something"] = False
-
+            extract_image(
+                evaluated_results, code_action, argeval
+            )
         case "Bundle":  # It's a plugin
+            evaluated_results["get_xml_flag"] = False
             evaluated_results = get_bundle(code_action, evaluated_results)
 
         case _:
+            evaluated_results["get_xml_flag"] = False
             logger.debug(f"get_action_results  unknown argtype:{argtype}!!!!!")
             evaluated_results["returning_something"] = False
     return evaluated_results
+
+
+# Get image related details from action xml
+def extract_image(evaluated_results, code_action, argeval):
+    evaluated_results["get_xml_flag"] = False
+    image, package = "", ""
+    child = code_action.find("Img")
+    # if child.find("nme") is not None:
+    with contextlib.suppress(Exception):
+        image = child.find("nme").text
+    if child.find("pkg") is not None:
+        package = f'", Package:"{child.find("pkg").text}'
+    elif child.find("var") is not None:  # There is a variable name?
+        image = child.find("var").text
+    if image:
+        evaluated_results["result_img"].append(f"{argeval}{image}{package}")
+    else:
+        evaluated_results["result_img"].append(" ")
+        evaluated_results["returning_something"] = False
+
+
+# Get condition releated details from action xml
+def extract_condition(evaluated_results, arg, argeval, code_action):
+    # Get argument
+    extract_argument(evaluated_results, arg, argeval)
+    
+    # Get the conditions            
+    condition_list, boolean_list = process_condition_list(code_action)
+
+    # Go through all conditions
+    conditions = []
+    for numx, condition in enumerate(condition_list):
+        # Add the condition 0 1 2: a = x 
+        conditions.append(f" {condition[0]}{condition[1]}{condition[2]}")
+        # Add the boolean operator if it exists
+        if boolean_list and len(boolean_list) > numx:
+            conditions.append(f" {boolean_list[numx]}")
+    seperator = ""
+    evaluated_results["result_con"].append(seperator.join(conditions))
+
+
+# Get the argument details from action xml
+def extract_argument(evaluated_results, arg, argeval):
+    evaluated_results["get_xml_flag"] = False
+    evaluated_results["strargs"].append(f"arg{str(arg)}")
+    evaluated_results["streval"].append(argeval)
 
 
 # ##################################################################################
@@ -180,7 +206,7 @@ def action_args(
 ) -> object:
     """
     Go through the arguments and parse each one based on its argument 'type'
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param arg_list: list of arguments (xml "<argn>") to process
         :param the_action_code_plus: the lookup the Action code from actionc with
             "action type" (e.g. 861t, t=Task, e=Event, s=State)

@@ -27,7 +27,7 @@ def adjust_name(primary_items: dict, list_type: str, the_item: str) -> str:
     """_summary_
     Parse out name and add any attributes to it
         Args:
-            :param primary_items:  Program registry.  See mapit.py for details.
+            :param primary_items:  Program registry.  See primitem.py for details.
             list_type (str): The type of the list.
             the_item (str): The text item to process.
 
@@ -58,7 +58,7 @@ def format_task_or_scene(
     """_summary_
     Given an item, build output line for Task or Scene
        Args:
-           primary_items (dict): Program registry.  See mapit.py for details.
+           primary_items (dict): Program registry.  See primitem.py for details.
            list_type (list): Either "Task:" or "Scene:"
            the_item (str): text for Task or Scene
 
@@ -94,7 +94,7 @@ def add_dictionary_and_twisty(
     """_summary_
     If doing a directory, format and add it.  If doing twisties, add a twisty
         Args:
-           primary_items (dict): Program registry.  See mapit.py for details.
+           primary_items (dict): Program registry.  See primitem.py for details.
             list_type (list): Either "Task:" or "Scene:"
             the_item (str): text for Task or Scene
             the_task (defusedxml): XML pointer to our Task being procesed
@@ -169,7 +169,7 @@ def format_item(
     Given an item, format it with all of the particulars:
         Proper html/color/font, twisty, direectory, properties, etc.
         Args:
-            primary_items (dict): Program registry.  See mapit.py for details
+            primary_items (dict): Program registry.  See primitem.py for details
             list_type (str): Either "Task:" or "Scene:"
             the_item (str): The string for the above type
             the_list (list): List of Tasks or Scenes
@@ -230,7 +230,7 @@ def process_item(
     Process the item and add it to the output.
 
     Args:
-        :param primary_items:  Program registry.  See mapit.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         the_item (str): The text item to process.
         list_type (str): The type of the list.
         the_list (str): The list to process.
@@ -303,7 +303,7 @@ def process_list(
 ) -> None:
     """
     Process Task/Scene text/line item: call recursively for Tasks within Scenes
-        :param primary_items:  program registry.  See mapit.py for details.
+        :param primary_items:  program registry.  See primitem.py for details.
         :param list_type: Task or Scene
         :param the_list: list of Task names tro process
         :param the_task: Task/Scene xml element

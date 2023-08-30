@@ -683,9 +683,6 @@ class MyGui(customtkinter.CTk):
         temp_primary_items["output_lines"] = LineOut()
         temp_primary_items = get_data_and_output_intro(temp_primary_items)
 
-        # temp_primary_items["unordered_list_count"]
-        # temp_primary_items = get_data_and_output_intro(temp_primary_items)
-        # del temp_primary_items["output_lines"]
         # Set up for name check
         root_element = []
 
@@ -729,25 +726,16 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process single name selection/event
     # ##################################################################################
-    def process_name_event(self, my_name):
+    def process_name_event(
+        self,
+        my_name: str,
+        checkbox1: customtkinter.CHECKBUTTON,
+        checkbox2: customtkinter.CHECKBUTTON,
+    ):
         #  Clear any prior error message
         self.textbox.delete("1.0", "end")
-
-        match my_name:
-            case "Project":
-                # Turn off Profile and Task buttons
-                self.string_input_button2.deselect()
-                self.string_input_button3.deselect()
-            case "Profile":
-                # Turn off Project and Task buttons
-                self.string_input_button1.deselect()
-                self.string_input_button3.deselect()
-            case "Task":
-                # Turn off Project and Profile buttons
-                self.string_input_button1.deselect()
-                self.string_input_button2.deselect()
-            case _:
-                pass
+        checkbox1.deselect()
+        checkbox2.deselect()
         # Display prompt for name
         dialog = customtkinter.CTkInputDialog(
             text=f"Enter {my_name} name (case sensitive):",
@@ -761,9 +749,9 @@ class MyGui(customtkinter.CTk):
             self.single_project_name = (
                 self.single_profile_name
             ) = self.single_task_name = ""
+            # Get the name entered
             match my_name:
                 case "Project":
-                    # Turn off (e.g.) Profile and Task buttons
                     self.single_project_name = name_entered
                 case "Profile":
                     self.single_profile_name = name_entered
@@ -776,19 +764,25 @@ class MyGui(customtkinter.CTk):
     # Process the Project Name entry
     # ##################################################################################
     def single_project_name_event(self):
-        self.process_name_event("Project")
+        self.process_name_event(
+            "Project", self.string_input_button2, self.string_input_button3
+        )
 
     # ##################################################################################
     # Process the Profile Name entry
     # ##################################################################################
     def single_profile_name_event(self):
-        self.process_name_event("Profile")
+        self.process_name_event(
+            "Profile", self.string_input_button1, self.string_input_button3
+        )
 
     # ##################################################################################
     # Process the Task Name entry
     # ##################################################################################
     def single_task_name_event(self):
-        self.process_name_event("Task")
+        self.process_name_event(
+            "Task", self.string_input_button1, self.string_input_button2
+        )
 
     # ##################################################################################
     # Process the screen mode: dark, light, system
@@ -884,9 +878,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     def condition_event(self):
         self.conditions = self.condition_checkbox.get()
-        self.inform_message(
-            "Display Profile/Task Conditions", self.conditions, ""
-        )
+        self.inform_message("Display Profile/Task Conditions", self.conditions, "")
 
     # ##################################################################################
     # Process the 'Tasker Preferences' checkbox
@@ -986,6 +978,7 @@ class MyGui(customtkinter.CTk):
 
     # ##################################################################################
     # Restore displays setting from restored value
+    # One "case" for each program argument!
     # ##################################################################################
     def restore_display(self, key, value):
         message = ""
@@ -1086,7 +1079,8 @@ class MyGui(customtkinter.CTk):
                     message = "Settings restored.\n"
             case _:
                 self.display_message_box(
-                    f"Rutroh!  Key named {key} with value {value} no longer valid.  Resave settings!", False
+                    f"Rutroh!  Key named {key} with value {value} no longer valid.  Resave settings!",
+                    False,
                 )
         return message
 
