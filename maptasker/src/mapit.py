@@ -1,5 +1,19 @@
 #! /usr/bin/env python3
 
+
+#  $$\      $$\                           $$$$$$$$\                  $$\
+#  $$$\    $$$ |                          \__$$  __|                 $$ |
+#  $$$$\  $$$$ | $$$$$$\   $$$$$$\           $$ | $$$$$$\   $$$$$$$\ $$ |  $$\  $$$$$$\   $$$$$$\
+#  $$\$$\$$ $$ | \____$$\ $$  __$$\          $$ | \____$$\ $$  _____|$$ | $$  |$$  __$$\ $$  __$$\
+#  $$ \$$$  $$ | $$$$$$$ |$$ /  $$ |         $$ | $$$$$$$ |\$$$$$$\  $$$$$$  / $$$$$$$$ |$$ |  \__|
+#  $$ |\$  /$$ |$$  __$$ |$$ |  $$ |         $$ |$$  __$$ | \____$$\ $$  _$$<  $$   ____|$$ |
+#  $$ | \_/ $$ |\$$$$$$$ |$$$$$$$  |         $$ |\$$$$$$$ |$$$$$$$  |$$ | \$$\ \$$$$$$$\ $$ |
+#  \__|     \__| \_______|$$  ____/          \__| \_______|\_______/ \__|  \__| \_______|\__|
+#                         $$ |
+#                         $$ |
+#                         \__|
+
+
 # #################################################################################### #
 #                                                                                      #
 # mapit: Main Program                                                                  #
@@ -14,11 +28,6 @@
 #                                                                                      #
 # Note: This should work on PC OS's other than a MAC, but it has not been tested       #
 #       on any other platform.                                                         #
-#                                                                                      #
-# Add the following statement (without quotes) to your Terminal Shell config file      #
-#  (BASH, Fish, etc.) to eliminate the runtime msg:                                    #
-#  DEPRECATION WARNING: The system version of Tk is deprecated ...                     #
-#  "export TK_SILENCE_DEPRECATION = 1"                                                 #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
@@ -47,8 +56,9 @@ from maptasker.src.frmtline import format_line
 from maptasker.src.lineout import LineOut
 from maptasker.src.prefers import get_preferences
 from maptasker.src.primitem import initialize_primary_items
-from maptasker.src.outline import  outline_the_configuration
-from maptasker.src.sysconst import debug_file, debug_out, logger
+from maptasker.src.outline import outline_the_configuration
+from maptasker.src.sysconst import debug_file, debug_out, logger, Colors
+
 
 # import os
 # print('Path:', os.getcwd())
@@ -127,7 +137,7 @@ def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> 
         :return: nothing
     """
     logger.info(f"Function Entry: write_out_the_file dir:{my_output_dir}")
-    with open(my_output_dir + my_file_name, "w") as out_file:
+    with open(f"{my_output_dir}{my_file_name}", "w") as out_file:
         # Output the rest that is in our output queue
         for num, item in enumerate(primary_items["output_lines"].output_lines):
             # Format the output line
@@ -304,8 +314,11 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
         error_handler(
             "Error: Failed to open output in browser: your browser is not supported.", 1
         )
-
-    print("You can find 'MapTasker.html' in the current folder.  Program end.")
+    print("")
+    print(
+        f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  Program end."
+    )
+    print("")
 
 
 # ##################################################################################
@@ -462,12 +475,12 @@ def mapit_all(file_to_get: str) -> int:
         single_task_name,
     )
 
-    # Output the outline
-    # TODO For future use
-    # outline_the_configuration(primary_items)
-    
     # Restore the directory setting for the final directory of Totals
     primary_items["program_arguments"]["directory"] = temp_dir
+
+    # Output the outline
+    if primary_items["program_arguments"]["outline"]:
+        outline_the_configuration(primary_items)
 
     # Output the grand total (Projects/Profiles/Tasks/Scenes)
     output_grand_totals(primary_items)
@@ -495,7 +508,10 @@ def mapit_all(file_to_get: str) -> int:
     my_output_dir = getcwd()
     logger.debug(f"output directory:{my_output_dir}")
     if my_output_dir is None:
-        error_handler("MapTasker cancelled.  An error occurred.  Program cancelled.", 0)
+        error_handler(
+            f"{Colors.Yellow}MapTasker cancelled.  An error occurred.  Program cancelled.",
+            0,
+        )
         clean_up_memory(primary_items)
         sys.exit(2)
 

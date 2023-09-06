@@ -56,15 +56,18 @@ def save_restore_args(
     """
     the_file = f"{Path.cwd()}/{ARGUMENTS_FILE}"
     if to_save:
+        # Force file object into a dictionary for json encoding
+        if not isinstance(program_arguments["file"], str):
+            program_arguments["file"] = program_arguments["file"].name
         # Save dictionaries
         list_to_save = [
             colors_to_use,
             program_arguments,
         ]
-        with open(the_file, "w") as f:
-            json.dump(list_to_save, f)
-            f.close()
-            
+        with open(the_file, "w") as json_file:
+            json.dump(list_to_save, json_file)
+            json_file.close()
+
     # Restore dictionaries
     else:
         try:

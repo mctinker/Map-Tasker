@@ -96,25 +96,17 @@ def get_action_arguments(
             evaluated_results["inteval"].append(argeval)
 
         case "App":
-            extract_argument(
-                evaluated_results, arg, argeval
-            )
+            extract_argument(evaluated_results, arg, argeval)
             app_class, app_pkg, app, extra = get_action.get_app_details(
                 primary_items, code_action, action_type
             )
-            evaluated_results["result_app"].append(
-                f"{app_class}, {app_pkg}, {app}"
-            )
+            evaluated_results["result_app"].append(f"{app_class}, {app_pkg}, {app}")
 
         case "ConditionList":
-            extract_condition(
-                evaluated_results, arg, argeval, code_action
-            )
+            extract_condition(evaluated_results, arg, argeval, code_action)
 
         case "Img":
-            extract_image(
-                evaluated_results, code_action, argeval
-            )
+            extract_image(evaluated_results, code_action, argeval)
         case "Bundle":  # It's a plugin
             evaluated_results["get_xml_flag"] = False
             evaluated_results = get_bundle(code_action, evaluated_results)
@@ -149,14 +141,14 @@ def extract_image(evaluated_results, code_action, argeval):
 def extract_condition(evaluated_results, arg, argeval, code_action):
     # Get argument
     extract_argument(evaluated_results, arg, argeval)
-    
-    # Get the conditions            
+
+    # Get the conditions
     condition_list, boolean_list = process_condition_list(code_action)
 
     # Go through all conditions
     conditions = []
     for numx, condition in enumerate(condition_list):
-        # Add the condition 0 1 2: a = x 
+        # Add the condition 0 1 2: a = x
         conditions.append(f" {condition[0]}{condition[1]}{condition[2]}")
         # Add the boolean operator if it exists
         if boolean_list and len(boolean_list) > numx:

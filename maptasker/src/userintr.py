@@ -49,6 +49,9 @@ INFO_TEXT = (
     "every Task.\n"
     "    Level 3 = display full Task action details on "
     "every Task with action details.\n\n"
+    "* Just Display Everything: Turns on the display of "
+    "conditions, TaskerNet information, preferences, twisties, directory, "
+    "and configuration outline.\n\n"
     "* Display Conditions: Turn on the display of "
     "Profile and Task conditions.\n\n"
     "* Display TaskerNet Info - If available, display "
@@ -57,7 +60,9 @@ INFO_TEXT = (
     "system Preferences.\n\n"
     "* Hide Task Details under Twisty: hide Task "
     "information within ► and click to display.\n\n"
-    "* Display directory of hyperlinks at beginning."
+    "* Display Directory of hyperlinks at beginning."
+    "\n\n"
+    "* Display Configuration Outline of your Projects/Profiles/Tasks."
     "\n\n"
     "* Project/Profile/Task/Scene Names options to "
     "italicize, bold, underline and/or highlight their "
@@ -72,6 +77,7 @@ INFO_TEXT = (
     "* Reset Options: Clear everything and start "
     "anew.\n\n"
     "* Font To Use: Change the monospace font used for the output.\n\n"
+    "* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n"
     "* Get Backup from Android Device: fetch the backup "
     "xml file from device.\n\n"
     "* Run: Run the program with the settings "
@@ -119,6 +125,7 @@ class MyGui(customtkinter.CTk):
         self.display_detail_level = None
         self.preferences = None
         self.conditions = None
+        self.everything = None
         self.taskernet = None
         self.exit = None
         self.fetched_backup_from_android = False
@@ -140,6 +147,7 @@ class MyGui(customtkinter.CTk):
         self.single_task_name = None
         self.twisty = None
         self.underline = None
+        self.outline = False
 
         self.title("MapTasker Runtime Options")
         # Overall window dimensions
@@ -179,6 +187,16 @@ class MyGui(customtkinter.CTk):
         )
         self.sidebar_detail_option.grid(row=2, column=0, padx=20, pady=(10, 10))
 
+        # Everything
+        self.everything_checkbox = customtkinter.CTkCheckBox(
+            self.sidebar_frame,
+            command=self.everything_event,
+            text="Just Display Everything!",
+            onvalue=True,
+            offvalue=False,
+        )
+        self.everything_checkbox.grid(row=3, column=0, padx=20, pady=10, sticky="w")
+
         # Display 'Condition' checkbox
         self.condition_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
@@ -187,31 +205,27 @@ class MyGui(customtkinter.CTk):
             onvalue=True,
             offvalue=False,
         )
-        self.condition_checkbox.grid(row=3, column=0, padx=20, pady=10, sticky="w")
+        self.condition_checkbox.grid(row=4, column=0, padx=20, pady=10, sticky="w")
 
         # Display 'TaskerNet' checkbox
-        self.display_taskernet_checkbox = customtkinter.CTkCheckBox(
+        self.taskernet_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
-            command=self.display_taskernet_event,
+            command=self.taskernet_event,
             text="Display TaskerNet Info",
             onvalue=True,
             offvalue=False,
         )
-        self.display_taskernet_checkbox.grid(
-            row=4, column=0, padx=20, pady=10, sticky="w"
-        )
+        self.taskernet_checkbox.grid(row=5, column=0, padx=20, pady=10, sticky="w")
 
         # Display 'Tasker Preferences' checkbox
-        self.display_preferences_checkbox = customtkinter.CTkCheckBox(
+        self.preferences_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
-            command=self.display_preferences_event,
+            command=self.preferences_event,
             text="Display Tasker Preferences",
             onvalue=True,
             offvalue=False,
         )
-        self.display_preferences_checkbox.grid(
-            row=5, column=0, padx=20, pady=10, sticky="w"
-        )
+        self.preferences_checkbox.grid(row=6, column=0, padx=20, pady=10, sticky="w")
 
         # Display 'Twisty' checkbox
         self.twisty_checkbox = customtkinter.CTkCheckBox(
@@ -221,7 +235,7 @@ class MyGui(customtkinter.CTk):
             onvalue=True,
             offvalue=False,
         )
-        self.twisty_checkbox.grid(row=6, column=0, padx=20, pady=10, sticky="w")
+        self.twisty_checkbox.grid(row=7, column=0, padx=20, pady=10, sticky="w")
 
         # Display 'directory' checkbox
         self.directory_checkbox = customtkinter.CTkCheckBox(
@@ -231,13 +245,23 @@ class MyGui(customtkinter.CTk):
             onvalue=True,
             offvalue=False,
         )
-        self.directory_checkbox.grid(row=7, column=0, padx=20, pady=10, sticky="w")
+        self.directory_checkbox.grid(row=8, column=0, padx=20, pady=10, sticky="w")
+
+        # Outline
+        self.outline_checkbox = customtkinter.CTkCheckBox(
+            self.sidebar_frame,
+            command=self.outline_event,
+            text="Display Configuration Outline",
+            onvalue=True,
+            offvalue=False,
+        )
+        self.outline_checkbox.grid(row=9, column=0, padx=20, pady=10, sticky="w")
 
         # Names: Bold / Highlight / Italicise
         self.display_names_label = customtkinter.CTkLabel(
             self.sidebar_frame, text="Project/Profile/Task/Scene Names:", anchor="s"
         )
-        self.display_names_label.grid(row=8, column=0, padx=20, pady=10)
+        self.display_names_label.grid(row=10, column=0, padx=20, pady=10)
         # Bold
         self.bold_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
@@ -246,7 +270,7 @@ class MyGui(customtkinter.CTk):
             onvalue=True,
             offvalue=False,
         )
-        self.bold_checkbox.grid(row=9, column=0, padx=20, pady=0, sticky="ne")
+        self.bold_checkbox.grid(row=11, column=0, padx=20, pady=0, sticky="ne")
         # Italicize
         self.italicize_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
@@ -255,7 +279,7 @@ class MyGui(customtkinter.CTk):
             onvalue=True,
             offvalue=False,
         )
-        self.italicize_checkbox.grid(row=9, column=0, padx=20, pady=0, sticky="nw")
+        self.italicize_checkbox.grid(row=11, column=0, padx=20, pady=0, sticky="nw")
         # Highlight
         self.highlight_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
@@ -264,7 +288,7 @@ class MyGui(customtkinter.CTk):
             onvalue=True,
             offvalue=False,
         )
-        self.highlight_checkbox.grid(row=10, column=0, padx=20, pady=5, sticky="ne")
+        self.highlight_checkbox.grid(row=12, column=0, padx=20, pady=5, sticky="ne")
         # Underline
         self.underline_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
@@ -273,13 +297,13 @@ class MyGui(customtkinter.CTk):
             onvalue=True,
             offvalue=False,
         )
-        self.underline_checkbox.grid(row=10, column=0, padx=20, pady=5, sticky="nw")
+        self.underline_checkbox.grid(row=12, column=0, padx=20, pady=5, sticky="nw")
 
         # Indentation
         self.indent_label = customtkinter.CTkLabel(
             self.sidebar_frame, text="If/Then/Else Indentation Amount:", anchor="s"
         )
-        self.indent_label.grid(row=11, column=0, padx=20, pady=(10, 0))
+        self.indent_label.grid(row=13, column=0, padx=20, pady=(10, 0))
         # Indentation Amount
         self.indent_option = customtkinter.CTkOptionMenu(
             self.sidebar_frame,
@@ -298,29 +322,7 @@ class MyGui(customtkinter.CTk):
             ],
             command=self.indent_selected_event,
         )
-        self.indent_option.grid(row=12, column=0, padx=20, pady=(10, 10))
-
-        # Save settings button
-        self.save_settings_button = customtkinter.CTkButton(
-            self.sidebar_frame,
-            border_color="#6563ff",
-            border_width=2,
-            text="Save Settings",
-            command=self.save_settings_event,
-        )
-        self.save_settings_button.grid(
-            row=13, column=0, padx=20, pady=(20, 2), sticky="s"
-        )
-
-        # Restore settings button
-        self.restore_settings_button = customtkinter.CTkButton(
-            self.sidebar_frame,
-            border_color="#6563ff",
-            border_width=2,
-            text="Restore Settings",
-            command=self.restore_settings_event,
-        )
-        self.restore_settings_button.grid(row=14, column=0, padx=20, pady=10, sticky="")
+        self.indent_option.grid(row=14, column=0, padx=20, pady=(10, 10))
 
         # Screen Appearance: Light / Dark / System
         self.appearance_mode_label = customtkinter.CTkLabel(
@@ -349,9 +351,9 @@ class MyGui(customtkinter.CTk):
 
         # Font to use
         self.font_label = customtkinter.CTkLabel(
-            master=self, text="Font To Use In Output:", anchor="w"
+            master=self, text="Font To Use In Output:", anchor="sw"
         )
-        self.font_label.grid(row=6, column=1, padx=10, sticky="w")
+        self.font_label.grid(row=6, column=1, padx=20, pady=10, sticky="sw")
         # Get fonts from TkInter
         fonts = self.get_fonts()
         font_items = ["Courier"]
@@ -363,8 +365,29 @@ class MyGui(customtkinter.CTk):
             values=font_items,
             command=self.font_event,
         )
+        self.font_optionemenu.grid(row=7, column=1, padx=20, sticky="nw")
 
-        self.font_optionemenu.grid(row=7, column=1, padx=10, sticky="nw")
+        # Save settings button
+        self.save_settings_button = customtkinter.CTkButton(
+            master=self,
+            border_color="#6563ff",
+            border_width=2,
+            text="Save Settings",
+            command=self.save_settings_event,
+        )
+        self.save_settings_button.grid(row=8, column=1, padx=20, pady=10, sticky="sw")
+
+        # Restore settings button
+        self.restore_settings_button = customtkinter.CTkButton(
+            master=self,
+            border_color="#6563ff",
+            border_width=2,
+            text="Restore Settings",
+            command=self.restore_settings_event,
+        )
+        self.restore_settings_button.grid(
+            row=9, column=1, padx=20, pady=10, sticky="nw"
+        )
 
         # 'Get Backup Settings' button definition
         self.get_backup_button = customtkinter.CTkButton(
@@ -375,7 +398,20 @@ class MyGui(customtkinter.CTk):
             command=self.get_backup_event,
             text_color=("#0BF075", "#1AD63D"),
         )
-        self.get_backup_button.grid(row=8, column=1, padx=10, pady=(20, 20), sticky="w")
+        self.get_backup_button.grid(
+            row=10, column=1, padx=10, pady=(20, 20), sticky="w"
+        )
+
+        # 'Display Help' button definition
+        self.help_button = customtkinter.CTkButton(
+            master=self,
+            fg_color="#246FB6",
+            border_width=2,
+            text="Display Help",
+            command=self.help_event,
+        )
+
+        self.help_button.grid(row=6, column=2, padx=(20, 20), pady=(20, 20), sticky="n")
 
         # 'Run' button definition
         self.run_button = customtkinter.CTkButton(
@@ -386,7 +422,7 @@ class MyGui(customtkinter.CTk):
             command=self.run_program,
             text_color=("#0BF075", "#1AD63D"),
         )
-        self.run_button.grid(row=6, column=2, padx=(20, 20), pady=(20, 20))
+        self.run_button.grid(row=7, column=2, padx=(20, 20), pady=(20, 20))
 
         # 'ReRun' button definition
         self.rerun_button = customtkinter.CTkButton(
@@ -397,7 +433,7 @@ class MyGui(customtkinter.CTk):
             command=self.rerun_the_program,
             text_color=("#0BF075", "#1AD63D"),
         )
-        self.rerun_button.grid(row=7, column=2, padx=(20, 20), pady=(20, 20))
+        self.rerun_button.grid(row=8, column=2, padx=(20, 20), pady=(20, 20))
 
         # 'Exit' button definition
         self.exit_button = customtkinter.CTkButton(
@@ -408,7 +444,7 @@ class MyGui(customtkinter.CTk):
             command=self.exit_program,
             text_color="Red",
         )
-        self.exit_button.grid(row=8, column=2, padx=(20, 20), pady=(20, 20))
+        self.exit_button.grid(row=9, column=2, padx=(20, 20), pady=(20, 20))
 
         # create textbox for Help information
         self.textbox = customtkinter.CTkTextbox(self, height=600, width=250)
@@ -543,6 +579,8 @@ class MyGui(customtkinter.CTk):
         ) = (
             self.debug
         ) = (
+            self.everything
+        ) = (
             self.clear_settings
         ) = (
             self.reset
@@ -557,9 +595,11 @@ class MyGui(customtkinter.CTk):
         ) = (
             self.italicize
         ) = (
-            self.undereline
+            self.underline
         ) = (
             self.go_program
+        ) = (
+            self.outline
         ) = (
             self.rerun
         ) = (
@@ -567,7 +607,9 @@ class MyGui(customtkinter.CTk):
         ) = (
             self.save
         ) = self.twisty = self.directory = self.fetched_backup_from_android = False
-        self.single_project_name = self.single_profile_name = self.single_task_name = ""
+        self.single_project_name = (
+            self.single_profile_name
+        ) = self.single_task_name = self.file = ""
         self.color_text_row = 2
         self.appearance_mode_optionemenu.set("System")
         self.appearance_mode = "system"
@@ -578,7 +620,6 @@ class MyGui(customtkinter.CTk):
             self.textbox.insert("0.0", "MapTasker Help\n\n" + INFO_TEXT)
             self.all_messages = ""
         self.color_lookup = {}  # Setup default dictionary as empty list
-        self.file = None
         self.font = OUTPUT_FONT
         self.gui = True
 
@@ -614,8 +655,10 @@ class MyGui(customtkinter.CTk):
         self.all_messages = f"{self.all_messages}{message}\n"
         # insert at line 0 character 0
         self.textbox.insert("0.0", self.all_messages)
-        # Set read-only and set color
-        self.textbox.configure(state="disabled", text_color=color)
+        # Set read-only, color, wrap around and font
+        self.textbox.configure(
+            state="disabled", text_color=color, wrap="word", font=(self.font, 14)
+        )
         self.textbox.focus_set()
 
     # ##################################################################################
@@ -795,14 +838,14 @@ class MyGui(customtkinter.CTk):
     # Process the screen mode: dark, light, system
     # ##################################################################################
     def font_event(self, font_selected: str):
-        self.font = f";font-family:{font_selected}"
+        self.font = font_selected
         self.font_out_label = customtkinter.CTkLabel(
             master=self,
             text=f"Monospaced Font To Use: {font_selected}",
-            anchor="w",
+            anchor="sw",
             font=(font_selected, 14),
         )
-        self.font_out_label.grid(row=6, column=1, padx=10, sticky="w")
+        self.font_out_label.grid(row=6, column=1, padx=10, pady=10, sticky="sw")
         self.display_message_box(f"Font To Use set to {font_selected}", True)
 
     # ##################################################################################
@@ -817,6 +860,16 @@ class MyGui(customtkinter.CTk):
                 "Hiding Tasks with Twisty has no effect with Display Detail Level of 0.",
                 False,
             )
+
+    # ################################################################################
+    # Select or deselect a checkbox based on the value passed in
+    # ################################################################################
+    def get_input_and_put_message(
+        self, checkbox: customtkinter.CHECKBUTTON, title: str
+    ):
+        checkbox_value = checkbox.get()
+        self.inform_message(title, checkbox_value, "")
+        return checkbox_value
 
     # ##################################################################################
     # Process the Identation Amount selection
@@ -837,14 +890,14 @@ class MyGui(customtkinter.CTk):
             "Tasker Preferences",
         ]
         check_against = [
-            self.display_profile_conditions,
-            self.display_profile_conditions,
-            self.display_taskernet,
-            self.display_preferences,
+            self.conditions,
+            self.conditions,
+            self.taskernet,
+            self.preferences,
         ]
 
         # Let's first make sure that if a color has been chosen for a display flag,
-        # that the flag is True (e.g. display this colored item)
+        # that the associated display flag is True (e.g. display this colored item)
         with contextlib.suppress(Exception):
             the_index = warning_check.index(color_selected_item)
             if not check_against[the_index]:
@@ -877,22 +930,76 @@ class MyGui(customtkinter.CTk):
     # Process the 'conditions' checkbox
     # ##################################################################################
     def condition_event(self):
-        self.conditions = self.condition_checkbox.get()
-        self.inform_message("Display Profile/Task Conditions", self.conditions, "")
+        self.conditions = self.get_input_and_put_message(
+            self.condition_checkbox, "Display Profile/Task Conditions"
+        )
+
+    # ##################################################################################
+    # Process the 'conditions' checkbox
+    # ##################################################################################
+    def outline_event(self):
+        self.outline = self.get_input_and_put_message(
+            self.outline_checkbox, "Display Configuration Outline"
+        )
+
+    # ##################################################################################
+    # Process the 'everything' checkbox
+    # ##################################################################################
+    def everything_event(self):
+        # Dictionary of program arguments and function to run for each upon restoration.
+        message_map = {
+            "conditions": lambda: self.select_deselect_checkbox(
+                self.condition_checkbox, value, "Display Profile/Task Conditions"
+            ),
+            "directory": lambda: self.select_deselect_checkbox(
+                self.directory_checkbox, value, "Display Directory"
+            ),
+            "outline": lambda: self.select_deselect_checkbox(
+                self.outline_checkbox, value, "Display Configuration Outline"
+            ),
+            "preferences": lambda: self.select_deselect_checkbox(
+                self.preferences_checkbox, value, "Display Tasker Preferences"
+            ),
+            "runtime": lambda: self.select_deselect_checkbox(
+                self.runtime_checkbox, value, "Display Runtime Settings"
+            ),
+            "taskernet": lambda: self.select_deselect_checkbox(
+                self.taskernet_checkbox, value, "Display TaskerNet Information"
+            ),
+            "twisty": lambda: self.select_deselect_checkbox(
+                self.twisty_checkbox, value, "Hide Task Details Under Twisty"
+            ),
+        }
+
+        self.everything = self.everything_checkbox.get()
+        value = self.everything
+
+        new_message = all_messages = ""
+        for key in message_map:
+            if message_func := message_map.get(key):
+                new_message = f"{message_func()}"
+                all_messages = f"{all_messages}{new_message}"
+            # Check if key is an attribute on self before setting
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+        self.display_message_box(all_messages, True)
 
     # ##################################################################################
     # Process the 'Tasker Preferences' checkbox
     # ##################################################################################
-    def display_preferences_event(self):
-        self.preferences = self.display_preferences_checkbox.get()
-        self.inform_message("Display Tasker Preferences", self.preferences, "")
+    def preferences_event(self):
+        self.preferences = self.get_input_and_put_message(
+            self.preferences_checkbox, "Display Tasker Preferences"
+        )
 
     # ##################################################################################
     # Process the 'Twisty' checkbox
     # ##################################################################################
     def twisty_event(self):
-        self.twisty = self.twisty_checkbox.get()
-        self.inform_message("Hide Task Details Under Twisty", self.twisty, "")
+        self.twisty = self.get_input_and_put_message(
+            self.twisty_checkbox, "Hide Task Details Under Twisty"
+        )
         if self.display_detail_level == "0":
             self.display_message_box(
                 "This has no effect with Display Detail Level of 0", False
@@ -902,43 +1009,71 @@ class MyGui(customtkinter.CTk):
     # Process the 'Display Directory' checkbox
     # ##################################################################################
     def directory_event(self):
-        self.directory = self.directory_checkbox.get()
-        self.inform_message("Display Directory", self.directory, "")
+        self.directory = self.get_input_and_put_message(
+            self.directory_checkbox, "Display Directory"
+        )
 
     # ##################################################################################
     # Process the 'Bold Names' checkbox
     # ##################################################################################
     def names_bold_event(self):
-        self.bold = self.bold_checkbox.get()
-        self.inform_message("Display Names in Bold", self.bold, "")
+        self.bold = self.get_input_and_put_message(
+            self.bold_checkbox, "Display Names in Bold"
+        )
 
     # ##################################################################################
     # Process the 'Highlight Names' checkbox
     # ##################################################################################
     def names_highlight_event(self):
-        self.highlight = self.highlight_checkbox.get()
-        self.inform_message("Display Names Highlighted", self.highlight, "")
+        self.highlight = self.get_input_and_put_message(
+            self.highlight_checkbox, "Display Names Highlighted"
+        )
 
     # ##################################################################################
     # Process the 'Italicize Names' checkbox
     # ##################################################################################
     def names_italicize_event(self):
-        self.italicize = self.italicize_checkbox.get()
-        self.inform_message("Display Names Italicized", self.italicize, "")
+        self.italicize = self.get_input_and_put_message(
+            self.italicize_checkbox, "Display Names Italicized"
+        )
 
     # ##################################################################################
     # Process the 'Underline Names' checkbox
     # ##################################################################################
     def names_underline_event(self):
-        self.underline = self.underline_checkbox.get()
-        self.inform_message("Display Names Underlined", self.underline, "")
+        self.underline = self.get_input_and_put_message(
+            self.underline_checkbox, "Display Names Underlined"
+        )
 
     # ##################################################################################
     # Process the 'Taskernet' checkbox
     # ##################################################################################
-    def display_taskernet_event(self):
-        self.taskernet = self.display_taskernet_checkbox.get()
-        self.inform_message("Display TaskerNet Info", self.taskernet, "")
+    def taskernet_event(self):
+        self.taskernet = self.get_input_and_put_message(
+            self.taskernet_checkbox, "Display TaskerNet Information"
+        )
+
+    # ##################################################################################
+    # Process the 'Runtime' checkbox
+    # ##################################################################################
+    def runtime_checkbox_event(self):
+        self.runtime = self.get_input_and_put_message(
+            self.runtime_checkbox, "Display Runtime Settings"
+        )
+
+    # ##################################################################################
+    # Process the 'Display Help' checkbox
+    # ##################################################################################
+    def help_event(self):
+        # Recreate text box
+        self.textbox = customtkinter.CTkTextbox(self, height=500, width=600)
+        self.textbox.grid(row=0, column=1, padx=20, pady=40, sticky="nsew")
+        self.textbox.insert("0.0", "MapTasker Help\n\n" + INFO_TEXT)
+        # Set read-only, color, wrap around and font
+        self.textbox.configure(state="disabled", wrap="word", font=(self.font, 14))
+        self.textbox.focus_set()
+
+        self.all_messages = ""
 
     # ################################################################################
     # Inform user of toggle selection
@@ -977,111 +1112,79 @@ class MyGui(customtkinter.CTk):
         return f"{argument_name} set to {checked}.\n"
 
     # ##################################################################################
-    # Restore displays setting from restored value
-    # One "case" for each program argument!
+    # Restore displays setting from restored value!
     # ##################################################################################
     def restore_display(self, key, value):
-        message = ""
-        match key:
-            case "debug":
-                message = self.select_deselect_checkbox(
-                    self.debug_checkbox, value, "Debug"
-                )
-            case "display_detail_level":
-                self.sidebar_detail_option.set(str(value))
-                message = f"Display Detail Level set to {str(value)}.\n"
-            case "indent":
-                if value:
-                    self.indent_option.set(str(value))
-                    message = f"Indentation amount set to {str(value)}.\n"
-            case "conditions":
-                message = self.select_deselect_checkbox(
-                    self.condition_checkbox, value, "Condition"
-                )
-            case "preferences":
-                message = self.select_deselect_checkbox(
-                    self.display_preferences_checkbox, value, "Tasker Preferences"
-                )
-            case "taskernet":
-                message = self.select_deselect_checkbox(
-                    self.display_taskernet_checkbox, value, "Display TaskerNet"
-                )
-            case "single_project_name":
-                if value:
-                    message = f"Project set to {value}.\n"
-            case "single_profile_name":
-                if value:
-                    message = f"Profile set to {value}.\n"
-            case "single_task_name":
-                if value:
-                    message = f"Task set to {value}.\n"
-            case "backup_file_http":
-                if value:
-                    message = f"Get Backup IP Address set to {value}\n"
-            case "backup_file_location":
-                if value:
-                    message = f"Get Backup File Location set to {value}\n"
-            case "twisty":
-                message = self.select_deselect_checkbox(
-                    self.twisty_checkbox, value, "Twisty"
-                )
-            case "directory":
-                message = self.select_deselect_checkbox(
-                    self.directory_checkbox, value, "Display Directory"
-                )
-            case "highlight":
-                message = self.select_deselect_checkbox(
-                    self.highlight_checkbox, value, "Display Highlighted names"
-                )
-            case "bold":
-                message = self.select_deselect_checkbox(
-                    self.bold_checkbox, value, "Display Bold names"
-                )
-            case "italicize":
-                message = self.select_deselect_checkbox(
-                    self.italicize_checkbox, value, "Display Italicized names"
-                )
-            case "underline":
-                message = self.select_deselect_checkbox(
-                    self.underline_checkbox, value, "Display Underlined names"
-                )
-            case "rerun":
-                pass
-            case "runtime":
-                message = self.select_deselect_checkbox(
-                    self.runtime_checkbox, value, "Display Runtime Settings"
-                )
-            case "appearance_mode":
-                if value:
-                    self.appearance_mode_optionemenu.set(value.capitalize())
-                    customtkinter.set_appearance_mode(value)
-                    self.appearance_mode = value
-                message = f"Appearance mode set to {value}.\n"
-            case "gui":
-                pass
-            case "font":
-                if value:
-                    self.font = value
-                    self.font_optionemenu.set(value)
-                    message = f"Font set to {value}.\n"
-            case "file":
-                if value:
-                    self.file = value
-                    message = f"Get backup file named {value}.\n"
-            case "fetched_backup_from_android":
-                if value:
-                    message = f"Fetched from Android:{value}."
-            case "save":
-                if value:
-                    message = "Settings saved.\n"
-            case "restore":
-                if value:
-                    message = "Settings restored.\n"
-            case _:
-                self.display_message_box(
-                    f"Rutroh!  Key named {key} with value {value} no longer valid.  Resave settings!",
-                    False,
-                )
+        # Dictionary of program arguments and function to run for each upon restoration.
+        message_map = {
+            "appearance_mode": lambda: f"Appearance mode set to {value}.\n",
+            "backup_file_http": lambda: f"Get Backup IP Address set to {value}\n",
+            "backup_file_location": lambda: f"Get Backup File Location set to {value}\n",
+            "bold": lambda: self.select_deselect_checkbox(
+                self.bold_checkbox, value, "Display Names in Bold"
+            ),
+            "conditions": lambda: self.select_deselect_checkbox(
+                self.condition_checkbox, value, "Display Profile/Task Conditions"
+            ),
+            "debug": lambda: self.select_deselect_checkbox(
+                self.debug_checkbox, value, "Debug Mode"
+            ),
+            "directory": lambda: self.select_deselect_checkbox(
+                self.directory_checkbox, value, "Display Directory"
+            ),
+            "display_detail_level": lambda: self.detail_selected_event(value),
+            "fetched_backup_from_android": lambda: f"Fetched Backup From Android:{value}.\n",
+            "file": lambda: f"Get backup file named '{value}'.\n",
+            "font": lambda: f"Font set to {value}.\n",
+            "highlight": lambda: self.select_deselect_checkbox(
+                self.highlight_checkbox, value, "Display Names Highlighted"
+            ),
+            # "indent": lambda: f"Indentation amount set to {value}.\n",
+            "indent": lambda: self.indent_selected_event(value),
+            "italicize": lambda: self.select_deselect_checkbox(
+                self.italicize_checkbox, value, "Display Names Italicized"
+            ),
+            "outline": lambda: self.select_deselect_checkbox(
+                self.outline_checkbox, value, "Display Configuration Outline"
+            ),
+            "preferences": lambda: self.select_deselect_checkbox(
+                self.preferences_checkbox, value, "Display Tasker Preferences"
+            ),
+            "runtime": lambda: self.select_deselect_checkbox(
+                self.runtime_checkbox, value, "Display Runtime Settings"
+            ),
+            "single_profile_name": lambda: f"Profile set to {value}.\n",
+            "single_project_name": lambda: f"Project set to {value}.\n",
+            "single_task_name": lambda: f"Task set to {value}.\n",
+            "taskernet": lambda: self.select_deselect_checkbox(
+                self.taskernet_checkbox, value, "Display TaskerNet Information"
+            ),
+            "twisty": lambda: self.select_deselect_checkbox(
+                self.twisty_checkbox, value, "Hide Task Details Under Twisty"
+            ),
+            "underline": lambda: self.select_deselect_checkbox(
+                self.underline_checkbox, value, "Display Names Underlined"
+            ),
+        }
+
+        # Processs specific items that have no effect on the GUI
+        if key in {"gui", "save", "restore", "rerun"}:
+            message = ""
+            # Check if key is an attribute on self before setting
+            if hasattr(self, key):
+                setattr(self, key, value)
+        else:
+            # Use dicxtionary lookup anmd lambda funtion to process key/value
+            message_func = message_map.get(key)
+            if message_func:
+                message = message_func()
+            if (
+                key
+                in {"single_project_name", "single_profile_name", "single_task_name"}
+                and value == ""
+            ):
+                message = message.replace(" .\n", " all.\n")
+
         return message
 
     # ##################################################################################
@@ -1116,7 +1219,7 @@ class MyGui(customtkinter.CTk):
             if key is not None:
                 setattr(self, key, value)
                 if new_message := self.restore_display(key, value):
-                    all_messages = all_messages + new_message
+                    all_messages = f"{all_messages}{new_message}"
         # Display the restored color changes, using the reverse dictionary of
         #   TYPES_OF_COLOR_NAMES (found in sysconst.py)
         inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
@@ -1217,8 +1320,8 @@ class MyGui(customtkinter.CTk):
         self.sidebar_detail_option.set("3")  # display detail level
         self.indent_option.set("4")  # Indentation amount
         self.condition_checkbox.deselect()  # Conditions
-        self.display_preferences_checkbox.deselect()  # Tasker Preferences
-        self.display_taskernet_checkbox.deselect()  # TaskerNet
+        self.preferences_checkbox.deselect()  # Tasker Preferences
+        self.taskernet_checkbox.deselect()  # TaskerNet
         self.appearance_mode_optionemenu.set("System")  # Appearance
         customtkinter.set_appearance_mode("System")  # Enforce appearance
         self.debug_checkbox.deselect()  # Debug
@@ -1230,7 +1333,9 @@ class MyGui(customtkinter.CTk):
         self.highlight_checkbox.deselect()  # highlight
         self.underline_checkbox.deselect()  # underline
         self.backup_file_location = self.backup_file_http = ""
-        self.runtime_checkbox.deselect()  # Display runtime settings
+        self.runtime_checkbox.deselect()  # Display runtime
+        self.outline_checkbox.deselect()  # Display outline
+        self.everything_checkbox.deselect()  # Display everything
         if self.color_labels:  # is there any color text?
             for label in self.color_labels:
                 label.configure(text="")
@@ -1255,13 +1360,6 @@ class MyGui(customtkinter.CTk):
                 self.debug = False
         else:
             self.display_message_box("Debug mode disabled.", True)
-
-    # ##################################################################################
-    # Process the 'Runtime' checkbox
-    # ##################################################################################
-    def runtime_checkbox_event(self):
-        self.runtime = self.runtime_checkbox.get()
-        self.inform_message("Display Runtime Settings", self.runtime, "")
 
     # ##################################################################################
     # Get all monospace fonts from TKInter

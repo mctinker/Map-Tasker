@@ -163,7 +163,7 @@ def evaluate_action_setting(*args: list) -> list:
 
     for item in args:
         if item[0] and item[1] != "":
-            results.append(item[2] + item[1])
+            results.append(f"{item[2]}{item[1]}")
         elif item[0] or item[1] != "1":
             results.append("")
         else:
@@ -197,18 +197,20 @@ def process_xml_list(
     #   1: True=it is a string, False it is an integer,
     #   2: the value to test
     #   3: the value to plug in if it meets the test
-        :param names: list of entries to substitute the argn value against.
+        :param names: list of entries to substitute the argn value against from actionc.
         :param arg_location: the location of the argument in the lookup table
         :param the_int_value: tha integer value found in the <argn> xml element
         :param match_results: list in which to return the evaluated values
-        :param arguments: list of Int arguments to look for (e.g. arg1,arg5,arg9)
+        :param arguments: list of arguments to look for (e.g. arg1,arg5,arg9)
         :return: nothing
     """
     # list of entries to substitute the argn value against.
     # NOTE: Do NOT move this import statement to avoid recursion
+    # lookup_values = value: option1, opt2, opt3, ...` for 0, 1, 2, ...
+    #   Example: "30s": {0: "Any", 1: "Mic", 2: "No Mic"},
     from maptasker.src.actiont import lookup_values
 
-    the_list = names[arg_location]
+    the_list = names[arg_location]  # Get the list of options for this arg location
     the_title = the_list[0]  # Title is first element in the list
     idx = 0
     running = True
@@ -434,30 +436,37 @@ def get_extra_stuff(
         :return: formatted line of extra details about Task Action
     """
 
+    program_arguments = primary_items["program_arguments"]
+    colors_to_use = primary_items["colors_to_use"]
     # Only get extras if this is a Task action (vs. a Profile condition)
-    if action_type and primary_items["program_arguments"]["display_detail_level"] == 3:
-        # Look for extra Task stiff: label, disabled, conditions
+    if action_type and program_arguments["display_detail_level"] == 3:
+        # Look for extra Task stuff: label, disabled, conditions
         extra_stuff = get_label_disabled_condition(
-            primary_items, code_action, primary_items["colors_to_use"]
+            primary_items, code_action, colors_to_use
         )
+
         # Get rid of html that might screw up our output
-        if (
-            "<font" in extra_stuff and "</font>" not in extra_stuff
-        ):  # Make sure we terminate any fonts
-            extra_stuff = f"{extra_stuff}</font>"
-        if (
-            "&lt;font" in extra_stuff and "&lt;/font&gt;" not in extra_stuff
-        ):  # Make sure we terminate any fonts
-            extra_stuff = f"{extra_stuff}</font>"
-        if (
-            "<b>" in extra_stuff and "</b>" not in extra_stuff
-        ):  # Make sure we terminate any bold
-            extra_stuff = f"{extra_stuff}</b>"
+        extra_stuff = (
+            extra_stuff.replace("</font>", "")
+            if "<font" in extra_stuff and "</font>" not in extra_stuff
+            else extra_stuff
+        )
+        extra_stuff = (
+            extra_stuff.replace("</font>", "")
+            if "&lt;font" in extra_stuff and "&lt;/font&gt;" not in extra_stuff
+            else extra_stuff
+        )
+        extra_stuff = (
+            extra_stuff.replace("</b>", "")
+            if "<b>" in extra_stuff and "</b>" not in extra_stuff
+            else extra_stuff
+        )
+
     else:
         extra_stuff = ""
 
     if (
-        primary_items["program_arguments"]["debug"] and action_type
+        program_arguments["debug"] and action_type
     ):  # Add the code if this is an Action and in debug mode
         extra_stuff = extra_stuff + format_html(
             primary_items,
@@ -468,24 +477,15 @@ def get_extra_stuff(
         )
 
     # See if Task action is to be continued after error
-    if primary_items["program_arguments"]["display_detail_level"] == 3:
+    if program_arguments["display_detail_level"] == 3:
         child = code_action.find("se")
         if child is not None and child.text == "false":
-            extra_stuff = (
-                format_html(
-                    primary_items,
-                    "action_color",
-                    "",
-                    " [Continue Task After Error]",
-                    True,
-                )
-                + f"{extra_stuff}"
-            )
+            extra_stuff = f'{format_html(primary_items,"action_color",""," [Continue Task After Error]",True,)}{extra_stuff}'
 
     # For some reason, we're left with an empty "<span..." element.  Remove it.
     extra_stuff = extra_stuff.replace(
-        f'<span style="color:{primary_items["colors_to_use"]["action_color"]};'
-        f'{FONT_FAMILY}{primary_items["program_arguments"]["font"]}"><span ',
+        f'<span style="color:{colors_to_use["action_color"]};'
+        f'{FONT_FAMILY}{program_arguments["font"]}"><span ',
         "<span ",
     )
 
@@ -512,9 +512,9 @@ def get_app_details(
         if child.find("appClass") is None:
             return "", "", "", extra_stuff
         if child.find("appClass").text is not None:
-            app_class = "Class:" + child.find("appClass").text
+            app_class = f'Class:{child.find("appClass").text}'
         if child.find("appPkg").text is not None:
-            app_pkg = ", Package:" + child.find("appPkg").text
+            app_pkg = f', Package:{child.find("appPkg").text}'
         if child.find("label").text is not None:
-            app = ", App:" + child.find("label").text
+            app = f', App:{child.find("label").text}'
     return app_class, app_pkg, app, extra_stuff

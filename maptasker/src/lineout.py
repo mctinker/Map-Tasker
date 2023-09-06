@@ -146,18 +146,16 @@ class LineOut:
     # Given a text string to output, format it based on it's contents:
     #   Project/Profile/Task/Actrion/Scene
     # ##################################################################################
-    def format_line_list_item(
-        self, primary_items: dict, element: str, colormap: dict, font: str
-    ) -> str:
+    def format_line_list_item(self, primary_items: dict, element: str) -> str:
         """
         Generate the output list (<li>) string based on the input XML <code> passed in
         :param primary_items:  program registry.  See primitem.py for details.
         :param element: text string to be added to output
-        :param colormap: dictionary of colors to use in the output
-        :param font: the font to use in the output
         :return: the formatted text to add to the output queue
         """
 
+        colormap = primary_items["colors_to_use"]
+        font = primary_items["program_arguments"]["font"]
         if "Project:" in element or "Project has no Profiles" in element:
             return self.handle_project(primary_items, element, colormap)
 
@@ -247,7 +245,7 @@ class LineOut:
             "font": font,
             "element": element,
         }
-        return directory + self.add_style(primary_items, style_details)
+        return f"{directory}{self.add_style(primary_items, style_details)}"
 
     def remove_attributes(self, scene_name):
         scene_name = scene_name.replace("<em>", "")
@@ -337,28 +335,25 @@ class LineOut:
                 string = f"{element}<br>"
             case 1:  # lvl=1 >>> Start list
                 # self.my_traceback(" <ul>", element)
-                string = f"<ul>{element}" + "\n"
+                string = f"<ul>{element}\n"
                 primary_items["unordered_list_count"] += 1
             case 2:  # lvl=2 >>> List item
                 string = self.format_line_list_item(
                     primary_items,
                     element,
-                    primary_items["colors_to_use"],
-                    primary_items["program_arguments"]["font"],
                 )
                 # If we are doing twisty and this is a Scene, then we need to add
                 # an extra <ul>
                 if primary_items["program_arguments"]["twisty"] and "Scene:" in string:
                     string = f"<ul>{string}"
                     primary_items["unordered_list_count"] += 1
-
             case 3:  # lvl=3 >>> End list
                 # self.my_traceback(" </ul>", element)
                 string = primary_items["output_lines"].end_unordered_list(primary_items)
             case 4:  # lvl=4 >>> Heading or plain text line
                 string = f"{element}<br>"
             case 5:  # lvl=5 >>> Plain text line
-                string = element + "\n"
+                string = f"{element}\n"
         return string
 
     # ##################################################################################
@@ -378,16 +373,16 @@ class LineOut:
             :param out_string: the string to add to the output
             :return: none
         """
-
+        # Drop ID: nnn since we don't need it anymore
         if (
             "Task ID:" in out_string
             and primary_items["program_arguments"]["debug"] is False
-        ):  # Drop ID: nnn since we don't need it anymore
+        ):
             temp_element = out_string.split("Task ID:")
             out_string = temp_element[0]
 
         # Go configure the output based on the contents of the element and the
-        #   list level
+        #   list level. Call format_line before appending it.
         self.output_lines.append(
             self.format_line(
                 primary_items,

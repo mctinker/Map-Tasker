@@ -13,8 +13,8 @@
 # #################################################################################### #
 
 import atexit
-import datetime
 import sys
+from datetime import datetime
 from json import dumps, loads  # For write and read counter
 from pathlib import Path
 
@@ -95,7 +95,6 @@ def open_and_get_backup_xml_file(primary_items: dict) -> dict:
         backup_file_name = get_backup_file(primary_items)
         # Make sure we automatically use the file we just fetched
         primary_items["program_arguments"]["file"] = backup_file_name
-        print(backup_file_name)
 
     logger.info("entry")
     file_error = False
@@ -221,7 +220,7 @@ def log_startup_values(primary_items: dict) -> None:
         :param primary_items:  program registry.  See primitem.py for details.
     """
     setup_logging()  # Get logging going
-    logger.info(f"{MY_VERSION} {str(datetime.datetime.now())}")
+    logger.info(f"{MY_VERSION} {str(datetime.now())}")
     logger.info(f"sys.argv:{str(sys.argv)}")
     for key, value in primary_items["program_arguments"].items():
         logger.info(f"{key}: {value}")
@@ -283,6 +282,8 @@ def display_starting_info(primary_items: dict) -> None:
     Display the heading and source file details
         :param primary_items:  program registry.  See primitem.py for details.
     """
+    tasker_mapping = "Tasker Mapping................ Tasker version:"
+
     # Get the screen dimensions from <dmetric> xml
     screen_element = primary_items["xml_root"].find("dmetric")
     screen_size = (
@@ -301,6 +302,13 @@ def display_starting_info(primary_items: dict) -> None:
     else:
         background_color_html = ""
 
+    # Output date and time if in debug mode
+    if primary_items["program_arguments"]["debug"]:
+        now = datetime.now()
+        now_for_output = now.strftime("%m/%d/%y %H/%M/%S")
+    else:
+        now_for_output = ""
+
     # Format the output heading
     heading_color = primary_items["colors_to_use"]["heading_color"]
     primary_items["heading"] = (
@@ -311,10 +319,9 @@ def display_starting_info(primary_items: dict) -> None:
             heading_color,
             "",
             (
-                "<h2>MapTasker</h2><br> Tasker Mapping................&nbsp;&nbsp;&nbsp;Tasker"
-                " version:"
-                f" {primary_items['xml_root'].attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;Map-Tasker"
-                f" version: {MY_VERSION}{screen_size}"
+                f"<h2>MapTasker</h2><br> {tasker_mapping}"
+                f" {primary_items['xml_root'].attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;"
+                f"{MY_VERSION}{screen_size}&nbsp;&nbsp;&nbsp;&nbsp;{now_for_output}"
             ),
             True,
         )
@@ -389,7 +396,7 @@ def start_up(primary_items: dict) -> dict:
     # Force full detail if we are doing a single Task
     if primary_items["program_arguments"]["single_task_name"]:
         logger.debug(
-            "Single Task=" + primary_items["program_arguments"]["single_task_name"]
+            f'Single Task={primary_items["program_arguments"]["single_task_name"]}'
         )
         primary_items["program_arguments"]["display_detail_level"] = 3
 

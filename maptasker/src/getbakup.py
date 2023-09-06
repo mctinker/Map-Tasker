@@ -92,7 +92,9 @@ def request_file(
     """
     # Create the URL to request the backup xml file from the Android device running the
     # Tasker server.
-    url = f"{backup_file_http}/file{backup_file_location}?download=1"
+    # Something like: 192.168.0.210:1821/file/path/to/backup.xml?download=1
+    http = "http://" if "http://" not in backup_file_http else ""
+    url = f"{http}{backup_file_http}/file{backup_file_location}?download=1"
 
     # Make the request.
     try:
@@ -100,7 +102,12 @@ def request_file(
     except InvalidSchema:
         return (
             8,
-            f"Request failed for url: {url}.  Invalid url!",
+            f"Request failed for url: {url} .  Invalid url!",
+        )
+    except ConnectionError:
+        return (
+            8,
+            f"Request failed for url: {url} .  Connection error!",
         )
 
     # Check the response status code.

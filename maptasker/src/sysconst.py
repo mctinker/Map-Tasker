@@ -16,7 +16,7 @@ import re
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 2.2.1"
+MY_VERSION = "MapTasker version 2.3.5"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -110,6 +110,7 @@ ARGUMENT_NAMES = {
     "highlight": "Highlight Names",
     "indent": "Indentation Amount",
     "italicize": "Italicize Names",
+    "outline": "Display Configuration Outline",
     "rerun": "ReRun Program",
     "restore": "Restore Settings",
     "runtime": "Display Runtime Arguments/Settings",
@@ -139,3 +140,15 @@ pattern7 = re.compile("<li")
 pattern8 = re.compile("<br>")
 pattern9 = re.compile("</span></span>")
 pattern10 = re.compile("</p></p>")
+
+clean = re.compile("<.*?>")
+
+
+class Colors:
+    White = "\033[0m"
+    Yellow = "\033[33m"
+    Red = "\033[31m"
+    Green = "\033[32m"
+    Purple = "\033[35m"
+    Blue = "\033[34m"
+    BOLD = "\033[1m"

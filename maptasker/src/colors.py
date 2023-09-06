@@ -35,7 +35,7 @@ def print_list(title: str, parse_items: list) -> None:
     for item in parse_items:
         if parse_items.index(item) == list_length:  # Last item in list?
             seperator = ""
-        line_out = line_out + item + seperator
+        line_out = f"{line_out}{item}{seperator}"
     print(line_out)
     return
 

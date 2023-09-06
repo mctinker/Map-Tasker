@@ -37,6 +37,20 @@ def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
     )
 
 
+# ##################################################################################
+# Format a text line to a specific width by filling in blank spaces with periods.
+# ##################################################################################
+def format_line(text: str, width: int) -> str:
+    """Format text line to given width by filling with periods"""
+    
+    formatted = text
+    
+    if len(text) < width:
+        formatted += "." * (width - len(text))
+        
+    return formatted[:width]
+
+
 # ################################################################################
 # Display the program arguments and colors to use in output for debug purposes
 # ################################################################################
@@ -46,6 +60,13 @@ def display_debug_info(primary_items: dict) -> None:
         :param primary_items:  program registry.  See primitem.py for details.
     """
 
+    # Add blank line
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
+        4,
+        "",
+    )
+    
     # Identify the output as debug stuff
     output_debug_line(primary_items, "Start")
     if primary_items["program_arguments"]["debug"]:
@@ -69,6 +90,7 @@ def display_debug_info(primary_items: dict) -> None:
     # Go through dictionary of arguments and output each one.
     for key, value in mydict.items():
         try:
+            line_formatted_to_length = format_line(ARGUMENT_NAMES[key], 40)
             value = primary_items["program_arguments"][key]
             if value is None or value == "":
                 value = "None"
@@ -79,7 +101,7 @@ def display_debug_info(primary_items: dict) -> None:
                     primary_items,
                     "heading_color",
                     "",
-                    f"{ARGUMENT_NAMES[key]}: {value}",
+                    f"{line_formatted_to_length}: {value}",
                     True,
                 ),
             )
@@ -112,7 +134,7 @@ def display_debug_info(primary_items: dict) -> None:
         # Highlight background color.  Otherwise it won't be visible
         if key == "background_color":
             value = f"<mark>{value} (highlighted for visibility)</mark>"
-        # Convert the namee of the color to the color
+        # Convert the name of the color to the color
         the_color = format_html(
             primary_items,
             key,
@@ -122,6 +144,7 @@ def display_debug_info(primary_items: dict) -> None:
         )
 
         # Add the line formatted with HTML
+        color_set_to_width = format_line(f"Color for {color_names[key]} set to", 40)
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             4,
@@ -129,7 +152,7 @@ def display_debug_info(primary_items: dict) -> None:
                 primary_items,
                 "heading_color",
                 "",
-                f"Color for {color_names[key]} set to {the_color}",
+                f"{ color_set_to_width}{the_color}",
                 True,
             ),
         )

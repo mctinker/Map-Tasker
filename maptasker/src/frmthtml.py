@@ -31,7 +31,7 @@ def format_html(
     """
 
     # Determine and get the color to use
-    color_to_use = primary_items.get("colors_to_use", {}).get(color_code,color_code)
+    color_to_use = primary_items.get("colors_to_use", {}).get(color_code, color_code)
 
     # Return completed HTML with color, font and text with text after
     if text_after:

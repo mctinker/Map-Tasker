@@ -11,7 +11,7 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import logger, Colors
 
 
 def error_handler(error_message: str, exit_code: int) -> None:
@@ -22,9 +22,12 @@ def error_handler(error_message: str, exit_code: int) -> None:
     """
     # Add our heading to more easily identify the problem
     if exit_code in {0, 99}:
-        final_error_message = error_message
+        final_error_message = f"{Colors.Green}{error_message}"
+    # Warning?
+    elif exit_code > 100:
+        final_error_message = f"{Colors.Yellow}{error_message}"
     else:
-        final_error_message = f"MapTasker error: {error_message}"
+        final_error_message = f"{Colors.Red}MapTasker error: {error_message}"
 
     # Log and print the error
     logger.critical(final_error_message)

@@ -31,7 +31,7 @@ def get_dict() -> defusedxml.ElementTree:
 
 # ##################################################################################
 # Update the dictionary for the Action code
-#  This is only called if the action code is not already in our master 
+#  This is only called if the action code is not already in our master
 #  dictionary of codes
 # ##################################################################################
 def update_action_codes(
@@ -134,7 +134,7 @@ def add_name_to_action_codes(
 ) -> defusedxml.ElementTree:
     """
     See if the display name is already in our Action dictionary.  If not, add it.
-        :param the_action_code_plus: the Action code with "action type" 
+        :param the_action_code_plus: the Action code with "action type"
                 (e.g. 861t, t=Task, e=Event, s=State)
         :param display_name: the name to appear in the output for this action
         :return: nothing
@@ -147,7 +147,7 @@ def add_name_to_action_codes(
 
 
 # ##################################################################################
-# Given a child xml element, determine if it is a boolean of condtion 
+# Given a child xml element, determine if it is a boolean of condtion
 # add return if in a list
 # ##################################################################################
 def get_boolean_or_condition(

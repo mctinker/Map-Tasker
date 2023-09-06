@@ -34,7 +34,9 @@ from maptasker.src.sysconst import TYPES_OF_COLORS, logger
 def indentation_validation(x):
     x = int(x)
     if x > 10:
-        raise argparse.ArgumentTypeError(f"Maximum indentation is 10.  You specified {x}.")
+        raise argparse.ArgumentTypeError(
+            f"Maximum indentation is 10.  You specified {x}."
+        )
     return x
 
 
@@ -47,7 +49,7 @@ def font_validation(x):
     # Get all monospace ("f"=fixed) fonts
     fonts = [font.Font(family=f) for f in font.families()]
     valid_fonts.extend(f.actual("family") for f in fonts if f.metrics("fixed"))
-    if x != 'help' and x not in valid_fonts:
+    if x != "help" and x not in valid_fonts:
         raise argparse.ArgumentTypeError(f"Invalid or non-monospace font name '{x}'.")
     return x
 
@@ -173,7 +175,7 @@ def runtime_parser():
     parser.add_argument(
         "-f",
         "-font",
-         help=textwrap.dedent(
+        help=textwrap.dedent(
             """ \
                         Name of monospaced font to use in output (default = 'Courier').  
                         Enter font name of 'help' for a list of valid fonts.
@@ -221,6 +223,14 @@ def runtime_parser():
         required=False,
         default="",
     )
+    # Display Configuration Outline
+    parser.add_argument(
+        "-o",
+        "-outline",
+        help="Display configuration outline of Projects, Profiles, Tasks and Scenes.",
+        action="store_true",
+        default=False,
+    )
     # Display Tasker preferences
     parser.add_argument(
         "-preferences",
@@ -259,7 +269,7 @@ def runtime_parser():
                             """
         ),
     )
-     # Display runtime arguments/settings
+    # Display runtime arguments/settings
     parser.add_argument(
         "-runtime",
         help="Display all runtime arguments/settings at the top of the output.",

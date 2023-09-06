@@ -68,7 +68,7 @@ def format_line(primary_items: dict, num: int, item: str) -> str:
         output_line = item
 
     # Format the html...add a numbre of blanks if some sort of list
-    # output_line = output_line.replace("<ul>", f"{blank*5}<ul>\r")
+    #
     # Replace "<ul>" with "    <ul>\r"
     output_line = pattern5.sub(f"{blank*5}<ul>\r", output_line)
     # replace("</ul>" with f"{blank*5}</ul>\r"

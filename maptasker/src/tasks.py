@@ -73,14 +73,7 @@ def get_actions(
                 "t",
             )
             logger.debug(
-                "Task ID:"
-                + str(action.attrib["sr"])
-                + " Code:"
-                + child.text
-                + " task_code:"
-                + task_code
-                + "Action attr:"
-                + str(action.attrib)
+                f'Task ID:{str(action.attrib["sr"])} Code:{child.text} task_code:{task_code}Action attr:{str(action.attrib)}'
             )
 
             # Calculate the amount of indention required

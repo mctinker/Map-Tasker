@@ -22,6 +22,7 @@ from maptasker.src.actionc import action_codes
 from maptasker.src.debug import not_in_dictionary
 from maptasker.src.error import error_handler
 from maptasker.src.frmthtml import format_html
+from maptasker.src.depricated import depricated
 from maptasker.src.sysconst import FONT_FAMILY, logger
 
 # pattern1 = re.compile(r'<.*?>')  # Get rid of all <something> html code
@@ -94,15 +95,12 @@ def check_for_deprecation(the_action_code_plus: str) -> None:
             (e.g. "861t", "t" = Task, "e" = Event, "s" = State)
         :return: nothing
     """
-    from maptasker.src.depricated import depricated
 
     lookup = the_action_code_plus[:-1]  # Remove last character to get just the digits
     if lookup in depricated and the_action_code_plus in action_codes:
         action_codes[the_action_code_plus] = {
-            "display": (
-                action_codes[the_action_code_plus]["display"]
-                + "<em> (Is Deprecated)</em> "
-            )
+            "display": f'{action_codes[the_action_code_plus]["display"]}'
+            f"<em> (Is Deprecated)</em> "
         }
     return
 
@@ -227,7 +225,7 @@ def build_action(
         task_code_line = task_code_line.replace(f'{font}">', f'{font}">{indent_amt}', 1)
         count = 0
     if count < 0:
-        task_code_line = indent_amt + task_code_line
+        task_code_line = f"{indent_amt}{task_code_line}"
 
     # Flag Action if not yet known to us
     if not task_code_line:  # If no Action details

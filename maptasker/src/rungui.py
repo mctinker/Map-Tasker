@@ -85,9 +85,8 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
     # 'Run' button hit.  Get all the input from GUI variables
     primary_items["program_arguments"]["gui"] = True
     # Do we already have the file object?
-    if user_input.file:
-        primary_items["file_to_get"] = user_input.file.name
-
+    if value := user_input.file:
+        primary_items["file_to_get"] = value if isinstance(value, str) else value.name
     # Get the program arguments and save them in our dictionary
     for value in ARGUMENT_NAMES:
         # Special handling for backup file
@@ -95,7 +94,8 @@ def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
             if http_info := getattr(user_input, value):
                 primary_items["program_arguments"][value] = f"http://{http_info}"
         else:
-            # Grab GUI value and put into our runtime arguments dictonary (of same name)
+            # Get the program arguments from the GUI and save them
+            # into our runtime arguments dictonary (of same name)
             with contextlib.suppress(AttributeError):
                 primary_items["program_arguments"][value] = getattr(user_input, value)
                 logger.info(f"GUI arg: {value} set to: {getattr(user_input, value)}")

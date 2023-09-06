@@ -54,8 +54,7 @@ def remove_twisty(primary_items: dict) -> None:
         primary_items["unordered_list_count"] -= 1
         primary_items["output_lines"].output_lines[-1] = "</ul></details>\n"
         logger.info(
-            "linout twisty counter deducted: "
-            + str(primary_items["unordered_list_count"])
+            f'linout twisty counter deducted: {str(primary_items["unordered_list_count"])}'
         )
     else:
         print("Rutroh!")

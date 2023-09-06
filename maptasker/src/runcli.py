@@ -20,13 +20,22 @@ import contextlib
 import sys
 from collections import namedtuple
 
+import darkdetect
+
+from maptasker.src.clip import clip_figure
 from maptasker.src.colors import get_and_set_the_color, validate_color
 from maptasker.src.error import error_handler
 from maptasker.src.getputarg import save_restore_args
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.parsearg import runtime_parser
 from maptasker.src.rungui import process_gui
-from maptasker.src.sysconst import MY_LICENSE, MY_VERSION, TYPES_OF_COLORS, logger
+from maptasker.src.sysconst import (
+    MY_LICENSE,
+    MY_VERSION,
+    TYPES_OF_COLORS,
+    Colors,
+    logger,
+)
 
 
 # ################################################################################
@@ -102,23 +111,34 @@ def get_and_set_booleans(
             primary_items (dict): Common items used throughout.  See primitem.py for details.
             args (namedtuple): runtime arguments namespace
     """
-    boolean_arguments = [
-        "directory",
-        "runtime",
-        "twisty",
-        "restore",
-        "save",
-        "debug",
-        "conditions",
-        "preferences",
-        "taskernet",
-    ]
+    # Program runtime boolean arguments (long form and short form per argparse.py)
+    boolean_arguments = {
+        "conditions": "",
+        "debug": "",
+        "directory": "",
+        "everything": "e",
+        "outline": "o",
+        "preferences": "",
+        "restore": "",
+        "runtime": "",
+        "save": "s",
+        "taskernet": "",
+        "twisty": "",
+    }
 
     # Loop through all possible boolean program arguments and get/set each
-    for item in boolean_arguments:
-        with contextlib.suppress(Exception):
-            if getattr(args, item):
-                primary_items["program_arguments"][item] = True
+    # Check both the long name (key) and the short name (value)
+    # NOTE: We can not use an either/or combination if statement to test both the
+    #       key and the value since an exception on the first test will automatically
+    #       skip doing the "or" second test.
+    for key, value in boolean_arguments.items():
+        try:
+            if getattr(args, key):
+                primary_items["program_arguments"][key] = True
+        except AttributeError:
+            with contextlib.suppress(AttributeError):
+                if value and getattr(args, value):
+                    primary_items["program_arguments"][key] = True
 
 
 # ##################################################################################
@@ -129,9 +149,9 @@ def get_the_other_arguments(
 ) -> None:
     """_summary_
     Get the remainder of the arguments
-         Args:
-             primary_items (dict): Common items used throughout.  See primitem.py for details.
-             value (str): The attributes to assign to names: (bold, highlight, underline, italicize)
+        Args:
+            primary_items (dict): Common items used throughout.  See primitem.py for details.
+            value (str): The attributes to assign to names: (bold, highlight, underline, italicize)
     """
     get_and_set_booleans(primary_items, args)
 
@@ -173,6 +193,10 @@ def get_runtime_arguments(
         ] = primary_items[
             "program_arguments"
         ][
+            "outline"
+        ] = primary_items[
+            "program_arguments"
+        ][
             "runtime"
         ] = True
 
@@ -189,8 +213,8 @@ def get_runtime_arguments(
     if the_name is not None:
         primary_items["program_arguments"]["single_task_name"] = the_name[0]
     if getattr(args, "v"):  # Display version info
-        print(f"{MY_VERSION}, under license {MY_LICENSE}")
-        exit(0)
+        display_version()
+
     # Get names (bold, highlight, underline and/or highlight)
     if value := getattr(args, "names"):
         get_name_attributes(primary_items, value)
@@ -214,6 +238,31 @@ def get_runtime_arguments(
             primary_items["program_arguments"]["font"] = font[0]
         else:
             primary_items["program_arguments"]["font"] = font
+
+
+# ##################################################################################
+# Add some pazaazz to the version identiifer
+# ##################################################################################
+def display_version():
+    header = f"""
+
+    {Colors.Purple}
+    
+    
+███╗   ███╗ █████╗ ██████╗     ████████╗ █████╗ ███████╗██╗  ██╗███████╗██████╗ 
+████╗ ████║██╔══██╗██╔══██╗    ╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗
+██╔████╔██║███████║██████╔╝       ██║   ███████║███████╗█████╔╝ █████╗  ██████╔╝
+██║╚██╔╝██║██╔══██║██╔═══╝        ██║   ██╔══██║╚════██║██╔═██╗ ██╔══╝  ██╔══██╗
+██║ ╚═╝ ██║██║  ██║██║            ██║   ██║  ██║███████║██║  ██╗███████╗██║  ██║
+╚═╝     ╚═╝╚═╝  ╚═╝╚═╝            ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+                                                                                
+"""
+    color_to_use = Colors.Yellow if darkdetect.isDark() else Colors.Blue
+    print(header)
+    print(f"{color_to_use}{MY_VERSION}, under license {MY_LICENSE}\033[0m")
+    print("")
+    clip_figure("castles", False)
+    exit(0)
 
 
 # ##################################################################################
@@ -344,6 +393,7 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):
         g=False,
         i=4,
         names=False,
+        o=False,
         p=False,
         profile=None,
         project=None,
@@ -398,6 +448,7 @@ def process_cli(primary_items: dict) -> dict:
         Returns:
             dict: program registry.  See primitem.py for details.
     """
+
     # Convert runtime argument default values to a dictionary
     primary_items["program_arguments"] = initialize_runtime_arguments()
 

@@ -142,11 +142,11 @@ def condition_day(
     the_months = ""
     for child in the_item:
         if "wday" in child.tag:
-            the_days_of_week = the_days_of_week + weekdays[int(child.text) - 1] + " "
+            the_days_of_week = f"{the_days_of_week}{weekdays[int(child.text) - 1]} "
         elif "mday" in child.tag:
-            days_of_month = days_of_month + child.text + " "
+            days_of_month = f"{days_of_month}{child.text} "
         elif "mnth" in child.tag:
-            the_months = the_months + months[int(child.text)] + " "
+            the_months = f"{the_months}{months[int(child.text)]} "
         else:
             break
     if the_days_of_week:

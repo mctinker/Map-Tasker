@@ -15,7 +15,6 @@ from maptasker.src.lineout import LineOut
 
 
 def initialize_primary_items(file_to_get: str) -> dict:
-
     # Primary Items
     #
     # Set up an initial empty dictionary of primary items used throughout this project
@@ -74,10 +73,10 @@ def initialize_primary_items(file_to_get: str) -> dict:
             "scenes": [],
         },
         "tasker_root_elements": {
-        "all_projects": [],
-        "all_profiles": {},
-        "all_scenes": {},
-        "all_tasks": {},
-        "all_services": [],
-        }
+            "all_projects": [],
+            "all_profiles": {},
+            "all_scenes": {},
+            "all_tasks": {},
+            "all_services": [],
+        },
     }
