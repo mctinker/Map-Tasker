@@ -1,14 +1,30 @@
 MapTasker Change log
 
-## [2.2.1] - 2023-07-30
-### Fixed: Condition "matches regex" and "doesn't match regex" are incorrectly reversed.   
-### Fixed: If conditions missing compound counditions like AND and OR.    
-### Fixed: Profile compound condition format with "and" not consistent with If component "and" statements.   
-### Fixed: Enlarged the images in README file.   
-### Changed: Further optimized the code    
+## [2.3.0 -2.3.5] - 2023-09-06  
+### Added: Some pazazz for user experience to '-version' runtime option.   
+### Added: New runtime option '-outline' to display Configuration Outline at en of output.   
+### Added: New GUI Option: Just Display Everything - no need to click each display optionn checkbox.   
+### Added: GUI text/info box font now reflects the font selected in the GUI.
+### Added: Added 'Display Help' button to GUI. Clicking displays help text.  
+### Changed: Output error messages in red.   
+### Changed: Rearrange GUI buttons to keep all display options in column 1.   
+### Changed: Runtime options in output are now aligned for readibility.   
+### Fixed: Runtime arguments of single letter (e.g. '-e' instead of '-everything') not being recognized.   
+### Fixed: Outputing "MapTasker Version" twice in heading.   
+### Fixed: Specifying a specific Project/Profile/Task in GUI causes error in saved settings file.   
+### Fixed: Program error when selecting color within GUI.    
+### Fixed: Fetching backup.xml from Android device could incorrectly fail with "Invalid url!" error message.    
+### Fixed: Runtime option '-everything' was not including Tasker's preferences
+
 
 Older History Log
 
+- [2.2.1] - 2023-08-30
+       -    Fixed: Condition "matches regex" and "doesn't match regex" are incorrectly reversed.   
+       -    Fixed: If conditions missing compound counditions like AND and OR.    
+       -    Fixed: Profile compound condition format with "and" not consistent with If component "and" statements.   
+       -    Fixed: Enlarged the images in README file.   
+       -    Changed: Further optimized the code    
 - [2.2.0] - 2023-07-27
        -    Added: New '-font' runtime argument to specify a specific (monospace) font to use for the map display. Default is 'Courier'.   
        -    Added: New '-runtime' runtime argument to display all of the runtime arguments and their settings at the beginning of the output.   

@@ -188,4 +188,8 @@ Alternatively, see *config.py* for some user-customizable options.  Make user-sp
 [] Support additional plugins   
 [] Complete insertion of Python docstrings for programming etiquette   
 
+### Contributions:
+[Taskometer](https://github.com/Taskomater/Tasker-XML-Info)   
+[©Connor Talbot 2021](https://github.com/con-dog/clippy)   
+
 <a href="https://www.buymeacoffee.com/mctinker"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=mctinker&button_colour=FFDD00&font_colour=000000&font_family=Poppins&outline_colour=000000&coffee_colour=ffffff" /></a>

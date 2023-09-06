@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maptasker"
-version = "2.2.1"
+version = "2.3.5"
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README_PyPl.md"
@@ -10,7 +10,7 @@ keywords = ["tasker", "Tasker", "map tasker"]
 packages = [
     { include = "maptasker"}
 ]
-include = ["**/maptasker/**/*.py"]
+include = ["**/maptasker/**/*.py", {path="**/clip/castles/ascii/**", format="sdist"}]
 exclude = ["run_test.py", "**/maptasker/**/backup.xml", "**/maptasker/maptasker.log", "**/maptasker/MapTasker.html", "**/maptasker/.MapTasker_RunCount.txt", "**/maptasker/.arguments.txt", "**/maptasker/**/__pycache__"]
 
 [tool.poetry.dependencies]
