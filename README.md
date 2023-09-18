@@ -132,7 +132,7 @@ Runtime: `maptasker -option1 -option2` ...
     The following two arguments are exclusive.  Use one only:
 
     `-s`  save these settings for later reuse.    
-    `-r` restores previously saved settings.
+    `-r` restores previously saved settings.  The restored settings override all other settings.
   
 
     Get the backup file directly from the Android device (*):

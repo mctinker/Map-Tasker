@@ -1,88 +1,101 @@
 MapTasker Change log
 
-## [2.3.0 -2.3.5] - 2023-09-06  
-### Added: Some pazazz for user experience to '-version' runtime option.   
-### Added: New runtime option '-outline' to display Configuration Outline at en of output.   
-### Added: New GUI Option: Just Display Everything - no need to click each display optionn checkbox.   
-### Added: GUI text/info box font now reflects the font selected in the GUI.
-### Added: Added 'Display Help' button to GUI. Clicking displays help text.  
-### Changed: Output error messages in red.   
-### Changed: Rearrange GUI buttons to keep all display options in column 1.   
-### Changed: Runtime options in output are now aligned for readibility.   
-### Fixed: Runtime arguments of single letter (e.g. '-e' instead of '-everything') not being recognized.   
-### Fixed: Outputing "MapTasker Version" twice in heading.   
-### Fixed: Specifying a specific Project/Profile/Task in GUI causes error in saved settings file.   
-### Fixed: Program error when selecting color within GUI.    
-### Fixed: Fetching backup.xml from Android device could incorrectly fail with "Invalid url!" error message.    
-### Fixed: Runtime option '-everything' was not including Tasker's preferences
+## [2.3.6] - 2023-09-18
+### Added: program optimizations for performance and memory usage.   
+### Added: Further code and html optimizations.    
+### Changed: Switch to inline CSS for colors and font, saving on output HTML size and better formatting.   
+### Changed: changed color of negative (False, None) values for runtime settings to make it easier to identify.    
+### Changed: If only displaying a single Task, display the Profile's Scenes as well.    
+### Changed: Bullets changed to diamonds.    
+### Fixed: Selecting single Project/Profile/Task name in GUI doesn't display the selection in the message box.    
+### Fixed: Displaying any text in GUI textbox after restoring settings does not get displayed.   
+### Fixed: Incorrectly displaying directory for items not in the output.   
+### Fixed: Color for labels was not correctly set.   
+### Fixed: GUI single name error message displaying in green rater than red.   
+### Fixed:Task's extra properties (prority, collision, etc.) not displaying correctly.    
 
 
 Older History Log
 
+- [2.3.0 -2.3.5] - 2023-09-06  
+       - Added: Some pazazz for user experience to '-version' runtime option.   
+       - Added: New runtime option '-outline' to display Configuration Outline at en of output.   
+       - Added: New GUI Option: Just Display Everything - no need to click each display optionn checkbox.   
+       - Added: GUI text/info box font now reflects the font selected in the GUI.    
+       - Added: Added 'Display Help' button to GUI. Clicking displays help text.  
+       - Changed: Output error messages in red.   
+       - Changed: Rearrange GUI buttons to keep all display options in column 1.   
+       - Changed: Runtime options in output are now aligned for readibility.   
+       - Fixed: Runtime arguments of single letter (e.g. '-e' instead of '-everything') not being recognized.   
+       - Fixed: Outputing "MapTasker Version" twice in heading.   
+       - Fixed: Specifying a specific Project/Profile/Task in GUI causes error in saved settings file.   
+       - Fixed: Program error when selecting color within GUI.    
+       - Fixed: Fetching backup.xml from Android device could incorrectly fail with "Invalid url!" error message.    
+       - Fixed: Runtime option '-everything' was not including Tasker's preferences
 - [2.2.1] - 2023-08-30
-       -    Fixed: Condition "matches regex" and "doesn't match regex" are incorrectly reversed.   
-       -    Fixed: If conditions missing compound counditions like AND and OR.    
-       -    Fixed: Profile compound condition format with "and" not consistent with If component "and" statements.   
-       -    Fixed: Enlarged the images in README file.   
-       -    Changed: Further optimized the code    
+       - Fixed: Condition "matches regex" and "doesn't match regex" are incorrectly reversed.   
+       - Fixed: If conditions missing compound counditions like AND and OR.    
+       - Fixed: Profile compound condition format with "and" not consistent with If component "and" statements.   
+       - Fixed: Enlarged the images in README file.   
+       - Changed: Further optimized the code    
 - [2.2.0] - 2023-07-27
-       -    Added: New '-font' runtime argument to specify a specific (monospace) font to use for the map display. Default is 'Courier'.   
-       -    Added: New '-runtime' runtime argument to display all of the runtime arguments and their settings at the beginning of the output.   
-       -    Added: GUI updated to include help information about the Debug tab.   
-       -    Changed: Updated GUI for 'Font To Use' selection option and 'Display Runtime Settings' checkbox (under 'Debug' tab).   
-       -    Changed: Optimized code.   
-       -    Changed: Updated README file with new runtime options.   
-       -    Changed: Runtime argument to display Tasker Preferences option -p remove.  Now only -preferences
-       -    Fixed: Fixed missing 'restore' runtime option.   
-       -    Fixed: Program error if restoring runtime settings and no indentation is specified.   
-       -    Fixed: Program error when runtime argument does not exist in saved settings file.   
-       -    Fixed: GUI 'Cancel' button now works.  Remove message saying that it doesn't work.
-       -    Fixed: Output contains uneeded extra commas.   
-       -    Fixed: Ruintime option -e (everything) not including Tasker Preferences.   
+       - Added: New '-font' runtime argument to specify a specific (monospace) font to use for the map display. Default is 'Courier'.   
+       - Added: New '-runtime' runtime argument to display all of the runtime arguments and their settings at the beginning of the output.   
+       - Added: GUI updated to include help information about the Debug tab.   
+       - Changed: Updated GUI for 'Font To Use' selection option and 'Display Runtime Settings' checkbox (under 'Debug' tab).   
+       - Changed: Optimized code.   
+       - Changed: Updated README file with new runtime options.   
+       - Changed: Runtime argument to display Tasker Preferences option -p remove.  Now only -preferences
+       - Fixed: Fixed missing 'restore' runtime option.   
+       - Fixed: Program error if restoring runtime settings and no indentation is specified.   
+       - Fixed: Program error when runtime argument does not exist in saved settings file.   
+       - Fixed: GUI 'Cancel' button now works.  Remove message saying that it doesn't work.
+       - Fixed: Output contains uneeded extra commas.   
+       - Fixed: Runtime option -e (everything) not including Tasker Preferences.   
 - [2.1.2] - 2023-07-18
-       -   Added: New '-indent' runtime argument to control amount of indentation of if/then/else Task actions. Default is 4 spaces.
-       -   Fixed: Properties not showing variable name.   
-       -   Fixed: Project Properties and Taskernet information was not displaying for a specific Project.   
-       -   Fixed: Don't display Task Properties if displaying Tasks that are not in any Profile.   
-       -   Fixed: Underlining names caused extra blanks to be added to the names.   
-       -   Fixed: Added appropriate spaces to deal with TaskerNet description formatting.   
-       -   Fixed: Not picking up Tap Tap plugin Profile event.   
-       -   Fixed: Added missing "AutoWear", "Locus Map" and "KWGT Custom Widget Maker" plugin Actions.   
-       -   Fixed: Remove empty parameters from appearing in Task actions and extra spaces before commas
-       -   Changed: Continued Task actions are now indented properly underneath If/Else conditions   
-       -   Changed: Optimized code   
+       - Added: New '-indent' runtime argument to control amount of indentation of if/then/else Task actions. Default is 4 spaces.
+       - Fixed: Properties not showing variable name.   
+       - Fixed: Project Properties and Taskernet information was not displaying for a specific Project.   
+       - Fixed: Don't display Task Properties if displaying Tasks that are not in any Profile.   
+       - Fixed: Underlining names caused extra blanks to be added to the names.   
+       - Fixed: Added appropriate spaces to deal with TaskerNet description formatting.   
+       - Fixed: Not picking up Tap Tap plugin Profile event.   
+       - Fixed: Added missing "AutoWear", "Locus Map" and "KWGT Custom Widget Maker" plugin Actions.   
+       - Fixed: Remove empty parameters from appearing in Task actions and extra spaces before commas
+       - Changed: Continued Task actions are now indented properly underneath If/Else conditions   
+       - Changed: Optimized code   
 - [2.1.1] - 2023-07-09
-       -   Fixed: Minor cosmetic issues with sample output and README file.   
-       -   Fixed: Removed extraneous print color.    
+       - Fixed: Minor cosmetic issues with sample output and README file.   
+       - Fixed: Removed extraneous print color.    
 - [2.1.0] - 2023-07-09 
-       -   Added: Display Project/Profile/Task "properties" if display detail level is 3.   
-       -   Added: New runtime argument '-names {bold,highlight,underline,italicize}' to make all Project/Profile/Task/Scene 'names' display bold, highlighted, underlined and/or italicised.       
-       -   Added: New runtime argument '-cHeading' to assign a color to the output heading lines.   
-       -   Added: New runtime argument '-appearance' {system, light, dark} to switch between color themes.
-       -   Added: GUI: If a checkbox is selected or deselected, display the change in the message window. 
-       -   Added: GUI: Colors for 'highlight' names, and for 'Heading'
-       -   Added: GUI support new "names" bold/highlight/italicize/underline display options.   
-       -   Changed: GUI message box now shows all previous messages along with new message at bottom.   
-       -   Fixed: If displaying the directory, some Project names incorrectly have an underscore embeddded.   
-       -   Fixed: Runtime argument "-restore" is not restoring all options correctly.   
-       -   Fixed: Display level of 0 includes too much information.   
-       -   Fixed: Cleaned up the README file.   
-       -   Fixed: Default display detail level caused a program error.   
-       -   FIxed: GUI color change resulted in two rather than a single notification.   
-       -   Fixed: Output heading color was hard to see in light-mode.
-       -   Fixed: Appearance mode not being saved correctly across sessions.
-       -   Fixed: Unit Test code was not handling program arguments properly.
-       -   Fixed: Setting Action label color had no effect
+       - Added: Display Project/Profile/Task "properties" if display detail level is 3.   
+       - Added: New runtime argument '-names {bold,highlight,underline,italicize}' to make all Project/Profile/Task/Scene 'names' display bold, highlighted, underlined and/or italicised.       
+       - Added: New runtime argument '-cHeading' to assign a color to the output heading lines.   
+       - Added: New runtime argument '-appearance' {system, light, dark} to switch between color themes.
+       - Added: GUI: If a checkbox is selected or deselected, display the change in the message window. 
+       - Added: GUI: Colors for 'highlight' names, and for 'Heading'
+       - Added: GUI support new "names" bold/highlight/italicize/underline display options.   
+       - Changed: GUI message box now shows all previous messages along with new message at bottom.   
+       - Fixed: If displaying the directory, some Project names incorrectly have an underscore embeddded.   
+       - Fixed: Runtime argument "-restore" is not restoring all options correctly.   
+       - Fixed: Display level of 0 includes too much information.   
+       - Fixed: Cleaned up the README file.   
+       - Fixed: Default display detail level caused a program error.   
+       - FIxed: GUI color change resulted in two rather than a single notification.   
+       - Fixed: Output heading color was hard to see in light-mode.
+       - Fixed: Appearance mode not being saved correctly across sessions.
+       - Fixed: Unit Test code was not handling program arguments properly.
+       - Fixed: Setting Action label color had no effect
 - [2.0.10] - 2023-07-24   
-       -   Added: Support for new "Work Profile" Task Action and Profile State (Tasker version 6.2.9-rc)    
-       -   Added: Added missing "Close After" sub-action on Pick Input Dialog Action
-       -   Changed: Display Grand Totals regardless of detail display level      
-       -   Changed: If debug, redirect program abends (stack trace/error) to a debug log file    
-       -   Fixed: Exit from GUI displays "Error" in printout when it is not an error.    
-       -   Fixed: Under certain circumstances, fetching the backup xml file from Android device not working    
-       -   Fixed: Spurious indentation problems in output for Projects and Profiles    
-       -   Fixed: Gracefully handle condition when Action/State/Event code not found    
-       -   Fixed: Heading with Tasker and program versions was missing   
+       - Added: Support for new "Work Profile" Task Action and Profile State (Tasker version 6.2.9-rc)    
+       - Added: Added missing "Close After" sub-action on Pick Input Dialog Action
+       - Changed: Display Grand Totals regardless of detail display level      
+       - Changed: If debug, redirect program abends (stack trace/error) to a debug log file    
+       - Fixed: Exit from GUI displays "Error" in printout when it is not an error.    
+       - Fixed: Under certain circumstances, fetching the backup xml file from Android device not working    
+       - Fixed: Spurious indentation problems in output for Projects and Profiles    
+       - Fixed: Gracefully handle condition when Action/State/Event code not found    
+       - Fixed: Heading with Tasker and program versions was missing   
 - [2.0.9] - 2023-07-12  
        -  Fixed: Rewrite directory code to elliminate problems with duplicate hyperlinks    
        -  Fixed: "▶︎ Detail" still appearing if both -twisty and -direectory options selected     

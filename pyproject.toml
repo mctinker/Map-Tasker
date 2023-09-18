@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maptasker"
-version = "2.3.5"
+version = "2.3.6"
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README_PyPl.md"
@@ -10,8 +10,10 @@ keywords = ["tasker", "Tasker", "map tasker"]
 packages = [
     { include = "maptasker"}
 ]
-include = ["**/maptasker/**/*.py", {path="**/clip/castles/ascii/**", format="sdist"}]
-exclude = ["run_test.py", "**/maptasker/**/backup.xml", "**/maptasker/maptasker.log", "**/maptasker/MapTasker.html", "**/maptasker/.MapTasker_RunCount.txt", "**/maptasker/.arguments.txt", "**/maptasker/**/__pycache__"]
+include = ["**/maptasker/**/*.py"]
+# How to include a data directory...
+# include = ["**/maptasker/**/*.py", {path="**/clip/castles/ascii/**", format="sdist"}]
+exclude = ["run_test.py", "**/maptasker/**/backup.xml", "**/maptasker/maptasker.log", "**/maptasker/MapTasker.html", "**/maptasker/.MapTasker_RunCount.txt", "**/maptasker/.arguments.txt", "**/maptasker/**/__pycache__", "**/maptasker/**/.dep-tree.yml"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
