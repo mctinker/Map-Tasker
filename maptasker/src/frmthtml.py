@@ -12,7 +12,7 @@
 # #################################################################################### #
 from maptasker.src.sysconst import FONT_FAMILY
 
-
+ 
 def format_html(
     primary_items: dict,
     color_code: str,
@@ -31,17 +31,17 @@ def format_html(
     """
 
     # Determine and get the color to use
-    color_to_use = primary_items.get("colors_to_use", {}).get(color_code, color_code)
+    # color_to_use = primary_items.get("colors_to_use", {}).get(color_code, color_code)
 
     # Return completed HTML with color, font and text with text after
-    if text_after:
-        font = f'{FONT_FAMILY}{primary_items["program_arguments"]["font"]}'
+    if text_after: 
         text_after = text_after.replace(
-            f'<span style="color:{color_to_use}{font}"><span', "<span"
+            f'<span class="{color_code}"><span', "<span"
         )
         # Set up the trailing HTML to include
         trailing_span = "</span>" if end_span else ""
-        return f'{text_before}<span style="color:{color_to_use}{font}">{text_after}{trailing_span}'
+        # return f'{text_before}<span style="color:{color_to_use}{font}">{text_after}{trailing_span}'
+        return f'{text_before}<span class="{color_code}">{text_after}{trailing_span}'
 
     # No text after...just return it.
     else:

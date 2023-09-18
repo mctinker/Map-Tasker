@@ -24,56 +24,55 @@ def display_caveats(primary_items: dict) -> None:
     - None
     """
 
-    caveat1 = format_html(
-        primary_items,
-        "trailing_comments_color",
-        "",
-        "CAVEATS:<br>",
-        False,
-    )
-    caveat3 = (
-        "- This has only been tested on my own backup.xml file."
-        "  For problems, report them on https://github.com/mctinker/Map-Tasker/issues ."
-    )
-    caveat4 = (
-        '- Tasks that are identified as "Unnamed/Anonymous" have no name and are'
-        " considered Anonymous.\n"
-    )
-    caveat6 = (
-        '- All attempts are made to retain embedded HTML (e.g. color=...>") in Tasker'
-        " fields, but is stripped out of Action labels and TaskerNet comments."
-    )
-    primary_items["output_lines"].add_line_to_output(primary_items, 0, "<hr>")  # line
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 1, caveat1
-    )  # caveat
+    caveats = [
+        format_html(
+            primary_items,
+            "trailing_comments_color",
+            "",
+            "CAVEATS:<br>",
+            False,
+        ),
+        (
+            "- This has only been tested on my own backup.xml file."
+            "  For problems, report them on https://github.com/mctinker/Map-Tasker/issues .\n"
+        ),
+        (
+            '- Tasks that are identified as "Unnamed/Anonymous" have no name and are'
+            " considered Anonymous.\n"
+        ),
+        (
+            '- All attempts are made to retain embedded HTML (e.g. color=...>") in Tasker'
+            " fields, but is stripped out of Action labels and TaskerNet comments.\n"
+        ),
+    ]
+
+    # Let 'em know about Google API key
+    if primary_items["program_arguments"]["preferences"]:
+        caveats.append(
+            "- Your Google API key is displayed in the Tasker preferences!\n",
+        )
+
     if (
         primary_items["program_arguments"]["display_detail_level"] > 0
     ):  # Caveat about Actions
-        caveat2 = (
+        caveats.append(
             "- Most but not all Task actions have been mapped and will display as such."
             "  Likewise for Profile conditions and Plug-ins.\n"
         )
-        primary_items["output_lines"].add_line_to_output(
-            primary_items, 4, caveat2
-        )  # caveat
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 4, caveat3
-    )  # caveat
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 4, caveat4
-    )  # caveat
+
     if (
         primary_items["program_arguments"]["display_detail_level"] == 0
     ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
-        caveat5 = (
+        caveats.append(
             '- For option -d0, Tasks that are identified as "Unnamed/Anonymous" will'
             " have their first Action only listed....\n  just like Tasker does.\n"
         )
-        primary_items["output_lines"].add_line_to_output(
-            primary_items, 4, caveat5
-        )  # caveat
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 4, f"{caveat6}</span>"
-    )
+
+    # Start the output
+    primary_items["output_lines"].add_line_to_output(primary_items, 0, "<hr>")  # line
+
+    # Output all caveats
+    for caveat in caveats:
+        primary_items["output_lines"].add_line_to_output(primary_items, 0, caveat)
+
     return

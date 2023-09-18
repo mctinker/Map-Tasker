@@ -32,9 +32,9 @@ styling and structure based on the type of element being displayed. The output l
 are accumulated and ultimately used to generate the final HTML output file.
 """
 import maptasker.src.actione as action_evaluate
-from maptasker.src.debug import display_debug_info
 from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import FONT_FAMILY, UNKNOWN_TASK_NAME, debug_out, logger
+from maptasker.src.frontmtr import output_the_front_matter
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME, debug_out, logger
 
 
 class LineOut:
@@ -60,22 +60,20 @@ class LineOut:
 
         # Clear whatever is already in the output queue
         self.output_lines.clear()
-
-        # Start the output with heading
-        primary_items["output_lines"].add_line_to_output(
-            primary_items, 0, primary_items["heading"]
+        primary_items["dirctory_items"] = (
+            {
+                "current_item": "",
+                "projects": [],
+                "profiles": [],
+                "tasks": [],
+                "scenes": [],
+            },
         )
 
-        # If we are debugging, re-output the runtime arguments and colors
-        if (
-            primary_items["program_arguments"]["debug"]
-            or primary_items["program_arguments"]["runtime"]
-        ):
-            display_debug_info(primary_items)
+        # Display th starting information in beginning of output
+        output_the_front_matter(primary_items)
 
-        # Start the Project list (<ul>)
-        self.add_line_to_output(primary_items, 1, "")
-        # Output the Project name as list item (<li>)
+        # Start Project list
         self.add_line_to_output(
             primary_items,
             2,
@@ -126,17 +124,14 @@ class LineOut:
         line_with_style = ""
         if style_details["is_list"]:
             line_with_style = (
-                f'<li style="color:{style_details["color1"]}"><span style="color:'
-                f'{style_details["color2"]}{FONT_FAMILY}{style_details["font"]}">'
+                f'<li "<span class="{style_details["color"]}">'
                 f'{style_details["element"]}</span></li>\n'
             )
 
         elif style_details["is_taskernet"]:
             line_with_style = (
-                '<p style="margin-left:20px;margin-right:50px;color:'
-                f'{style_details["color2"]}{FONT_FAMILY}{primary_items["program_arguments"]["font"]}">'
+                f'<p class="{style_details["color"]}'
                 f'{style_details["element"]}</p>\n'
-                f'<p style="color:{style_details["color1"]}">'
             )
             line_with_style = line_with_style.replace("<span></span>", "")
 
@@ -154,22 +149,21 @@ class LineOut:
         :return: the formatted text to add to the output queue
         """
 
-        colormap = primary_items["colors_to_use"]
         font = primary_items["program_arguments"]["font"]
         if "Project:" in element or "Project has no Profiles" in element:
-            return self.handle_project(primary_items, element, colormap)
+            return self.handle_project(primary_items, element)
 
         elif "Profile:" in element:
-            return self.handle_profile(primary_items, element, colormap)
+            return self.handle_profile(primary_items, element)
 
         elif element.startswith("Task:") or "&#45;&#45;Task:" in element:
-            return self.handle_task(primary_items, element, colormap, font)
+            return self.handle_task(primary_items, element, font)
 
         elif element.startswith("Scene:"):
-            return self.handle_scene(primary_items, element, colormap, font)
+            return self.handle_scene(primary_items, element, font)
 
         elif "Action:" in element:
-            return self.handle_action(primary_items, element, colormap)
+            return self.handle_action(primary_items, element)
 
         elif "TaskerNet " in element:
             return self.handle_taskernet(element)
@@ -177,17 +171,26 @@ class LineOut:
         else:  # Must be additional item
             return self.handle_additional(element)
 
-    def handle_project(self, primary_items: dict, element: str, colormap: dict):
+    def handle_project(self, primary_items: dict, element: str):
         """_summary_
         Insert the hyperlink target if doing a the directory
                 Args:
                     :param primary_items:  Program registry.  See primitem.py for details.
                     element (str): text to incorporate after the target
-                    colormap (dict): dictionary of colors to use in the output
 
                 Returns:
                     _type_: output text with hyperlink target embedded
         """
+        return self.add_direcory_link(
+            primary_items, '<li ', element, '</li>\n'
+        )
+
+    def handle_profile(self, primary_items, element):
+        return self.add_direcory_link(
+            primary_items, '<br><li ', element, '</span></li>\n'
+        )
+
+    def add_direcory_link(self, primary_items, arg1, element, arg3):
         directory = ""
         if (
             primary_items["program_arguments"]["directory"]
@@ -195,39 +198,28 @@ class LineOut:
         ):
             directory_item = f'"{primary_items["directory_items"]["current_item"]}"'
             directory = f"<a id={directory_item}></a>\n"
-        return f'{directory}<li style=color:{colormap["bullet_color"]}>{element}</li>\n'
+        return f'{directory}{arg1}{element}{arg3}'
 
-    def handle_profile(self, primary_items, element, colormap):
-        directory = ""
-        if (
-            primary_items["program_arguments"]["directory"]
-            and primary_items["directory_items"]["current_item"]
-        ):
-            directory_item = f'"{primary_items["directory_items"]["current_item"]}"'
-            directory = f"<a id={directory_item}></a>\n"
-        return f'{directory}<br><li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
-
-    def handle_task(self, primary_items, element, colormap, font):
+    def handle_task(self, primary_items, element, font):
         style_details = {
             "is_list": True,
-            "color1": colormap["bullet_color"],
             "font": font,
             "element": element,
-            "color2": (
-                colormap["unknown_task_color"]
+            "color": (
+                "unknown_task_color"
                 if UNKNOWN_TASK_NAME in element
-                else colormap["task_color"]
+                else "task_color"
             ),
         }
         return self.add_style(primary_items, style_details)
 
-    def handle_scene(self, primary_items, element, colormap, font):
+    def handle_scene(self, primary_items, element, font):
         directory = ""
         if (
             primary_items["program_arguments"]["directory"]
             and primary_items["directory_items"]["current_item"]
         ):
-            scene_name = f'scene_{element.split("Scene:&nbsp;")[1]}'
+            scene_name = f'scenes_{element.split("Scene:&nbsp;")[1]}'
             # Get rid of any name attributions
             if (
                 primary_items["program_arguments"]["bold"]
@@ -236,12 +228,10 @@ class LineOut:
                 or primary_items["program_arguments"]["underline"]
             ):
                 scene_name = self.remove_attributes(scene_name)
-            primary_items["directory_items"]["scenes"] = scene_name
             directory = f'<a id="{scene_name.replace(" ","_")}"></a>\n'
         style_details = {
             "is_list": True,
-            "color1": colormap["bullet_color"],
-            "color2": colormap["scene_color"],
+            "color": "scene_color",
             "font": font,
             "element": element,
         }
@@ -258,7 +248,7 @@ class LineOut:
         scene_name = scene_name.replace("</u>", "")
         return scene_name
 
-    def handle_action(self, primary_items, element, colormap):
+    def handle_action(self, primary_items, element):
         blanks = (
             f'{"&nbsp;"*primary_items["program_arguments"]["indent"]}&nbsp;&nbsp;&nbsp;'
         )
@@ -281,7 +271,7 @@ class LineOut:
                 )
             )
             element = tmp
-        return f'<li style=color:{colormap["bullet_color"]}>{element}</span></li>\n'
+        return f'<li {element}</span></li>\n'
 
     def handle_taskernet(self, element):
         return f"{element}\n"

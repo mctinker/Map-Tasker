@@ -11,7 +11,6 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-from maptasker.src.lineout import LineOut
 
 
 def initialize_primary_items(file_to_get: str) -> dict:
@@ -41,7 +40,9 @@ def initialize_primary_items(file_to_get: str) -> dict:
     #  mono_fonts: dictionary of monospace fonts from TkInter
     #  grand_totals: used for trcaking number of Projects/Profiles/Tasks/Scenes
     #  tasker_root_elements points to our root xml for Projects/Profiles/Tasks/Scenes
-    # Return primary_items
+    #  directorys: points to our directory items if we are displaying a directory
+    #
+    #   Return primary_items
     return {
         "xml_tree": None,
         "xml_root": None,
@@ -57,26 +58,26 @@ def initialize_primary_items(file_to_get: str) -> dict:
             "single_project_found": False,
             "single_profile_found": False,
             "single_task_found": False,
-        },
+            },
         "grand_totals": {
             "projects": 0,
             "profiles": 0,
             "unnamed_tasks": 0,
             "named_tasks": 0,
             "scenes": 0,
-        },
+            },
         "directory_items": {
             "current_item": "",
             "projects": [],
             "profiles": [],
             "tasks": [],
             "scenes": [],
-        },
+            },
         "tasker_root_elements": {
             "all_projects": [],
             "all_profiles": {},
             "all_scenes": {},
             "all_tasks": {},
             "all_services": [],
-        },
-    }
+            },
+        }

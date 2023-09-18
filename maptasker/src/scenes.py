@@ -13,8 +13,8 @@
 import contextlib
 
 import defusedxml.ElementTree  # Need for type hints
-
 import maptasker.src.tasks as tasks
+from maptasker.src.dirout import add_directory_item
 from maptasker.src.frmthtml import format_html
 from maptasker.src.proclist import process_list
 from maptasker.src.xmldata import tag_in_type
@@ -45,6 +45,9 @@ SCENE_TAGS_TO_IGNORE = [
 ]
 
 
+# ##################################################################################
+# Get the Scene's geometry
+# ##################################################################################
 def get_geometry(scene_element: defusedxml.ElementTree.XML) -> tuple[str, str]:
     """
     Get the Scene's geometry
@@ -61,6 +64,9 @@ def get_geometry(scene_element: defusedxml.ElementTree.XML) -> tuple[str, str]:
     return width, height
 
 
+# ##################################################################################
+# Get the Scene's elements
+# ##################################################################################
 def get_scene_elements(
     primary_items: dict,
     child: defusedxml.ElementTree,
@@ -115,6 +121,9 @@ def get_scene_elements(
     return
 
 
+# ##################################################################################
+# Process the Scene
+# ##################################################################################
 def process_scene(
     primary_items: dict,
     my_scene: str,
@@ -130,9 +139,10 @@ def process_scene(
     # This import statement must reside here to avoid an error
     from maptasker.src.proclist import process_list
 
+    scene = primary_items["tasker_root_elements"]["all_scenes"][my_scene][0]
     # Get the Scene's geometry and display it
     height, width = get_geometry(
-        primary_items["tasker_root_elements"]["all_scenes"][my_scene]
+        scene
     )
     primary_items["output_lines"].add_line_to_output(
         primary_items,
@@ -146,9 +156,13 @@ def process_scene(
         ),
     )
 
+    # Handle directory hyperlink
+    if primary_items["program_arguments"]["directory"]:
+        add_directory_item(primary_items, "scenes", my_scene)
+        
     # Go through all the children of the Scene looking for width/height
     # and 'click' Tasks
-    for child in primary_items["tasker_root_elements"]["all_scenes"][my_scene]:
+    for child in scene:
         if child.tag in SCENE_TAGS_TO_IGNORE:
             continue
         # End of "xxxElement"?

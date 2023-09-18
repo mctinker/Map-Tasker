@@ -44,6 +44,8 @@ def process_service(
 
     # Get the name to display
     output_service_name = service_codes[service_name]["display"]
+    if output_service_name == "Unknown":
+        output_service_name = f"{service_name}: Unknown"
     # Left justify and fill to 15 characters
     output_service_name = output_service_name.ljust(45, ".")
 
@@ -67,6 +69,7 @@ def process_service(
         service_value = package_names
 
     # Add the service name to the output list
+    #  Prefix it by the "num" number, since we will be sorting by this number
     temp_output_lines.append(
         [
             service_codes[service_name]["num"],
@@ -93,7 +96,7 @@ def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
         :param temp_output_lines: list of service/preference output lines
         :return: nothing
     """
-    dummy_num = 100
+    dummy_num = 200
     first_time = True
     blank = "&nbsp;"
 
@@ -167,7 +170,7 @@ def get_preferences(primary_items: dict) -> None:
         "Action > Reset Error Notifications",
         "Misc",
         "Misc > Debugging",
-        "Unlisted (Perhaps Deprecated)",
+        "Unlisted",
     ]
     temp_output_lines = []
 

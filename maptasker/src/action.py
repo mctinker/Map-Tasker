@@ -369,7 +369,7 @@ def clean_label(primary_items: dict, lbl: str, colormap: dict) -> str:
     lbl = remove_html_tags(lbl, "")
     return format_html(
         primary_items,
-        colormap["action_label_color"],
+        "action_label_color",
         "",
         f" ...with label: {lbl}",
         True,
@@ -470,7 +470,7 @@ def get_extra_stuff(
     ):  # Add the code if this is an Action and in debug mode
         extra_stuff = extra_stuff + format_html(
             primary_items,
-            "Red",
+            "disabled_action_color",
             "",
             f'&nbsp;&nbsp;code: {code_action.find("code").text}-',
             True,

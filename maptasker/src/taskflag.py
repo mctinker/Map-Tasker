@@ -39,6 +39,7 @@ def get_collision(element: defusedxml.ElementTree.XML) -> str:
     """
 
     collision_element = element.find("rty")
+    # No collision tag = default = Abort Task on collision (we'll leave it blank)
     if collision_element is None:
         return ""
     collision_flag = collision_element.text or ""

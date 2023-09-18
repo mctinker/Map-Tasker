@@ -28,10 +28,9 @@ import maptasker.src.migrate as old_to_new
 import maptasker.src.progargs as get_arguments
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DARK_MODE, GUI
-from maptasker.src.debug import display_debug_info
 from maptasker.src.error import error_handler
 from maptasker.src.fonts import get_fonts
-from maptasker.src.frmthtml import format_html
+from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getbakup import get_backup_file
 from maptasker.src.sysconst import (
     COUNTER_FILE,
@@ -258,106 +257,9 @@ def get_data_and_output_intro(
     primary_items["file_to_get"].close()
 
     # Output the inital info: head, source, etc.
-    display_starting_info(primary_items)
-
-    # If we are debugging, output the runtime arguments and colors
-    if (
-        primary_items["program_arguments"]["debug"]
-        or primary_items["program_arguments"]["runtime"]
-    ):
-        display_debug_info(primary_items)
-
-    # Start a list (<ul>) to force everything to tab over
-    # primary_items["unordered_list_count"] = 0
-    primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
+    output_the_front_matter(primary_items)
 
     return primary_items
-
-
-# ##################################################################################
-# Display/output the start up information
-# ##################################################################################
-def display_starting_info(primary_items: dict) -> None:
-    """
-    Display the heading and source file details
-        :param primary_items:  program registry.  See primitem.py for details.
-    """
-    tasker_mapping = "Tasker Mapping................ Tasker version:"
-
-    # Get the screen dimensions from <dmetric> xml
-    screen_element = primary_items["xml_root"].find("dmetric")
-    screen_size = (
-        f'&nbsp;&nbsp;Device screen size: {screen_element.text.replace(",", " X ")}'
-        if screen_element is not None
-        else ""
-    )
-
-    # Set up highlight background color if needed
-    if primary_items["program_arguments"]["highlight"]:
-        background_color_html = (
-            "<style>\nmark { \nbackground-color: "
-            + primary_items["colors_to_use"]["highlight_color"]
-            + ";\n}\n</style>\n"
-        )
-    else:
-        background_color_html = ""
-
-    # Output date and time if in debug mode
-    if primary_items["program_arguments"]["debug"]:
-        now = datetime.now()
-        now_for_output = now.strftime("%m/%d/%y %H/%M/%S")
-    else:
-        now_for_output = ""
-
-    # Format the output heading
-    heading_color = primary_items["colors_to_use"]["heading_color"]
-    primary_items["heading"] = (
-        f"<!doctype html>\n<html lang=”en”>\n<head>\n{background_color_html}<title>MapTasker</title>\n<body"
-        f" style=\"background-color:{primary_items['colors_to_use']['background_color']}\">\n"
-        + format_html(
-            primary_items,
-            heading_color,
-            "",
-            (
-                f"<h2>MapTasker</h2><br> {tasker_mapping}"
-                f" {primary_items['xml_root'].attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;"
-                f"{MY_VERSION}{screen_size}&nbsp;&nbsp;&nbsp;&nbsp;{now_for_output}"
-            ),
-            True,
-        )
-    )
-    # Start the output with heading
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 0, primary_items["heading"]
-    )
-
-    # Display where the source file came from
-    # Did we restore the backup from Android?
-    if primary_items["program_arguments"]["fetched_backup_from_android"]:
-        source_file = (
-            "From Android device"
-            f' {primary_items["program_arguments"]["backup_file_http"]} at'
-            f' {primary_items["program_arguments"]["backup_file_location"]}'
-        )
-    elif (
-        primary_items["program_arguments"]["debug"]
-        or not primary_items["program_arguments"]["file"]
-    ):
-        source_file = primary_items["file_to_get"].name
-    else:
-        source_file = primary_items["program_arguments"]["file"]
-    # Add source to output
-    primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        0,
-        format_html(
-            primary_items,
-            heading_color,
-            "",
-            f"<br><br>Source backup file: {source_file}",
-            True,
-        ),
-    )
 
 
 # ##################################################################################

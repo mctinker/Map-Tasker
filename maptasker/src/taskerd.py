@@ -22,24 +22,32 @@ from maptasker.src.sysconst import logger
 # ##################################################################################
 # Convert list of xml to dictionary
 # ##################################################################################
-def move_xml_to_table(all_xml: list, is_scene: bool) -> dict:
+def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
     """
-    Given a list of Profile/Task/Scene elements, find each name and store the element and name in a dictionary
+    Given a list of Profile/Task/Scene elements, find each name and store the element and name in a dictionary.
         :param all_xml: the head xml element for Profile/Task/Scene
-        :param is_scene: True if this is for a Scene
+        :param get_id: True if we are to get the <id>
+        :param ame_qualifier: the qualifier to find the element's name.
         :return: dictionary that we created
     """
     new_table = {}
-    key_to_find = "nme" if is_scene else "id"
     for item in all_xml:
-        item_id = item.find(key_to_find).text
-        new_table[item_id] = item
+        # Get the element name
+        try:
+            name = item.find(name_qualifier).text
+        except AttributeError:
+            name = ""
+        # Get the Profile/Task identifier: id=number for Profiles and Tasks,
+        item_id = item.find("id").text if get_id else name
+        new_table[item_id] = [item, name]
+
     all_xml.clear()  # Ok, we're done with the list
     return new_table
 
 
 # ##################################################################################
-# Load all of the Projects, Profiles and Tasks into a format we can easily navigate through
+# Load all of the Projects, Profiles and Tasks into a format we can easily 
+# navigate through.
 # ##################################################################################
 def get_the_xml_data(primary_items: dict) -> dict:
     """
@@ -71,15 +79,16 @@ def get_the_xml_data(primary_items: dict) -> dict:
         sys.exit(3)
 
     all_services = primary_items["xml_root"].findall("Setting")
-    all_projects = primary_items["xml_root"].findall("Project")
+    all_projects_list = primary_items["xml_root"].findall("Project")
     all_profiles_list = primary_items["xml_root"].findall("Profile")
     all_scenes_list = primary_items["xml_root"].findall("Scene")
     all_tasks_list = primary_items["xml_root"].findall("Task")
 
-    # We now have what we need as lists.  Now move some into dictionaries
-    all_profiles = move_xml_to_table(all_profiles_list, False)
-    all_tasks = move_xml_to_table(all_tasks_list, False)
-    all_scenes = move_xml_to_table(all_scenes_list, True)
+    # We now have what we need as lists.  Now move all into dictionaries.
+    all_projects = move_xml_to_table(all_projects_list, False, "name")  
+    all_profiles = move_xml_to_table(all_profiles_list, True, "nme")
+    all_tasks = move_xml_to_table(all_tasks_list, True, "nme")
+    all_scenes = move_xml_to_table(all_scenes_list, False, "nme")
 
     # Return all data in a dictionary for easier access
     primary_items["tasker_root_elements"] = {

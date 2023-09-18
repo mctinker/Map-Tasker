@@ -4,6 +4,9 @@
 #                                                                                      #
 # dirout: Add the directory to the output queue                                        #
 #                                                                                      #
+#         This code is tricky.  We create the directory as we build the output queue,  #
+#         and then print it while processing/writing to file the output queue.         #
+#                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
 # complete source code of licensed works and modifications, which include larger works #
@@ -11,13 +14,58 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+import copy
 import math
 
 import darkdetect
 
 from maptasker.src.frmthtml import format_html
+from maptasker.src.sysconst import NO_PROFILE
 
 period = "."
+
+
+# ##################################################################################
+# Search a list of lists for a given string.  Return True if found.
+# ##################################################################################
+def search_lists(search_string: str, list_of_lists: list) -> bool:
+    """_summary_
+    Search a list of lists for a given string.  Return True if found.
+        Args:
+            search_string (str): string to search for
+            list_of_lists (list): pointer to the list of lists to search through
+
+        Returns:
+            boolean: True if string found in list of lists, False otherwise
+    """
+    return any(search_string == item[1] for item in list_of_lists)
+
+
+# ##################################################################################
+# Add directory item (Project/Profile/Task/Scene) to our dictionary of items
+# ##################################################################################
+def add_directory_item(primary_items: dict, key: str, name: str):
+    """_summary_
+    We are doing a directory.  Add the Project/Profile/Task/Scene name and hyperlink name to our dictionary of items
+        Args:
+            primary_items (dict): Program registry. See primitem.py for details.
+            key (str): "project", "profile", "task", or "scene"
+            directory_head (list): pointer to
+                primary_items["directory_items"]["directory_head"]
+                where "directory_head is "project", "profile", "task", or "scene"
+            name (str): name of the Project/Profile/Task/Scene
+    """
+
+    # Only set values if we haven't already done this named item
+    if (
+        not search_lists(name, primary_items["directory_items"][key])
+        and name != NO_PROFILE
+    ):
+        hyperlink_name = copy.deepcopy(name).replace(" ", "_")
+        primary_items["directory_items"]["current_item"] = f"{key}_{hyperlink_name}"
+        primary_items["directory_items"][key].append([hyperlink_name, name])
+    else:
+        primary_items["directory_items"]["current_item"] = ""
 
 
 #######################################################################################
@@ -61,10 +109,10 @@ def output_table(primary_items: dict, hyperlinks: list, max_columns: int) -> Non
     It outputs a table based on the provided primary items and hyperlinks.
 
     Args:
-        primary_items (list): A list of primary items for the table.
-        hyperlinks (bool): A boolean value indicating whether hyperlinks should be
+        primary_items (dict): Program registry. See primitem.py for details.
+        hyperlinks (list): A boolean value indicating whether hyperlinks should be
             included in the table.
-        max_columns: Integer for the number of columns to make the table.
+        max_columns (int): Integer for the number of columns to make the table.
 
     Returns:
         None
@@ -150,7 +198,7 @@ def generate_html_table(data: list, rows: int, columns: int) -> str:
     html = f'{border}<table style="width:100%;text-align:left;background-color:\
     {color_to_use};">\n'
     index = 0
-    data.sort()
+    data.sort()  # Sort the directory by name
 
     # Build our table
     for _ in range(rows):
@@ -195,15 +243,257 @@ def do_trailing_matters(primary_items: dict) -> None:
 
     # Do Tasks that are not associated with any Profile, Projects without Tasks
     #   and without Profiles
-    trailing_matter = [
-        "<a href=#configuration_outline>Configuration Outline</a>",
-        "<a href=#grand_totals>Grand Totals</a>",
-    ]
+    if primary_items["program_arguments"]["outline"]:
+        trailing_matter = ["<a href=#configuration_outline>Configuration Outline</a>"]
+    else:
+        trailing_matter = []
+    trailing_matter.append("<a href=#grand_totals>Grand Totals</a>")
 
     # Output the table
     output_table(primary_items, trailing_matter, 4)
 
     return
+
+
+# ##################################################################################
+# Determinme if an item is in a specific a specific Project.
+# ##################################################################################
+def find_task_in_project(
+    primary_items: dict, start_index: object, item_to_match: str, items_to_search: str
+) -> bool:
+    """_summary_
+    Determinme if an item is in a specific a specific Project.
+        Args:
+            primary_items (dict): Program registry. See primitem.py for details.
+            start_index (object): Which index to start our search within
+                primary_items["tasker_root_elements"]["all_projects"]
+            item_to_match (str): item to look for within Project
+            items_to_search (str): Project item to search: "scenes", "pids", "tids"
+
+        Returns:
+            bool: True if found, False otherwise
+    """
+    if start_index:
+        begin_search_at = primary_items["tasker_root_elements"]["all_projects"][
+            start_index
+        ]
+    else:
+        begin_search_at = primary_items["tasker_root_elements"]["all_projects"]
+    for project_item in begin_search_at:
+        project = primary_items["tasker_root_elements"]["all_projects"][project_item][0]
+        items_in_project = project.find(items_to_search)
+        if (
+            items_in_project is not None
+            and item_to_match in items_in_project.text.split(",")
+        ):
+            return True, project
+    return False, ""
+
+
+# ##################################################################################
+# Doing Scene hyperlink.  Make sure it is okay to do this Scene hyperlink.
+# ##################################################################################
+def check_scene(primary_items: dict, item: str) -> bool:
+    """_summary_
+    Check to make sure this Scene should be included in the output
+        Args:
+            primary_items (dict): Program registry. See primitem.py for details.
+            item (str): directory hyperlink item we are processing
+
+        Returns:
+            bool: True if we should output this hperlink, False if it is to be ingored.
+    """
+    # Single Project?
+    if primary_items["program_arguments"]["single_project_name"]:
+        found, project = find_task_in_project(primary_items, "", item[1], "scenes")
+        return found
+
+    # Single Profile?
+    if profile_name := primary_items["program_arguments"]["single_profile_name"]:
+        # Find out if this Scene is in the single Project's Profile' we are looking for.
+        # Get the Profile ID for the single Profile we are looking for
+        for profile_id in primary_items["tasker_root_elements"]["all_profiles"]:
+            if (
+                primary_items["tasker_root_elements"]["all_profiles"][profile_id][1]
+                == profile_name
+            ):
+                found, project = find_task_in_project(
+                    primary_items, "", profile_id, "pids"
+                )
+                if found:
+                    scenes = project.find("scenes")
+                    if scenes is not None and item[1] in scenes.text.split(","):
+                        return True
+
+        return False
+    # Single Task?
+    if profile_name := primary_items["program_arguments"]["single_task_name"]:
+        # Get this Task's ID.
+        if this_task_id := next(
+            (
+                task_item
+                for task_item in primary_items["tasker_root_elements"]["all_tasks"]
+                if primary_items["tasker_root_elements"]["all_tasks"][task_item][1]
+                == primary_items["program_arguments"]["single_task_name"]
+            ),
+            "",
+        ):
+            # Find the Project this single Task belongs to.
+            found, project = find_task_in_project(
+                primary_items, "", this_task_id, "tids"
+            )
+            if found:
+                # Found Project with Profile, now check If Scenes in Project
+                scenes = project.find("scenes")
+                if scenes is not None and item[1] in scenes.text.split(","):
+                    return True
+            return False
+
+    # Not doing single name...Scene hyperlink is okay to include.
+    return True
+
+
+# ##################################################################################
+# Doing Task hyperlink.  Make sure it is okay to do this Task hyperlink.
+# ##################################################################################
+def check_task(primary_items: dict, item: str) -> bool:
+    """_summary_
+    Check to make sure this Task should be included in the output
+        Args:
+            primary_items (dict): Program registry. See primitem.py for details.
+            item (str): directory hyperlink item we are processing
+
+        Returns:
+            bool: True if we should output this hperlink, False if it is to be ingored.
+    """
+    if (
+        primary_items["program_arguments"]["single_task_name"]
+        and item[1] != primary_items["program_arguments"]["single_task_name"]
+    ):
+        return False
+    # Doing a single Profile?
+    if primary_items["program_arguments"]["single_profile_name"]:
+        # Get this Task's ID.
+        if this_task_id := next(
+            (
+                task_item
+                for task_item in primary_items["tasker_root_elements"]["all_tasks"]
+                if primary_items["tasker_root_elements"]["all_tasks"][task_item][1]
+                == item[1]
+            ),
+            "",
+        ):
+            # Find the Project that belongs to the Profile we are looking for.
+            for project_item in primary_items["tasker_root_elements"]["all_projects"]:
+                project = primary_items["tasker_root_elements"]["all_projects"][
+                    project_item
+                ][0]
+                pids = project.find("pids")
+                # See if the Profile we are looking for is in this Project
+                if pids is not None:
+                    for profile_id in pids.text.split(","):
+                        if (
+                            primary_items["program_arguments"]["single_profile_name"]
+                            == primary_items["tasker_root_elements"]["all_profiles"][
+                                profile_id
+                            ][1]
+                        ):
+                            # Get the Project's Task IDs
+                            tids = project.find("tids")
+                            if tids is not None and this_task_id in tids.text.split(
+                                ","
+                            ):
+                                return True
+        return False
+    return True
+
+
+# ##################################################################################
+# Doing Profile hyperlink.  Make sure it is okay to do this Profile hyperlink.
+# ##################################################################################
+def check_profile(primary_items: dict, item: str) -> bool:
+    """_summary_
+    Check to make sure this Profile should be included in the output
+        Args:
+            primary_items (dict): Program registry. See primitem.py for details.
+            item (str): directory hyperlink item we are processing
+
+        Returns:
+            bool: True if we should output this hperlink, False if it is to be ingored.
+    """
+    if (
+        primary_items["program_arguments"]["single_profile_name"]
+        and item[1] != primary_items["program_arguments"]["single_profile_name"]
+    ):
+        return False
+    return not primary_items["program_arguments"]["single_task_name"]
+
+
+# ##################################################################################
+# Doing Project hyperlinks.  Make sure it is okay to do this Project hyperlink.
+# ##################################################################################
+def check_project(primary_items: dict, item: str) -> bool:
+    """_summary_
+    Check to make sure this Project should be included in the output
+        Args:
+            primary_items (dict): Program registry. See primitem.py for details.
+            item (str): directory hyperlink item we are processing
+
+        Returns:
+            bool: True if we should output this hperlink, False if it is to be ingored.
+    """
+    project = primary_items["tasker_root_elements"]["all_projects"][item[1]][0]
+    project_id = project.attrib.get("sr")
+    project_id = project_id[4:]
+    # Are we looking for specific Preoject and this is it?
+    if primary_items["program_arguments"]["single_project_name"]:
+        if item[1] != primary_items["program_arguments"]["single_project_name"]:
+            return False
+    # Single Profile?
+    elif primary_items["program_arguments"]["single_profile_name"]:
+        pids = project.find("pids")
+        if pids is None or project_id not in pids.text.split(","):
+            return False
+    # Single Task?
+    elif primary_items["program_arguments"]["single_task_name"]:
+        return False
+    return True
+
+
+# ##################################################################################
+# Check to make sure this item should be included in the output
+# ##################################################################################
+def check_item(primary_items: dict, name: str, item: str) -> bool:
+    """_summary_
+    Check to make sure this item should be included in the output
+        Args:
+            primary_items (dict): Program registry. See primitem.py for details.
+            name: element name: directory we are doing:
+                    "projects", "profiles", "tasks", "scenes"
+            item (str): directory hyperlink item we are processing
+
+        Returns:
+            bool: True if we should output this hyperlink, False if it is to be ingored.
+    """
+    # Check if doing a single item...only build directory for that item
+    match name:
+        # Doing Project hyperlink...
+        case "projects":
+            return check_project(primary_items, item)
+
+        # Doing Profile hyperlink..
+        case "profiles":
+            return check_profile(primary_items, item)
+
+        case "tasks":
+            return check_task(primary_items, item)
+
+        case "scenes":
+            return check_scene(primary_items, item)
+
+        case _:
+            return True
+    return True
 
 
 #######################################################################################
@@ -212,68 +502,52 @@ def do_trailing_matters(primary_items: dict) -> None:
 def do_tasker_element(primary_items: dict, name: str) -> None:
     """
     Build an html table and output it for the given Tasker element: Project, Profile,
-        Scene or Task
+        Scene or Task.  DO this by traversing the entire xml trees.
 
     This function adds project information to the output lines of primary_items.
     It generates hyperlinks for each project and builds an HTML table with hyperlinks.
 
     Args:
         primary_items (dict): Program registry. See primitem.py for details.
-        name: element name: "project", "profile", "task", "scene"
+        name: element name: directory we are doing:
+                "projects", "profiles", "tasks", "scenes"
 
     Returns:
         None
 
     """
-    primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        5,
-        format_html(
-            primary_items,
-            "project_color",
-            "<br><br>",
-            f"{name.capitalize()}s{period*60}<br><br>",
-            True,
-        ),
-    )
+    # Output the table header
+    if primary_items["directory_items"][name]:
+        # Go through each item and accumulate the names to be used for
+        # the directory hyperlinks
+        directory_hyperlinks = []
+        for item in primary_items["directory_items"][name]:
+            if check_item(primary_items, name, item):
+                # Directory item is valid for this name.
+                # Get the name and display name for this item
+                hyperlink_name = item[0]
+                display_name = item[1]
+                # Append our hyperlink to this Project to the list
+                directory_hyperlinks.append(
+                    f"<a href=#{name}_{hyperlink_name}>{display_name}</a>"
+                )
 
-    doing_project = False
-    key_to_find = "nme"
-    number_of_columns = 6
-    match name:
-        case "project":
-            root = primary_items["tasker_root_elements"]["all_projects"]
-            key_to_find = "name"
-            doing_project = True
-        case "profile":
-            root = primary_items["tasker_root_elements"]["all_profiles"]
-        case "task":
-            root = primary_items["tasker_root_elements"]["all_tasks"]
-            number_of_columns = 5
-        case "scene":
-            root = primary_items["tasker_root_elements"]["all_scenes"]
-        case _:
-            return
-
-    # Go through each item and accumulate the names to be used for
-    # the directory hyperlinks
-    directory_hyperlinks = []
-    for item in root:
-        if not doing_project:
-            item = root[item]
-        if item.find(key_to_find) is None:
-            continue
-
-        # Hyperlink name can not have any embedded blanks.
-        # Substitute a dash for each blank.
-        display_name = item.find(key_to_find).text
-        hyperlink_name = display_name.replace(" ", "_")
-        # Append our hyperlink to this Project to the list
-        directory_hyperlinks.append(
-            f"<a href=#{name}_{hyperlink_name}>{display_name}</a>"
-        )
-
-    output_table(primary_items, directory_hyperlinks, number_of_columns)
+        if directory_hyperlinks:
+            # Output the name title: Project, Profile, Task, Scene
+            primary_items["output_lines"].add_line_to_output(
+                primary_items,
+                5,
+                format_html(
+                    primary_items,
+                    "project_color",
+                    "<br><br>",
+                    f"{name.capitalize()}{period*60}<br><br>",
+                    True,
+                ),
+            )
+            # 6 columns for projects, 5 columns for tasks
+            number_of_columns = 5 if name == "tasks" else 6
+            output_table(primary_items, directory_hyperlinks, number_of_columns)
 
     return
 
@@ -305,11 +579,16 @@ def output_directory(primary_items: dict) -> None:
         ),
     )
     # Ok, run through the Tasker key elements and output the directory for each
-    do_tasker_element(primary_items, "project")
-    do_tasker_element(primary_items, "profile")
+    # Only do Projects and Profiles if not looking for a single Project or Profile
+    if not (
+        primary_items["program_arguments"]["single_profile_name"]
+        or primary_items["program_arguments"]["single_task_name"]
+    ):
+        do_tasker_element(primary_items, "projects")
+    do_tasker_element(primary_items, "profiles")
     if primary_items["program_arguments"]["display_detail_level"] != 0:
-        do_tasker_element(primary_items, "task")
-    do_tasker_element(primary_items, "scene")
+        do_tasker_element(primary_items, "tasks")
+    do_tasker_element(primary_items, "scenes")
 
     do_trailing_matters(primary_items)
 

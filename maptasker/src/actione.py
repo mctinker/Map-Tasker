@@ -23,7 +23,7 @@ from maptasker.src.debug import not_in_dictionary
 from maptasker.src.error import error_handler
 from maptasker.src.frmthtml import format_html
 from maptasker.src.depricated import depricated
-from maptasker.src.sysconst import FONT_FAMILY, logger
+from maptasker.src.sysconst import logger
 
 # pattern1 = re.compile(r'<.*?>')  # Get rid of all <something> html code
 
@@ -221,8 +221,9 @@ def build_action(
     # Calculate total indentation to put in front of action
     count = indent
     if count != 0:
-        font = f'{FONT_FAMILY}{primary_items["program_arguments"]["font"]}'
-        task_code_line = task_code_line.replace(f'{font}">', f'{font}">{indent_amt}', 1)
+        # Add the indent amount to the front of the Action output line
+        front_matter = '<span class="action_name_color">'
+        task_code_line = task_code_line.replace(front_matter, f'{front_matter}{indent_amt}', 1)
         count = 0
     if count < 0:
         task_code_line = f"{indent_amt}{task_code_line}"

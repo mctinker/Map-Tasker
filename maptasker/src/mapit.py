@@ -49,16 +49,14 @@ import maptasker.src.proginit as initialize
 import maptasker.src.projects as projects
 import maptasker.src.taskuniq as special_tasks
 from maptasker.src.caveats import display_caveats
-from maptasker.src.dirout import output_directory
 from maptasker.src.error import error_handler
 from maptasker.src.frmthtml import format_html
 from maptasker.src.frmtline import format_line
 from maptasker.src.lineout import LineOut
-from maptasker.src.prefers import get_preferences
-from maptasker.src.primitem import initialize_primary_items
+from maptasker.src.dirout import output_directory
 from maptasker.src.outline import outline_the_configuration
-from maptasker.src.sysconst import debug_file, debug_out, logger, Colors
-
+from maptasker.src.primitem import initialize_primary_items
+from maptasker.src.sysconst import Colors, debug_file, debug_out, logger
 
 # import os
 # print('Path:', os.getcwd())
@@ -140,6 +138,24 @@ def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> 
     with open(f"{my_output_dir}{my_file_name}", "w") as out_file:
         # Output the rest that is in our output queue
         for num, item in enumerate(primary_items["output_lines"].output_lines):
+            
+            # Check to see if this is where the direcory is to go.  
+            # Output dirreectory if so.
+            if "maptasker_directory" in item:
+                # Temporaily save our output lines
+                temp_lines_out = primary_items["output_lines"].output_lines
+                primary_items["output_lines"].output_lines = [] # Create a new output queue
+                
+                # Do the direcory output
+                if primary_items["program_arguments"]["directory"]:
+                    output_directory(primary_items)
+                # Output the directory line
+                for output_line in primary_items["output_lines"].output_lines:
+                    out_file.write(output_line)
+                # Restore our regular output
+                primary_items["output_lines"].output_lines = temp_lines_out  
+                continue
+
             # Format the output line
             # logger.info(item)
             output_line = format_line(primary_items, num, item)
@@ -430,14 +446,6 @@ def mapit_all(file_to_get: str) -> int:
     single_project_name = primary_items["program_arguments"]["single_project_name"]
     single_profile_name = primary_items["program_arguments"]["single_profile_name"]
     single_task_name = primary_items["program_arguments"]["single_task_name"]
-
-    # Output the directory first, if requested
-    if primary_items["program_arguments"]["directory"]:
-        output_directory(primary_items)
-
-    # If doing Tasker preferences, get them
-    if primary_items["program_arguments"]["preferences"]:
-        get_preferences(primary_items)
 
     # Process all Projects and their Profiles
     found_tasks = projects.process_projects_and_their_profiles(

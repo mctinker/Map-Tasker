@@ -29,7 +29,7 @@ def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
         4,
         format_html(
             primary_items,
-            "Red",
+            "disabled_profile_color",
             "",
             f"Runtime Settings {begin_or_end} {arrow * 80}",
             True,
@@ -66,7 +66,7 @@ def display_debug_info(primary_items: dict) -> None:
         4,
         "",
     )
-    
+
     # Identify the output as debug stuff
     output_debug_line(primary_items, "Start")
     if primary_items["program_arguments"]["debug"]:
@@ -75,7 +75,7 @@ def display_debug_info(primary_items: dict) -> None:
             4,
             format_html(
                 primary_items,
-                "Red",
+                "disabled_profile_color",
                 "",
                 f"sys.argv (runtime arguments):{str(sys.argv)}",
                 True,
@@ -94,12 +94,17 @@ def display_debug_info(primary_items: dict) -> None:
             value = primary_items["program_arguments"][key]
             if value is None or value == "":
                 value = "None"
+            # Set color for value
+            if not value or value == "None":
+                color_to_use = "unknown_task_color"
+            else:
+                color_to_use = "heading_color"
             primary_items["output_lines"].add_line_to_output(
                 primary_items,
                 4,
                 format_html(
                     primary_items,
-                    "heading_color",
+                    color_to_use,
                     "",
                     f"{line_formatted_to_length}: {value}",
                     True,
@@ -125,7 +130,7 @@ def display_debug_info(primary_items: dict) -> None:
         "",
     )
 
-    # Do colors to use in putput
+    # Do colors to use in output
 
     # Get our color names by reversing the lookup dictionary
     color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}

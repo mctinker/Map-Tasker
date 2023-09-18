@@ -580,11 +580,106 @@ service_codes = {
     "runlogTasks": {
         "display": "Log Tasks",
         "section": 13,
-        "num": 89,
+        "num": 90,
     },
     "runlogActions": {
         "display": "Log Actions",
         "section": 13,
-        "num": 89,
+        "num": 91,
+    },
+    "searchFilterText": {
+        "display": "Filter Text on Search",
+        "section": 13,
+        "num": 92,
+    },
+    "searchFeatures": {
+        "display": "Search Features",
+        "section": 13,
+        "num": 93,
+    },
+    "sigmotion": {
+        "display": "Signal on Motion",
+        "section": 13,
+        "num": 94,
+    },
+    "leEnle": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 95,
+    },
+    "kit": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 96,
+    },
+    "qstdc0": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 97,
+    },
+    "qstcommlong0": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 98,
+    },
+    "qstexcont0": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 99,
+    },
+    "searchMatchType": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 100,
+    },
+    "lPdta": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 101,
+    },
+    "sbl": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 102,
+    },
+    "qstcanuselockdevice0": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 103,
+    },
+    "qstcanuselockdevice1": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 104,
+    },
+    "qstcomm0": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 105,
+    },
+    "qsts0": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 106,
+    },
+    "tsRef": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 107,
+    },
+     "qstst0": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 108,
+    },
+    "listMarginWidthPercent": {
+        "display": "Margin Width Percentage",
+        "section": 13,
+        "num": 109,
+    },
+    "tsIndexed": {
+        "display": "Unknown",
+        "section": 13,
+        "num": 110,
     },
 }

@@ -123,7 +123,7 @@ def extract_image(evaluated_results, code_action, argeval):
     evaluated_results["get_xml_flag"] = False
     image, package = "", ""
     child = code_action.find("Img")
-    # if child.find("nme") is not None:
+    # Image name
     with contextlib.suppress(Exception):
         image = child.find("nme").text
     if child.find("pkg") is not None:

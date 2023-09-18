@@ -119,7 +119,8 @@ def get_task_name(
     task_type: str,
 ) -> tuple[defusedxml.ElementTree.XML, str]:
     """
-    Get the name of the task given the Task ID
+    Get the name of the task given the Task ID.
+    Add to the output line if this is an Entry or xit Task.
         :param primary_items:  program registry.  See primitem.py for details.
         :param the_task_id: the Task's ID (e.g. '47')
         :param tasks_that_have_been_found: list of Tasks found so far
@@ -129,7 +130,8 @@ def get_task_name(
     """
 
     if the_task_id.isdigit():
-        task = primary_items["tasker_root_elements"]["all_tasks"][the_task_id]
+        task = primary_items["tasker_root_elements"]["all_tasks"][the_task_id][0]
+        task_name = primary_items["tasker_root_elements"]["all_tasks"][the_task_id][1]
         duplicate_task = False
         if the_task_id not in tasks_that_have_been_found:
             tasks_that_have_been_found.append(the_task_id)
@@ -139,10 +141,8 @@ def get_task_name(
             extra = f"&nbsp;&nbsp;Task ID: {the_task_id}"
         else:
             extra = ""
-        blanks = f'{"&nbsp;" * primary_items["program_arguments"]["indent"]}'
         # Determine if this is an "Entry" or "Exit" Task
-        try:
-            task_name = task.find("nme").text
+        if task_name:
             if task_type == "Exit":
                 task_output_lines.append(
                     f"{task_name}&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task{extra}"
@@ -152,7 +152,7 @@ def get_task_name(
                 task_output_lines.append(
                     f"{task_name}&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task{extra}"
                 )
-        except AttributeError:
+        else:
             task_name = UNKNOWN_TASK_NAME
             # Count this as an unnamed Task if it hasn't yet been counted and it
             # is a normal Task
@@ -160,6 +160,7 @@ def get_task_name(
                 primary_items["task_count_unnamed"] = (
                     primary_items["task_count_unnamed"] + 1
                 )
+            blanks = f'{"&nbsp;" * primary_items["program_arguments"]["indent"]}'
             if task_type == "Exit":
                 task_output_lines.append(
                     f"{UNKNOWN_TASK_NAME}{blanks}<<< Exit Task{extra}"
@@ -197,8 +198,13 @@ def get_project_for_solo_task(
 
     all_projects = primary_items["tasker_root_elements"]["all_projects"]
     if all_projects is not None:
-        for project_element in all_projects:
-            project_name = project_element.find("name").text
+        for project in all_projects:
+            project_element = primary_items["tasker_root_elements"]["all_projects"][
+                project
+            ][0]
+            project_name = primary_items["tasker_root_elements"]["all_projects"][
+                project
+            ][1]
             task_ids = get_ids(
                 primary_items,
                 False,
@@ -224,7 +230,7 @@ def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
     """
     # Go through each Scene
     for value in all_scenes.values():
-        for child in value:  # Go through sub-elements in the Scene element
+        for child in value[0]:  # Go through sub-elements in the Scene element
             if tag_in_type(child.tag, True):
                 for subchild in child:  # Go through xxxxElement sub-items
                     # Is this Task in this specific Scene (child)?
@@ -268,10 +274,12 @@ def do_single_task(
         f' name:{primary_items["program_arguments"]["single_task_name"]} our Task'
         f" name:{our_task_name}"
     )
-    # ##################################################################################
-    # We are looking for a specific Task...
-    # ##################################################################################
-    if primary_items["program_arguments"]["single_task_name"] == our_task_name:
+
+    # Doing a specific Task...
+    if (
+        primary_items["program_arguments"]["single_task_name"]
+        and primary_items["program_arguments"]["single_task_name"] == our_task_name
+    ):
         # We have the single Task we are looking for
         primary_items["found_named_items"]["single_task_found"] = True
 
@@ -305,23 +313,48 @@ def do_single_task(
         )
 
     # If multiple Tasks in this Profile, just get the one we want
-    elif len(task_list) > 1:
-        for task_item in task_list:
-            if primary_items["program_arguments"]["single_task_name"] in task_item:
-                # Start a new line
-                primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
-                task_list = [task_item]
-                # Process the task(s)
-                process_list(
-                    primary_items,
-                    "Task:",
-                    task_list,
-                    our_task_element,
-                    list_of_found_tasks,
-                )
-                # End Task list
-                primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
-                break
+    else:
+        primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
+        # Process the task(s)
+        process_list(
+            primary_items,
+            "Task:",
+            task_list,
+            our_task_element,
+            list_of_found_tasks,
+        )
+        # End Task list
+        primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+
+
+# ##################################################################################
+# Get additional information for this Task
+# ##################################################################################
+def get_extra_details(
+    primary_items: dict,
+    our_task_element: defusedxml.ElementTree,
+    task_output_lines: list,
+) -> tuple:
+    """_summary_
+    Get additional information for this Task
+        Args:
+            primary_items (dict): program registry.  See primitem.py for details.
+            our_task_elelemtn(xml): our Task head xml element.
+            task_output_lines (list): list of Task's output line(s)
+
+        Returns:
+            _tuple (str, str, str, str): the extra stuff as strings
+    """
+    if kid_app_info := get_kid_app(our_task_element):
+        kid_app_info = format_html(primary_items, "task_color", "", kid_app_info, True)
+        task_output_lines[0] = f"{task_output_lines[0]} {kid_app_info}"
+    if priority := task_flags.get_priority(our_task_element, False):
+        task_output_lines[0] = f"{task_output_lines[0]} {priority}"
+    if collision := task_flags.get_collision(our_task_element):
+        task_output_lines[0] = f"{task_output_lines[0]} {collision}"
+    if stay_awake := task_flags.get_awake(our_task_element):
+        task_output_lines[0] = f"{task_output_lines[0]} {stay_awake}"
+    return kid_app_info, priority, collision, stay_awake
 
 
 # ##################################################################################
@@ -331,7 +364,7 @@ def output_task(
     primary_items: dict,
     our_task_name: str,
     our_task_element: defusedxml.ElementTree.XML,
-    task_list: list,
+    task_output_lines: list,
     project_name: str,
     profile_name: str,
     list_of_found_tasks: list,
@@ -342,7 +375,7 @@ def output_task(
         :param primary_items:  program registry.  See primitem.py for details.
         :param our_task_name: name of Task
         :param our_task_element: Task xml element
-        :param task_list: Task list
+        :param task_list: list of Task output lines
         :param project_name: name of current Project
         :param profile_name: name of current Profile
         :param list_of_found_tasks: list of Tasks found so far
@@ -354,38 +387,33 @@ def output_task(
 
     # See if there is a Kid app and/or Priority and/or Collision
     if do_extra and primary_items["program_arguments"]["display_detail_level"] == 3:
-        if kid_app_info := get_kid_app(our_task_element):
-            kid_app_info = format_html(
-                primary_items, "task_color", "", kid_app_info, True
-            )
-            task_list[0] = f"{task_list[0]} {kid_app_info}"
-        if priority := task_flags.get_priority(our_task_element, False):
-            task_list[0] = f"{task_list[0]} {priority}"
-        if collision := task_flags.get_collision(our_task_element):
-            task_list[0] = f"{task_list[0]} {collision}"
-        if stay_awake := task_flags.get_awake(our_task_element):
-            task_list[0] = f"{task_list[0]} {stay_awake}"
+        kid_app_info, priority, collision, stay_awake = get_extra_details(
+            primary_items, our_task_element, task_output_lines
+        )
 
     # Looking for a single Task?  If so, then process it.
-    if our_task_name != "" and primary_items["program_arguments"]["single_task_name"]:
+    if (
+        our_task_name != ""
+        and primary_items["program_arguments"]["single_task_name"] == our_task_name
+    ):
         do_single_task(
             primary_items,
             our_task_name,
             project_name,
             profile_name,
-            task_list,
+            task_output_lines,
             our_task_element,
             list_of_found_tasks,
         )
         return True  # Call it quits on Task...we have the one we want
-    elif task_list:
+    elif task_output_lines:
         # Start a list
         primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
         # Process the list of Task(s)
         process_list(
             primary_items,
             "Task:",
-            task_list,
+            task_output_lines,
             our_task_element,
             list_of_found_tasks,
         )
@@ -394,3 +422,61 @@ def output_task(
         primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
 
     return False  # Normal Task...continue processing them
+
+
+# ##################################################################################
+# Given a list of tasks, output them.
+# ##################################################################################
+def output_task_list(
+    primary_items: dict,
+    list_of_tasks: list,
+    project_name: str,
+    profile_name: str,
+    task_output_lines: str,
+    list_of_found_tasks: list,
+    do_extra: bool,
+) -> None:
+    """_summary_
+    Given a list of tasks, output them.  The list of tasks is a list of tuples.
+        The first element is the Task name, the second is the Task element.
+        Args:
+            primary_items (dict): program registry.  See primitem.py for details.
+            list_of_tasks (list): list of Tasks to output.
+            project_name (str): name of the owning Projeect
+            profile_name (str): name of the owning Profile
+            task_output_lines (str): the output lines for the Tasks
+            list_of_found_tasks (list): list of Tasks found so far
+            do_extra (bool): True to output extra info.
+    """
+    for count, task_item in enumerate(list_of_tasks):
+        # Doing extra details?
+        if do_extra and primary_items["program_arguments"]["display_detail_level"] == 3:
+            # Get the extra details for this Task
+            kid_app_info, priority, collision, stay_awake = get_extra_details(
+                primary_items,
+                task_item[0],
+                [task_output_lines[count]],
+            )
+            # Tack on the extra info since [task_output_lines[count]] is immutable
+            task_output_lines[
+                count
+            ] = f"{task_output_lines[count]}  {kid_app_info} {priority} {collision} {stay_awake}"
+
+        do_single_task(
+            primary_items,
+            task_item[1],
+            project_name,
+            profile_name,
+            [task_output_lines[count]],
+            task_item[0],
+            list_of_found_tasks,
+        )
+
+        # If only doing a single Task and we found/did it, then we are done
+        if (
+            task_item[1] != ""
+            and primary_items["program_arguments"]["single_task_name"] == task_item[1]
+        ):
+            return True
+
+    return False

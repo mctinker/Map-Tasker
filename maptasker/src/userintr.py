@@ -241,7 +241,7 @@ class MyGui(customtkinter.CTk):
         self.directory_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
             command=self.directory_event,
-            text="Display directory",
+            text="Display Directory",
             onvalue=True,
             offvalue=False,
         )
@@ -698,7 +698,7 @@ class MyGui(customtkinter.CTk):
 
         # If we have an error, display it and blank out the various individual names
         if error_message:
-            self.display_message_box(error_message, True)
+            self.display_message_box(error_message, False)
             (
                 self.single_project_name,
                 self.single_profile_name,
@@ -716,7 +716,7 @@ class MyGui(customtkinter.CTk):
     # Make sure the single named item exists...that it is a valid name
     # ##################################################################################
     def valid_item(self, the_name, element_name):
-        # We need to get all tasker items from the backup xml file.
+        # We need to get all tasker root xml items from the backup xml file.
         # To do so, we need to go through initializing a temporary primary_items
         temp_primary_items = initialize_primary_items("")
         temp_primary_items["program_arguments"] = initialize_runtime_arguments()
@@ -726,43 +726,26 @@ class MyGui(customtkinter.CTk):
         temp_primary_items["output_lines"] = LineOut()
         temp_primary_items = get_data_and_output_intro(temp_primary_items)
 
-        # Set up for name check
-        root_element = []
-
+        # Set up for name checking
         # Find the specific item and get it's root element
         match element_name:
             case "Project":
                 root_element = temp_primary_items["tasker_root_elements"][
                     "all_projects"
                 ]
-                dict_to_use = {}
             case "Profile":
                 root_element = temp_primary_items["tasker_root_elements"][
                     "all_profiles"
                 ]
-                dict_to_use = "all_profiles"
             case "Task":
                 root_element = temp_primary_items["tasker_root_elements"]["all_tasks"]
-                dict_to_use = "all_tasks"
             case _:
-                dict_to_use = {}
+                return False
 
-        # See if the item exists
+        # See if the item exists by going through all names
         for item in root_element:
-            try:
-                if element_name == "Project":
-                    item_name = item.find("name").text
-                else:
-                    item_name = (
-                        temp_primary_items["tasker_root_elements"][dict_to_use][item]
-                        .find("nme")
-                        .text
-                    )
-                if the_name == item_name:
-                    self.file = temp_primary_items["file_to_get"]
-                    return True
-            except AttributeError:
-                item_name = ""
+            if root_element[item][1] == the_name:
+                return True
 
         return False
 
@@ -786,9 +769,33 @@ class MyGui(customtkinter.CTk):
         )
         # Get the name entered
         name_entered = dialog.get_input()
-        # Name sure it is a valid name
+        # Name sure it is a valid name and display message.
         if self.check_name(name_entered, my_name):
             # Name is valid... deselect other buttons and set the name
+            self.single_project_name = (
+                self.single_profile_name
+            ) = self.single_task_name = ""
+            # Get the name entered
+            match my_name:
+                case "Project":
+                    self.single_project_name = name_entered
+                case "Profile":
+                    self.single_profile_name = name_entered
+                case "Task":
+                    self.single_task_name = name_entered
+                case _:
+                    pass
+
+    # ##################################################################################
+    # Process single name restore
+    # ##################################################################################
+    def process_single_name_restore(
+        self,
+        my_name: str,
+        name_entered: str,
+    ):
+        # Name sure it is a valid name
+        if name_entered and self.check_name(name_entered, my_name):
             self.single_project_name = (
                 self.single_profile_name
             ) = self.single_task_name = ""
@@ -1139,7 +1146,6 @@ class MyGui(customtkinter.CTk):
             "highlight": lambda: self.select_deselect_checkbox(
                 self.highlight_checkbox, value, "Display Names Highlighted"
             ),
-            # "indent": lambda: f"Indentation amount set to {value}.\n",
             "indent": lambda: self.indent_selected_event(value),
             "italicize": lambda: self.select_deselect_checkbox(
                 self.italicize_checkbox, value, "Display Names Italicized"
@@ -1153,9 +1159,13 @@ class MyGui(customtkinter.CTk):
             "runtime": lambda: self.select_deselect_checkbox(
                 self.runtime_checkbox, value, "Display Runtime Settings"
             ),
-            "single_profile_name": lambda: f"Profile set to {value}.\n",
-            "single_project_name": lambda: f"Project set to {value}.\n",
-            "single_task_name": lambda: f"Task set to {value}.\n",
+            "single_profile_name": lambda: self.process_single_name_restore(
+                "Profile", value
+            ),
+            "single_project_name": lambda: self.process_single_name_restore(
+                "Project", value
+            ),
+            "single_task_name": lambda: self.process_single_name_restore("Task", value),
             "taskernet": lambda: self.select_deselect_checkbox(
                 self.taskernet_checkbox, value, "Display TaskerNet Information"
             ),
@@ -1174,16 +1184,10 @@ class MyGui(customtkinter.CTk):
             if hasattr(self, key):
                 setattr(self, key, value)
         else:
-            # Use dicxtionary lookup anmd lambda funtion to process key/value
+            # Use dictionary lookup anmd lambda funtion to process key/value
             message_func = message_map.get(key)
             if message_func:
                 message = message_func()
-            if (
-                key
-                in {"single_project_name", "single_profile_name", "single_task_name"}
-                and value == ""
-            ):
-                message = message.replace(" .\n", " all.\n")
 
         return message
 
@@ -1209,6 +1213,8 @@ class MyGui(customtkinter.CTk):
             self.restore = True
         else:  # Empty?
             self.display_message_box("No settings file found.", False)
+        # Empty message queue so we don't fill it up (causes as display text problem)
+        self.all_messages = ""
 
     # ##################################################################################
     # We have read colors and runtime args from backup file.  Now extract them for use.
@@ -1373,6 +1379,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     def run_program(self):
         self.go_program = True
+        self.display_message_box("Program running...", True)
         self.quit()
 
     # ##################################################################################

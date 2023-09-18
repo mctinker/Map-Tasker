@@ -177,7 +177,7 @@ def process_solo_task_with_no_profile(
     task_element, task_name = tasks.get_task_name(
         primary_items, task_id, found_tasks, [], ""
     )
-    if task_name == UNKNOWN_TASK_NAME:
+    if task_name == UNKNOWN_TASK_NAME:   
         task_name = f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;Task ID: {task_id}"
         # Ignore it if it is in a Scene
         if tasks.task_in_scene(
@@ -223,7 +223,7 @@ def process_solo_task_with_no_profile(
             project_name,
             "None",
             [],
-            False,
+            False,  # Don't do extra stuff
         )
 
     return have_heading, specific_task, task_count

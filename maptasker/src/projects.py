@@ -15,6 +15,7 @@
 import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.tasks as tasks
+from maptasker.src.dirout import add_directory_item
 from maptasker.src.frmthtml import format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.kidapp import get_kid_app
@@ -407,13 +408,20 @@ def finish_up(
         )
 
     # Find the Scenes for this Project <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    if not primary_items["program_arguments"]["single_task_name"]:
-        have_scenes = process_project_scenes(
+    # ...only if not doing a single Task
+    have_scenes = process_project_scenes(
             primary_items,
             project,
             our_task_element,
             found_tasks,
         )
+    # if not primary_items["program_arguments"]["single_task_name"]:
+    #     have_scenes = process_project_scenes(
+    #         primary_items,
+    #         project,
+    #         our_task_element,
+    #         found_tasks,
+    # )
 
     # If we don't have Scenes or Tasks that are not in any Profile
     # then start a new ordered list
@@ -445,20 +453,6 @@ def is_single_task_or_profile_found(primary_items: dict) -> bool:
         primary_items["found_named_items"]["single_task_found"]
         or primary_items["found_named_items"]["single_profile_found"]
     )
-
-
-def format_project_name(project: defusedxml.ElementTree.XML) -> str:
-    project_name = project.find("name").text
-    return project_name.replace(" ", "_"), project_name
-
-
-def set_directory_item(primary_items: dict, project_name: str):
-    # Only set values if we haven't already done this Project
-    if project_name not in primary_items["directory_items"]["projects"]:
-        primary_items["directory_items"]["current_item"] = f"project_{project_name}"
-        primary_items["directory_items"]["projects"].append(project_name)
-    else:
-        primary_items["directory_items"]["current_item"] = ""
 
 
 def get_profile_ids(
@@ -510,13 +504,13 @@ def add_close_project_list_line_to_output(primary_items: dict):
 # Get this Project's details and output them
 # ################################################################################
 def get_profile_details_and_output(
-    primary_items: dict, project: defusedxml.ElementTree
+    primary_items: dict, project: str, project_name: str
 ) -> tuple[bool, int, str, bool]:
     """_summary_
     Get this Project's details and output them
         Args:
             primary_items (dict): program registry.  See primitem.py for details.
-            project (defusedxml.ElementTree): XML head of Project we are outputing
+            project_name (str): name of the project
 
         Returns:
             tuple[bool, int, str,  bool]: True if this is a Task or Profile we want,
@@ -529,12 +523,9 @@ def get_profile_details_and_output(
     if is_single_task_or_profile_found(primary_items):
         return True, profile_count, "", False
 
-    # Get the Project name formatted for the directory hotlink (with +++s)
-    project_name_hyperlink, project_name = format_project_name(project)
-
     # If doing a directory, save the project name for it
     if primary_items["program_arguments"]["directory"]:
-        set_directory_item(primary_items, project_name_hyperlink)
+        add_directory_item(primary_items, "projects", project_name)
 
     # Get any Project launch details
     launcher_task_info = get_launcher_task(primary_items, project)
@@ -555,7 +546,7 @@ def get_profile_details_and_output(
     if primary_items["program_arguments"]["taskernet"]:
         share(primary_items, project)
 
-    return False, profile_count, project_name, have_project_wanted
+    return False, profile_count, have_project_wanted
 
 
 # ################################################################################
@@ -627,16 +618,18 @@ def process_projects(
     """
 
     # Go through each Project in backup file
-    for project in primary_items["tasker_root_elements"]["all_projects"]:
+    for project_name in primary_items["tasker_root_elements"]["all_projects"]:
+        # Point to the Project XML element <Project sr=...>
+        project = primary_items["tasker_root_elements"]["all_projects"][project_name][0]
         # Get the Project line item details and output them
         (
             single_task_or_profile_found,
             profile_count,
-            project_name,
             have_project_wanted,
-        ) = get_profile_details_and_output(primary_items, project)
+        ) = get_profile_details_and_output(primary_items, project, project_name)
 
         # If we are searching for a specific Project and we found it, then bail out
+        # ...but stay in loop to process all the Profiles for this Project
         if have_project_wanted:
             continue
 

@@ -4,30 +4,11 @@ DO NOT DELETE THE AUTHOR COPYRIGHT
 
 clip.py - Animate and color a given directory of .txt files.
 
-The text files in the directory provided should be 'frames' in a sequence
+The text in PIC should be 'frames' in a sequence
 to give the impression of animation. For steps to make your own, visit the
 GitHub link ReadMe. Its very easy!
 
-Example:
-In the directory: "clip/art/sea/boats/small_boat_1" there are a few text files
-under a subfolder called "ascii":
-small_boat_1a, small_boat_1b, small_boat_1c, ... small_boat_1f etc
-
- clip
-    ├───art
-    ├───animals
-    ...
-    ...
-    └───sea
-        └───boats
-            └───small_boat_1
-                ├───ascii
-                |       └───small_boat_1a.txt
-                |       └───small_boat_1b.txt
-                |       ...
-                |       ...
-                |       └───small_boat_1h.txt
-                └───color
+The colors in PIC_COLORS map to the above text frames.
 
 Stepping through these clearly shows a boat (and a bird) moving frame by frame
 
@@ -79,12 +60,10 @@ For ASCII art ideas visit https://www.asciiart.eu/ and credit the original
 author if copying
 """
 
-import glob
 import os
 import re
 import sys
 import time
-from contextlib import ExitStack
 
 # COLORS: FOREGROUND = F, BACKGROUND = B, Value = ANSI value
 COLORS = {
@@ -167,7 +146,7 @@ PIC = (
         "..~|./___\~|...",
         "../_\|::.|/_\..",
         "..|$||/^\||$|..",
-        "..|nnn|I|nnn|.."
+        "..|nnn|I|nnn|..",
     ],
     [
         "......~|.(X)...",
@@ -175,7 +154,7 @@ PIC = (
         "...|~/___\.|~..",
         "../_\|::.|/_\..",
         "..|$||/^\||$|..",
-        "..|nnn|I|nnn|.."
+        "..|nnn|I|nnn|..",
     ],
     [
         ".*....~|..*....",
@@ -191,10 +170,41 @@ PIC = (
         "...|~/___\~|..(",
         "../_\|::.|/_\..",
         "..|$||/^\||$|..",
-        "..|nnn|I|nnn|.."
-
-    ]
+        "..|nnn|I|nnn|..",
+    ],
 )
+
+PIC_COLORS = [
+    "[0][7] = F_WHT, B_BLU",
+    "[0][7] = F_WHT, B_BLU",
+    "[1][6] = F_WHT, B_BLU",
+    "[1][8] = F_WHT, B_BLU",
+    "[2][0] = F_MGT",
+    "[2][3] = F_WHT, B_BLU",
+    "[2][5] = F_WHT, B_BLU",
+    "[2][6] = F_WHT, B_BLU",
+    "[2][7] = F_WHT, B_BLU",
+    "[2][8] = F_WHT, B_BLU",
+    "[2][9] = F_WHT, B_BLU",
+    "[3][2] = F_WHT, B_BLU",
+    "[3][3] = F_WHT, B_BLU",
+    "[3][4] = F_WHT, B_BLU",
+    "[3][5] = F_WHT, B_BLU",
+    "[3][9] = F_WHT, B_BLU",
+    "[3][10] = F_WHT, B_BLU",
+    "[3][11] = F_WHT, B_BLU",
+    "[3][12] = F_WHT, B_BLU",
+    "[4][2] = F_WHT, B_BLU",
+    "[4][4] = F_WHT, B_BLU",
+    "[4][5] = F_WHT, B_BLU",
+    "[4][9] = F_WHT, B_BLU",
+    "[4][10] = F_WHT, B_BLU",
+    "[4][12] = F_WHT, B_BLU",
+    "[5][2] = F_WHT, B_BLU",
+    "[5][6] = F_WHT, B_BLU",
+    "[5][8] = F_WHT, B_BLU",
+    "[5][12] = F_WHT, B_BLU",
+]
 
 
 class ClipException(Exception):
@@ -213,33 +223,7 @@ class Clip:
         self.play_speed = 5.1 - (play_speed / 20)
         self.play_cycles = play_cycles
         self._color = color
-        # ascii_sub = f"{self.source_folder}/ascii"
-        # color_sub = f"{self.source_folder}/color"
-        # if not os.path.isdir(ascii_sub):
-        #     print("Folder specified:", ascii_sub)
-        #     # raise ClipException(
-        #     error_handler(
-        #         """
-        #             Your folder specified by path, must contain a subfolder 
-        #             called 'ascii'. This ascii subfolder must contain at least 
-        #             1 txt file. Your folder hierarchy should look similar to:
 
-        #             C:.
-        #             └───art
-        #                 ├───animals
-        #                 ├───buildings
-        #                 │   └───castles
-        #                 ...     └───my_folder
-        #                             └───ascii
-        #                                 └───my_art_1.txt
-        #                                 └───my_art_2.txt
-        #                                 ...
-        #                                 ...
-        #                                 └───my_art_n.txt
-
-        #         """,
-        #         5,
-        #     )
         if not isinstance(self.play_cycles, int):
             raise ClipException("play cycles must be an integer")
         if (self.play_cycles < 1) or (self.play_cycles > 1000):
@@ -250,22 +234,7 @@ class Clip:
             raise ClipException("Speed must be an integer from 1-100")
         if not isinstance(self._color, bool):
             raise ClipException('colorless by default - pass "True" for color')
-        # if color:
-        #     if not os.path.isdir(color_sub):
-        #         raise ClipException(
-        #             """
-        #                 When passing color flag, folder specified by path, must
-        #                 contain a subfolder called 'color'. 
-        #                 """
-        #         )
-        #     if len(os.listdir(ascii_sub)) != len(os.listdir(color_sub)):
-        #         raise ClipException(
-        #             """
-        #                 When passing color flag, the subfolders 'ascii' and
-        #                 'color' must contain an equal number of txt files to
-        #                 ensure color mappings are correct.
-        #                 """
-        #         )
+
 
     @property
     def source_folder(self):
@@ -300,19 +269,12 @@ class Clip:
     def get_frame_color_maps(self):
         """Get all the color mappings from the color sub-directory in
         alphabetical order."""
-        # get all /color/*.txt files in dir. These are the color mappings
-        filenames = glob.glob(f"{self.source_folder}{'/color/*.txt'}")
-        with ExitStack() as stack:  # dynamically handle multi file opens/closes
-            self.color_files = [stack.enter_context(open(f)) for f in filenames]
-            if self.color_files:
-                self.frame_color_maps = []
-                for f in self.color_files:  # iterate over the frame files list
-                    lines = f.read().splitlines()
-                    # Remove any empty lines. Required for regex
-                    frame_color_map = [line for line in lines if line]
-                    self.frame_color_maps.append(frame_color_map)
-            else:
-                raise ClipException("Path must include txt files!")
+        # Get the colors to map to ascii characters
+        self.frame_color_maps = []
+        lines = PIC_COLORS
+        # Remove any empty lines. Required for regex
+        frame_color_map = [line for line in lines if line]
+        self.frame_color_maps.append(frame_color_map)
 
     def color_cells(self):
         """Color the cells by mapping the frames color map to that frames
@@ -392,8 +354,11 @@ def clip_figure(figure: str, colored: bool) -> None:
     # small_boat = "/clip/sea/boats/small_boat_1"  # Colors = True
     # boats = "/clip/sea/boats"  # Colors = False
     # dance = "/clip/dance"  # Colors = False
+    colored = False
     if not figure:
         figure = "/clip/castles"  # Colors = False
+
+    colored = True
 
     my_output_dir = f"{os.getcwd()}/clip/{figure}"
     clippy(my_output_dir, 100, 3, colored)
