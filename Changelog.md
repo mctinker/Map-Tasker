@@ -1,22 +1,37 @@
 MapTasker Change log
 
-## [2.3.6] - 2023-09-18
-### Added: program optimizations for performance and memory usage.   
-### Added: Further code and html optimizations.    
-### Changed: Switch to inline CSS for colors and font, saving on output HTML size and better formatting.   
-### Changed: changed color of negative (False, None) values for runtime settings to make it easier to identify.    
-### Changed: If only displaying a single Task, display the Profile's Scenes as well.    
-### Changed: Bullets changed to diamonds.    
-### Fixed: Selecting single Project/Profile/Task name in GUI doesn't display the selection in the message box.    
-### Fixed: Displaying any text in GUI textbox after restoring settings does not get displayed.   
-### Fixed: Incorrectly displaying directory for items not in the output.   
-### Fixed: Color for labels was not correctly set.   
-### Fixed: GUI single name error message displaying in green rater than red.   
-### Fixed:Task's extra properties (prority, collision, etc.) not displaying correctly.    
+## [2.4.0] - 2023-09-30
+### Added: Configuration Map, saved as "MapTasker_map.txt", added to Configuration Outline   
+### Added: Further code optimizations.   
+### Added: Outline now includes Task pointers to other Tasks (via Perform Task action).   
+### Added: Outline now includes Tasks in Project not associated with any Profile.   
+### Added: Task icon information is now included in the output.   
+### Changed: Profile/Task "Properties" added "...." for better visability.    
+### Changed: Updated text in README and help for "-outline" runtime option.   
+### Changed: Runtime option "twisty" only allowed if "detail=3" (full detail).   
+### Fixed: Tasks with "No Profile", at end of output, are now properly formatted.  
+### Fixed: Porperly remove trailing commas from Task actions.   
+### Fixed: Profile and Project properties are displaying in wrong color.    
+### Fixed: Display detail level of 0 (zero) not showing properly or with enough detail.    
+### Fixed: GUI Restore not displaying correct message for "Display Detail Level".     
+### Fixed: When displaying a single Project/Profile/Task, the grand total counts did not reflect the single item.   
 
 
 Older History Log
 
+- [2.3.6] - 2023-09-18
+       - Added: program optimizations for performance and memory usage.   
+       - Added: Further code and html optimizations.    
+       - Changed: Switch to inline CSS for colors and font, saving on output HTML size and better formatting.   
+       - Changed: changed color of negative (False, None) values for runtime settings to make it easier to identify.    
+       - Changed: If only displaying a single Task, display the Profile's Scenes as well.    
+       - Changed: Bullets changed to diamonds.    
+       - Fixed: Selecting single Project/Profile/Task name in GUI doesn't display the selection in the message box.    
+       - Fixed: Displaying any text in GUI textbox after restoring settings does not get displayed.   
+       - Fixed: Incorrectly displaying directory for items not in the output.   
+       - Fixed: Color for labels was not correctly set.   
+       - Fixed: GUI single name error message displaying in green rater than red.   
+       - Fixed:Task's extra properties (prority, collision, etc.) not displaying correctly.    
 - [2.3.0 -2.3.5] - 2023-09-06  
        - Added: Some pazazz for user experience to '-version' runtime option.   
        - Added: New runtime option '-outline' to display Configuration Outline at en of output.   

@@ -106,10 +106,10 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-ch` color help: display all valid colors",
          
-    `-detail 0` for silent mode (no Action details except for the first Action on unnamed Tasks),  
-    `-detail 1` to display the Action list only if Task is unnamed or anonymous (default),   
+    `-detail 0` for silent mode: simple Project/Profile/Task/Scene names with no details,
+    `-detail 1` to display the Action list only if Task is unnamed or anonymous,   
     `-detail 2` to display Action list names for *all* Tasks,    
-    `-detail 3` to display Action list names with *all* parameters for all Tasks,    
+    `-detail 3` to display Action list names with *all* parameters for all Tasks (default),    
   
     `-directory` to display a directory of all Projects/Profiles/Tasks/Scenes,
     `-e` to display 'everything': Runtime settings, Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details,    
@@ -117,6 +117,7 @@ Runtime: `maptasker -option1 -option2` ...
     `-g` to get arguments from the GUI rather than via the command line,   
     `-i` the amount of indentation for If/Then/Else Task actions (default=4),   
     `-n {bold highlight italicize}` to add formatting options to Project/Profile/Task/Scene names,   
+    `-o` to display the Configuration outline and output a map as MapTasker_map.txt  
     `-preferences` to display Tasker's preference settings,  
     `-restore` to restore previously saved runtime arguments,   
     `-runtime` to display the runtime arguments and their settings at the top of the output,       
@@ -182,11 +183,11 @@ Alternatively, see *config.py* for some user-customizable options.  Make user-sp
 
 
 ### To Do List (in no particular order)
-
-[] On the output of totals, only show totals for what is displayed    
-[] Include/map more Tasker preferences    
+  
+[] Include/map remaining Tasker preferences    
 [] Support additional plugins   
-[] Complete insertion of Python docstrings for programming etiquette   
+[] Improve Configuration Map: include Tasks not associtaed with any Profile   
+[] Improve Configuration Map: include pointer to Tasks to which there is a Perform Task action.
 
 ### Contributions:
 [Taskometer](https://github.com/Taskomater/Tasker-XML-Info)   
