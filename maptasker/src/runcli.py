@@ -162,7 +162,7 @@ def get_the_other_arguments(
     if detail is not None and isinstance(detail, int):
         primary_items["program_arguments"]["display_detail_level"] = detail
 
-    elif detail := get_arg_if_in_list(args, "detail"):
+    elif (detail := get_arg_if_in_list(args, "detail")) is not None:
         primary_items["program_arguments"]["display_detail_level"] = detail
 
 
