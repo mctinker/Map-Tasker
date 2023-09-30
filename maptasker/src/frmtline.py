@@ -20,11 +20,14 @@ from maptasker.src.sysconst import (
 )
 
 
+# ##################################################################################
+# Given a line in the output queue, reformat it before writing to file
+# ##################################################################################
 def format_line(primary_items: dict, num: int, item: str) -> str:
     """
     Given a line in our list of output lines, do some additional formatting
     to clean it up
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param num: the numeric line number from the list of output lines
         :param item: the specific text to reformat from the list of output lines
         :return: the reformatted text line for output
@@ -67,7 +70,7 @@ def format_line(primary_items: dict, num: int, item: str) -> str:
     else:
         output_line = item
 
-    # Format the html...add a numbre of blanks if some sort of list
+    # Format the html...add a number of blanks if some sort of list
     #
     # Replace "<ul>" with "    <ul>\r"
     output_line = pattern5.sub(f"{blank*5}<ul>\r", output_line)

@@ -24,7 +24,6 @@ from maptasker.src.profiles import process_profiles
 from maptasker.src.property import get_properties
 from maptasker.src.scenes import process_project_scenes
 from maptasker.src.share import share
-from maptasker.src.sysconst import NO_PROFILE
 from maptasker.src.taskflag import get_priority
 from maptasker.src.twisty import add_twisty, remove_twisty
 
@@ -40,7 +39,7 @@ def process_projects_and_their_profiles(
     """
     Go through all Projects, process them and their Profiles and Tasks
     (and add to our output list)
-        :param primary_items:program registry.  See primitem.py for details
+        :param primary_items: Program registry.  See primitem.py for details
         :param found_tasks: list of Tasks found thus far
         :param projects_without_profiles: list of Projects that don't have any Profiles
         :return: list of Tasks found thus far, with duplicates removed
@@ -68,7 +67,7 @@ def process_projects_and_their_profiles(
 def get_launcher_task(primary_items, project: defusedxml.ElementTree.XML) -> str:
     """
     If Project has a launcher Task, get it and format it for output
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param project: xml element of Project we are processing
         :return: information related to launcher Task
     """
@@ -88,29 +87,74 @@ def get_launcher_task(primary_items, project: defusedxml.ElementTree.XML) -> str
 
 
 # ##################################################################################
-# Process all Tasks in Project that are not referenced by a Profile
+# Add heading for Tasks that are not in any Profile
 # ##################################################################################
-def tasks_not_in_profiles(
+def task_not_in_profile_heading(primary_items: dict, project_name: str):
+    """_summary_
+    Add heading for Tasks that are not in any Profile
+        Args:
+            primary_items (dict): Program registry.  See primitem.py for details.
+            project_name (str): Name of the Project we are doing.
+    """
+    # Format the output line
+    output_line = (
+        "&nbsp;&nbsp;&nbsp;The following Tasks in Project"
+        f" {project_name} are not in any Profile..."
+    )
+
+    # Force a line break before the header
+    primary_items["output_lines"].add_line_to_output(primary_items, 5, "<br>")
+
+    # Add the "twisty" to hide the Task details
+    if primary_items["program_arguments"]["twisty"]:
+        add_twisty(
+            primary_items,
+            "task_color",
+            output_line,
+        )
+
+    # Not doing twisty
+    else:
+        # Just put out the line with a linebreak
+        primary_items["output_lines"].add_line_to_output(
+            primary_items,
+            4,
+            format_html(
+                primary_items,
+                "task_color",
+                "",
+                f"<br>{output_line}",
+                True,
+            ),
+        )
+
+    # Start an unordered list
+    primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
+
+
+# ##################################################################################
+# Process all of the Tasks in this Project
+# ##################################################################################
+def do_tasks_in_project(
     primary_items: dict,
     task_ids: list,
-    found_tasks: list,
     project_name: str,
-) -> bool:
-    """
-    Process all Tasks in Project that are not referenced by a Profile
-        :param primary_items:  program registry.  See primitem.py for details.
-        :param task_ids: List of Task IDs
-        :param found_tasks: list of Tasks found thus far
-        :param project_name: name of current Project
-        :return: boolean: True=we have Tasks not in the Profile, False: there are no
-                            Tasks not in Profile
-    """
+    found_tasks: list,
+    output_the_heading: bool,
+    have_tasks_not_in_profile: bool,
+):
+    """_summary_
+    Process all of the Tasks in this Project
+        Args:
+            primary_items (dict): Program registry.  See primitem.py for details.
+            task_ids (list): List of Tasks in the Project
+            project_name (str): Name of the Project
+            found_tasks (list): List of the Tasks found so far
+            output_the_heading (bool): True if we need to output the Project heading
+            have_tasks_not_in_profile (bool): Trues if there are Tasks not in the current Profile
 
-    # Flag that we have to first put out the "not found" heading
-    output_the_heading = True
-    have_tasks_not_in_profile = False
-
-    # Go through all Tasks for this Project
+            return: True if we have Tasks not in any Profile
+    """
     for the_id in task_ids:
         primary_items["named_task_count_total"] = len(task_ids)
         # We have a Task in Project that has yet to be output?
@@ -118,7 +162,7 @@ def tasks_not_in_profiles(
             not primary_items["found_named_items"]["single_profile_found"]
             and not primary_items["found_named_items"]["single_task_found"]
         ):
-            # Flag that we have Tasks that are not in any Profile, and bump the count
+            # Flag that we have Tasks that are not in any Profile, and bump the count\
             have_tasks_not_in_profile = True
             primary_items["task_count_no_profile"] = (
                 primary_items["task_count_no_profile"] + 1
@@ -143,58 +187,63 @@ def tasks_not_in_profiles(
                 and not (primary_items["found_named_items"]["single_profile_found"])
                 and not (primary_items["found_named_items"]["single_task_found"])
             ):
-                # Format the output line
-                output_line = (
-                    "&nbsp;&nbsp;&nbsp;The following Tasks in Project"
-                    f" {project_name} are not in any Profile..."
-                )
+                task_not_in_profile_heading(primary_items, project_name)
 
-                # Force a line break before the header
-                primary_items["output_lines"].add_line_to_output(
-                    primary_items, 5, "<br>"
-                )
-
-                # Add the "twisty" to hide the Task details
-                if primary_items["program_arguments"]["twisty"]:
-                    add_twisty(
-                        primary_items,
-                        "task_color",
-                        output_line,
-                    )
-                else:
-                    # Just put out the line with a linebreak
-                    primary_items["output_lines"].add_line_to_output(
-                        primary_items,
-                        4,
-                        format_html(
-                            primary_items,
-                            "task_color",
-                            "",
-                            f"<br>{output_line}",
-                            True,
-                        ),
-                    )
-                # Start an unordered list
-                primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
                 output_the_heading = False
 
             # Format the output line
-            task_list = [
-                f"{our_task_name} <em> (Not referenced by any Profile in Project"
+            task_output_lines = [
+                f"{our_task_name}&nbsp;&nbsp;&nbsp;<em>(Not referenced by any Profile in Project"
                 f" {project_name})</em>"
             ]
 
             # Output the Task (we don't care about the returned value)
-            _ = tasks.output_task(
+            our_task = primary_items["tasker_root_elements"]["all_tasks"][the_id]
+            tasks.output_task_list(
                 primary_items,
-                our_task_name,
-                our_task_element,
-                task_list,
+                [our_task],
                 project_name,
-                NO_PROFILE,
+                "",
+                task_output_lines,
                 found_tasks,
                 True,
             )
+
+    return have_tasks_not_in_profile
+
+
+# ##################################################################################
+# Process all Tasks in Project that are not referenced by a Profile
+# ##################################################################################
+def tasks_not_in_profiles(
+    primary_items: dict,
+    task_ids: list,
+    found_tasks: list,
+    project_name: str,
+) -> bool:
+    """
+    Process all Tasks in Project that are not referenced by a Profile
+        :param primary_items:  Program registry.  See primitem.py for details.
+        :param task_ids: List of Task IDs
+        :param found_tasks: list of Tasks found thus far
+        :param project_name: name of current Project
+        :return: boolean: True=we have Tasks not in the Profile, False: there are no
+                            Tasks not in Profile
+    """
+
+    # Flag that we have to first put out the "not found" heading
+    output_the_heading = True
+    have_tasks_not_in_profile = False
+
+    # Go through all Tasks for this Project
+    have_tasks_not_in_profile = do_tasks_in_project(
+        primary_items,
+        task_ids,
+        project_name,
+        found_tasks,
+        output_the_heading,
+        have_tasks_not_in_profile,
+    )
 
     # End the twisty hidden lines if we have Tasks not in any Profile
     if primary_items["program_arguments"]["twisty"]:
@@ -220,7 +269,7 @@ def get_extra_and_output_project(
 ) -> bool:
     """
     Add extra info to Project output line as appropriate and then output it.
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param project: Project xml element
         :param project_name: name of Project
         :param launcher_task_info: details about (any) launcher Task
@@ -291,7 +340,7 @@ def get_extra_and_output_project(
 def setup_summary_counts(primary_items: dict) -> int:
     """
     Initialize summary counters for the Project
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :return: zero
     """
     # Set up Project counters for summary line
@@ -309,7 +358,7 @@ def setup_summary_counts(primary_items: dict) -> int:
 def summary_counts(primary_items: dict, project_name: str, profile_count: int) -> None:
     """
     Output Project's summary counts
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param project_name: name of the Project
         :param profile_count: number of Profiles under this Project
     """
@@ -380,7 +429,7 @@ def finish_up(
 ) -> None:
     """
     Output the remaining components related to the Project
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param project: Project XML element
         :param project_name: name of the Project
         :param found_tasks: list of all Tasks found so far
@@ -395,26 +444,23 @@ def finish_up(
     # Close Profile list
     primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
 
-    # # See if there are Tasks in Project that have no Profile
-
+    # Process any Tasks in Project not associated with any Profile
     task_ids = get_ids(primary_items, False, project, project_name, [])
-    if task_ids and primary_items["program_arguments"]["display_detail_level"] != 0:
-        # Process Tasks in Project that are not referenced by a Profile
-        tasks_not_in_profile = tasks_not_in_profiles(
-            primary_items,
-            task_ids,
-            found_tasks,
-            project_name,
-        )
+    tasks_not_in_profile = tasks_not_in_profiles(
+        primary_items,
+        task_ids,
+        found_tasks,
+        project_name,
+    )
 
     # Find the Scenes for this Project <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     # ...only if not doing a single Task
     have_scenes = process_project_scenes(
-            primary_items,
-            project,
-            our_task_element,
-            found_tasks,
-        )
+        primary_items,
+        project,
+        our_task_element,
+        found_tasks,
+    )
     # if not primary_items["program_arguments"]["single_task_name"]:
     #     have_scenes = process_project_scenes(
     #         primary_items,
@@ -509,7 +555,7 @@ def get_profile_details_and_output(
     """_summary_
     Get this Project's details and output them
         Args:
-            primary_items (dict): program registry.  See primitem.py for details.
+            primary_items (dict): Program registry.  See primitem.py for details.
             project_name (str): name of the project
 
         Returns:
@@ -539,7 +585,9 @@ def get_profile_details_and_output(
     # Process Project Properties
     if primary_items["program_arguments"]["display_detail_level"] == 3:
         get_properties(
-            primary_items, project, primary_items["colors_to_use"]["project_color"]
+            primary_items,
+            project,
+            "project_color",
         )
 
     # Process TaskerNet details if requested
@@ -564,7 +612,7 @@ def process_project_profiles(
     """_summary_
     Process all of the Profiles for this Project
         Args:
-            primary_items (dict): program registry.  See primitem.py for details.
+            primary_items (dict): Program registry.  See primitem.py for details.
             project (defusedxml.ElementTree): XML element for the Project we are doing
             project_name (str): Name of the Project we are doing
             projects_without_profiles (list): List of Project XML elements that have
@@ -610,7 +658,7 @@ def process_projects(
 ) -> list:
     """
     Go through all the Projects, get their detail and output it
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param projects_without_profiles: list of Projects with no Profiles
         :param found_tasks: list of Tasks found
         :param our_task_element: xml element of our Task
@@ -620,7 +668,9 @@ def process_projects(
     # Go through each Project in backup file
     for project_name in primary_items["tasker_root_elements"]["all_projects"]:
         # Point to the Project XML element <Project sr=...>
-        project = primary_items["tasker_root_elements"]["all_projects"][project_name][0]
+        project = primary_items["tasker_root_elements"]["all_projects"][project_name][
+            "xml"
+        ]
         # Get the Project line item details and output them
         (
             single_task_or_profile_found,

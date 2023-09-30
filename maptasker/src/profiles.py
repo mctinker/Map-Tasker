@@ -54,7 +54,7 @@ def get_profile_tasks(
         list: a list containing the task element and name
 
     """
-    keys_we_dont_want = ["cdate", "edate", "flags", "id"]
+    keys_we_dont_want = ["cdate", "edate", "flags", "id", "limit"]
     the_task_element, the_task_name = "", ""
     list_of_tasks = []
 
@@ -75,7 +75,8 @@ def get_profile_tasks(
             the_task_element, the_task_name = tasks.get_task_name(
                 primary_items, task_id, found_tasks_list, task_output_line, task_type
             )
-            list_of_tasks.append([the_task_element, the_task_name])
+            list_of_tasks.append({"xml": the_task_element, "name": the_task_name})
+            # list_of_tasks.append([the_task_element, the_task_name])
             if (
                 primary_items["program_arguments"]["single_task_name"]
                 and primary_items["program_arguments"]["single_task_name"]
@@ -98,7 +99,7 @@ def get_profile_name(
 ) -> tuple[str, str]:
     """
     Get a specific Profile's name
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param profile: xml element pointing to the Profile
         :return: Profile name with appropriate html and the profile name itself
     """
@@ -106,9 +107,9 @@ def get_profile_name(
     profile_id = profile.attrib.get("sr")
     profile_id = profile_id[4:]
     if not (
-        the_profile_name := primary_items["tasker_root_elements"][
-            "all_profiles"
-        ][profile_id][1]
+        the_profile_name := primary_items["tasker_root_elements"]["all_profiles"][
+            profile_id
+        ]["name"]
     ):
         the_profile_name = NO_PROFILE
 
@@ -142,7 +143,7 @@ def build_profile_line(
 ) -> str:
     """
     Get the Profile's key attributes: limit, launcher task, run conditions and output it
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param project: the Project xml element
         :param profile: the Profile xml element
         :return: Profile name
@@ -260,7 +261,7 @@ def process_profiles(
 
     # Go through the Profiles found in the Project
     for item in profile_ids:
-        profile = primary_items["tasker_root_elements"]["all_profiles"][item][0]
+        profile = primary_items["tasker_root_elements"]["all_profiles"][item]["xml"]
         if profile is None:  # If Project has no profiles, skip
             return None
 
@@ -269,7 +270,7 @@ def process_profiles(
             if not (
                 profile_name := primary_items["tasker_root_elements"]["all_profiles"][
                     item
-                ][1]
+                ]["name"]
             ):
                 continue
 
@@ -307,10 +308,12 @@ def process_profiles(
             profile,
         )
 
-        # Process Project Properties
+        # Process Profile Properties
         if primary_items["program_arguments"]["display_detail_level"] == 3:
             get_properties(
-                primary_items, profile, primary_items["colors_to_use"]["profile_color"]
+                primary_items,
+                profile,
+                "profile_color",
             )
 
         # Process any <Share> information from TaskerNet
@@ -323,19 +326,15 @@ def process_profiles(
         # We have the Tasks for this Profile.  Now let's output them.
         # True = we're looking for a specific Task
         # False = this is a normal Task
-        if primary_items["program_arguments"]["display_detail_level"] != 0:
-            specific_task = tasks.output_task_list(
-                primary_items,
-                list_of_tasks,
-                project_name,
-                profile_name,
-                task_output_lines,
-                list_of_found_tasks,
-                True,
-            )
-            
-        else:
-            specific_task = False
+        specific_task = tasks.output_task_list(
+            primary_items,
+            list_of_tasks,
+            project_name,
+            profile_name,
+            task_output_lines,
+            list_of_found_tasks,
+            True,
+        )
 
         # Get out if doing a specific Task, and it was found
         if (

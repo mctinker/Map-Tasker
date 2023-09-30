@@ -26,9 +26,6 @@
 #      1- Python version 3.10 or higher                                                #
 #      2- Your Tasker backup.xml file, uploaded to your MAC                            #
 #                                                                                      #
-# Note: This should work on PC OS's other than a MAC, but it has not been tested       #
-#       on any other platform.                                                         #
-#                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
 # complete source code of licensed works and modifications, which include larger works #
@@ -49,11 +46,11 @@ import maptasker.src.proginit as initialize
 import maptasker.src.projects as projects
 import maptasker.src.taskuniq as special_tasks
 from maptasker.src.caveats import display_caveats
+from maptasker.src.dirout import output_directory
 from maptasker.src.error import error_handler
 from maptasker.src.frmthtml import format_html
 from maptasker.src.frmtline import format_line
 from maptasker.src.lineout import LineOut
-from maptasker.src.dirout import output_directory
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import initialize_primary_items
 from maptasker.src.sysconst import Colors, debug_file, debug_out, logger
@@ -69,6 +66,8 @@ from maptasker.src.sysconst import Colors, debug_file, debug_out, logger
 
 # This is the one-and-only global variable needed for a special circumstance:
 #   ...program crash
+#   print(sys.version)  # Which Python are we using today?
+
 crash_debug = False
 
 
@@ -108,7 +107,7 @@ def clean_up_memory(
 ) -> None:
     """
     Clean up our memory hogs
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :return:
     """
     for elem in primary_items["xml_tree"].iter():
@@ -129,7 +128,7 @@ def clean_up_memory(
 def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> None:
     """
     write_out_the_file: we have a list of output lines.  Write them out.
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param my_output_dir: directory to output to
         :param my_file_name: name of file to use
         :return: nothing
@@ -138,14 +137,15 @@ def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> 
     with open(f"{my_output_dir}{my_file_name}", "w") as out_file:
         # Output the rest that is in our output queue
         for num, item in enumerate(primary_items["output_lines"].output_lines):
-            
-            # Check to see if this is where the direcory is to go.  
+            # Check to see if this is where the direcory is to go.
             # Output dirreectory if so.
             if "maptasker_directory" in item:
                 # Temporaily save our output lines
                 temp_lines_out = primary_items["output_lines"].output_lines
-                primary_items["output_lines"].output_lines = [] # Create a new output queue
-                
+                primary_items[
+                    "output_lines"
+                ].output_lines = []  # Create a new output queue
+
                 # Do the direcory output
                 if primary_items["program_arguments"]["directory"]:
                     output_directory(primary_items)
@@ -153,7 +153,7 @@ def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> 
                 for output_line in primary_items["output_lines"].output_lines:
                     out_file.write(output_line)
                 # Restore our regular output
-                primary_items["output_lines"].output_lines = temp_lines_out  
+                primary_items["output_lines"].output_lines = temp_lines_out
                 continue
 
             # Format the output line
@@ -189,7 +189,7 @@ def clean_up_and_exit(
 ) -> None:
     """
     Cleanup memory and let user know there was no match found for Task/Profile/Project
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param name: the name to add to the log/print output
         :param profile_or_task_name: name of the Profile or Task to clean
     """
@@ -210,7 +210,7 @@ def clean_up_and_exit(
 def output_grand_totals(primary_items: dict) -> None:
     """
     Output the grand totals of Projects/Profiles/Tasks/Scenes
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
     """
     grand_total_projects = primary_items["grand_totals"]["projects"]
     grand_total_profiles = primary_items["grand_totals"]["profiles"]
@@ -234,10 +234,8 @@ def output_grand_totals(primary_items: dict) -> None:
             "trailing_comments_color",
             "",
             (
-                f"<hr><br>{total_number}Projects: {grand_total_projects}<br>\
-                {total_number}Profiles:  {grand_total_profiles}<br>{total_number}Tasks:"
-                f" {grand_total_unnamed_tasks + grand_total_named_tasks} (\
-                    {grand_total_unnamed_tasks} unnamed,"
+                f"<br>{total_number}Projects: {grand_total_projects}<br>{total_number}Profiles:  {grand_total_profiles}<br>{total_number}Tasks:"
+                f" {grand_total_unnamed_tasks + grand_total_named_tasks} ({grand_total_unnamed_tasks} unnamed,"
                 f" {grand_total_named_tasks} named)<br>{total_number}Scenes:"
                 f" {grand_total_scenes}<br><br>"
             ),
@@ -316,12 +314,12 @@ def process_unique_situations(
 # ##################################################################################
 # Display the output in the default web browser
 # ##################################################################################
-def display_output(my_output_dir: str, my_file_name: str) -> None:
+def display_output(primary_items, my_output_dir: str, my_file_name: str) -> None:
     """_summary_
 
     Args:
-        my_output_dir (str): _description_
-        my_file_name (str): _description_
+        my_output_dir (str): The direectory to our current file path.
+        my_file_name (str): The name of the file to open.
     """
     logger.debug("MapTasker program ended normally")
     try:
@@ -331,10 +329,38 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
             "Error: Failed to open output in browser: your browser is not supported.", 1
         )
     print("")
+
+    # If doing the outline, let 'em know about the map file.
+    map_text = (
+        "The Configuration Map was saved as MapTasker_map.txt.  "
+        if primary_items["program_arguments"]["outline"]
+        else ""
+    )
+
     print(
-        f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  Program end."
+        f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}Program end."
     )
     print("")
+
+
+# ##################################################################################
+# Output the configuration outline and map
+# ##################################################################################
+def process_outline(primary_items: dict, my_output_dir: str) -> None:
+    from subprocess import run
+
+    """_summary_
+    Output the configuration outline and map
+        Args:
+            primary_items (dict): Program registry.  See primitem.py for details.
+            my_output_dir (str): Our current directory for output.
+    """
+    # Do the configuration outline and generate the map
+    outline_the_configuration(primary_items)
+
+    # Display the map in the first available text editor
+    with contextlib.suppress(FileNotFoundError):
+        run(["open", "MapTasker_map.txt"])
 
 
 # ##################################################################################
@@ -361,18 +387,11 @@ def check_single_item(
     """
     # If only doing a single named Project and didn't find it, clean up and exit
     if single_project_name and not single_project_found:
-        clean_up_and_exit(
-            primary_items,
-            "Project",
-            single_project_name,
-        )
+        clean_up_and_exit(primary_items, "Project", single_project_name)
+
     # If only doing a single named Profile and didn't find it, clean up and exit
     if single_profile_name and not single_profile_found:
-        clean_up_and_exit(
-            primary_items,
-            "Profile",
-            single_profile_name,
-        )
+        clean_up_and_exit(primary_items, "Profile", single_profile_name)
 
 
 ########################################################################################
@@ -486,9 +505,12 @@ def mapit_all(file_to_get: str) -> int:
     # Restore the directory setting for the final directory of Totals
     primary_items["program_arguments"]["directory"] = temp_dir
 
+    # Get the output directory
+    my_output_dir = getcwd()
+
     # Output the outline
     if primary_items["program_arguments"]["outline"]:
-        outline_the_configuration(primary_items)
+        process_outline(primary_items, my_output_dir)
 
     # Output the grand total (Projects/Profiles/Tasks/Scenes)
     output_grand_totals(primary_items)
@@ -499,11 +521,7 @@ def mapit_all(file_to_get: str) -> int:
         and (not single_profile_name or single_profile_found)
         and (not single_project_name or single_project_found)
     ):
-        clean_up_and_exit(
-            primary_items,
-            "Task",
-            single_task_name,
-        )
+        clean_up_and_exit(primary_items, "Task", single_task_name)
 
     # Display the program caveats
     display_caveats(primary_items)
@@ -512,8 +530,7 @@ def mapit_all(file_to_get: str) -> int:
     final_msg = "\n</body>\n</html>"
     primary_items["output_lines"].add_line_to_output(primary_items, 5, final_msg)
 
-    # Get the output directory
-    my_output_dir = getcwd()
+    #
     logger.debug(f"output directory:{my_output_dir}")
     if my_output_dir is None:
         error_handler(
@@ -531,7 +548,7 @@ def mapit_all(file_to_get: str) -> int:
     clean_up_memory(primary_items)
 
     # Display the final results in the default web browser
-    display_output(my_output_dir, my_file_name)
+    display_output(primary_items, my_output_dir, my_file_name)
 
     # Rerun this program if "Rerun" was slected from GUI
     with contextlib.suppress(KeyError):

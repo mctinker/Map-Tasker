@@ -39,20 +39,20 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
             name = ""
         # Get the Profile/Task identifier: id=number for Profiles and Tasks,
         item_id = item.find("id").text if get_id else name
-        new_table[item_id] = [item, name]
+        new_table[item_id] = {"xml": item, "name": name}
 
     all_xml.clear()  # Ok, we're done with the list
     return new_table
 
 
 # ##################################################################################
-# Load all of the Projects, Profiles and Tasks into a format we can easily 
+# Load all of the Projects, Profiles and Tasks into a format we can easily
 # navigate through.
 # ##################################################################################
 def get_the_xml_data(primary_items: dict) -> dict:
     """
     Load all the Projects, Profiles and Tasks into a format we can easily navigate through
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :return: primary_items
     """
 
@@ -85,7 +85,7 @@ def get_the_xml_data(primary_items: dict) -> dict:
     all_tasks_list = primary_items["xml_root"].findall("Task")
 
     # We now have what we need as lists.  Now move all into dictionaries.
-    all_projects = move_xml_to_table(all_projects_list, False, "name")  
+    all_projects = move_xml_to_table(all_projects_list, False, "name")
     all_profiles = move_xml_to_table(all_profiles_list, True, "nme")
     all_tasks = move_xml_to_table(all_tasks_list, True, "nme")
     all_scenes = move_xml_to_table(all_scenes_list, False, "nme")

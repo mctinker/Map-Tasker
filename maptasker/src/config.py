@@ -24,7 +24,6 @@ OUTPUT_FONT = "Courier"  # OS X Default monospace font
 
 # Graphical User Interface (True) vs. CLI Command Line Interface (False)
 GUI = False
-
 # Light vs Dark Mode (refer to colrmode.py to hardcode the output colors)
 DARK_MODE = True
 

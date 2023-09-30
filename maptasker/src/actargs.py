@@ -67,7 +67,7 @@ def get_action_arguments(
     """
     Given an <argn> element, evaluate it's contents based on our Action code dictionary
     (actionc.py)
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param evaluated_results: all the Action argument "types" and "arguments" as
             a dictionary
         :param arg: the incoming argument location/number (e.g. "0" for <arg0>)
@@ -112,6 +112,7 @@ def get_action_arguments(
             evaluated_results = get_bundle(code_action, evaluated_results)
 
         case _:
+            print("rutroh!")
             evaluated_results["get_xml_flag"] = False
             logger.debug(f"get_action_results  unknown argtype:{argtype}!!!!!")
             evaluated_results["returning_something"] = False
@@ -198,7 +199,7 @@ def action_args(
 ) -> object:
     """
     Go through the arguments and parse each one based on its argument 'type'
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param arg_list: list of arguments (xml "<argn>") to process
         :param the_action_code_plus: the lookup the Action code from actionc with
             "action type" (e.g. 861t, t=Task, e=Event, s=State)

@@ -259,7 +259,7 @@ def validate_color(the_color: str) -> object:
 def get_and_set_the_color(primary_items: dict, the_arg: str) -> None:
     """
     Get the runtime option for a color change and set it
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param the_arg: the color runtime argument (e.g. "cProfile=Blue" or
             "cProfile Blue")
         :return: nothing

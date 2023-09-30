@@ -13,8 +13,8 @@
 # #################################################################################### #
 import defusedxml
 
-from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.dirout import add_directory_item
+from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.property import get_properties
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME, logger
 from maptasker.src.taskactn import get_task_actions_and_output
@@ -22,7 +22,7 @@ from maptasker.src.twisty import add_twisty, remove_twisty
 
 
 # ################################################################################
-# Parse out name and add any attributes to it
+# Parse out name and add any attributes to it: spacing and HTML.
 # ################################################################################
 def adjust_name(primary_items: dict, list_type: str, the_item: str) -> str:
     """_summary_
@@ -66,7 +66,7 @@ def format_task_or_scene(
     Returns:
         tuple[str, str]: Our formatted output line and color to user
     """
-    # Format the Task/Scene name as needed
+    # Format the Task/Scene name as needed: spacing and HTML
     if list_type in {"Task:", "Scene:"}:
         the_item_altered = adjust_name(primary_items, list_type, the_item)
     else:
@@ -119,9 +119,9 @@ def add_dictionary_and_twisty(
     elif primary_items["program_arguments"]["directory"] and "Task:" in list_type:
         # Get the Task name from the line being formatted
         task_id = the_task.attrib.get("sr")[4:]
-        task_name = primary_items["tasker_root_elements"]["all_tasks"][task_id][1]
+        task_name = primary_items["tasker_root_elements"]["all_tasks"][task_id]["name"]
         if task_name != "":
-                # Handle directory hyperlink
+            # Handle directory hyperlink
             add_directory_item(primary_items, "tasks", task_name)
 
     # Insert a hyperlink if this is a Task...it has to go before a twisty
@@ -148,7 +148,7 @@ def add_dictionary_and_twisty(
 
 
 # ################################################################################
-# Given an item, format it with all of the particulars
+# Given an item, format it with all of the particulars and add to output.
 # ################################################################################
 def format_item(
     primary_items: dict,
@@ -185,6 +185,7 @@ def format_item(
 
     # Add this Task/Scene to the output as a list item
     primary_items["output_lines"].add_line_to_output(primary_items, 2, output_line)
+
     # Put the_item back with the 'ID: nnn' portion included.
     if temp_item:
         the_item = temp_item
@@ -233,7 +234,12 @@ def process_item(
     # This import must stay here to avoid error
     from maptasker.src.scenes import process_scene
 
+    # Given an item, format it with all of the particulars and add to output.
     format_item(primary_items, list_type, the_item, the_item, the_task)
+
+    # If just displaying basic details, get out.
+    if primary_items["program_arguments"]["display_detail_level"] == 0:
+        return
 
     # Output Actions for this Task if Task is unknown
     #   and not part of output for Tasks with no Profile(s)
@@ -292,7 +298,7 @@ def process_list(
 ) -> None:
     """
     Process Task/Scene text/line item: call recursively for Tasks within Scenes
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param list_type: Task or Scene
         :param the_list: list of Task names tro process
         :param the_task: Task/Scene xml element
@@ -303,8 +309,6 @@ def process_list(
     # Go through all Tasks in the list
     for the_item in the_list:
         # Process the item (list of items)
-        process_item(
-            primary_items, the_item, list_type, the_task, tasks_found
-        )
+        process_item(primary_items, the_item, list_type, the_task, tasks_found)
 
     return

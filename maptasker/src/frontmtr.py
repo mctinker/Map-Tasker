@@ -13,7 +13,6 @@ from datetime import datetime
 
 from maptasker.src.addcss import add_css
 from maptasker.src.debug import display_debug_info
-from maptasker.src.dirout import output_directory
 from maptasker.src.frmthtml import format_html
 from maptasker.src.prefers import get_preferences
 from maptasker.src.sysconst import MY_VERSION
@@ -22,15 +21,15 @@ from maptasker.src.sysconst import MY_VERSION
 # ##################################################################################
 # Add the heading matter to the output: heading, source, screen size, etc.
 # ##################################################################################
-def output_the_heading( primary_items: dict) -> None:
+def output_the_heading(primary_items: dict) -> None:
     """
     Display the heading and source file details
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
     """
-    
+
     # Start out by outputting our colors and font CSS
     add_css(primary_items)
-    
+
     tasker_mapping = "Tasker Mapping................ Tasker version:"
 
     # Get the screen dimensions from <dmetric> xml
@@ -75,7 +74,7 @@ def output_the_heading( primary_items: dict) -> None:
             True,
         )
     )
-    
+
     primary_items["output_lines"].add_line_to_output(
         primary_items, 0, primary_items["heading"]
     )
@@ -107,32 +106,34 @@ def output_the_heading( primary_items: dict) -> None:
             True,
         ),
     )
-    
+
+
 def output_the_front_matter(primary_items: dict) -> None:
     """_summary_
     Generates the front matter for the output file: heading, runtime settings, directory, Tasker preferences
         Args:
-            primary_items (dict): program registry.  See primitem.py for details.
+            primary_items (dict): Program registry.  See primitem.py for details.
     """
 
     # Heading information
     output_the_heading(primary_items)
-    
+
     # If we are debugging, output the runtime arguments and colors
     if (
         primary_items["program_arguments"]["debug"]
         or primary_items["program_arguments"]["runtime"]
     ):
         display_debug_info(primary_items)
-        
+
     # Start a list (<ul>) to force everything to tab over
     # primary_items["unordered_list_count"] = 0
     primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
-    
+
     # Output a flag to indicate this is where the directory goes
-    primary_items["output_lines"].add_line_to_output(primary_items, 5, "maptasker_directory")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 5, "maptasker_directory"
+    )
 
     # If doing Tasker preferences, get them
     if primary_items["program_arguments"]["preferences"]:
         get_preferences(primary_items)
-    

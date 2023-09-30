@@ -35,6 +35,7 @@ import maptasker.src.actione as action_evaluate
 from maptasker.src.frmthtml import format_html
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME, debug_out, logger
+from maptasker.src.xmldata import remove_html_tags
 
 
 class LineOut:
@@ -50,7 +51,7 @@ class LineOut:
     ) -> None:
         """
         For whatever reason, we need to clear out the existing output and start anew.
-                :param primary_items:  program registry.  See primitem.py for details.
+                :param primary_items:  Program registry.  See primitem.py for details.
                 :param include_the_profile: Boolean flag to indicate whether this is
                     a Profile to be included
                 :param project_name: name of the Project, if any
@@ -69,6 +70,13 @@ class LineOut:
                 "scenes": [],
             },
         )
+        primary_items["grand_totals"] = {
+            "projects": 0,
+            "profiles": 0,
+            "unnamed_tasks": 0,
+            "named_tasks": 0,
+            "scenes": 0,
+        }
 
         # Display th starting information in beginning of output
         output_the_front_matter(primary_items)
@@ -144,7 +152,7 @@ class LineOut:
     def format_line_list_item(self, primary_items: dict, element: str) -> str:
         """
         Generate the output list (<li>) string based on the input XML <code> passed in
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param element: text string to be added to output
         :return: the formatted text to add to the output queue
         """
@@ -181,13 +189,11 @@ class LineOut:
                 Returns:
                     _type_: output text with hyperlink target embedded
         """
-        return self.add_direcory_link(
-            primary_items, '<li ', element, '</li>\n'
-        )
+        return self.add_direcory_link(primary_items, "<li ", element, "</li>\n")
 
     def handle_profile(self, primary_items, element):
         return self.add_direcory_link(
-            primary_items, '<br><li ', element, '</span></li>\n'
+            primary_items, "<br><li ", element, "</span></li>\n"
         )
 
     def add_direcory_link(self, primary_items, arg1, element, arg3):
@@ -198,7 +204,7 @@ class LineOut:
         ):
             directory_item = f'"{primary_items["directory_items"]["current_item"]}"'
             directory = f"<a id={directory_item}></a>\n"
-        return f'{directory}{arg1}{element}{arg3}'
+        return f"{directory}{arg1}{element}{arg3}"
 
     def handle_task(self, primary_items, element, font):
         style_details = {
@@ -206,9 +212,7 @@ class LineOut:
             "font": font,
             "element": element,
             "color": (
-                "unknown_task_color"
-                if UNKNOWN_TASK_NAME in element
-                else "task_color"
+                "unknown_task_color" if UNKNOWN_TASK_NAME in element else "task_color"
             ),
         }
         return self.add_style(primary_items, style_details)
@@ -227,7 +231,8 @@ class LineOut:
                 or primary_items["program_arguments"]["highlight"]
                 or primary_items["program_arguments"]["underline"]
             ):
-                scene_name = self.remove_attributes(scene_name)
+                scene_name = remove_html_tags(scene_name, "")
+                # scene_name = self.remove_attributes(scene_name)
             directory = f'<a id="{scene_name.replace(" ","_")}"></a>\n'
         style_details = {
             "is_list": True,
@@ -237,16 +242,16 @@ class LineOut:
         }
         return f"{directory}{self.add_style(primary_items, style_details)}"
 
-    def remove_attributes(self, scene_name):
-        scene_name = scene_name.replace("<em>", "")
-        scene_name = scene_name.replace("</em>", "")
-        scene_name = scene_name.replace("<b>", "")
-        scene_name = scene_name.replace("</b>", "")
-        scene_name = scene_name.replace("<mark>", "")
-        scene_name = scene_name.replace("</mark>", "")
-        scene_name = scene_name.replace("<u>", "")
-        scene_name = scene_name.replace("</u>", "")
-        return scene_name
+    # def remove_attributes(self, scene_name):
+    #     scene_name = scene_name.replace("<em>", "")
+    #     scene_name = scene_name.replace("</em>", "")
+    #     scene_name = scene_name.replace("<b>", "")
+    #     scene_name = scene_name.replace("</b>", "")
+    #     scene_name = scene_name.replace("<mark>", "")
+    #     scene_name = scene_name.replace("</mark>", "")
+    #     scene_name = scene_name.replace("<u>", "")
+    #     scene_name = scene_name.replace("</u>", "")
+    #     return scene_name
 
     def handle_action(self, primary_items, element):
         blanks = (
@@ -265,13 +270,14 @@ class LineOut:
                 indentation = f'{"&nbsp;"*5}'
             else:
                 indentation = f'{blanks*int(start2[0])}{"&nbsp;"*int(start2[0])}&nbsp;'
+            # Add indentation for contination line
             tmp = action_evaluate.cleanup_the_result(
                 start1[0].replace(
                     "Action: ...", f"{indentation}continued >>> {start2[1]}"
                 )
             )
             element = tmp
-        return f'<li {element}</span></li>\n'
+        return f"<li {element}</span></li>\n"
 
     def handle_taskernet(self, element):
         return f"{element}\n"
@@ -308,7 +314,7 @@ class LineOut:
     def format_line(self, primary_items: dict, element: str, lvl: int) -> str:
         """
         Start formatting the output line with appropriate HTML
-                :param primary_items:  program registry.  See primitem.py for details.
+                :param primary_items:  Program registry.  See primitem.py for details.
                 :param element: the text line being formatted
                 :param lvl: the hierarchical list level for output- 0=heading,
                     1=start list, 2= list item, 3= end list, 4= plain text
@@ -358,7 +364,7 @@ class LineOut:
         """
         Add line to the list of output lines.  The output entry is based on the
         list_level and the contents of the output_str
-            :param primary_items:  program registry.  See primitem.py for details.
+            :param primary_items:  Program registry.  See primitem.py for details.
             :param list_level: level we are outputting
             :param out_string: the string to add to the output
             :return: none

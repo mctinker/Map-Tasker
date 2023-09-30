@@ -24,11 +24,11 @@ def add_css(primary_items: dict) -> None:
 
     # Start the style css
     primary_items["output_lines"].add_line_to_output(
-                        primary_items, 5, '<style  type="text/css">\n'
-                    )
-    
+        primary_items, 5, '<style  type="text/css">\n'
+    )
+
     # Go through all colors
-    
+
     # First, get the liost of colors and reverse the dictionary
     if primary_items["colors_to_use"]:
         for color_argument_name in primary_items["colors_to_use"]:
@@ -40,10 +40,10 @@ def add_css(primary_items: dict) -> None:
                     )
             except KeyError:
                 continue
-            
+
     # Add CSS for Bullet color
     bullet_color = primary_items["colors_to_use"]["bullet_color"]
-    bullet_css = '''ul {
+    bullet_css = """ul {
   list-style: none;
 }
 
@@ -54,12 +54,9 @@ ul li::before {
   display: inline-block; 
   width: 1em;
   margin-left: -1em;
-}'''
+}"""
     bullet_css = bullet_css.replace("red", bullet_color)
     primary_items["output_lines"].add_line_to_output(primary_items, 5, bullet_css)
-            
+
     # End the style css
-    primary_items["output_lines"].add_line_to_output(
-                        primary_items, 5, "</style>\n"
-                    )
-    
+    primary_items["output_lines"].add_line_to_output(primary_items, 5, "</style>\n")

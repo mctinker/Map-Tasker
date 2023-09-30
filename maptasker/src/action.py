@@ -18,6 +18,7 @@ from maptasker.src.frmthtml import format_html
 from maptasker.src.shellsort import shell_sort
 from maptasker.src.sysconst import FONT_FAMILY
 from maptasker.src.xmldata import remove_html_tags
+from maptasker.src.actiont import lookup_values
 
 
 # ##################################################################################
@@ -122,24 +123,16 @@ def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
 # ################################################################################
 # Given an action line, remove trailing and empty
 # ################################################################################
-def drop_trailing_comma(match_results: str) -> str:
+def drop_trailing_comma(match_results: list) -> list:
     """
     Delete any trailing comma in output line
         :param match_results: the string to check
         :return: the string without trailing blanks
     """
-    last_valid_entry = len(match_results) - 1  # Point to last item in list
-    if last_valid_entry > 0:
-        # Go through last item, character by character, in reverse order
-        for i in range(last_valid_entry, -1, -1):
-            item = match_results[i]
-            if item == "":
-                last_valid_entry = last_valid_entry - 1
-            elif item.endswith(", "):
-                match_results[i] = item[:-2]
-                return match_results
-            else:
-                break
+    for i in range(len(match_results) - 1, -1, -1):
+        if match_results[i].endswith(", "):
+            match_results[i] = match_results[i][:-2]
+            break
 
     return match_results
 
@@ -159,15 +152,24 @@ def evaluate_action_setting(*args: list) -> list:
         :param args: list of arguments (<argn>)
         :return: list of found results contained in arguments
     """
-    results = []
-
-    for item in args:
-        if item[0] and item[1] != "":
-            results.append(f"{item[2]}{item[1]}")
-        elif item[0] or item[1] != "1":
-            results.append("")
-        else:
-            results.append(item[2])
+    results = [None] * len(args)
+    results = [
+        f"{item[2]}{item[1]}"
+        if item[0] and item[1] != ""
+        else ""
+        if item[0] or item[1] != "1"
+        else item[2]
+        for item in args
+    ]
+    # The above list comprehension performs the function of the code below,
+    # and provides better performance:
+    # for item in args:
+    #     if item[0] and item[1] != "":
+    #         results.append(f"{item[2]}{item[1]}")
+    #     elif item[0] or item[1] != "1":
+    #         results.append("")
+    #     else:
+    #         results.append(item[2])
     return results
 
 
@@ -204,11 +206,9 @@ def process_xml_list(
         :param arguments: list of arguments to look for (e.g. arg1,arg5,arg9)
         :return: nothing
     """
-    # list of entries to substitute the argn value against.
-    # NOTE: Do NOT move this import statement to avoid recursion
+
     # lookup_values = value: option1, opt2, opt3, ...` for 0, 1, 2, ...
     #   Example: "30s": {0: "Any", 1: "Mic", 2: "No Mic"},
-    from maptasker.src.actiont import lookup_values
 
     the_list = names[arg_location]  # Get the list of options for this arg location
     the_title = the_list[0]  # Title is first element in the list
@@ -325,6 +325,9 @@ def get_label_disabled_condition(
     return f"{task_conditions}{action_disabled}{task_label}"
 
 
+# ##################################################################################
+# Get any/all conditions associated wwith this Task.
+# ##################################################################################
 # Get any/all conditions associated with Action
 def get_conditions(child, the_action_code):
     condition_count = 0
@@ -430,7 +433,7 @@ def get_extra_stuff(
     # Chase after relevant data after <code> Task action
     # code_flag identifies the type of xml data to go after based on the specific code in <code>xxx</code>
     # Get the: label, whether to continue Task after error, etc.
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param code_action: action code (e.g. "543") xml element
         :param action_type: True if this is a Task Action, otherwise False
         :return: formatted line of extra details about Task Action
@@ -500,7 +503,7 @@ def get_app_details(
 ) -> tuple[str, str, str, str]:
     """
     Get the application specifics for the given code (<App>)
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param code_child: Action xml element
         :param action_type: True if this is a Task, False if a condition
         :return: the aplication specifics - class, package name, app name, extra stuff

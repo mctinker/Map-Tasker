@@ -20,7 +20,7 @@ from maptasker.src.sysconst import ARGUMENT_NAMES, TYPES_OF_COLOR_NAMES, logger
 def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
     """
     Put out a line that identifies the following output as DEBUG
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param begin_or_end: text identiying the beginning or end of debug
     """
     arrow = ">"
@@ -42,12 +42,12 @@ def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
 # ##################################################################################
 def format_line(text: str, width: int) -> str:
     """Format text line to given width by filling with periods"""
-    
+
     formatted = text
-    
+
     if len(text) < width:
         formatted += "." * (width - len(text))
-        
+
     return formatted[:width]
 
 
@@ -57,7 +57,7 @@ def format_line(text: str, width: int) -> str:
 def display_debug_info(primary_items: dict) -> None:
     """
     Output our runtime arguments
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
     """
 
     # Add blank line
@@ -161,6 +161,23 @@ def display_debug_info(primary_items: dict) -> None:
                 True,
             ),
         )
+
+    # Get a total count of action_code entries in our dictionary.
+    # from maptasker.src.actionc import action_codes
+    # num = sum(1 for key, value in action_codes.items())
+    # primary_items["output_lines"].add_line_to_output(
+    #     primary_items,
+    #             4,
+    #             format_html(
+    #                 primary_items,
+    #                 color_to_use,
+    #                 "",
+    #                 f"Number of Task Action codes = {num}",
+    #                 True,
+    #             ),
+    #         )
+
+    # Finalize debug info
     output_debug_line(primary_items, "End")
     primary_items["output_lines"].add_line_to_output(
         primary_items,

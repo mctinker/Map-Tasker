@@ -88,16 +88,18 @@ def tag_in_type(tag: str, flag: bool) -> bool:
 #         ['some_text', 'l', lookup_code] > use lookup_values dictionary to translate
 #           code and plug in value
 # ##################################################################################
-def get_xml_int_argument_to_value(action: defusedxml.ElementTree.XML, arguments: list, names: list) -> list:
+def get_xml_int_argument_to_value(
+    action: defusedxml.ElementTree.XML, arguments: list, names: list
+) -> list:
     """_summary_
-Given an action code (xml), find Int (integer) args and match with names
-    Args:
-        action (defusedxml.ElementTree.XML): Current <Action> to process
-        arguments (list): List of args to look for (e.g. ['arg1','arg5'])
-        names (list): list of names to substitute arg value against
+    Given an action code (xml), find Int (integer) args and match with names
+        Args:
+            action (defusedxml.ElementTree.XML): Current <Action> to process
+            arguments (list): List of args to look for (e.g. ['arg1','arg5'])
+            names (list): list of names to substitute arg value against
 
-    Returns:
-        list: List of translated results for each <arg with trailing blanks stripped off end.
+        Returns:
+            list: List of translated results for each <arg with trailing blanks stripped off end.
     """
     # These imports MUST be here and not at top to avoid circular import error
     from maptasker.src.action import drop_trailing_comma, process_xml_list
@@ -148,16 +150,18 @@ Given an action code (xml), find Int (integer) args and match with names
 #  3 Strs with arg0, arg1 and arg2, to be filled in with their matching name0, name1
 #   and name2 + the associated text
 # ##################################################################################
-def get_xml_str_argument_to_value(action: defusedxml.ElementTree.XML, arguments: list, names: list) -> list:
+def get_xml_str_argument_to_value(
+    action: defusedxml.ElementTree.XML, arguments: list, names: list
+) -> list:
     """_summary_
-Given an action code (xml), find Str (string) args and match with names
-    Args:
-        action (defusedxml.ElementTree.XML): Current <Action> to process
-        arguments (list): List of args to look for (e.g. ['arg1','arg5'])
-        names (list): list of names to substitute arg value against
+    Given an action code (xml), find Str (string) args and match with names
+        Args:
+            action (defusedxml.ElementTree.XML): Current <Action> to process
+            arguments (list): List of args to look for (e.g. ['arg1','arg5'])
+            names (list): list of names to substitute arg value against
 
-    Returns:
-        list: List of translated results for each <arg with trailing blanks stripped off end.
+        Returns:
+            list: List of translated results for each <arg with trailing blanks stripped off end.
     """
     from maptasker.src.action import drop_trailing_comma
 

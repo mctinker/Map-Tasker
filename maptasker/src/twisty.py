@@ -20,7 +20,7 @@ def add_twisty(
 ) -> None:
     """
     Add the necessary html to hide the follow-on text under a twisty ►
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param output_color_name: name of the color to insert into the html
         :param line_to_output: text line to output into the html
         :return: nothing.  Add formatted html with the twisty magic
@@ -43,7 +43,7 @@ def add_twisty(
 def remove_twisty(primary_items: dict) -> None:
     """
     Add the html element to stop the hidden items..so the follow-up stuff is not hidden
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :return: nothing.  The output line is modified to include "</details>"
     """
     # Replace the last line (</ul>) with </ul></details> to end the twisty/hidden items

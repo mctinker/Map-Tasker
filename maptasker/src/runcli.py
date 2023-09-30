@@ -55,6 +55,8 @@ def get_arg_if_in_list(
     """
     if the_value := getattr(args, the_argument):
         return int(the_value[0]) if isinstance(the_value, list) else int(the_value)
+    else:
+        return the_value
 
 
 # ##################################################################################
@@ -155,8 +157,12 @@ def get_the_other_arguments(
     """
     get_and_set_booleans(primary_items, args)
 
+    # Get display detail level, if provided.
     detail = getattr(args, "detail")
-    if detail := get_arg_if_in_list(args, "detail"):
+    if detail is not None and isinstance(detail, int):
+        primary_items["program_arguments"]["display_detail_level"] = detail
+
+    elif detail := get_arg_if_in_list(args, "detail"):
         primary_items["program_arguments"]["display_detail_level"] = detail
 
 
@@ -309,7 +315,7 @@ def process_arguments(primary_items: dict, args: object) -> dict:
 def restore_arguments(primary_items: dict) -> dict:
     """
     Get arguments from saved file and restore them to the proper settings
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :return: primary items
     """
     temp_arguments = temp_colors = {}
@@ -406,6 +412,7 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):
         v=False,
     )
     # Go through each argument from runtest
+    print("Running Unit Test.")
     for the_argument in sys.argv:
         if the_argument == "-test=yes":  # Remove unit test trigger
             continue
@@ -436,6 +443,26 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):
 
 
 # ##################################################################################
+# Validate arguments by looking for inconsistancies.
+# ##################################################################################
+def validate_arguments(primary_items: dict) -> None:
+    """_summary_
+    Validate arguments by looking for inconsistancies.
+        Args:
+            primary_items (dict): Program registry.  See primitem.py for details.
+
+        Returns:
+            Nothing
+    """
+    program_arguments = primary_items["program_arguments"]
+    # It doesn't make sense to do twisties if notr displaying full detail.
+    if program_arguments["display_detail_level"] < 3 and program_arguments["twisty"]:
+        message = "Twisty disabled since the display level is not 3"
+        print(f"{Colors.Yellow}{message}")
+        logger.info(message)
+
+
+# ##################################################################################
 # Get the program arguments from command line or via unit test (e.g. python mapit.py -x)
 # ##################################################################################
 # Command line parameters
@@ -443,10 +470,10 @@ def process_cli(primary_items: dict) -> dict:
     """_summary_
     Get the program arguments from command line or via unit test (e.g. python mapit.py -x)
         Args:
-            primary_items (dict): program registry.  See primitem.py for details.
+            primary_items (dict): Program registry.  See primitem.py for details.
 
         Returns:
-            dict: program registry.  See primitem.py for details.
+            dict: Program registry.  See primitem.py for details.
     """
 
     # Convert runtime argument default values to a dictionary
@@ -473,6 +500,9 @@ def process_cli(primary_items: dict) -> dict:
     # Process commands from command line
     else:
         primary_items = process_arguments(primary_items, args)
+
+    # Validate arguements against each other.
+    validate_arguments(primary_items)
 
     # Return the results
     return primary_items

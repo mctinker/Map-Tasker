@@ -19,10 +19,11 @@ import defusedxml.ElementTree  # Need for type hints
 import maptasker.src.actionr as action_results
 from maptasker.src.action import get_extra_stuff
 from maptasker.src.actionc import action_codes
+from maptasker.src.config import CONTINUE_LIMIT
 from maptasker.src.debug import not_in_dictionary
+from maptasker.src.depricated import depricated
 from maptasker.src.error import error_handler
 from maptasker.src.frmthtml import format_html
-from maptasker.src.depricated import depricated
 from maptasker.src.sysconst import logger
 
 # pattern1 = re.compile(r'<.*?>')  # Get rid of all <something> html code
@@ -117,7 +118,7 @@ def get_action_code(
 ) -> str:
     """
     Given an action code, evaluate it for display
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param code_child: xml element of the <code>
         :param code_action: value of <code> (e.g. "549")
         :param action_type:
@@ -208,7 +209,7 @@ def build_action(
 ) -> list:
     """
     Construct Task Action output line
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param alist: list of actions (all <Actions> for task
         :param task_code_line: output text of Task
         :param code_element: xml element of <code> under <Action>
@@ -216,14 +217,15 @@ def build_action(
         :param indent_amt: the indent number of spaces as "&nbsp;" for each space
         :return: finalized output string
     """
-    from maptasker.src.config import CONTINUE_LIMIT
 
     # Calculate total indentation to put in front of action
     count = indent
     if count != 0:
         # Add the indent amount to the front of the Action output line
         front_matter = '<span class="action_name_color">'
-        task_code_line = task_code_line.replace(front_matter, f'{front_matter}{indent_amt}', 1)
+        task_code_line = task_code_line.replace(
+            front_matter, f"{front_matter}{indent_amt}", 1
+        )
         count = 0
     if count < 0:
         task_code_line = f"{indent_amt}{task_code_line}"

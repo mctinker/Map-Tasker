@@ -138,10 +138,10 @@ def runtime_parser():
         help=textwrap.dedent(
             """ \
                         Level of detail to display:
-                            0 = display first Task action only, for unnamed Tasks only (silent)
-                            1 = display all Task action details for unknown Tasks only (default)
+                            0 = display simple Project/Profile/Task/Scene names only with no details
+                            1 = display all Task action details for unknown Tasks only
                             2 = display full Task action name on every Task
-                            3 = display full Task action details on every Task with action details
+                            3 = display full Task action details on every Task with action details (default)
                             Example: '-detail 2' for Task action names only
                             """
         ),
@@ -227,7 +227,12 @@ def runtime_parser():
     parser.add_argument(
         "-o",
         "-outline",
-        help="Display configuration outline of Projects, Profiles, Tasks and Scenes.",
+        help=textwrap.dedent(
+            """ \
+                        Display configuration outline of Projects, Profiles, Tasks and Scenes, and
+                        display the configuraion Map (MapTasker_map.txt) in the default text editor"
+                            """
+        ),
         action="store_true",
         default=False,
     )

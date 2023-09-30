@@ -59,7 +59,7 @@ def convert_to_integer(value_to_convert: str, default_value: int) -> int:
 def process_gui(primary_items, use_gui: bool) -> tuple[dict, dict]:
     """
     Present the GUI and get the runtime details
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param use_gui: flag if usijng the GUI, make sure we import it
         :return: program runtime arguments and colors to use in the output
     """

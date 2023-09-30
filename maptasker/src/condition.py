@@ -31,7 +31,7 @@ def condition_time(
 ) -> str:
     """
     Handle the "Time" condition
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param the_item: the xml element with the Condition
         :param the_output_condition: text into which the condition output is to
             be formated
@@ -168,7 +168,7 @@ def condition_state(
 ) -> str:
     """
     Handle the "State" condition
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param the_item: the xml element with the Condition
         :param the_output_condition: text into which the condition output is to
             be formated
@@ -214,7 +214,7 @@ def condition_event(
 ) -> str:
     """
     Handle the "Event" condition
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param the_item: the xml element with the Condition
         :param the_output_condition: text into which the condition output is to
             be formatted
@@ -262,7 +262,7 @@ def parse_profile_condition(
 ) -> str:
     """
     Given a Profile, return its list of conditions
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param the_profile: the xml element pointing to <Profile object
         :return: the formatted condition's output string
     """

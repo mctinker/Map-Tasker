@@ -28,7 +28,7 @@ from maptasker.src.sysconst import logger
 def write_out_backup_file(primary_items: dict, file_contents: bin) -> None:
     """
     We've read in the xml backup file.  Now save it for processing.
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param file_contents: binary contents of backup xml file
         :return: Nothing
     """
@@ -147,7 +147,7 @@ def get_backup_file(primary_items: dict) -> str:
     """
     Set up to fetch the Tasker backup xml file from the Android device running
     the Tasker server
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :return: The name of the backup file (e.g. backup.xml)
     """
     # Get the contents of the file.

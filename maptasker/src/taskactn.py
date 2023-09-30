@@ -31,7 +31,7 @@ def output_list_of_actions(
     """output the list of Task Actions
 
     Parameters:
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param action_count: count of Task actions
         :param alist: list of task actions
         :param the_item: the specific Task's detailed line

@@ -13,6 +13,7 @@
 import contextlib
 
 import defusedxml.ElementTree  # Need for type hints
+
 import maptasker.src.tasks as tasks
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.frmthtml import format_html
@@ -73,7 +74,7 @@ def get_scene_elements(
 ) -> None:
     """
     Go through Scene's <xxxElement> tags and output them
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param child: pointer to '<xxxElement' Scene xml statement
         :return: nothing
     """
@@ -131,7 +132,7 @@ def process_scene(
 ) -> None:
     """
     Process the Project's Scene(s), one at a time
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param my_scene: name of Scene to process
         :param tasks_found: list of Tasks found so far
         :return:
@@ -139,11 +140,9 @@ def process_scene(
     # This import statement must reside here to avoid an error
     from maptasker.src.proclist import process_list
 
-    scene = primary_items["tasker_root_elements"]["all_scenes"][my_scene][0]
+    scene = primary_items["tasker_root_elements"]["all_scenes"][my_scene]["xml"]
     # Get the Scene's geometry and display it
-    height, width = get_geometry(
-        scene
-    )
+    height, width = get_geometry(scene)
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         4,
@@ -159,7 +158,7 @@ def process_scene(
     # Handle directory hyperlink
     if primary_items["program_arguments"]["directory"]:
         add_directory_item(primary_items, "scenes", my_scene)
-        
+
     # Go through all the children of the Scene looking for width/height
     # and 'click' Tasks
     for child in scene:
@@ -237,7 +236,7 @@ def process_project_scenes(
 ) -> bool:
     """
     Go through all Scenes for Project, get their detail and output it
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param project: xml element of Project we are processing
         :param our_task_element: xml element pointing to our Task
         :param found_tasks: list of Tasks found so far
@@ -283,4 +282,5 @@ def process_project_scenes(
                 # End list if displaying level 0
                 primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
 
+    return bool(scene_names)
     return bool(scene_names)

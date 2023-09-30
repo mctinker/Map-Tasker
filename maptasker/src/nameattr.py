@@ -2,7 +2,7 @@
 
 # #################################################################################### #
 #                                                                                      #
-# nameattr: Format the Project/Profile?Task/Scene name with bold, highlighting or      #
+# nameattr: Format the Project/Profile/Task/Scene name with bold, highlighting or      #
 #            italisized.                                                               #
 #                                                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #

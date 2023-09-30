@@ -23,7 +23,7 @@ def share(
 ) -> None:
     """
     Go through xml <Share> elements to grab and output TaskerNet description and search-on lines
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param root_element: beginning xml element (e.g. Project or Task)
     """
     # Get the <share> element, if any
@@ -64,7 +64,7 @@ def description_element_output(
     """
     We have a Taskernet description (<Share>).  Clean it uip and add it to
     the output list.
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param description_element: xml element <d> TaskerNet description
     """
     # We need to properly format this since it has embedded stuff that screws it up

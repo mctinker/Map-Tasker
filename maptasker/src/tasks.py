@@ -24,6 +24,8 @@ from maptasker.src.shellsort import shell_sort
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME, logger
 from maptasker.src.xmldata import tag_in_type
 
+blank = "&nbsp;"
+
 
 # ##################################################################################
 # Navigate through Task's Actions and identify each
@@ -35,7 +37,7 @@ def get_actions(
 ) -> list:
     """
     Return a list of Task's actions for the given Task
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param current_task: xml element of the Task we are getting actions for
         :return: list of Task 'action' output lines
     """
@@ -121,7 +123,7 @@ def get_task_name(
     """
     Get the name of the task given the Task ID.
     Add to the output line if this is an Entry or xit Task.
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param the_task_id: the Task's ID (e.g. '47')
         :param tasks_that_have_been_found: list of Tasks found so far
         :param task_output_lines: list of Tasks
@@ -130,8 +132,10 @@ def get_task_name(
     """
 
     if the_task_id.isdigit():
-        task = primary_items["tasker_root_elements"]["all_tasks"][the_task_id][0]
-        task_name = primary_items["tasker_root_elements"]["all_tasks"][the_task_id][1]
+        task = primary_items["tasker_root_elements"]["all_tasks"][the_task_id]["xml"]
+        task_name = primary_items["tasker_root_elements"]["all_tasks"][the_task_id][
+            "name"
+        ]
         duplicate_task = False
         if the_task_id not in tasks_that_have_been_found:
             tasks_that_have_been_found.append(the_task_id)
@@ -143,15 +147,19 @@ def get_task_name(
             extra = ""
         # Determine if this is an "Entry" or "Exit" Task
         if task_name:
-            if task_type == "Exit":
-                task_output_lines.append(
-                    f"{task_name}&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task{extra}"
-                )
+            # Don't add the entry/exit text if display level = 0
+            if primary_items["program_arguments"]["display_detail_level"] > 0:
+                if task_type == "Exit":
+                    task_output_lines.append(
+                        f"{task_name}{blank*4}<<< Exit Task{extra}"
+                    )
 
+                else:
+                    task_output_lines.append(
+                        f"{task_name}{blank*4}<<< Entry Task{extra}"
+                    )
             else:
-                task_output_lines.append(
-                    f"{task_name}&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task{extra}"
-                )
+                task_output_lines.append(f"{task_name}{blank*4}")
         else:
             task_name = UNKNOWN_TASK_NAME
             # Count this as an unnamed Task if it hasn't yet been counted and it
@@ -160,16 +168,20 @@ def get_task_name(
                 primary_items["task_count_unnamed"] = (
                     primary_items["task_count_unnamed"] + 1
                 )
-            blanks = f'{"&nbsp;" * primary_items["program_arguments"]["indent"]}'
-            if task_type == "Exit":
-                task_output_lines.append(
-                    f"{UNKNOWN_TASK_NAME}{blanks}<<< Exit Task{extra}"
-                )
+            blanks = f'{blank * primary_items["program_arguments"]["indent"]}'
+            # Don't add the entry/exit text if display level = 0
+            if primary_items["program_arguments"]["display_detail_level"] > 0:
+                if task_type == "Exit":
+                    task_output_lines.append(
+                        f"{UNKNOWN_TASK_NAME}{blanks}<<< Exit Task{extra}"
+                    )
 
+                else:
+                    task_output_lines.append(
+                        f"{UNKNOWN_TASK_NAME}{blanks}<<< Entry Task{extra}"
+                    )
             else:
-                task_output_lines.append(
-                    f"{UNKNOWN_TASK_NAME}{blanks}<<< Entry Task{extra}"
-                )
+                task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}")
     else:
         task = None
         task_name = ""
@@ -201,10 +213,10 @@ def get_project_for_solo_task(
         for project in all_projects:
             project_element = primary_items["tasker_root_elements"]["all_projects"][
                 project
-            ][0]
+            ]["xml"]
             project_name = primary_items["tasker_root_elements"]["all_projects"][
                 project
-            ][1]
+            ]["name"]
             task_ids = get_ids(
                 primary_items,
                 False,
@@ -230,7 +242,7 @@ def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
     """
     # Go through each Scene
     for value in all_scenes.values():
-        for child in value[0]:  # Go through sub-elements in the Scene element
+        for child in value["xml"]:  # Go through sub-elements in the Scene element
             if tag_in_type(child.tag, True):
                 for subchild in child:  # Go through xxxxElement sub-items
                     # Is this Task in this specific Scene (child)?
@@ -260,7 +272,7 @@ def do_single_task(
 ) -> None:
     """
     Process a single Task only
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param our_task_name: name of Task we are to process
         :param project_name: name of the Project Task belongs to
         :param profile_name: name of the Profile the Task belongs to
@@ -328,6 +340,35 @@ def do_single_task(
 
 
 # ##################################################################################
+# Search image xml element for key and return title=value
+# ##################################################################################
+def get_image(image, title, key):
+    element = image.find(key)
+    if element is None:
+        return ""
+    text = element.text
+    if "." in text:
+        text = text.rsplit(".", 1)[1]
+    return f"{title}={text} " if text else ""
+
+
+# ##################################################################################
+# If Task has an icon, get and format it in the Task output line.
+# ##################################################################################
+def get_icon_info(primary_items, the_task):
+    image = the_task.find("Img")
+    if image is None:
+        return ""
+    icon_name = get_image(image, "name", "nme")
+    icon_pkg = get_image(image, "pkg", "pkg")
+    icon_cls = get_image(image, "class", "cls")
+    text = f"{icon_pkg}{icon_cls}{icon_name}"
+    text = text.rstrip(" ")
+
+    return f"[Icon Info({text})]"
+
+
+# ##################################################################################
 # Get additional information for this Task
 # ##################################################################################
 def get_extra_details(
@@ -338,90 +379,35 @@ def get_extra_details(
     """_summary_
     Get additional information for this Task
         Args:
-            primary_items (dict): program registry.  See primitem.py for details.
+            primary_items (dict): Program registry.  See primitem.py for details.
             our_task_elelemtn(xml): our Task head xml element.
             task_output_lines (list): list of Task's output line(s)
 
         Returns:
             _tuple (str, str, str, str): the extra stuff as strings
     """
+    # KID App info
     if kid_app_info := get_kid_app(our_task_element):
         kid_app_info = format_html(primary_items, "task_color", "", kid_app_info, True)
         task_output_lines[0] = f"{task_output_lines[0]} {kid_app_info}"
+
+    # Task priority
     if priority := task_flags.get_priority(our_task_element, False):
         task_output_lines[0] = f"{task_output_lines[0]} {priority}"
+
+    # Collision flags
     if collision := task_flags.get_collision(our_task_element):
         task_output_lines[0] = f"{task_output_lines[0]} {collision}"
+
+    # Task stay-awake flag
     if stay_awake := task_flags.get_awake(our_task_element):
         task_output_lines[0] = f"{task_output_lines[0]} {stay_awake}"
-    return kid_app_info, priority, collision, stay_awake
 
+    # Task icon info, if any.
+    if icon_info := get_icon_info(primary_items, our_task_element):
+        task_output_lines[0] = f"{task_output_lines[0]} {icon_info}"
 
-# ##################################################################################
-# output_task: we have a Task and need to generate the output
-# ##################################################################################
-def output_task(
-    primary_items: dict,
-    our_task_name: str,
-    our_task_element: defusedxml.ElementTree.XML,
-    task_output_lines: list,
-    project_name: str,
-    profile_name: str,
-    list_of_found_tasks: list,
-    do_extra: bool,
-) -> bool:
-    """
-    We have a single Task or a list of Tasks.  Output it/them.
-        :param primary_items:  program registry.  See primitem.py for details.
-        :param our_task_name: name of Task
-        :param our_task_element: Task xml element
-        :param task_list: list of Task output lines
-        :param project_name: name of current Project
-        :param profile_name: name of current Profile
-        :param list_of_found_tasks: list of Tasks found so far
-        :param do_extra: flag to do/output extra Task stuff
-        :return: True if we are searching for a single Task and found it.  Otherwise, False
-    """
-    # Do NOT move this import.  Otherwise, will get recursion error
-    from maptasker.src.proclist import process_list
-
-    # See if there is a Kid app and/or Priority and/or Collision
-    if do_extra and primary_items["program_arguments"]["display_detail_level"] == 3:
-        kid_app_info, priority, collision, stay_awake = get_extra_details(
-            primary_items, our_task_element, task_output_lines
-        )
-
-    # Looking for a single Task?  If so, then process it.
-    if (
-        our_task_name != ""
-        and primary_items["program_arguments"]["single_task_name"] == our_task_name
-    ):
-        do_single_task(
-            primary_items,
-            our_task_name,
-            project_name,
-            profile_name,
-            task_output_lines,
-            our_task_element,
-            list_of_found_tasks,
-        )
-        return True  # Call it quits on Task...we have the one we want
-    elif task_output_lines:
-        # Start a list
-        primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
-        # Process the list of Task(s)
-        process_list(
-            primary_items,
-            "Task:",
-            task_output_lines,
-            our_task_element,
-            list_of_found_tasks,
-        )
-
-        # End Task list
-        primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
-
-    return False  # Normal Task...continue processing them
+    return kid_app_info, priority, collision, stay_awake, icon_info
 
 
 # ##################################################################################
@@ -440,7 +426,7 @@ def output_task_list(
     Given a list of tasks, output them.  The list of tasks is a list of tuples.
         The first element is the Task name, the second is the Task element.
         Args:
-            primary_items (dict): program registry.  See primitem.py for details.
+            primary_items (dict): Program registry.  See primitem.py for details.
             list_of_tasks (list): list of Tasks to output.
             project_name (str): name of the owning Projeect
             profile_name (str): name of the owning Profile
@@ -452,29 +438,35 @@ def output_task_list(
         # Doing extra details?
         if do_extra and primary_items["program_arguments"]["display_detail_level"] == 3:
             # Get the extra details for this Task
-            kid_app_info, priority, collision, stay_awake = get_extra_details(
+            (
+                kid_app_info,
+                priority,
+                collision,
+                stay_awake,
+                icon_info,
+            ) = get_extra_details(
                 primary_items,
-                task_item[0],
+                task_item["xml"],
                 [task_output_lines[count]],
             )
             # Tack on the extra info since [task_output_lines[count]] is immutable
             task_output_lines[
                 count
-            ] = f"{task_output_lines[count]}  {kid_app_info} {priority} {collision} {stay_awake}"
+            ] = f"{task_output_lines[count]} {kid_app_info}{priority}{collision}{stay_awake}{blank*2}{icon_info}"
 
         do_single_task(
             primary_items,
-            task_item[1],
+            task_item["name"],
             project_name,
             profile_name,
             [task_output_lines[count]],
-            task_item[0],
+            task_item["xml"],
             list_of_found_tasks,
         )
 
         # If only doing a single Task and we found/did it, then we are done
         if (
-            task_item[1] != ""
+            primary_items["program_arguments"]["single_task_name"]
             and primary_items["program_arguments"]["single_task_name"] == task_item[1]
         ):
             return True

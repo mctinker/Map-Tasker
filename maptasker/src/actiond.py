@@ -110,7 +110,7 @@ def build_action_codes(
     """
     Build the dictionary for each Action code
     We first check if the_action_code_plus is already in action_codes. If it is, we call the update_action_codes() function. Otherwise, we call the build_new_action_codes() function followed by some logging and debugging output (if debug mode is enabled) as before.
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param action: xml element with Task action's "<code>nnn</code>"
         :param child: xml root element of Task action
         :return:

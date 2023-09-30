@@ -235,7 +235,6 @@ class Clip:
         if not isinstance(self._color, bool):
             raise ClipException('colorless by default - pass "True" for color')
 
-
     @property
     def source_folder(self):
         """Instance read only property"""

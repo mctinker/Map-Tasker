@@ -62,7 +62,7 @@ INFO_TEXT = (
     "information within ► and click to display.\n\n"
     "* Display Directory of hyperlinks at beginning."
     "\n\n"
-    "* Display Configuration Outline of your Projects/Profiles/Tasks."
+    "* Display Configuration Outline and Map of your Projects/Profiles/Tasks/Scenes."
     "\n\n"
     "* Project/Profile/Task/Scene Names options to "
     "italicize, bold, underline and/or highlight their "
@@ -744,7 +744,7 @@ class MyGui(customtkinter.CTk):
 
         # See if the item exists by going through all names
         for item in root_element:
-            if root_element[item][1] == the_name:
+            if root_element[item]["name"] == the_name:
                 return True
 
         return False
@@ -862,11 +862,14 @@ class MyGui(customtkinter.CTk):
         self.display_detail_level = display_detail
         self.sidebar_detail_option.set(display_detail)
         self.inform_message("Display Detail Level", True, display_detail)
-        if self.twisty:
+        # Disable twisty if detail level is less than 3
+        if self.twisty and int(display_detail) < 3:
             self.display_message_box(
-                "Hiding Tasks with Twisty has no effect with Display Detail Level of 0.",
+                f"Hiding Tasks with Twisty has no effect with Display Detail Level set to {display_detail}.  Twisty disabled!",
                 False,
             )
+            self.twisty = False
+            self.twisty_checkbox.deselect()
 
     # ################################################################################
     # Select or deselect a checkbox based on the value passed in
@@ -1007,10 +1010,13 @@ class MyGui(customtkinter.CTk):
         self.twisty = self.get_input_and_put_message(
             self.twisty_checkbox, "Hide Task Details Under Twisty"
         )
-        if self.display_detail_level == "0":
+        if self.twisty and int(self.display_detail_level) < 3:
             self.display_message_box(
-                "This has no effect with Display Detail Level of 0", False
+                "This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!",
+                False,
             )
+            self.sidebar_detail_option.set("3")  # display detail level
+            self.display_detail_level = "3"
 
     # ##################################################################################
     # Process the 'Display Directory' checkbox
@@ -1087,7 +1093,7 @@ class MyGui(customtkinter.CTk):
     # ################################################################################
     def inform_message(self, toggle_name, toggle_value, number_value):
         extra = " "
-        if number_value:
+        if number_value != "":
             response = number_value
             extra = " to "
         elif toggle_value:

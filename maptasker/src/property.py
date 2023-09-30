@@ -30,6 +30,8 @@ def parse_variable(
             variable_header (_type_): xml header of property's variable
             color_to_use (_type_): the color to use in the output
     """
+
+    # Get the various property
     clearout = variable_header.find("clearout").text
     immutable = variable_header.find("immutable").text
     configure_on_import = variable_header.find("pvci").text
@@ -49,12 +51,9 @@ def parse_variable(
         primary_items,
         color_to_use,
         "",
-        f"<br>Properties Variable Title:{display_name}, Variable:{variable_name}, \
+        f"<br>Properties.... Variable Title:{display_name}, Variable:{variable_name}, \
         clear-out:{clearout}, \
-        Configure on Import:{configure_on_import}\
-        , Structured Variable (JSON, etc.):{structured_variable}\
-        , Immutable:{immutable}, Value:{value}, Display Name:{display_name}\
-        , Prompt:{prompt}, Exported Value:{exported_value}",
+        Configure on Import:{configure_on_import}, Structured Variable (JSON, etc.):{structured_variable}, Immutable:{immutable}, Value:{value}, Display Name:{display_name}, Prompt:{prompt}, Exported Value:{exported_value}",
         True,
     )
     primary_items["output_lines"].add_line_to_output(

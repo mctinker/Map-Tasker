@@ -61,7 +61,7 @@ def add_directory_item(primary_items: dict, key: str, name: str):
         not search_lists(name, primary_items["directory_items"][key])
         and name != NO_PROFILE
     ):
-        hyperlink_name = copy.deepcopy(name).replace(" ", "_")
+        hyperlink_name = name.replace(" ", "_")
         primary_items["directory_items"]["current_item"] = f"{key}_{hyperlink_name}"
         primary_items["directory_items"][key].append([hyperlink_name, name])
     else:
@@ -305,7 +305,7 @@ def check_scene(primary_items: dict, item: str) -> bool:
     """
     # Single Project?
     if primary_items["program_arguments"]["single_project_name"]:
-        found, project = find_task_in_project(primary_items, "", item[1], "scenes")
+        found, project = find_task_in_project(primary_items, "", item["name"], "scenes")
         return found
 
     # Single Profile?
@@ -314,7 +314,9 @@ def check_scene(primary_items: dict, item: str) -> bool:
         # Get the Profile ID for the single Profile we are looking for
         for profile_id in primary_items["tasker_root_elements"]["all_profiles"]:
             if (
-                primary_items["tasker_root_elements"]["all_profiles"][profile_id][1]
+                primary_items["tasker_root_elements"]["all_profiles"][profile_id][
+                    "name"
+                ]
                 == profile_name
             ):
                 found, project = find_task_in_project(
@@ -322,7 +324,7 @@ def check_scene(primary_items: dict, item: str) -> bool:
                 )
                 if found:
                     scenes = project.find("scenes")
-                    if scenes is not None and item[1] in scenes.text.split(","):
+                    if scenes is not None and item["name"] in scenes.text.split(","):
                         return True
 
         return False
@@ -333,7 +335,7 @@ def check_scene(primary_items: dict, item: str) -> bool:
             (
                 task_item
                 for task_item in primary_items["tasker_root_elements"]["all_tasks"]
-                if primary_items["tasker_root_elements"]["all_tasks"][task_item][1]
+                if primary_items["tasker_root_elements"]["all_tasks"][task_item]["name"]
                 == primary_items["program_arguments"]["single_task_name"]
             ),
             "",
@@ -345,7 +347,7 @@ def check_scene(primary_items: dict, item: str) -> bool:
             if found:
                 # Found Project with Profile, now check If Scenes in Project
                 scenes = project.find("scenes")
-                if scenes is not None and item[1] in scenes.text.split(","):
+                if scenes is not None and item["name"] in scenes.text.split(","):
                     return True
             return False
 
@@ -368,7 +370,7 @@ def check_task(primary_items: dict, item: str) -> bool:
     """
     if (
         primary_items["program_arguments"]["single_task_name"]
-        and item[1] != primary_items["program_arguments"]["single_task_name"]
+        and item["name"] != primary_items["program_arguments"]["single_task_name"]
     ):
         return False
     # Doing a single Profile?
@@ -378,8 +380,8 @@ def check_task(primary_items: dict, item: str) -> bool:
             (
                 task_item
                 for task_item in primary_items["tasker_root_elements"]["all_tasks"]
-                if primary_items["tasker_root_elements"]["all_tasks"][task_item][1]
-                == item[1]
+                if primary_items["tasker_root_elements"]["all_tasks"][task_item]["name"]
+                == item["name"]
             ),
             "",
         ):
@@ -396,7 +398,7 @@ def check_task(primary_items: dict, item: str) -> bool:
                             primary_items["program_arguments"]["single_profile_name"]
                             == primary_items["tasker_root_elements"]["all_profiles"][
                                 profile_id
-                            ][1]
+                            ]["name"]
                         ):
                             # Get the Project's Task IDs
                             tids = project.find("tids")
@@ -423,7 +425,7 @@ def check_profile(primary_items: dict, item: str) -> bool:
     """
     if (
         primary_items["program_arguments"]["single_profile_name"]
-        and item[1] != primary_items["program_arguments"]["single_profile_name"]
+        and item["name"] != primary_items["program_arguments"]["single_profile_name"]
     ):
         return False
     return not primary_items["program_arguments"]["single_task_name"]
@@ -442,12 +444,12 @@ def check_project(primary_items: dict, item: str) -> bool:
         Returns:
             bool: True if we should output this hperlink, False if it is to be ingored.
     """
-    project = primary_items["tasker_root_elements"]["all_projects"][item[1]][0]
+    project = primary_items["tasker_root_elements"]["all_projects"][item[1]]["xml"]
     project_id = project.attrib.get("sr")
     project_id = project_id[4:]
     # Are we looking for specific Preoject and this is it?
     if primary_items["program_arguments"]["single_project_name"]:
-        if item[1] != primary_items["program_arguments"]["single_project_name"]:
+        if item["name"] != primary_items["program_arguments"]["single_project_name"]:
             return False
     # Single Profile?
     elif primary_items["program_arguments"]["single_profile_name"]:

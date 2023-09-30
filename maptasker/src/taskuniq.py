@@ -107,7 +107,7 @@ def process_missing_tasks_and_profiles(
 def add_heading(primary_items: dict, save_twisty: bool) -> bool:
     """
     Add a header to the output for the solo Tasks
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param save_twisty: flag to indicate whether or not we are doing the twisty/hidden Tasks
         :return: True...flag that the heading has been created/output
     """
@@ -154,7 +154,7 @@ def process_solo_task_with_no_profile(
 ) -> tuple[int, defusedxml.ElementTree.XML, int]:
     """
     Process a single Task that does not belong to any Profile
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param task_id: the ID of the Task being displayed
         :param found_tasks: list of Tasks that we have found
         :param task_count: count of the unnamed Tasks
@@ -177,7 +177,7 @@ def process_solo_task_with_no_profile(
     task_element, task_name = tasks.get_task_name(
         primary_items, task_id, found_tasks, [], ""
     )
-    if task_name == UNKNOWN_TASK_NAME:   
+    if task_name == UNKNOWN_TASK_NAME:
         task_name = f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;Task ID: {task_id}"
         # Ignore it if it is in a Scene
         if tasks.task_in_scene(
@@ -185,11 +185,12 @@ def process_solo_task_with_no_profile(
         ):
             return have_heading, specific_task, task_count
         unknown_task = True
-    else:
-        the_task_name = task_name
+    # else:
+    #     the_task_name = task_name
     task_count += 1
 
-    # At this point, we've found the Project this Task belongs to, or it doesn't belong to any Task
+    # At this point, we've found the Project this Task belongs to,
+    # or it doesn't belong to any Profile
     if (
         not have_heading
         and primary_items["program_arguments"]["display_detail_level"] == 3
@@ -202,28 +203,30 @@ def process_solo_task_with_no_profile(
     if not unknown_task and project_name != NO_PROJECT:
         if primary_items["program_arguments"]["debug"]:
             task_name += (
-                f" with Task ID: {task_id} ...in Project {project_name} <em>No"
+                f" with Task ID: {task_id} ...in Project {project_name}&nbsp;&nbsp;> <em>No"
                 " Profile</em>"
             )
         else:
-            task_name += f" ...in Project {project_name} <em>No Profile</em>"
+            task_name += (
+                f" ...in Project {project_name}&nbsp;&nbsp;> <em>No Profile</em>"
+            )
 
     # Output the Task's details
     if (not unknown_task) and (
         primary_items["program_arguments"]["display_detail_level"] == 3
     ):  # Only list named Tasks or if details are wanted
-        task_list = [task_name]
+        task_output_lines = [task_name]
 
         # We have the Tasks.  Now let's output them.
-        specific_task = tasks.output_task(
+        our_task = primary_items["tasker_root_elements"]["all_tasks"][task_id]
+        specific_task = tasks.output_task_list(
             primary_items,
-            the_task_name,
-            task_element,
-            task_list,
+            [our_task],
             project_name,
-            "None",
-            [],
-            False,  # Don't do extra stuff
+            "",
+            task_output_lines,
+            found_tasks,
+            False,
         )
 
     return have_heading, specific_task, task_count
@@ -239,7 +242,7 @@ def process_tasks_not_called_by_profile(
 ) -> None:
     """
     Go through all tasks and output them
-        :param primary_items:  program registry.  See primitem.py for details.
+        :param primary_items:  Program registry.  See primitem.py for details.
         :param projects_with_no_tasks: list of Project xml roots for which there are no Tasks
         :param found_tasks_list: list of all Tasks found so far
         :return: nothing
