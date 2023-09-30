@@ -1,6 +1,6 @@
 MapTasker Change log
 
-## [2.4.0] - 2023-09-30
+## [2.4.1] - 2023-09-30
 ### Added: Configuration Map, saved as "MapTasker_map.txt", added to Configuration Outline   
 ### Added: Further code optimizations.   
 ### Added: Outline now includes Task pointers to other Tasks (via Perform Task action).   
