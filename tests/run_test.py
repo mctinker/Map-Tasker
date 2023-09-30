@@ -29,9 +29,9 @@ def test_it():
 # Run these in small chunks, depending on the size of the backup file being used.
 def test_main():
     # # Test name attributes
-    # with patch("sys.argv", ["-test=yes", "restore", "debug" ]):
+    # with patch("sys.argv", ["-test=yes", "restore", "debug", "outline" ]):
     #     test_it()
-    # Test name attributes
+    # # Test name attributes
     # with patch("sys.argv", ["-test=yes", "detail=2", "debug", "names=bold highlight", "cHighlight LightBlue"]):
     #     test_it()
     # with patch(
@@ -56,7 +56,7 @@ def test_main():
     # # Test no detail
     # with patch("sys.argv", ["-test=yes", "detail=0", "debug"]):
     #     test_it()
-    # # Test by Project name
+    # Test by Project name
     # with patch(
     #     "sys.argv", ["-test=yes", "project=Base", "debug", "conditions", "taskernet"]
     # ):
@@ -66,18 +66,18 @@ def test_main():
     #     "sys.argv",
     #     ["-test=yes", "profile=View File", "detail=3", "debug"],
     # ):
-        #  test_it()
+    #      test_it()
     # # Test by Task name
     # with patch("sys.argv", ["-test=yes", "task=Check Batteries", "debug"]):
     #     test_it()
     # # Test -pref
     # with patch("sys.argv", ["-test=yes", "preferences", "debug", "taskernet", "detail=2"]):
     #     test_it()
-    # Test -dir
+    # # Test -dir
     # with patch("sys.argv", ["-test=yes", "directory", "debug", "taskernet", "detail=3"]):
     #     test_it()
-    # Test new -everything with twisty
-    # with patch("sys.argv", ["-test=yes", "e", "twisty"]):
+    # # Test new -everything with twisty and outline
+    # with patch("sys.argv", ["-test=yes", "e", "twisty", "o"]):
     #     test_it()
     # # Test -b fetch backup xml file
     # with patch(
@@ -97,55 +97,18 @@ def test_main():
     #         "cActionCondition=Yellow",
     #         "cProfileCondition=Red",
     #         "cActionLabel=White",
-    #         "e",
-    #         "debug",
-    #     ],
-    # ):
-    #     test_it()
-    # with patch(
-    #     "sys.argv",
-    #     [
-    #         "-test=yes",
     #         "cProfile=Yellow",
     #         "cDisabledAction=Green",
     #         "cLauncherTask=Red",
     #         "cActionName=White",
-    #         "e",
-    #         "debug",
-    #     ],
-    # ):
-    #     test_it()
-    # with patch(
-    #     "sys.argv",
-    #     [
-    #         "-test=yes",
     #         "cTask=Yellow",
     #         "cUnknownTask=Green",
     #         "cScene=Red",
     #         "cTaskerNetInfo=White",
-    #         "e",
-    #         "debug",
-    #     ],
-    # ):
-    #     test_it()
-    # with patch(
-    #     "sys.argv",
-    #     [
-    #         "-test=yes",
     #         "cProfile=Yellow",
     #         "cDisabledProfile=Orange",
     #         "cBullet=Red",
     #         "cPreferences=White",
-    #         "e",
-    #         "debug",
-    #     ],
-    # ):
-    #     test_it()
-    # with patch(
-    #     "sys.argv",
-    #     [
-    #         "-test=yes",
-    #         "cTask=Yellow",
     #         "cAction=Red",
     #         "cTrailingComments=Yellow",
     #         "e",
@@ -153,6 +116,7 @@ def test_main():
     #     ],
     # ):
     #     test_it()
+
 
 
 if __name__ == "__main__":
