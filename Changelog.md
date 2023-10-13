@@ -1,24 +1,32 @@
 MapTasker Change log
 
-## [2.4.1] - 2023-09-30
-### Added: Configuration Map, saved as "MapTasker_map.txt", added to Configuration Outline   
-### Added: Further code optimizations.   
-### Added: Outline now includes Task pointers to other Tasks (via Perform Task action).   
-### Added: Outline now includes Tasks in Project not associated with any Profile.   
-### Added: Task icon information is now included in the output.   
-### Changed: Profile/Task "Properties" added "...." for better visability.    
-### Changed: Updated text in README and help for "-outline" runtime option.   
-### Changed: Runtime option "twisty" only allowed if "detail=3" (full detail).   
-### Fixed: Tasks with "No Profile", at end of output, are now properly formatted.  
-### Fixed: Porperly remove trailing commas from Task actions.   
-### Fixed: Profile and Project properties are displaying in wrong color.    
-### Fixed: Display detail level of 0 (zero) not showing properly or with enough detail.    
-### Fixed: GUI Restore not displaying correct message for "Display Detail Level".     
-### Fixed: When displaying a single Project/Profile/Task, the grand total counts did not reflect the single item.   
+ ## [2.4.2] - 2023-10-13  
+ ### Added: When changing a color in the GUI, a sample of the new color will be displayed.  
+ ### Added: Configuration "map" now includes Tasks not associated with any Profile, entry/exit Task flags.    
+ ### Added: New display level of "4" to include the display of Project's and all unreferenced global variables.        
+ ### Changed: Restructured code for performance.   
+ ### Changed: Doing s8ingle Task no longer forces display detail of 3.
+ ### Fixed: GUI option "Just display everything" was not properly setting the Display Detail Level.
+ ### Fixed: Program error if displaying a single Task.      
 
 
 Older History Log
 
+- [2.4.1] - 2023-09-30
+       -  Added: Configuration Map, saved as "MapTasker_map.txt", added to Configuration Outline   
+       -  Added: Further code optimizations.   
+       -  Added: Outline now includes Task pointers to other Tasks (via Perform Task action).   
+       -  Added: Outline now includes Tasks in Project not associated with any Profile.   
+       -  Added: Task icon information is now included in the output.   
+       -  Changed: Profile/Task "Properties" added "...." for better visability.    
+       -  Changed: Updated text in README and help for "-outline" runtime option.   
+       -  Changed: Runtime option "twisty" only allowed if "detail=3" (full detail).   
+       -  Fixed: Tasks with "No Profile", at end of output, are now properly formatted.  
+       -  Fixed: Porperly remove trailing commas from Task actions.   
+       -  Fixed: Profile and Project properties are displaying in wrong color.    
+       -  Fixed: Display detail level of 0 (zero) not showing properly or with enough detail.    
+       -  Fixed: GUI Restore not displaying correct message for "Display Detail Level".     
+       -  Fixed: When displaying a single Project/Profile/Task, the grand total counts did not reflect the single item.
 - [2.3.6] - 2023-09-18
        - Added: program optimizations for performance and memory usage.   
        - Added: Further code and html optimizations.    

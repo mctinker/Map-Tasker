@@ -42,6 +42,7 @@ The Tasker backup xml can either be manually uploaded to your Mac/Google Drive, 
 
 ### Installation
 
+- Make sure Python 3.10 or higher is installed on your MAC, along with Tkinter.    
 - Install MapTasker by entering the following command into Terminal:    
  
      `pip3 install maptasker`        
@@ -86,33 +87,33 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-b ip_addr:port+file_location`  example: 192.168.0.210:8120+//Tasker/configs/user/backup.xml
 
-        Get the backup file directly from the Android device (* = use default):
+        Get the backup file directly from the Android device (* = use default):   
 
-        * For the "Get backup" option to work, you must have the following prerequisites:
-          1- Both the MAC and Android devices must be on the same network
-          2- The [sample Tasker Project](https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example) must be installed and active on the Android device,  and the server must be running..see Android notification: "HTTP Server Info...".
-          3- See config.py to change the default settings permanently
+        * For the "Get backup" option to work, you must have the following prerequisites: 
+          1- Both the MAC and Android devices must be on the same network    
+          2- The [sample Tasker Project](https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example)   must be installed and active on the Android device,  and the server must be running..see Android notification: "HTTP Server Info...".   
+          3- See config.py to change the default settings permanently    
 
-     `-conditions` to display a Profile's and Task's condition(s), 
+     `-conditions` to display a Profile's and Task's condition(s),    
+    `-c(type) color_name`  define a specific color to 'type', where 'type' is *one* of the following:   
 
-    `-c(type) color_name`  define a specific color to 'type', where 'type' is *one* of the following:
-
-      'Project' 'Profile' 'Task' 'Action' 'DisabledProfile' 'UnknownTask' 
-      'DisabledAction' 'ActionCondition' 'ProfileCondition' 'LauncherTask' 
-      'Background' 'ActionLabel' 'Bullets' 'TaskerNetInfo', "Preferences',
-      "Heading', 'Highlight'
+      'Project' 'Profile' 'Task' 'Action' 'DisabledProfile' 'UnknownTask'   
+      'DisabledAction' 'ActionCondition' 'ProfileCondition' 'LauncherTask'   
+      'Background' 'ActionLabel' 'Bullets' 'TaskerNetInfo', "Preferences',    
+      "Heading', 'Highlight'    
 
       Example color options: -cTask Green -cBackground Black cProfile 19c8ff   
 
-    `-ch` color help: display all valid colors",
+    `-ch` color help: display all valid colors",    
          
-    `-detail 0` for silent mode: simple Project/Profile/Task/Scene names with no details,
+    `-detail 0` for silent mode: simple Project/Profile/Task/Scene names with no details,    
     `-detail 1` to display the Action list only if Task is unnamed or anonymous,   
     `-detail 2` to display Action list names for *all* Tasks,    
     `-detail 3` to display Action list names with *all* parameters for all Tasks (default),    
+    `-detail 4` to display detail at level 3 plus all Project and unreferenced global variables,    
   
     `-directory` to display a directory of all Projects/Profiles/Tasks/Scenes,
-    `-e` to display 'everything': Runtime settings, Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details,    
+    `-e` to display 'everything': Runtime settings, Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details with Project variables,    
     `-f` font to use (preferably a monospace font),   
     `-g` to get arguments from the GUI rather than via the command line,   
     `-i` the amount of indentation for If/Then/Else Task actions (default=4),   
@@ -128,7 +129,7 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-project 'name of the project'` to display a single Project, its Profiles and Tasks only,    
     `-profile 'profile name'` to display a single Profile and its Tasks only,    
-    `-task 'task name'` to display a single Task only (forces option -detail 3),  
+    `-task 'task name'` to display a single Task only,  
 
     The following two arguments are exclusive.  Use one only:
 
