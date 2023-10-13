@@ -44,7 +44,7 @@ def test_main():
     # # Test bold highlight ands directory
     # with patch("sys.argv", ["-test=yes", "detail=2", "debug", "names=bold highlight", "directory"]):
     #     test_it()
-    # Test full detail
+    # # Test full detail
     # with patch("sys.argv", ["-test=yes", "detail=3", "debug", "i=10"]):
     #     test_it()
     # # Test limited detail
@@ -56,7 +56,7 @@ def test_main():
     # # Test no detail
     # with patch("sys.argv", ["-test=yes", "detail=0", "debug"]):
     #     test_it()
-    # Test by Project name
+    # # Test by Project name
     # with patch(
     #     "sys.argv", ["-test=yes", "project=Base", "debug", "conditions", "taskernet"]
     # ):
@@ -68,13 +68,13 @@ def test_main():
     # ):
     #      test_it()
     # # Test by Task name
-    # with patch("sys.argv", ["-test=yes", "task=Check Batteries", "debug"]):
+    # with patch("sys.argv", ["-test=yes", "task=Check Batteries", "debug", "detail=4"]):
     #     test_it()
     # # Test -pref
     # with patch("sys.argv", ["-test=yes", "preferences", "debug", "taskernet", "detail=2"]):
     #     test_it()
     # # Test -dir
-    # with patch("sys.argv", ["-test=yes", "directory", "debug", "taskernet", "detail=3"]):
+    # with patch("sys.argv", ["-test=yes", "directory", "debug", "taskernet", "detail=4"]):
     #     test_it()
     # # Test new -everything with twisty and outline
     # with patch("sys.argv", ["-test=yes", "e", "twisty", "o"]):
@@ -88,7 +88,7 @@ def test_main():
     #     ],
     # ):
     #     test_it()
-    # # Test colors
+    # Test colors
     # with patch(
     #     "sys.argv",
     #     [
@@ -99,18 +99,18 @@ def test_main():
     #         "cActionLabel=White",
     #         "cProfile=Yellow",
     #         "cDisabledAction=Green",
-    #         "cLauncherTask=Red",
+    #         "cLauncherTask=Purple",
     #         "cActionName=White",
     #         "cTask=Yellow",
     #         "cUnknownTask=Green",
-    #         "cScene=Red",
-    #         "cTaskerNetInfo=White",
+    #         "cScene=Teal",
+    #         "cTaskerNetInfo=Violet",
     #         "cProfile=Yellow",
     #         "cDisabledProfile=Orange",
     #         "cBullet=Red",
-    #         "cPreferences=White",
-    #         "cAction=Red",
-    #         "cTrailingComments=Yellow",
+    #         "cPreferences=Linen",
+    #         "cAction=Blue",
+    #         "cTrailingComments=LightGoldenrodYellow",
     #         "e",
     #         "debug",
     #     ],
