@@ -1001,7 +1001,7 @@ class MyGui(customtkinter.CTk):
                 new_message = f"{message_func()}"
                 all_messages = f"{all_messages}{new_message}"
             # Check if key is an attribute on self before setting
-            if hasattr(self, key):
+            if hasattr(self, key) and key != "display_detail_level":
                 setattr(self, key, value)
 
         # Handle Display Detail Level

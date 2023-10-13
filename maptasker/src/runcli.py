@@ -227,7 +227,6 @@ def get_runtime_arguments(
     # Get backup file directly from Android device
     # It is a list if coming from program arguments.
     # Otherwise, just a string if coming from run_test (unit test)
-    # TODO Tested to here.  Need to test to get_runtime_arguments.
     if backup_file_info := getattr(args, "b"):
         process_backup(primary_items, backup_file_info)
 
@@ -482,7 +481,6 @@ def process_cli(primary_items: dict) -> dict:
 
     # Process unit tests if "-test" in arguments, else get normal runtime arguments
     # args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
-    # FIX runtest detail=4 not working
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
     logger.debug(f"Program arguments: {args}")
 
