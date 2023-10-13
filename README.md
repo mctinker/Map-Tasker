@@ -187,7 +187,6 @@ Alternatively, see *config.py* for some user-customizable options.  Make user-sp
   
 [] Include/map remaining Tasker preferences    
 [] Support additional plugins   
-[] Improve Configuration Map: include Tasks not associtaed with any Profile   
 [] Improve Configuration Map: include pointer to Tasks to which there is a Perform Task action.
 
 ### Contributions:
