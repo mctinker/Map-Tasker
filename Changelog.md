@@ -1,6 +1,6 @@
 MapTasker Change log
 
- ## [2.4.2] - 2023-10-13  
+ ## [2.4.3] - 2023-10-13
  ### Added: When changing a color in the GUI, a sample of the new color will be displayed.  
  ### Added: Configuration "map" now includes Tasks not associated with any Profile, entry/exit Task flags.    
  ### Added: New display level of "4" to include the display of Project's and all unreferenced global variables.        
