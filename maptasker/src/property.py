@@ -13,7 +13,8 @@
 # #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
 
-from maptasker.src.frmthtml import format_html
+from maptasker.src.format import format_html
+from maptasker.src.sysconst import FormatLine
 
 
 # ##################################################################################
@@ -57,9 +58,7 @@ def parse_variable(
         True,
     )
     primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        5,
-        out_string,
+        primary_items, 5, out_string, FormatLine.dont_format_line
     )
 
 
@@ -91,9 +90,7 @@ def get_properties(
             True,
         )
         primary_items["output_lines"].add_line_to_output(
-            primary_items,
-            5,
-            out_string,
+            primary_items, 5, out_string, FormatLine.dont_format_line
         )
         have_property = True
 
@@ -104,5 +101,7 @@ def get_properties(
             have_property = True
 
     if have_property:
-        primary_items["output_lines"].add_line_to_output(primary_items, 5, "<br><br>")
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 5, "<br><br>", FormatLine.dont_format_line
+        )
     return

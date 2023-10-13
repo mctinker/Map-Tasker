@@ -48,7 +48,8 @@ INFO_TEXT = (
     "    Level 2 = display full Task action name on "
     "every Task.\n"
     "    Level 3 = display full Task action details on "
-    "every Task with action details.\n\n"
+    "every Task with action details.\n"
+    "    Level 4 = display level of 3 plus Project's global variables.\n\n"
     "* Just Display Everything: Turns on the display of "
     "conditions, TaskerNet information, preferences, twisties, directory, "
     "and configuration outline.\n\n"
@@ -182,7 +183,7 @@ class MyGui(customtkinter.CTk):
         self.detail_label.grid(row=1, column=0, padx=20, pady=(10, 0))
         self.sidebar_detail_option = customtkinter.CTkOptionMenu(
             self.sidebar_frame,
-            values=["0", "1", "2", "3"],
+            values=["0", "1", "2", "3", "4"],
             command=self.detail_selected_event,
         )
         self.sidebar_detail_option.grid(row=2, column=0, padx=20, pady=(10, 10))
@@ -569,7 +570,7 @@ class MyGui(customtkinter.CTk):
     def set_defaults(self, first_time: bool):
         # Item names must be the same as their value in
         #  primary_items["program_arguments"]
-        self.sidebar_detail_option.configure(values=["0", "1", "2", "3"])
+        self.sidebar_detail_option.configure(values=["0", "1", "2", "3", "4"])
         self.sidebar_detail_option.set("3")
         self.display_detail_level = 3
         self.conditions = (
@@ -649,6 +650,7 @@ class MyGui(customtkinter.CTk):
             "1.0",
             "end",
         )
+
         # Recreate text box
         self.textbox = customtkinter.CTkTextbox(self, height=500, width=600)
         self.textbox.grid(row=0, column=1, padx=20, pady=40, sticky="nsew")
@@ -928,6 +930,14 @@ class MyGui(customtkinter.CTk):
             # Okay, plug in the selected color for the selected named item
             self.extract_color_from_event(color, color_selected_item)
 
+            # Display the color.
+            self.color_change = customtkinter.CTkLabel(
+                self.tabview.tab("Colors"),
+                text=f"{color_selected_item} displays in this color.",
+                text_color=color,
+            )
+            self.color_change.grid(row=4, column=0, padx=0, pady=0)
+
     # ##################################################################################
     # Color selected...process it.
     # ##################################################################################
@@ -979,6 +989,7 @@ class MyGui(customtkinter.CTk):
             "twisty": lambda: self.select_deselect_checkbox(
                 self.twisty_checkbox, value, "Hide Task Details Under Twisty"
             ),
+            "display_detail_level": lambda: self.detail_selected_event("4"),
         }
 
         self.everything = self.everything_checkbox.get()
@@ -992,6 +1003,9 @@ class MyGui(customtkinter.CTk):
             # Check if key is an attribute on self before setting
             if hasattr(self, key):
                 setattr(self, key, value)
+
+        # Handle Display Detail Level
+        self.display_detail_level
 
         self.display_message_box(all_messages, True)
 

@@ -15,8 +15,7 @@ import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.tasks as tasks
 from maptasker.src.error import error_handler
-from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine
 
 
 # ##################################################################################
@@ -48,26 +47,16 @@ def output_list_of_actions(
                 primary_items["output_lines"].add_line_to_output(
                     primary_items,
                     2,
-                    format_html(
-                        primary_items,
-                        "action_color",
-                        "",
-                        f"Action: {taction}",
-                        False,
-                    ),
+                    f"Action: {taction}",
+                    ["", "action_color", FormatLine.dont_add_end_span],
                 )
             else:
                 #  Output the Action count = line number of action (fill to 2 leading zeros)
                 primary_items["output_lines"].add_line_to_output(
                     primary_items,
                     2,
-                    format_html(
-                        primary_items,
-                        "action_color",
-                        "",
-                        f"Action: {str(action_count).zfill(2)}</span> {taction}",
-                        False,
-                    ),
+                    f"Action: {str(action_count).zfill(2)}</span> {taction}",
+                    ["", "action_color", FormatLine.dont_add_end_span],
                 )
                 action_count += 1
             if (
@@ -84,7 +73,9 @@ def output_list_of_actions(
 
     # Close Action list if doing straight print, no twisties
     if not primary_items["program_arguments"]["twisty"]:
-        primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 3, "", FormatLine.dont_format_line
+        )
     return
 
 
@@ -123,21 +114,25 @@ def get_task_actions_and_output(
             # If we have Task Actions, then output them
             if alist := tasks.get_actions(primary_items, the_task):
                 # Start a list of Actions
-                primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
+                primary_items["output_lines"].add_line_to_output(
+                    primary_items, 1, "", FormatLine.dont_format_line
+                )
                 action_count = 1
                 output_list_of_actions(primary_items, action_count, alist, the_item)
                 # End list if Scene Task
                 if "&#45;&#45;Task:" in list_type:
                     primary_items["output_lines"].add_line_to_output(
-                        primary_items, 3, ""
+                        primary_items, 3, "", FormatLine.dont_format_line
                     )
                     # Add an extra </ul> if doing twisties
                     if primary_items["program_arguments"]["twisty"]:
                         primary_items["output_lines"].add_line_to_output(
-                            primary_items, 3, ""
+                            primary_items, 3, "", FormatLine.dont_format_line
                         )
                 # End the list of Actions
-                primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+                primary_items["output_lines"].add_line_to_output(
+                    primary_items, 3, "", FormatLine.dont_format_line
+                )
         else:
             error_handler("No Task found!!!", 0)
 

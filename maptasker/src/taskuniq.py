@@ -16,8 +16,7 @@ from typing import List, Union
 import defusedxml.ElementTree
 
 import maptasker.src.tasks as tasks
-from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import NO_PROJECT, UNKNOWN_TASK_NAME
+from maptasker.src.sysconst import NO_PROJECT, UNKNOWN_TASK_NAME, FormatLine
 from maptasker.src.twisty import add_twisty, remove_twisty
 
 
@@ -46,29 +45,21 @@ def process_missing_tasks_and_profiles(
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             1,
-            format_html(
-                primary_items,
-                "trailing_comments_color",
-                "",
-                "<hr><em>Projects Without Tasks...</em><br>",
-                True,
-            ),
+            "<hr><em>Projects Without Tasks...</em><br>",
+            ["", "trailing_comments_color", FormatLine.add_end_span],
         )
 
         for item in projects_with_no_tasks:
             primary_items["output_lines"].add_line_to_output(
                 primary_items,
                 4,
-                format_html(
-                    primary_items,
-                    "trailing_comments_color",
-                    "",
-                    f"Project {item} has no <em>Named</em> Tasks",
-                    True,
-                ),
+                f"Project {item} has no <em>Named</em> Tasks",
+                ["", "trailing_comments_color", FormatLine.add_end_span],
             )
         # End list
-        primary_items["output_lines"].add_line_to_output(primary_items, 3, "<br>")
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 3, "<br>", FormatLine.dont_format_line
+        )
 
     # List all Projects without Profiles
     if projects_without_profiles:
@@ -76,28 +67,20 @@ def process_missing_tasks_and_profiles(
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             1,
-            format_html(
-                primary_items,
-                "trailing_comments_color",
-                "<br>",
-                "<em>Projects Without Profiles...</em><br>",
-                True,
-            ),
+            "<em>Projects Without Profiles...</em><br>",
+            ["<br>", "trailing_comments_color", FormatLine.add_end_span],
         )
         for item in projects_without_profiles:
             primary_items["output_lines"].add_line_to_output(
                 primary_items,
                 4,
-                format_html(
-                    primary_items,
-                    "trailing_comments_color",
-                    "",
-                    f"- Project {item} has no Profiles",
-                    True,
-                ),
+                f"- Project {item} has no Profiles",
+                ["", "trailing_comments_color", FormatLine.add_end_span],
             )
         # End list
-        primary_items["output_lines"].add_line_to_output(primary_items, 3, "<br>")
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 3, "<br>", FormatLine.dont_format_line
+        )
     return
 
 
@@ -113,7 +96,9 @@ def add_heading(primary_items: dict, save_twisty: bool) -> bool:
     """
 
     # Start a list and add a ruler-line across page
-    primary_items["output_lines"].add_line_to_output(primary_items, 1, "<hr>")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 1, "<hr>", FormatLine.dont_format_line
+    )
     text_line = "Named Tasks that are not called by any Profile..."
 
     # Add a twisty, if doing twisties, to hide the line
@@ -124,17 +109,12 @@ def add_heading(primary_items: dict, save_twisty: bool) -> bool:
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         1,
-        format_html(
-            primary_items,
-            "trailing_comments_color",
-            "",
-            text_line,
-            True,
-        ),
+        text_line,
+        ["", "trailing_comments_color", FormatLine.add_end_span],
     )
     primary_items["displaying_named_tasks_not_in_profile"] = True
     primary_items["output_lines"].add_line_to_output(
-        primary_items, 1, ""
+        primary_items, 1, "", FormatLine.dont_format_line
     )  # Start Task list
     return True
 
@@ -163,7 +143,6 @@ def process_solo_task_with_no_profile(
         :param save_twisty: whether we are displaying twisty to Hide Task details
         :return: heading flag, xml element for this Task, and total count of unnamed Tasks
     """
-    the_task_name = ""
     unknown_task, specific_task = False, False
 
     # Get the Project this Task is under.
@@ -193,7 +172,7 @@ def process_solo_task_with_no_profile(
     # or it doesn't belong to any Profile
     if (
         not have_heading
-        and primary_items["program_arguments"]["display_detail_level"] == 3
+        and primary_items["program_arguments"]["display_detail_level"] > 2
     ):
         # Add the heading to the output
         have_heading = add_heading(
@@ -213,7 +192,7 @@ def process_solo_task_with_no_profile(
 
     # Output the Task's details
     if (not unknown_task) and (
-        primary_items["program_arguments"]["display_detail_level"] == 3
+        primary_items["program_arguments"]["display_detail_level"] > 2
     ):  # Only list named Tasks or if details are wanted
         task_output_lines = [task_name]
 
@@ -282,18 +261,18 @@ def process_tasks_not_called_by_profile(
     if task_count > 0:
         if primary_items["program_arguments"]["display_detail_level"] > 0:
             primary_items["output_lines"].add_line_to_output(
-                primary_items, 0, ""
+                primary_items, 0, "", FormatLine.dont_format_line
             )  # blank line
         primary_items["output_lines"].add_line_to_output(
-            primary_items, 3, ""
+            primary_items, 3, "", FormatLine.dont_format_line
         )  # Close Task list
 
     if task_name is True:
         primary_items["output_lines"].add_line_to_output(
-            primary_items, 3, ""
+            primary_items, 3, "", FormatLine.dont_format_line
         )  # Close Task list
 
     primary_items["output_lines"].add_line_to_output(
-        primary_items, 3, ""
+        primary_items, 3, "", FormatLine.dont_format_line
     )  # Close out the list
     return

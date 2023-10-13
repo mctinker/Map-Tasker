@@ -11,8 +11,7 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import logger, FormatLine
 
 
 def add_twisty(
@@ -29,13 +28,8 @@ def add_twisty(
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         5,
-        format_html(
-            primary_items,
-            output_color_name,
-            "",
-            f"\n<details><summary>{line_to_output}</summary>\r",
-            True,
-        ),
+        f"\n<details><summary>{line_to_output}</summary>\r",
+        ["", output_color_name, FormatLine.add_end_span],
     )
     return
 

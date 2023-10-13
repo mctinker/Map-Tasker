@@ -13,9 +13,9 @@ from datetime import datetime
 
 from maptasker.src.addcss import add_css
 from maptasker.src.debug import display_debug_info
-from maptasker.src.frmthtml import format_html
+from maptasker.src.format import format_html
 from maptasker.src.prefers import get_preferences
-from maptasker.src.sysconst import MY_VERSION
+from maptasker.src.sysconst import MY_VERSION, FormatLine
 
 
 # ##################################################################################
@@ -76,7 +76,10 @@ def output_the_heading(primary_items: dict) -> None:
     )
 
     primary_items["output_lines"].add_line_to_output(
-        primary_items, 0, primary_items["heading"]
+        primary_items,
+        0,
+        primary_items["heading"],
+        FormatLine.dont_format_line,
     )
 
     # Display where the source file came from
@@ -98,16 +101,14 @@ def output_the_heading(primary_items: dict) -> None:
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         0,
-        format_html(
-            primary_items,
-            heading_color,
-            "",
-            f"<br><br>Source backup file: {source_file}",
-            True,
-        ),
+        f"<br><br>Source backup file: {source_file}",
+        ["", "heading_color", FormatLine.add_end_span],
     )
 
 
+# ##################################################################################
+# Output the heading etc. as the front matter.
+# ##################################################################################
 def output_the_front_matter(primary_items: dict) -> None:
     """_summary_
     Generates the front matter for the output file: heading, runtime settings, directory, Tasker preferences
@@ -127,11 +128,13 @@ def output_the_front_matter(primary_items: dict) -> None:
 
     # Start a list (<ul>) to force everything to tab over
     # primary_items["unordered_list_count"] = 0
-    primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 1, "", FormatLine.dont_format_line
+    )
 
     # Output a flag to indicate this is where the directory goes
     primary_items["output_lines"].add_line_to_output(
-        primary_items, 5, "maptasker_directory"
+        primary_items, 5, "maptasker_directory", FormatLine.dont_format_line
     )
 
     # If doing Tasker preferences, get them

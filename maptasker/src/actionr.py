@@ -11,13 +11,14 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 # #################################################################################### #
 import contextlib
+import re
 from collections import defaultdict
 
 import defusedxml.ElementTree
 
 import maptasker.src.action as get_action
 from maptasker.src.actargs import action_args
-from maptasker.src.frmthtml import format_html
+from maptasker.src.format import format_html
 from maptasker.src.sysconst import (
     logger,
     pattern0,
@@ -155,9 +156,82 @@ def evaluate_action_args(
 
 
 # ##################################################################################
+# Search for and return all substrings in a string that begin with a percent sign and
+# have at least one capitalized letter in the substring.
+# ##################################################################################
+def find_capitalized_percent_substrings(string):
+    """
+    Searches for and returns all of the occurrences of substrings that begin with a
+        percent sign and have at least one capitalized letter in the substring.
+
+    Args:
+        string: A string to search.
+
+    Returns:
+        A list of all of the occurrences of substrings that begin with a percent sign and
+        have at least one capitalized letter in the substring.
+    """
+
+    # Create a regular expression to match substrings that begin with a percent sign and have at least one capitalized letter.
+    # regex = r"%.*[A-Z]+"
+    # regex = r".*[A-Z].*"
+    regex = r".*[A-Z].*"
+
+    # Find all words that begin with a percent sign (%).
+    percent_list = re.findall("[%]\w+", string)
+
+    # Go through the list and find all that have at least one capitalized letter.
+    capitalized_words = []
+    for word in percent_list:
+        if re.match(regex, word):
+            capitalized_words.append(word)
+
+    # Find all of the occurrences of the regex in the string.
+    return capitalized_words
+
+
+# ##################################################################################
+# Get the variables from this result and save them in the dictionary.
+# ##################################################################################
+def get_variables(primary_items: dict, result: str) -> None:
+    """_summary_
+    Get the variables from this result and save them in the dictionary.
+        Args:
+            primary_items (dict): Program registry.  See primitem.py for details.
+            result (str): The text string containing the Task variable(s)
+    """
+
+    # Fid all variables with at least one capitalized letter.
+    if variable_list := find_capitalized_percent_substrings(result):
+        # Go thru list of capitalized percent substrings and see if they are
+        # in our variable dictionary.  If so, then add the project name to the list.
+        for variable in variable_list:
+            # Validate that this variable is for the Project we are currently doing.
+            try:
+                if primary_variable := primary_items["variables"][variable]:
+                    if (
+                        primary_variable["project"]
+                        and primary_items["current_project"]
+                        not in primary_variable["project"]
+                    ):
+                        primary_variable["project"].append(
+                            primary_items["current_project"]
+                        )
+                    elif not primary_variable["project"]:
+                        primary_variable["project"] = [primary_items["current_project"]]
+            except KeyError:
+                # Drop here if variable is not in Tasker's variable list (i.e. the xml)
+                primary_items["variables"][variable] = {
+                    "value": "(Inactive)",
+                    "project": [primary_items["current_project"]],
+                    "verified": False,
+                }
+
+
+# ##################################################################################
 # For the given code, save the display_name, required arg list and associated
-# type list in dictionary
-# Then evaluate the data against the master dictionary of actions
+# type list in dictionary.
+# Then evaluate the data against the master dictionary of actions.
 # ##################################################################################
 def get_action_results(
     primary_items: dict,
@@ -190,9 +264,10 @@ def get_action_results(
     # Save the associated data
     our_action_code["reqargs"] = arg_list
     our_action_code["evalargs"] = evaluate_list
+    program_arguments = primary_items["program_arguments"]
     # If just displaying action names or there are no action details, then just
     # display the name
-    if arg_list and primary_items["program_arguments"]["display_detail_level"] != 2:
+    if arg_list and program_arguments["display_detail_level"] != 2:
         # Evaluate the required args per arg_list
         evaluated_results = evaluate_action_args(
             primary_items,
@@ -222,6 +297,18 @@ def get_action_results(
         result = pattern2.sub(",", result)  # Do it again to catch any missed
         result = pattern0.sub(",", result)  # Catch ",,"
         result = f"&nbsp;&nbsp{result}"
+
+        # Process variables if display_detail_level is 4
+        if program_arguments["display_detail_level"] == 4:
+            # if primary_items["program_arguments"][
+            #     "display_detail_level"
+            # ] == 4 and the_action_code_plus in {
+            #     "547t",
+            #     "37t",
+            #     "43t",
+            #     "341t",
+            # }:
+            get_variables(primary_items, result)
 
     # Return the properly formatted HTML with the Action name and extra stuff
     return format_html(

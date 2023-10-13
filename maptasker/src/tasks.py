@@ -16,12 +16,12 @@ import defusedxml.ElementTree  # Need for type hints
 import maptasker.src.actione as action_evaluate
 import maptasker.src.taskflag as task_flags
 from maptasker.src.error import error_handler
-from maptasker.src.frmthtml import format_html
+from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.kidapp import get_kid_app
 from maptasker.src.proclist import process_list
 from maptasker.src.shellsort import shell_sort
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME, logger
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine, logger
 from maptasker.src.xmldata import tag_in_type
 
 blank = "&nbsp;"
@@ -110,6 +110,68 @@ def get_actions(
 
 
 # ##################################################################################
+# Determine if the Task is an Entry or Exit Task.
+# ##################################################################################
+def extry_or_exit_task(
+    primary_items: dict,
+    task_output_lines: list,
+    task_name: str,
+    task_type: str,
+    extra: str,
+    duplicate_task: bool,
+) -> tuple[list, str]:
+    """_summary_
+    Determine if this is an "Entry" or "Exit" Task and add the appropriate text to the
+    Task's output lines.
+        Args:
+            primary_items (dict):Program registry.  See primitem.py for details.
+            task_output_lines (list): List of output lines for this Task
+            task_name (str): Name of this Task.
+            task_type (str): Type of this Task: Entry or Exit
+            extra (str): Extra text to add to the end of the Task's output line
+            duplicate_task (bool): Is this a duplicate Task? True if it is.
+
+        Returns:
+            typle: task_output_lines and task_name
+    """
+    # Determine if this is an "Entry" or "Exit" Task
+    if task_name:
+        # Don't add the entry/exit text if display level = 0
+        if primary_items["program_arguments"]["display_detail_level"] > 0:
+            if task_type == "Exit":
+                task_output_lines.append(f"{task_name}{blank*4}<<< Exit Task{extra}")
+
+            else:
+                task_output_lines.append(f"{task_name}{blank*4}<<< Entry Task{extra}")
+        else:
+            task_output_lines.append(f"{task_name}{blank*4}")
+    else:
+        task_name = UNKNOWN_TASK_NAME
+        # Count this as an unnamed Task if it hasn't yet been counted and it
+        # is a normal Task
+        if not duplicate_task and task_type in {"Entry", "Exit"}:
+            primary_items["task_count_unnamed"] = (
+                primary_items["task_count_unnamed"] + 1
+            )
+        blanks = f'{blank * primary_items["program_arguments"]["indent"]}'
+        # Don't add the entry/exit text if display level = 0
+        if primary_items["program_arguments"]["display_detail_level"] > 0:
+            if task_type == "Exit":
+                task_output_lines.append(
+                    f"{UNKNOWN_TASK_NAME}{blanks}<<< Exit Task{extra}"
+                )
+
+            else:
+                task_output_lines.append(
+                    f"{UNKNOWN_TASK_NAME}{blanks}<<< Entry Task{extra}"
+                )
+        else:
+            task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}")
+
+    return task_output_lines, task_name
+
+
+# ##################################################################################
 # Get the name of the task given the Task ID
 # return the Task's element and the Task's name
 # ##################################################################################
@@ -145,43 +207,17 @@ def get_task_name(
             extra = f"&nbsp;&nbsp;Task ID: {the_task_id}"
         else:
             extra = ""
+
         # Determine if this is an "Entry" or "Exit" Task
-        if task_name:
-            # Don't add the entry/exit text if display level = 0
-            if primary_items["program_arguments"]["display_detail_level"] > 0:
-                if task_type == "Exit":
-                    task_output_lines.append(
-                        f"{task_name}{blank*4}<<< Exit Task{extra}"
-                    )
+        task_output_lines, task_name = extry_or_exit_task(
+            primary_items,
+            task_output_lines,
+            task_name,
+            task_type,
+            extra,
+            duplicate_task,
+        )
 
-                else:
-                    task_output_lines.append(
-                        f"{task_name}{blank*4}<<< Entry Task{extra}"
-                    )
-            else:
-                task_output_lines.append(f"{task_name}{blank*4}")
-        else:
-            task_name = UNKNOWN_TASK_NAME
-            # Count this as an unnamed Task if it hasn't yet been counted and it
-            # is a normal Task
-            if not duplicate_task and task_type in {"Entry", "Exit"}:
-                primary_items["task_count_unnamed"] = (
-                    primary_items["task_count_unnamed"] + 1
-                )
-            blanks = f'{blank * primary_items["program_arguments"]["indent"]}'
-            # Don't add the entry/exit text if display level = 0
-            if primary_items["program_arguments"]["display_detail_level"] > 0:
-                if task_type == "Exit":
-                    task_output_lines.append(
-                        f"{UNKNOWN_TASK_NAME}{blanks}<<< Exit Task{extra}"
-                    )
-
-                else:
-                    task_output_lines.append(
-                        f"{UNKNOWN_TASK_NAME}{blanks}<<< Entry Task{extra}"
-                    )
-            else:
-                task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}")
     else:
         task = None
         task_name = ""
@@ -326,7 +362,9 @@ def do_single_task(
 
     # If multiple Tasks in this Profile, just get the one we want
     else:
-        primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 1, "", FormatLine.dont_format_line
+        )
         # Process the task(s)
         process_list(
             primary_items,
@@ -336,7 +374,9 @@ def do_single_task(
             list_of_found_tasks,
         )
         # End Task list
-        primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 3, "", FormatLine.dont_format_line
+        )
 
 
 # ##################################################################################
@@ -436,7 +476,7 @@ def output_task_list(
     """
     for count, task_item in enumerate(list_of_tasks):
         # Doing extra details?
-        if do_extra and primary_items["program_arguments"]["display_detail_level"] == 3:
+        if do_extra and primary_items["program_arguments"]["display_detail_level"] > 2:
             # Get the extra details for this Task
             (
                 kid_app_info,
@@ -467,7 +507,7 @@ def output_task_list(
         # If only doing a single Task and we found/did it, then we are done
         if (
             primary_items["program_arguments"]["single_task_name"]
-            and primary_items["program_arguments"]["single_task_name"] == task_item[1]
+            and primary_items["program_arguments"]["single_task_name"] == task_item["name"]
         ):
             return True
 

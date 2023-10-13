@@ -36,11 +36,11 @@ import contextlib
 
 import defusedxml.ElementTree  # Need for type hints
 
-from maptasker.src.frmthtml import format_html
+from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.netmap import network_map
 from maptasker.src.profiles import get_profile_tasks
-from maptasker.src.sysconst import NO_PROFILE
+from maptasker.src.sysconst import NO_PROFILE, FormatLine
 
 blank = "&nbsp;"
 list_of_found_tasks = []
@@ -113,7 +113,8 @@ def tasks_not_in_profile(primary_items, tasks_processed, task_ids):
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             0,
-            format_html(primary_items, "task_color", "", task_line, True),
+            task_line,
+            ["", "task_color", FormatLine.add_end_span],
         )
 
 
@@ -147,13 +148,8 @@ def outline_scenes(primary_items: dict, project_name: str, network: dict) -> Non
             primary_items["output_lines"].add_line_to_output(
                 primary_items,
                 0,
-                format_html(
-                    primary_items,
-                    "scene_color",
-                    "",
-                    f"{blank*5}{arrow_to_use}{blank*2}Scene: {scene}",
-                    True,
-                ),
+                f"{blank*5}{arrow_to_use}{blank*2}Scene: {scene}",
+                ["", "scene_color", FormatLine.add_end_span],
             )
 
 
@@ -220,7 +216,8 @@ def do_profile_tasks(
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             0,
-            format_html(primary_items, "task_color", "", task_line, True),
+            task_line,
+            ["", "task_color", FormatLine.add_end_span],
         )
     return tasks_processed
 
@@ -267,7 +264,8 @@ def outline_profiles_tasks_scenes(
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             0,
-            format_html(primary_items, "profile_color", "", profile_line, True),
+            profile_line,
+            ["", "profile_color", FormatLine.add_end_span],
         )
 
         # Get Tasks for this Profile and output them
@@ -337,13 +335,8 @@ def do_the_outline(primary_items: dict, network: dict) -> None:
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             0,
-            format_html(
-                primary_items,
-                "project_color",
-                "",
-                f"{blank*3}Project: {project_name}",
-                True,
-            ),
+            f"{blank*3}Project: {project_name}",
+            ["", "project_color", FormatLine.add_end_span],
         )
 
         # Get Task IDs for this Project.
@@ -359,7 +352,9 @@ def do_the_outline(primary_items: dict, network: dict) -> None:
         # No Profiles for Project
         if not profile_ids:
             # End ordered list since lineout.py added a <ul> for Project
-            primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+            primary_items["output_lines"].add_line_to_output(
+                primary_items, 3, "", FormatLine.dont_format_line
+            )
 
 
 # ##################################################################################
@@ -373,7 +368,9 @@ def outline_the_configuration(primary_items: dict) -> None:
     """
 
     # Start with a ruler line
-    primary_items["output_lines"].add_line_to_output(primary_items, 1, "<hr>")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 1, "<hr>", FormatLine.dont_format_line
+    )
 
     # Define our network
     network = {}
@@ -384,18 +381,14 @@ def outline_the_configuration(primary_items: dict) -> None:
             primary_items,
             5,
             '<a id="configuration_outline"></a>',
+            FormatLine.dont_format_line,
         )
     # Output the header
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         0,
-        format_html(
-            primary_items,
-            "trailing_comments_color",
-            "",
-            "<em>Configuration Outline</em>",
-            True,
-        ),
+        "<em>Configuration Outline</em>",
+        ["", "trailing_comments_color", FormatLine.add_end_span],
     )
 
     # Go do it!
@@ -406,6 +399,7 @@ def outline_the_configuration(primary_items: dict) -> None:
         primary_items,
         3,
         "",
+        FormatLine.dont_format_line,
     )
 
     network_map(primary_items, network)

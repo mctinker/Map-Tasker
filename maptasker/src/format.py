@@ -1,0 +1,127 @@
+#! /usr/bin/env python3
+
+# #################################################################################### #
+#                                                                                      #
+# format: Various formatting functions,                                                #
+#                                                                                      #
+# Permissions of this strong copyleft license are conditioned on making available      #
+# complete source code of licensed works and modifications, which include larger works #
+# using a licensed work, under the same license. Copyright and license notices must be #
+# preserved. Contributors provide an express grant of patent rights.                   #
+#                                                                                      #
+# #################################################################################### #
+from maptasker.src.sysconst import (
+    pattern5,
+    pattern6,
+    pattern7,
+    pattern8,
+    pattern9,
+    pattern10,
+)
+
+
+# ##################################################################################
+# Given a line in the output queue, reformat it before writing to file
+# ##################################################################################
+def format_line(primary_items: dict, num: int, item: str) -> str:
+    """
+    Given a line in our list of output lines, do some additional formatting
+    to clean it up
+        :param primary_items:  Program registry.  See primitem.py for details.
+        :param num: the numeric line number from the list of output lines
+        :param item: the specific text to reformat from the list of output lines
+        :return: the reformatted text line for output
+    """
+    output_obj = primary_items["output_lines"]
+    output_lines = output_obj.output_lines
+    blank = " "
+    # If item is a list, then get the actual output line
+    if isinstance(item, list):
+        item = item[1]
+    # Get rid of trailing blanks
+    item.rstrip()
+    # Ignore lines with "</ul></ul></ul><br>"
+    if (
+        num > 3
+        and item[:5] == "</ul>"
+        and (
+            output_lines[num - 1][:5] == "</ul>"
+            and output_lines[num - 2][:5] == "</ul>"
+            and output_lines[num + 1][:4] == "<ul>"
+        )
+    ):
+        return ""
+
+    # Change "Action: nn ..." to "Action nn: ..." (i.e. move the colon)
+    action_position = item.find("Action: ")
+    if action_position != -1:
+        action_number_list = item[action_position + 8 :].split(" ")
+        action_number = action_number_list[0]
+        temp = "".join(
+            [
+                item[:action_position],
+                action_number,
+                ":",
+                item[action_position + 8 + len(action_number) :],
+            ]
+        )
+        output_line = temp
+    # No changes needed
+    else:
+        output_line = item
+
+    # Format the html...add a number of blanks if some sort of list
+    #
+    # Replace "<ul>" with "    <ul>\r"
+    output_line = pattern5.sub(f"{blank*5}<ul>\r", output_line)
+    # replace("</ul>" with f"{blank*5}</ul>\r"
+    output_line = pattern6.sub(f"{blank*5}</ul>\r", output_line)
+    # replace("<li" with f"{blank*8}<li"
+    output_line = pattern7.sub(f"{blank*8}<li", output_line)
+    # Add a carriage return if this is a break
+    # replace("<br>" with "<br>\r"
+    output_line = pattern8.sub("<br>\r", output_line)
+
+    # Get rid of extraneous html code that somehow got in to the output
+    # replace("</span></span>" with "</span>"
+    output_line = pattern9.sub("</span>", output_line)
+    # replace("</p></p>" with "</p>"
+    output_line = pattern10.sub("</p>", output_line)
+
+    return output_line
+
+
+# ##################################################################################
+# Plug in the html for color along with the text
+# ##################################################################################
+def format_html(
+    primary_items: dict,
+    color_code: str,
+    text_before: str,
+    text_after: str,
+    end_span: bool,
+) -> str:
+    """
+    Plug in the html for color and font, along with the text
+        :param primary_items: Program registry.  See primitem.py for details
+        :param color_code: the code to use to find the color in colormap
+        :param text_before: text to insert before the color/font html
+        :param text_after: text to insert after the color/font html
+        :param end_span: True=add </span> at end, False=don't add </span> at end
+        :return: string with text formatted with color and font
+    """
+
+    # Determine and get the color to use
+    # color_to_use = primary_items.get("colors_to_use", {}).get(color_code, color_code)
+
+    # Return completed HTML with color, font and text with text after
+    if text_after:
+        text_after = text_after.replace(f'<span class="{color_code}"><span', "<span")
+        # Set up the trailing HTML to include
+        trailing_span = "</span>" if end_span else ""
+        # return f'{text_before}<span style="color:{color_to_use}{font}">{text_after}{trailing_span}'
+        return f'{text_before}<span class="{color_code}">{text_after}{trailing_span}'
+
+    # No text after...just return it.
+    else:
+        return text_after

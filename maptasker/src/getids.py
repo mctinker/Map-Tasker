@@ -14,6 +14,8 @@
 
 import defusedxml.ElementTree  # Need for type hints
 
+from maptasker.src.sysconst import FormatLine
+
 
 def get_ids(
     primary_items: dict,
@@ -25,26 +27,28 @@ def get_ids(
     """
     Find either head_xml_element 'pids' (Profile IDs) or 'tids' (Task IDs)
     :param primary_items: Program registry.  See primitem.py for details
-    :param doing_head_xml_element: True if this is searching for head_xml_element IDs
+    :param doing_head_xml_element: True if looking for Profile IDs, False if Task IDs.
     :param head_xml_element: head_xml_element xml element
     :param head_xml_element_name: name of head_xml_element
     :param head_xml_elements_without_profiles: list of elements without ids
     :return: list of found IDs, or empty list if none found
     """
-    # Get Profiles by searching for <pids> element
+
     found_ids = ""
+    # Get Profiles by searching for <pids> element
     if doing_head_xml_element:
-        found_ids = ""
         ids_to_find = "pids"
         # Start Profile list
-        primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 1, "", FormatLine.dont_format_line
+        )
     else:
-        # If not doing head xml, just get Task IDs via <tids> xml element.
+        # If not Profile IDs, just get Task IDs via <tids> xml element.
         ids_to_find = "tids"
     try:
         # Get a list of the Profiles for this head_xml_element
         found_ids = head_xml_element.find(ids_to_find).text
-    except AttributeError:  # head_xml_element has no Profiles
+    except AttributeError:  # head_xml_element has no Profile/Task IDs
         if head_xml_element_name not in head_xml_elements_without_profiles:
             head_xml_elements_without_profiles.append(head_xml_element_name)
 

@@ -16,8 +16,8 @@ import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.tasks as tasks
 from maptasker.src.dirout import add_directory_item
-from maptasker.src.frmthtml import format_html
 from maptasker.src.proclist import process_list
+from maptasker.src.sysconst import FormatLine
 from maptasker.src.xmldata import tag_in_type
 
 SCENE_TASK_TYPES = {
@@ -88,17 +88,12 @@ def get_scene_elements(
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         4,
-        format_html(
-            primary_items,
-            "scene_color",
-            "",
-            (
-                f"&nbsp;&nbsp;&nbsp;Element: {element_type[0]} named"
-                f" {element_name} ...with geometry"
-                f" {geometry[0]}x{geometry[1]} {geometry[2]}x{geometry[3]}"
-            ),
-            True,
+        (
+            f"&nbsp;&nbsp;&nbsp;Element: {element_type[0]} named"
+            f" {element_name} ...with geometry"
+            f" {geometry[0]}x{geometry[1]} {geometry[2]}x{geometry[3]}"
         ),
+        ["", "scene_color", FormatLine.add_end_span],
     )
 
     # Check to see if this Scene has a layout Scene, and deal with it if so.
@@ -108,59 +103,31 @@ def get_scene_elements(
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             4,
-            format_html(
-                primary_items,
-                "scene_color",
-                "",
-                (
-                    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Element has an item 'Layout'"
-                    f" (Scene) with width/height {width} X {height}"
-                ),
-                True,
+            (
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Element has an item 'Layout'"
+                f" (Scene) with width/height {width} X {height}"
             ),
+            ["", "scene_color", FormatLine.add_end_span],
         )
     return
 
 
-# ##################################################################################
-# Process the Scene
-# ##################################################################################
-def process_scene(
+def get_width_and_height(
     primary_items: dict,
-    my_scene: str,
-    tasks_found: list[str],
+    scene: defusedxml.ElementTree,
+    tasks_found: defusedxml.ElementTree,
 ) -> None:
     """
-    Process the Project's Scene(s), one at a time
-        :param primary_items:  Program registry.  See primitem.py for details.
-        :param my_scene: name of Scene to process
-        :param tasks_found: list of Tasks found so far
-        :return:
+    Go through Scene to obtain it's height and width and output.
+
+    Args:
+        primary_items (dict): Program registry.  See primitem.py for details.
+        scene (defusedxml.ElementTree): Scene xml element to trundle through.
+        tasks_found (defusedxml.ElementTree): List of Tasks found so far.
+
+    Returns:
+        Nothing
     """
-    # This import statement must reside here to avoid an error
-    from maptasker.src.proclist import process_list
-
-    scene = primary_items["tasker_root_elements"]["all_scenes"][my_scene]["xml"]
-    # Get the Scene's geometry and display it
-    height, width = get_geometry(scene)
-    primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        4,
-        format_html(
-            primary_items,
-            "scene_color",
-            "",
-            f"&nbsp;Width/Height: {width} X {height}<br>",
-            True,
-        ),
-    )
-
-    # Handle directory hyperlink
-    if primary_items["program_arguments"]["directory"]:
-        add_directory_item(primary_items, "scenes", my_scene)
-
-    # Go through all the children of the Scene looking for width/height
-    # and 'click' Tasks
     for child in scene:
         if child.tag in SCENE_TAGS_TO_IGNORE:
             continue
@@ -173,7 +140,7 @@ def process_scene(
 
         elif tag_in_type(child.tag, True):  # xxxElement?
             # Display the Element details
-            if primary_items["program_arguments"]["display_detail_level"] == 3:
+            if primary_items["program_arguments"]["display_detail_level"] > 2:
                 get_scene_elements(primary_items, child)
 
             # Look for Tasks associated with this element
@@ -187,7 +154,7 @@ def process_scene(
                         break
                     # Start a list
                     primary_items["output_lines"].add_line_to_output(
-                        primary_items, 1, ""
+                        primary_items, 1, "", FormatLine.dont_format_line
                     )
                     # Get the name of Task
                     task_element, name_of_task = tasks.get_task_name(
@@ -217,10 +184,47 @@ def process_scene(
                 elif sub_child.tag == "Str":
                     break
 
+
+# ##################################################################################
+# Process the Scene
+# ##################################################################################
+def process_scene(
+    primary_items: dict,
+    my_scene: str,
+    tasks_found: list[str],
+) -> None:
+    """
+    Process the Project's Scene(s), one at a time
+        :param primary_items:  Program registry.  See primitem.py for details.
+        :param my_scene: name of Scene to process
+        :param tasks_found: list of Tasks found so far
+        :return:
+    """
+
+    scene = primary_items["tasker_root_elements"]["all_scenes"][my_scene]["xml"]
+    # Get the Scene's geometry and display it
+    height, width = get_geometry(scene)
+    primary_items["output_lines"].add_line_to_output(
+        primary_items,
+        4,
+        f"&nbsp;Width/Height: {width} X {height}<br>",
+        ["", "scene_color", FormatLine.add_end_span],
+    )
+
+    # Handle directory hyperlink
+    if primary_items["program_arguments"]["directory"]:
+        add_directory_item(primary_items, "scenes", my_scene)
+
+    # Go through all the children of the Scene looking for width/height
+    # and 'click' Tasks
+    get_width_and_height(primary_items, scene, tasks_found)
+
     # If we are doing twisties, then we need to close the unordered list.
     #  (see lineout format_line, where we add a <ul> for this "Scene:" special case)
     if primary_items["program_arguments"]["twisty"]:
-        primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 3, "", FormatLine.dont_format_line
+        )
 
     return
 
@@ -255,7 +259,9 @@ def process_project_scenes(
             primary_items["output_lines"].output_lines[-2][:5] == "</ul>"
             and primary_items["output_lines"].output_lines[-3][:5] == "</ul>"
         ):
-            primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
+            primary_items["output_lines"].add_line_to_output(
+                primary_items, 1, "", FormatLine.dont_format_line
+            )
 
         # If last line in output has an end-ordered-list, then it must have been
         # for the list of Tasks not found in any Profile...and it has to be removed
@@ -276,11 +282,14 @@ def process_project_scenes(
             )
 
             # Force a line break
-            primary_items["output_lines"].add_line_to_output(primary_items, 4, "")
+            primary_items["output_lines"].add_line_to_output(
+                primary_items, 4, "", FormatLine.dont_format_line
+            )
 
             if primary_items["program_arguments"]["display_detail_level"] == 0:
                 # End list if displaying level 0
-                primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+                primary_items["output_lines"].add_line_to_output(
+                    primary_items, 3, "", FormatLine.dont_format_line
+                )
 
-    return bool(scene_names)
     return bool(scene_names)

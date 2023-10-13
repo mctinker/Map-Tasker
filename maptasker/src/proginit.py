@@ -296,11 +296,11 @@ def start_up(primary_items: dict) -> dict:
         log_startup_values(primary_items)
 
     # Force full detail if we are doing a single Task
-    if primary_items["program_arguments"]["single_task_name"]:
-        logger.debug(
-            f'Single Task={primary_items["program_arguments"]["single_task_name"]}'
-        )
-        primary_items["program_arguments"]["display_detail_level"] = 3
+    # if primary_items["program_arguments"]["single_task_name"]:
+    #     logger.debug(
+    #         f'Single Task={primary_items["program_arguments"]["single_task_name"]}'
+    #     )
+    #     primary_items["program_arguments"]["display_detail_level"] = 3
 
     logger.info("exit")
     return primary_items

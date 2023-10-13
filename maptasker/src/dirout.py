@@ -14,13 +14,11 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-import copy
 import math
 
 import darkdetect
 
-from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import NO_PROFILE
+from maptasker.src.sysconst import NO_PROFILE, FormatLine
 
 period = "."
 
@@ -135,13 +133,8 @@ def output_table(primary_items: dict, hyperlinks: list, max_columns: int) -> Non
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         5,
-        format_html(
-            primary_items,
-            "profile_color",
-            "",
-            html_table,
-            True,
-        ),
+        html_table,
+        ["", "profile_color", FormatLine.add_end_span],
     )
     return
 
@@ -229,24 +222,27 @@ def do_trailing_matters(primary_items: dict) -> None:
         None
 
     """
+    trailing_matter = []
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         5,
-        format_html(
-            primary_items,
-            "project_color",
-            "",
-            f"<br><br>Trailing Information{period*50}<br><br>",
-            True,
-        ),
+        f"<br><br>Trailing Information{period*50}<br><br>",
+        ["", "project_color", FormatLine.add_end_span],
     )
 
-    # Do Tasks that are not associated with any Profile, Projects without Tasks
-    #   and without Profiles
+    # Do the Configuration Variables
+    if primary_items["program_arguments"]["display_detail_level"] == 4:
+        trailing_matter.append(
+            "<a href=#unreferenced_variables>Unreferenced Global Variables</a>"
+        )
+
+    # Do Configuration Outline
     if primary_items["program_arguments"]["outline"]:
-        trailing_matter = ["<a href=#configuration_outline>Configuration Outline</a>"]
-    else:
-        trailing_matter = []
+        trailing_matter.append(
+            "<a href=#configuration_outline>Configuration Outline</a>"
+        )
+
+    # Add Grand Totals.
     trailing_matter.append("<a href=#grand_totals>Grand Totals</a>")
 
     # Output the table
@@ -539,13 +535,8 @@ def do_tasker_element(primary_items: dict, name: str) -> None:
             primary_items["output_lines"].add_line_to_output(
                 primary_items,
                 5,
-                format_html(
-                    primary_items,
-                    "project_color",
-                    "<br><br>",
-                    f"{name.capitalize()}{period*60}<br><br>",
-                    True,
-                ),
+                f"{name.capitalize()}{period*60}<br><br>",
+                ["<br><br>", "project_color", FormatLine.add_end_span],
             )
             # 6 columns for projects, 5 columns for tasks
             number_of_columns = 5 if name == "tasks" else 6
@@ -572,13 +563,8 @@ def output_directory(primary_items: dict) -> None:
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         5,
-        format_html(
-            primary_items,
-            "profile_color",
-            "",
-            "<h2>Directory</h2><br><br>",
-            True,
-        ),
+        "<h2>Directory</h2><br><br>",
+        ["<br><br>", "profile_color", FormatLine.add_end_span],
     )
     # Ok, run through the Tasker key elements and output the directory for each
     # Only do Projects and Profiles if not looking for a single Project or Profile
@@ -596,9 +582,9 @@ def output_directory(primary_items: dict) -> None:
 
     # Add final rule and break
     primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        5,
-        "<hr><br><br>\n",
+        primary_items, 5, "<hr><br><br>\n", FormatLine.dont_format_line
     )
+
+    return
 
     return

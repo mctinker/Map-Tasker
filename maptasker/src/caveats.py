@@ -12,7 +12,8 @@
 #                                                                                      #
 # #################################################################################### #
 
-from maptasker.src.frmthtml import format_html
+from maptasker.src.format import format_html
+from maptasker.src.sysconst import FormatLine
 
 
 def display_caveats(primary_items: dict) -> None:
@@ -68,11 +69,24 @@ def display_caveats(primary_items: dict) -> None:
             " have their first Action only listed....\n  just like Tasker does.\n"
         )
 
+    if (
+        primary_items["program_arguments"]["display_detail_level"] == 4
+    ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
+        caveats.extend(
+            (
+                "- Inactive variables are global variables used in a Task which has not been run/used.\n",
+                "- Unreference variables are global variables that may have been used in the past, but are no longer referenced and can be deleted.\n",
+            )
+        )
     # Start the output
-    primary_items["output_lines"].add_line_to_output(primary_items, 0, "<hr>")  # line
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 0, "<hr>", FormatLine.dont_format_line
+    )
 
     # Output all caveats
     for caveat in caveats:
-        primary_items["output_lines"].add_line_to_output(primary_items, 0, caveat)
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 0, caveat, FormatLine.dont_format_line
+        )
 
     return

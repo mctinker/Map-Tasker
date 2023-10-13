@@ -32,9 +32,9 @@ styling and structure based on the type of element being displayed. The output l
 are accumulated and ultimately used to generate the final HTML output file.
 """
 import maptasker.src.actione as action_evaluate
-from maptasker.src.frmthtml import format_html
+from maptasker.src.format import format_html
 from maptasker.src.frontmtr import output_the_front_matter
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME, debug_out, logger
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine, debug_out, logger
 from maptasker.src.xmldata import remove_html_tags
 
 
@@ -85,31 +85,22 @@ class LineOut:
         self.add_line_to_output(
             primary_items,
             2,
-            format_html(
-                primary_items,
-                "project_color",
-                "",
-                f"Project: {project_name}",
-                True,
-            ),
+            f"Project: {project_name}",
+            ["", "project_color", FormatLine.add_end_span],
         )
 
         # Are we to include the Profile?
         if include_the_profile:
             # Start Profile list
-            self.add_line_to_output(primary_items, 1, "")
+            self.add_line_to_output(primary_items, 1, "", FormatLine.dont_format_line)
             self.add_line_to_output(
                 primary_items,
                 2,
-                format_html(
-                    primary_items,
-                    "profile_color",
-                    "",
-                    f"Profile: {profile_name}",
-                    True,
-                ),
+                f"Profile: {profile_name}",
+                ["", "profile_color", FormatLine.add_end_span],
             )
-            self.add_line_to_output(primary_items, 1, "")  # Start Project list
+            # Start Project list
+            self.add_line_to_output(primary_items, 1, "", FormatLine.dont_format_line)
         return
 
     # ##################################################################################
@@ -360,6 +351,7 @@ class LineOut:
         primary_items: dict,
         list_level: int,
         out_string: str,
+        format_line: list,
     ) -> None:
         """
         Add line to the list of output lines.  The output entry is based on the
@@ -367,8 +359,25 @@ class LineOut:
             :param primary_items:  Program registry.  See primitem.py for details.
             :param list_level: level we are outputting
             :param out_string: the string to add to the output
+            :param format_line: List if we need to first format the output line by
+                adding HTML to it. Empty if we are not to first format the line.
+                format_line[0] = text_before: The text to add before out_string.
+                format_line[1] = color_to_use: The color to use if formatting line
+                format_line[2] = add_span: Boolean to determine if a <span> tag
+                    should be added if formatting the line.
             :return: none
         """
+
+        # Format the output line by adding appropriate HTML.
+        if format_line != FormatLine.dont_format_line:
+            out_string = format_html(
+                primary_items,
+                format_line[1],
+                format_line[0],
+                out_string,
+                format_line[2],
+            )
+
         # Drop ID: nnn since we don't need it anymore
         if (
             "Task ID:" in out_string

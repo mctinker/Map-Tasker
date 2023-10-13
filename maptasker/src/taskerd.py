@@ -7,7 +7,7 @@ from maptasker.src.error import error_handler
 
 # #################################################################################### #
 #                                                                                      #
-# taskerd: get Tasker data from backup xml                                                   #
+# taskerd: get Tasker data from backup xml                                             #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
@@ -16,7 +16,7 @@ from maptasker.src.error import error_handler
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import FormatLine, logger
 
 
 # ##################################################################################
@@ -74,7 +74,9 @@ def get_the_xml_data(primary_items: dict) -> dict:
     # Check for valid Tasker backup.xml file
     if primary_items["xml_root"].tag != "TaskerData":
         error_msg = "You did not select a Tasker backup XML file...exit 2"
-        primary_items["output_lines"].add_line_to_output(primary_items, 0, error_msg)
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 0, error_msg, FormatLine.dont_format_line
+        )
         logger.debug(f"{error_msg}exit 3")
         sys.exit(3)
 

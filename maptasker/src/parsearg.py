@@ -142,10 +142,11 @@ def runtime_parser():
                             1 = display all Task action details for unknown Tasks only
                             2 = display full Task action name on every Task
                             3 = display full Task action details on every Task with action details (default)
+                            4 = detail level 3 plus global variables
                             Example: '-detail 2' for Task action names only
                             """
         ),
-        choices=[0, 1, 2, 3],
+        choices=[0, 1, 2, 3, 4],
         required=False,
         type=int,
         nargs=1,

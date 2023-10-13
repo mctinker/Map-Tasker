@@ -17,7 +17,8 @@ import tkinter.font
 from datetime import datetime
 from string import printable
 
-from maptasker.src.sysconst import MY_VERSION
+from maptasker.src.getids import get_ids
+from maptasker.src.sysconst import MY_VERSION, FormatLine
 
 box_line = "═"
 blank = " "
@@ -116,10 +117,21 @@ def build_box(name, counter, output_lines):
 # Process all Tasks in the Profile
 # ##################################################################################
 def print_all_tasks(
-    primary_items, tasks, position_for_anchor, output_task_lines, print_tasks
+    primary_items,
+    tasks,
+    position_for_anchor,
+    output_task_lines,
+    print_tasks,
+    found_tasks,
 ):
     last_upward_bar = []  # Keep track of the "|" bars in the output lines
-    for task in tasks:
+    for num, task in enumerate(tasks):
+        # Determine if this is an entry/exit combo.
+        if len(tasks) == 2:
+            task_type = " (entry)" if num == 0 else " (exit)"
+        else:
+            task_type = ""
+
         # We have a full row of Profiles.  Print the Tasks out.
         if print_tasks:
             print_all(primary_items, output_task_lines)
@@ -128,9 +140,11 @@ def print_all_tasks(
         else:
             # We are still accumating outlines for Profiles.
             # Build lines for the Profile's Tasks as well.
-            line = f'{blank*position_for_anchor}└─ {task["name"]}'
+            line = f'{blank*position_for_anchor}└─ {task["name"]}{task_type}'
             last_upward_bar.append(position_for_anchor)
             output_task_lines.append(line)
+            if task["name"] not in found_tasks:
+                found_tasks.append(task["name"])
 
             # Interject the "|" for previous Tasks under Profile
             for bar in last_upward_bar:
@@ -140,10 +154,11 @@ def print_all_tasks(
                     if len(line) <= bar:
                         output_task_lines[line_num] = f"{line.ljust(bar)}│"
 
-        # Is this Task calling other Tasks?
-        # with contextlib.suppress(KeyError):
-        #     if task["calls_tasks"]:
-        #         print(f"| Calls tasks: {', '.join(task['calls_tasks'])}")
+            # Is this Task calling other Tasks?
+            # with contextlib.suppress(KeyError):
+            #     if task["calls_tasks"]:
+            #         print(f"| Calls tasks: {', '.join(task['calls_tasks'])}")
+    return found_tasks
 
 
 # ##################################################################################
@@ -183,48 +198,142 @@ def print_all_scenes(primary_items, scenes):
 
 
 # ##################################################################################
+# Process Tasks not in any Profile
+# ##################################################################################
+def do_tasks_with_no_profile(
+    primary_items,
+    project_name,
+    output_profile_lines,
+    output_task_lines,
+    found_tasks,
+    profile_counter,
+):
+    project_root = primary_items["tasker_root_elements"]["all_projects"][project_name][
+        "xml"
+    ]
+    tasks_not_in_any_profile = []
+    if task_ids := get_ids(primary_items, False, project_root, project_name, []):
+        tasks_not_in_any_profile.extend(
+            primary_items["tasker_root_elements"]["all_tasks"][task_id]
+            for task_id in task_ids
+            if primary_items["tasker_root_elements"]["all_tasks"][task_id]["name"] not in found_tasks
+        )
+    if tasks_not_in_any_profile:
+        profile = "No Profile"
+        print_tasks = False
+        (
+            output_profile_lines,
+            output_task_lines,
+            position_for_anchor,
+            print_tasks,
+            profile_counter
+        ) = build_profile_box(
+            primary_items,
+            profile,
+            profile_counter,
+            output_profile_lines,
+            output_task_lines,
+            print_tasks,
+        )
+
+        # Go through the Tasks not in any profile
+        print_tasks = False
+        found_tasks = print_all_tasks(
+            primary_items,
+            tasks_not_in_any_profile,
+            position_for_anchor,
+            output_task_lines,
+            print_tasks,
+            found_tasks,
+        )
+    
+    return output_profile_lines, output_task_lines
+
+
+# ##################################################################################
+# Build the Profile box.
+# ##################################################################################
+def build_profile_box(
+    primary_items,
+    profile,
+    profile_counter,
+    output_profile_lines,
+    output_task_lines,
+    print_tasks,
+):
+    filler = f"{blank*8}"
+    profile_counter += 1
+    if profile_counter > 6:
+        # We have 6 columns.  Print them
+        print_3_lines(primary_items, output_profile_lines)
+        profile_counter = 1
+        print_tasks = True
+        output_profile_lines = [filler, filler, filler]
+
+        # Print the Task lines assoxciated with these 6 Profiles
+        print_all(primary_items, output_task_lines)
+        output_task_lines = []
+    else:
+        print_tasks = False
+    # Start/continue building our outlines
+    output_profile_lines, position_for_anchor = build_box(
+        profile, profile_counter, output_profile_lines
+    )
+    return output_profile_lines, output_task_lines, position_for_anchor, print_tasks, profile_counter
+
+
+# ##################################################################################
 # Process all Profiles and their Tasks for the given Project
 # ##################################################################################
-def print_profiles_and_tasks(primary_items, profiles):
+def print_profiles_and_tasks(primary_items, project, profiles):
     filler = f"{blank*8}"
     # Go through each Profile in the Project
     profile_counter = 0
     print_tasks = print_scenes = False
     output_profile_lines = [filler, filler, filler]
     output_task_lines = []
+    found_tasks = []
     for profile, tasks in profiles.items():
         if profile != "Scenes":
-            profile_counter += 1
-            if profile_counter > 6:
-                # We have 6 columns.  Print them
-                print_3_lines(primary_items, output_profile_lines)
-                profile_counter = 1
-                print_tasks = True
-                output_profile_lines = [filler, filler, filler]
-
-                # Print the Task lines assoxciated with these 6 Profiles
-                print_all(primary_items, output_task_lines)
-                output_task_lines = []
-            else:
-                print_tasks = False
-            # Start/continue building our outlines
-            output_profile_lines, position_for_anchor = build_box(
-                profile, profile_counter, output_profile_lines
+            (
+                output_profile_lines,
+                output_task_lines,
+                position_for_anchor,
+                print_tasks,
+                profile_counter
+            ) = build_profile_box(
+                primary_items,
+                profile,
+                profile_counter,
+                output_profile_lines,
+                output_task_lines,
+                print_tasks,
             )
 
             # Go through the Profile's Tasks
-            print_all_tasks(
+            found_tasks = print_all_tasks(
                 primary_items,
                 tasks,
                 position_for_anchor,
                 output_task_lines,
                 print_tasks,
+                found_tasks,
             )
 
             # Print the Scenes: 6 columns
         else:
             print_scenes = True
             scenes = tasks
+
+    # Determine if this Project has Tasks not assoctiated with any Profiles
+    output_profile_lines, output_task_lines = do_tasks_with_no_profile(
+        primary_items,
+        project,
+        output_profile_lines,
+        output_task_lines,
+        found_tasks,
+        profile_counter,
+    )
 
     # Print any remaining Profile boxes and their associated Tasks
     if output_profile_lines[0] != filler:
@@ -235,7 +344,6 @@ def print_profiles_and_tasks(primary_items, profiles):
     if print_scenes:
         print_all_scenes(primary_items, scenes)
 
-        # print(f"\n{profile}: {', '.join(tasks)}")
     # Add a blank line
     print(" ", file=primary_items["printfile"])
 
@@ -248,8 +356,8 @@ def print_network(primary_items, data):
     for project, profiles in data.items():
         # Print Project as a box
         print_box(primary_items, project, "Project:", 1, 0)
-        # Print all of the Profject's Profiles and their Tasks
-        print_profiles_and_tasks(primary_items, profiles)
+        # Print all of the Project's Profiles and their Tasks
+        print_profiles_and_tasks(primary_items, project, profiles)
 
 
 # ##################################################################################
@@ -283,7 +391,9 @@ def network_map(primary_items: dict, network: dict) -> None:
     """
 
     # Start with a ruler line
-    primary_items["output_lines"].add_line_to_output(primary_items, 1, "<hr>")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 1, "<hr>", FormatLine.dont_format_line
+    )
 
     # Redirect print to a file
     with open("MapTasker_Map.txt", "w") as mapfile:

@@ -13,12 +13,12 @@
 
 import defusedxml.ElementTree
 
+from maptasker.src.actiont import lookup_values
 from maptasker.src.error import error_handler
-from maptasker.src.frmthtml import format_html
+from maptasker.src.format import format_html
 from maptasker.src.shellsort import shell_sort
 from maptasker.src.sysconst import FONT_FAMILY
 from maptasker.src.xmldata import remove_html_tags
-from maptasker.src.actiont import lookup_values
 
 
 # ##################################################################################
@@ -442,7 +442,7 @@ def get_extra_stuff(
     program_arguments = primary_items["program_arguments"]
     colors_to_use = primary_items["colors_to_use"]
     # Only get extras if this is a Task action (vs. a Profile condition)
-    if action_type and program_arguments["display_detail_level"] == 3:
+    if action_type and program_arguments["display_detail_level"] > 2:
         # Look for extra Task stuff: label, disabled, conditions
         extra_stuff = get_label_disabled_condition(
             primary_items, code_action, colors_to_use
@@ -480,7 +480,7 @@ def get_extra_stuff(
         )
 
     # See if Task action is to be continued after error
-    if program_arguments["display_detail_level"] == 3:
+    if program_arguments["display_detail_level"] > 2:
         child = code_action.find("se")
         if child is not None and child.text == "false":
             extra_stuff = f'{format_html(primary_items,"action_color",""," [Continue Task After Error]",True,)}{extra_stuff}'

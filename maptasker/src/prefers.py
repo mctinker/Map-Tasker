@@ -16,8 +16,9 @@ import re
 from operator import itemgetter
 
 from maptasker.src.error import error_handler
-from maptasker.src.frmthtml import format_html
+from maptasker.src.format import format_html
 from maptasker.src.servicec import service_codes
+from maptasker.src.sysconst import FormatLine
 
 
 def process_service(
@@ -178,13 +179,8 @@ def get_preferences(primary_items: dict) -> None:
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         4,
-        format_html(
-            primary_items,
-            "preferences_color",
-            "",
-            "Tasker Preferences >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",
-            True,
-        ),
+        "Tasker Preferences >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",
+        ["", "preferences_color", FormatLine.add_end_span],
     )
 
     # Go through each <Service xml element
@@ -214,27 +210,21 @@ def get_preferences(primary_items: dict) -> None:
             primary_items["output_lines"].add_line_to_output(
                 primary_items,
                 4,
-                format_html(
-                    primary_items,
-                    "preferences_color",
-                    "",
-                    f"<br>&nbsp;Section: {section_names[section]}",
-                    True,
-                ),
+                f"<br>&nbsp;Section: {section_names[section]}",
+                ["", "preferences_color", FormatLine.add_end_span],
             )
             previous_section = section
-        primary_items["output_lines"].add_line_to_output(primary_items, 4, f"{line}")
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 4, f"{line}", FormatLine.dont_format_line
+        )
 
     # Let user know that we have not mapped the remaining items
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         4,
-        format_html(
-            primary_items,
-            "preferences_color",
-            "",
-            "The remaining preferences are not yet mapped",
-            True,
-        ),
+        "The remaining preferences are not yet mapped",
+        ["", "preferences_color", FormatLine.add_end_span],
     )
-    primary_items["output_lines"].add_line_to_output(primary_items, 4, "")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 4, "", FormatLine.dont_format_line
+    )

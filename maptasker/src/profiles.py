@@ -18,11 +18,11 @@ import maptasker.src.tasks as tasks
 from maptasker.src.dirout import add_directory_item
 
 # from maptasker.src.kidapp import get_kid_app
-from maptasker.src.frmthtml import format_html
+from maptasker.src.format import format_html
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.property import get_properties
 from maptasker.src.share import share
-from maptasker.src.sysconst import NO_PROFILE
+from maptasker.src.sysconst import NO_PROFILE, FormatLine
 from maptasker.src.xmldata import remove_html_tags
 
 
@@ -180,7 +180,7 @@ def build_profile_line(
 
     # See if there is a Kid app and/or Priority (FOR FUTURE USE)
     # kid_app_info = ''
-    # if program_args["display_detail_level"] == 3:
+    # if program_args["display_detail_level"] > 2:
     #     kid_app_info = get_kid_app(profile)
     #     priority = get_priority(profile, False)
 
@@ -233,6 +233,7 @@ def build_profile_line(
         primary_items,
         2,
         profile_info,
+        FormatLine.dont_format_line,
     )
     return profile_name
 
@@ -291,7 +292,9 @@ def process_profiles(
             )
 
             # Start Profile list
-            primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
+            primary_items["output_lines"].add_line_to_output(
+                primary_items, 1, "", FormatLine.dont_format_line
+            )
         # Get Task xml element and name
         task_output_lines = []  # Profile's Tasks will be filled in here
         list_of_tasks = get_profile_tasks(
@@ -309,7 +312,7 @@ def process_profiles(
         )
 
         # Process Profile Properties
-        if primary_items["program_arguments"]["display_detail_level"] == 3:
+        if primary_items["program_arguments"]["display_detail_level"] > 2:
             get_properties(
                 primary_items,
                 profile,
@@ -321,7 +324,9 @@ def process_profiles(
             share(primary_items, profile)
             # Add a spacer if detail is 0
             if primary_items["program_arguments"]["display_detail_level"] == 0:
-                primary_items["output_lines"].add_line_to_output(primary_items, 0, "")
+                primary_items["output_lines"].add_line_to_output(
+                    primary_items, 0, "", FormatLine.dont_format_line
+                )
 
         # We have the Tasks for this Profile.  Now let's output them.
         # True = we're looking for a specific Task

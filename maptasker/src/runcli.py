@@ -187,7 +187,7 @@ def get_runtime_arguments(
 
     # Everything? Display full detail and set various display optionsm to true.
     if getattr(args, "e"):
-        primary_items["program_arguments"]["display_detail_level"] = 3
+        primary_items["program_arguments"]["display_detail_level"] = 4
         primary_items["program_arguments"]["conditions"] = primary_items[
             "program_arguments"
         ]["preferences"] = primary_items["program_arguments"][
@@ -227,6 +227,7 @@ def get_runtime_arguments(
     # Get backup file directly from Android device
     # It is a list if coming from program arguments.
     # Otherwise, just a string if coming from run_test (unit test)
+    # TODO Tested to here.  Need to test to get_runtime_arguments.
     if backup_file_info := getattr(args, "b"):
         process_backup(primary_items, backup_file_info)
 
@@ -457,7 +458,7 @@ def validate_arguments(primary_items: dict) -> None:
     program_arguments = primary_items["program_arguments"]
     # It doesn't make sense to do twisties if notr displaying full detail.
     if program_arguments["display_detail_level"] < 3 and program_arguments["twisty"]:
-        message = "Twisty disabled since the display level is not 3"
+        message = "Twisty disabled since the display level is not 3 or above."
         print(f"{Colors.Yellow}{message}")
         logger.info(message)
 
@@ -481,6 +482,7 @@ def process_cli(primary_items: dict) -> dict:
 
     # Process unit tests if "-test" in arguments, else get normal runtime arguments
     # args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
+    # FIX runtest detail=4 not working
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
     logger.debug(f"Program arguments: {args}")
 

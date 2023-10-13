@@ -13,8 +13,8 @@
 # #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
 
-from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import FONT_FAMILY
+from maptasker.src.format import format_html
+from maptasker.src.sysconst import FONT_FAMILY, FormatLine
 
 
 def share(
@@ -50,7 +50,7 @@ def share(
                 True,
             )
             primary_items["output_lines"].add_line_to_output(
-                primary_items, 2, out_string
+                primary_items, 2, out_string, FormatLine.dont_format_line
             )
 
 
@@ -128,4 +128,6 @@ def description_element_output(
             out_string = new_line
 
     # Output the description line.
-    primary_items["output_lines"].add_line_to_output(primary_items, 2, f"{out_string}")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 2, f"{out_string}", FormatLine.dont_format_line
+    )

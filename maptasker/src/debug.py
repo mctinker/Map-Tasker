@@ -13,8 +13,13 @@
 # #################################################################################### #
 import sys
 
-from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import ARGUMENT_NAMES, TYPES_OF_COLOR_NAMES, logger
+from maptasker.src.format import format_html
+from maptasker.src.sysconst import (
+    ARGUMENT_NAMES,
+    TYPES_OF_COLOR_NAMES,
+    FormatLine,
+    logger,
+)
 
 
 def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
@@ -27,13 +32,8 @@ def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         4,
-        format_html(
-            primary_items,
-            "disabled_profile_color",
-            "",
-            f"Runtime Settings {begin_or_end} {arrow * 80}",
-            True,
-        ),
+        f"Runtime Settings {begin_or_end} {arrow * 80}",
+        ["", "disabled_profile_color", FormatLine.add_end_span],
     )
 
 
@@ -62,9 +62,7 @@ def display_debug_info(primary_items: dict) -> None:
 
     # Add blank line
     primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        4,
-        "",
+        primary_items, 4, "", FormatLine.dont_format_line
     )
 
     # Identify the output as debug stuff
@@ -73,13 +71,8 @@ def display_debug_info(primary_items: dict) -> None:
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             4,
-            format_html(
-                primary_items,
-                "disabled_profile_color",
-                "",
-                f"sys.argv (runtime arguments):{str(sys.argv)}",
-                True,
-            ),
+            f"sys.argv (runtime arguments):{str(sys.argv)}",
+            ["", "disabled_profile_color", FormatLine.add_end_span],
         )
 
     # Copy our dictionary of runtime arguments and sort it alphabetically
@@ -102,32 +95,20 @@ def display_debug_info(primary_items: dict) -> None:
             primary_items["output_lines"].add_line_to_output(
                 primary_items,
                 4,
-                format_html(
-                    primary_items,
-                    color_to_use,
-                    "",
-                    f"{line_formatted_to_length}: {value}",
-                    True,
-                ),
+                f"{line_formatted_to_length}: {value}",
+                ["", color_to_use, FormatLine.add_end_span],
             )
         except KeyError:
             msg = f"{ARGUMENT_NAMES[key]}: Error...not found!"
             primary_items["output_lines"].add_line_to_output(
                 primary_items,
                 4,
-                format_html(
-                    primary_items,
-                    "heading_color",
-                    "",
-                    msg,
-                    True,
-                ),
+                msg,
+                ["", "heading_color", FormatLine.add_end_span],
             )
             logger.debug(f"MapTasker Error ... {msg}")
     primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        4,
-        "",
+        primary_items, 4, "", FormatLine.dont_format_line
     )
 
     # Do colors to use in output
@@ -153,13 +134,8 @@ def display_debug_info(primary_items: dict) -> None:
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             4,
-            format_html(
-                primary_items,
-                "heading_color",
-                "",
-                f"{ color_set_to_width}{the_color}",
-                True,
-            ),
+            f"{ color_set_to_width}{the_color}",
+            ["", "heading_color", FormatLine.add_end_span],
         )
 
     # Get a total count of action_code entries in our dictionary.
@@ -183,6 +159,7 @@ def display_debug_info(primary_items: dict) -> None:
         primary_items,
         4,
         "",
+        FormatLine.dont_format_line,
     )
 
 

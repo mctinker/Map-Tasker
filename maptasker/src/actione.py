@@ -23,7 +23,7 @@ from maptasker.src.config import CONTINUE_LIMIT
 from maptasker.src.debug import not_in_dictionary
 from maptasker.src.depricated import depricated
 from maptasker.src.error import error_handler
-from maptasker.src.frmthtml import format_html
+from maptasker.src.format import format_html
 from maptasker.src.sysconst import logger
 
 # pattern1 = re.compile(r'<.*?>')  # Get rid of all <something> html code

@@ -40,7 +40,9 @@ def initialize_primary_items(file_to_get: str) -> dict:
     #  mono_fonts: dictionary of monospace fonts from TkInter
     #  grand_totals: used for trcaking number of Projects/Profiles/Tasks/Scenes
     #  tasker_root_elements points to our root xml for Projects/Profiles/Tasks/Scenes
-    #  directorys: points to our directory items if we are displaying a directory
+    #  directories: points to our directory items if we are displaying a directory
+    #  variables: Tasker variables.
+    #  current_project: current Project being processed
     #
     #   Return primary_items
     return {
@@ -80,4 +82,7 @@ def initialize_primary_items(file_to_get: str) -> dict:
             "all_tasks": {},
             "all_services": [],
         },
+        "directories": [],
+        "variables": {},
+        "current_project": "",
     }

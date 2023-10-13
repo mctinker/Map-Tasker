@@ -13,10 +13,11 @@
 # #################################################################################### #
 import logging
 import re
+from enum import Enum
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 2.4.1"
+MY_VERSION = "MapTasker version 2.4.2"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -128,6 +129,7 @@ DEBUG_PROGRAM = False
 debug_file = "maptasker_debug.log"
 debug_file = "maptasker_debug.log"
 
+# Compiled match patterns reused throughout
 pattern0 = re.compile(",,")
 pattern1 = re.compile(",  ,")
 pattern2 = re.compile(" ,")
@@ -144,6 +146,7 @@ pattern10 = re.compile("</p></p>")
 clean = re.compile("<.*?>")
 
 
+# ASCII Color Defginitions
 class Colors:
     White = "\033[0m"
     Yellow = "\033[33m"
@@ -152,3 +155,10 @@ class Colors:
     Purple = "\033[35m"
     Blue = "\033[34m"
     BOLD = "\033[1m"
+
+
+# Used for calls to addline (lineout.py)
+class FormatLine(Enum):
+    dont_format_line = []
+    add_end_span = True
+    dont_add_end_span = False

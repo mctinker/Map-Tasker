@@ -16,7 +16,7 @@ import defusedxml
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.property import get_properties
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME, logger
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine, logger
 from maptasker.src.taskactn import get_task_actions_and_output
 from maptasker.src.twisty import add_twisty, remove_twisty
 
@@ -133,11 +133,15 @@ def add_dictionary_and_twisty(
     ):
         directory_item = f'"{primary_items["directory_items"]["current_item"]}"'
         directory = f"<a id={directory_item}></a>\n"
-        primary_items["output_lines"].add_line_to_output(primary_items, 5, directory)
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 5, directory, FormatLine.dont_format_line
+        )
 
     if list_type == "Scene:":
         # Force a line break first
-        primary_items["output_lines"].add_line_to_output(primary_items, 0, "")
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 0, "", FormatLine.dont_format_line
+        )
 
     # Add the "twisty" to hide the Task details
     if primary_items["program_arguments"]["twisty"] and "Task:" in list_type:
@@ -159,7 +163,7 @@ def format_item(
 ):
     """_summary_
     Given an item, format it with all of the particulars:
-        Proper html/color/font, twisty, direectory, properties, etc.
+        Proper html/color/font, twisty, directory, properties, etc.
         Args:
             primary_items (dict): Program registry.  See primitem.py for details
             list_type (str): Either "Task:" or "Scene:"
@@ -184,7 +188,9 @@ def format_item(
     )
 
     # Add this Task/Scene to the output as a list item
-    primary_items["output_lines"].add_line_to_output(primary_items, 2, output_line)
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 2, output_line, FormatLine.dont_format_line
+    )
 
     # Put the_item back with the 'ID: nnn' portion included.
     if temp_item:
@@ -196,7 +202,7 @@ def format_item(
     if (
         the_task
         and "Task:" in list_type
-        and primary_items["program_arguments"]["display_detail_level"] == 3
+        and primary_items["program_arguments"]["display_detail_level"] > 2
         and not primary_items["displaying_named_tasks_not_in_profile"]
     ):
         get_properties(
@@ -281,7 +287,9 @@ def process_item(
             remove_twisty(primary_items)
         else:
             # End list if doing twisty and displaying level 0
-            primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+            primary_items["output_lines"].add_line_to_output(
+                primary_items, 3, "", FormatLine.dont_add_end_span
+            )
 
     return
 

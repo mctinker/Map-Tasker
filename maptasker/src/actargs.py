@@ -16,8 +16,8 @@ import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.action as get_action
 from maptasker.src.actiond import process_condition_list
-from maptasker.src.frmthtml import format_html
-from maptasker.src.sysconst import logger
+from maptasker.src.format import format_html
+from maptasker.src.sysconst import FormatLine, logger
 
 
 # ##################################################################################
@@ -119,6 +119,9 @@ def get_action_arguments(
     return evaluated_results
 
 
+# ##################################################################################
+# Get image details from <img> sub-elements.
+# ##################################################################################
 # Get image related details from action xml
 def extract_image(evaluated_results, code_action, argeval):
     evaluated_results["get_xml_flag"] = False
@@ -180,7 +183,9 @@ def handle_missing_code(primary_items, the_action_code_plus, index):
         True,
     )
     logger.debug(error_message)
-    primary_items["output_lines"].add_line_to_output(primary_items, 4, error_message)
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 4, error_message, FormatLine.dont_format_line
+    )
     return ""
 
 

@@ -48,12 +48,12 @@ import maptasker.src.taskuniq as special_tasks
 from maptasker.src.caveats import display_caveats
 from maptasker.src.dirout import output_directory
 from maptasker.src.error import error_handler
-from maptasker.src.frmthtml import format_html
-from maptasker.src.frmtline import format_line
+from maptasker.src.format import format_line
 from maptasker.src.lineout import LineOut
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import initialize_primary_items
-from maptasker.src.sysconst import Colors, debug_file, debug_out, logger
+from maptasker.src.sysconst import Colors, FormatLine, debug_file, debug_out, logger
+from maptasker.src.variables import get_variables, output_variables
 
 # import os
 # print('Path:', os.getcwd())
@@ -223,26 +223,24 @@ def output_grand_totals(primary_items: dict) -> None:
             primary_items,
             5,
             '<a id="grand_totals"></a>',
+            FormatLine.dont_format_line,
         )
 
     total_number = "Total number of "
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         1,
-        format_html(
-            primary_items,
-            "trailing_comments_color",
-            "",
-            (
-                f"<br>{total_number}Projects: {grand_total_projects}<br>{total_number}Profiles:  {grand_total_profiles}<br>{total_number}Tasks:"
-                f" {grand_total_unnamed_tasks + grand_total_named_tasks} ({grand_total_unnamed_tasks} unnamed,"
-                f" {grand_total_named_tasks} named)<br>{total_number}Scenes:"
-                f" {grand_total_scenes}<br><br>"
-            ),
-            True,
+        (
+            f"<br>{total_number}Projects: {grand_total_projects}<br>{total_number}Profiles:  {grand_total_profiles}<br>{total_number}Tasks:"
+            f" {grand_total_unnamed_tasks + grand_total_named_tasks} ({grand_total_unnamed_tasks} unnamed,"
+            f" {grand_total_named_tasks} named)<br>{total_number}Scenes:"
+            f" {grand_total_scenes}<br><br>"
         ),
+        ["", "trailing_comments_color", FormatLine.add_end_span],
     )
-    primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 3, "", FormatLine.dont_format_line
+    )
 
 
 # ##################################################################################
@@ -332,7 +330,7 @@ def display_output(primary_items, my_output_dir: str, my_file_name: str) -> None
 
     # If doing the outline, let 'em know about the map file.
     map_text = (
-        "The Configuration Map was saved as MapTasker_map.txt.  "
+        "The Configuration Map was saved as MapTasker_Map.txt.  "
         if primary_items["program_arguments"]["outline"]
         else ""
     )
@@ -466,6 +464,10 @@ def mapit_all(file_to_get: str) -> int:
     single_profile_name = primary_items["program_arguments"]["single_profile_name"]
     single_task_name = primary_items["program_arguments"]["single_task_name"]
 
+    # Get all Tasker variables
+    if primary_items["program_arguments"]["display_detail_level"] == 4:
+        get_variables(primary_items)
+
     # Process all Projects and their Profiles
     found_tasks = projects.process_projects_and_their_profiles(
         primary_items,
@@ -478,6 +480,7 @@ def mapit_all(file_to_get: str) -> int:
     single_profile_found = primary_items["found_named_items"]["single_profile_found"]
     single_task_found = primary_items["found_named_items"]["single_task_found"]
 
+    # See if we are only looking for a single Projcet/Profile/Task
     check_single_item(
         primary_items,
         single_project_name,
@@ -505,6 +508,10 @@ def mapit_all(file_to_get: str) -> int:
     # Restore the directory setting for the final directory of Totals
     primary_items["program_arguments"]["directory"] = temp_dir
 
+    # Display global variables
+    if primary_items["program_arguments"]["display_detail_level"] == 4:
+        output_variables(primary_items, "Unreferenced Global Variables", "")
+
     # Get the output directory
     my_output_dir = getcwd()
 
@@ -528,7 +535,9 @@ def mapit_all(file_to_get: str) -> int:
 
     # Finalize the HTML
     final_msg = "\n</body>\n</html>"
-    primary_items["output_lines"].add_line_to_output(primary_items, 5, final_msg)
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 5, final_msg, FormatLine.dont_format_line
+    )
 
     #
     logger.debug(f"output directory:{my_output_dir}")

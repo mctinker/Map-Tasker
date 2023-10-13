@@ -11,7 +11,7 @@
 #                                                                                      #
 # #################################################################################### #
 
-from maptasker.src.sysconst import FONT_FAMILY
+from maptasker.src.sysconst import FONT_FAMILY, FormatLine
 
 
 def add_css(primary_items: dict) -> None:
@@ -24,7 +24,10 @@ def add_css(primary_items: dict) -> None:
 
     # Start the style css
     primary_items["output_lines"].add_line_to_output(
-        primary_items, 5, '<style  type="text/css">\n'
+        primary_items,
+        5,
+        '<style  type="text/css">\n',
+        FormatLine.dont_format_line,
     )
 
     # Go through all colors
@@ -36,7 +39,10 @@ def add_css(primary_items: dict) -> None:
                 if primary_items["colors_to_use"][color_argument_name]:
                     our_html = f'color: {primary_items["colors_to_use"][color_argument_name]}{FONT_FAMILY}{primary_items["program_arguments"]["font"]}'
                     primary_items["output_lines"].add_line_to_output(
-                        primary_items, 5, f".{color_argument_name} {{{our_html}}}"
+                        primary_items,
+                        5,
+                        f".{color_argument_name} {{{our_html}}}",
+                        FormatLine.dont_format_line,
                     )
             except KeyError:
                 continue
@@ -56,7 +62,11 @@ ul li::before {
   margin-left: -1em;
 }"""
     bullet_css = bullet_css.replace("red", bullet_color)
-    primary_items["output_lines"].add_line_to_output(primary_items, 5, bullet_css)
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 5, bullet_css, FormatLine.dont_format_line
+    )
 
     # End the style css
-    primary_items["output_lines"].add_line_to_output(primary_items, 5, "</style>\n")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 5, "</style>\n", FormatLine.dont_format_line
+    )

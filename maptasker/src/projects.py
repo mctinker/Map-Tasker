@@ -16,7 +16,7 @@ import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.tasks as tasks
 from maptasker.src.dirout import add_directory_item
-from maptasker.src.frmthtml import format_html
+from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.kidapp import get_kid_app
 from maptasker.src.nameattr import add_name_attribute
@@ -24,8 +24,10 @@ from maptasker.src.profiles import process_profiles
 from maptasker.src.property import get_properties
 from maptasker.src.scenes import process_project_scenes
 from maptasker.src.share import share
+from maptasker.src.sysconst import FormatLine
 from maptasker.src.taskflag import get_priority
 from maptasker.src.twisty import add_twisty, remove_twisty
+from maptasker.src.variables import output_variables
 
 
 # ##################################################################################
@@ -53,7 +55,10 @@ def process_projects_and_their_profiles(
         our_task_element,
     )
     primary_items["output_lines"].add_line_to_output(
-        primary_items, 3, ""
+        primary_items,
+        3,
+        "",
+        FormatLine.dont_format_line,
     )  # Close Project list
 
     # Return a list of Tasks found thus far with duplicates remove
@@ -103,7 +108,9 @@ def task_not_in_profile_heading(primary_items: dict, project_name: str):
     )
 
     # Force a line break before the header
-    primary_items["output_lines"].add_line_to_output(primary_items, 5, "<br>")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 5, "<br>", FormatLine.dont_format_line
+    )
 
     # Add the "twisty" to hide the Task details
     if primary_items["program_arguments"]["twisty"]:
@@ -119,17 +126,14 @@ def task_not_in_profile_heading(primary_items: dict, project_name: str):
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             4,
-            format_html(
-                primary_items,
-                "task_color",
-                "",
-                f"<br>{output_line}",
-                True,
-            ),
+            f"<br>{output_line}",
+            ["", "task_color", FormatLine.add_end_span],
         )
 
     # Start an unordered list
-    primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 1, "", FormatLine.dont_format_line
+    )
 
 
 # ##################################################################################
@@ -251,10 +255,14 @@ def tasks_not_in_profiles(
             remove_twisty(primary_items)
         # Add additional </ul> if no Tasks not in any Profile
         else:
-            primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+            primary_items["output_lines"].add_line_to_output(
+                primary_items, 3, "", FormatLine.dont_format_line
+            )
 
     # Force a line break
-    primary_items["output_lines"].add_line_to_output(primary_items, 4, "")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 4, "", FormatLine.dont_format_line
+    )
     return have_tasks_not_in_profile
 
 
@@ -281,7 +289,7 @@ def get_extra_and_output_project(
     # See if there is a Kid app and get the Project's priority,
     # only if display level is max
     kid_app_info = priority = ""
-    if primary_items["program_arguments"]["display_detail_level"] == 3:
+    if primary_items["program_arguments"]["display_detail_level"] > 2:
         kid_app_info = get_kid_app(project)
         if kid_app_info:
             kid_app_info = format_html(
@@ -330,6 +338,7 @@ def get_extra_and_output_project(
             primary_items,
             2,
             final_project_line,
+            FormatLine.dont_format_line,
         )
     return False
 
@@ -399,20 +408,15 @@ def summary_counts(primary_items: dict, project_name: str, profile_count: int) -
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         5,
-        format_html(
-            primary_items,
-            "project_color",
-            "",
-            (
-                f"Project {project_name} has a total of {profile_count} Profiles,"
-                f" {task_count_for_profile}  Tasks called by Profiles,"
-                f" {task_count_unnamed} unnamed Tasks, {task_count_no_profile} Tasks"
-                f" not in any Profile, {named_task_count_total} named Tasks out of"
-                f" {task_count_unnamed + named_task_count_total} total Tasks,"
-                f" and {scene_count} Scenes<br><br>"
-            ),
-            True,
+        (
+            f"Project {project_name} has a total of {profile_count} Profiles,"
+            f" {task_count_for_profile}  Tasks called by Profiles,"
+            f" {task_count_unnamed} unnamed Tasks, {task_count_no_profile} Tasks"
+            f" not in any Profile, {named_task_count_total} named Tasks out of"
+            f" {task_count_unnamed + named_task_count_total} total Tasks,"
+            f" and {scene_count} Scenes<br><br>"
         ),
+        ["", "project_color", FormatLine.add_end_span],
     )
 
 
@@ -442,7 +446,9 @@ def finish_up(
     task_ids = []
 
     # Close Profile list
-    primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 3, "", FormatLine.dont_format_line
+    )
 
     # Process any Tasks in Project not associated with any Profile
     task_ids = get_ids(primary_items, False, project, project_name, [])
@@ -461,18 +467,17 @@ def finish_up(
         our_task_element,
         found_tasks,
     )
-    # if not primary_items["program_arguments"]["single_task_name"]:
-    #     have_scenes = process_project_scenes(
-    #         primary_items,
-    #         project,
-    #         our_task_element,
-    #         found_tasks,
-    # )
 
     # If we don't have Scenes or Tasks that are not in any Profile
     # then start a new ordered list
     if not tasks_not_in_profile and not have_scenes:
-        primary_items["output_lines"].add_line_to_output(primary_items, 1, "")
+        primary_items["output_lines"].add_line_to_output(
+            primary_items, 1, "", FormatLine.dont_format_line
+        )
+
+    # Output the Project's variables
+    if primary_items["program_arguments"]["display_detail_level"] == 4:
+        output_variables(primary_items, "Project Global Variables", project)
 
     # Output the Project summary line
     summary_counts(primary_items, project_name, profile_count)
@@ -484,7 +489,7 @@ def finish_up(
         or not have_scenes
     ):
         primary_items["output_lines"].add_line_to_output(
-            primary_items, 3, ""
+            primary_items, 3, "", FormatLine.dont_format_line
         )  # Close Profile list
 
     return
@@ -524,13 +529,8 @@ def add_no_profiles_line_to_output(primary_items: dict):
     primary_items["output_lines"].add_line_to_output(
         primary_items,
         5,
-        format_html(
-            primary_items,
-            "profile_color",
-            "",
-            "<em>Project has no Profiles</em>",
-            True,
-        ),
+        "<em>Project has no Profiles</em>",
+        ["", "profile_color", FormatLine.add_end_span],
     )
 
 
@@ -543,7 +543,9 @@ def is_single_project_or_profile_or_task_found(primary_items: dict) -> bool:
 
 
 def add_close_project_list_line_to_output(primary_items: dict):
-    primary_items["output_lines"].add_line_to_output(primary_items, 3, "")
+    primary_items["output_lines"].add_line_to_output(
+        primary_items, 3, "", FormatLine.dont_format_line
+    )
 
 
 # ################################################################################
@@ -583,7 +585,7 @@ def get_profile_details_and_output(
     )
 
     # Process Project Properties
-    if primary_items["program_arguments"]["display_detail_level"] == 3:
+    if primary_items["program_arguments"]["display_detail_level"] > 2:
         get_properties(
             primary_items,
             project,
@@ -665,12 +667,20 @@ def process_projects(
         :return: nothing
     """
 
+    # Get all variables from XML first.
+
     # Go through each Project in backup file
     for project_name in primary_items["tasker_root_elements"]["all_projects"]:
         # Point to the Project XML element <Project sr=...>
         project = primary_items["tasker_root_elements"]["all_projects"][project_name][
             "xml"
         ]
+
+        # Keep track of the Project being processed
+        primary_items["current_project"] = primary_items["tasker_root_elements"][
+            "all_projects"
+        ][project_name]
+
         # Get the Project line item details and output them
         (
             single_task_or_profile_found,
