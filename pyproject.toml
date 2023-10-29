@@ -23,6 +23,7 @@ pillow = "^10.0.1"
 darkdetect = "^0.8.0"
 defusedxml = "^0.7.1"
 requests = "^2.31.0"
+packaging = "^23.2"
 
 [tool.poetry.scripts]
 maptasker = "maptasker.main:main"
