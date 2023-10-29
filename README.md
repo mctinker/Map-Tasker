@@ -165,6 +165,10 @@ Sample output with runtime option '-detail 2':
 Sample output with runtime options '-detail 3 -conditions':
 
 <img src="/documentation_images/display_level-d3.png" width="800"/>
+ 
+ Sample Configuration Map from runtime option -outline:
+
+<img src="/documentation_images/configuration_map.png" width="800"/>
 
 Example runtime options: 
     
@@ -187,6 +191,7 @@ Alternatively, see *config.py* for some user-customizable options.  Make user-sp
   
 [] Include/map remaining Tasker preferences    
 [] Support additional plugins   
+[] Improve Configuration Map: include Tasks not associtaed with any Profile   
 [] Improve Configuration Map: include pointer to Tasks to which there is a Perform Task action.
 
 ### Contributions:
