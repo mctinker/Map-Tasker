@@ -1,12 +1,13 @@
 MapTasker Change log
 
- ## [2.4.4] - 2023-10-29
+ ## [2.4.5] - 2023-10-29
 ### Added: Code optimizations.   
 ### Added: Missing Task plugin action AutoWear Dialog
 ### Added: "Called Tasks" and "Called By Tasks" added to configuration map (file MapTasker_Map.txt).   
 ### Fixed: For Kid apps, remove colon from "Kid app:" since it makes it look like the app is missing.   
 ### Fixed: Set a timeout of 10 seconds for obtainingg backup from Android device.     
-### Fixed: Various plugin Task actions were not getting the correct plugin name although values were correct.     
+### Fixed: Various plugin Task actions were not getting the correct plugin name although values were correct.  
+### Fixed: Added missing dependency on packaging by customtkinter       
 
 
 Older History Log
