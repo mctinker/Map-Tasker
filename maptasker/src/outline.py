@@ -53,7 +53,7 @@ arrow = f"├{line*3}▶"
 # If so, save the link to the other Task to be displayed in the outline.
 # ##################################################################################
 def get_perform_task_actions(
-    primary_item: dict, profile: defusedxml.ElementTree, the_tasks: list
+    primary_items: dict, profile: defusedxml.ElementTree, the_tasks: list
 ) -> None:
     """_summary_
     Go through all Tasks for Profile and see if any have a "Perform Task" action.
@@ -67,6 +67,7 @@ def get_perform_task_actions(
     for task in the_tasks:
         # Start with no "Perform Tasks" for this Task
         task["call_tasks"] = []
+
         # Get Task's Actions
         try:
             task_actions = task["xml"].findall("Action")
@@ -76,12 +77,37 @@ def get_perform_task_actions(
         # Go through Actions and see if any are "Perform Task"
         if task_actions:
             for action in task_actions:
+                # Have action: go through it looking for a "Perform Task"
                 for child in action:
                     if child.tag == "code" and child.text == "130":
                         # We have a Perform Task.  Get the Task name to be performed.
                         all_strings = action.findall("Str")
                         perform_task_name = all_strings[0].text
+                        # Add it to the list of Tasks called by this Task
                         task["call_tasks"].append(perform_task_name)
+
+                        # Find the Task xml element to which this Perform Task refers.
+                        for task_id in primary_items["tasker_root_elements"][
+                            "all_tasks"
+                        ]:
+                            task_called = primary_items["tasker_root_elements"][
+                                "all_tasks"
+                            ][task_id]
+
+                            # If we found the referring Task, add it to the list of
+                            # "called_by" Tasks
+                            if (
+                                task_called["name"]
+                                and task_called["name"] == perform_task_name
+                            ):
+                                try:  
+                                    if task_called["called_by"] and task["name"] not in task_called["called_by"]:
+                                        task_called["called_by"].append(task["name"])
+                                    elif not task_called["called_by"]:
+                                        task_called["called_by"] = [task["name"]]
+                                except KeyError:
+                                    task_called["called_by"] = [task["name"]]
+                                break
                     break
 
 
@@ -92,20 +118,25 @@ def tasks_not_in_profile(primary_items, tasks_processed, task_ids):
     # Now process all Tasks under Project that are not called by any Profile
     # task_ids is a list of strings, each string is a Task id.
     task_line = ""
-    no_profile_tasks = []
+    no_profile_tasks = no_profile_task_lines = []
     for task in task_ids:
         if (
             primary_items["tasker_root_elements"]["all_tasks"][task]["xml"]
             not in tasks_processed
         ):
             # The Task has not been processed = not in any Profile.
-            task_name = primary_items["tasker_root_elements"]["all_tasks"][task]["name"]
+            the_task_element = primary_items["tasker_root_elements"]["all_tasks"][task]
+            task_name = the_task_element
             no_profile_tasks.append(task_name)
-
+            no_profile_task_lines.append(
+                {"xml": task_name["xml"], "name": task_name["name"]}
+            )
+    # Format the output line
     if no_profile_tasks:
         task_line = f"{blank*5}÷{line*5}▶ Tasks not in any Profile:"
         for task in no_profile_tasks:
-            task_line = f"{task_line} {task},"
+            task_line = f'{task_line} {task["name"]},'
+
         # Remove trailing comma: ",&nbsp;&nbsp;"
         task_line = task_line.rstrip(task_line[-1])
 
@@ -116,6 +147,9 @@ def tasks_not_in_profile(primary_items, tasks_processed, task_ids):
             task_line,
             ["", "task_color", FormatLine.add_end_span],
         )
+
+        # Get any/all "Perform Task" links back to other Tasks
+        get_perform_task_actions(primary_items, "", no_profile_task_lines)
 
 
 # ##################################################################################
@@ -325,7 +359,6 @@ def do_the_outline(primary_items: dict, network: dict) -> None:
 
         # Format Project name
         format_html(
-            primary_items,
             "project_color",
             "",
             f"Project: {project_name}",

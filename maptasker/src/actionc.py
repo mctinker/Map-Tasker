@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+
 # #################################################################################### #
 #                                                                                      #
 # actionc: Task "Action" and Profile "condition" dictionary                            #
@@ -560,6 +561,7 @@ action_codes = {
     "1446874931t": {"redirect": ["1040876951t"], "display": "AutoTools Json Read"},
     "1447159672t": {"redirect": ["1040876951t"], "display": "AutoTools Text"},
     "1447244736t": {"redirect": ["1040876951t"], "display": "AutoTools Action Wait"},
+    "1446697909t": {"redirect": ["1040876951t"], "display": "AutoWear Dialog"},
     "145s": {
         "numargs": 0,
         "args": [],

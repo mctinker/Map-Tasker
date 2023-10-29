@@ -82,7 +82,6 @@ def get_launcher_task(primary_items, project: defusedxml.ElementTree.XML) -> str
         launcher_task_element = share_element.find("t")
         if launcher_task_element is not None and launcher_task_element.text is not None:
             launcher_task_info = format_html(
-                primary_items,
                 "launcher_task_color",
                 "",
                 f"[Launcher Task: {launcher_task_element.text}] ",
@@ -293,7 +292,7 @@ def get_extra_and_output_project(
         kid_app_info = get_kid_app(project)
         if kid_app_info:
             kid_app_info = format_html(
-                primary_items, "project_color", "", kid_app_info, True
+                "project_color", "", kid_app_info, True
             )
         priority = get_priority(project, False)
 
@@ -302,7 +301,6 @@ def get_extra_and_output_project(
 
     # Get the name in a format with proper HTML code wrapped around it
     project_name_details = format_html(
-        primary_items,
         "project_color",
         "",
         f"Project: {project_name_altered}",

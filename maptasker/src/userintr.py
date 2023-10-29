@@ -1268,6 +1268,7 @@ class MyGui(customtkinter.CTk):
         # Set up default values
         if self.backup_file_http == "" or self.backup_file_http is None:
             self.backup_file_http = "192.168.0.210:1821"
+
         if not self.backup_file_location:
             self.backup_file_location = "/Tasker/configs/user/backup.xml"
         # Display prompt for info

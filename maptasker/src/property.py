@@ -49,7 +49,6 @@ def parse_variable(
 
     # Output the results
     out_string = format_html(
-        primary_items,
         color_to_use,
         "",
         f"<br>Properties.... Variable Title:{display_name}, Variable:{variable_name}, \
@@ -83,7 +82,6 @@ def get_properties(
     comment_xml = header.find("pc")
     if comment_xml is not None:
         out_string = format_html(
-            primary_items,
             color_to_use,
             "",
             f"<br>Properties comment: {comment_xml.text}",

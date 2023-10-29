@@ -16,7 +16,7 @@ import os.path
 from os import getcwd
 
 import requests
-from requests.exceptions import InvalidSchema
+from requests.exceptions import InvalidSchema, ConnectionError, ConnectTimeout
 
 from maptasker.src.error import error_handler
 from maptasker.src.sysconst import logger
@@ -98,7 +98,7 @@ def request_file(
 
     # Make the request.
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
     except InvalidSchema:
         return (
             8,
@@ -108,6 +108,11 @@ def request_file(
         return (
             8,
             f"Request failed for url: {url} .  Connection error!",
+        )
+    except ConnectTimeout:
+        return (
+            8,
+            f"Request failed for url: {url} .  Timeout error!",
         )
 
     # Check the response status code.

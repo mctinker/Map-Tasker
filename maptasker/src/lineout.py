@@ -302,7 +302,7 @@ class LineOut:
     # Generate the output string based on the input XML <code> passed in
     # Returns a formatted string for output based on the input codes
     # ##################################################################################
-    def format_line(self, primary_items: dict, element: str, lvl: int) -> str:
+    def format_line_out(self, primary_items: dict, element: str, lvl: int) -> str:
         """
         Start formatting the output line with appropriate HTML
                 :param primary_items:  Program registry.  See primitem.py for details.
@@ -371,7 +371,6 @@ class LineOut:
         # Format the output line by adding appropriate HTML.
         if format_line != FormatLine.dont_format_line:
             out_string = format_html(
-                primary_items,
                 format_line[1],
                 format_line[0],
                 out_string,
@@ -389,7 +388,7 @@ class LineOut:
         # Go configure the output based on the contents of the element and the
         #   list level. Call format_line before appending it.
         self.output_lines.append(
-            self.format_line(
+            self.format_line_out(
                 primary_items,
                 out_string,
                 list_level,

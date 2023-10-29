@@ -11,7 +11,6 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 # #################################################################################### #
 import contextlib
-
 import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.action as get_action
@@ -56,7 +55,6 @@ def get_bundle(
 # Given an <argn> element, evaluate it's contents based on our Action code dictionary
 # ##################################################################################
 def get_action_arguments(
-    primary_items: dict,
     evaluated_results: dict,
     arg: object,
     argeval: list,
@@ -97,8 +95,8 @@ def get_action_arguments(
 
         case "App":
             extract_argument(evaluated_results, arg, argeval)
-            app_class, app_pkg, app, extra = get_action.get_app_details(
-                primary_items, code_action, action_type
+            app_class, app_pkg, app = get_action.get_app_details(
+                code_action, action_type
             )
             evaluated_results["result_app"].append(f"{app_class}, {app_pkg}, {app}")
 
@@ -112,9 +110,9 @@ def get_action_arguments(
             evaluated_results = get_bundle(code_action, evaluated_results)
 
         case _:
-            print("rutroh!")
+            print("Rutroh!  See log file for error.")
             evaluated_results["get_xml_flag"] = False
-            logger.debug(f"get_action_results  unknown argtype:{argtype}!!!!!")
+            logger.debug(f"actargs get_action_results error unknown argtype:{argtype}!!!!!")
             evaluated_results["returning_something"] = False
     return evaluated_results
 
@@ -173,7 +171,6 @@ def extract_argument(evaluated_results, arg, argeval):
 # ##################################################################################
 def handle_missing_code(primary_items, the_action_code_plus, index):
     error_message = format_html(
-        primary_items,
         "action_color",
         "",
         (
@@ -243,7 +240,6 @@ def action_args(
         # Get the Action arguments
         evaluated_results["position_arg_type"].append(argtype)
         evaluated_results = get_action_arguments(
-            primary_items,
             evaluated_results,
             arg,
             argeval,

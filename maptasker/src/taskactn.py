@@ -101,7 +101,7 @@ def get_task_actions_and_output(
         # Get the Task xml element
         if len(temp_id) > 1:
             temp_id[1] = temp_id[1].split(" ", 1)[0]  # ID = 1st word of temp_id[1]
-            the_task, kaka = tasks.get_task_name(
+            the_task, _ = tasks.get_task_name(
                 primary_items,
                 temp_id[1],  # Task ID
                 tasks_found,  # Tasks found so far

@@ -43,7 +43,6 @@ def share(
         if search_element is not None and search_element.text:
             # Found search...format and output
             out_string = format_html(
-                primary_items,
                 "taskernet_color",
                 "",
                 f"\n<br><br>TaskerNet search on: {search_element.text}",
@@ -69,7 +68,6 @@ def description_element_output(
     """
     # We need to properly format this since it has embedded stuff that screws it up
     out_string = format_html(
-        primary_items,
         "taskernet_color",
         "",
         f"TaskerNet description: {description_element.text}",
@@ -122,7 +120,7 @@ def description_element_output(
         # Make certain we have proper html in front of string
         if "<span " not in out_string:
             out_string = format_html(
-                primary_items, "taskernet_color", "", new_line, True
+                "taskernet_color", "", new_line, True
             )
         else:
             out_string = new_line

@@ -428,7 +428,7 @@ def get_extra_details(
     """
     # KID App info
     if kid_app_info := get_kid_app(our_task_element):
-        kid_app_info = format_html(primary_items, "task_color", "", kid_app_info, True)
+        kid_app_info = format_html("task_color", "", kid_app_info, True)
         task_output_lines[0] = f"{task_output_lines[0]} {kid_app_info}"
 
     # Task priority

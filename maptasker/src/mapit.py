@@ -158,7 +158,7 @@ def write_out_the_file(primary_items, my_output_dir: str, my_file_name: str) -> 
 
             # Format the output line
             # logger.info(item)
-            output_line = format_line(primary_items, num, item)
+            output_line = format_line(primary_items["output_lines"], num, item)
             if not output_line:
                 continue
 
@@ -449,7 +449,6 @@ to 3.
 - It returns the exit code of the program.
 """
 
-
 def mapit_all(file_to_get: str) -> int:
     # Intialize variables and get the backup xml file
     (
@@ -458,11 +457,6 @@ def mapit_all(file_to_get: str) -> int:
         projects_without_profiles,
         projects_with_no_tasks,
     ) = initialize_everything(file_to_get)
-
-    # Set up key variables
-    single_project_name = primary_items["program_arguments"]["single_project_name"]
-    single_profile_name = primary_items["program_arguments"]["single_profile_name"]
-    single_task_name = primary_items["program_arguments"]["single_task_name"]
 
     # Get all Tasker variables
     if primary_items["program_arguments"]["display_detail_level"] == 4:
@@ -475,7 +469,11 @@ def mapit_all(file_to_get: str) -> int:
         projects_without_profiles,
     )
 
-    # Store results in local variables
+    # Store single item details in local variables
+    program_arguments = primary_items["program_arguments"]
+    single_project_name = program_arguments["single_project_name"]
+    single_profile_name = program_arguments["single_profile_name"]
+    single_task_name = program_arguments["single_task_name"]
     single_project_found = primary_items["found_named_items"]["single_project_found"]
     single_profile_found = primary_items["found_named_items"]["single_profile_found"]
     single_task_found = primary_items["found_named_items"]["single_task_found"]
@@ -490,8 +488,8 @@ def mapit_all(file_to_get: str) -> int:
     )
 
     # Turn off the directory temporarily so we don't get duplicates
-    temp_dir = primary_items["program_arguments"]["directory"]
-    primary_items["program_arguments"]["directory"] = False
+    temp_dir = program_arguments["directory"]
+    program_arguments["directory"] = False
 
     # Get the list of Tasks not called by a Porfile,
     # and a list of Projects without Profiles/Tasks
@@ -506,17 +504,17 @@ def mapit_all(file_to_get: str) -> int:
     )
 
     # Restore the directory setting for the final directory of Totals
-    primary_items["program_arguments"]["directory"] = temp_dir
+    program_arguments["directory"] = temp_dir
 
     # Display global variables
-    if primary_items["program_arguments"]["display_detail_level"] == 4:
+    if program_arguments["display_detail_level"] == 4:
         output_variables(primary_items, "Unreferenced Global Variables", "")
 
     # Get the output directory
     my_output_dir = getcwd()
 
-    # Output the outline
-    if primary_items["program_arguments"]["outline"]:
+    # Output the Configuration Outline
+    if program_arguments["outline"]:
         process_outline(primary_items, my_output_dir)
 
     # Output the grand total (Projects/Profiles/Tasks/Scenes)
@@ -561,6 +559,6 @@ def mapit_all(file_to_get: str) -> int:
 
     # Rerun this program if "Rerun" was slected from GUI
     with contextlib.suppress(KeyError):
-        if primary_items["program_arguments"]["rerun"]:
+        if program_arguments["rerun"]:
             mapit_all(primary_items["file_to_get"].name)
     return 0

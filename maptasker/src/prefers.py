@@ -35,7 +35,6 @@ def process_service(
         :param temp_output_lines: list of service/preference output lines
     """
     preferences_html = format_html(
-        primary_items,
         "preferences_color",
         "",
         "",
@@ -76,7 +75,6 @@ def process_service(
             service_codes[service_name]["num"],
             (
                 format_html(
-                    primary_items,
                     "preferences_color",
                     "",
                     (
@@ -129,7 +127,6 @@ def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
                     [
                         dummy_num,
                         format_html(
-                            primary_items,
                             "preferences_color",
                             "",
                             (

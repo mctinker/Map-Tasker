@@ -10,6 +10,7 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+
 from maptasker.src.sysconst import (
     pattern5,
     pattern6,
@@ -23,16 +24,15 @@ from maptasker.src.sysconst import (
 # ##################################################################################
 # Given a line in the output queue, reformat it before writing to file
 # ##################################################################################
-def format_line(primary_items: dict, num: int, item: str) -> str:
+def format_line(output_obj: object, num: int, item: str) -> str:
     """
     Given a line in our list of output lines, do some additional formatting
     to clean it up
-        :param primary_items:  Program registry.  See primitem.py for details.
+        :param output_obj:  Output lines method object.
         :param num: the numeric line number from the list of output lines
         :param item: the specific text to reformat from the list of output lines
         :return: the reformatted text line for output
     """
-    output_obj = primary_items["output_lines"]
     output_lines = output_obj.output_lines
     blank = " "
     # If item is a list, then get the actual output line
@@ -95,7 +95,6 @@ def format_line(primary_items: dict, num: int, item: str) -> str:
 # Plug in the html for color along with the text
 # ##################################################################################
 def format_html(
-    primary_items: dict,
     color_code: str,
     text_before: str,
     text_after: str,
@@ -103,7 +102,6 @@ def format_html(
 ) -> str:
     """
     Plug in the html for color and font, along with the text
-        :param primary_items: Program registry.  See primitem.py for details
         :param color_code: the code to use to find the color in colormap
         :param text_before: text to insert before the color/font html
         :param text_after: text to insert after the color/font html

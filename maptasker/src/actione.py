@@ -87,7 +87,7 @@ def look_for_missing_req() -> None:
 
 
 # ##################################################################################
-# See if this Task or Profile code isa deprecated
+# See if this Task or Profile code is deprecated.
 # ##################################################################################
 def check_for_deprecation(the_action_code_plus: str) -> None:
     """
@@ -107,7 +107,7 @@ def check_for_deprecation(the_action_code_plus: str) -> None:
 
 
 # ##################################################################################
-# Given an action code, evaluate it for display
+# Given an action code, evaluate it for display.
 # ##################################################################################
 def get_action_code(
     primary_items: dict,
@@ -147,7 +147,6 @@ def get_action_code(
     else:
         # The code is in our dictionary.  Add the display name
         the_result = format_html(
-            primary_items,
             "action_name_color",
             "",
             action_codes[the_action_code_plus]["display"],
@@ -173,14 +172,17 @@ def get_action_code(
         # dictionary entry.
         # Then grab the 'display' key and fill in rest with directed-to keys
         if "redirect" in action_codes[the_action_code_plus]:
+
+            # Add this guy's display name
+            display_name = action_codes[the_action_code_plus]["display"]
+            
             # Get the referred-to dictionary item
             referral = action_codes[the_action_code_plus]["redirect"][0]
             temp_lookup_codes = {
                 the_action_code_plus: copy.deepcopy(action_codes[referral])
             }
-            # Add this guy's display name
-            display_name = action_codes[the_action_code_plus]["display"]
-            temp_lookup_codes["display"] = copy.deepcopy(display_name)
+
+            temp_lookup_codes[the_action_code_plus]["display"] = copy.deepcopy(display_name)
             # Get the results from the (copy of the) referred-to dictionary entry
             the_result = action_results.get_action_results(
                 primary_items,
@@ -234,7 +236,6 @@ def build_action(
     if not task_code_line:  # If no Action details
         alist.append(
             format_html(
-                primary_items,
                 "unknown_task_color",
                 "",
                 f"Action {code_element.text}: not yet mapped",
@@ -270,7 +271,6 @@ def build_action(
                 if count == CONTINUE_LIMIT:
                     # Add comment that we have reached the limit for continued details
                     alist[-1] = f"{alist[-1]}</span>" + format_html(
-                        primary_items,
                         "Red",
                         "",
                         (

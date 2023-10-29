@@ -300,25 +300,15 @@ def get_action_results(
 
         # Process variables if display_detail_level is 4
         if program_arguments["display_detail_level"] == 4:
-            # if primary_items["program_arguments"][
-            #     "display_detail_level"
-            # ] == 4 and the_action_code_plus in {
-            #     "547t",
-            #     "37t",
-            #     "43t",
-            #     "341t",
-            # }:
             get_variables(primary_items, result)
 
     # Return the properly formatted HTML with the Action name and extra stuff
     return format_html(
-        primary_items,
         "action_name_color",
         "",
         our_action_code["display"],
         True,
     ) + format_html(
-        primary_items,
         "action_color",
         "",
         (

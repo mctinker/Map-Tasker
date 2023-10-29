@@ -40,7 +40,7 @@ def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
 # ##################################################################################
 # Format a text line to a specific width by filling in blank spaces with periods.
 # ##################################################################################
-def format_line(text: str, width: int) -> str:
+def format_line_debug(text: str, width: int) -> str:
     """Format text line to given width by filling with periods"""
 
     formatted = text
@@ -83,7 +83,7 @@ def display_debug_info(primary_items: dict) -> None:
     # Go through dictionary of arguments and output each one.
     for key, value in mydict.items():
         try:
-            line_formatted_to_length = format_line(ARGUMENT_NAMES[key], 40)
+            line_formatted_to_length = format_line_debug(ARGUMENT_NAMES[key], 40)
             value = primary_items["program_arguments"][key]
             if value is None or value == "":
                 value = "None"
@@ -122,7 +122,6 @@ def display_debug_info(primary_items: dict) -> None:
             value = f"<mark>{value} (highlighted for visibility)</mark>"
         # Convert the name of the color to the color
         the_color = format_html(
-            primary_items,
             key,
             "",
             value,
@@ -130,7 +129,9 @@ def display_debug_info(primary_items: dict) -> None:
         )
 
         # Add the line formatted with HTML
-        color_set_to_width = format_line(f"Color for {color_names[key]} set to", 40)
+        color_set_to_width = format_line_debug(
+            f"Color for {color_names[key]} set to", 40
+        )
         primary_items["output_lines"].add_line_to_output(
             primary_items,
             4,
@@ -145,7 +146,6 @@ def display_debug_info(primary_items: dict) -> None:
     #     primary_items,
     #             4,
     #             format_html(
-    #                 primary_items,
     #                 color_to_use,
     #                 "",
     #                 f"Number of Task Action codes = {num}",

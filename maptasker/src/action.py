@@ -302,7 +302,6 @@ def get_label_disabled_condition(
     # See if Action is disabled
     action_disabled = (
         format_html(
-            primary_items,
             "disabled_action_color",
             "",
             " [DISABLED]",
@@ -318,7 +317,7 @@ def get_label_disabled_condition(
     # Format conditions if any
     if task_conditions:
         task_conditions = format_html(
-            primary_items, "action_condition_color", "", task_conditions, True
+            "action_condition_color", "", task_conditions, True
         )
 
     # Return the lot
@@ -371,7 +370,6 @@ def clean_label(primary_items: dict, lbl: str, colormap: dict) -> str:
     # Look for label with <font color=...> embedded
     lbl = remove_html_tags(lbl, "")
     return format_html(
-        primary_items,
         "action_label_color",
         "",
         f" ...with label: {lbl}",
@@ -472,7 +470,6 @@ def get_extra_stuff(
         program_arguments["debug"] and action_type
     ):  # Add the code if this is an Action and in debug mode
         extra_stuff = extra_stuff + format_html(
-            primary_items,
             "disabled_action_color",
             "",
             f'&nbsp;&nbsp;code: {code_action.find("code").text}-',
@@ -483,7 +480,7 @@ def get_extra_stuff(
     if program_arguments["display_detail_level"] > 2:
         child = code_action.find("se")
         if child is not None and child.text == "false":
-            extra_stuff = f'{format_html(primary_items,"action_color",""," [Continue Task After Error]",True,)}{extra_stuff}'
+            extra_stuff = f'{format_html("action_color",""," [Continue Task After Error]",True,)}{extra_stuff}'
 
     # For some reason, we're left with an empty "<span..." element.  Remove it.
     extra_stuff = extra_stuff.replace(
@@ -499,7 +496,7 @@ def get_extra_stuff(
 # Get the application specifics for the given code
 # ##################################################################################
 def get_app_details(
-    primary_items: dict, code_child: defusedxml.ElementTree.XML, action_type: bool
+    code_child: defusedxml.ElementTree.XML, action_type: bool
 ) -> tuple[str, str, str, str]:
     """
     Get the application specifics for the given code (<App>)
@@ -508,16 +505,18 @@ def get_app_details(
         :param action_type: True if this is a Task, False if a condition
         :return: the aplication specifics - class, package name, app name, extra stuff
     """
-    extra_stuff = get_extra_stuff(primary_items, code_child, action_type)
+    # extra_stuff = get_extra_stuff(primary_items, code_child, action_type)
     app_class, app_pkg, app = "", "", ""
     child = code_child.find("App")
     if child is not None and child.tag == "App":
         if child.find("appClass") is None:
-            return "", "", "", extra_stuff
+            # return "", "", "", extra_stuff
+            return "", "", ""
         if child.find("appClass").text is not None:
             app_class = f'Class:{child.find("appClass").text}'
         if child.find("appPkg").text is not None:
             app_pkg = f', Package:{child.find("appPkg").text}'
         if child.find("label").text is not None:
             app = f', App:{child.find("label").text}'
-    return app_class, app_pkg, app, extra_stuff
+    # return app_class, app_pkg, app, extra_stuff
+    return app_class, app_pkg, app

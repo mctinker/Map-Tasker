@@ -63,7 +63,6 @@ def output_the_heading(primary_items: dict) -> None:
         f"<!doctype html>\n<html lang=”en”>\n<head>\n{background_color_html}<title>MapTasker</title>\n<body"
         f" style=\"background-color:{primary_items['colors_to_use']['background_color']}\">\n"
         + format_html(
-            primary_items,
             heading_color,
             "",
             (

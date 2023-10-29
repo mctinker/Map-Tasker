@@ -25,14 +25,14 @@ IGNORE_ITEMS = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
 # ##################################################################################
 # Provide the Action dictionary to the caller
 # ##################################################################################
-def get_dict() -> defusedxml.ElementTree:
-    return action_codes
+# def get_dict() -> defusedxml.ElementTree:
+#     return action_codes
 
 
 # ##################################################################################
 # Update the dictionary for the Action code
-#  This is only called if the action code is not already in our master
-#  dictionary of codes
+#  This is only called if the action code is already in our master
+#  dictionary of codes.
 # ##################################################################################
 def update_action_codes(
     action: defusedxml.ElementTree.XML, the_action_code_plus: defusedxml.ElementTree
@@ -67,7 +67,8 @@ def update_action_codes(
 
 
 # ##################################################################################
-# Build the dictionary for the Action code
+# Build the dictionary for the Action code.  Only called if the action code is not
+#   in our master dictionary of codes.
 # ##################################################################################
 def build_new_action_codes(
     action: defusedxml.ElementTree.XML, the_action_code_plus: defusedxml.ElementTree
