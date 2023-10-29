@@ -1,17 +1,24 @@
 MapTasker Change log
 
- ## [2.4.3] - 2023-10-13
- ### Added: When changing a color in the GUI, a sample of the new color will be displayed.  
- ### Added: Configuration "map" now includes Tasks not associated with any Profile, entry/exit Task flags.    
- ### Added: New display level of "4" to include the display of Project's and all unreferenced global variables.        
- ### Changed: Restructured code for performance.   
- ### Changed: Doing s8ingle Task no longer forces display detail of 3.
- ### Fixed: GUI option "Just display everything" was not properly setting the Display Detail Level.
- ### Fixed: Program error if displaying a single Task.      
+ ## [2.4.4] - 2023-10-29
+### Added: Code optimizations.   
+### Added: Missing Task plugin action AutoWear Dialog
+### Added: "Called Tasks" and "Called By Tasks" added to configuration map (file MapTasker_Map.txt).   
+### Fixed: For Kid apps, remove colon from "Kid app:" since it makes it look like the app is missing.   
+### Fixed: Set a timeout of 10 seconds for obtainingg backup from Android device.     
+### Fixed: Various plugin Task actions were not getting the correct plugin name although values were correct.     
 
 
 Older History Log
 
+- [2.4.3] - 2023-10-13
+        -  Added: When changing a color in the GUI, a sample of the new color will be displayed.  
+        -  Added: Configuration "map" now includes Tasks not associated with any Profile, entry/exit Task flags.    
+        -  Added: New display level of "4" to include the display of Project's and all unreferenced global variables.        
+        -  Changed: Restructured code for performance.   
+        -  Changed: Doing s8ingle Task no longer forces display detail of 3.
+        -  Fixed: GUI option "Just display everything" was not properly setting the Display Detail Level.
+        -  Fixed: Program error if displaying a single Task.   
 - [2.4.1] - 2023-09-30
        -  Added: Configuration Map, saved as "MapTasker_map.txt", added to Configuration Outline   
        -  Added: Further code optimizations.   
@@ -27,7 +34,7 @@ Older History Log
        -  Fixed: Display detail level of 0 (zero) not showing properly or with enough detail.    
        -  Fixed: GUI Restore not displaying correct message for "Display Detail Level".     
        -  Fixed: When displaying a single Project/Profile/Task, the grand total counts did not reflect the single item.
-- [2.3.6] - 2023-09-18
+- [2.3.6] - 2023-09-18 
        - Added: program optimizations for performance and memory usage.   
        - Added: Further code and html optimizations.    
        - Changed: Switch to inline CSS for colors and font, saving on output HTML size and better formatting.   
