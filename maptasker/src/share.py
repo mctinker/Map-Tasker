@@ -119,9 +119,7 @@ def description_element_output(
 
         # Make certain we have proper html in front of string
         if "<span " not in out_string:
-            out_string = format_html(
-                "taskernet_color", "", new_line, True
-            )
+            out_string = format_html("taskernet_color", "", new_line, True)
         else:
             out_string = new_line
 

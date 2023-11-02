@@ -394,6 +394,7 @@ class MyGui(customtkinter.CTk):
         self.get_backup_button = customtkinter.CTkButton(
             master=self,
             fg_color="#246FB6",
+            border_color="#6563ff",
             border_width=2,
             text="Get Backup from Android Device",
             command=self.get_backup_event,
@@ -1271,25 +1272,46 @@ class MyGui(customtkinter.CTk):
 
         if not self.backup_file_location:
             self.backup_file_location = "/Tasker/configs/user/backup.xml"
-        # Display prompt for info
-        dialog = customtkinter.CTkInputDialog(
-            text=(
-                "Enter IP Address, Port Number and File Location, in the following"
-                " format: ip_address:port,file_location\n"
-                "Enter '*' for defaults:"
-                f" {self.backup_file_http},{self.backup_file_location}"
-            ),
-            title="Get Backup from Android Device",
+
+        # Create main entry field right next to backup button.
+        self.entry = customtkinter.CTkEntry(
+            self,
+            placeholder_text=f"{self.backup_file_http},{self.backup_file_location}",
+        )
+        self.entry.configure(
+            width=400,
+            fg_color="#246FB6",
+            border_color="#1bc9ff",
+            text_color=("#0BF075", "#1AD63D"),
+        )
+        self.entry.insert(0, f"{self.backup_file_http},{self.backup_file_location}")
+        self.entry.grid(
+            row=10,
+            column=1,
+            columnspan=2,
+            padx=(90, 0),
+            pady=(20, 20),
+            sticky="s",
+        )
+        # Replace backup button.
+        self.get_backup_button = customtkinter.CTkButton(
+            master=self,
+            fg_color="#D62CFF",
+            border_color="#6563ff",
+            border_width=2,
+            text="Enter and Click Here to Set >>=>",
+            command=self.fetch_backup_event,
+            text_color=("#0BF075", "#1AD63D"),
+        )
+        self.get_backup_button.grid(
+            row=10, column=1, padx=10, pady=(20, 20), sticky="w"
         )
 
-        # Validate the input...
-        if not (backup_info := dialog.get_input()):
-            self.display_message_box(
-                "Get Backup Settings...nothing entered.  No action taken.",
-                False,
-            )
-            return
-
+    # ##################################################################################
+    # Fetch the backup ip and file details, and validate.
+    # ##################################################################################
+    def fetch_backup_event(self):
+        backup_info = self.entry.get()
         # User entered values other than default?
         if backup_info != "*":
             # The following should return a list: [ip_address:port_number, file_location]
@@ -1331,6 +1353,21 @@ class MyGui(customtkinter.CTk):
             # All is well so far...
             self.backup_file_http = temp_info[0]
             self.backup_file_location = temp_info[1]
+
+            # Delete entry field by overlaying it.
+            self.entry.delete(0, "end")
+            # Restore normal 'Get Backup Settings' button.
+            self.get_backup_button = customtkinter.CTkButton(
+                master=self,
+                fg_color="#246FB6",
+                border_color="#6563ff",
+                text="Get Backup from Android Device",
+                command=self.get_backup_event,
+                text_color=("#0BF075", "#1AD63D"),
+            )
+        self.get_backup_button.grid(
+            row=10, column=1, padx=10, pady=(20, 20), sticky="w"
+        )
 
         self.display_message_box(
             (

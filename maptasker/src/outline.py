@@ -38,7 +38,7 @@ import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
-from maptasker.src.netmap import network_map
+from maptasker.src.diagram import network_map
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.sysconst import NO_PROFILE, FormatLine
 
@@ -100,8 +100,11 @@ def get_perform_task_actions(
                                 task_called["name"]
                                 and task_called["name"] == perform_task_name
                             ):
-                                try:  
-                                    if task_called["called_by"] and task["name"] not in task_called["called_by"]:
+                                try:
+                                    if (
+                                        task_called["called_by"]
+                                        and task["name"] not in task_called["called_by"]
+                                    ):
                                         task_called["called_by"].append(task["name"])
                                     elif not task_called["called_by"]:
                                         task_called["called_by"] = [task["name"]]

@@ -507,7 +507,8 @@ def output_task_list(
         # If only doing a single Task and we found/did it, then we are done
         if (
             primary_items["program_arguments"]["single_task_name"]
-            and primary_items["program_arguments"]["single_task_name"] == task_item["name"]
+            and primary_items["program_arguments"]["single_task_name"]
+            == task_item["name"]
         ):
             return True
 

@@ -172,17 +172,18 @@ def get_action_code(
         # dictionary entry.
         # Then grab the 'display' key and fill in rest with directed-to keys
         if "redirect" in action_codes[the_action_code_plus]:
-
             # Add this guy's display name
             display_name = action_codes[the_action_code_plus]["display"]
-            
+
             # Get the referred-to dictionary item
             referral = action_codes[the_action_code_plus]["redirect"][0]
             temp_lookup_codes = {
                 the_action_code_plus: copy.deepcopy(action_codes[referral])
             }
 
-            temp_lookup_codes[the_action_code_plus]["display"] = copy.deepcopy(display_name)
+            temp_lookup_codes[the_action_code_plus]["display"] = copy.deepcopy(
+                display_name
+            )
             # Get the results from the (copy of the) referred-to dictionary entry
             the_result = action_results.get_action_results(
                 primary_items,

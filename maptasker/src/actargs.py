@@ -112,7 +112,9 @@ def get_action_arguments(
         case _:
             print("Rutroh!  See log file for error.")
             evaluated_results["get_xml_flag"] = False
-            logger.debug(f"actargs get_action_results error unknown argtype:{argtype}!!!!!")
+            logger.debug(
+                f"actargs get_action_results error unknown argtype:{argtype}!!!!!"
+            )
             evaluated_results["returning_something"] = False
     return evaluated_results
 

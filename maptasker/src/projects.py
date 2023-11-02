@@ -291,9 +291,7 @@ def get_extra_and_output_project(
     if primary_items["program_arguments"]["display_detail_level"] > 2:
         kid_app_info = get_kid_app(project)
         if kid_app_info:
-            kid_app_info = format_html(
-                "project_color", "", kid_app_info, True
-            )
+            kid_app_info = format_html("project_color", "", kid_app_info, True)
         priority = get_priority(project, False)
 
     # Make the Project name bold, italcize and/or highlighted if requested

@@ -449,6 +449,7 @@ to 3.
 - It returns the exit code of the program.
 """
 
+
 def mapit_all(file_to_get: str) -> int:
     # Intialize variables and get the backup xml file
     (
