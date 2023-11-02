@@ -1,6 +1,6 @@
 MapTasker Change log
 
-## [2.4.6] - 2023-11-??  # FIX
+## [2.4.6] - 2023-11-02 
 ### - Changed: GUI prompt to fetch backup from Android device now prompts with default value for easy entry/modification.
 ### - Added: Caller-to-Called Tasks now individually identified in Configurtation diagram/map.   
 ### - Fixed: Configuration diagram/map "No Profiles" box includes Tasks that do have Profiles
