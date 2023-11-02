@@ -1,17 +1,21 @@
 MapTasker Change log
 
- ## [2.4.5] - 2023-10-29
-### Added: Code optimizations.   
-### Added: Missing Task plugin action AutoWear Dialog
-### Added: "Called Tasks" and "Called By Tasks" added to configuration map (file MapTasker_Map.txt).   
-### Fixed: For Kid apps, remove colon from "Kid app:" since it makes it look like the app is missing.   
-### Fixed: Set a timeout of 10 seconds for obtainingg backup from Android device.     
-### Fixed: Various plugin Task actions were not getting the correct plugin name although values were correct.  
-### Fixed: Added missing dependency on packaging by customtkinter       
+## [2.4.6] - 2023-11-??  # FIX
+### - Changed: GUI prompt to fetch backup from Android device now prompts with default value for easy entry/modification.
+### - Added: Caller-to-Called Tasks now individually identified in Configurtation diagram/map.   
+### - Fixed: Configuration diagram/map "No Profiles" box includes Tasks that do have Profiles
 
 
 Older History Log
 
+- [2.4.5] - 2023-10-29
+        -  Added: Code optimizations.   
+        -  Added: Missing Task plugin action AutoWear Dialog
+        -  Added: "Called Tasks" and "Called By Tasks" added to configuration map (file MapTasker_Map.txt).   
+        -  Fixed: For Kid apps, remove colon from "Kid app:" since it makes it look like the app is missing.   
+        -  Fixed: Set a timeout of 10 seconds for obtainingg backup from Android device.     
+        -  Fixed: Various plugin Task actions were not getting the correct plugin name although values were correct.  
+        -  Fixed: Added missing dependency on packaging by customtkinter   
 - [2.4.3] - 2023-10-13
         -  Added: When changing a color in the GUI, a sample of the new color will be displayed.  
         -  Added: Configuration "map" now includes Tasks not associated with any Profile, entry/exit Task flags.    
