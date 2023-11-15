@@ -10,7 +10,7 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-
+import re
 from maptasker.src.sysconst import (
     pattern5,
     pattern6,
@@ -19,6 +19,8 @@ from maptasker.src.sysconst import (
     pattern9,
     pattern10,
 )
+
+SPAN_REGEX = re.compile(r'<span class="(\w+)"><span')
 
 
 # ##################################################################################
@@ -33,6 +35,7 @@ def format_line(output_obj: object, num: int, item: str) -> str:
         :param item: the specific text to reformat from the list of output lines
         :return: the reformatted text line for output
     """
+
     output_lines = output_obj.output_lines
     blank = " "
     # If item is a list, then get the actual output line
@@ -109,15 +112,16 @@ def format_html(
         :return: string with text formatted with color and font
     """
 
-    # Determine and get the color to use
-    # color_to_use = primary_items.get("colors_to_use", {}).get(color_code, color_code)
-
+    # Determine and get the color to use.
     # Return completed HTML with color, font and text with text after
     if text_after:
-        text_after = text_after.replace(f'<span class="{color_code}"><span', "<span")
+        # The following line eliminates a <span color that is immediately followed by
+        # another span color...only happens 3 out of 20,000 lines.  And leaving it in
+        # has no adverse impact to the output other than an extra span that is overridden.
+        # text_after = text_after.replace(f'<span class="{color_code}"><span', "<span")
+
         # Set up the trailing HTML to include
         trailing_span = "</span>" if end_span else ""
-        # return f'{text_before}<span style="color:{color_to_use}{font}">{text_after}{trailing_span}'
         return f'{text_before}<span class="{color_code}">{text_after}{trailing_span}'
 
     # No text after...just return it.

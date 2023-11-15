@@ -20,6 +20,7 @@ from maptasker.src.dirout import add_directory_item
 # from maptasker.src.kidapp import get_kid_app
 from maptasker.src.format import format_html
 from maptasker.src.nameattr import add_name_attribute
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
 from maptasker.src.share import share
 from maptasker.src.sysconst import NO_PROFILE, FormatLine
@@ -30,7 +31,6 @@ from maptasker.src.xmldata import remove_html_tags
 # Get a specific Profile's Tasks (maximum of two:entry and exit)
 # ##################################################################################
 def get_profile_tasks(
-    primary_items: dict,
     the_profile: defusedxml.ElementTree.XML,
     found_tasks_list: list,
     task_output_line: list,
@@ -45,14 +45,13 @@ def get_profile_tasks(
     the task name matches.
 
     Args:
-        :param primary_items:  Program registry.  See primitem.py for details.
+
         the_profile (defusedxml.ElementTree.XML): The XML profile element.
         found_tasks_list (list): A list of found tasks.
         task_output_line (list): A list of task output lines.
 
     Returns:
         list: a list containing the task element and name
-
     """
     keys_we_dont_want = ["cdate", "edate", "flags", "id", "limit"]
     the_task_element, the_task_name = "", ""
@@ -69,20 +68,19 @@ def get_profile_tasks(
             task_id = child.text
             # Count Task under Profile if it hasn't yet been counted
             if task_id not in found_tasks_list:
-                primary_items["task_count_for_profile"] = (
-                    primary_items["task_count_for_profile"] + 1
+                PrimeItems.task_count_for_profile = (
+                    PrimeItems.task_count_for_profile + 1
                 )
             the_task_element, the_task_name = tasks.get_task_name(
-                primary_items, task_id, found_tasks_list, task_output_line, task_type
+                task_id, found_tasks_list, task_output_line, task_type
             )
             list_of_tasks.append({"xml": the_task_element, "name": the_task_name})
             # list_of_tasks.append([the_task_element, the_task_name])
             if (
-                primary_items["program_arguments"]["single_task_name"]
-                and primary_items["program_arguments"]["single_task_name"]
-                == the_task_name
+                PrimeItems.program_arguments["single_task_name"]
+                and PrimeItems.program_arguments["single_task_name"] == the_task_name
             ):
-                primary_items["found_named_items"]["single_task_found"] = True
+                PrimeItems.found_named_items["single_task_found"] = True
                 break
         # If hit Profile's name, we've passed all the Task ids.
         elif child.tag == "nme":
@@ -94,12 +92,11 @@ def get_profile_tasks(
 # Get a specific Profile's name
 # ##################################################################################
 def get_profile_name(
-    primary_items: dict,
     profile: defusedxml.ElementTree,
 ) -> tuple[str, str]:
     """
     Get a specific Profile's name
-        :param primary_items:  Program registry.  See primitem.py for details.
+
         :param profile: xml element pointing to the Profile
         :return: Profile name with appropriate html and the profile name itself
     """
@@ -107,14 +104,14 @@ def get_profile_name(
     profile_id = profile.attrib.get("sr")
     profile_id = profile_id[4:]
     if not (
-        the_profile_name := primary_items["tasker_root_elements"]["all_profiles"][
-            profile_id
-        ]["name"]
+        the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id][
+            "name"
+        ]
     ):
         the_profile_name = NO_PROFILE
 
     # Make the Project name bold, italicize, underline and/or highlighted if requested
-    altered_profile_name = add_name_attribute(primary_items, the_profile_name)
+    altered_profile_name = add_name_attribute(the_profile_name)
 
     # Add html color and font for Profile name
     profile_name_with_html = format_html(
@@ -125,7 +122,7 @@ def get_profile_name(
     )
 
     # If we are debugging, add the Profile ID
-    if primary_items["program_arguments"]["debug"]:
+    if PrimeItems.program_arguments["debug"]:
         profile_id = profile.find("id").text
         profile_name_with_html = f"{profile_name_with_html} "
         f'{format_html("Red", "", f"ID:{profile_id}", True)}'
@@ -136,13 +133,12 @@ def get_profile_name(
 # Get the Profile's key attributes: limit, launcher task, run conditions
 # ##################################################################################
 def build_profile_line(
-    primary_items: dict,
     project: defusedxml.ElementTree.XML,
     profile: defusedxml.ElementTree.XML,
 ) -> str:
     """
     Get the Profile's key attributes: limit, launcher task, run conditions and output it
-        :param primary_items:  Program registry.  See primitem.py for details.
+
         :param project: the Project xml element
         :param profile: the Profile xml element
         :return: Profile name
@@ -182,7 +178,7 @@ def build_profile_line(
     #     priority = get_priority(profile, False)
 
     # Display flags for debug mode
-    if primary_items["program_arguments"]["debug"]:
+    if PrimeItems.program_arguments["debug"]:
         flags = profile.find("flags")
         if flags is not None:
             flags = format_html(
@@ -195,22 +191,21 @@ def build_profile_line(
             flags = ""
 
     # Get the Profile name
-    profile_name_with_html, profile_name = get_profile_name(primary_items, profile)
+    profile_name_with_html, profile_name = get_profile_name(profile)
 
     # Handle directory hyperlink
-    if primary_items["program_arguments"]["directory"]:
-        add_directory_item(primary_items, "profiles", profile_name)
+    if PrimeItems.program_arguments["directory"]:
+        add_directory_item("profiles", profile_name)
 
     # Get the Profile's conditions
-    if primary_items["program_arguments"]["conditions"] or profile_name == "NO_PROFILE":
+    if PrimeItems.program_arguments["conditions"] or profile_name == "NO_PROFILE":
         if profile_conditions := condition.parse_profile_condition(
-            primary_items,
             profile,
         ):
-            # Strip pre-existing HTML from conmditions, since some condition codes
+            # Strip pre-existing HTML from conditions, since some condition codes
             # may be same as Actions.
             # And the Actions would have plugged in the action_color HTML.
-            profile_conditions = remove_html_tags(profile_conditions, "")
+            # profile_conditions = remove_html_tags(profile_conditions, "")
             condition_text = format_html(
                 "profile_condition_color",
                 "",
@@ -224,8 +219,7 @@ def build_profile_line(
     )
 
     # Output the Profile line
-    primary_items["output_lines"].add_line_to_output(
-        primary_items,
+    PrimeItems.output_lines.add_line_to_output(
         2,
         profile_info,
         FormatLine.dont_format_line,
@@ -237,7 +231,6 @@ def build_profile_line(
 # Go through all Projects Profiles...and output them
 # ##################################################################################
 def process_profiles(
-    primary_items: dict,
     project: defusedxml.ElementTree.XML,
     project_name: str,
     profile_ids: list,
@@ -245,8 +238,6 @@ def process_profiles(
 ) -> defusedxml.ElementTree:
     """
     Go through Project's Profiles and output each
-        :param primary_items: a dictionary containing program runtime arguments,
-                colors to use in output,
         all Tasker xml root elements, and a list of all output lines.
         :param project: Project to process
         :param project_name: Project's name
@@ -257,43 +248,43 @@ def process_profiles(
 
     # Go through the Profiles found in the Project
     for item in profile_ids:
-        profile = primary_items["tasker_root_elements"]["all_profiles"][item]["xml"]
+        profile = PrimeItems.tasker_root_elements["all_profiles"][item]["xml"]
         if profile is None:  # If Project has no profiles, skip
             return None
 
         # Are we searching for a specific Profile?
-        if primary_items["program_arguments"]["single_profile_name"]:
+        if PrimeItems.program_arguments["single_profile_name"]:
+            # Make sure this item's name is in our list of profiles.
             if not (
-                profile_name := primary_items["tasker_root_elements"]["all_profiles"][
-                    item
-                ]["name"]
+                profile_name := PrimeItems.tasker_root_elements["all_profiles"][item][
+                    "name"
+                ]
             ):
                 continue
 
-            if (
-                primary_items["program_arguments"]["single_profile_name"]
-                != profile_name
-            ):
+            if PrimeItems.program_arguments["single_profile_name"] != profile_name:
                 continue  # Not our Profile...go to next Profile ID
 
             # BINGO! We found the Profile we were looking for!
-            primary_items["found_named_items"]["single_profile_found"] = True
+            # Identify items found.
+            PrimeItems.found_named_items["single_profile_found"] = True
+            PrimeItems.program_arguments["single_project_name"] = project_name
+            PrimeItems.found_named_items["single_project_found"] = True
+
             # Clear the output list to prepare for single Profile only
-            primary_items["output_lines"].refresh_our_output(
-                primary_items,
+            PrimeItems.output_lines.refresh_our_output(
                 False,
                 project_name,
                 "",
             )
 
             # Start Profile list
-            primary_items["output_lines"].add_line_to_output(
-                primary_items, 1, "", FormatLine.dont_format_line
+            PrimeItems.output_lines.add_line_to_output(
+                1, "", FormatLine.dont_format_line
             )
         # Get Task xml element and name
         task_output_lines = []  # Profile's Tasks will be filled in here
         list_of_tasks = get_profile_tasks(
-            primary_items,
             profile,
             list_of_found_tasks,
             task_output_lines,
@@ -301,33 +292,30 @@ def process_profiles(
 
         # Examine Profile attributes and output Profile line
         profile_name = build_profile_line(
-            primary_items,
             project,
             profile,
         )
 
         # Process Profile Properties
-        if primary_items["program_arguments"]["display_detail_level"] > 2:
+        if PrimeItems.program_arguments["display_detail_level"] > 2:
             get_properties(
-                primary_items,
                 profile,
                 "profile_color",
             )
 
         # Process any <Share> information from TaskerNet
-        if primary_items["program_arguments"]["taskernet"]:
-            share(primary_items, profile)
+        if PrimeItems.program_arguments["taskernet"]:
+            share(profile)
             # Add a spacer if detail is 0
-            if primary_items["program_arguments"]["display_detail_level"] == 0:
-                primary_items["output_lines"].add_line_to_output(
-                    primary_items, 0, "", FormatLine.dont_format_line
+            if PrimeItems.program_arguments["display_detail_level"] == 0:
+                PrimeItems.output_lines.add_line_to_output(
+                    0, "", FormatLine.dont_format_line
                 )
 
         # We have the Tasks for this Profile.  Now let's output them.
         # True = we're looking for a specific Task
         # False = this is a normal Task
         specific_task = tasks.output_task_list(
-            primary_items,
             list_of_tasks,
             project_name,
             profile_name,
@@ -336,14 +324,14 @@ def process_profiles(
             True,
         )
 
-        # Get out if doing a specific Task, and it was found
+        # Get out if doing a specific Task, and it was found, or not specific task but
+        # found speficic Profile.  No need to process any more Profiles.
         if (
             specific_task
-            and primary_items["program_arguments"]["single_task_name"]
-            and primary_items["found_named_items"]["single_task_found"]
+            and PrimeItems.program_arguments["single_task_name"]
+            and PrimeItems.found_named_items["single_task_found"]
         ) or (
-            not specific_task
-            and primary_items["found_named_items"]["single_profile_found"]
+            not specific_task and PrimeItems.found_named_items["single_profile_found"]
         ):  # Get out if we've got the Task we're looking for
             break
         elif not specific_task:

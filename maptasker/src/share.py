@@ -15,15 +15,18 @@ import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.format import format_html
 from maptasker.src.sysconst import FONT_FAMILY, FormatLine
+from maptasker.src.primitem import PrimeItems
 
 
+# ##################################################################################
+# Go through xml <Share> elements to grab and output TaskerNet description and
+# search-on lines.
+# ##################################################################################
 def share(
-    primary_items: dict,
     root_element: defusedxml.ElementTree.XML,
 ) -> None:
     """
     Go through xml <Share> elements to grab and output TaskerNet description and search-on lines
-        :param primary_items:  Program registry.  See primitem.py for details.
         :param root_element: beginning xml element (e.g. Project or Task)
     """
     # Get the <share> element, if any
@@ -34,7 +37,6 @@ def share(
         # Process the description
         if description_element is not None:
             description_element_output(
-                primary_items,
                 description_element,
             )
 
@@ -48,8 +50,8 @@ def share(
                 f"\n<br><br>TaskerNet search on: {search_element.text}",
                 True,
             )
-            primary_items["output_lines"].add_line_to_output(
-                primary_items, 2, out_string, FormatLine.dont_format_line
+            PrimeItems.output_lines.add_line_to_output(
+                2, out_string, FormatLine.dont_format_line
             )
 
 
@@ -57,13 +59,12 @@ def share(
 # Process the description <d> element
 # ################################################################################
 def description_element_output(
-    primary_items: dict,
     description_element: defusedxml.ElementTree,
 ) -> None:
     """
     We have a Taskernet description (<Share>).  Clean it uip and add it to
     the output list.
-        :param primary_items:  Program registry.  See primitem.py for details.
+
         :param description_element: xml element <d> TaskerNet description
     """
     # We need to properly format this since it has embedded stuff that screws it up
@@ -76,8 +77,8 @@ def description_element_output(
     indent_html = (
         "</p><p"
         f' style="margin-left:20px;margin-right:50px;color:'
-        f'{primary_items["colors_to_use"]["taskernet_color"]}'
-        f'{FONT_FAMILY}{primary_items["program_arguments"]["font"]}">'
+        f'{PrimeItems.colors_to_use["taskernet_color"]}'
+        f'{FONT_FAMILY}{PrimeItems.program_arguments["font"]}">'
     )
 
     # Indent the description and override various embedded HTML attributes
@@ -98,7 +99,7 @@ def description_element_output(
         "<table>",
         (
             "\n<style>\n.myTable2 {\n color:"
-            + primary_items["colors_to_use"]["taskernet_color"]
+            + PrimeItems.colors_to_use["taskernet_color"]
             + ';}\n</style>\n<table class="myTable2">'
         ),
     )
@@ -110,8 +111,8 @@ def description_element_output(
             new_line = (
                 f'{new_line}<p style="margin-left:20px;'
                 f"margin-right:50px;color:"
-                f'{primary_items["colors_to_use"]["taskernet_color"]}'
-                f'{FONT_FAMILY}{primary_items["program_arguments"]["font"]}">'
+                f'{PrimeItems.colors_to_use["taskernet_color"]}'
+                f'{FONT_FAMILY}{PrimeItems.program_arguments["font"]}">'
                 if (character_index == " " and out_string[position + 1] == " ")
                 or (character_index == "-" and out_string[position + 1] == " ")
                 else new_line + character_index
@@ -124,6 +125,6 @@ def description_element_output(
             out_string = new_line
 
     # Output the description line.
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 2, f"{out_string}", FormatLine.dont_format_line
+    PrimeItems.output_lines.add_line_to_output(
+        2, f"{out_string}", FormatLine.dont_format_line
     )

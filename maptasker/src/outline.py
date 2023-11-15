@@ -36,9 +36,10 @@ import contextlib
 
 import defusedxml.ElementTree  # Need for type hints
 
+from maptasker.src.diagram import network_map
 from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
-from maptasker.src.diagram import network_map
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.sysconst import NO_PROFILE, FormatLine
 
@@ -52,10 +53,8 @@ arrow = f"├{line*3}▶"
 # Go through all Tasks for Profile and see if any have a "Perform Task" action.
 # If so, save the link to the other Task to be displayed in the outline.
 # ##################################################################################
-def get_perform_task_actions(
-    primary_items: dict, profile: defusedxml.ElementTree, the_tasks: list
-) -> None:
-    """_summary_
+def get_perform_task_actions(profile: defusedxml.ElementTree, the_tasks: list) -> None:
+    """
     Go through all Tasks for Profile and see if any have a "Perform Task" action.
     If so, save the link to the other Task to be displayed in the outline.
         Args:
@@ -87,12 +86,10 @@ def get_perform_task_actions(
                         task["call_tasks"].append(perform_task_name)
 
                         # Find the Task xml element to which this Perform Task refers.
-                        for task_id in primary_items["tasker_root_elements"][
-                            "all_tasks"
-                        ]:
-                            task_called = primary_items["tasker_root_elements"][
-                                "all_tasks"
-                            ][task_id]
+                        for task_id in PrimeItems.tasker_root_elements["all_tasks"]:
+                            task_called = PrimeItems.tasker_root_elements["all_tasks"][
+                                task_id
+                            ]
 
                             # If we found the referring Task, add it to the list of
                             # "called_by" Tasks
@@ -117,18 +114,18 @@ def get_perform_task_actions(
 # ##################################################################################
 # Output the Tasks that are not in any Profile
 # ##################################################################################
-def tasks_not_in_profile(primary_items, tasks_processed, task_ids):
+def tasks_not_in_profile(tasks_processed, task_ids):
     # Now process all Tasks under Project that are not called by any Profile
     # task_ids is a list of strings, each string is a Task id.
     task_line = ""
     no_profile_tasks = no_profile_task_lines = []
     for task in task_ids:
         if (
-            primary_items["tasker_root_elements"]["all_tasks"][task]["xml"]
+            PrimeItems.tasker_root_elements["all_tasks"][task]["xml"]
             not in tasks_processed
         ):
             # The Task has not been processed = not in any Profile.
-            the_task_element = primary_items["tasker_root_elements"]["all_tasks"][task]
+            the_task_element = PrimeItems.tasker_root_elements["all_tasks"][task]
             task_name = the_task_element
             no_profile_tasks.append(task_name)
             no_profile_task_lines.append(
@@ -144,31 +141,30 @@ def tasks_not_in_profile(primary_items, tasks_processed, task_ids):
         task_line = task_line.rstrip(task_line[-1])
 
         # Output the line
-        primary_items["output_lines"].add_line_to_output(
-            primary_items,
+        PrimeItems.output_lines.add_line_to_output(
             0,
             task_line,
             ["", "task_color", FormatLine.add_end_span],
         )
 
         # Get any/all "Perform Task" links back to other Tasks
-        get_perform_task_actions(primary_items, "", no_profile_task_lines)
+        get_perform_task_actions("", no_profile_task_lines)
 
 
 # ##################################################################################
 # Outline the Scenes under the Project
 # ##################################################################################
-def outline_scenes(primary_items: dict, project_name: str, network: dict) -> None:
-    """_summary_
+def outline_scenes(project_name: str, network: dict) -> None:
+    """
     Outline the Scenes under the Project
         Args:
-            primary_items (dict): Program registry.  See primitem.py for details.
+
             project_name (str): name of the Project to which these Scenes belong.
             network (dict): Dictionary structure for our network pointiog to
                     the owning Project.
     """
     scene_names = ""
-    project = primary_items["tasker_root_elements"]["all_projects"][project_name]["xml"]
+    project = PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"]
     with contextlib.suppress(Exception):
         scene_names = project.find("scenes").text
     if scene_names != "":
@@ -182,8 +178,7 @@ def outline_scenes(primary_items: dict, project_name: str, network: dict) -> Non
             # If last Scene for Project, put an elbow in instead of full bracket
             if scene == scene_list[-1]:
                 arrow_to_use = arrow_to_use.replace("├", "└")
-            primary_items["output_lines"].add_line_to_output(
-                primary_items,
+            PrimeItems.output_lines.add_line_to_output(
                 0,
                 f"{blank*5}{arrow_to_use}{blank*2}Scene: {scene}",
                 ["", "scene_color", FormatLine.add_end_span],
@@ -194,17 +189,16 @@ def outline_scenes(primary_items: dict, project_name: str, network: dict) -> Non
 # Go through the Tasks in the Profile and output them.
 # ##################################################################################
 def do_profile_tasks(
-    primary_items: dict,
     project_name: str,
     profile_name: str,
     the_tasks: list,
     task_output_line: list,
     network: dict,
 ) -> list:
-    """_summary_
+    """
     Go through the Tasks in the Profile and output them.
         Args:
-            primary_items (dict): Program registry.  See primitem.py for details.
+
             project_name (str): Name of the Project
             profile_name (str): Name of the Profile
             the_tasks (list): list of Tasks in Profile ("xml" and "name")
@@ -231,7 +225,7 @@ def do_profile_tasks(
         # Add Task to the network
         network[project_name][profile_name].append(task)
 
-        # Fix the leading edge
+        # Correct the leading edge
         if task_line == task_output_line[-1]:
             arrow_to_use = arrow_to_use.replace("├", "└")
 
@@ -250,8 +244,7 @@ def do_profile_tasks(
 
         # Add the Task output line
         task_line = f"{blank*5}{arrow_to_use}{blank*2}Task: {task_line[0]}{call_task}"
-        primary_items["output_lines"].add_line_to_output(
-            primary_items,
+        PrimeItems.output_lines.add_line_to_output(
             0,
             task_line,
             ["", "task_color", FormatLine.add_end_span],
@@ -263,17 +256,16 @@ def do_profile_tasks(
 # Given a Project, outline it's Profiles, Tasks and Scenes
 # ##################################################################################
 def outline_profiles_tasks_scenes(
-    primary_items: dict,
     project: defusedxml.ElementTree,
     project_name: str,
     profile_ids: list,
     task_ids: list,
     network: dict,
 ) -> None:
-    """_summary_
+    """
     Given a Project, outline it's Profiles, Tasks and Scenes
         Args:
-            primary_items (dict): Program registry.  See primitem.py for details.
+
             project (defusedxml.ElementTree): The xml head element for the Project we are processing
             project_name (str): name of the Project we are currently outlining
             profile_ids (list): liost of Profiles under this Project
@@ -282,58 +274,61 @@ def outline_profiles_tasks_scenes(
     """
 
     # Delete the <ul> inserted by get_ids for Profile
-    primary_items["output_lines"].delete_last_line(primary_items)
+    PrimeItems.output_lines.delete_last_line()
     for item in profile_ids:
         # Get the Profile element
-        profile = primary_items["tasker_root_elements"]["all_profiles"][item]["xml"]
+        profile = PrimeItems.tasker_root_elements["all_profiles"][item]["xml"]
         # Get the Profile name
         if not (
-            profile_name := primary_items["tasker_root_elements"]["all_profiles"][item][
+            profile_name := PrimeItems.tasker_root_elements["all_profiles"][item][
                 "name"
             ]
         ):
             profile_name = NO_PROFILE
 
-        # Add Profile to our network
-        # network[project_name][profile_name] = []
+        # Doing all Projects or single Project and this is our Project...
+        if (
+            not PrimeItems.program_arguments["single_profile_name"]
+            or PrimeItems.program_arguments["single_profile_name"] == profile_name
+        ):
+            # Add Profile to our network
+            # network[project_name][profile_name] = []
 
-        profile_line = f"{blank*5}{arrow}{blank*2}Profile: {profile_name}"
-        primary_items["output_lines"].add_line_to_output(
-            primary_items,
-            0,
-            profile_line,
-            ["", "profile_color", FormatLine.add_end_span],
-        )
+            profile_line = f"{blank*5}{arrow}{blank*2}Profile: {profile_name}"
+            PrimeItems.output_lines.add_line_to_output(
+                0,
+                profile_line,
+                ["", "profile_color", FormatLine.add_end_span],
+            )
 
-        # Get Tasks for this Profile and output them
-        task_output_line = []  # Profile's Tasks will be filled in here
-        tasks_processed = []  # Keep track of Tasks processed/output.
+            # Get Tasks for this Profile and output them
+            task_output_line = []  # Profile's Tasks will be filled in here
+            tasks_processed = []  # Keep track of Tasks processed/output.
 
-        the_tasks = get_profile_tasks(
-            primary_items,
-            profile,
-            list_of_found_tasks,
-            task_output_line,
-        )
+            the_tasks = get_profile_tasks(
+                profile,
+                list_of_found_tasks,
+                task_output_line,
+            )
 
-        # Get any/all "Perform Task" links back to other Tasks
-        get_perform_task_actions(primary_items, profile, the_tasks)
+            # Get any/all "Perform Task" links back to other Tasks
+            get_perform_task_actions(profile, the_tasks)
 
-        # Output the Profile's Tasks
-        tasks_processed = do_profile_tasks(
-            primary_items,
-            project_name,
-            profile_name,
-            the_tasks,
-            task_output_line,
-            network,
-        )
+            # Output the Profile's Tasks
+            tasks_processed = do_profile_tasks(
+                project_name,
+                profile_name,
+                the_tasks,
+                task_output_line,
+                network,
+            )
 
-    # List the Tasks not in anyn Profile for this Project
-    tasks_not_in_profile(primary_items, tasks_processed, task_ids)
+    # List the Tasks not in any Profile for this Project
+    if not PrimeItems.program_arguments["single_profile_name"]:
+        tasks_not_in_profile(tasks_processed, task_ids)
 
     # Get the Scenes for this Project
-    outline_scenes(primary_items, project_name, network)
+    outline_scenes(project_name, network)
 
     return
 
@@ -341,101 +336,98 @@ def outline_profiles_tasks_scenes(
 # ##################################################################################
 # Start outline beginning with the Projects
 # ##################################################################################
-def do_the_outline(primary_items: dict, network: dict) -> None:
-    """_summary_
+def do_the_outline(network: dict) -> None:
+    """
     Start outline beginning with the Projects
         Args:
-            primary_items (dict): Program registry.  See primitem.py for details.
+
             network (dict): Dictionary structure for our network
     """
 
-    for project_item in primary_items["tasker_root_elements"]["all_projects"]:
+    for project_item in PrimeItems.tasker_root_elements["all_projects"]:
         # Get the Project XML element
-        project = primary_items["tasker_root_elements"]["all_projects"][project_item][
-            "xml"
-        ]
+        project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]
         # Get the Project name formatted for the directory hotlink (with +++s)
         project_name = project_item
 
-        # Add Project to our network
-        network[project_name] = {}
+        # Doing all Projects or single Project and this is our Project...
+        if (
+            not PrimeItems.program_arguments["single_project_name"]
+            or PrimeItems.program_arguments["single_project_name"] == project_name
+        ):
+            # Add Project to our network
+            network[project_name] = {}
 
-        # Format Project name
-        format_html(
-            "project_color",
-            "",
-            f"Project: {project_name}",
-            True,
-        )
-        # Output the final Project text
-        primary_items["output_lines"].add_line_to_output(
-            primary_items,
-            0,
-            f"{blank*3}Project: {project_name}",
-            ["", "project_color", FormatLine.add_end_span],
-        )
-
-        # Get Task IDs for this Project.
-        task_ids = get_ids(primary_items, False, project, project_name, [])
-
-        # Get the Profile IDs for this Project and process them
-        # True if we have Profiles for this Project
-        if profile_ids := get_ids(primary_items, True, project, project_name, []):
-            outline_profiles_tasks_scenes(
-                primary_items, project, project_name, profile_ids, task_ids, network
+            # Format Project name
+            format_html(
+                "project_color",
+                "",
+                f"Project: {project_name}",
+                True,
+            )
+            # Output the final Project text
+            PrimeItems.output_lines.add_line_to_output(
+                0,
+                f"{blank*3}Project: {project_name}",
+                ["", "project_color", FormatLine.add_end_span],
             )
 
-        # No Profiles for Project
-        if not profile_ids:
-            # End ordered list since lineout.py added a <ul> for Project
-            primary_items["output_lines"].add_line_to_output(
-                primary_items, 3, "", FormatLine.dont_format_line
-            )
+            # Get Task IDs for this Project.
+            task_ids = get_ids(False, project, project_name, [])
+
+            # Get the Profile IDs for this Project and process them
+            # True if we have Profiles for this Project
+            if profile_ids := get_ids(True, project, project_name, []):
+                outline_profiles_tasks_scenes(
+                    project, project_name, profile_ids, task_ids, network
+                )
+
+            # No Profiles for Project
+            if not profile_ids:
+                # End ordered list since lineout.py added a <ul> for Project
+                PrimeItems.output_lines.add_line_to_output(
+                    3, "", FormatLine.dont_format_line
+                )
 
 
 # ##################################################################################
 # Outline the Tasker Configuration
 # ##################################################################################
-def outline_the_configuration(primary_items: dict) -> None:
-    """_summary_
+def outline_the_configuration() -> None:
+    """
     Outline the Tasker Configuration
         Args:
-            primary_items (dict): Program registry.  See primitem.py for details.
+
     """
 
     # Start with a ruler line
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 1, "<hr>", FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
 
-    # Define our network
+    # Define our network.
     network = {}
 
     # Output the directory link
-    if primary_items["program_arguments"]["directory"]:
-        primary_items["output_lines"].add_line_to_output(
-            primary_items,
+    if PrimeItems.program_arguments["directory"]:
+        PrimeItems.output_lines.add_line_to_output(
             5,
             '<a id="configuration_outline"></a>',
             FormatLine.dont_format_line,
         )
     # Output the header
-    primary_items["output_lines"].add_line_to_output(
-        primary_items,
+    PrimeItems.output_lines.add_line_to_output(
         0,
         "<em>Configuration Outline</em>",
         ["", "trailing_comments_color", FormatLine.add_end_span],
     )
 
     # Go do it!
-    do_the_outline(primary_items, network)
+    do_the_outline(network)
 
     # End the list
-    primary_items["output_lines"].add_line_to_output(
-        primary_items,
+    PrimeItems.output_lines.add_line_to_output(
         3,
         "",
         FormatLine.dont_format_line,
     )
 
-    network_map(primary_items, network)
+    network_map(network)

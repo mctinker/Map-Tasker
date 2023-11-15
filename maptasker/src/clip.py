@@ -44,14 +44,14 @@ small_boat_1h.txt
 
 
 Any art samples you create should be of a frame-by-frame nature as above ordered
-alphabetically with lowercase lettering. Frame play order is dictated by 
+alphabetically with lowercase lettering. Frame play order is dictated by
 this alphabetical order.
 
-All files shall be saved to a relevant directory under the "art" directory in 
-the repo. 
+All files shall be saved to a relevant directory under the "art" directory in
+the repo.
 
 Note that you can also color in your art, but you have to create another txt
-file in another subfolder called "color" that holds the color mappings to 
+file in another subfolder called "color" that holds the color mappings to
 accompany the art file for each frame eg:
 small_boat_1a.txt, small_boat_1a_color.txt, .... etc
 ''
@@ -329,8 +329,10 @@ class Clip:
         sys.stdout.write(CURSOR_RESTORE_POS)  # restore cursor to saved position
 
     def run(self):
-        """Call instance functions to animate the frames to the screen and cycle
-        the animation"""
+        """
+        Call instance functions to animate the frames to the screen and cycle
+        the animation
+        """
         self.get_frames()
         self.set_char_base_color()
         if self.color:

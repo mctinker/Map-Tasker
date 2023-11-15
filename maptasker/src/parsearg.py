@@ -22,7 +22,7 @@
 import argparse
 import textwrap
 from argparse import ArgumentParser
-from tkinter import font, Tk
+from tkinter import Tk, font
 
 from maptasker.src.config import GUI
 from maptasker.src.sysconst import TYPES_OF_COLORS, logger

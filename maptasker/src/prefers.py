@@ -17,19 +17,18 @@ from operator import itemgetter
 
 from maptasker.src.error import error_handler
 from maptasker.src.format import format_html
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.servicec import service_codes
 from maptasker.src.sysconst import FormatLine
 
 
 def process_service(
-    primary_items: dict,
     service_name: str,
     service_value: str,
     temp_output_lines,
 ) -> None:
     """
     We have a service xml element that we have mapped as a preference.  Process it.
-        :param primary_items:  Program registry.  See primitem.py for details.
         :param service_name: name of the preference in <Service xml
         :param service_value: value of the preference in <Service xml
         :param temp_output_lines: list of service/preference output lines
@@ -88,10 +87,12 @@ def process_service(
     )
 
 
-def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
+# ##################################################################################
+# Go through all of the <service> xml elements to process the Tasker preferences.
+# ##################################################################################
+def process_preferences(temp_output_lines: list) -> None:
     """
-    Go through all of the <service> xml elements to process the Tasker preferences
-        :param primary_items:  Program registry.  See primitem.py for details.
+    Go through all of the <service> xml elements to process the Tasker preferences.
         :param temp_output_lines: list of service/preference output lines
         :return: nothing
     """
@@ -100,7 +101,7 @@ def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
     blank = "&nbsp;"
 
     # Go through each <service> xml element
-    for service in primary_items["tasker_root_elements"]["all_services"]:
+    for service in PrimeItems.tasker_root_elements["all_services"]:
         # Make sure the <Setting> xml element is valid
         if all(service.find(tag) is not None for tag in ("n", "t", "v")):
             # Get the service codes
@@ -111,12 +112,10 @@ def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
             # See if the service name is in our dictionary of preferences
             if service_name in service_codes:
                 # Got a hit.  Go process it.
-                process_service(
-                    primary_items, service_name, service_value, temp_output_lines
-                )
+                process_service(service_name, service_value, temp_output_lines)
 
             # If debugging, list specific preferences which can't be identified.
-            elif primary_items["program_arguments"]["debug"]:
+            elif PrimeItems.program_arguments["debug"]:
                 # Add a blank line and the output details to our list of output stuff
                 # Add a blank line if this is the first unmapped item
                 if first_time:
@@ -148,10 +147,9 @@ def process_preferences(primary_items: dict, temp_output_lines: list) -> None:
     return
 
 
-def get_preferences(primary_items: dict) -> None:
+def get_preferences() -> None:
     """
     Go through the Tasker <service> xml elements, each representing a Tasker preference
-    :param primary_items: Program registry.  See primitem.py for details
     :rtype: nothing
     """
     section_names = [
@@ -173,9 +171,8 @@ def get_preferences(primary_items: dict) -> None:
     temp_output_lines = []
 
     # Output title line
-    primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        4,
+    PrimeItems.output_lines.add_line_to_output(
+        0,
         "Tasker Preferences >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",
         ["", "preferences_color", FormatLine.add_end_span],
     )
@@ -186,7 +183,7 @@ def get_preferences(primary_items: dict) -> None:
     previous_section = None
 
     # Okay, let's deal with the Tasker preferences
-    process_preferences(primary_items, temp_output_lines)
+    process_preferences(temp_output_lines)
 
     # All service xml elements have been processed.
     # Sort our output by order of display in Tasker (key=list element 0)
@@ -204,24 +201,20 @@ def get_preferences(primary_items: dict) -> None:
         )
         if section is not None and section != previous_section:
             # Add the preference in the order it appears in Tasker
-            primary_items["output_lines"].add_line_to_output(
-                primary_items,
-                4,
+            PrimeItems.output_lines.add_line_to_output(
+                0,
                 f"<br>&nbsp;Section: {section_names[section]}",
                 ["", "preferences_color", FormatLine.add_end_span],
             )
             previous_section = section
-        primary_items["output_lines"].add_line_to_output(
-            primary_items, 4, f"{line}", FormatLine.dont_format_line
+        PrimeItems.output_lines.add_line_to_output(
+            0, f"{line}", FormatLine.dont_format_line
         )
 
     # Let user know that we have not mapped the remaining items
-    primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        4,
+    PrimeItems.output_lines.add_line_to_output(
+        0,
         "The remaining preferences are not yet mapped",
         ["", "preferences_color", FormatLine.add_end_span],
     )
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 4, "", FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)

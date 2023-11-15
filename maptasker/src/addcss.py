@@ -12,19 +12,19 @@
 # #################################################################################### #
 
 from maptasker.src.sysconst import FONT_FAMILY, FormatLine
+from maptasker.src.primitem import PrimeItems
 
 
-def add_css(primary_items: dict) -> None:
-    """_summary_
+def add_css() -> None:
+    """
     Add formatting CSS to output HTML for the colors and font to use.
     We must re-add the font each time in case a Tasker element overrides the font.
         Args:
-            primary_items (dict): Program registry.  See primitem.py for details
+            None
     """
 
     # Start the style css
-    primary_items["output_lines"].add_line_to_output(
-        primary_items,
+    PrimeItems.output_lines.add_line_to_output(
         5,
         '<style  type="text/css">\n',
         FormatLine.dont_format_line,
@@ -33,13 +33,12 @@ def add_css(primary_items: dict) -> None:
     # Go through all colors
 
     # First, get the liost of colors and reverse the dictionary
-    if primary_items["colors_to_use"]:
-        for color_argument_name in primary_items["colors_to_use"]:
+    if PrimeItems.colors_to_use:
+        for color_argument_name in PrimeItems.colors_to_use:
             try:
-                if primary_items["colors_to_use"][color_argument_name]:
-                    our_html = f'color: {primary_items["colors_to_use"][color_argument_name]}{FONT_FAMILY}{primary_items["program_arguments"]["font"]}'
-                    primary_items["output_lines"].add_line_to_output(
-                        primary_items,
+                if PrimeItems.colors_to_use[color_argument_name]:
+                    our_html = f'color: {PrimeItems.colors_to_use[color_argument_name]}{FONT_FAMILY}{PrimeItems.program_arguments["font"]}'
+                    PrimeItems.output_lines.add_line_to_output(
                         5,
                         f".{color_argument_name} {{{our_html}}}",
                         FormatLine.dont_format_line,
@@ -48,25 +47,23 @@ def add_css(primary_items: dict) -> None:
                 continue
 
     # Add CSS for Bullet color
-    bullet_color = primary_items["colors_to_use"]["bullet_color"]
-    bullet_css = """ul {
-  list-style: none;
-}
+    bullet_color = PrimeItems.colors_to_use["bullet_color"]
+    bullet_css = """ul {list-style: none;}
 
 ul li::before {
-  content: "\\2756";
-  color: red;
-  font-weight: bold;
-  display: inline-block; 
-  width: 1em;
-  margin-left: -1em;
+    content: "\\2756";
+    color: red;
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
 }"""
     bullet_css = bullet_css.replace("red", bullet_color)
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 5, bullet_css, FormatLine.dont_format_line
+    PrimeItems.output_lines.add_line_to_output(
+        5, bullet_css, FormatLine.dont_format_line
     )
 
     # End the style css
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 5, "</style>\n", FormatLine.dont_format_line
+    PrimeItems.output_lines.add_line_to_output(
+        5, "</style>\n", FormatLine.dont_format_line
     )

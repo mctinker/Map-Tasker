@@ -19,13 +19,13 @@ from maptasker.src.sysconst import clean
 # See if the xml tag is one of the predefined types and return result
 # ##################################################################################
 def tag_in_type(tag: str, flag: bool) -> bool:
-    """evaluate the xml tag to see if it is one of our predefined types
+    """
+    Evaluate the xml tag to see if it is one of our predefined types
 
     Parameters: the tag to evaluate, and whether this is a Scene or not (which
             determines which list of types to look for)
 
     Returns: True if tag found, False otherwise
-
     """
     scene_task_element_types = [
         "ListElement",
@@ -91,7 +91,7 @@ def tag_in_type(tag: str, flag: bool) -> bool:
 def get_xml_int_argument_to_value(
     action: defusedxml.ElementTree.XML, arguments: list, names: list
 ) -> list:
-    """_summary_
+    """
     Given an action code (xml), find Int (integer) args and match with names
         Args:
             action (defusedxml.ElementTree.XML): Current <Action> to process
@@ -153,7 +153,7 @@ def get_xml_int_argument_to_value(
 def get_xml_str_argument_to_value(
     action: defusedxml.ElementTree.XML, arguments: list, names: list
 ) -> list:
-    """_summary_
+    """
     Given an action code (xml), find Str (string) args and match with names
         Args:
             action (defusedxml.ElementTree.XML): Current <Action> to process
@@ -184,7 +184,8 @@ def get_xml_str_argument_to_value(
 # Given a string, remove all HTML (anything between < >) tags from it
 # ##################################################################################
 def remove_html_tags(text: str, replacement: str) -> str:
-    """Remove html tags from a string
+    """
+    Remove html tags from a string
     :param text: text from which HTML is to be removed
     :param replacement: text to replace HTML with, if any
     :return: the text with HTML removed

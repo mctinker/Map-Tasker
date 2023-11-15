@@ -17,7 +17,7 @@ from enum import Enum
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 2.4.6"
+MY_VERSION = "MapTasker version 2.5.0"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -123,10 +123,10 @@ ARGUMENT_NAMES = {
     "underline": "Underline Names",
 }
 
+# Debug stuff
 logger = logging.getLogger("MapTasker")
 debug_out = False  # Prints the line to be added to the output
 DEBUG_PROGRAM = False
-debug_file = "maptasker_debug.log"
 debug_file = "maptasker_debug.log"
 
 # Compiled match patterns reused throughout
@@ -157,7 +157,7 @@ class Colors:
     BOLD = "\033[1m"
 
 
-# Used for calls to addline (lineout.py)
+# Used for calls to addline (lineout.py).  Reference as FormatLine.add_end_span.value
 class FormatLine(Enum):
     dont_format_line = []
     add_end_span = True

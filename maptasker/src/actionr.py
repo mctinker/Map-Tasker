@@ -19,6 +19,7 @@ import defusedxml.ElementTree
 import maptasker.src.action as get_action
 from maptasker.src.actargs import action_args
 from maptasker.src.format import format_html
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     logger,
     pattern0,
@@ -94,7 +95,6 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
 # Then evaluate the data against the master dictionary of actions
 # ##################################################################################
 def evaluate_action_args(
-    primary_items: dict,
     the_action_code_plus: defusedxml.ElementTree.XML,
     arg_list: list,
     code_action: defusedxml.ElementTree.XML,
@@ -105,9 +105,8 @@ def evaluate_action_args(
 ) -> object:
     """
     For the given code, save the display_name, required arg list and associated type
-    list in dictionary
-     Then evaluate the data against the master dictionary of actions
-        :param primary_items:  Program registry.  See primitem.py for details.
+    list in dictionary. Then evaluate the data against the master dictionary of actions.
+
         :param the_action_code_plus: the code found in <code> for the Action (<Action>)
             plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
         :param arg_list: list of arguments (<argn>) under Action
@@ -120,7 +119,6 @@ def evaluate_action_args(
     """
     # Process the Task action arguments
     evaluated_results = action_args(
-        primary_items,
         arg_list,
         the_action_code_plus,
         lookup_code_entry,
@@ -172,7 +170,8 @@ def find_capitalized_percent_substrings(string):
         have at least one capitalized letter in the substring.
     """
 
-    # Create a regular expression to match substrings that begin with a percent sign and have at least one capitalized letter.
+    # Create a regular expression to match substrings that begin with a percent sign
+    # and have at least one capitalized letter.
     # regex = r"%.*[A-Z]+"
     # regex = r".*[A-Z].*"
     regex = r".*[A-Z].*"
@@ -180,24 +179,17 @@ def find_capitalized_percent_substrings(string):
     # Find all words that begin with a percent sign (%).
     percent_list = re.findall("[%]\w+", string)
 
-    # Go through the list and find all that have at least one capitalized letter.
-    capitalized_words = []
-    for word in percent_list:
-        if re.match(regex, word):
-            capitalized_words.append(word)
-
-    # Find all of the occurrences of the regex in the string.
-    return capitalized_words
+    return [word for word in percent_list if re.match(regex, word)]
 
 
 # ##################################################################################
 # Get the variables from this result and save them in the dictionary.
 # ##################################################################################
-def get_variables(primary_items: dict, result: str) -> None:
-    """_summary_
+def get_variables(result: str) -> None:
+    """
     Get the variables from this result and save them in the dictionary.
         Args:
-            primary_items (dict): Program registry.  See primitem.py for details.
+
             result (str): The text string containing the Task variable(s)
     """
 
@@ -208,22 +200,20 @@ def get_variables(primary_items: dict, result: str) -> None:
         for variable in variable_list:
             # Validate that this variable is for the Project we are currently doing.
             try:
-                if primary_variable := primary_items["variables"][variable]:
+                if primary_variable := PrimeItems.variables[variable]:
                     if (
                         primary_variable["project"]
-                        and primary_items["current_project"]
+                        and PrimeItems.current_project
                         not in primary_variable["project"]
                     ):
-                        primary_variable["project"].append(
-                            primary_items["current_project"]
-                        )
+                        primary_variable["project"].append(PrimeItems.current_project)
                     elif not primary_variable["project"]:
-                        primary_variable["project"] = [primary_items["current_project"]]
+                        primary_variable["project"] = [PrimeItems.current_project]
             except KeyError:
                 # Drop here if variable is not in Tasker's variable list (i.e. the xml)
-                primary_items["variables"][variable] = {
+                PrimeItems.variables[variable] = {
                     "value": "(Inactive)",
-                    "project": [primary_items["current_project"]],
+                    "project": [PrimeItems.current_project],
                     "verified": False,
                 }
 
@@ -234,7 +224,6 @@ def get_variables(primary_items: dict, result: str) -> None:
 # Then evaluate the data against the master dictionary of actions.
 # ##################################################################################
 def get_action_results(
-    primary_items: dict,
     the_action_code_plus: str,
     lookup_code_entry: defusedxml.ElementTree.XML,
     code_action: defusedxml.ElementTree.XML,
@@ -244,9 +233,8 @@ def get_action_results(
 ) -> str:
     """
     For the given code, save the display_name, required arg list and associated type
-    list in dictionary
+    list in dictionary.
     Then evaluate the data against the master dictionary of actions
-        :param primary_items:  Program registry.  See primitem.py for details.
         :param the_action_code_plus: the code found in <code> for the Action (<Action>)
         plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
         :param lookup_code_entry: The key to our Action code dictionary in actionc.py
@@ -261,16 +249,15 @@ def get_action_results(
     result = ""
     our_action_code = lookup_code_entry[the_action_code_plus]
 
-    # Save the associated data
-    our_action_code["reqargs"] = arg_list
-    our_action_code["evalargs"] = evaluate_list
-    program_arguments = primary_items["program_arguments"]
+    # Save the associated data, in the event
+    # our_action_code.reqargs = arg_list
+    # our_action_code.evalargs = evaluate_list
+    program_arguments = PrimeItems.program_arguments
     # If just displaying action names or there are no action details, then just
     # display the name
     if arg_list and program_arguments["display_detail_level"] != 2:
         # Evaluate the required args per arg_list
         evaluated_results = evaluate_action_args(
-            primary_items,
             the_action_code_plus,
             arg_list,
             code_action,
@@ -300,19 +287,20 @@ def get_action_results(
 
         # Process variables if display_detail_level is 4
         if program_arguments["display_detail_level"] == 4:
-            get_variables(primary_items, result)
+            get_variables(result)
 
-    # Return the properly formatted HTML with the Action name and extra stuff
-    return format_html(
-        "action_name_color",
-        "",
-        our_action_code["display"],
-        True,
-    ) + format_html(
-        "action_color",
-        "",
-        (
-            f"{result}{get_action.get_extra_stuff(primary_items, code_action, action_type)}"
-        ),
-        False,
-    )
+    # Return the properly formatted HTML (if Task) with the Action name and extra stuff
+    if action_type:  # If this is a Task...
+        return format_html(
+            "action_name_color",
+            "",
+            our_action_code.display,
+            True,
+        ) + format_html(
+            "action_color",
+            "",
+            (f"{result}{get_action.get_extra_stuff(code_action, action_type)}"),
+            False,
+        )
+    else:
+        return f"{our_action_code.display}{result}{get_action.get_extra_stuff(code_action, action_type)}"

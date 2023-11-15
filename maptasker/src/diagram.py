@@ -13,7 +13,7 @@
 # #################################################################################### #
 """
 This code is somewhat of a mess.  It is overly complex, but I wanted to develop my own
-diagramming app rather than rely on yet-another-dependency such as that for 
+diagramming app rather than rely on yet-another-dependency such as that for
 diagram and graphviz.
 """
 
@@ -23,16 +23,17 @@ from datetime import datetime
 from maptasker.src.diagutil import (
     add_output_line,
     build_box,
+    build_call_table,
+    delete_hanging_bars,
+    get_indices_of_line,
     include_heading,
     print_3_lines,
     print_all,
     print_box,
     remove_icon,
-    delete_hanging_bars,
-    get_indices_of_line,
-    build_call_table,
 )
 from maptasker.src.getids import get_ids
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, UNKNOWN_TASK_NAME, FormatLine
 
 box_line = "═"
@@ -60,7 +61,6 @@ bar = "│"
 # Print the specific Task.
 # ##################################################################################
 def output_the_task(
-    primary_items: dict,
     print_tasks: bool,
     found_tasks: list,
     task: dict,
@@ -70,10 +70,9 @@ def output_the_task(
     called_by_tasks: list,
     position_for_anchor: int,
 ) -> tuple[bool, int]:
-    """_summary_
+    """
     Add the Task to the output list.
         Args:
-            primary_items (dict): _description_
             print_tasks (bool): True if we are printing Tasks.
             found_tasks (list): List of Tasks found so far.
             task (dict): Task details: xml element, name, etc.
@@ -94,7 +93,7 @@ def output_the_task(
     # We have a full row of Profiles.  Print the Tasks out.
     if print_tasks:
         if output_task_lines:
-            print_all(primary_items, output_task_lines)
+            print_all(output_task_lines)
         output_task_lines = []
         last_upward_bar = []
     else:
@@ -132,7 +131,6 @@ def output_the_task(
 # Process all Tasks in the Profile
 # ##################################################################################
 def print_all_tasks(
-    primary_items,
     project_name,
     tasks,
     position_for_anchor,
@@ -144,7 +142,6 @@ def print_all_tasks(
     Print all tasks in a profile
 
     Args:
-        primary_items: Primary profile items
         project_name: Name of the project
         tasks: List of tasks
         position_for_anchor: Position for anchor
@@ -184,8 +181,8 @@ def print_all_tasks(
         called_by_tasks = ""
 
         # First we must find our real Task element that matches this "task".
-        for temp_task_id in primary_items["tasker_root_elements"]["all_tasks"]:
-            temp_task = primary_items["tasker_root_elements"]["all_tasks"][temp_task_id]
+        for temp_task_id in PrimeItems.tasker_root_elements["all_tasks"]:
+            temp_task = PrimeItems.tasker_root_elements["all_tasks"][temp_task_id]
             if task["xml"] == temp_task["xml"]:
                 # Now see if this Task has any "called_by" Tasks.
                 with contextlib.suppress(KeyError):
@@ -197,7 +194,6 @@ def print_all_tasks(
 
         # We have a full row of Profiles.  Print the Tasks out.
         found_tasks, last_upward_bar = output_the_task(
-            primary_items,
             print_tasks,
             found_tasks,
             task,
@@ -214,21 +210,21 @@ def print_all_tasks(
 # ##################################################################################
 # Process all Scenes in the Project, 8 Scenes to a row.
 # ##################################################################################
-def print_all_scenes(primary_items, scenes):
+def print_all_scenes(scenes):
     """
-    Prints all scenes in a project, 8 Scenes to a row.
+        Prints all scenes in a project, 8 Scenes to a row.
 
-    Args:
-        primary_items: Primary items to print.
-        scenes: List of scenes to print.
+        Args:
+    .
+            scenes: List of scenes to print.
 
-    Returns:
-        None: Prints scenes to console.
+        Returns:
+            None: Prints scenes to console.
 
-    - Loops through each scene and prints scene number and outline.
-    - Prints scenes in columns of 6 before resetting.
-    - Includes header before each new column of scenes.
-    - Prints any remaining scenes after loop.
+        - Loops through each scene and prints scene number and outline.
+        - Prints scenes in columns of 6 before resetting.
+        - Includes header before each new column of scenes.
+        - Prints any remaining scenes after loop.
     """
     # Set up for Scenes
     filler = f"{blank*2}"
@@ -236,7 +232,7 @@ def print_all_scenes(primary_items, scenes):
     output_scene_lines = [filler, filler, filler]
     header = False
     # Empty line to start
-    add_output_line(primary_items, " ")
+    add_output_line(" ")
 
     # Do all of the Scenes for the given Project
     for scene in scenes:
@@ -246,7 +242,7 @@ def print_all_scenes(primary_items, scenes):
             include_heading(f"{blank*7}Scenes:", output_scene_lines)
 
             header = True
-            print_3_lines(primary_items, output_scene_lines)
+            print_3_lines(output_scene_lines)
             scene_counter = 1
             output_scene_lines = [filler, filler, filler]
 
@@ -259,14 +255,13 @@ def print_all_scenes(primary_items, scenes):
     if not header:
         include_heading(f"{blank*7}Scenes:", output_scene_lines)
 
-    print_3_lines(primary_items, output_scene_lines)
+    print_3_lines(output_scene_lines)
 
 
 # ##################################################################################
 # Process Tasks not in any Profile
 # ##################################################################################
 def do_tasks_with_no_profile(
-    primary_items,
     project_name,
     output_profile_lines,
     output_task_lines,
@@ -276,7 +271,6 @@ def do_tasks_with_no_profile(
     """
     Process Tasks not in any Profile
     Args:
-        primary_items: Primary items dictionary in one line
         project_name: Project name in one line
         output_profile_lines: Output profile lines in one line
         output_task_lines: Output task lines in one line
@@ -290,19 +284,16 @@ def do_tasks_with_no_profile(
         - Print tasks not in any profile
     """
 
-    project_root = primary_items["tasker_root_elements"]["all_projects"][project_name][
-        "xml"
-    ]
+    project_root = PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"]
 
     # Get all task IDs for this Project.
-    task_ids = get_ids(primary_items, False, project_root, project_name, [])
+    task_ids = get_ids(False, project_root, project_name, [])
 
     # Go through each Task ID and see if it is in fdound_tasks.
     if tasks_not_in_profile := [
-        primary_items["tasker_root_elements"]["all_tasks"][id]
+        PrimeItems.tasker_root_elements["all_tasks"][id]
         for id in task_ids
-        if primary_items["tasker_root_elements"]["all_tasks"][id]["name"]
-        not in found_tasks
+        if PrimeItems.tasker_root_elements["all_tasks"][id]["name"] not in found_tasks
     ]:
         profile = "No Profile"
         print_tasks = False
@@ -315,7 +306,6 @@ def do_tasks_with_no_profile(
             print_tasks,
             profile_counter,
         ) = build_profile_box(
-            primary_items,
             profile,
             profile_counter,
             output_profile_lines,
@@ -326,7 +316,6 @@ def do_tasks_with_no_profile(
         # Print tasks not in any profile
         print_tasks = False
         found_tasks = print_all_tasks(
-            primary_items,
             project_name,
             tasks_not_in_profile,
             position_for_anchor,
@@ -444,7 +433,7 @@ def draw_arrows_to_called_task(
     value: list,
     output_lines: list,
 ) -> None:
-    """_summary_
+    """
     Draw arrows to called Task from Task doing the calling.
         Args:
             up_down_location (int): Position on line where the up or down arrow should be drawn.
@@ -629,16 +618,15 @@ def handle_calls(output_lines):
 # Build the Profile box.
 # ##################################################################################
 def build_profile_box(
-    primary_items,
     profile,
     profile_counter,
     output_profile_lines,
     output_task_lines,
     print_tasks,
 ):
-    """Builds a profile box for a given profile
+    """
+    Builds a profile box for a given profile
     Args:
-        primary_items: Primary items to print
         profile: Profile to add to box
         profile_counter: Counter for profile columns
         output_profile_lines: Running list of profile box lines
@@ -657,7 +645,7 @@ def build_profile_box(
     profile_counter += 1
     if profile_counter > 6:
         # We have 6 columns.  Print them
-        print_3_lines(primary_items, output_profile_lines)
+        print_3_lines(output_profile_lines)
         profile_counter = 1
         print_tasks = True
         output_profile_lines = [filler, filler, filler]
@@ -665,7 +653,7 @@ def build_profile_box(
         # Do Tasks under Profile.
         if output_task_lines:
             # Print the Task lines associated with these 6 Profiles.
-            print_all(primary_items, output_task_lines)
+            print_all(output_task_lines)
             output_task_lines = []
     else:
         print_tasks = False
@@ -686,12 +674,11 @@ def build_profile_box(
 # ##################################################################################
 # Process all Profiles and their Tasks for the given Project
 # ##################################################################################
-def print_profiles_and_tasks(primary_items, project_name, profiles):
+def print_profiles_and_tasks(project_name, profiles):
     """
     Prints profiles and tasks from a project.
 
     Args:
-        primary_items: Items to print.
         project_name: Name of the project.
         profiles: Dictionary of profiles and associated tasks.
 
@@ -721,7 +708,6 @@ def print_profiles_and_tasks(primary_items, project_name, profiles):
                 print_tasks,
                 profile_counter,
             ) = build_profile_box(
-                primary_items,
                 profile,
                 profile_counter,
                 output_profile_lines,
@@ -731,7 +717,6 @@ def print_profiles_and_tasks(primary_items, project_name, profiles):
 
             # Go through the Profile's Tasks
             found_tasks = print_all_tasks(
-                primary_items,
                 project_name,
                 tasks,
                 position_for_anchor,
@@ -747,7 +732,6 @@ def print_profiles_and_tasks(primary_items, project_name, profiles):
 
     # Determine if this Project has Tasks not assoctiated with any Profiles
     output_profile_lines, output_task_lines = do_tasks_with_no_profile(
-        primary_items,
         project_name,
         output_profile_lines,
         output_task_lines,
@@ -757,29 +741,27 @@ def print_profiles_and_tasks(primary_items, project_name, profiles):
 
     # Print any remaining Profile boxes and their associated Tasks
     if output_profile_lines[0] != filler:
-        print_all(primary_items, output_profile_lines)
+        print_all(output_profile_lines)
         if output_task_lines:
-            print_all(primary_items, output_task_lines)
+            print_all(output_task_lines)
 
     # Map the Scenes
     if print_scenes:
-        print_all_scenes(primary_items, scenes)
+        print_all_scenes(scenes)
 
     # Add a blank line
-    add_output_line(primary_items, " ")
+    add_output_line(" ")
 
 
 # ##################################################################################
 # Process all Projects
 # ##################################################################################
-def build_network_map(primary_items, data):
+def build_network_map(data):
     """
     Builds a network map from project and profile data
     Args:
-        primary_items: Primary items dictionary
         data: Project and profile data dictionary
     Returns:
-        primary_items: Updated primary items dictionary with network map output
     - Loops through each project in the data dictionary
     - Prints the project name in a box
     - Prints all profiles and their tasks for that project
@@ -788,22 +770,22 @@ def build_network_map(primary_items, data):
     # Go through each project
     for project, profiles in data.items():
         # Print Project as a box
-        print_box(primary_items, project, "Project:", 1, 0)
+        print_box(project, "Project:", 1, 0)
         # Print all of the Project's Profiles and their Tasks
-        print_profiles_and_tasks(primary_items, project, profiles)
+        print_profiles_and_tasks(project, profiles)
 
     # Handle Task calls
-    primary_items["netmap_output"] = handle_calls(primary_items["netmap_output"])
+    PrimeItems.netmap_output = handle_calls(PrimeItems.netmap_output)
 
 
 # ##################################################################################
 # Print the network map.
 # ##################################################################################
-def network_map(primary_items: dict, network: dict) -> None:
-    """_summary_
+def network_map(network: dict) -> None:
+    """
     Output a network map of the Tasker configuration.
         Args:
-            primary_items (dict): Program registry.  See primitem.py for details.
+
             network (dict): the network laid out for mapping.
 
             network = {
@@ -827,33 +809,29 @@ def network_map(primary_items: dict, network: dict) -> None:
     """
 
     # Start with a ruler line
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 1, "<hr>", FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
 
-    primary_items["netmap_output"] = []
+    PrimeItems.netmap_output = []
 
     # Print a heading
     add_output_line(
-        primary_items,
         f"{MY_VERSION}{blank*5}Configuration Map{blank*5}{str(datetime.now())}",
     )
-    add_output_line(primary_items, " ")
+    add_output_line(" ")
     add_output_line(
-        primary_items,
         "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons in names can cause minor mis-alignment.",
     )
-    add_output_line(primary_items, " ")
-    add_output_line(primary_items, " ")
+    add_output_line(" ")
+    add_output_line(" ")
 
     # Print the configuration
-    build_network_map(primary_items, network)
+    build_network_map(network)
 
     # Print it all out.
     # Redirect print to a file
     with open("MapTasker_Map.txt", "w") as mapfile:
-        primary_items["printfile"] = mapfile
-        for line in primary_items["netmap_output"]:
+        PrimeItems.printfile = mapfile
+        for line in PrimeItems.netmap_output:
             print(line, file=mapfile)
 
     # Close the output print file

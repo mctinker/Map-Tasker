@@ -25,9 +25,10 @@ import darkdetect
 from maptasker.src.clip import clip_figure
 from maptasker.src.colors import get_and_set_the_color, validate_color
 from maptasker.src.error import error_handler
-from maptasker.src.getputarg import save_restore_args
+from maptasker.src.getputer import save_restore_args
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.parsearg import runtime_parser
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.rungui import process_gui
 from maptasker.src.sysconst import (
     MY_LICENSE,
@@ -44,7 +45,7 @@ from maptasker.src.sysconst import (
 def get_arg_if_in_list(
     args: namedtuple("ArgNamespace", ["some_arg", "another_arg"]), the_argument: str
 ) -> int:
-    """_summary_
+    """
     Determine if the argument is a list or string, and return the value as appropriate
         Args:
             args (Namespace): the args Namespace from either argparse or unit_test
@@ -62,11 +63,10 @@ def get_arg_if_in_list(
 # ##################################################################################
 # We have the "backup" argument.  Validate and save it.
 # ##################################################################################
-def process_backup(primary_items: dict, backup_file_info: list) -> None:
-    """_summary_
+def process_backup(backup_file_info: list) -> None:
+    """
     We have the "backup" argument.  Validate info and save it.
         Args:
-            primary_items (dict): Common items used throughout.  See primitem.py for details.
             backup_file_info (list): A list of the values for the backup to use
     """
     if isinstance(backup_file_info, list):
@@ -76,18 +76,17 @@ def process_backup(primary_items: dict, backup_file_info: list) -> None:
 
     # Break up the command into http portion and file-location portion
     if backup_details[0].isdigit and backup_details[1]:
-        primary_items["program_arguments"]["backup_file_http"] = backup_details[0]
-        primary_items["program_arguments"]["backup_file_location"] = backup_details[1]
+        PrimeItems.program_arguments["backup_file_http"] = backup_details[0]
+        PrimeItems.program_arguments["backup_file_location"] = backup_details[1]
 
 
 # ##################################################################################
 # We have a -name argument.  Get the name's attributes and save them
 # ##################################################################################
-def get_name_attributes(primary_items: dict, value: str) -> None:
-    """_summary_
+def get_name_attributes(value: str) -> None:
+    """
     We have a -name argument.  Get the name's attributes and save them
         Args:
-            primary_items (dict): Common items used throughout.  See primitem.py for details.
             value (str): The attributes to assign to names: (bold, highlight, underline, italicize)
     """
     # Get names (bold, highlight, underline and/or highlight)
@@ -98,19 +97,18 @@ def get_name_attributes(primary_items: dict, value: str) -> None:
     name_attributes = name_attributes.split()
     for attribute in name_attributes:
         if attribute in valid_attributes:
-            primary_items["program_arguments"][attribute] = True
+            PrimeItems.program_arguments[attribute] = True
 
 
 # ##################################################################################
 # Go through all boolean settings, get each and if have it then set value to True
 # ##################################################################################
 def get_and_set_booleans(
-    primary_items: dict, args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])
+    args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])
 ) -> None:
-    """_summary_
+    """
     Go through all boolean settings, get each and if have it then set value to True
         Args:
-            primary_items (dict): Common items used throughout.  See primitem.py for details.
             args (namedtuple): runtime arguments namespace
     """
     # Program runtime boolean arguments (long form and short form per argparse.py)
@@ -136,48 +134,45 @@ def get_and_set_booleans(
     for key, value in boolean_arguments.items():
         try:
             if getattr(args, key):
-                primary_items["program_arguments"][key] = True
+                PrimeItems.program_arguments[key] = True
         except AttributeError:
             with contextlib.suppress(AttributeError):
                 if value and getattr(args, value):
-                    primary_items["program_arguments"][key] = True
+                    PrimeItems.program_arguments[key] = True
 
 
 # ##################################################################################
 # Get the the other arguments
 # ##################################################################################
 def get_the_other_arguments(
-    primary_items: dict, args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])
+    args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])
 ) -> None:
-    """_summary_
+    """
     Get the remainder of the arguments
         Args:
-            primary_items (dict): Common items used throughout.  See primitem.py for details.
             value (str): The attributes to assign to names: (bold, highlight, underline, italicize)
     """
-    get_and_set_booleans(primary_items, args)
+    get_and_set_booleans(args)
 
     # Get display detail level, if provided.
     detail = getattr(args, "detail")
     if detail is not None and isinstance(detail, int):
-        primary_items["program_arguments"]["display_detail_level"] = detail
+        PrimeItems.program_arguments["display_detail_level"] = detail
 
     elif (detail := get_arg_if_in_list(args, "detail")) is not None:
-        primary_items["program_arguments"]["display_detail_level"] = detail
+        PrimeItems.program_arguments["display_detail_level"] = detail
 
 
 # ##################################################################################
-# Get our parsed program arguments and save them to primary_items["program_args"]
+# Get our parsed program arguments and save them to PrimeItems.program_args"]
 # ##################################################################################
 def get_runtime_arguments(
-    primary_items: dict, args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])
+    args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])
 ) -> None:
-    """_summary_
-    Get our parsed program arguments and save them to primary_items["program_args"]
-        Args:
-            primary_items (dict): Common items used throughout.  See primitem.py for details.
-            args (list): runtime arguments namespace
     """
+    Get our parsed program arguments and save them to PrimeItems.program_args"]
+        Args:
+            args (list): runtime arguments namespace"""
 
     # Color help?
     if getattr(args, "ch"):
@@ -185,65 +180,54 @@ def get_runtime_arguments(
 
     # Not GUI.  Get input from command line arguments
 
+    # Get input from command line arguments or unit test defaults.
+    get_the_other_arguments(args)
+
     # Everything? Display full detail and set various display optionsm to true.
     if getattr(args, "e"):
-        primary_items["program_arguments"]["display_detail_level"] = 4
-        primary_items["program_arguments"]["conditions"] = primary_items[
-            "program_arguments"
-        ]["preferences"] = primary_items["program_arguments"][
-            "directory"
-        ] = primary_items[
-            "program_arguments"
-        ][
-            "taskernet"
-        ] = primary_items[
-            "program_arguments"
-        ][
-            "outline"
-        ] = primary_items[
-            "program_arguments"
-        ][
-            "runtime"
-        ] = True
-
-    # Get input from command line arguments
-    get_the_other_arguments(primary_items, args)
+        PrimeItems.program_arguments["display_detail_level"] = 4
+        PrimeItems.program_arguments["conditions"] = True
+        PrimeItems.program_arguments["preferences"] = True
+        PrimeItems.program_arguments["directory"] = True
+        PrimeItems.program_arguments["taskernet"] = True
+        PrimeItems.program_arguments["outline"] = True
+        PrimeItems.program_arguments["runtime"] = True
 
     the_name = getattr(args, "project")  # Display single Project
     if the_name is not None:
-        primary_items["program_arguments"]["single_project_name"] = the_name[0]
+        PrimeItems.program_arguments["single_project_name"] = the_name[0]
     the_name = getattr(args, "profile")  # Display single Profile
     if the_name is not None:
-        primary_items["program_arguments"]["single_profile_name"] = the_name[0]
+        PrimeItems.program_arguments["single_profile_name"] = the_name[0]
     the_name = getattr(args, "task")  # Display single task
     if the_name is not None:
-        primary_items["program_arguments"]["single_task_name"] = the_name[0]
+        PrimeItems.program_arguments["single_task_name"] = the_name[0]
     if getattr(args, "v"):  # Display version info
         display_version()
 
     # Get names (bold, highlight, underline and/or highlight)
     if value := getattr(args, "names"):
-        get_name_attributes(primary_items, value)
+        get_name_attributes(value)
     # Get backup file directly from Android device
     # It is a list if coming from program arguments.
     # Otherwise, just a string if coming from run_test (unit test)
     if backup_file_info := getattr(args, "b"):
-        process_backup(primary_items, backup_file_info)
+        process_backup(backup_file_info)
 
     # Appearance
     if appearance := getattr(args, "a"):
-        primary_items["program_arguments"]["appearance_mode"] = appearance
+        PrimeItems.program_arguments["appearance_mode"] = appearance
 
     # Indentation amount
     if indent := get_arg_if_in_list(args, "i"):
-        primary_items["program_arguments"]["indent"] = indent
+        PrimeItems.program_arguments["indent"] = indent
 
     # Font
     if font := getattr(args, "f"):
         if isinstance(font, list):
-            primary_items["program_arguments"]["font"] = font[0]
+            PrimeItems.program_arguments["font"] = font[0]
         else:
-            primary_items["program_arguments"]["font"] = font
+            PrimeItems.program_arguments["font"] = font
 
 
 # ##################################################################################
@@ -253,15 +237,15 @@ def display_version():
     header = f"""
 
     {Colors.Purple}
-    
-    
-███╗   ███╗ █████╗ ██████╗     ████████╗ █████╗ ███████╗██╗  ██╗███████╗██████╗ 
+
+
+███╗   ███╗ █████╗ ██████╗     ████████╗ █████╗ ███████╗██╗  ██╗███████╗██████╗
 ████╗ ████║██╔══██╗██╔══██╗    ╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗
 ██╔████╔██║███████║██████╔╝       ██║   ███████║███████╗█████╔╝ █████╗  ██████╔╝
 ██║╚██╔╝██║██╔══██║██╔═══╝        ██║   ██╔══██║╚════██║██╔═██╗ ██╔══╝  ██╔══██╗
 ██║ ╚═╝ ██║██║  ██║██║            ██║   ██║  ██║███████║██║  ██╗███████╗██║  ██║
 ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝            ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                                                
+
 """
     color_to_use = Colors.Yellow if darkdetect.isDark() else Colors.Blue
     print(header)
@@ -274,49 +258,45 @@ def display_version():
 # ##################################################################################
 # Get arguments from command line and put them to the proper settings
 # ##################################################################################
-def process_arguments(primary_items: dict, args: object) -> dict:
-    """_summary_
+def process_arguments(args: object) -> dict:
+    """
     Get arguments from command line and put them to the proper settings
         Args:
-            primary_items (dict): dictionary of the primary items used throughout the
-            module.  See primitem.py for details
             args (object): program arguments passed from command line
 
         Returns:
-            dict: modfgied primary_items based on program arguments
+            None
     """
-    # Get our runtime arguments that go into primary_items["program_arguments"]
-    get_runtime_arguments(primary_items, args)
+    # Get our runtime arguments that go into PrimeItems.program_arguments
+    get_runtime_arguments(args)
 
     # Process colors
     for item in TYPES_OF_COLORS:
         the_name = getattr(args, f"c{item}")
         if the_name is not None:
             if isinstance(the_name, list):
-                get_and_set_the_color(primary_items, f"-c{item}={the_name[0]}")
+                get_and_set_the_color(f"-c{item}={the_name[0]}")
             else:
-                get_and_set_the_color(primary_items, f"-c{item}={the_name}")
+                get_and_set_the_color(f"-c{item}={the_name}")
 
     # Save the arguments
     if getattr(args, "s"):
         (
-            primary_items["program_arguments"],
-            primary_items["colors_to_use"],
+            PrimeItems.program_arguments,
+            PrimeItems.colors_to_use,
         ) = save_restore_args(
-            primary_items["program_arguments"], primary_items["colors_to_use"], True
+            PrimeItems.program_arguments, PrimeItems.colors_to_use, True
         )
 
-    return primary_items
+    return
 
 
 # ##################################################################################
 # Get arguments from saved file and restore them to the proper settings
 # ##################################################################################
-def restore_arguments(primary_items: dict) -> dict:
+def restore_arguments() -> dict:
     """
     Get arguments from saved file and restore them to the proper settings
-        :param primary_items:  Program registry.  See primitem.py for details.
-        :return: primary items
     """
     temp_arguments = temp_colors = {}
     temp_arguments, temp_colors = save_restore_args(temp_arguments, temp_colors, False)
@@ -329,20 +309,18 @@ def restore_arguments(primary_items: dict) -> dict:
         ) in temp_arguments.items():  # Map the prog_arg keys and values restored
             if key is not None:
                 try:
-                    primary_items["program_arguments"][key] = value
+                    PrimeItems.program_arguments[key] = value
                 except KeyError:
                     error_handler("Error...runcli invalid argument restored: {key}!", 0)
                 if key == "display_detail_level":
-                    primary_items["program_arguments"]["display_detail_level"] = int(
-                        value
-                    )
+                    PrimeItems.program_arguments["display_detail_level"] = int(value)
 
         # Map the colormap keys and values restored
         for key, value in temp_colors.items():
             if key is not None:
-                primary_items["colors_to_use"][key] = value
+                PrimeItems.colors_to_use[key] = value
 
-    return primary_items
+    return
 
 
 # ##################################################################################
@@ -362,7 +340,7 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):
     # Setup default argument Namespace based on parsearg.py add_argument
     # Update this if adding a new program argument !!!
 
-    # Each primary_items["program_arguments"] must have an entry in here.
+    # Each PrimeItems.program_arguments must have an entry in here.
 
     # single letter if the first name is a single letter, otherwise full name
     # Example: parser.add_argument( "-g","-gui",... then -g is the short name
@@ -445,16 +423,14 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):
 # ##################################################################################
 # Validate arguments by looking for inconsistancies.
 # ##################################################################################
-def validate_arguments(primary_items: dict) -> None:
-    """_summary_
+def validate_arguments() -> None:
+    """
     Validate arguments by looking for inconsistancies.
-        Args:
-            primary_items (dict): Program registry.  See primitem.py for details.
+        Args: None
 
         Returns:
-            Nothing
-    """
-    program_arguments = primary_items["program_arguments"]
+            Nothing"""
+    program_arguments = PrimeItems.program_arguments
     # It doesn't make sense to do twisties if notr displaying full detail.
     if program_arguments["display_detail_level"] < 3 and program_arguments["twisty"]:
         message = "Twisty disabled since the display level is not 3 or above."
@@ -466,18 +442,19 @@ def validate_arguments(primary_items: dict) -> None:
 # Get the program arguments from command line or via unit test (e.g. python mapit.py -x)
 # ##################################################################################
 # Command line parameters
-def process_cli(primary_items: dict) -> dict:
-    """_summary_
+def process_cli() -> None:
+    """
     Get the program arguments from command line or via unit test (e.g. python mapit.py -x)
         Args:
-            primary_items (dict): Program registry.  See primitem.py for details.
+            pi (PrimeItems): Primary Items class object
 
         Returns:
-            dict: Program registry.  See primitem.py for details.
+            None
     """
 
-    # Convert runtime argument default values to a dictionary
-    primary_items["program_arguments"] = initialize_runtime_arguments()
+    # Convert runtime argument default values to a dictionary if we don't already have them
+    if not PrimeItems.colors_to_use:
+        PrimeItems.program_arguments = initialize_runtime_arguments()
 
     # Process unit tests if "-test" in arguments, else get normal runtime arguments
     # args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
@@ -487,22 +464,22 @@ def process_cli(primary_items: dict) -> dict:
     # Grab the results
     if getattr(args, "g"):  # GUI for input?
         (
-            primary_items["program_arguments"],
-            colormap,
-        ) = process_gui(primary_items, True)
+            PrimeItems.program_arguments,
+            PrimeItems.colors_to_use,
+        ) = process_gui(True)
 
     # Restore arguments from file?
     elif getattr(args, "restore"):
         # Restore all changes that have been saved for progargs
-        primary_items = restore_arguments(primary_items)
-        primary_items["program_arguments"]["restore"] = True
+        restore_arguments()
+        PrimeItems.program_arguments["restore"] = True
 
     # Process commands from command line
     else:
-        primary_items = process_arguments(primary_items, args)
+        process_arguments(args)
 
     # Validate arguements against each other.
-    validate_arguments(primary_items)
+    validate_arguments()
 
     # Return the results
-    return primary_items
+    return

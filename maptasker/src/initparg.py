@@ -21,7 +21,7 @@ from maptasker.src.config import BACKUP_FILE_HTTP, BACKUP_FILE_LOCATION, OUTPUT_
 def initialize_runtime_arguments() -> dict:
     """
     Initialize the program's runtime arguments...as a dictionary of options.
-    The key must be the same name as the key in primary_items["program_arguments"].
+    The key must be the same name as the key in PrimeItems.program_arguments.
         :return: runtime arguments in dictionary
     """
     return {

@@ -14,6 +14,7 @@
 import sys
 
 from maptasker.src.format import format_html
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     TYPES_OF_COLOR_NAMES,
@@ -22,16 +23,15 @@ from maptasker.src.sysconst import (
 )
 
 
-def output_debug_line(primary_items: dict, begin_or_end: str) -> None:
+def output_debug_line(begin_or_end: str) -> None:
     """
     Put out a line that identifies the following output as DEBUG
-        :param primary_items:  Program registry.  See primitem.py for details.
+
         :param begin_or_end: text identiying the beginning or end of debug
     """
     arrow = ">"
-    primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        4,
+    PrimeItems.output_lines.add_line_to_output(
+        0,
         f"Runtime Settings {begin_or_end} {arrow * 80}",
         ["", "disabled_profile_color", FormatLine.add_end_span],
     )
@@ -54,23 +54,19 @@ def format_line_debug(text: str, width: int) -> str:
 # ################################################################################
 # Display the program arguments and colors to use in output for debug purposes
 # ################################################################################
-def display_debug_info(primary_items: dict) -> None:
+def display_debug_info() -> None:
     """
     Output our runtime arguments
-        :param primary_items:  Program registry.  See primitem.py for details.
     """
 
     # Add blank line
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 4, "", FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
     # Identify the output as debug stuff
-    output_debug_line(primary_items, "Start")
-    if primary_items["program_arguments"]["debug"]:
-        primary_items["output_lines"].add_line_to_output(
-            primary_items,
-            4,
+    output_debug_line("Start")
+    if PrimeItems.program_arguments["debug"]:
+        PrimeItems.output_lines.add_line_to_output(
+            0,
             f"sys.argv (runtime arguments):{str(sys.argv)}",
             ["", "disabled_profile_color", FormatLine.add_end_span],
         )
@@ -84,7 +80,7 @@ def display_debug_info(primary_items: dict) -> None:
     for key, value in mydict.items():
         try:
             line_formatted_to_length = format_line_debug(ARGUMENT_NAMES[key], 40)
-            value = primary_items["program_arguments"][key]
+            value = PrimeItems.program_arguments[key]
             if value is None or value == "":
                 value = "None"
             # Set color for value
@@ -92,31 +88,27 @@ def display_debug_info(primary_items: dict) -> None:
                 color_to_use = "unknown_task_color"
             else:
                 color_to_use = "heading_color"
-            primary_items["output_lines"].add_line_to_output(
-                primary_items,
-                4,
+            PrimeItems.output_lines.add_line_to_output(
+                0,
                 f"{line_formatted_to_length}: {value}",
                 ["", color_to_use, FormatLine.add_end_span],
             )
         except KeyError:
             msg = f"{ARGUMENT_NAMES[key]}: Error...not found!"
-            primary_items["output_lines"].add_line_to_output(
-                primary_items,
-                4,
+            PrimeItems.output_lines.add_line_to_output(
+                0,
                 msg,
                 ["", "heading_color", FormatLine.add_end_span],
             )
             logger.debug(f"MapTasker Error ... {msg}")
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 4, "", FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
     # Do colors to use in output
 
     # Get our color names by reversing the lookup dictionary
     color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
     # Go through each color
-    for key, value in primary_items["colors_to_use"].items():
+    for key, value in PrimeItems.colors_to_use.items():
         # Highlight background color.  Otherwise it won't be visible
         if key == "background_color":
             value = f"<mark>{value} (highlighted for visibility)</mark>"
@@ -132,9 +124,8 @@ def display_debug_info(primary_items: dict) -> None:
         color_set_to_width = format_line_debug(
             f"Color for {color_names[key]} set to", 40
         )
-        primary_items["output_lines"].add_line_to_output(
-            primary_items,
-            4,
+        PrimeItems.output_lines.add_line_to_output(
+            0,
             f"{ color_set_to_width}{the_color}",
             ["", "heading_color", FormatLine.add_end_span],
         )
@@ -142,9 +133,9 @@ def display_debug_info(primary_items: dict) -> None:
     # Get a total count of action_code entries in our dictionary.
     # from maptasker.src.actionc import action_codes
     # num = sum(1 for key, value in action_codes.items())
-    # primary_items["output_lines"].add_line_to_output(
-    #     primary_items,
-    #             4,
+    # PrimeItems.output_lines.add_line_to_output(
+    #
+    #             0,
     #             format_html(
     #                 color_to_use,
     #                 "",
@@ -154,10 +145,9 @@ def display_debug_info(primary_items: dict) -> None:
     #         )
 
     # Finalize debug info
-    output_debug_line(primary_items, "End")
-    primary_items["output_lines"].add_line_to_output(
-        primary_items,
-        4,
+    output_debug_line("End")
+    PrimeItems.output_lines.add_line_to_output(
+        0,
         "",
         FormatLine.dont_format_line,
     )
@@ -166,17 +156,15 @@ def display_debug_info(primary_items: dict) -> None:
 # ##################################################################################
 # Argument not found in dictionary
 # ##################################################################################
-def not_in_dictionary(primary_items: dict, type: str, code: str) -> None:
-    """_summary_
+def not_in_dictionary(type: str, code: str) -> None:
+    """
     Handle condition if Action/Event/State code not found in our dictionary (actionc.py)
         Args:
-            :param primary_items:  Program registry.  See primitem.py for details.
             type (str): name of condition: Action, State, Event
-            code (str): the xml code
-    """
+            code (str): the xml code"""
     logger.debug(
         f"Error action code {code} not in the dictionary!",
     )
-    if primary_items["program_arguments"]["debug"]:
+    if PrimeItems.program_arguments["debug"]:
         print(f"{type} code {code} not found in actionc!")
     return

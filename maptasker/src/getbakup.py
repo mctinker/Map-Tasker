@@ -16,19 +16,20 @@ import os.path
 from os import getcwd
 
 import requests
-from requests.exceptions import InvalidSchema, ConnectionError, ConnectTimeout
+from requests.exceptions import ConnectionError, ConnectTimeout, InvalidSchema
 
 from maptasker.src.error import error_handler
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
 
 # ##################################################################################
 # We've read in the xml backup file.  Now save it for processing.
 # ##################################################################################
-def write_out_backup_file(primary_items: dict, file_contents: bin) -> None:
+def write_out_backup_file(file_contents: bin) -> None:
     """
     We've read in the xml backup file.  Now save it for processing.
-        :param primary_items:  Program registry.  See primitem.py for details.
+
         :param file_contents: binary contents of backup xml file
         :return: Nothing
     """
@@ -42,19 +43,15 @@ def write_out_backup_file(primary_items: dict, file_contents: bin) -> None:
 
     # We are going to save the file as...
     # Get position of the last "/" in path/file
-    name_location = (
-        primary_items["program_arguments"]["backup_file_location"].rfind("/") + 1
-    )
+    name_location = PrimeItems.program_arguments["backup_file_location"].rfind("/") + 1
     # Get the name of the file
-    my_file_name = primary_items["program_arguments"]["backup_file_location"][
-        name_location:
-    ]
+    my_file_name = PrimeItems.program_arguments["backup_file_location"][name_location:]
 
     # Convert the binary code to string
     output_lines = file_contents.decode("utf-8")
 
     # Set up the backup file full path
-    the_backup_file = primary_items["program_arguments"]["backup_file_location"]
+    the_backup_file = PrimeItems.program_arguments["backup_file_location"]
     put_message = f"Fetching backup file {my_file_name}: {the_backup_file}"
     logger.debug(put_message)
 
@@ -70,7 +67,7 @@ def write_out_backup_file(primary_items: dict, file_contents: bin) -> None:
             out_file.write(item)
 
     # Set flag to identify that backup file was fetched from Android device
-    primary_items["program_arguments"]["fetched_backup_from_android"] = True
+    PrimeItems.program_arguments["fetched_backup_from_android"] = True
 
     return
 
@@ -132,7 +129,7 @@ def request_file(
 # Return the substring after the last occurance of a specific character in a string
 # ##################################################################################
 def substring_after_last(string: str, char: chr) -> str:
-    """_summary_
+    """
     Return the substring after the last occurance of a specific character in a string
         Args:
             string (str): The string to search for the substring
@@ -148,25 +145,28 @@ def substring_after_last(string: str, char: chr) -> str:
 # ##################################################################################
 # Set up to fetch the Tasker backup xml file from the Android device running
 # ##################################################################################
-def get_backup_file(primary_items: dict) -> str:
+def get_backup_file() -> str:
     """
     Set up to fetch the Tasker backup xml file from the Android device running
     the Tasker server
-        :param primary_items:  Program registry.  See primitem.py for details.
+
         :return: The name of the backup file (e.g. backup.xml)
     """
     # Get the contents of the file.
     return_code, file_contents = request_file(
-        primary_items["program_arguments"]["backup_file_http"],
-        primary_items["program_arguments"]["backup_file_location"],
+        PrimeItems.program_arguments["backup_file_http"],
+        PrimeItems.program_arguments["backup_file_location"],
     )
 
     if return_code != 0:
+        if PrimeItems.program_arguments["gui"]:
+            PrimeItems.error = return_code
+            return
         error_handler(str(file_contents), 8)
 
     # Process the backup file
-    write_out_backup_file(primary_items, file_contents)
+    write_out_backup_file(file_contents)
 
     return substring_after_last(
-        primary_items["program_arguments"]["backup_file_location"], "/"
+        PrimeItems.program_arguments["backup_file_location"], "/"
     )

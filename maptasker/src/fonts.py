@@ -12,14 +12,14 @@
 #                                                                                      #
 # #################################################################################### #
 from tkinter import Tk, font
+from maptasker.src.primitem import PrimeItems
 
 
 # Get all monospace ("f"=fixed) fonts
-def get_fonts(primary_items: dict, save_fonts: bool) -> dict:
-    """_summary_
+def get_fonts(save_fonts: bool) -> dict:
+    """
     Get and set up the available monospace fonts and optionally save them
         Args:
-            primary_items (dict): Our key program items.  See primitem.py for details
             save_fonts (bool): True if we are to save the fonts
 
         Returns:
@@ -27,7 +27,7 @@ def get_fonts(primary_items: dict, save_fonts: bool) -> dict:
     """
     _ = Tk()
     fonts = [font.Font(family=f) for f in font.families()]
-    our_font = primary_items["program_arguments"]["font"]
+    our_font = PrimeItems.program_arguments["font"]
 
     # Set up our list of fonts, including Courier
     mono_fonts = ["Courier"]
@@ -38,13 +38,14 @@ def get_fonts(primary_items: dict, save_fonts: bool) -> dict:
         print('  "Courier" is the default')
 
     # Go thru list of fonts from tkinter
+    PrimeItems.mono_fonts = {}
     for f in fonts:
         # Monospace only
         if f.metrics("fixed") and "Wingding" not in f.actual("family"):
             if our_font == "help":
                 print(f'  "{f.actual("family")}"')
             elif save_fonts:
-                primary_items["mono_fonts"][f.name] = f.actual("family")
+                PrimeItems.mono_fonts[f.name] = f.actual("family")
             mono_fonts.append(f.actual("family"))
     if our_font == "help":
         exit(0)

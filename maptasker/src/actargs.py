@@ -11,11 +11,13 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 # #################################################################################### #
 import contextlib
+
 import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.action as get_action
 from maptasker.src.actiond import process_condition_list
 from maptasker.src.format import format_html
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
 
 
@@ -25,7 +27,7 @@ from maptasker.src.sysconst import FormatLine, logger
 def get_bundle(
     code_action: defusedxml.ElementTree.XML, evaluated_results: dict
 ) -> dict:
-    """_summary_
+    """
     Get the details regarding the <bundle> action argument type
         Args:
             code_action (defusedxml.ElementTree.XML): XML element of the action code <code>
@@ -65,7 +67,7 @@ def get_action_arguments(
     """
     Given an <argn> element, evaluate it's contents based on our Action code dictionary
     (actionc.py)
-        :param primary_items:  Program registry.  See primitem.py for details.
+
         :param evaluated_results: all the Action argument "types" and "arguments" as
             a dictionary
         :param arg: the incoming argument location/number (e.g. "0" for <arg0>)
@@ -83,15 +85,15 @@ def get_action_arguments(
     evaluated_results["returning_something"] = True
     evaluated_results["get_xml_flag"] = True
 
-    # Evaluate the argument based on its type
+    # Evaluate the argument based on its type.
     match argtype:
-        case "Str":
-            evaluated_results["strargs"].append(f"arg{str(arg)}")
-            evaluated_results["streval"].append(argeval)
-
         case "Int":
-            evaluated_results["intargs"].append(f"arg{str(arg)}")
+            evaluated_results["intargs"].append(f"arg{arg}")
             evaluated_results["inteval"].append(argeval)
+
+        case "Str":
+            evaluated_results["strargs"].append(f"arg{arg}")
+            evaluated_results["streval"].append(argeval)
 
         case "App":
             extract_argument(evaluated_results, arg, argeval)
@@ -171,7 +173,7 @@ def extract_argument(evaluated_results, arg, argeval):
 # ##################################################################################
 # Action code not found...let user know
 # ##################################################################################
-def handle_missing_code(primary_items, the_action_code_plus, index):
+def handle_missing_code(the_action_code_plus, index):
     error_message = format_html(
         "action_color",
         "",
@@ -182,8 +184,8 @@ def handle_missing_code(primary_items, the_action_code_plus, index):
         True,
     )
     logger.debug(error_message)
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 4, error_message, FormatLine.dont_format_line
+    PrimeItems.output_lines.add_line_to_output(
+        0, error_message, FormatLine.dont_format_line
     )
     return ""
 
@@ -192,7 +194,6 @@ def handle_missing_code(primary_items, the_action_code_plus, index):
 # Go through the arguments and parse each one based on its argument 'type'
 # ##################################################################################
 def action_args(
-    primary_items: dict,
     arg_list: list,
     the_action_code_plus: str,
     lookup_code_entry: dict,
@@ -203,7 +204,7 @@ def action_args(
 ) -> object:
     """
     Go through the arguments and parse each one based on its argument 'type'
-        :param primary_items:  Program registry.  See primitem.py for details.
+
         :param arg_list: list of arguments (xml "<argn>") to process
         :param the_action_code_plus: the lookup the Action code from actionc with
             "action type" (e.g. 861t, t=Task, e=Event, s=State)
@@ -216,7 +217,7 @@ def action_args(
         :return: dictionary of the stored results
     """
     our_action_code = lookup_code_entry[the_action_code_plus]
-    our_action_args = our_action_code["args"]
+    our_action_args = our_action_code.args
 
     # Go through each <arg> in list of args
     for num, arg in enumerate(arg_list):
@@ -235,9 +236,9 @@ def action_args(
             )
             return evaluated_results
         try:
-            argtype = our_action_code["types"][index]
+            argtype = our_action_code.types[index]
         except IndexError:
-            argtype = handle_missing_code(primary_items, the_action_code_plus, index)
+            argtype = handle_missing_code(the_action_code_plus, index)
 
         # Get the Action arguments
         evaluated_results["position_arg_type"].append(argtype)

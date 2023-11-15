@@ -11,6 +11,7 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+import contextlib
 from typing import Any
 
 import defusedxml.ElementTree  # Need for type hints
@@ -40,7 +41,8 @@ def update_action_codes(
     """
     Update the dictionary for the Action code
         :param action: <Action> xml element
-        :param the_action_code_plus: the Action code with "action type" (e.g. 861t, t=Task, e=Event, s=State)
+        :param the_action_code_plus: the Action code with "action type"
+                (e.g. 861t, t=Task, e=Event, s=State)
         :return: nothing
     """
     # ##################################################################################
@@ -53,15 +55,15 @@ def update_action_codes(
     arg_count = len(arg_list)
 
     # Compare this Actions num of args to dictionary's
-    if arg_count > action_codes[the_action_code_plus]["numargs"]:
-        action_codes[the_action_code_plus] = {
-            "numargs": arg_count,
-            "args": arg_nums,
-            "types": type_list,
-        }
+    if arg_count > action_codes[the_action_code_plus].numargs:
+        with contextlib.suppress(Exception):
+            action_codes[the_action_code_plus].numargs = arg_count
+            action_codes[the_action_code_plus].args = arg_nums
+            action_codes[the_action_code_plus].types = type_list
+
         logger.debug(
             "update_action_codes:"
-            f" {the_action_code_plus} {str(action_codes[the_action_code_plus])}"
+            f" {the_action_code_plus} {str(action_codes[the_action_code_plus])} numargs of {action_codes[the_action_code_plus].numargs} update to {arg_count}:  needs to be updated in actionc.py!"
         )
     return
 
@@ -88,11 +90,10 @@ def build_new_action_codes(
     # ##################################################################################
     arg_list, type_list, arg_nums = get_action.get_args(action, IGNORE_ITEMS)
     arg_count = len(arg_list)
-    action_codes[the_action_code_plus] = {
-        "numargs": arg_count,
-        "args": arg_nums,
-        "types": type_list,
-    }
+    with contextlib.suppress(Exception):
+        action_codes[the_action_code_plus].numargs = arg_count
+        action_codes[the_action_code_plus].args = arg_nums
+        action_codes[the_action_code_plus].types = type_list
     return
 
 
@@ -104,14 +105,16 @@ def build_new_action_codes(
 # adder = empty if <action>.  Else it is a Profile condition, and we need to make key unique
 # ##################################################################################
 def build_action_codes(
-    primary_items: dict,
     action: defusedxml.ElementTree.XML,
     child: defusedxml.ElementTree.XML,
 ) -> defusedxml.ElementTree:
     """
     Build the dictionary for each Action code
-    We first check if the_action_code_plus is already in action_codes. If it is, we call the update_action_codes() function. Otherwise, we call the build_new_action_codes() function followed by some logging and debugging output (if debug mode is enabled) as before.
-        :param primary_items:  Program registry.  See primitem.py for details.
+    We first check if the_action_code_plus is already in action_codes.
+    If it is, we call the update_action_codes() function. Otherwise, we call the
+    build_new_action_codes() function followed by some logging and debugging output
+    (if debug mode is enabled) as before.
+
         :param action: xml element with Task action's "<code>nnn</code>"
         :param child: xml root element of Task action
         :return:
@@ -143,7 +146,7 @@ def add_name_to_action_codes(
     if the_action_code_plus not in action_codes:
         build_new_action_codes("", the_action_code_plus)
     if display_name not in action_codes[the_action_code_plus]:
-        action_codes[the_action_code_plus]["display"] = display_name
+        action_codes[the_action_code_plus].display = display_name
     return
 
 
@@ -164,7 +167,6 @@ def get_boolean_or_condition(
 
     Returns:
         tuple: A tuple containing the updated condition_list and boolean_list.
-
     """
 
     if "bool" in child.tag:
@@ -198,4 +200,5 @@ def process_condition_list(
             condition_list, boolean_list = get_boolean_or_condition(
                 child, condition_list, boolean_list
             )
+    return condition_list, boolean_list
     return condition_list, boolean_list

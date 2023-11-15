@@ -14,13 +14,14 @@
 
 from maptasker.src.format import format_html
 from maptasker.src.sysconst import FormatLine
+from maptasker.src.primitem import PrimeItems
 
 
-def display_caveats(primary_items: dict) -> None:
+def display_caveats() -> None:
     """
     Output the program caveats at the very end
     Inputs:
-    - primary_items: Primary items used throughout the module.  See primitem.py for details
+    - None
     Outputs:
     - None
     """
@@ -47,21 +48,19 @@ def display_caveats(primary_items: dict) -> None:
     ]
 
     # Let 'em know about Google API key
-    if primary_items["program_arguments"]["preferences"]:
+    if PrimeItems.program_arguments["preferences"]:
         caveats.append(
             "- Your Google API key is displayed in the Tasker preferences!\n",
         )
 
-    if (
-        primary_items["program_arguments"]["display_detail_level"] > 0
-    ):  # Caveat about Actions
+    if PrimeItems.program_arguments["display_detail_level"] > 0:  # Caveat about Actions
         caveats.append(
             "- Most but not all Task actions have been mapped and will display as such."
             "  Likewise for Profile conditions and Plug-ins.\n"
         )
 
     if (
-        primary_items["program_arguments"]["display_detail_level"] == 0
+        PrimeItems.program_arguments["display_detail_level"] == 0
     ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
         caveats.append(
             '- For option -d0, Tasks that are identified as "Unnamed/Anonymous" will'
@@ -69,7 +68,16 @@ def display_caveats(primary_items: dict) -> None:
         )
 
     if (
-        primary_items["program_arguments"]["display_detail_level"] == 4
+        PrimeItems.program_arguments["display_detail_level"] > 2
+    ):  # Caveat about labels being stripped of html
+        caveats.extend(
+            (
+                "- Task labels have been stripped of all html to avoid output formatting issues.\n",
+            )
+        )
+
+    if (
+        PrimeItems.program_arguments["display_detail_level"] == 4
     ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
         caveats.extend(
             (
@@ -78,14 +86,12 @@ def display_caveats(primary_items: dict) -> None:
             )
         )
     # Start the output
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 0, "<hr>", FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)
 
     # Output all caveats
     for caveat in caveats:
-        primary_items["output_lines"].add_line_to_output(
-            primary_items, 0, caveat, FormatLine.dont_format_line
+        PrimeItems.output_lines.add_line_to_output(
+            0, caveat, FormatLine.dont_format_line
         )
 
     return

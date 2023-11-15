@@ -14,6 +14,7 @@
 import string
 
 from maptasker.src.error import error_handler
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES, logger
 
 
@@ -256,10 +257,9 @@ def validate_color(the_color: str) -> object:
 # ##################################################################################
 # Get the runtime option for a color change and set it
 # ##################################################################################
-def get_and_set_the_color(primary_items: dict, the_arg: str) -> None:
+def get_and_set_the_color(the_arg: str) -> None:
     """
     Get the runtime option for a color change and set it
-        :param primary_items:  Program registry.  See primitem.py for details.
         :param the_arg: the color runtime argument (e.g. "cProfile=Blue" or
             "cProfile Blue")
         :return: nothing
@@ -280,7 +280,7 @@ def get_and_set_the_color(primary_items: dict, the_arg: str) -> None:
     logger.debug(f" desired_color:{desired_color}")
     if validate_color(desired_color):  # If the color provided is valid...
         # match color_type:
-        primary_items["colors_to_use"][TYPES_OF_COLOR_NAMES[color_type]] = desired_color
+        PrimeItems.colors_to_use[TYPES_OF_COLOR_NAMES[color_type]] = desired_color
     else:
         error_handler(
             (

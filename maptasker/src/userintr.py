@@ -12,6 +12,7 @@
 #                                                                                      #
 # #################################################################################### #
 import contextlib
+import os
 from pathlib import Path
 from tkinter import font
 
@@ -20,10 +21,9 @@ from CTkColorPicker.ctk_color_picker import AskColor
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import OUTPUT_FONT
-from maptasker.src.getputarg import save_restore_args
-from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.getputer import save_restore_args
 from maptasker.src.lineout import LineOut
-from maptasker.src.primitem import initialize_primary_items
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.proginit import get_data_and_output_intro
 from maptasker.src.sysconst import ARGUMENT_NAMES, TYPES_OF_COLOR_NAMES
 
@@ -82,9 +82,9 @@ INFO_TEXT = (
     "* Get Backup from Android Device: fetch the backup "
     "xml file from device.\n\n"
     "* Run: Run the program with the settings "
-    "provided.\n"
+    "provided and then exit.\n"
     "* ReRun: Run multiple times (each time with "
-    "different settings).\n\n"
+    "new settings) without exiting.\n\n"
     "* Specific Name tab: enter a single, specific "
     "named item to display...\n"
     "   - Project Name: enter a specific Project to "
@@ -327,7 +327,7 @@ class MyGui(customtkinter.CTk):
 
         # Screen Appearance: Light / Dark / System
         self.appearance_mode_label = customtkinter.CTkLabel(
-            self.sidebar_frame, text="GUI Appearance Mode:", anchor="sw"
+            self.sidebar_frame, text="Appearance Mode:", anchor="sw"
         )
         self.appearance_mode_label.grid(row=15, column=0, padx=20, pady=10)
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(
@@ -448,7 +448,7 @@ class MyGui(customtkinter.CTk):
         )
         self.exit_button.grid(row=9, column=2, padx=(20, 20), pady=(20, 20))
 
-        # create textbox for Help information
+        # Create textbox for Help information
         self.textbox = customtkinter.CTkTextbox(self, height=600, width=250)
         self.textbox.configure(scrollbar_button_color="#6563ff", wrap="word")
         self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
@@ -570,7 +570,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     def set_defaults(self, first_time: bool):
         # Item names must be the same as their value in
-        #  primary_items["program_arguments"]
+        #  PrimeItems.program_arguments
         self.sidebar_detail_option.configure(values=["0", "1", "2", "3", "4"])
         self.sidebar_detail_option.set("3")
         self.display_detail_level = 3
@@ -720,30 +720,46 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     def valid_item(self, the_name, element_name):
         # We need to get all tasker root xml items from the backup xml file.
-        # To do so, we need to go through initializing a temporary primary_items
-        temp_primary_items = initialize_primary_items("")
-        temp_primary_items["program_arguments"] = initialize_runtime_arguments()
-        temp_primary_items["file_to_get"] = "backup.xml" if self.debug else ""
-        temp_primary_items["program_arguments"]["debug"] = self.debug
-        temp_primary_items["colors_to_use"] = set_color_mode(self.appearance_mode)
-        temp_primary_items["output_lines"] = LineOut()
-        temp_primary_items = get_data_and_output_intro(temp_primary_items)
+        # To do so, we need to go through initializing a temporary PrimaryItems object
+        """
+        Checks if an item name is valid
+        Args:
+            the_name: String - Name to check
+            element_name: String - Element type being checked
+        Returns:
+            Boolean - Whether the name is valid
+        Processing Logic:
+        - Initialize temporary primary items object
+        - Get backup xml data and root elements
+        - Match element type and get corresponding root element
+        - Check if item name exists by going through all names in root element
+        """
+
+        # Set up just enough PrimeItems variables to validate name.
+        if not PrimeItems.file_to_get:
+            PrimeItems.file_to_get = "backup.xml" if self.debug else ""
+        PrimeItems.program_arguments["debug"] = self.debug
+        PrimeItems.colors_to_use = set_color_mode(self.appearance_mode)
+        PrimeItems.output_lines = LineOut()
+        get_data_and_output_intro()
 
         # Set up for name checking
         # Find the specific item and get it's root element
-        match element_name:
-            case "Project":
-                root_element = temp_primary_items["tasker_root_elements"][
-                    "all_projects"
-                ]
-            case "Profile":
-                root_element = temp_primary_items["tasker_root_elements"][
-                    "all_profiles"
-                ]
-            case "Task":
-                root_element = temp_primary_items["tasker_root_elements"]["all_tasks"]
-            case _:
-                return False
+        root_element_choices = {
+            "Project": PrimeItems.tasker_root_elements["all_projects"],
+            "Profile": PrimeItems.tasker_root_elements["all_profiles"],
+            "Task": PrimeItems.tasker_root_elements["all_tasks"],
+        }
+        root_element = root_element_choices[element_name]
+        # match element_name:
+        #     case "Project":
+        #         root_element = temp_pi.tasker_root_elements["all_projects"]
+        #     case "Profile":
+        #         root_element = temp_pi.tasker_root_elements["all_profiles"]
+        #     case "Task":
+        #         root_element = temp_pi.tasker_root_elements["all_tasks"]
+        #     case _:
+        #         return False
 
         # See if the item exists by going through all names
         for item in root_element:
@@ -782,10 +798,13 @@ class MyGui(customtkinter.CTk):
             match my_name:
                 case "Project":
                     self.single_project_name = name_entered
+
                 case "Profile":
                     self.single_profile_name = name_entered
+
                 case "Task":
                     self.single_task_name = name_entered
+
                 case _:
                     pass
 
@@ -1308,6 +1327,34 @@ class MyGui(customtkinter.CTk):
         )
 
     # ##################################################################################
+    # Fetch Backup info error...process it.
+    # ##################################################################################
+    def backup_error(self, error_message):
+        # Setup error message
+        if error_message:
+            self.display_message_box(
+                error_message,
+                False,
+            )
+
+            # Delete entry field by overlaying it.
+            self.entry.delete(0, "end")
+
+        # Reset 'Get Backup Settings' button definition
+        self.get_backup_button = customtkinter.CTkButton(
+            master=self,
+            fg_color="#246FB6",
+            border_color="#6563ff",
+            border_width=2,
+            text="Get Backup from Android Device",
+            command=self.get_backup_event,
+            text_color=("#0BF075", "#1AD63D"),
+        )
+        self.get_backup_button.grid(
+            row=10, column=1, padx=10, pady=(20, 20), sticky="w"
+        )
+
+    # ##################################################################################
     # Fetch the backup ip and file details, and validate.
     # ##################################################################################
     def fetch_backup_event(self):
@@ -1321,50 +1368,50 @@ class MyGui(customtkinter.CTk):
             # Validate IP Address
             temp_ipaddr = temp_ip[0].split(".")
             if len(temp_ipaddr) < 4:
-                self.display_message_box(
-                    f"Invalid IP Address: {temp_ip[0]}.  Try again.",
-                    False,
-                )
+                self.backup_error(f"Invalid IP Address: {temp_ip[0]}.  Try again.")
                 return
             for item in temp_ipaddr[0]:
                 if not item.isdigit():
-                    self.display_message_box(
+                    self.backup_error(
                         f"Invalid IP Address: {temp_ip[0]}.  Try again.",
-                        False,
                     )
                     return
-
+            # Verify that the host IP (temp_ip[0]) is reachable:
+            self.display_message_box(
+                f"Pinging address {temp_ip[0]}...",
+                True,
+            )
+            MyGui.update(self)  # Force a window refresh.
+            # Ping IP address.
+            response = os.system("ping -c 1 -t50 > /dev/null " + temp_ip[0])
+            if response != 0:
+                self.backup_error(
+                    f"{temp_ip[0]} is not reachable (error {response}).  Try again.",
+                )
+                return
+            self.display_message_box(
+                "Ping successful.",
+                False,
+            )
             # Validate port number
             if not temp_ipaddr[1].isdigit:
-                self.display_message_box(
+                self.backup_error(
                     f"Invalid port number: {temp_ipaddr[1]}.  Try again.",
-                    False,
                 )
                 return
 
             # Validate file location
             if len(temp_info) < 2:
-                self.display_message_box(
-                    "File location is missing.  Try again.",
-                    False,
-                )
+                self.backup_error("File location is missing.  Try again.")
                 return
 
             # All is well so far...
             self.backup_file_http = temp_info[0]
             self.backup_file_location = temp_info[1]
 
-            # Delete entry field by overlaying it.
-            self.entry.delete(0, "end")
-            # Restore normal 'Get Backup Settings' button.
-            self.get_backup_button = customtkinter.CTkButton(
-                master=self,
-                fg_color="#246FB6",
-                border_color="#6563ff",
-                text="Get Backup from Android Device",
-                command=self.get_backup_event,
-                text_color=("#0BF075", "#1AD63D"),
-            )
+            # Empty message = good to go...no error.
+            self.backup_error("")
+
         self.get_backup_button.grid(
             row=10, column=1, padx=10, pady=(20, 20), sticky="w"
         )
@@ -1445,8 +1492,8 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     def rerun_the_program(self):
         self.rerun = True
-        # MyGui.destroy(self)
         self.withdraw()
+        self.quit()
         self.quit()
 
     # ##################################################################################

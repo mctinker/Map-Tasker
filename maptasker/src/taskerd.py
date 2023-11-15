@@ -1,9 +1,4 @@
 #! /usr/bin/env python3
-import sys
-
-import defusedxml.cElementTree as ET
-
-from maptasker.src.error import error_handler
 
 # #################################################################################### #
 #                                                                                      #
@@ -16,6 +11,12 @@ from maptasker.src.error import error_handler
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+import sys
+
+import defusedxml.cElementTree as ET
+
+from maptasker.src.error import error_handler
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
 
 
@@ -49,18 +50,15 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
 # Load all of the Projects, Profiles and Tasks into a format we can easily
 # navigate through.
 # ##################################################################################
-def get_the_xml_data(primary_items: dict) -> dict:
+def get_the_xml_data() -> dict:
     """
     Load all the Projects, Profiles and Tasks into a format we can easily navigate through
-        :param primary_items:  Program registry.  See primitem.py for details.
-        :return: primary_items
     """
 
-    logger.info("entry")
     # Import xml
-    file_to_parse = primary_items["program_arguments"]["file"]
+    file_to_parse = PrimeItems.program_arguments["file"]
     try:
-        primary_items["xml_tree"] = ET.parse(primary_items["file_to_get"])
+        PrimeItems.xml_tree = ET.parse(PrimeItems.file_to_get)
     except ET.ParseError:  # Parsing error
         error_handler(
             f"Error in taskerd parsing {file_to_parse}", 1
@@ -69,22 +67,22 @@ def get_the_xml_data(primary_items: dict) -> dict:
         error_handler(f"Parsing error in taskerd {file_to_parse}", 1)
 
     # Get the xml root
-    primary_items["xml_root"] = primary_items["xml_tree"].getroot()
+    PrimeItems.xml_root = PrimeItems.xml_tree.getroot()
 
     # Check for valid Tasker backup.xml file
-    if primary_items["xml_root"].tag != "TaskerData":
+    if PrimeItems.xml_root.tag != "TaskerData":
         error_msg = "You did not select a Tasker backup XML file...exit 2"
-        primary_items["output_lines"].add_line_to_output(
-            primary_items, 0, error_msg, FormatLine.dont_format_line
+        PrimeItems.output_lines.add_line_to_output(
+            0, error_msg, FormatLine.dont_format_line
         )
         logger.debug(f"{error_msg}exit 3")
         sys.exit(3)
 
-    all_services = primary_items["xml_root"].findall("Setting")
-    all_projects_list = primary_items["xml_root"].findall("Project")
-    all_profiles_list = primary_items["xml_root"].findall("Profile")
-    all_scenes_list = primary_items["xml_root"].findall("Scene")
-    all_tasks_list = primary_items["xml_root"].findall("Task")
+    all_services = PrimeItems.xml_root.findall("Setting")
+    all_projects_list = PrimeItems.xml_root.findall("Project")
+    all_profiles_list = PrimeItems.xml_root.findall("Profile")
+    all_scenes_list = PrimeItems.xml_root.findall("Scene")
+    all_tasks_list = PrimeItems.xml_root.findall("Task")
 
     # We now have what we need as lists.  Now move all into dictionaries.
     all_projects = move_xml_to_table(all_projects_list, False, "name")
@@ -93,13 +91,12 @@ def get_the_xml_data(primary_items: dict) -> dict:
     all_scenes = move_xml_to_table(all_scenes_list, False, "nme")
 
     # Return all data in a dictionary for easier access
-    primary_items["tasker_root_elements"] = {
+    PrimeItems.tasker_root_elements = {
         "all_projects": all_projects,
         "all_profiles": all_profiles,
         "all_scenes": all_scenes,
         "all_tasks": all_tasks,
         "all_services": all_services,
     }
-    logger.info("exit")
 
-    return primary_items
+    return

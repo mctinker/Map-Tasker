@@ -13,6 +13,7 @@
 # #################################################################################### #
 
 from maptasker.src.config import GUI
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.runcli import process_cli
 from maptasker.src.rungui import process_gui
 from maptasker.src.sysconst import DEBUG_PROGRAM
@@ -21,20 +22,20 @@ from maptasker.src.sysconst import DEBUG_PROGRAM
 # ##################################################################################
 # Get the program arguments (e.g. python mapit.py -x)
 # ##################################################################################
-def get_program_arguments(primary_items: dict):
+def get_program_arguments():
     # Are we using the GUI?
     if GUI:
         (
-            primary_items["program_arguments"],
-            primary_items["colors_to_use"],
-        ) = process_gui(primary_items, True)
+            PrimeItems.program_arguments,
+            PrimeItems.colors_to_use,
+        ) = process_gui(True)
 
     # Command line parameters
     else:
-        primary_items = process_cli(primary_items)
+        process_cli()
 
     # Are we in development mode?  If so, override debug argument
     if DEBUG_PROGRAM:
-        primary_items["program_arguments"]["debug"] = True
+        PrimeItems.program_arguments["debug"] = True
 
-    return primary_items
+    return

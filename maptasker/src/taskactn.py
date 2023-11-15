@@ -15,6 +15,7 @@ import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.tasks as tasks
 from maptasker.src.error import error_handler
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine
 
 
@@ -22,21 +23,19 @@ from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine
 # Go through list of actions and output them
 # ##################################################################################
 def output_list_of_actions(
-    primary_items: dict,
     action_count: int,
     alist: list,
     the_item: defusedxml.ElementTree.XML,
 ) -> None:
-    """output the list of Task Actions
+    """
+    Output the list of Task Actions
 
     Parameters:
-        :param primary_items:  Program registry.  See primitem.py for details.
         :param action_count: count of Task actions
         :param alist: list of task actions
         :param the_item: the specific Task's detailed line
 
     Returns: the count of the number of times the program has been called
-
     """
 
     # Go through all Actions in Task Action list
@@ -44,16 +43,14 @@ def output_list_of_actions(
         if taction is not None:
             # If Action continued ("...continued"), output it
             if taction[:3] == "...":
-                primary_items["output_lines"].add_line_to_output(
-                    primary_items,
+                PrimeItems.output_lines.add_line_to_output(
                     2,
                     f"Action: {taction}",
                     ["", "action_color", FormatLine.dont_add_end_span],
                 )
             else:
                 #  Output the Action count = line number of action (fill to 2 leading zeros)
-                primary_items["output_lines"].add_line_to_output(
-                    primary_items,
+                PrimeItems.output_lines.add_line_to_output(
                     2,
                     f"Action: {str(action_count).zfill(2)}</span> {taction}",
                     ["", "action_color", FormatLine.dont_add_end_span],
@@ -61,21 +58,19 @@ def output_list_of_actions(
                 action_count += 1
             if (
                 action_count == 2
-                and primary_items["program_arguments"]["display_detail_level"] == 0
+                and PrimeItems.program_arguments["display_detail_level"] == 0
                 and UNKNOWN_TASK_NAME in the_item
             ):  # Just show first Task if unknown Task
                 break
             elif (
-                primary_items["program_arguments"]["display_detail_level"] == 1
+                PrimeItems.program_arguments["display_detail_level"] == 1
                 and UNKNOWN_TASK_NAME not in the_item
             ):
                 break
 
     # Close Action list if doing straight print, no twisties
-    if not primary_items["program_arguments"]["twisty"]:
-        primary_items["output_lines"].add_line_to_output(
-            primary_items, 3, "", FormatLine.dont_format_line
-        )
+    if not PrimeItems.program_arguments["twisty"]:
+        PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
     return
 
 
@@ -83,7 +78,6 @@ def output_list_of_actions(
 # For this specific Task, get its Actions and output the Task and Actions
 # ##################################################################################
 def get_task_actions_and_output(
-    primary_items,
     the_task: defusedxml.ElementTree.XML,
     list_type: str,
     the_item: str,
@@ -92,7 +86,7 @@ def get_task_actions_and_output(
     # If Unknown task or displaying more detail, then 'the_task' is not valid, and we have to find it.
     if (
         UNKNOWN_TASK_NAME in the_item
-        or primary_items["program_arguments"]["display_detail_level"] > 0
+        or PrimeItems.program_arguments["display_detail_level"] > 0
     ):
         # Get the Task ID so that we can get the Task xml element
         # "--Task:" denotes a Task in a Scene
@@ -102,7 +96,6 @@ def get_task_actions_and_output(
         if len(temp_id) > 1:
             temp_id[1] = temp_id[1].split(" ", 1)[0]  # ID = 1st word of temp_id[1]
             the_task, _ = tasks.get_task_name(
-                primary_items,
                 temp_id[1],  # Task ID
                 tasks_found,  # Tasks found so far
                 [temp_id[1]],  # Task's output line
@@ -112,26 +105,26 @@ def get_task_actions_and_output(
         # Get Task actions
         if the_task:
             # If we have Task Actions, then output them
-            if alist := tasks.get_actions(primary_items, the_task):
+            if alist := tasks.get_actions(the_task):
                 # Start a list of Actions
-                primary_items["output_lines"].add_line_to_output(
-                    primary_items, 1, "", FormatLine.dont_format_line
+                PrimeItems.output_lines.add_line_to_output(
+                    1, "", FormatLine.dont_format_line
                 )
                 action_count = 1
-                output_list_of_actions(primary_items, action_count, alist, the_item)
+                output_list_of_actions(action_count, alist, the_item)
                 # End list if Scene Task
                 if "&#45;&#45;Task:" in list_type:
-                    primary_items["output_lines"].add_line_to_output(
-                        primary_items, 3, "", FormatLine.dont_format_line
+                    PrimeItems.output_lines.add_line_to_output(
+                        3, "", FormatLine.dont_format_line
                     )
                     # Add an extra </ul> if doing twisties
-                    if primary_items["program_arguments"]["twisty"]:
-                        primary_items["output_lines"].add_line_to_output(
-                            primary_items, 3, "", FormatLine.dont_format_line
+                    if PrimeItems.program_arguments["twisty"]:
+                        PrimeItems.output_lines.add_line_to_output(
+                            3, "", FormatLine.dont_format_line
                         )
                 # End the list of Actions
-                primary_items["output_lines"].add_line_to_output(
-                    primary_items, 3, "", FormatLine.dont_format_line
+                PrimeItems.output_lines.add_line_to_output(
+                    3, "", FormatLine.dont_format_line
                 )
         else:
             error_handler("No Task found!!!", 0)

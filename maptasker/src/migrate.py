@@ -19,7 +19,8 @@ from pathlib import Path
 import _pickle
 
 from maptasker.src.error import error_handler
-from maptasker.src.getputarg import save_restore_args
+from maptasker.src.getputer import save_restore_args
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ARGUMENTS_FILE
 
 
@@ -79,12 +80,12 @@ def process_error(error_msg: str) -> tuple[dict, dict]:
 # ##################################################################################
 # Migrate from old filename/format to new for saved runtime arguments
 # ##################################################################################
-def migrate(primary_items: dict) -> dict:
+def migrate() -> dict:
     """
     Migrate from old filename/format to new for saved runtime arguments
       We have changed from using the unsecure "pickle" code to using "json"
       to save the program arguments and colors
-        :param primary_items:  Program registry.  See primitem.py for details.
+        :param: pi (Class object): PrimeItems class object
         :return: nothing
     """
     old_arguments_file = ".MapTasker_arguments.txt"
@@ -98,12 +99,12 @@ def migrate(primary_items: dict) -> dict:
     # Now, if we have the old binary file saved via pickle, convert it to JSON
     if file_to_check.is_file():
         (
-            primary_items["program_arguments"],
-            primary_items["colors_to_use"],
+            PrimeItems.program_arguments,
+            PrimeItems.colors_to_use,
         ) = restore_old_args(file_to_check)
         # Save as JSON file.  We don't care about the returned values
         _, _ = save_restore_args(
-            primary_items["colors_to_use"], primary_items["program_arguments"], True
+            PrimeItems.colors_to_use, PrimeItems.program_arguments, True
         )
         # Now delete the old file
         file_to_check.unlink()
@@ -118,4 +119,4 @@ def migrate(primary_items: dict) -> dict:
                 if temp_colormap["msg"] or temp_args["msg"]:
                     temp_args["msg"] = temp_colormap["msg"] = ""
                     _, _ = save_restore_args(temp_colormap, temp_args, True)
-    return primary_items
+    return

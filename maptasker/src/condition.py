@@ -1,8 +1,4 @@
 #! /usr/bin/env python3
-import defusedxml.ElementTree
-
-import maptasker.src.actiond as process_action_codes
-
 # #################################################################################### #
 #                                                                                      #
 # condition: Process profile condition: time, date, state, event, location, app        #
@@ -14,11 +10,15 @@ import maptasker.src.actiond as process_action_codes
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+import defusedxml.ElementTree
+
+import maptasker.src.actiond as process_action_codes
 import maptasker.src.actione as action_evaluate
 
 # action_codes: Master dictionary of Task action and Profile condition codes
 from maptasker.src.actionc import action_codes
 from maptasker.src.debug import not_in_dictionary
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 from maptasker.src.taskflag import get_priority
 
@@ -26,12 +26,9 @@ from maptasker.src.taskflag import get_priority
 # ##################################################################################
 # Profile condition: Time
 # ##################################################################################
-def condition_time(
-    primary_items: dict, the_item: defusedxml.ElementTree.XML, the_output_condition: str
-) -> str:
+def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) -> str:
     """
     Handle the "Time" condition
-        :param primary_items:  Program registry.  See primitem.py for details.
         :param the_item: the xml element with the Condition
         :param the_output_condition: text into which the condition output is to
             be formated
@@ -94,7 +91,7 @@ def condition_time(
         )
     else:
         the_output_condition = f"{the_output_condition}{child.text} not yet mapped!"
-        not_in_dictionary(primary_items, "Condition Time", child.text)
+        not_in_dictionary("Condition Time", child.text)
     return the_output_condition
 
 
@@ -159,16 +156,13 @@ def condition_day(
 
 
 # ##################################################################################
-
-
 # Profile condition: State
 # ##################################################################################
 def condition_state(
-    primary_items: dict, the_item: defusedxml.ElementTree, the_output_condition: str
+    the_item: defusedxml.ElementTree.XMLParse, the_output_condition: str
 ) -> str:
     """
     Handle the "State" condition
-        :param primary_items:  Program registry.  See primitem.py for details.
         :param the_item: the xml element with the Condition
         :param the_output_condition: text into which the condition output is to
             be formated
@@ -180,13 +174,11 @@ def condition_state(
             state_code = f"{child.text}s" if "s" not in child.text else child.text
             if state_code not in action_codes:
                 process_action_codes.build_action_codes(
-                    primary_items,
                     child,
                     the_item,
                 )  # Add it to our action dictionary
             # child.text = state_code
             state = action_evaluate.get_action_code(
-                primary_items,
                 child,
                 the_item,
                 False,
@@ -198,23 +190,20 @@ def condition_state(
             invert = the_item.find("pin")
             if invert is not None and invert.text == "true":
                 the_output_condition = f"{the_output_condition} <em>[inverted]</em>"
-            if primary_items["program_arguments"]["debug"]:
+            if PrimeItems.program_arguments["debug"]:
                 the_output_condition = f"{the_output_condition} (code:{child.text})"
         return the_output_condition
     return ""
 
 
 # ##################################################################################
-
-
 # Profile condition: Event
 # ##################################################################################
 def condition_event(
-    primary_items: dict, the_item: defusedxml.ElementTree, the_output_condition: str
+    the_item: defusedxml.ElementTree.XMLParse, the_output_condition: str
 ) -> str:
     """
     Handle the "Event" condition
-        :param primary_items:  Program registry.  See primitem.py for details.
         :param the_item: the xml element with the Condition
         :param the_output_condition: text into which the condition output is to
             be formatted
@@ -231,11 +220,10 @@ def condition_event(
     if event_code not in action_codes:
         # Build new (template_ action code if not in our dictionary of codes yet
         process_action_codes.build_action_codes(
-            primary_items, the_event_code, the_item
+            the_event_code, the_item
         )  # Add it to our action dictionary
     # the_event_code.text = event_code
     event = action_evaluate.get_action_code(
-        primary_items,
         the_event_code,
         the_item,
         False,
@@ -245,7 +233,7 @@ def condition_event(
     event = f"{event}{get_priority(the_item, True)}"
 
     the_output_condition = f"{the_output_condition}Event: {event}"
-    if primary_items["program_arguments"][
+    if PrimeItems.program_arguments[
         "debug"
     ]:  # if program_args['debug'] then add the code
         the_output_condition = f"{the_output_condition} (code:{the_event_code.text})"
@@ -253,19 +241,62 @@ def condition_event(
 
 
 # ##################################################################################
+# Profile condition: App (application)
+# ##################################################################################
+def condition_app(item: defusedxml.ElementTree.XMLParse, condition: str) -> str:
+    """
+    Handle the "App" condition
+        :param the_item: the xml element with the Condition
+        :param the_output_condition: text into which the condition output is to
+            be formatted
+        :return: the formatted condition's output string
+    """
+    the_apps = ""
+    for apps in item:
+        if "label" in apps.tag:
+            the_apps = f"{the_apps} {apps.text}"
+    return f"{condition}Application:{the_apps}"
 
 
+# ##################################################################################
+# Profile condition: Loc (location)
+# ##################################################################################
+def condition_loc(item: defusedxml.ElementTree.XMLParse, condition: str) -> str:
+    """
+    Handle the "Location" condition
+        :param the_item: the xml element with the Condition
+        :param the_output_condition: text into which the condition output is to
+            be formatted
+        :return: the formatted condition's output string
+    """
+    lat = item.find("lat").text
+    lon = item.find("long").text
+    rad = item.find("rad").text
+    if lat:
+        return (
+            f"{condition}Location with latitude {lat} longitude" f" {lon} radius {rad}"
+        )
+    return ""
+
+
+# ##################################################################################
 # Given a Profile, return its list of conditions
 # ##################################################################################
-def parse_profile_condition(
-    primary_items: dict, the_profile: defusedxml.ElementTree
-) -> str:
+def parse_profile_condition(the_profile: defusedxml.ElementTree) -> str:
     """
     Given a Profile, return its list of conditions
-        :param primary_items:  Program registry.  See primitem.py for details.
         :param the_profile: the xml element pointing to <Profile object
         :return: the formatted condition's output string
     """
+    # Map of our functions to call based on the tag on the Profile item
+    function_map = {
+        "Time": condition_time,
+        "Day": condition_day,
+        "State": condition_state,
+        "Event": condition_event,
+        "App": condition_app,
+        "Loc": condition_loc,
+    }
     ignore_items = ["cdate", "edate", "flags", "id", "ProfileVariable"]
     condition = ""  # Assume no condition
     for item in the_profile:
@@ -276,40 +307,8 @@ def parse_profile_condition(
         if condition:  # If we already have a condition, add 'and' (italicized)
             condition = f"{condition} <em>AND</em> "
 
-        # Find out what the condition is and handle it
-        match item.tag:
-            case "Time":
-                condition = condition_time(
-                    primary_items, item, condition
-                )  # Get the Time condition
-
-            case "Day":
-                condition = condition_day(item, condition)
-
-            case "State":
-                condition = condition_state(primary_items, item, condition)
-
-            case "Event":
-                condition = condition_event(primary_items, item, condition)
-
-            case "App":
-                the_apps = ""
-                for apps in item:
-                    if "label" in apps.tag:
-                        the_apps = f"{the_apps} {apps.text}"
-                condition = f"{condition}Application:{the_apps}"
-
-            case "Loc":
-                lat = item.find("lat").text
-                lon = item.find("long").text
-                rad = item.find("rad").text
-                if lat:
-                    condition = (
-                        f"{condition}Location with latitude {lat} longitude"
-                        f" {lon} radius {rad}"
-                    )
-
-            case _:
-                pass
+        # Find out what the condition is and handle it.
+        if item.tag in function_map:
+            condition = function_map[item.tag](item, condition)
 
     return "" if condition == "" else f"{condition}"

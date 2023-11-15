@@ -15,6 +15,7 @@ import re
 import string
 import tkinter
 import tkinter.font
+from maptasker.src.primitem import PrimeItems
 from string import printable
 from typing import Set
 
@@ -37,12 +38,18 @@ left_arrow_corner_up = "↖"
 arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}"
 directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
 
+# Define additional "printable" characters to allow.
+extra_cars: Set[str] = set(f"│└─╔═║╚╝╗▶◄{arrows}")
+# List of printable ASCII characters
+printable_chars: Set[str] = set(string.printable)
+printable_chars = printable_chars.union(extra_cars)
+
 
 # ##################################################################################
 # Add line to our output queue.
 # ##################################################################################
-def add_output_line(primary_items, line):
-    primary_items["netmap_output"].append(line)
+def add_output_line(line):
+    PrimeItems.netmap_output.append(line)
 
 
 # ##################################################################################
@@ -59,7 +66,8 @@ def include_heading(header: str, output_lines: list) -> None:
     - Creates a filler line of "-" characters the same length as the header
     - Replaces the first line of output_lines with the filler line
     - Replaces the second line of output_lines with the header
-    - Replaces the third line of output_lines with the filler line"""
+    - Replaces the third line of output_lines with the filler line
+    """
     filler = f"{blank*len(header)}"
     output_lines[0] = f"{filler}{output_lines[0]}"
     output_lines[1] = f"{header}{output_lines[1]}"
@@ -69,42 +77,41 @@ def include_heading(header: str, output_lines: list) -> None:
 # ##################################################################################
 # Given a list of 3 text elements, print them.
 # ##################################################################################
-def print_3_lines(primary_items, lines):
+def print_3_lines(lines):
     """
     Prints 3 lines from a list of items
     Args:
-        primary_items: List of items to print from
         lines: List of line numbers to print
     Returns:
         None: Does not return anything
     - Check if lines is a list
     - Loop through first 3 items of lines list
-    - Print corresponding item from primary_items"""
+    - Print corresponding item from PrimesItems.netmap_output
+    """
     do_list = isinstance(lines, list)
     for line in range(3):
         if do_list:
-            add_output_line(primary_items, lines[line])
+            add_output_line(lines[line])
         else:
-            add_output_line(primary_items, line)
+            add_output_line(line)
 
 
 # ##################################################################################
 # Given a list of text strings, print all of them.
 # ##################################################################################
-def print_all(primary_items, lines):
+def print_all(lines):
     for line in lines:
-        add_output_line(primary_items, line)
+        add_output_line(line)
 
 
 # ##################################################################################
 # Given a text string and title, enclose them in a box and print the box.
 # ##################################################################################
-def print_box(primary_items, name, title, indent, counter):
+def print_box(name, title, indent, counter):
     """
-    Prints a box with title, name and counter.
+    Given a text string and title, enclose them in a box and print the box.
 
     Args:
-        primary_items: Primary items to print before the box
         name: Name to display in the box
         title: Title to display before the name
         indent: Number of blanks for indentation of the box
@@ -125,13 +132,29 @@ def print_box(primary_items, name, title, indent, counter):
     box[0] = f"{filler}╔═{box_line*len(full_name)}═╗"  # Box top
     box[1] = f"{filler}║ {full_name} ║"  # Box middle
     box[2] = f"{filler}╚═{box_line*len(full_name)}═╝"  # Box bottom
-    print_3_lines(primary_items, box)
+    print_3_lines(box)
 
 
 # ##################################################################################
-# Get the dimensions of a text string using tkinter to calculate the width needed
+# Get the dimensions of a text string using tkinter to calculate the width needed.
 # ##################################################################################
 def width_and_height_calculator_in_pixel(txt, fontname, fontsize):
+    """
+    Calculates the width and height of the given text in pixels.
+
+    Args:
+        txt: The text to calculate the width and height for.
+        fontname: The name of the font to be used.
+        fontsize: The size of the font in points.
+
+    Returns:
+        A list containing the width and height of the text in pixels.
+
+    Examples:
+        >>> width_and_height_calculator_in_pixel("Hello", "Arial", 12)
+        [30, 16]
+    """
+
     font = tkinter.font.Font(family=fontname, size=fontsize)
     return [font.measure(txt), font.metrics("linespace")]
 
@@ -182,19 +205,35 @@ def remove_char(string, index):
     - Check if the index is within the length of the string
     - Slice the string from beginning to index and from index+1 to end
     - Concatenate both slices to remove the character at index
-    - Return the modified string
-    """
-    """
+    - Return the modified string    """ """
     Remove character from string at given index and return modified string
-    
+
     Args:
         string (str): The input string
         index (int): The index to remove the character at
-        
+
     Returns:
         str: String with character removed at given index
     """
     return string[:index] + string[index + 1 :]
+
+
+# ##################################################################################
+# Count the number of icons (non-alphanumeric chars) in the line of text
+# ##################################################################################
+def count_icons(text):
+    """Returns the number of icons in the text string.
+
+    Args:
+      text: A string.
+
+    Returns:
+      An integer representing the number of icons in the text string.
+    """
+
+    icon_regex = re.compile(r"\s*[\U0001F300-\U0001F7FF]\s*")
+    matches = icon_regex.findall(text)
+    return len(matches)
 
 
 # ##################################################################################
@@ -210,33 +249,28 @@ def remove_icon(text: str) -> str:
     Returns:
         str: The string with icon characters removed
     """
+
+    # If no arrow found in text, just return the line as is.
     arrow_position: int = next((text.index(char) for char in arrows if char in text), 0)
     if arrow_position == 0:
         return text
 
-    # Define additional "printable" characters to allow.
-    extra_cars: str = f"│└─╔═║╚╝╗▶◄{arrows}"
-    # List of printable ASCII characters
-    printable: Set[str] = set(string.printable)
-    for char in extra_cars:
-        printable.add(char)
-
     # Remove a blank for every icon found on line with an arrow.
     output: str = text
-    blanks: int = sum(char not in printable for char in text)
-    if blanks != 0:
+
+    # If there are icons in the text...
+    if icon_count := count_icons(text):
         # Drop here if there is at least one icon.
         for find_arrow in directional_arrows:
             found_arrow = text.find(find_arrow)
             if found_arrow != -1:
                 # Remove the icon and any blanks
                 output = remove_char(text, found_arrow - 1)
-                return output + blank * blanks
+                return output + blank * icon_count
 
         # No icon found
-        output = text[: arrow_position - blanks] + text[arrow_position:]
+        output = text[: arrow_position - icon_count] + text[arrow_position:]
 
-    # Remove any icon characters from the string
     return output
 
 
@@ -298,7 +332,8 @@ def add_bar_above_lines(output_lines, line_to_modify, called_task_position):
     - Find the line number to insert bar above by subtracting 1 from input line number
     - Iterate through output lines from beginning
     - When line number matches specified line, insert bar string above it
-    - Return modified output lines"""
+    - Return modified output lines
+    """
     line_num = line_to_modify - 1
     check_line = True
     while check_line:
@@ -407,7 +442,7 @@ def get_indices_of_line(
     called_line_num,
     output_lines,
 ):
-    """_summary_
+    """
     Get the index of the caller/called Task from all caller/called Tasks in line.
         Args:
             caller_task_name (str): Name of the caller task.
@@ -440,14 +475,6 @@ def build_call_table(output_lines: list) -> list:
     - Check each line for a "Calls" indicator to find caller Tasks
     - Process the caller and called Tasks found on each line, adding them to a call table
     - Return the call table sorted by location from inner to outer Tasks
-    """
-    """_summary_
-    Build a sorted list of all caller Tasks and their called Tasks.
-        Args:
-            output_lines (list): List of output lines
-
-        Returns:
-            list: Caller/Called Task list.
     """
     # Go through all output lines looking for caller Tasks.
     call_table = {}

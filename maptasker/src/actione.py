@@ -12,17 +12,16 @@
 #                       or event condition)                                          #
 #                                                                                    #
 # ####################################################################################
-import copy
+import contextlib
 
 import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.actionr as action_results
 from maptasker.src.action import get_extra_stuff
-from maptasker.src.actionc import action_codes
+from maptasker.src.actionc import ActionCode, action_codes
 from maptasker.src.config import CONTINUE_LIMIT
 from maptasker.src.debug import not_in_dictionary
-from maptasker.src.depricated import depricated
-from maptasker.src.error import error_handler
+from maptasker.src.depricate import depricated
 from maptasker.src.format import format_html
 from maptasker.src.sysconst import logger
 
@@ -61,32 +60,6 @@ def cleanup_the_result(results: str) -> str:
 
 
 # ##################################################################################
-# For debug purposes, this searches dictionary for missing keys: 'reqargs' and 'display'
-# ##################################################################################
-def look_for_missing_req() -> None:
-    """
-    For debug purposes, this searches dictionary for missing keys: 'reqargs'
-    and 'display'
-        If found, the error is handled and the program exits
-        :return: nothing
-    """
-    for item in action_codes:
-        entry = action_codes[item]
-        numargs = entry["numargs"]
-        # Required arguments missing?  Exit with program error if so.
-        if numargs > 0 and "reqargs" not in entry:
-            error_handler(
-                f"the_action_code_plus {item} missing reqargs!  numargs:{numargs}",
-                1,
-            )
-        # Missing the entry's display name?
-        if "display" not in entry:
-            error_handler(f'the_action_code_plus {item} missing "display"!', 1)
-
-    return
-
-
-# ##################################################################################
 # See if this Task or Profile code is deprecated.
 # ##################################################################################
 def check_for_deprecation(the_action_code_plus: str) -> None:
@@ -99,18 +72,15 @@ def check_for_deprecation(the_action_code_plus: str) -> None:
 
     lookup = the_action_code_plus[:-1]  # Remove last character to get just the digits
     if lookup in depricated and the_action_code_plus in action_codes:
-        action_codes[the_action_code_plus] = {
-            "display": f'{action_codes[the_action_code_plus]["display"]}'
-            f"<em> (Is Deprecated)</em> "
-        }
-    return
+        return "<em> (Is Deprecated)</em> "
+
+    return ""
 
 
 # ##################################################################################
 # Given an action code, evaluate it for display.
 # ##################################################################################
 def get_action_code(
-    primary_items: dict,
     code_child: defusedxml.ElementTree.XML,
     code_action: defusedxml.ElementTree.XML,
     action_type: bool,
@@ -118,84 +88,93 @@ def get_action_code(
 ) -> str:
     """
     Given an action code, evaluate it for display
-        :param primary_items:  Program registry.  See primitem.py for details.
         :param code_child: xml element of the <code>
         :param code_action: value of <code> (e.g. "549")
-        :param action_type:
+        :param action_type: entry or exit
         :param code_type: 'e'=event, 's'=state, 't'=task
         :return: formatted output line with action details
     """
     logger.debug(f"get action code:{code_child.text}{code_type}")
     the_action_code_plus = code_child.text + code_type
+
     # See if this code is deprecated
-    check_for_deprecation(the_action_code_plus)
+    depricated = check_for_deprecation(the_action_code_plus)
+
     # We have a code that is not yet in the dictionary?
     if (
         the_action_code_plus not in action_codes
-        or "display" not in action_codes[the_action_code_plus]
+        or not action_codes[the_action_code_plus].display
     ):
         the_result = (
             f"Code {the_action_code_plus} not yet"
-            f" mapped{get_extra_stuff(primary_items, code_action, action_type)}"
+            f" mapped{get_extra_stuff(code_action, action_type)}"
         )
         not_in_dictionary(
-            primary_items,
             "Action/Condition",
             f"'display' for code {the_action_code_plus}",
         )
 
     else:
-        # The code is in our dictionary.  Add the display name
-        the_result = format_html(
-            "action_name_color",
-            "",
-            action_codes[the_action_code_plus]["display"],
-            True,
-        )
+        # Format the output with HTML if this is a Task
+        if action_type:
+            # The code is in our dictionary.  Add the display name
+            the_result = format_html(
+                "action_name_color",
+                "",
+                f"{action_codes[the_action_code_plus].display}{depricated}",
+                True,
+            )
+        # Not a Task.  Must be a condition.
+        else:
+            the_result = f"{action_codes[the_action_code_plus].display}{depricated}"
 
-        if "numargs" in action_codes[the_action_code_plus]:
-            numargs = action_codes[the_action_code_plus]["numargs"]
+        if action_codes[the_action_code_plus].numargs:
+            numargs = action_codes[the_action_code_plus].numargs
         else:
             numargs = 0
+
         # If there are required args, then parse them
-        if numargs != 0 and "reqargs" in action_codes[the_action_code_plus]:
+        if numargs != 0 and action_codes[the_action_code_plus].reqargs:
             the_result = action_results.get_action_results(
-                primary_items,
                 the_action_code_plus,
                 action_codes,
                 code_action,
                 action_type,
-                action_codes[the_action_code_plus]["reqargs"],
-                action_codes[the_action_code_plus]["evalargs"],
+                action_codes[the_action_code_plus].reqargs,
+                action_codes[the_action_code_plus].evalargs,
             )
+
         # If this is a redirected lookup entry, create a temporary mirror
         # dictionary entry.
         # Then grab the 'display' key and fill in rest with directed-to keys
-        if "redirect" in action_codes[the_action_code_plus]:
-            # Add this guy's display name
-            display_name = action_codes[the_action_code_plus]["display"]
+        with contextlib.suppress(KeyError):
+            if action_codes[the_action_code_plus].redirect:
+                # Get the referred-to dictionary item.
+                referral = action_codes[the_action_code_plus].redirect
 
-            # Get the referred-to dictionary item
-            referral = action_codes[the_action_code_plus]["redirect"][0]
-            temp_lookup_codes = {
-                the_action_code_plus: copy.deepcopy(action_codes[referral])
-            }
+                # Create a temporary mirror dictionary entry using values of redirected code
+                temp_lookup_codes = {}
+                temp_lookup_codes[the_action_code_plus] = ActionCode(
+                    action_codes[referral].numargs,
+                    "",
+                    action_codes[referral].args,
+                    action_codes[referral].types,
+                    action_codes[the_action_code_plus].display,
+                    action_codes[referral].reqargs,
+                    action_codes[referral].evalargs,
+                )
 
-            temp_lookup_codes[the_action_code_plus]["display"] = copy.deepcopy(
-                display_name
-            )
-            # Get the results from the (copy of the) referred-to dictionary entry
-            the_result = action_results.get_action_results(
-                primary_items,
-                the_action_code_plus,
-                temp_lookup_codes,
-                code_action,
-                action_type,
-                temp_lookup_codes[the_action_code_plus]["reqargs"],
-                temp_lookup_codes[the_action_code_plus]["evalargs"],
-            )
+                # Get the results from the (copy of the) referred-to dictionary entry
+                the_result = action_results.get_action_results(
+                    the_action_code_plus,
+                    temp_lookup_codes,
+                    code_action,
+                    action_type,
+                    temp_lookup_codes[the_action_code_plus].reqargs,
+                    temp_lookup_codes[the_action_code_plus].evalargs,
+                )
 
-    the_result = cleanup_the_result(the_result)
+    # the_result = cleanup_the_result(the_result)
     return the_result
 
 
@@ -203,7 +182,6 @@ def get_action_code(
 # Construct Task Action output line
 # ##################################################################################
 def build_action(
-    primary_items: dict,
     alist: list,
     task_code_line: str,
     code_element: defusedxml.ElementTree.XML,
@@ -212,7 +190,6 @@ def build_action(
 ) -> list:
     """
     Construct Task Action output line
-        :param primary_items:  Program registry.  See primitem.py for details.
         :param alist: list of actions (all <Actions> for task
         :param task_code_line: output text of Task
         :param code_element: xml element of <code> under <Action>
@@ -244,7 +221,7 @@ def build_action(
             )
         )
         # Handle this
-        not_in_dictionary(primary_items, "Action", code_element.text)
+        not_in_dictionary("Action", code_element.text)
 
     # We have Task Action details
     else:

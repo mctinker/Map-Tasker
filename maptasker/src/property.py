@@ -15,19 +15,16 @@ import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.format import format_html
 from maptasker.src.sysconst import FormatLine
+from maptasker.src.primitem import PrimeItems
 
 
 # ##################################################################################
 # Parse Property's variable and output it
 # ##################################################################################
-def parse_variable(
-    primary_items: dict, variable_header: defusedxml.ElementTree, color_to_use: str
-) -> None:
-    """_summary_
+def parse_variable(variable_header: defusedxml.ElementTree, color_to_use: str) -> None:
+    """
     Parse Property's variable and output it
         Args:
-            primary_items (_type_):  dictionary of the primary items used throughout
-                                    the module.  See primitem.py for details
             variable_header (_type_): xml header of property's variable
             color_to_use (_type_): the color to use in the output
     """
@@ -56,20 +53,18 @@ def parse_variable(
         Configure on Import:{configure_on_import}, Structured Variable (JSON, etc.):{structured_variable}, Immutable:{immutable}, Value:{value}, Display Name:{display_name}, Prompt:{prompt}, Exported Value:{exported_value}",
         True,
     )
-    primary_items["output_lines"].add_line_to_output(
-        primary_items, 5, out_string, FormatLine.dont_format_line
+    PrimeItems.output_lines.add_line_to_output(
+        5, out_string, FormatLine.dont_format_line
     )
 
 
 # Given the xml header to the Project/Profile/Task, get the properties belonging
 # to this header and write them out
-def get_properties(
-    primary_items: dict, header: defusedxml.ElementTree, color_to_use: str
-) -> None:
-    """_summary_
+def get_properties(header: defusedxml.ElementTree, color_to_use: str) -> None:
+    """
 
     Args:
-        :param primary_items:  Program registry.  See primitem.py for details.
+
         header (defusedxml.ElementTree): xml header to Project/Profile/Task
         color_to_use: the color to output the property with
 
@@ -87,19 +82,19 @@ def get_properties(
             f"<br>Properties comment: {comment_xml.text}",
             True,
         )
-        primary_items["output_lines"].add_line_to_output(
-            primary_items, 5, out_string, FormatLine.dont_format_line
+        PrimeItems.output_lines.add_line_to_output(
+            5, out_string, FormatLine.dont_format_line
         )
         have_property = True
 
     # Look for variables
     for item in header:
         if item.tag == "ProfileVariable":
-            parse_variable(primary_items, item, color_to_use)
+            parse_variable(item, color_to_use)
             have_property = True
 
     if have_property:
-        primary_items["output_lines"].add_line_to_output(
-            primary_items, 5, "<br><br>", FormatLine.dont_format_line
+        PrimeItems.output_lines.add_line_to_output(
+            5, "<br><br>", FormatLine.dont_format_line
         )
     return

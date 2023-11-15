@@ -11,7 +11,8 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-from maptasker.src.sysconst import logger, Colors
+from maptasker.src.primitem import PrimeItems
+from maptasker.src.sysconst import Colors, logger
 
 
 def error_handler(error_message: str, exit_code: int) -> None:
@@ -32,4 +33,9 @@ def error_handler(error_message: str, exit_code: int) -> None:
     # Log and print the error
     logger.critical(final_error_message)
     if exit_code > 0:
+        if PrimeItems.program_arguments["debug"]:
+            print(final_error_message)
+        print(final_error_message)
         exit(exit_code)
+    else:
+        return
