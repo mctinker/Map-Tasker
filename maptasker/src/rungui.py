@@ -73,11 +73,12 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # If user selected the "Exit" button, call it quits.
     if user_input.exit:
+        PrimeItems.program_arguments["gui"] = False  # Make sure we don't come back.
         error_handler("Program exited. Goodbye.", 0)
 
     # User has either closed the window or hit the 'Run' or 'ReRun' button
     if not user_input.go_program and not user_input.rerun:
-        error_handler("Program cancelled be user (killed GUI)", 99)
+        error_handler("Program cancelled by user (killed GUI)", 99)
 
     # Establish our runtime default values if we don't yet have 'em.
     if not PrimeItems.colors_to_use:

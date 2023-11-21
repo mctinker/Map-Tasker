@@ -91,6 +91,8 @@ class PrimeItems:
     directories = []
     variables = {}
     current_project = ""
+    error_code = 0
+    error_msg = ""
 
 
 # ##################################################################################
@@ -145,3 +147,5 @@ class PrimeItemsReset:
         PrimeItems.directories = []
         PrimeItems.variables = {}
         PrimeItems.current_project = ""
+        PrimeItems.error_code = 0
+        PrimeItems.error_msg = ""

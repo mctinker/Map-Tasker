@@ -30,12 +30,23 @@ def error_handler(error_message: str, exit_code: int) -> None:
     else:
         final_error_message = f"{Colors.Red}MapTasker error: {error_message}"
 
-    # Log and print the error
-    logger.critical(final_error_message)
+    # Process an error?
     if exit_code > 0:
+        logger.critical(final_error_message)
         if PrimeItems.program_arguments["debug"]:
             print(final_error_message)
-        print(final_error_message)
+
+        # If coming from GUI, set error info. and return to GUI.
+        if PrimeItems.program_arguments["gui"]:
+            PrimeItems.error_code = exit_code
+            PrimeItems.error_msg = error_message
+            return
+        # Not coming from GUI...just print error.
+        else:
+            print(final_error_message)
         exit(exit_code)
+
+    # return code 0
     else:
+        logger.debug(final_error_message)
         return

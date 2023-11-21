@@ -18,6 +18,7 @@ from tkinter import font
 
 import customtkinter
 from CTkColorPicker.ctk_color_picker import AskColor
+from PIL import Image
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import OUTPUT_FONT
@@ -80,7 +81,8 @@ INFO_TEXT = (
     "* Font To Use: Change the monospace font used for the output.\n\n"
     "* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n"
     "* Get Backup from Android Device: fetch the backup "
-    "xml file from device.\n\n"
+    "xml file from device.  You will be asked for the IP address and port number for your"
+    " Android device, as well as the file location on the device.\n\n"
     "* Run: Run the program with the settings "
     "provided and then exit.\n"
     "* ReRun: Run multiple times (each time with "
@@ -104,6 +106,34 @@ INFO_TEXT = (
     "* Exit: Exit the program (quit).\n\n"
     "Note: You will be prompted to identify your Tasker "
     "backup file once you hit the 'Run' button."
+)
+BACKUP_HELP_TEXT = (
+    "The following steps aree required in order to fetch a Tasker backup file directly"
+    " from your Android device.\n\n"
+    "1- Both this device and the Android device must be on the same named network.\n\n"
+    "2- The Tasker Project 'HTTP Server Example' or identical function must be"
+    " installed and active on the Android device (the server must be running):\n\n"
+    "https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example\n\n"
+    "You will be asked for the IP address and port number for your Android device,"
+    " as well as the file location on the device.  The input format is...\n\n"
+    "    'IP Address:Port Number,/path/to/file'\n\n"
+    "The default value is for this field is: \n\n'192.168.0.210:1821,/Tasker/configs/user/backup.xml'\n\n,"
+    "...where '192.168.0.210' is the IP address and '1821' is the port number for the Tasker HTTP"
+    " Server Example running on your Android device.  The default file location of\n"
+    " the Tasker backup file on the Android device is: '/Tasker/configs/user/backup.xml'.\n\n"
+    "Usage Notes:\n\n"
+    "The IP address and port can be obtained from your Android device by running the"
+    " 'HTTP Server Example' Tasker Project on your Android device, and this will"
+    " then issue the notification something like:\n\n"
+    "HTTP Server Info\n"
+    'Server info updated {"device name":"http://192.168.0.49:1821"}\n\n'
+    "- To fetch the backup fille, click on the 'Get Backup from Android Device' button,"
+    " modify the default value presented in the input field to the right, and then"
+    " click on the button 'Enter and Click Here to Set >>=>'.\n\n"
+    "- the Fetch backup settings are only used once the 'Run' button is pressed, but"
+    " this program will try to ping your Android device to see if it is available"
+    " once your enter the HTTP and file location values.  The ping will timeout after"
+    " 10 seconds if the device is not reachable.  Check that the IP address is correct.\n\n"
 )
 
 
@@ -149,6 +179,7 @@ class MyGui(customtkinter.CTk):
         self.twisty = None
         self.underline = None
         self.outline = False
+        PrimeItems.program_arguments["gui"] = True
 
         self.title("MapTasker Runtime Options")
         # Overall window dimensions
@@ -166,15 +197,40 @@ class MyGui(customtkinter.CTk):
         # Define sidebar background frame with 14 rows
         self.sidebar_frame.grid_rowconfigure(14, weight=1)
 
+        # Add our logo
+        # Get the path to our logos
+        current_dir = os.getcwd()
+        abspath = os.path.abspath(__file__)
+        dname = os.path.dirname(abspath)
+        temp_dir = dname.replace("src", "assets")
+        # Switch to our temp directory (assets)
+        os.chdir(temp_dir)
+        # Create a CTkImage object to display the logo
+        my_image = customtkinter.CTkImage(
+            light_image=Image.open("maptasker_logo_light.png"),
+            dark_image=Image.open("maptasker_logo_dark.png"),
+            size=(190, 50),
+        )
+        self.logo_label = customtkinter.CTkLabel(
+            self,
+            image=my_image,
+            text="",
+            compound="left",
+            font=customtkinter.CTkFont(size=1, weight="bold"),
+        )  # display image with a CTkLabel
+        self.logo_label.grid(row=0, column=0, padx=0, pady=0, sticky="n")
+        # Switch back to proper directory
+        os.chdir(current_dir)
+
         # Add grid title
         self.logo_label = customtkinter.CTkLabel(
             self.sidebar_frame,
             text="Display Options",
             font=customtkinter.CTkFont(size=20, weight="bold"),
         )
-        self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
+        self.logo_label.grid(row=0, column=0, padx=20, pady=(60, 10), sticky="s")
 
-        # Start first grid / column defintions
+        # Start first grid / column definitions
 
         # Display Detail Level
         self.detail_label = customtkinter.CTkLabel(
@@ -202,7 +258,7 @@ class MyGui(customtkinter.CTk):
         self.condition_checkbox = customtkinter.CTkCheckBox(
             self.sidebar_frame,
             command=self.condition_event,
-            text="Display Profile/Task Conditions",
+            text="Display Profile and Task Action Conditions",
             onvalue=True,
             offvalue=False,
         )
@@ -411,9 +467,22 @@ class MyGui(customtkinter.CTk):
             border_width=2,
             text="Display Help",
             command=self.help_event,
+            text_color=("#0BF075", "#ffd941"),
         )
-
         self.help_button.grid(row=6, column=2, padx=(20, 20), pady=(20, 20), sticky="n")
+
+        # 'Backup Help' button definition
+        self.backup_help_button = customtkinter.CTkButton(
+            master=self,
+            fg_color="#246FB6",
+            border_width=2,
+            text="Get Backup Help",
+            command=self.backup_help_event,
+            text_color=("#0BF075", "#ffd941"),
+        )
+        self.backup_help_button.grid(
+            row=7, column=2, padx=(20, 20), pady=(20, 20), sticky="n"
+        )
 
         # 'Run' button definition
         self.run_button = customtkinter.CTkButton(
@@ -424,7 +493,7 @@ class MyGui(customtkinter.CTk):
             command=self.run_program,
             text_color=("#0BF075", "#1AD63D"),
         )
-        self.run_button.grid(row=7, column=2, padx=(20, 20), pady=(20, 20))
+        self.run_button.grid(row=8, column=2, padx=(20, 20), pady=(20, 20))
 
         # 'ReRun' button definition
         self.rerun_button = customtkinter.CTkButton(
@@ -435,7 +504,7 @@ class MyGui(customtkinter.CTk):
             command=self.rerun_the_program,
             text_color=("#0BF075", "#1AD63D"),
         )
-        self.rerun_button.grid(row=8, column=2, padx=(20, 20), pady=(20, 20))
+        self.rerun_button.grid(row=9, column=2, padx=(20, 20), pady=(20, 20))
 
         # 'Exit' button definition
         self.exit_button = customtkinter.CTkButton(
@@ -446,15 +515,15 @@ class MyGui(customtkinter.CTk):
             command=self.exit_program,
             text_color="Red",
         )
-        self.exit_button.grid(row=9, column=2, padx=(20, 20), pady=(20, 20))
+        self.exit_button.grid(row=10, column=2, padx=(20, 20), pady=(20, 20))
 
         # Create textbox for Help information
         self.textbox = customtkinter.CTkTextbox(self, height=600, width=250)
         self.textbox.configure(scrollbar_button_color="#6563ff", wrap="word")
         self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
 
-        # Start thrid grid / column definitions
-        # create tabview for Name, Color, and Deub
+        # Start third grid / column definitions
+        # create tabview for Name, Color, and Debug
         self.tabview = customtkinter.CTkTabview(
             self, width=250, segmented_button_fg_color="#6563ff"
         )
@@ -572,8 +641,8 @@ class MyGui(customtkinter.CTk):
         # Item names must be the same as their value in
         #  PrimeItems.program_arguments
         self.sidebar_detail_option.configure(values=["0", "1", "2", "3", "4"])
-        self.sidebar_detail_option.set("3")
-        self.display_detail_level = 3
+        self.sidebar_detail_option.set("4")
+        self.display_detail_level = 4
         self.conditions = (
             self.preferences
         ) = (
@@ -624,11 +693,12 @@ class MyGui(customtkinter.CTk):
         self.color_lookup = {}  # Setup default dictionary as empty list
         self.font = OUTPUT_FONT
         self.gui = True
+        self.color_row = 4
 
         # We only want to initialize the next two variables only if they have not yet
         # been defined.
         #  Ignore sourcery recommendation to reformat these!!
-        # The following will fail with an attribute error if it does not already exist
+        # The following will fail with an attribute error if it does not already existis not set to display!
         try:
             if self.backup_file_http:
                 pass
@@ -639,6 +709,8 @@ class MyGui(customtkinter.CTk):
                 pass
         except AttributeError:
             self.backup_file_location = ""
+        # Display current Items setting.
+        self.single_name_status("Display all Projects, Profiles, and Tasks.", "#3f99ff")
 
     # ##################################################################################
     # Display Message Box
@@ -647,14 +719,17 @@ class MyGui(customtkinter.CTk):
         # If "good", display in green.  Otherwise, must be bad and display in red.
         color = "Green" if good else "Red"
         # Delete prior contents
-        self.textbox.delete(
-            "1.0",
-            "end",
-        )
+        self.textbox.destroy()
 
         # Recreate text box
         self.textbox = customtkinter.CTkTextbox(self, height=500, width=600)
         self.textbox.grid(row=0, column=1, padx=20, pady=40, sticky="nsew")
+
+        # Display some colored text
+        # self.textbox.insert('end', 'This is some colored text.\n')
+        # self.textbox.tag_add('color', '1.5', '1.11')  # '1.5' means first line, 5th character; '1.11' means first line, 11th character
+        # self.textbox.tag_config('color', foreground='red')
+
         self.all_messages = f"{self.all_messages}{message}\n"
         # insert at line 0 character 0
         self.textbox.insert("0.0", self.all_messages)
@@ -701,6 +776,9 @@ class MyGui(customtkinter.CTk):
 
         # If we have an error, display it and blank out the various individual names
         if error_message:
+            # Delete prior contents
+            self.all_messages = ""
+
             self.display_message_box(error_message, False)
             (
                 self.single_project_name,
@@ -714,6 +792,19 @@ class MyGui(customtkinter.CTk):
                 True,
             )
             return True
+
+    # ##################################################################################
+    # Display single item status.
+    # ##################################################################################
+    def single_name_status(self, status_message, color_to_use):
+        # Display The selection
+        self.single_label = customtkinter.CTkLabel(
+            self.tabview.tab("Specific Name"),
+            text=status_message,
+            anchor="w",
+            text_color=("#0BF075", color_to_use),
+        )
+        self.single_label.grid(row=5, column=0, padx=20, pady=(10, 10), sticky="nsew")
 
     # ##################################################################################
     # Make sure the single named item exists...that it is a valid name
@@ -741,7 +832,15 @@ class MyGui(customtkinter.CTk):
         PrimeItems.program_arguments["debug"] = self.debug
         PrimeItems.colors_to_use = set_color_mode(self.appearance_mode)
         PrimeItems.output_lines = LineOut()
-        get_data_and_output_intro()
+        return_code = get_data_and_output_intro()
+
+        # Did we get an error reading the backlup file?
+        if return_code > 0:
+            error_msg = PrimeItems.error_msg.replace("  Program ended.", "")
+            self.display_message_box(error_msg, False)
+            PrimeItems.error_code = 0
+            PrimeItems.error_msg = ""
+            return False
 
         # Set up for name checking
         # Find the specific item and get it's root element
@@ -751,15 +850,6 @@ class MyGui(customtkinter.CTk):
             "Task": PrimeItems.tasker_root_elements["all_tasks"],
         }
         root_element = root_element_choices[element_name]
-        # match element_name:
-        #     case "Project":
-        #         root_element = temp_pi.tasker_root_elements["all_projects"]
-        #     case "Profile":
-        #         root_element = temp_pi.tasker_root_elements["all_profiles"]
-        #     case "Task":
-        #         root_element = temp_pi.tasker_root_elements["all_tasks"]
-        #     case _:
-        #         return False
 
         # See if the item exists by going through all names
         for item in root_element:
@@ -776,9 +866,11 @@ class MyGui(customtkinter.CTk):
         my_name: str,
         checkbox1: customtkinter.CHECKBUTTON,
         checkbox2: customtkinter.CHECKBUTTON,
+        checkbox3: customtkinter.CHECKBUTTON,
     ):
-        #  Clear any prior error message
-        self.textbox.delete("1.0", "end")
+        #  Clear any prior error message.
+        self.textbox.destroy()
+        # Deselect the other two check boxes.
         checkbox1.deselect()
         checkbox2.deselect()
         # Display prompt for name
@@ -808,6 +900,19 @@ class MyGui(customtkinter.CTk):
                 case _:
                     pass
 
+            # Let the user know...
+            self.single_name_status(
+                f"Display only {my_name} '{name_entered}'.", "#3f99ff"
+            )
+
+        else:
+            self.single_name_status(
+                "Display all Projects, Profiles, and Tasks.", "#3f99ff"
+            )
+
+        # Deselect the check box just selected
+        checkbox3.deselect()
+
     # ##################################################################################
     # Process single name restore
     # ##################################################################################
@@ -821,7 +926,7 @@ class MyGui(customtkinter.CTk):
             self.single_project_name = (
                 self.single_profile_name
             ) = self.single_task_name = ""
-            # Get the name entered
+
             match my_name:
                 case "Project":
                     self.single_project_name = name_entered
@@ -837,7 +942,10 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     def single_project_name_event(self):
         self.process_name_event(
-            "Project", self.string_input_button2, self.string_input_button3
+            "Project",
+            self.string_input_button2,
+            self.string_input_button3,
+            self.string_input_button1,
         )
 
     # ##################################################################################
@@ -845,7 +953,10 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     def single_profile_name_event(self):
         self.process_name_event(
-            "Profile", self.string_input_button1, self.string_input_button3
+            "Profile",
+            self.string_input_button1,
+            self.string_input_button3,
+            self.string_input_button2,
         )
 
     # ##################################################################################
@@ -853,7 +964,10 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     def single_task_name_event(self):
         self.process_name_event(
-            "Task", self.string_input_button1, self.string_input_button2
+            "Task",
+            self.string_input_button1,
+            self.string_input_button2,
+            self.string_input_button3,
         )
 
     # ##################################################################################
@@ -868,6 +982,8 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     def font_event(self, font_selected: str):
         self.font = font_selected
+        with contextlib.suppress(Exception):
+            self.font_out_label.destroy()
         self.font_out_label = customtkinter.CTkLabel(
             master=self,
             text=f"Monospaced Font To Use: {font_selected}",
@@ -936,7 +1052,8 @@ class MyGui(customtkinter.CTk):
                 the_output_message = color_selected_item.replace("Profile ", "")
                 the_output_message = the_output_message.replace("Action ", "")
                 self.display_message_box(
-                    f"Display {the_output_message} is not set to display!", False
+                    f"Display {the_output_message} is not set to display!  Turn on Display {color_selected_item} first.",
+                    False,
                 )
                 return
         # Put up color picker and get the color
@@ -951,12 +1068,17 @@ class MyGui(customtkinter.CTk):
             self.extract_color_from_event(color, color_selected_item)
 
             # Display the color.
+            with contextlib.suppress(Exception):
+                self.color_change.destroy()
             self.color_change = customtkinter.CTkLabel(
                 self.tabview.tab("Colors"),
                 text=f"{color_selected_item} displays in this color.",
                 text_color=color,
             )
-            self.color_change.grid(row=4, column=0, padx=0, pady=0)
+            self.color_change.grid(row=self.color_row, column=0, padx=0, pady=0)
+            self.color_row += 1
+            if self.color_row > 14:
+                self.color_row = 4
 
     # ##################################################################################
     # Color selected...process it.
@@ -971,7 +1093,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     def condition_event(self):
         self.conditions = self.get_input_and_put_message(
-            self.condition_checkbox, "Display Profile/Task Conditions"
+            self.condition_checkbox, "Display Profile and Task Action Conditions"
         )
 
     # ##################################################################################
@@ -1109,18 +1231,39 @@ class MyGui(customtkinter.CTk):
         )
 
     # ##################################################################################
+    # Rebuilld message box with new text.
+    # ##################################################################################
+    def new_message_box(self, message):
+        # Clear any prior error message
+        self.textbox.destroy()
+
+        # Recreate text box
+        self.textbox = customtkinter.CTkTextbox(self, height=600, width=250)
+        self.textbox.configure(scrollbar_button_color="#6563ff", wrap="word")
+        self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
+        # Insert the text.
+        self.textbox.insert("0.0", message)
+        # Set read-only, color, wrap around and font
+        self.textbox.configure(state="disabled", font=(self.font, 14), wrap="word")
+        # Display some colored text
+        # self.textbox.insert('end', 'This is some colored text.\n')
+        self.textbox.tag_add(
+            "color", "1.0", f"1.{len(message)}"
+        )  # '1.5' means first line, 5th character; '1.11' means first line, 11th character
+        self.textbox.tag_config("color", foreground="green")
+        self.all_messages = ""
+
+    # ##################################################################################
     # Process the 'Display Help' checkbox
     # ##################################################################################
     def help_event(self):
-        # Recreate text box
-        self.textbox = customtkinter.CTkTextbox(self, height=500, width=600)
-        self.textbox.grid(row=0, column=1, padx=20, pady=40, sticky="nsew")
-        self.textbox.insert("0.0", "MapTasker Help\n\n" + INFO_TEXT)
-        # Set read-only, color, wrap around and font
-        self.textbox.configure(state="disabled", wrap="word", font=(self.font, 14))
-        self.textbox.focus_set()
+        self.new_message_box("MapTasker Help\n\n" + INFO_TEXT)
 
-        self.all_messages = ""
+    # ##################################################################################
+    # Process the 'Display Help' checkbox
+    # ##################################################################################
+    def backup_help_event(self):
+        self.new_message_box("Fetch Backup Help\n\n" + BACKUP_HELP_TEXT)
 
     # ################################################################################
     # Inform user of toggle selection
@@ -1261,6 +1404,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     def extract_settings(self, temp_args: dict) -> None:
         all_messages, new_message = "", ""
+        self.all_messages = ""
         for key, value in temp_args.items():
             if key is not None:
                 setattr(self, key, value)
@@ -1303,6 +1447,20 @@ class MyGui(customtkinter.CTk):
             border_color="#1bc9ff",
             text_color=("#0BF075", "#1AD63D"),
         )
+        # Add a label over the main entry field.
+        self.detail_label = customtkinter.CTkLabel(
+            master=self,
+            text="Enter Android Device IP Address/Port/Location:",
+            anchor="s",
+        )
+        self.detail_label.grid(
+            row=9,
+            column=1,
+            padx=(254, 0),
+            pady=(20, 0),
+            sticky="s",
+        )
+        # Insert the backup info for input by user.
         self.entry.insert(0, f"{self.backup_file_http},{self.backup_file_location}")
         self.entry.grid(
             row=10,
@@ -1310,7 +1468,7 @@ class MyGui(customtkinter.CTk):
             columnspan=2,
             padx=(90, 0),
             pady=(20, 20),
-            sticky="s",
+            sticky="n",
         )
         # Replace backup button.
         self.get_backup_button = customtkinter.CTkButton(
@@ -1378,7 +1536,7 @@ class MyGui(customtkinter.CTk):
                     return
             # Verify that the host IP (temp_ip[0]) is reachable:
             self.display_message_box(
-                f"Pinging address {temp_ip[0]}...",
+                f"Pinging address {temp_ip[0]}.  Please wait...",
                 True,
             )
             MyGui.update(self)  # Force a window refresh.

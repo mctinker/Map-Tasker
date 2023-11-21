@@ -160,7 +160,7 @@ def get_backup_file() -> str:
 
     if return_code != 0:
         if PrimeItems.program_arguments["gui"]:
-            PrimeItems.error = return_code
+            PrimeItems.error_code = return_code
             return
         error_handler(str(file_contents), 8)
 

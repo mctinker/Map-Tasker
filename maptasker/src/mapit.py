@@ -13,6 +13,10 @@
 #                         $$ |
 #                         \__|
 
+"""
+    This is the main coordinator module that imports all the other components and
+    executes the key steps to take the Tasker backup and produce the visual map output.
+"""
 
 # #################################################################################### #
 #                                                                                      #
@@ -150,11 +154,11 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
     with open(f"{my_output_dir}{my_file_name}", "w") as out_file:
         # Output the rest that is in our output queue
         for num, item in enumerate(PrimeItems.output_lines.output_lines):
-            # Check to see if this is where the direcory is to go.
-            # Output dirreectory if so.  output_directory will create it's own list of
+            # Check to see if this is where the directory is to go.
+            # Output directory if so.  output_directory will create it's own list of
             # output lines.
             if "maptasker_directory" in item:
-                # Temporaily save our output lines
+                # Temporarily save our output lines
                 temp_lines_out = PrimeItems.output_lines.output_lines
                 PrimeItems.output_lines.output_lines = []  # Create a new output queue
 
@@ -258,8 +262,6 @@ def initialize_everything(file_to_get: str) -> dict:
         :param file_to_get: file name to get
         :return: dictionary of primary items used throughout project, and empty staring
     """
-    # Initialize our global varibales via PrimeItems
-    # pi = PrimeItems(file_to_get)
 
     # We have to initialize output_lines here. Otherwise, we'll lose the output class
     # with the upcoming call to start_up.
@@ -320,7 +322,7 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
     """
     Display the output in the default web browser,
     Args:
-        my_output_dir (str): The direectory to our current file path.
+        my_output_dir (str): The directory to our current file path.
         my_file_name (str): The name of the file to open.
     """
     logger.debug("MapTasker program ended normally")
@@ -376,7 +378,6 @@ def check_single_item(
     """
     Check if doing a single item and if not found, then clean up and exit
         Args:
-            :param PrimeItems:  Program registry.  See primitem.py for details.
             single_project_name (str): name of single Project to find, or empty
             single_project_found (bool): True if single Project was found
             single_profile_name (str): name of single Profile to find, or empty
@@ -474,7 +475,7 @@ def display_back_matter(
         clean_up_memory()
         sys.exit(2)
 
-    # Finally, write out alol of the outp[ut that is queied up
+    # Finally, write out all of the output that is queued up.
     my_file_name = "/MapTasker.html"
     write_out_the_file(my_output_dir, my_file_name)
 
@@ -543,7 +544,7 @@ to 3.
 
 
 def mapit_all(file_to_get: str) -> int:
-    # Intialize variables and get the backup xml file
+    # Initialize variables and get the backup xml file
     (
         found_tasks,
         projects_without_profiles,
@@ -573,7 +574,7 @@ def mapit_all(file_to_get: str) -> int:
     single_profile_found = PrimeItems.found_named_items["single_profile_found"]
     single_task_found = PrimeItems.found_named_items["single_task_found"]
 
-    # See if we are only looking for a single Projcet/Profile/Task
+    # See if we are only looking for a single Project/Profile/Task
     check_single_item(
         single_project_name,
         single_project_found,
@@ -585,7 +586,7 @@ def mapit_all(file_to_get: str) -> int:
     temp_dir = program_arguments["directory"]
     program_arguments["directory"] = False
 
-    # Get the list of Tasks not called by a Porfile,
+    # Get the list of Tasks not called by a Profile,
     # and a list of Projects without Profiles/Tasks
     process_unique_situations(
         projects_with_no_tasks,
@@ -599,7 +600,7 @@ def mapit_all(file_to_get: str) -> int:
     # Restore the directory setting for the final directory of Totals
     program_arguments["directory"] = temp_dir
 
-    # Display the trailler stuff, after Projects/Profiles/Tasks/Scenes
+    # Display the trailer stuff, after Projects/Profiles/Tasks/Scenes
     display_back_matter(
         program_arguments,
         single_project_name,
@@ -610,7 +611,7 @@ def mapit_all(file_to_get: str) -> int:
         single_task_found,
     )
 
-    # Rerun this program if "Rerun" was slected from GUI
+    # Rerun this program if "Rerun" was selected from GUI
     # First get the filename as a string.
     if program_arguments["rerun"]:
         if PrimeItems.file_to_get:

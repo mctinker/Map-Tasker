@@ -236,11 +236,21 @@ def log_startup_values() -> None:
 # ##################################################################################
 # POpen and read xml and output the introduction/heading matter
 # ##################################################################################
-def get_data_and_output_intro() -> None:
+def get_data_and_output_intro() -> int:
     """
-    Open and read xml and output the introduction/heading matter
-    """
+    Gets data from Tasker backup file and outputs introductory information.
 
+    Args:
+        None: None
+    Returns:
+        int: 0 if okay, non-zero if error (error code)
+
+    Processing Logic:
+    - Opens and reads the Tasker backup XML file
+    - Extracts all the XML data from the file
+    - Closes the file after reading
+    - Outputs initial information like header and source to the user
+    """
     PrimeItems.program_arguments["file"] = PrimeItems.file_to_get
 
     # Only display message box if we don't yet have the file name
@@ -250,6 +260,8 @@ def get_data_and_output_intro() -> None:
 
     # Open and read the file...
     open_and_get_backup_xml_file()
+    if PrimeItems.error_code > 0:
+        return PrimeItems.error_code
 
     # Go get all the xml data
     get_the_xml_data()
@@ -260,7 +272,7 @@ def get_data_and_output_intro() -> None:
     # Output the inital info: head, source, etc.
     output_the_front_matter()
 
-    return
+    return 0
 
 
 # ##################################################################################
@@ -284,17 +296,13 @@ def start_up() -> dict:
     PrimeItems.colors_to_use = setup_colors()
 
     # get_data_and_output_intro program key elements
-    get_data_and_output_intro()
+    PrimeItems.program_arguments[
+        "gui"
+    ] = False  # Turn off...we don't want this on anymore.
+    _ = get_data_and_output_intro()
 
     # If debug mode, log the arguments
     if PrimeItems.program_arguments["debug"]:
         log_startup_values()
-
-    # Force full detail if we are doing a single Task
-    # if PrimeItems.program_arguments["single_task_name"]:
-    #     logger.debug(
-    #         f'Single Task={PrimeItems.program_arguments["single_task_name"]}'
-    #     )
-    #     PrimeItems.program_arguments["display_detail_level"] = 3
 
     return
