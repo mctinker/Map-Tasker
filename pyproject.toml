@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maptasker"
-version = "2.5.0"
+version = "2.5.1"
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README_PyPl.md"
@@ -10,20 +10,20 @@ keywords = ["tasker", "Tasker", "map tasker"]
 packages = [
     { include = "maptasker"}
 ]
-include = ["**/maptasker/**/*.py"]
+include = ["**/maptasker/**/*.py", "**/maptasker/assets/*.*"]
 # How to include a data directory...
 # include = ["**/maptasker/**/*.py", {path="**/clip/castles/ascii/**", format="sdist"}]
 exclude = ["run_test.py", "**/maptasker/**/backup.xml", "**/maptasker/maptasker.log", "**/maptasker/MapTasker.html", "**/maptasker/.MapTasker_RunCount.txt", "**/maptasker/.arguments.txt", "**/maptasker/**/__pycache__", "**/maptasker/**/.dep-tree.yml"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-customtkinter = "^5.2.0"
+customtkinter = "^5.2.1"
 ctkcolorpicker = "^0.8.0"
-pillow = "^10.0.1"
+pillow = "^10.1.0"
 darkdetect = "^0.8.0"
 defusedxml = "^0.7.1"
 requests = "^2.31.0"
-packaging = "^23.2"
+packaging = "^23.2"  # Needed due to bug in customtkinter
 
 [tool.poetry.scripts]
 maptasker = "maptasker.main:main"
