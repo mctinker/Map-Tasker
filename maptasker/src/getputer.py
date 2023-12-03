@@ -82,18 +82,14 @@ def save_restore_args(
                 # Check for corruption by testing display_detail_level
                 try:
                     if isinstance(program_arguments["display_detail_level"], str):
-                        program_arguments["display_detail_level"] = int(
-                            program_arguments["display_detail_level"]
-                        )
+                        program_arguments["display_detail_level"] = int(program_arguments["display_detail_level"])
                 except KeyError:
                     corrupted_file(program_arguments, colors_to_use)
 
         # Handle file not found condition
         except OSError:
             error_handler("'-r' MapTasker Error: No settings file found to restore!", 0)
-            program_arguments = colors_to_use = {
-                "msg": "No settings file found to restore!"
-            }
+            program_arguments = colors_to_use = {"msg": "No settings file found to restore!"}
         # Handle file format error
         except json.decoder.JSONDecodeError:  # no saved file
             corrupted_file(program_arguments, colors_to_use)

@@ -78,11 +78,7 @@ def get_actions(
             # )
 
             # Calculate the amount of indention required
-            if (
-                ">End If" in task_code
-                or ">Else" in task_code
-                or ">End For" in task_code
-            ):  # Do we un-indent?
+            if ">End If" in task_code or ">Else" in task_code or ">End For" in task_code:  # Do we un-indent?
                 indentation -= 1
                 length_indent = len(indentation_amount)
                 # Total indentation = 6 characters (&nbsp;) times the indent argument
@@ -96,9 +92,7 @@ def get_actions(
                 indentation_amount,
             )
             #  Indent the line if this is a condition
-            if (
-                ">If" in task_code or ">Else" in task_code or ">For<" in task_code
-            ):  # Do we indent?
+            if ">If" in task_code or ">Else" in task_code or ">For<" in task_code:  # Do we indent?
                 indentation += 1
                 indentation_amount = f"{indentation_amount}{blanks}"
 
@@ -149,14 +143,10 @@ def extry_or_exit_task(
         # Don't add the entry/exit text if display level = 0
         if PrimeItems.program_arguments["display_detail_level"] > 0:
             if task_type == "Exit":
-                task_output_lines.append(
-                    f"{UNKNOWN_TASK_NAME}{blanks}<<< Exit Task{extra}"
-                )
+                task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}<<< Exit Task{extra}")
 
             else:
-                task_output_lines.append(
-                    f"{UNKNOWN_TASK_NAME}{blanks}<<< Entry Task{extra}"
-                )
+                task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}<<< Entry Task{extra}")
         else:
             task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}")
 
@@ -233,12 +223,8 @@ def get_project_for_solo_task(
     all_projects = PrimeItems.tasker_root_elements["all_projects"]
     if all_projects is not None:
         for project in all_projects:
-            project_element = PrimeItems.tasker_root_elements["all_projects"][project][
-                "xml"
-            ]
-            project_name = PrimeItems.tasker_root_elements["all_projects"][project][
-                "name"
-            ]
+            project_element = PrimeItems.tasker_root_elements["all_projects"][project]["xml"]
+            project_name = PrimeItems.tasker_root_elements["all_projects"][project]["name"]
             task_ids = get_ids(
                 False,
                 project_element,
@@ -267,10 +253,7 @@ def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
             if tag_in_type(child.tag, True):
                 for subchild in child:  # Go through xxxxElement sub-items
                     # Is this Task in this specific Scene (child)?
-                    if (
-                        tag_in_type(subchild.tag, False)
-                        and the_task_id == subchild.text
-                    ):
+                    if tag_in_type(subchild.tag, False) and the_task_id == subchild.text:
                         return True
                     elif child.tag == "Str":  # Passed any click Task
                         break
@@ -332,11 +315,7 @@ def do_single_task(
         temporary_task_list = []
         if task_list:
             the_task_name_length = len(our_task_name)
-            temporary_task_list = [
-                item
-                for item in task_list
-                if our_task_name == item[:the_task_name_length]
-            ]
+            temporary_task_list = [item for item in task_list if our_task_name == item[:the_task_name_length]]
         else:
             temporary_task_list = task_list
         # Go process the Task/Task list

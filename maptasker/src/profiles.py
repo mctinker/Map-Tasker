@@ -68,9 +68,7 @@ def get_profile_tasks(
             task_id = child.text
             # Count Task under Profile if it hasn't yet been counted
             if task_id not in found_tasks_list:
-                PrimeItems.task_count_for_profile = (
-                    PrimeItems.task_count_for_profile + 1
-                )
+                PrimeItems.task_count_for_profile = PrimeItems.task_count_for_profile + 1
             the_task_element, the_task_name = tasks.get_task_name(
                 task_id, found_tasks_list, task_output_line, task_type
             )
@@ -103,11 +101,7 @@ def get_profile_name(
     # If we don't have the name, then set it to 'No Profile'
     profile_id = profile.attrib.get("sr")
     profile_id = profile_id[4:]
-    if not (
-        the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id][
-            "name"
-        ]
-    ):
+    if not (the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"]):
         the_profile_name = NO_PROFILE
 
     # Make the Project name bold, italicize, underline and/or highlighted if requested
@@ -214,9 +208,7 @@ def build_profile_line(
             )
 
     # Okay, string it all together
-    profile_info = (
-        f"{profile_name_with_html} {condition_text} {launcher}{disabled} {flags}"
-    )
+    profile_info = f"{profile_name_with_html} {condition_text} {launcher}{disabled} {flags}"
 
     # Output the Profile line
     PrimeItems.output_lines.add_line_to_output(
@@ -255,11 +247,7 @@ def process_profiles(
         # Are we searching for a specific Profile?
         if PrimeItems.program_arguments["single_profile_name"]:
             # Make sure this item's name is in our list of profiles.
-            if not (
-                profile_name := PrimeItems.tasker_root_elements["all_profiles"][item][
-                    "name"
-                ]
-            ):
+            if not (profile_name := PrimeItems.tasker_root_elements["all_profiles"][item]["name"]):
                 continue
 
             if PrimeItems.program_arguments["single_profile_name"] != profile_name:
@@ -279,9 +267,7 @@ def process_profiles(
             )
 
             # Start Profile list
-            PrimeItems.output_lines.add_line_to_output(
-                1, "", FormatLine.dont_format_line
-            )
+            PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
         # Get Task xml element and name
         task_output_lines = []  # Profile's Tasks will be filled in here
         list_of_tasks = get_profile_tasks(
@@ -308,9 +294,7 @@ def process_profiles(
             share(profile)
             # Add a spacer if detail is 0
             if PrimeItems.program_arguments["display_detail_level"] == 0:
-                PrimeItems.output_lines.add_line_to_output(
-                    0, "", FormatLine.dont_format_line
-                )
+                PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
         # We have the Tasks for this Profile.  Now let's output them.
         # True = we're looking for a specific Task

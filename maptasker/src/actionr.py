@@ -1,3 +1,4 @@
+"""Module containing action runner logic."""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -10,83 +11,76 @@
 # using a licensed work, under the same license. Copyright and license notices must be #
 # preserved. Contributors provide an express grant of patent rights.                   #
 # #################################################################################### #
+from __future__ import annotations
+
 import contextlib
 import re
 from collections import defaultdict
-
-import defusedxml.ElementTree
+from typing import TYPE_CHECKING
 
 import maptasker.src.action as get_action
 from maptasker.src.actargs import action_args
 from maptasker.src.format import format_html
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
-    logger,
+    DISPLAY_DETAIL_LEVEL_all_tasks,
+    DISPLAY_DETAIL_LEVEL_everything,
     pattern0,
     pattern1,
     pattern2,
     pattern3,
     pattern4,
+    pattern11,
+    pattern12,
 )
 from maptasker.src.xmldata import (
     get_xml_int_argument_to_value,
     get_xml_str_argument_to_value,
 )
 
+if TYPE_CHECKING:
+    import defusedxml.ElementTree
+
 
 # ##################################################################################
 # Given a list of positional items, return a string in the correct order based
 # on position
 # ##################################################################################
-def get_results_in_arg_order(evaluated_results: dict) -> str:
+def get_results_in_arg_order(evaluated_results:dict) -> str:
+    """Given a list of positional items, return a string in the correct order based.
+
+    Returns results in the order of arguments.
+    Args:
+        evaluated_results: Dictionary containing results and argument types.
+    Returns:
+        String: Results joined into a single string in argument order.
+    Processing Logic:
+        1. Initialize an empty list to store result parts
+        2. Iterate through argument types
+        3. Append matching result to list based on argument type
+        4. Join results into a single string and return
     """
-    Given a list of positional items, return a string in the correct order based
-    on position.
-        :param evaluated_results: dictionary of the argument <argn> evaluated results
-        :return: all the evaluated results for Action
-    """
-    return_result = ""
+    result_parts = []
     for arg in evaluated_results["position_arg_type"]:
-        the_item = ""
-        match arg:
-            case "Str":
-                if evaluated_results["result_str"]:
-                    the_item = evaluated_results["result_str"][0]  # Grab the result
-                    evaluated_results["result_str"].pop(
-                        0
-                    )  # Delete from list so we don't re-grab it.
-            case "Int":
-                if evaluated_results["result_int"]:
-                    the_item = evaluated_results["result_int"][0]
-                    evaluated_results["result_int"].pop(0)
-            case "App":
-                if evaluated_results["result_app"]:
-                    the_item = evaluated_results["result_app"][0]
-                    evaluated_results["result_app"].pop(0)
-            case "ConditionList":
-                if evaluated_results["result_con"]:
-                    the_item = evaluated_results["result_con"][0]
-                    evaluated_results["result_con"].pop(0)
-            case "Img":
-                if evaluated_results["result_img"]:
-                    the_item = evaluated_results["result_img"][0]
-                    evaluated_results["result_img"].pop(0)
-            case "Bundle":  # Plugin bundle
-                if evaluated_results["result_bun"]:
-                    the_item = evaluated_results["result_bun"][0]
-                    evaluated_results["result_bun"].pop(0)
-            case _:
-                error_msg = (
-                    "Function get_results_in_arg_order mapped error: no match for"
-                    f' "arg":{arg}'
-                )
-                logger.debug(error_msg)
-                the_item = error_msg
+        if arg == "Str" and evaluated_results["result_str"]:
+            result_parts.append(evaluated_results["result_str"].pop(0))
+        elif arg == "Int" and evaluated_results["result_int"]:
+            result_parts.append(str(evaluated_results["result_int"].pop(0)))
+        elif arg == "App" and evaluated_results["result_app"]:
+            result_parts.append(evaluated_results["result_app"].pop(0))
+        elif arg == "ConditionList" and evaluated_results["result_con"]:
+            result_parts.append(evaluated_results["result_con"].pop(0))
+        elif arg == "Img" and evaluated_results["result_img"]:
+            result_parts.append(evaluated_results["result_img"].pop(0))
+        elif arg == "Bundle" and evaluated_results["result_bun"]:
+            result_parts.append(evaluated_results["result_bun"].pop(0))
+
         # Eliminate empty values
-        if the_item == ", ":
+        if result_parts and result_parts[-1] == ", ":
+            result_parts.pop()
             continue
-        return_result = f"{return_result} {the_item}"  # Get the appropriate item
-    return return_result
+
+    return " ".join(result_parts)
 
 
 # ##################################################################################
@@ -98,7 +92,6 @@ def evaluate_action_args(
     the_action_code_plus: defusedxml.ElementTree.XML,
     arg_list: list,
     code_action: defusedxml.ElementTree.XML,
-    action_type: bool,
     lookup_code_entry: dict,
     evaluate_list: list,
     evaluated_results: dict,
@@ -111,7 +104,6 @@ def evaluate_action_args(
             plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
         :param arg_list: list of arguments (<argn>) under Action
         :param code_action: Action code found in <code>
-        :param action_type: True if this is for a Task, False if for a Condition
         :param lookup_code_entry: The key to our Action code dictionary in actionc.py
         :param evaluate_list: list of arguments to evaluate
         :param evaluated_results: a list into which to put the evaluated results
@@ -124,7 +116,6 @@ def evaluate_action_args(
         lookup_code_entry,
         evaluate_list,
         code_action,
-        action_type,
         evaluated_results,
     )
 
@@ -137,12 +128,14 @@ def evaluate_action_args(
     # int arguments from xml
     with contextlib.suppress(TypeError):
         if evaluated_results["get_xml_flag"]:
+            # Get string args? <Str>
             if evaluated_results["strargs"]:
                 evaluated_results["result_str"] = get_xml_str_argument_to_value(
                     code_action,
                     evaluated_results["strargs"],
                     evaluated_results["streval"],
                 )
+            # Get integer args? <Int>
             if evaluated_results["intargs"]:
                 evaluated_results["result_int"] = get_xml_int_argument_to_value(
                     code_action,
@@ -157,7 +150,7 @@ def evaluate_action_args(
 # Search for and return all substrings in a string that begin with a percent sign and
 # have at least one capitalized letter in the substring.
 # ##################################################################################
-def find_capitalized_percent_substrings(string):
+def find_capitalized_percent_substrings(string: str) -> list:
     """
     Searches for and returns all of the occurrences of substrings that begin with a
         percent sign and have at least one capitalized letter in the substring.
@@ -172,14 +165,13 @@ def find_capitalized_percent_substrings(string):
 
     # Create a regular expression to match substrings that begin with a percent sign
     # and have at least one capitalized letter.
-    # regex = r"%.*[A-Z]+"
-    # regex = r".*[A-Z].*"
-    regex = r".*[A-Z].*"
+    # regex = r".*[A-Z].*"   <<< re.compile(regex) in sysconst.py as pattern11
 
     # Find all words that begin with a percent sign (%).
-    percent_list = re.findall("[%]\w+", string)
+    # percent_list = re.findall("[%]\w+", string)  << pattern12 in sysconst.py
 
-    return [word for word in percent_list if re.match(regex, word)]
+    # Create a regular expression to match substrings that begin with a percent sign.
+    return [word for word in pattern12.findall(string) if re.match(pattern11, word)]
 
 
 # ##################################################################################
@@ -201,15 +193,11 @@ def get_variables(result: str) -> None:
             # Validate that this variable is for the Project we are currently doing.
             try:
                 if primary_variable := PrimeItems.variables[variable]:
-                    if (
-                        primary_variable["project"]
-                        and PrimeItems.current_project
-                        not in primary_variable["project"]
-                    ):
+                    if primary_variable["project"] and PrimeItems.current_project not in primary_variable["project"]:
                         primary_variable["project"].append(PrimeItems.current_project)
                     elif not primary_variable["project"]:
                         primary_variable["project"] = [PrimeItems.current_project]
-            except KeyError:
+            except KeyError:  # noqa: PERF203
                 # Drop here if variable is not in Tasker's variable list (i.e. the xml)
                 PrimeItems.variables[variable] = {
                     "value": "(Inactive)",
@@ -255,13 +243,12 @@ def get_action_results(
     program_arguments = PrimeItems.program_arguments
     # If just displaying action names or there are no action details, then just
     # display the name
-    if arg_list and program_arguments["display_detail_level"] != 2:
+    if arg_list and program_arguments["display_detail_level"] != DISPLAY_DETAIL_LEVEL_all_tasks:
         # Evaluate the required args per arg_list
         evaluated_results = evaluate_action_args(
             the_action_code_plus,
             arg_list,
             code_action,
-            action_type,
             lookup_code_entry,
             evaluate_list,
             evaluated_results,
@@ -286,7 +273,7 @@ def get_action_results(
         result = f"&nbsp;&nbsp{result}"
 
         # Process variables if display_detail_level is 4
-        if program_arguments["display_detail_level"] == 4:
+        if program_arguments["display_detail_level"] == DISPLAY_DETAIL_LEVEL_everything:
             get_variables(result)
 
     # Return the properly formatted HTML (if Task) with the Action name and extra stuff
@@ -302,5 +289,5 @@ def get_action_results(
             (f"{result}{get_action.get_extra_stuff(code_action, action_type)}"),
             False,
         )
-    else:
-        return f"{our_action_code.display}{result}{get_action.get_extra_stuff(code_action, action_type)}"
+
+    return f"{our_action_code.display}{result}{get_action.get_extra_stuff(code_action, action_type)}"

@@ -21,7 +21,7 @@ from maptasker.src.action import get_extra_stuff
 from maptasker.src.actionc import ActionCode, action_codes
 from maptasker.src.config import CONTINUE_LIMIT
 from maptasker.src.debug import not_in_dictionary
-from maptasker.src.depricate import depricated
+from maptasker.src.deprecate import depricated
 from maptasker.src.format import format_html
 from maptasker.src.sysconst import logger
 
@@ -101,14 +101,8 @@ def get_action_code(
     depricated = check_for_deprecation(the_action_code_plus)
 
     # We have a code that is not yet in the dictionary?
-    if (
-        the_action_code_plus not in action_codes
-        or not action_codes[the_action_code_plus].display
-    ):
-        the_result = (
-            f"Code {the_action_code_plus} not yet"
-            f" mapped{get_extra_stuff(code_action, action_type)}"
-        )
+    if the_action_code_plus not in action_codes or not action_codes[the_action_code_plus].display:
+        the_result = f"Code {the_action_code_plus} not yet" f" mapped{get_extra_stuff(code_action, action_type)}"
         not_in_dictionary(
             "Action/Condition",
             f"'display' for code {the_action_code_plus}",
@@ -203,12 +197,12 @@ def build_action(
     if count != 0:
         # Add the indent amount to the front of the Action output line
         front_matter = '<span class="action_name_color">'
-        task_code_line = task_code_line.replace(
-            front_matter, f"{front_matter}{indent_amt}", 1
-        )
+        task_code_line = task_code_line.replace(front_matter, f"{front_matter}{indent_amt}", 1)
         count = 0
     if count < 0:
-        task_code_line = f"{indent_amt}{task_code_line}"
+        indent_amt += task_code_line
+        task_code_line = indent_amt
+        # task_code_line = f"{indent_amt}{task_code_line}"
 
     # Flag Action if not yet known to us
     if not task_code_line:  # If no Action details

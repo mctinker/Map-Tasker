@@ -1,3 +1,4 @@
+"""Module containing action runner logic."""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -24,9 +25,7 @@ from maptasker.src.sysconst import FormatLine, logger
 # ##################################################################################
 # We have a <bundle>.   Process it
 # ##################################################################################
-def get_bundle(
-    code_action: defusedxml.ElementTree.XML, evaluated_results: dict
-) -> dict:
+def get_bundle(code_action: defusedxml.ElementTree.XML, evaluated_results: dict) -> dict:
     """
     Get the details regarding the <bundle> action argument type
         Args:
@@ -38,9 +37,7 @@ def get_bundle(
     """
     child1 = code_action.find("Bundle")
     child2 = child1.find("Vals")
-    child3 = child2.find(
-        "com.twofortyfouram.locale.intent.extra.BLURB"
-    )  # 2:40 am...funny!
+    child3 = child2.find("com.twofortyfouram.locale.intent.extra.BLURB")  # 2:40 am...funny!
     if child3 is not None and child3.text is not None:
         # Get rid of extraneous html in Action's label
         # clean_string = child3.text.replace("</font><br><br>", "<br><br>")
@@ -62,7 +59,6 @@ def get_action_arguments(
     argeval: list,
     argtype: list,
     code_action: defusedxml.ElementTree.XML,
-    action_type: defusedxml.ElementTree.XML,
 ) -> dict:
     """
     Given an <argn> element, evaluate it's contents based on our Action code dictionary
@@ -76,8 +72,6 @@ def get_action_arguments(
             Structure Output (JSON, etc)"]],
         :param argtype: the argument "type"- Str, Int, App, ConditionList, Bundle, Img
         :param code_action: xml element of the Action code (<code>nnn</code>)
-        :param action_type: the Action type = True if this is a Task, False if it is
-        a condition
         :return:  of results
     """
 
@@ -97,9 +91,7 @@ def get_action_arguments(
 
         case "App":
             extract_argument(evaluated_results, arg, argeval)
-            app_class, app_pkg, app = get_action.get_app_details(
-                code_action, action_type
-            )
+            app_class, app_pkg, app = get_action.get_app_details(code_action)
             evaluated_results["result_app"].append(f"{app_class}, {app_pkg}, {app}")
 
         case "ConditionList":
@@ -112,11 +104,8 @@ def get_action_arguments(
             evaluated_results = get_bundle(code_action, evaluated_results)
 
         case _:
-            print("Rutroh!  See log file for error.")
             evaluated_results["get_xml_flag"] = False
-            logger.debug(
-                f"actargs get_action_results error unknown argtype:{argtype}!!!!!"
-            )
+            logger.debug(f"actargs get_action_results error unknown argtype:{argtype}!!!!!")
             evaluated_results["returning_something"] = False
     return evaluated_results
 
@@ -125,7 +114,21 @@ def get_action_arguments(
 # Get image details from <img> sub-elements.
 # ##################################################################################
 # Get image related details from action xml
-def extract_image(evaluated_results, code_action, argeval):
+def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str) -> None:
+    """
+    Extract image from evaluated results
+    Args:
+        evaluated_results: dict - The dictionary containing the evaluation results
+        code_action: defusedxml - The parsed defusedxml object
+        argeval: str - The argument evaluation string
+    Returns:
+        None - No return value
+    Processing Logic:
+        - Find the <Img> tag in the code_action
+        - Extract the image name and package if present
+        - Append the image details to the result_img list in evaluated_results dictionary
+        - Set returning_something to False if no image is found
+    """
     evaluated_results["get_xml_flag"] = False
     image, package = "", ""
     child = code_action.find("Img")
@@ -144,8 +147,23 @@ def extract_image(evaluated_results, code_action, argeval):
 
 
 # Get condition releated details from action xml
-def extract_condition(evaluated_results, arg, argeval, code_action):
+def extract_condition(evaluated_results: dict, arg: str, argeval: str, code_action: str) -> None:
     # Get argument
+    """
+    Extracts the condition from the code action.
+    Args:
+        evaluated_results: dict - The dictionary containing the evaluated results
+        arg: str - The argument to extract
+        argeval: str - The argument evaluation
+        code_action: str - The code action string
+    Returns:
+        None - No return, modifies evaluated_results in place
+    Processing Logic:
+        - Get the argument from evaluated_results
+        - Process the condition list and boolean list from the code action
+        - Iterate through conditions and boolean operators, appending to a list
+        - Join the condition list with separators and add to evaluated_results
+    """
     extract_argument(evaluated_results, arg, argeval)
 
     # Get the conditions
@@ -164,16 +182,39 @@ def extract_condition(evaluated_results, arg, argeval, code_action):
 
 
 # Get the argument details from action xml
-def extract_argument(evaluated_results, arg, argeval):
+def extract_argument(evaluated_results: dict, arg: str, argeval: str) -> None:
+    """
+    Extracts an argument from evaluated results
+    Args:
+        evaluated_results: Dictionary containing evaluated results
+        arg: Argument name
+        argeval: Argument evaluation
+    Returns:
+        None: Function does not return anything
+    - Appends argument name to strargs list in evaluated_results
+    - Appends argument evaluation to streval list in evaluated_results
+    - Sets get_xml_flag to False"""
     evaluated_results["get_xml_flag"] = False
-    evaluated_results["strargs"].append(f"arg{str(arg)}")
+    evaluated_results["strargs"].append(f"arg{arg!s}")
     evaluated_results["streval"].append(argeval)
 
 
 # ##################################################################################
 # Action code not found...let user know
 # ##################################################################################
-def handle_missing_code(the_action_code_plus, index):
+def handle_missing_code(the_action_code_plus: str, index: int) -> str:
+    """
+    Handle missing action code in MapTasker.
+    Args:
+        the_action_code_plus: Action code string to check (in one line)
+        index: Index being processed (in one line)
+    Returns:
+        str: Empty string (in one line)
+    - Format error message for missing action code
+    - Log error message
+    - Add error message to output
+    - Return empty string
+    """
     error_message = format_html(
         "action_color",
         "",
@@ -184,9 +225,7 @@ def handle_missing_code(the_action_code_plus, index):
         True,
     )
     logger.debug(error_message)
-    PrimeItems.output_lines.add_line_to_output(
-        0, error_message, FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(0, error_message, FormatLine.dont_format_line)
     return ""
 
 
@@ -199,7 +238,6 @@ def action_args(
     lookup_code_entry: dict,
     evaluate_list: list,
     code_action: defusedxml.ElementTree.XML,
-    action_type: defusedxml.ElementTree.XML,
     evaluated_results: dict,
 ) -> object:
     """
@@ -230,10 +268,9 @@ def action_args(
             argeval = evaluate_list[num]
         except IndexError:
             evaluated_results["returning_something"] = False
-            evaluated_results["error"] = (
-                "MapTasker mapped IndexError error in action_args...action details not"
-                " displayed"
-            )
+            evaluated_results[
+                "error"
+            ] = "MapTasker mapped IndexError error in action_args...action details not displayed"
             return evaluated_results
         try:
             argtype = our_action_code.types[index]
@@ -248,7 +285,6 @@ def action_args(
             argeval,
             argtype,
             code_action,
-            action_type,
         )
 
     return evaluated_results

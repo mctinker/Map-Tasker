@@ -55,11 +55,7 @@ def read_counter():
         Parameters: none
         Returns: the count of the number of times the program has been called
     """
-    return (
-        loads(open(COUNTER_FILE, "r").read()) + 1
-        if Path.exists(Path(COUNTER_FILE).resolve())
-        else 0
-    )
+    return loads(open(COUNTER_FILE, "r").read()) + 1 if Path.exists(Path(COUNTER_FILE).resolve()) else 0
 
 
 def write_counter():
@@ -87,10 +83,7 @@ def open_and_get_backup_xml_file() -> dict:
     Open the Tasker backup file and return the file object
     """
     # Fetch backup xml directly from Android device?
-    if (
-        PrimeItems.program_arguments["backup_file_http"]
-        and PrimeItems.program_arguments["backup_file_location"]
-    ):
+    if PrimeItems.program_arguments["backup_file_http"] and PrimeItems.program_arguments["backup_file_location"]:
         backup_file_name = get_backup_file()
         # Make sure we automatically use the file we just fetched
         PrimeItems.program_arguments["file"] = backup_file_name
@@ -110,19 +103,13 @@ def open_and_get_backup_xml_file() -> dict:
     # If debug and we didn't fetch the backup file from Android device, default to
     # "backup.xml" file as backup to restore
 
-    if (
-        PrimeItems.program_arguments["debug"]
-        and PrimeItems.program_arguments["fetched_backup_from_android"] is False
-    ):
+    if PrimeItems.program_arguments["debug"] and PrimeItems.program_arguments["fetched_backup_from_android"] is False:
         PrimeItems.program_arguments["file"] = ""
         try:
             PrimeItems.file_to_get = open(f"{dir_path}/backup.xml", "r")
         except OSError:
             error_handler(
-                (
-                    f"Error: The backup.xml file was not found in {dir_path}.  Program"
-                    " terminated!"
-                ),
+                (f"Error: The backup.xml file was not found in {dir_path}.  Program" " terminated!"),
                 3,
             )
 
@@ -191,9 +178,7 @@ def setup_colors() -> dict:
             for color_argument_name in TYPES_OF_COLOR_NAMES.values():
                 try:
                     if PrimeItems.colors_to_use[color_argument_name]:
-                        colors_to_use[color_argument_name] = PrimeItems.colors_to_use[
-                            color_argument_name
-                        ]
+                        colors_to_use[color_argument_name] = PrimeItems.colors_to_use[color_argument_name]
                 except KeyError:
                     continue
 
@@ -296,9 +281,7 @@ def start_up() -> dict:
     PrimeItems.colors_to_use = setup_colors()
 
     # get_data_and_output_intro program key elements
-    PrimeItems.program_arguments[
-        "gui"
-    ] = False  # Turn off...we don't want this on anymore.
+    PrimeItems.program_arguments["gui"] = False  # Turn off...we don't want this on anymore.
     _ = get_data_and_output_intro()
 
     # If debug mode, log the arguments

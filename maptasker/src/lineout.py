@@ -127,15 +127,11 @@ class LineOut:
         line_with_style = ""
         if style_details["is_list"]:
             line_with_style = (
-                f'<li "<span class="{style_details["color"]}">'
-                f'{style_details["element"]}</span></li>\n'
+                f'<li "<span class="{style_details["color"]}">' f'{style_details["element"]}</span></li>\n'
             )
 
         elif style_details["is_taskernet"]:
-            line_with_style = (
-                f'<p class="{style_details["color"]}'
-                f'{style_details["element"]}</p>\n'
-            )
+            line_with_style = f'<p class="{style_details["color"]}' f'{style_details["element"]}</p>\n'
             line_with_style = line_with_style.replace("<span></span>", "")
 
         return line_with_style
@@ -213,10 +209,7 @@ class LineOut:
         """
         directory = ""
 
-        if (
-            PrimeItems.program_arguments["directory"]
-            and PrimeItems.directory_items["current_item"]
-        ):
+        if PrimeItems.program_arguments["directory"] and PrimeItems.directory_items["current_item"]:
             directory_item = f'"{PrimeItems.directory_items["current_item"]}"'
             directory = f"<a id={directory_item}></a>\n"
         return f"{directory}{arg1}{element}{arg3}"
@@ -226,18 +219,13 @@ class LineOut:
             "is_list": True,
             "font": font,
             "element": element,
-            "color": (
-                "unknown_task_color" if UNKNOWN_TASK_NAME in element else "task_color"
-            ),
+            "color": ("unknown_task_color" if UNKNOWN_TASK_NAME in element else "task_color"),
         }
         return self.add_style(style_details)
 
     def handle_scene(self, element, font):
         directory = ""
-        if (
-            PrimeItems.program_arguments["directory"]
-            and PrimeItems.directory_items["current_item"]
-        ):
+        if PrimeItems.program_arguments["directory"] and PrimeItems.directory_items["current_item"]:
             scene_name = f'scenes_{element.split("Scene:&nbsp;")[1]}'
             # Get rid of any name attributions
             if (
@@ -298,9 +286,7 @@ class LineOut:
             else:
                 indentation = f'{blanks*int(start2[0])}{"&nbsp;"*int(start2[0])}&nbsp;'
             # Add indentation for contination line
-            tmp = start1[0].replace(
-                "Action: ...", f"{indentation}continued >>> {start2[1]}"
-            )
+            tmp = start1[0].replace("Action: ...", f"{indentation}continued >>> {start2[1]}")
             # tmp = action_evaluate.cleanup_the_result(
             #     start1[0].replace(
             #         "Action: ...", f"{indentation}continued >>> {start2[1]}"

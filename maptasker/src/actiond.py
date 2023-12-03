@@ -197,8 +197,6 @@ def process_condition_list(
     condition_list_str = code_action.find("ConditionList")
     if condition_list_str is not None:
         for child in condition_list_str:
-            condition_list, boolean_list = get_boolean_or_condition(
-                child, condition_list, boolean_list
-            )
+            condition_list, boolean_list = get_boolean_or_condition(child, condition_list, boolean_list)
     return condition_list, boolean_list
     return condition_list, boolean_list

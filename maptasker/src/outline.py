@@ -87,21 +87,13 @@ def get_perform_task_actions(profile: defusedxml.ElementTree, the_tasks: list) -
 
                         # Find the Task xml element to which this Perform Task refers.
                         for task_id in PrimeItems.tasker_root_elements["all_tasks"]:
-                            task_called = PrimeItems.tasker_root_elements["all_tasks"][
-                                task_id
-                            ]
+                            task_called = PrimeItems.tasker_root_elements["all_tasks"][task_id]
 
                             # If we found the referring Task, add it to the list of
                             # "called_by" Tasks
-                            if (
-                                task_called["name"]
-                                and task_called["name"] == perform_task_name
-                            ):
+                            if task_called["name"] and task_called["name"] == perform_task_name:
                                 try:
-                                    if (
-                                        task_called["called_by"]
-                                        and task["name"] not in task_called["called_by"]
-                                    ):
+                                    if task_called["called_by"] and task["name"] not in task_called["called_by"]:
                                         task_called["called_by"].append(task["name"])
                                     elif not task_called["called_by"]:
                                         task_called["called_by"] = [task["name"]]
@@ -120,17 +112,12 @@ def tasks_not_in_profile(tasks_processed, task_ids):
     task_line = ""
     no_profile_tasks = no_profile_task_lines = []
     for task in task_ids:
-        if (
-            PrimeItems.tasker_root_elements["all_tasks"][task]["xml"]
-            not in tasks_processed
-        ):
+        if PrimeItems.tasker_root_elements["all_tasks"][task]["xml"] not in tasks_processed:
             # The Task has not been processed = not in any Profile.
             the_task_element = PrimeItems.tasker_root_elements["all_tasks"][task]
             task_name = the_task_element
             no_profile_tasks.append(task_name)
-            no_profile_task_lines.append(
-                {"xml": task_name["xml"], "name": task_name["name"]}
-            )
+            no_profile_task_lines.append({"xml": task_name["xml"], "name": task_name["name"]})
     # Format the output line
     if no_profile_tasks:
         task_line = f"{blank*5}÷{line*5}▶ Tasks not in any Profile:"
@@ -279,11 +266,7 @@ def outline_profiles_tasks_scenes(
         # Get the Profile element
         profile = PrimeItems.tasker_root_elements["all_profiles"][item]["xml"]
         # Get the Profile name
-        if not (
-            profile_name := PrimeItems.tasker_root_elements["all_profiles"][item][
-                "name"
-            ]
-        ):
+        if not (profile_name := PrimeItems.tasker_root_elements["all_profiles"][item]["name"]):
             profile_name = NO_PROFILE
 
         # Doing all Projects or single Project and this is our Project...
@@ -378,16 +361,12 @@ def do_the_outline(network: dict) -> None:
             # Get the Profile IDs for this Project and process them
             # True if we have Profiles for this Project
             if profile_ids := get_ids(True, project, project_name, []):
-                outline_profiles_tasks_scenes(
-                    project, project_name, profile_ids, task_ids, network
-                )
+                outline_profiles_tasks_scenes(project, project_name, profile_ids, task_ids, network)
 
             # No Profiles for Project
             if not profile_ids:
                 # End ordered list since lineout.py added a <ul> for Project
-                PrimeItems.output_lines.add_line_to_output(
-                    3, "", FormatLine.dont_format_line
-                )
+                PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
 # ##################################################################################

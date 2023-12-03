@@ -27,12 +27,18 @@ from maptasker.src.sysconst import ARGUMENT_NAMES, logger
 
 
 def delete_gui(MyGui, user_input):
-    # Hide the window
-    MyGui.withdraw(user_input)
-    # Delete the GUI
-    MyGui.quit(user_input)
-    del user_input
-    del MyGui
+    if user_input.go_program or user_input.rerun or user_input.exit:
+        # Hide the window
+        MyGui.withdraw(user_input)
+        # Delete the GUI
+        MyGui.quit(user_input)
+        del user_input
+        del MyGui
+
+    else:
+        # User closed the window via tha close button on the window.
+        PrimeItems.program_arguments["gui"] = False  # Don't return from error_handler.
+        error_handler("Program cancelled by user (killed GUI)", 99)
 
 
 # ################################################################################
@@ -107,9 +113,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         PrimeItems.program_arguments["display_detail_level"], 3
     )
     # Convert indent to integer
-    PrimeItems.program_arguments["indent"] = convert_to_integer(
-        PrimeItems.program_arguments["indent"], 4
-    )
+    PrimeItems.program_arguments["indent"] = convert_to_integer(PrimeItems.program_arguments["indent"], 4)
     # Get the font
     if the_font := getattr(user_input, "font"):
         PrimeItems.program_arguments["font"] = the_font

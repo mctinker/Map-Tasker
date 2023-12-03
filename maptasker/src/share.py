@@ -50,9 +50,7 @@ def share(
                 f"\n<br><br>TaskerNet search on: {search_element.text}",
                 True,
             )
-            PrimeItems.output_lines.add_line_to_output(
-                2, out_string, FormatLine.dont_format_line
-            )
+            PrimeItems.output_lines.add_line_to_output(2, out_string, FormatLine.dont_format_line)
 
 
 # ################################################################################
@@ -125,6 +123,4 @@ def description_element_output(
             out_string = new_line
 
     # Output the description line.
-    PrimeItems.output_lines.add_line_to_output(
-        2, f"{out_string}", FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(2, f"{out_string}", FormatLine.dont_format_line)

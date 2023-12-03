@@ -59,11 +59,7 @@ ul li::before {
     margin-left: -1em;
 }"""
     bullet_css = bullet_css.replace("red", bullet_color)
-    PrimeItems.output_lines.add_line_to_output(
-        5, bullet_css, FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(5, bullet_css, FormatLine.dont_format_line)
 
     # End the style css
-    PrimeItems.output_lines.add_line_to_output(
-        5, "</style>\n", FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(5, "</style>\n", FormatLine.dont_format_line)

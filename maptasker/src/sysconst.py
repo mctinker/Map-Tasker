@@ -1,3 +1,4 @@
+"""Module containing action runner logic."""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -11,13 +12,16 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+from __future__ import annotations
+
 import logging
 import re
 from enum import Enum
+from typing import ClassVar
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 2.5.1"
+MY_VERSION = "MapTasker version 2.5.2"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -142,12 +146,17 @@ pattern7 = re.compile("<li")
 pattern8 = re.compile("<br>")
 pattern9 = re.compile("</span></span>")
 pattern10 = re.compile("</p></p>")
+pattern11 = re.compile(".*[A-Z].*")
+pattern12 = re.compile("[%]\w+")  # matches any word-constituent character.   # noqa: W605
+RE_FONT = re.compile(r"</font>")
 
 clean = re.compile("<.*?>")
 
 
-# ASCII Color Defginitions
+# ASCII Color Definitions
 class Colors:
+    """Define ANSI color codes for terminal output.
+    """
     White = "\033[0m"
     Yellow = "\033[33m"
     Red = "\033[31m"
@@ -159,6 +168,14 @@ class Colors:
 
 # Used for calls to addline (lineout.py).  Reference as FormatLine.add_end_span.value
 class FormatLine(Enum):
-    dont_format_line = []
+    """Definitions for creating an output line in the output list."""
+    dont_format_line: ClassVar[list] = []
     add_end_span = True
     dont_add_end_span = False
+
+    """Definitions for defining the output display level."""
+DISPLAY_DETAIL_LEVEL_summary:int = 0
+DISPLAY_DETAIL_LEVEL_anon_tasks_only:int = 1
+DISPLAY_DETAIL_LEVEL_all_tasks:int = 2
+DISPLAY_DETAIL_LEVEL_all_parameters:int = 3
+DISPLAY_DETAIL_LEVEL_everything:int = 4

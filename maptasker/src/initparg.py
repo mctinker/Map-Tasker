@@ -2,7 +2,7 @@
 
 # #################################################################################### #
 #                                                                                      #
-# runcli: intialize command line interface arguments for MapTasker                     #
+# initparg: intialize command line interface/runtime arguments for MapTasker           #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
@@ -31,7 +31,7 @@ def initialize_runtime_arguments() -> dict:
         "bold": False,  # Display Project/Profile?Task/Scene names in bold text
         "debug": False,  # Run in debug mode (create log file)
         "directory": False,  # Display directory
-        "display_detail_level": 3,  # Display detail level
+        "display_detail_level": 4,  # Display detail level
         "preferences": False,  # Display Tasker's preferences
         "conditions": False,  # Display Profile and Task conditions
         "taskernet": False,  # Display TaskerNet information

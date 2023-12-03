@@ -270,10 +270,7 @@ def get_and_set_the_color(the_arg: str) -> None:
         error_handler(f"{the_arg} has an invalid 'color'.  See the help (-ch)!", 7)
     if color_type not in TYPES_OF_COLOR_NAMES:
         error_handler(
-            (
-                f"{color_type} is an invalid type for 'color'.  See the help (-h)! "
-                " Exit code 7"
-            ),
+            (f"{color_type} is an invalid type for 'color'.  See the help (-h)! " " Exit code 7"),
             7,
         )
     desired_color = the_color_option[1]
@@ -283,10 +280,7 @@ def get_and_set_the_color(the_arg: str) -> None:
         PrimeItems.colors_to_use[TYPES_OF_COLOR_NAMES[color_type]] = desired_color
     else:
         error_handler(
-            (
-                f"MapTasker...invalid color specified: {desired_color} for"
-                f" 'c{the_color_option[0]}'!"
-            ),
+            (f"MapTasker...invalid color specified: {desired_color} for" f" 'c{the_color_option[0]}'!"),
             7,
         )
     return

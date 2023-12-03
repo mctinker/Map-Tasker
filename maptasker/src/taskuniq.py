@@ -37,10 +37,7 @@ def process_missing_tasks_and_profiles(
     """
 
     # List Projects with no Tasks
-    if (
-        len(projects_with_no_tasks) > 0
-        and not PrimeItems.found_named_items["single_task_found"]
-    ):
+    if len(projects_with_no_tasks) > 0 and not PrimeItems.found_named_items["single_task_found"]:
         PrimeItems.output_lines.add_line_to_output(
             1,
             "<hr><em>Projects Without Tasks...</em><br>",
@@ -54,9 +51,7 @@ def process_missing_tasks_and_profiles(
                 ["", "trailing_comments_color", FormatLine.add_end_span],
             )
         # End list
-        PrimeItems.output_lines.add_line_to_output(
-            3, "<br>", FormatLine.dont_format_line
-        )
+        PrimeItems.output_lines.add_line_to_output(3, "<br>", FormatLine.dont_format_line)
 
     # List all Projects without Profiles
     if projects_without_profiles:
@@ -73,9 +68,7 @@ def process_missing_tasks_and_profiles(
                 ["", "trailing_comments_color", FormatLine.add_end_span],
             )
         # End list
-        PrimeItems.output_lines.add_line_to_output(
-            3, "<br>", FormatLine.dont_format_line
-        )
+        PrimeItems.output_lines.add_line_to_output(3, "<br>", FormatLine.dont_format_line)
     return
 
 
@@ -105,9 +98,7 @@ def add_heading(save_twisty: bool) -> bool:
         ["", "trailing_comments_color", FormatLine.add_end_span],
     )
     PrimeItems.displaying_named_tasks_not_in_profile = True
-    PrimeItems.output_lines.add_line_to_output(
-        1, "", FormatLine.dont_format_line
-    )  # Start Task list
+    PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)  # Start Task list
     return True
 
 
@@ -163,14 +154,9 @@ def process_solo_task_with_no_profile(
         )
     if not unknown_task and project_name != NO_PROJECT:
         if PrimeItems.program_arguments["debug"]:
-            task_name += (
-                f" with Task ID: {task_id} ...in Project {project_name}&nbsp;&nbsp;> <em>No"
-                " Profile</em>"
-            )
+            task_name += f" with Task ID: {task_id} ...in Project {project_name}&nbsp;&nbsp;> <em>No" " Profile</em>"
         else:
-            task_name += (
-                f" ...in Project {project_name}&nbsp;&nbsp;> <em>No Profile</em>"
-            )
+            task_name += f" ...in Project {project_name}&nbsp;&nbsp;> <em>No Profile</em>"
 
     # Output the Task's details
     if (not unknown_task) and (
@@ -238,19 +224,11 @@ def process_tasks_not_called_by_profile(
     # Provide spacing and end list if we have Tasks
     if task_count > 0:
         if PrimeItems.program_arguments["display_detail_level"] > 0:
-            PrimeItems.output_lines.add_line_to_output(
-                0, "", FormatLine.dont_format_line
-            )  # blank line
-        PrimeItems.output_lines.add_line_to_output(
-            3, "", FormatLine.dont_format_line
-        )  # Close Task list
+            PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)  # blank line
+        PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)  # Close Task list
 
     if task_name is True:
-        PrimeItems.output_lines.add_line_to_output(
-            3, "", FormatLine.dont_format_line
-        )  # Close Task list
+        PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)  # Close Task list
 
-    PrimeItems.output_lines.add_line_to_output(
-        3, "", FormatLine.dont_format_line
-    )  # Close out the list
+    PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)  # Close out the list
     return

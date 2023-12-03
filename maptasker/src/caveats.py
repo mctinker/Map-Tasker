@@ -37,10 +37,7 @@ def display_caveats() -> None:
             "- This has only been tested on my own backup.xml file."
             "  For problems, report them on https://github.com/mctinker/Map-Tasker/issues .\n"
         ),
-        (
-            '- Tasks that are identified as "Unnamed/Anonymous" have no name and are'
-            " considered Anonymous.\n"
-        ),
+        ('- Tasks that are identified as "Unnamed/Anonymous" have no name and are' " considered Anonymous.\n"),
         (
             '- All attempts are made to retain embedded HTML (e.g. color=...>") in Tasker'
             " fields, but is stripped out of Action labels and TaskerNet comments.\n"
@@ -67,14 +64,8 @@ def display_caveats() -> None:
             " have their first Action only listed....\n  just like Tasker does.\n"
         )
 
-    if (
-        PrimeItems.program_arguments["display_detail_level"] > 2
-    ):  # Caveat about labels being stripped of html
-        caveats.extend(
-            (
-                "- Task labels have been stripped of all html to avoid output formatting issues.\n",
-            )
-        )
+    if PrimeItems.program_arguments["display_detail_level"] > 2:  # Caveat about labels being stripped of html
+        caveats.extend(("- Task labels have been stripped of all html to avoid output formatting issues.\n",))
 
     if (
         PrimeItems.program_arguments["display_detail_level"] == 4
@@ -90,8 +81,6 @@ def display_caveats() -> None:
 
     # Output all caveats
     for caveat in caveats:
-        PrimeItems.output_lines.add_line_to_output(
-            0, caveat, FormatLine.dont_format_line
-        )
+        PrimeItems.output_lines.add_line_to_output(0, caveat, FormatLine.dont_format_line)
 
     return

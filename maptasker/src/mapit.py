@@ -45,11 +45,11 @@ import copy
 import gc
 import sys
 import webbrowser
-from os import getcwd
+from pathlib import Path
 
 import maptasker.src.proginit as initialize
-import maptasker.src.projects as projects
 import maptasker.src.taskuniq as special_tasks
+from maptasker.src import projects
 from maptasker.src.caveats import display_caveats
 from maptasker.src.dirout import output_directory
 from maptasker.src.error import error_handler
@@ -59,7 +59,7 @@ from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
-from maptasker.src.sysconst import Colors, FormatLine, debug_file, debug_out, logger
+from maptasker.src.sysconst import Colors, DISPLAY_DETAIL_LEVEL_everything, FormatLine, debug_file, debug_out, logger
 
 # import os
 # print('Path:', os.getcwd())
@@ -80,8 +80,22 @@ crash_debug = False
 # ##################################################################################
 # Handle program error gracefully if not in debug mode
 # ##################################################################################
-def on_crash(exctype, value, traceback):
+def on_crash(exctype: str, value: str, traceback: list) -> None:
     # Display the crash report if in debug mode
+    """
+    Handle runtime errors
+    Args:
+        exctype: Exception type
+        value: Exception value
+        traceback: Traceback object
+    Returns:
+        None
+    Processing Logic:
+        - Display crash report if in debug mode using default excepthook
+        - Else print a more graceful error message to stderr
+        - Write detailed crash report to debug log file
+        - Redirect print/stderr to log for detailed crash information
+    """
     if crash_debug:
         # sys.__excepthook__ is the default excepthook that prints the stack trace
         # So we use it directly if we want to see it
@@ -99,7 +113,7 @@ def on_crash(exctype, value, traceback):
             file=sys.stderr,
         )
         # Redirect print to a debug log
-        with open(debug_file, "w") as log:
+        with Path.open(debug_file, "w") as log:
             # sys.stdout = log
             sys.stderr = log
             sys.__excepthook__(exctype, value, traceback)
@@ -136,8 +150,7 @@ def clean_up_memory() -> None:
     PrimeItemsReset()
     PrimeItems.program_arguments = initialize_runtime_arguments
 
-    gc.collect
-    return
+    gc.collect()
 
 
 # ##################################################################################
@@ -151,7 +164,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
         :return: nothing
     """
     logger.info(f"Function Entry: write_out_the_file dir:{my_output_dir}")
-    with open(f"{my_output_dir}{my_file_name}", "w") as out_file:
+    with Path.open(f"{my_output_dir}{my_file_name}", "w") as out_file:
         # Output the rest that is in our output queue
         for num, item in enumerate(PrimeItems.output_lines.output_lines):
             # Check to see if this is where the directory is to go.
@@ -192,8 +205,8 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
                 out_file.write(output_line)
             if debug_out:
                 logger.debug(f"mapit output line:{output_line}")
-    logger.info("Function Exit: write_out_the_file")
-    return
+                logger.info("Function Exit: write_out_the_file")
+
 
 
 # ##################################################################################
@@ -256,10 +269,9 @@ def output_grand_totals() -> None:
 # ##################################################################################
 # Set up the major variables used within this program, and set up crash routine
 # ##################################################################################
-def initialize_everything(file_to_get: str) -> dict:
+def initialize_everything() -> dict:
     """
     Set up all the variables and logic in case program craps out
-        :param file_to_get: file name to get
         :return: dictionary of primary items used throughout project, and empty staring
     """
 
@@ -290,14 +302,30 @@ def initialize_everything(file_to_get: str) -> dict:
 # If not doing a single named item, then output unique Project/Profile situations
 # ##################################################################################
 def process_unique_situations(
-    projects_with_no_tasks,
-    projects_without_profiles,
-    found_tasks,
-    single_project_name,
-    single_profile_name,
-    single_task_name,
-):
+    projects_with_no_tasks: list,
+    projects_without_profiles: list,
+    found_tasks: list,
+    single_project_name: str,
+    single_profile_name: str,
+    single_task_name: str,
+) -> None:
     # Don't do anything if we are looking for a specific named item
+    """
+    Process unique situations
+    Args:
+        projects_with_no_tasks: list - List of projects with no tasks
+        projects_without_profiles: list - List of projects without profiles
+        found_tasks: list - List of found tasks
+        single_project_name: str - Name of single project to look for
+        single_profile_name: str - Name of single profile to look for
+        single_task_name: str - Name of single task to look for
+    Returns:
+        None: Does not return anything
+    Processing Logic:
+        - Check if looking for a specific named item
+        - Get and output tasks not called by any profile
+        - Get and output projects that don't have any tasks or profiles
+    """
     if single_task_name or single_project_name or single_profile_name:
         return
 
@@ -329,28 +357,33 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
     try:
         webbrowser.open(f"file://{my_output_dir}{my_file_name}", new=2)
     except webbrowser.Error:
-        error_handler(
-            "Error: Failed to open output in browser: your browser is not supported.", 1
-        )
+        error_handler("Error: Failed to open output in browser: your browser is not supported.", 1)
     print("")
 
     # If doing the outline, let 'em know about the map file.
     map_text = (
-        "The Configuration Map was saved as MapTasker_Map.txt.  "
-        if PrimeItems.program_arguments["outline"]
-        else ""
+        "The Configuration Map was saved as MapTasker_Map.txt.  " if PrimeItems.program_arguments["outline"] else ""
     )
 
-    print(
-        f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}Program end."
-    )
+    print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}Program end.")
     print("")
 
 
 # ##################################################################################
 # Output the configuration outline and map
 # ##################################################################################
-def process_outline(my_output_dir: str) -> None:
+def process_outline() -> None:
+    """
+    Output the configuration outline and map
+    Args:
+        my_output_dir (str): Our current directory for output.
+    Returns:
+        None: This function does not return anything
+    Processing Logic:
+    - Call outline_the_configuration() to output the configuration outline
+    - Try to open and display the generated map file MapTasker_map.txt using the default text editor
+    - If the map file is not found, suppress the error and do not display anything
+    """
     from subprocess import run
 
     """
@@ -363,7 +396,7 @@ def process_outline(my_output_dir: str) -> None:
 
     # Display the map in the first available text editor
     with contextlib.suppress(FileNotFoundError):
-        run(["open", "MapTasker_map.txt"])
+        run(["open", "MapTasker_map.txt"], check=False)
 
 
 # ##################################################################################
@@ -399,13 +432,13 @@ def check_single_item(
 # We've displayed Projects etc.. Now display the back matter
 # ##################################################################################
 def display_back_matter(
-    program_arguments,
-    single_project_name,
-    single_profile_name,
-    single_task_name,
-    single_project_found,
-    single_profile_found,
-    single_task_found,
+    program_arguments: dict,
+    single_project_name: str,
+    single_profile_name: str,
+    single_task_name: str,
+    single_project_found: bool,
+    single_profile_found: bool,
+    single_task_found: bool,
 ) -> None:
     # Display global variables
     """
@@ -435,15 +468,15 @@ def display_back_matter(
         - Clean up memory
         - Display output file in browser
     """
-    if program_arguments["display_detail_level"] == 4:
+    if program_arguments["display_detail_level"] == DISPLAY_DETAIL_LEVEL_everything:
         output_variables("Unreferenced Global Variables", "")
 
     # Get the output directory/folder path
-    my_output_dir = getcwd()
+    my_output_dir = Path.cwd()
 
     # Output the Configuration Outline
     if program_arguments["outline"]:
-        process_outline(my_output_dir)
+        process_outline()
 
     # Output the grand total (Projects/Profiles/Tasks/Scenes)
     output_grand_totals()
@@ -461,9 +494,7 @@ def display_back_matter(
 
     # Finalize the HTML
     final_msg = "\n</body>\n</html>"
-    PrimeItems.output_lines.add_line_to_output(
-        5, final_msg, FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(5, final_msg, FormatLine.dont_format_line)
 
     #
     logger.debug(f"output directory:{my_output_dir}")
@@ -481,8 +512,6 @@ def display_back_matter(
 
     # Display the final results in the default web browser
     display_output(my_output_dir, my_file_name)
-
-    return
 
 
 ########################################################################################
@@ -545,18 +574,35 @@ to 3.
 
 def mapit_all(file_to_get: str) -> int:
     # Initialize variables and get the backup xml file
+    """
+    Maps all Projects, Profiles, Tasks and Scenes in a Tasker backup file
+
+    Args:
+        file_to_get (str): The Tasker backup file to process
+
+    Returns:
+        int: 0
+
+    Processes Projects and their Profiles:
+        - Gets all Project and Profile variables
+        - Processes each Project and its associated Profiles
+        - Stores details of single selected Project, Profile or Task
+    Checks for single selected item and processes accordingly
+    Processes unique situations like Tasks not in Profiles and Projects without Profiles/Tasks
+    Cleans up memory after completing processing
+    """
     (
         found_tasks,
         projects_without_profiles,
         projects_with_no_tasks,
-    ) = initialize_everything(file_to_get)
+    ) = initialize_everything()
 
     # Set up file to read if it is passed in (via rerun)
     if file_to_get:
         PrimeItems.file_to_get = file_to_get
 
     # Get all Tasker variables
-    if PrimeItems.program_arguments["display_detail_level"] == 4:
+    if PrimeItems.program_arguments["display_detail_level"] == DISPLAY_DETAIL_LEVEL_everything:
         get_variables()
 
     # Process all Projects and their Profiles

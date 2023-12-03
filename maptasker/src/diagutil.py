@@ -179,9 +179,7 @@ def fix_icon(name):
         if char.strip() and set(char).difference(printable):
             _ = tkinter.Frame()  # Initialize Tkinter
             # We have the icon.
-            char_dimension = width_and_height_calculator_in_pixel(
-                char, "Courier New", 12
-            )
+            char_dimension = width_and_height_calculator_in_pixel(char, "Courier New", 12)
             trailer = "" if char_dimension[0] > char_dimension[1] else blank
             break
     return trailer
@@ -377,10 +375,7 @@ def delete_hanging_bars(output_lines):
 
         # Go through list of bar positions in line.
         for position_bar in indices:
-            if (
-                len(output_lines[line_num + 1]) < position_bar
-                or output_lines[line_num + 1][position_bar] == " "
-            ):
+            if len(output_lines[line_num + 1]) < position_bar or output_lines[line_num + 1][position_bar] == " ":
                 output_lines[
                     line_num
                 ] = f"{output_lines[line_num][:position_bar]} {output_lines[line_num][position_bar + 1:]}"
@@ -421,11 +416,7 @@ def get_index(line_num, output_lines, task_to_find, search_for):
     call_tasks = output_lines[line_num].split(search_for)[1].split("]")[0].split(",")
 
     return next(
-        (
-            position + 1
-            for position, line in enumerate(call_tasks)
-            if line.lstrip() == task_to_find
-        ),
+        (position + 1 for position, line in enumerate(call_tasks) if line.lstrip() == task_to_find),
         "",
     )
 
@@ -455,9 +446,9 @@ def get_indices_of_line(
                     line to start the arrows for caller and called Tasks.
     """
 
-    return get_index(
-        caller_line_num, output_lines, called_task_name, "[Calls ──▶"
-    ), get_index(called_line_num, output_lines, caller_task_name, "[Called by ◄──")
+    return get_index(caller_line_num, output_lines, called_task_name, "[Calls ──▶"), get_index(
+        called_line_num, output_lines, caller_task_name, "[Called by ◄──"
+    )
 
 
 # ##################################################################################
@@ -482,9 +473,7 @@ def build_call_table(output_lines: list) -> list:
         # Do we have a "Calls" line (caller Task)?
         if line_right_arrow in line:
             # Handle all of the caller and called Tasks.
-            call_table = process_callers_and_called_tasks(
-                output_lines, call_table, caller_line_num, line
-            )
+            call_table = process_callers_and_called_tasks(output_lines, call_table, caller_line_num, line)
 
     # Return the call table sorted by up_down_location ((inner locations before outer))
     return dict(sorted(call_table.items()))
@@ -601,9 +590,7 @@ def process_callers_and_called_tasks(output_lines, call_table, caller_line_num, 
     caller_task_name = line.split("└─")
     caller_task_name = caller_task_name[1].split("[")[0].lstrip()
     caller_task_name = caller_task_name.rstrip()
-    caller_task_position = output_lines[caller_line_num].index(caller_task_name) + (
-        len(caller_task_name) // 2
-    )
+    caller_task_position = output_lines[caller_line_num].index(caller_task_name) + (len(caller_task_name) // 2)
 
     # Get the called Task name.
     start_position = line.index(line_right_arrow) + 4
@@ -624,15 +611,15 @@ def process_callers_and_called_tasks(output_lines, call_table, caller_line_num, 
         for called_line_num, check_line in enumerate(output_lines):
             if search_name in check_line:
                 found_called_task = True
-                caller_task_position = output_lines[called_line_num].index(
-                    called_task_name
-                ) + (len(called_task_name) // 2)
-                called_task_position = output_lines[called_line_num].index(
-                    called_task_name
-                ) + (len(caller_task_name) // 2)
-                called_task_position = output_lines[caller_line_num].index(
-                    called_task_name
-                ) + (len(called_task_name) // 2)
+                caller_task_position = output_lines[called_line_num].index(called_task_name) + (
+                    len(called_task_name) // 2
+                )
+                called_task_position = output_lines[called_line_num].index(called_task_name) + (
+                    len(caller_task_name) // 2
+                )
+                called_task_position = output_lines[caller_line_num].index(called_task_name) + (
+                    len(called_task_name) // 2
+                )
                 break
 
         # If called Task found, then save everything.

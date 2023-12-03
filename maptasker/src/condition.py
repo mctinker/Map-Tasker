@@ -77,18 +77,12 @@ def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) 
                 child.text = "Rutroh"
 
     if from_hour or from_minute:
-        the_output_condition = (
-            f"{the_output_condition}Time: from {from_hour}:{from_minute.zfill(2)}{rep}"
-        )
+        the_output_condition = f"{the_output_condition}Time: from {from_hour}:{from_minute.zfill(2)}{rep}"
 
     if to_hour or to_minute:
-        the_output_condition = (
-            f"{the_output_condition} to {to_hour}:{to_minute.zfill(2)}"
-        )
+        the_output_condition = f"{the_output_condition} to {to_hour}:{to_minute.zfill(2)}"
     elif from_variable or to_variable:
-        the_output_condition = (
-            f"{the_output_condition}Time: from {from_variable} to {to_variable} {rep}"
-        )
+        the_output_condition = f"{the_output_condition}Time: from {from_variable} to {to_variable} {rep}"
     else:
         the_output_condition = f"{the_output_condition}{child.text} not yet mapped!"
         not_in_dictionary("Condition Time", child.text)
@@ -100,9 +94,7 @@ def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) 
 
 # Profile condition: Day
 # ##################################################################################
-def condition_day(
-    the_item: defusedxml.ElementTree.XML, the_output_condition: str
-) -> str:
+def condition_day(the_item: defusedxml.ElementTree.XML, the_output_condition: str) -> str:
     """
     Handle the "Day" condition
         :param the_item: the xml element with the Condition
@@ -158,9 +150,7 @@ def condition_day(
 # ##################################################################################
 # Profile condition: State
 # ##################################################################################
-def condition_state(
-    the_item: defusedxml.ElementTree.XMLParse, the_output_condition: str
-) -> str:
+def condition_state(the_item: defusedxml.ElementTree.XMLParse, the_output_condition: str) -> str:
     """
     Handle the "State" condition
         :param the_item: the xml element with the Condition
@@ -199,9 +189,7 @@ def condition_state(
 # ##################################################################################
 # Profile condition: Event
 # ##################################################################################
-def condition_event(
-    the_item: defusedxml.ElementTree.XMLParse, the_output_condition: str
-) -> str:
+def condition_event(the_item: defusedxml.ElementTree.XMLParse, the_output_condition: str) -> str:
     """
     Handle the "Event" condition
         :param the_item: the xml element with the Condition
@@ -219,9 +207,7 @@ def condition_event(
         event_code = the_event_code.text
     if event_code not in action_codes:
         # Build new (template_ action code if not in our dictionary of codes yet
-        process_action_codes.build_action_codes(
-            the_event_code, the_item
-        )  # Add it to our action dictionary
+        process_action_codes.build_action_codes(the_event_code, the_item)  # Add it to our action dictionary
     # the_event_code.text = event_code
     event = action_evaluate.get_action_code(
         the_event_code,
@@ -233,9 +219,7 @@ def condition_event(
     event = f"{event}{get_priority(the_item, True)}"
 
     the_output_condition = f"{the_output_condition}Event: {event}"
-    if PrimeItems.program_arguments[
-        "debug"
-    ]:  # if program_args['debug'] then add the code
+    if PrimeItems.program_arguments["debug"]:  # if program_args['debug'] then add the code
         the_output_condition = f"{the_output_condition} (code:{the_event_code.text})"
     return the_output_condition
 
@@ -273,9 +257,7 @@ def condition_loc(item: defusedxml.ElementTree.XMLParse, condition: str) -> str:
     lon = item.find("long").text
     rad = item.find("rad").text
     if lat:
-        return (
-            f"{condition}Location with latitude {lat} longitude" f" {lon} radius {rad}"
-        )
+        return f"{condition}Location with latitude {lat} longitude" f" {lon} radius {rad}"
     return ""
 
 
@@ -300,9 +282,7 @@ def parse_profile_condition(the_profile: defusedxml.ElementTree) -> str:
     ignore_items = ["cdate", "edate", "flags", "id", "ProfileVariable"]
     condition = ""  # Assume no condition
     for item in the_profile:
-        if (
-            item.tag in ignore_items or "mid" in item.tag
-        ):  # Bypass junk we don't care about
+        if item.tag in ignore_items or "mid" in item.tag:  # Bypass junk we don't care about
             continue
         if condition:  # If we already have a condition, add 'and' (italicized)
             condition = f"{condition} <em>AND</em> "

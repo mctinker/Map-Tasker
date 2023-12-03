@@ -26,9 +26,7 @@ def add_name_attribute(name: str) -> str:
     """
 
     # Set default values
-    italicize = (
-        end_italicize
-    ) = highlight = end_highlight = bold = end_bold = underline = end_underline = ""
+    italicize = end_italicize = highlight = end_highlight = bold = end_bold = underline = end_underline = ""
 
     # Make the name bold if requested
     if PrimeItems.program_arguments["bold"]:

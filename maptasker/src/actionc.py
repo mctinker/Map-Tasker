@@ -36,9 +36,7 @@ ActionCode = namedtuple(
 )
 
 action_codes = {
-    "1000e": ActionCode(
-        0, "", ["0"], ["Int"], "Display Unlocked", ["0"], [["Priority:", "l", "4s"]]
-    ),
+    "1000e": ActionCode(0, "", ["0"], ["Int"], "Display Unlocked", ["0"], [["Priority:", "l", "4s"]]),
     "1000s": ActionCode(0, "", [], [], "Plugin", [], []),
     "1000t": ActionCode(0, "", [], [], "Plugin", [], []),
     "100s": ActionCode(0, "", [], [], "Airplane Mode", [], []),
@@ -124,16 +122,12 @@ action_codes = {
     "114t": ActionCode(0, "", [], [], "USB Tether", [], []),
     "1150542767e": ActionCode(0, "1040876951t", [], [], "Tap Tap Plugin", [], []),
     "116t": ActionCode(0, "", [], [], "HTTP Post", [], []),
-    "1164968315t": ActionCode(
-        0, "1040876951t", [], [], "AutoSpotify Play Media", [], []
-    ),
+    "1164968315t": ActionCode(0, "1040876951t", [], [], "AutoSpotify Play Media", [], []),
     "1165325195t": ActionCode(0, "1040876951t", [], [], "AutoTools Web Screen", [], []),
     "117t": ActionCode(0, "", [], [], "HTTP Head", [], []),
     "117240295t": ActionCode(0, "1040876951t", [], [], "AutoWear Input", [], []),
     "118t": ActionCode(0, "", [], [], "HTTP Get", [], []),
-    "1186637727t": ActionCode(
-        0, "1040876951t", [], [], "KWGT Kustom Widget Maker", [], []
-    ),
+    "1186637727t": ActionCode(0, "1040876951t", [], [], "KWGT Kustom Widget Maker", [], []),
     "119t": ActionCode(
         5,
         "",
@@ -143,13 +137,9 @@ action_codes = {
         ["0", "1", "2", "3", "4"],
         [["Mode:", "l", "119"], ", Address:", ", Lat, Long:", ", Zoom:", ", Label:"],
     ),
-    "120s": ActionCode(
-        1, "", ["0"], ["Int"], "Orientation", ["0"], [["Is:", "l", "120s"]]
-    ),
+    "120s": ActionCode(1, "", ["0"], ["Int"], "Orientation", ["0"], [["Is:", "l", "120s"]]),
     "122375409t": ActionCode(0, "1040876951t", [], [], "AutoWeb Web Services", [], []),
-    "122s": ActionCode(
-        1, "", ["0"], ["Int"], "Display Orientation", ["0"], [["Is:", "l", "122s"]]
-    ),
+    "122s": ActionCode(1, "", ["0"], ["Int"], "Display Orientation", ["0"], [["Is:", "l", "122s"]]),
     "123s": ActionCode(
         8,
         "",
@@ -176,16 +166,11 @@ action_codes = {
             ["", "e", ", Use Task Set0tings"],
         ],
     ),
-    "1246578872t": ActionCode(
-        0, "1040876951t", [], [], "AutoWear Notification", [], []
-    ),
+    "1246578872t": ActionCode(0, "1040876951t", [], [], "AutoWear Notification", [], []),
     "124t": ActionCode(0, "", [], [], "Remount", [], []),
-    "1250249549t": ActionCode(
-        0, "1040876951t", [], [], "AutoInput Screen Off/On", [], []
-    ),
-    "125s": ActionCode(
-        3, "", ["0", "1", "2"], ["Str", "Str", "Str"], "Proximity Sensor", [], []
-    ),
+    "1250249549t": ActionCode(0, "1040876951t", [], [], "AutoInput Screen Off/On", [], []),
+    "1256900802t": ActionCode(0, "1040876951t", [], [], "Termux", [], []),
+    "125s": ActionCode(3, "", ["0", "1", "2"], ["Str", "Str", "Str"], "Proximity Sensor", [], []),
     "125t": ActionCode(
         3,
         "",
@@ -299,9 +284,7 @@ action_codes = {
     ),
     "136e": ActionCode(0, "", [], [], "Card Removed", [], []),
     "136s": ActionCode(0, "", [], [], "VPN Connected", [], []),
-    "136t": ActionCode(
-        1, "", ["0"], ["Int"], "Sound Effects", ["0"], [["Set:", "l", "switch_set"]]
-    ),
+    "136t": ActionCode(1, "", ["0"], ["Int"], "Sound Effects", ["0"], [["Set:", "l", "switch_set"]]),
     "137t": ActionCode(
         3,
         "",
@@ -332,14 +315,10 @@ action_codes = {
         ["0", "1"],
         ["Old:", ", New:"],
     ),
-    "1410790256t": ActionCode(
-        0, "1040876951t", [], [], "AutoWear Floating Icon", [], []
-    ),
+    "1410790256t": ActionCode(0, "1040876951t", [], [], "AutoWear Floating Icon", [], []),
     "141s": ActionCode(0, "", [], [], "Battery Temperature", [], []),
     "1411074191t": ActionCode(0, "1040876951t", [], [], "AutoSheets Add Rows", [], []),
-    "142s": ActionCode(
-        2, "", ["0", "1"], ["Str", "Str"], "Profile Active", ["0"], ["Name:"]
-    ),
+    "142s": ActionCode(2, "", ["0", "1"], ["Str", "Str"], "Profile Active", ["0"], ["Name:"]),
     "142t": ActionCode(
         2,
         "",
@@ -349,9 +328,7 @@ action_codes = {
         ["0", "1"],
         ["Task:", ", Action:"],
     ),
-    "143s": ActionCode(
-        2, "", ["0", "1"], ["Str", "Str"], "Task Running", ["0"], ["Name:"]
-    ),
+    "143s": ActionCode(2, "", ["0", "1"], ["Str", "Str"], "Task Running", ["0"], ["Name:"]),
     "143t": ActionCode(
         2,
         "",
@@ -361,38 +338,24 @@ action_codes = {
         ["0", "1"],
         ["Scene Name:", ", Element:"],
     ),
-    "144741820t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Hide Notification Icons", [], []
-    ),
+    "144741820t": ActionCode(0, "1040876951t", [], [], "AutoNotification Hide Notification Icons", [], []),
     "1446679033t": ActionCode(0, "1040876951t", [], [], "AutoTools Time", [], []),
     "1446874931t": ActionCode(0, "1040876951t", [], [], "AutoTools Json Read", [], []),
     "1447159672t": ActionCode(0, "1040876951t", [], [], "AutoTools Text", [], []),
-    "1447244736t": ActionCode(
-        0, "1040876951t", [], [], "AutoTools Action Wait", [], []
-    ),
+    "1447244736t": ActionCode(0, "1040876951t", [], [], "AutoTools Action Wait", [], []),
     "1446697909t": ActionCode(0, "1040876951t", [], [], "AutoWear Dialog", [], []),
     "145s": ActionCode(0, "", [], [], "Signal Strength", [], []),
-    "1452528931t": ActionCode(
-        0, "1040876951t", [], [], "AutoContacts Query 2.0", [], []
-    ),
-    "1461810131t": ActionCode(
-        0, "1040876951t", [], [], "AutoSheets Update Cells", [], []
-    ),
+    "1452528931t": ActionCode(0, "1040876951t", [], [], "AutoContacts Query 2.0", [], []),
+    "1461810131t": ActionCode(0, "1040876951t", [], [], "AutoSheets Update Cells", [], []),
     "147s": ActionCode(0, "", [], [], "Unread Text", [], []),
-    "147t": ActionCode(
-        1, "", ["0"], ["Int"], "Show Prefs", ["0"], [["Section:", "l", "147"]]
-    ),
+    "147t": ActionCode(1, "", ["0"], ["Int"], "Show Prefs", ["0"], [["Section:", "l", "147"]]),
     "148s": ActionCode(0, "", [], [], "Pen Out", [], []),
     "148t": ActionCode(0, "", [], [], "Show Runlog", [], []),
-    "1482108003t": ActionCode(
-        0, "1040876951t", [], [], "AutoSpotify Player State", [], []
-    ),
+    "1482108003t": ActionCode(0, "1040876951t", [], [], "AutoSpotify Player State", [], []),
     "149s": ActionCode(0, "", [], [], "Pen Menu", [], []),
     "14s": ActionCode(0, "", [], [], "Power Save Mode", [], []),
     "1508929357t": ActionCode(0, "1040876951t", [], [], "AutoTools Array", [], []),
-    "150s": ActionCode(
-        1, "", ["0"], ["Int"], "USB Connected", ["0"], [["Is:", "l", "150s"]]
-    ),
+    "150s": ActionCode(1, "", ["0"], ["Int"], "USB Connected", ["0"], [["Is:", "l", "150s"]]),
     "150t": ActionCode(0, "", [], [], "Keyguard", [], []),
     "1520257414e": ActionCode(
         4,
@@ -431,9 +394,7 @@ action_codes = {
         ["0", "1"],
         ["Name:", ", Label:"],
     ),
-    "1563355455t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Buttons Notification", [], []
-    ),
+    "1563355455t": ActionCode(0, "1040876951t", [], [], "AutoNotification Buttons Notification", [], []),
     "1563799945t": ActionCode(0, "1040876951t", [], [], "Secure Settings", [], []),
     "156t": ActionCode(
         4,
@@ -484,9 +445,7 @@ action_codes = {
         ["0", "1", "2", "3"],
         ["SSID:", ", MAC:", ", IP", ["Active:", "l", "160"]],
     ),
-    "1600958131t": ActionCode(
-        0, "1040876951t", [], [], "AutoBubbles Create Bubble", [], []
-    ),
+    "1600958131t": ActionCode(0, "1040876951t", [], [], "AutoBubbles Create Bubble", [], []),
     "161s": ActionCode(0, "", [], [], "Ethernet Connect", [], []),
     "161t": ActionCode(
         4,
@@ -536,12 +495,8 @@ action_codes = {
         ],
     ),
     "1643249237t": ActionCode(0, "1040876951t", [], [], "Tools & AmazFit", [], []),
-    "1644316156t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Reply", [], []
-    ),
-    "1646792910t": ActionCode(
-        0, "1040876951t", [], [], "AutoTools Secure Settings", [], []
-    ),
+    "1644316156t": ActionCode(0, "1040876951t", [], [], "AutoNotification Reply", [], []),
+    "1646792910t": ActionCode(0, "1040876951t", [], [], "AutoTools Secure Settings", [], []),
     "165s": ActionCode(1, "", ["0"], ["ConditionList"], "Variable Value", [], []),
     "165t": ActionCode(
         4,
@@ -552,9 +507,7 @@ action_codes = {
         ["0", "1"],
         [["Mode:", "l", "165"], ", Minutes:"],
     ),
-    "166160670t": ActionCode(
-        0, "1040876951t", [], [], "AutoVoice Natural Language", [], []
-    ),
+    "166160670t": ActionCode(0, "1040876951t", [], [], "AutoVoice Natural Language", [], []),
     "1664218170e": ActionCode(
         4,
         "",
@@ -574,9 +527,7 @@ action_codes = {
         ["", ["", "e", ", Structure Output (JSON, etc)"]],
     ),
     "166t": ActionCode(0, "", [], [], "Show Alarms", [], []),
-    "1677547919t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Actions", [], []
-    ),
+    "1677547919t": ActionCode(0, "1040876951t", [], [], "AutoNotification Actions", [], []),
     "1687767515t": ActionCode(
         4,
         "",
@@ -598,9 +549,7 @@ action_codes = {
     "16s": ActionCode(0, "", [], [], "Device Idle", [], []),
     "16t": ActionCode(0, "", [], [], "System Lock", [], []),
     "170s": ActionCode(0, "", [], [], "Wifi Near", [], []),
-    "171109731t": ActionCode(
-        0, "1040876951t", [], [], "AutoWeb Authentication", [], []
-    ),
+    "171109731t": ActionCode(0, "1040876951t", [], [], "AutoWeb Authentication", [], []),
     "171t": ActionCode(
         5,
         "",
@@ -636,12 +585,8 @@ action_codes = {
         [["Mode:", "l", "173"]],
     ),
     "175s": ActionCode(0, "", [], [], "Dreaming", [], []),
-    "175t": ActionCode(
-        1, "", ["0"], ["Int"], "Power Mode", ["0"], [["Mode:", "l", "175"]]
-    ),
-    "1754437993t": ActionCode(
-        0, "1040876951t", [], [], "AutoVoice Recognition", [], []
-    ),
+    "175t": ActionCode(1, "", ["0"], ["Int"], "Power Mode", ["0"], [["Mode:", "l", "175"]]),
+    "1754437993t": ActionCode(0, "1040876951t", [], [], "AutoVoice Recognition", [], []),
     "176t": ActionCode(
         2,
         "",
@@ -651,9 +596,7 @@ action_codes = {
         ["0", "1"],
         ["File:", ["", "e", ", Insert In Gallery"]],
     ),
-    "177t": ActionCode(
-        1, "", ["0"], ["Int"], "Haptic Feedback", ["0"], [["Set:", "l", "switch_set"]]
-    ),
+    "177t": ActionCode(1, "", ["0"], ["Int"], "Haptic Feedback", ["0"], [["Set:", "l", "switch_set"]]),
     "1788518030e": ActionCode(
         4,
         "",
@@ -665,9 +608,7 @@ action_codes = {
     ),
     "1795842217t": ActionCode(0, "1040876951t", [], [], "AutoLaunch", [], []),
     "180s": ActionCode(0, "", [], [], "Temperature", [], []),
-    "1804737413t": ActionCode(
-        0, "1040876951t", [], [], "AutoWear Secure Settings", [], []
-    ),
+    "1804737413t": ActionCode(0, "1040876951t", [], [], "AutoWear Secure Settings", [], []),
     "1810865467t": ActionCode(0, "1040876951t", [], [], "AutoSheets Get Data", [], []),
     "1810891651t": ActionCode(0, "1040876951t", [], [], "AutoSheets Get Cell", [], []),
     "1825107102e": ActionCode(
@@ -680,9 +621,7 @@ action_codes = {
         ["", ["", "e", ", Structure Output (JSON, etc)"]],
     ),
     "182s": ActionCode(0, "", [], [], "Heart Rate", [], []),
-    "1830656901t": ActionCode(
-        0, "1040876951t", [], [], "AutoWear List Screens", [], []
-    ),
+    "1830656901t": ActionCode(0, "1040876951t", [], [], "AutoWear List Screens", [], []),
     "1830829821t": ActionCode(0, "1040876951t", [], [], "AutoWear 4 Screen", [], []),
     "185s": ActionCode(0, "", [], [], "Humidity", [], []),
     "185t": ActionCode(
@@ -727,9 +666,7 @@ action_codes = {
         ["0", "1", "2"],
         ["File:", ", Image Quality:", ["", "e", ", Delete From Memory After"]],
     ),
-    "188s": ActionCode(
-        3, "", ["0", "1", "2"], ["Img", "Int", "Int"], "Dark Mode", [], []
-    ),
+    "188s": ActionCode(3, "", ["0", "1", "2"], ["Img", "Int", "Int"], "Dark Mode", [], []),
     "188t": ActionCode(
         3,
         "",
@@ -772,9 +709,7 @@ action_codes = {
         [["a", "", "App:"], ["", "e", "Use Root"]],
     ),
     "190s": ActionCode(0, "", [], [], "Any Sensor", [], []),
-    "190t": ActionCode(
-        1, "", ["0"], ["Int"], "Flip Image", ["0"], [["Direction:", "l", "190"]]
-    ),
+    "190t": ActionCode(1, "", ["0"], ["Int"], "Flip Image", ["0"], [["Direction:", "l", "190"]]),
     "1910383148t": ActionCode(0, "1040876951t", [], [], "AutoTools Regex", [], []),
     "1912522764t": ActionCode(0, "1040876951t", [], [], "AutoTools Toast", [], []),
     "191971507t": ActionCode(
@@ -879,29 +814,17 @@ action_codes = {
         ["App:", ", URL:", ", Texts:", ", Extras:", [", Priority:", "4s"]],
     ),
     "201t": ActionCode(0, "", [], [], "Airplane Mode Settings", [], []),
-    "2010186613t": ActionCode(
-        0, "1040876951t", [], [], "AutoSheets Delete Cell Content", [], []
-    ),
+    "2010186613t": ActionCode(0, "1040876951t", [], [], "AutoSheets Delete Cell Content", [], []),
     "202t": ActionCode(0, "", [], [], "APN Settings", [], []),
-    "2022280279t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Media", [], []
-    ),
-    "203e": ActionCode(
-        0, "", [], [], "Battery Changed", ["0"], [["Priority:", "l", "4s"]]
-    ),
+    "2022280279t": ActionCode(0, "1040876951t", [], [], "AutoNotification Media", [], []),
+    "203e": ActionCode(0, "", [], [], "Battery Changed", ["0"], [["Priority:", "l", "4s"]]),
     "203t": ActionCode(0, "", [], [], "Date Settings", [], []),
-    "2046367074t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Cancel", [], []
-    ),
-    "2041559229t": ActionCode(
-        0, "1040876951t", [], [], "AutoSpotify Playlists", [], []
-    ),
+    "2046367074t": ActionCode(0, "1040876951t", [], [], "AutoNotification Cancel", [], []),
+    "2041559229t": ActionCode(0, "1040876951t", [], [], "AutoSpotify Playlists", [], []),
     "204t": ActionCode(0, "", [], [], "Internal Storage Settings", [], []),
     "2050e": ActionCode(0, "", [], [], "Quick Setting Clicked", [], []),
     "205e": ActionCode(0, "", [], [], "Battery Full", [], []),
-    "2051074546t": ActionCode(
-        0, "1040876951t", [], [], "AutoSpotify Control Media", [], []
-    ),
+    "2051074546t": ActionCode(0, "1040876951t", [], [], "AutoSpotify Control Media", [], []),
     "206e": ActionCode(0, "", [], [], "Battery Overheating", [], []),
     "206t": ActionCode(0, "", [], [], "Wireless Settings", [], []),
     "2075e": ActionCode(
@@ -913,13 +836,9 @@ action_codes = {
         ["0", "1", "2"],
         [["Type:", "l", "235"], ", Name:", ", Value:"],
     ),
-    "2076e": ActionCode(
-        2, "", ["0", "1"], ["Str", "Str"], "NFC Tag", ["0", "1"], ["ID:", ", Content:"]
-    ),
+    "2076e": ActionCode(2, "", ["0", "1"], ["Str", "Str"], "NFC Tag", ["0", "1"], ["ID:", ", Content:"]),
     "2077e": ActionCode(1, "", ["0"], ["Bundle"], "Secondary App Opened", [], []),
-    "2078e": ActionCode(
-        2, "", ["0", "1"], ["Bundle", "Str"], "App Changed", ["1"], ["Package:"]
-    ),
+    "2078e": ActionCode(2, "", ["0", "1"], ["Bundle", "Str"], "App Changed", ["1"], ["Package:"]),
     "2079e": ActionCode(
         2,
         "",
@@ -988,13 +907,9 @@ action_codes = {
         ["Component:", ", Filter:", ["", "e", ", Grep Filter"]],
     ),
     "2092e": ActionCode(0, "", [], [], "Power Menu Shown", [], []),
-    "2093e": ActionCode(
-        1, "", ["0"], ["App", "Str"], "Assistant Action", ["0"], ["Command:"]
-    ),
+    "2093e": ActionCode(1, "", ["0"], ["App", "Str"], "Assistant Action", ["0"], ["Command:"]),
     "2094e": ActionCode(0, "", [], [], "Call Screened", [], []),
-    "2095e": ActionCode(
-        2, "", ["0", "1"], ["Bundle", "Str"], "Tick", ["1"], ["Interval (ms):"]
-    ),
+    "2095e": ActionCode(2, "", ["0", "1"], ["Bundle", "Str"], "Tick", ["1"], ["Interval (ms):"]),
     "2096e": ActionCode(
         4,
         "",
@@ -1026,25 +941,17 @@ action_codes = {
     "211905330t": ActionCode(0, "1040876951t", [], [], "AutoContacts", [], []),
     "2114100406t": ActionCode(0, "1040876951t", [], [], "AutoLaunch Query", [], []),
     "212t": ActionCode(0, "", [], [], "WiFi IP Settings", [], []),
-    "2132875086t": ActionCode(
-        0, "1040876951t", [], [], "AutoSheets Delete Rows/Columns", [], []
-    ),
+    "2132875086t": ActionCode(0, "1040876951t", [], [], "AutoSheets Delete Rows/Columns", [], []),
     "214t": ActionCode(0, "", [], [], "Wireless Settings", [], []),
-    "2142731215t": ActionCode(
-        0, "1040876951t", [], [], "AutoSheets Duplicate Sheet", [], []
-    ),
+    "2142731215t": ActionCode(0, "1040876951t", [], [], "AutoSheets Duplicate Sheet", [], []),
     "215e": ActionCode(0, "", [], [], "Button: Camera", [], []),
     "216e": ActionCode(0, "", [], [], "Button: Long Search", [], []),
-    "216t": ActionCode(
-        2, "", ["0", "1"], ["Str", "ConditionList"], "App Settings", ["0"], ["App"]
-    ),
+    "216t": ActionCode(2, "", ["0", "1"], ["Str", "ConditionList"], "App Settings", ["0"], ["App"]),
     "218t": ActionCode(0, "", [], [], "Bluetooth Settings", [], []),
     "219t": ActionCode(0, "", [], [], "Quick Settings", [], []),
     "220e": ActionCode(0, "", [], [], "File Moved", [], []),
     "220t": ActionCode(0, "", [], [], "Mobile Data Settings", [], []),
-    "222e": ActionCode(
-        0, "", 0, [], "File Modified", ["0", "1"], ["File:", ", Event:"]
-    ),
+    "222e": ActionCode(0, "", 0, [], "File Modified", ["0", "1"], ["File:", ", Event:"]),
     "222t": ActionCode(0, "", [], [], "Display Settings", [], []),
     "224e": ActionCode(0, "", [], [], "File Closed", [], []),
     "224t": ActionCode(0, "", [], [], "Locale Settings", [], []),
@@ -1059,9 +966,7 @@ action_codes = {
     "230t": ActionCode(0, "", [], [], "Security Settings", [], []),
     "231t": ActionCode(0, "", [], [], "Search Settings", [], []),
     "232t": ActionCode(0, "", [], [], "Sound Settings", [], []),
-    "234244923t": ActionCode(
-        0, "1040876951t", [], [], "AutoInput Unlock Screen", [], []
-    ),
+    "234244923t": ActionCode(0, "1040876951t", [], [], "AutoInput Unlock Screen", [], []),
     "234t": ActionCode(0, "", [], [], "Dictionary Settings", [], []),
     "235t": ActionCode(
         6,
@@ -1082,9 +987,7 @@ action_codes = {
     "237t": ActionCode(0, "", [], [], "Notification Listener Settings", [], []),
     "238t": ActionCode(0, "", [], [], "Privacy Settings", [], []),
     "239t": ActionCode(0, "", [], [], "Print Settings", [], []),
-    "24081025t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Snooze", [], []
-    ),
+    "24081025t": ActionCode(0, "1040876951t", [], [], "AutoNotification Snooze", [], []),
     "244t": ActionCode(0, "", [], [], "Toggle Split Screen", [], []),
     "245t": ActionCode(0, "", [], [], "Back Button", [], []),
     "246t": ActionCode(0, "", [], [], "Long Power Button", [], []),
@@ -1110,12 +1013,8 @@ action_codes = {
     ),
     "251t": ActionCode(0, "", [], [], "Battery Settings", [], []),
     "252t": ActionCode(1, "", ["0"], ["App"], "Set SMS App", ["0"], ["App:"]),
-    "254t": ActionCode(
-        1, "", ["0"], ["Int"], "Speakerphone", ["0"], [["Set:", "l", "switch_set"]]
-    ),
-    "256t": ActionCode(
-        1, "", ["0"], ["Int"], "Vibrate On Ringer", ["0"], [["Set:", "l", "switch_set"]]
-    ),
+    "254t": ActionCode(1, "", ["0"], ["Int"], "Speakerphone", ["0"], [["Set:", "l", "switch_set"]]),
+    "256t": ActionCode(1, "", ["0"], ["Int"], "Vibrate On Ringer", ["0"], [["Set:", "l", "switch_set"]]),
     "257t": ActionCode(0, "", [], [], "Power Usage Settings", [], []),
     "258t": ActionCode(0, "", [], [], "Vibrate On Notify", [], []),
     "259t": ActionCode(
@@ -1128,15 +1027,9 @@ action_codes = {
         [["Set:", "l", "switch_set"]],
     ),
     "25t": ActionCode(0, "", [], [], "Go Home", [], []),
-    "260559060t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Block", [], []
-    ),
-    "263029931t": ActionCode(
-        0, "1040876951t", [], [], "AutoInput Unlock Screen", [], []
-    ),
-    "268157305t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Tiles", [], []
-    ),
+    "260559060t": ActionCode(0, "1040876951t", [], [], "AutoNotification Block", [], []),
+    "263029931t": ActionCode(0, "1040876951t", [], [], "AutoInput Unlock Screen", [], []),
+    "268157305t": ActionCode(0, "1040876951t", [], [], "AutoNotification Tiles", [], []),
     "294t": ActionCode(
         2,
         "",
@@ -1147,9 +1040,7 @@ action_codes = {
         [["Set:", "l", "switch_set"]],
     ),
     "295t": ActionCode(1, "", ["0"], ["Str"], "Bluetooth ID", ["0"], ["Name:"]),
-    "296t": ActionCode(
-        1, "", ["0"], ["Int"], "Bluetooth Voice", ["0"], [["Set:", "l", "switch_set"]]
-    ),
+    "296t": ActionCode(1, "", ["0"], ["Int"], "Bluetooth Voice", ["0"], [["Set:", "l", "switch_set"]]),
     "2e": ActionCode(0, "", [], [], "Phone Offhook", [], []),
     "2s": ActionCode(
         1,
@@ -1260,9 +1151,7 @@ action_codes = {
         ["0", "1", "2", "3", "4"],
         ["MS:", ", Seconds:", ", Minutes:", ", Hours:", ", Days:"],
     ),
-    "310t": ActionCode(
-        1, "", ["0"], ["Int"], "Vibrate Mode", ["0"], [["Mode:", "l", "310"]]
-    ),
+    "310t": ActionCode(1, "", ["0"], ["Int"], "Vibrate Mode", ["0"], [["Mode:", "l", "310"]]),
     "311t": ActionCode(
         3,
         "",
@@ -1337,9 +1226,7 @@ action_codes = {
         ["0", "1"],
         [["Mode:", "l", "318"], ["", "e", ", Alternative Method (Check Help)"]],
     ),
-    "319692633t": ActionCode(
-        0, "1040876951t", [], [], "AutoShare Process Text", [], []
-    ),
+    "319692633t": ActionCode(0, "1040876951t", [], [], "AutoShare Process Text", [], []),
     "319t": ActionCode(
         2,
         "",
@@ -1488,9 +1375,7 @@ action_codes = {
         ["1", "2"],
         ["Payload To Write:", ", Payload Type:"],
     ),
-    "331t": ActionCode(
-        1, "", ["0"], ["Int"], "Auto-Sync", ["0"], [["Set:", "l", "switch_set"]]
-    ),
+    "331t": ActionCode(1, "", ["0"], ["Int"], "Auto-Sync", ["0"], [["Set:", "l", "switch_set"]]),
     "332t": ActionCode(0, "", [], [], "GPS", [], []),
     "333t": ActionCode(
         2,
@@ -1630,9 +1515,7 @@ action_codes = {
         ["0", "1", "2"],
         [["Type:", "l", "343"], ", Data:", ", Store Result In:"],
     ),
-    "344636446t": ActionCode(
-        0, "1040876951t", [], [], "AutoVoice Trigger Alexa Routine", [], []
-    ),
+    "344636446t": ActionCode(0, "1040876951t", [], [], "AutoVoice Trigger Alexa Routine", [], []),
     "344t": ActionCode(
         3,
         "",
@@ -1755,9 +1638,7 @@ action_codes = {
         ["0", "1", "2"],
         ["Variable Array:", ", Position:", ", To Var:"],
     ),
-    "357t": ActionCode(
-        1, "", ["0"], ["Str"], "Array Clear", ["0"], ["Variable Array:"]
-    ),
+    "357t": ActionCode(1, "", ["0"], ["Str"], "Array Clear", ["0"], ["Variable Array:"]),
     "358t": ActionCode(
         4,
         "",
@@ -1881,13 +1762,9 @@ action_codes = {
         ["0", "1"],
         ["Variable Array:", [", Type:", "l", "369"]],
     ),
-    "370t": ActionCode(
-        2, "", ["0", "1"], ["Bundle", "Str"], "Shortcut", ["0"], ["Shortcut:"]
-    ),
+    "370t": ActionCode(2, "", ["0", "1"], ["Bundle", "Str"], "Shortcut", ["0"], ["Shortcut:"]),
     "371t": ActionCode(0, "", [], [], "Astrid", [], []),
-    "372t": ActionCode(
-        2, "", ["0", "1"], ["Bundle", "Str"], "Sensor Info", ["1"], ["Type:"]
-    ),
+    "372t": ActionCode(2, "", ["0", "1"], ["Bundle", "Str"], "Sensor Info", ["1"], ["Type:"]),
     "373t": ActionCode(
         4,
         "",
@@ -2130,9 +2007,7 @@ action_codes = {
         ["0", "1", "2"],
         ["Level:", ["", "e", ", Display"], ["", "e", ", Sound"]],
     ),
-    "388543774t": ActionCode(
-        0, "1040876951t", [], [], "AutoSheets Insert Empty Rows/Columns", [], []
-    ),
+    "388543774t": ActionCode(0, "1040876951t", [], [], "AutoSheets Insert Empty Rows/Columns", [], []),
     "389t": ActionCode(
         10,
         "",
@@ -2502,13 +2377,9 @@ action_codes = {
     ),
     "424e": ActionCode(0, "", [], [], "Screebl / TSC", [], []),
     "424t": ActionCode(0, "", ["0"], ["Bundle"], "Get Battery Info", [], []),
-    "424867932t": ActionCode(
-        0, "1040876951t", [], [], "AutoBubbles Manage Bubble", [], []
-    ),
+    "424867932t": ActionCode(0, "1040876951t", [], [], "AutoBubbles Manage Bubble", [], []),
     "425e": ActionCode(0, "", [], [], "K9 Email Received", [], []),
-    "425t": ActionCode(
-        1, "", ["0"], ["Int"], "Wifi", ["0"], [["Set:", "l", "switch_set"]]
-    ),
+    "425t": ActionCode(1, "", ["0"], ["Int"], "Wifi", ["0"], [["Set:", "l", "switch_set"]]),
     "426e": ActionCode(0, "", [], [], "Widget Locker", [], []),
     "426t": ActionCode(
         3,
@@ -2520,12 +2391,8 @@ action_codes = {
         [["Action:", "l", "426"], ["", "e", ", Force"], ["", "e", ", Report Failure"]],
     ),
     "427e": ActionCode(0, "", [], [], "OpenWatch", [], []),
-    "427t": ActionCode(
-        1, "", ["0"], ["Int"], "Wifi Sleep", ["0"], [["Policy:", "l", "427"]]
-    ),
-    "427019141t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Replace Gmail Notifications", [], []
-    ),
+    "427t": ActionCode(1, "", ["0"], ["Int"], "Wifi Sleep", ["0"], [["Policy:", "l", "427"]]),
+    "427019141t": ActionCode(0, "1040876951t", [], [], "AutoNotification Replace Gmail Notifications", [], []),
     "428e": ActionCode(0, "", [], [], "Kaloer Clock", [], []),
     "42924197t": ActionCode(0, "1040876951t", [], [], "Notification Listener", [], []),
     "429032033t": ActionCode(0, "1040876951t", [], [], "AutoContacts Details", [], []),
@@ -2640,9 +2507,7 @@ action_codes = {
         ],
     ),
     "448e": ActionCode(0, "", [], [], "Notify My Android", [], []),
-    "449t": ActionCode(
-        1, "", ["0"], ["Int"], "Music Stop", ["0"], [["", "e", ", Clear Dir"]]
-    ),
+    "449t": ActionCode(1, "", ["0"], ["Int"], "Music Stop", ["0"], [["", "e", ", Clear Dir"]]),
     "450e": ActionCode(
         2,
         "",
@@ -2800,17 +2665,11 @@ action_codes = {
         ["0", "1"],
         [["File:", "l", "490"], ["", "e", ", Use New API"]],
     ),
-    "49t": ActionCode(
-        2, "", ["0", "1"], ["Str", "ConditionList"], "Destroy Scene", ["0"], ["Name:"]
-    ),
+    "49t": ActionCode(2, "", ["0", "1"], ["Str", "ConditionList"], "Destroy Scene", ["0"], ["Name:"]),
     "4e": ActionCode(0, "", [], [], "Phone Idle", [], []),
-    "502102143t": ActionCode(
-        0, "1040876951t", [], [], "AutoSheets Get Spreadsheet", [], []
-    ),
+    "502102143t": ActionCode(0, "1040876951t", [], [], "AutoSheets Get Spreadsheet", [], []),
     "4s": ActionCode(0, "", [], [], "Phone Idle", ["0"], [["Priority:", "l", "4s"]]),
-    "502807688t": ActionCode(
-        0, "1040876951t", [], [], "AutoAppsHub SendCommand", [], []
-    ),
+    "502807688t": ActionCode(0, "1040876951t", [], [], "AutoAppsHub SendCommand", [], []),
     "50s": ActionCode(0, "", [], [], "Keyboard Out", [], []),
     "50t": ActionCode(
         4,
@@ -3174,12 +3033,8 @@ action_codes = {
         ["0", "1", "2", "3"],
         ["Scene Name:", ", Element:", " Colour:", " End Colour:"],
     ),
-    "563213414t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Table", [], []
-    ),
-    "565385068t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Query", [], []
-    ),
+    "563213414t": ActionCode(0, "1040876951t", [], [], "AutoNotification Table", [], []),
+    "565385068t": ActionCode(0, "1040876951t", [], [], "AutoNotification Query", [], []),
     "566t": ActionCode(
         7,
         "",
@@ -3248,9 +3103,7 @@ action_codes = {
             ", Animation Time (MS):",
         ],
     ),
-    "570237327t": ActionCode(
-        0, "1040876951t", [], [], "AutoSheets Format Cells", [], []
-    ),
+    "570237327t": ActionCode(0, "1040876951t", [], [], "AutoSheets Format Cells", [], []),
     "580953799e": ActionCode(
         4,
         "",
@@ -3398,9 +3251,7 @@ action_codes = {
         ["0", "1", "2", "3"],
         ["Scene Name:", ", Element:", [", Mode:", "l", "612"], ", MilliSeconds:"],
     ),
-    "61t": ActionCode(
-        2, "", ["0", "1"], ["Int", "ConditionList"], "Vibrate", ["0"], ["Time:"]
-    ),
+    "61t": ActionCode(2, "", ["0", "1"], ["Int", "ConditionList"], "Vibrate", ["0"], ["Time:"]),
     "62t": ActionCode(
         2,
         "",
@@ -3673,9 +3524,7 @@ action_codes = {
     "801498676t": ActionCode(0, "1040876951t", [], [], "AutoSpotify Albums", [], []),
     "804t": ActionCode(0, "", [], [], "Input Method Select", [], []),
     "806t": ActionCode(1, "", ["0"], ["Int"], "Turn On", ["0"], ["Block Time:"]),
-    "808t": ActionCode(
-        1, "", ["0"], ["Int"], "Auto Brightness", ["0"], [["Set:", "l", "switch_set"]]
-    ),
+    "808t": ActionCode(1, "", ["0"], ["Int"], "Auto Brightness", ["0"], [["Set:", "l", "switch_set"]]),
     "80s": ActionCode(0, "", [], [], "Docked", [], []),
     "810t": ActionCode(
         4,
@@ -3690,9 +3539,7 @@ action_codes = {
             ["", "e", ", Ignore Current Level"],
         ],
     ),
-    "811079103t": ActionCode(
-        0, "1040876951t", [], [], "AutoInput Global Action", [], []
-    ),
+    "811079103t": ActionCode(0, "1040876951t", [], [], "AutoInput Global Action", [], []),
     "812t": ActionCode(
         3,
         "",
@@ -3712,9 +3559,7 @@ action_codes = {
         [["Type:", "l", "815"], ", Match:", ", Store Result In:"],
     ),
     "819222800t": ActionCode(0, "1040876951t", [], [], "AutoSpotify Tracks", [], []),
-    "820t": ActionCode(
-        1, "", ["0"], ["Int"], "Stay On", ["0"], [["Mode:", "l", "820"]]
-    ),
+    "820t": ActionCode(1, "", ["0"], ["Int"], "Stay On", ["0"], [["Mode:", "l", "820"]]),
     "822t": ActionCode(
         1,
         "",
@@ -3725,9 +3570,7 @@ action_codes = {
         [["Set:", "l", "switch_set"]],
     ),
     "864692752t": ActionCode(0, "1040876951t", [], [], "Join", [], []),
-    "8618362t": ActionCode(
-        0, "1040876951t", [], [], "AutoSpotify Notification", [], []
-    ),
+    "8618362t": ActionCode(0, "1040876951t", [], [], "AutoSpotify Notification", [], []),
     "877t": ActionCode(
         11,
         "",
@@ -3788,9 +3631,7 @@ action_codes = {
         ["0", "1", "2"],
         ["Directory:", ", Match:", ["", "e", ", Include Hidden Files"]],
     ),
-    "901t": ActionCode(
-        1, "", ["0"], ["Int"], "Stop Location", ["0"], [["Set:", "l", "901"]]
-    ),
+    "901t": ActionCode(1, "", ["0"], ["Int"], "Stop Location", ["0"], [["Set:", "l", "901"]]),
     "902t": ActionCode(
         4,
         "",
@@ -3822,22 +3663,12 @@ action_codes = {
         ],
     ),
     "904t": ActionCode(0, "", [], [], "Voice Command", [], []),
-    "905t": ActionCode(
-        1, "", ["0"], ["Int"], "Location Mode", ["0"], [["Mode:", "l", "905"]]
-    ),
+    "905t": ActionCode(1, "", ["0"], ["Int"], "Location Mode", ["0"], [["Mode:", "l", "905"]]),
     "906355163t": ActionCode(0, "1040876951t", [], [], "AutoWear Voice Screen", [], []),
-    "906t": ActionCode(
-        1, "", ["0"], ["Int"], "Immersive Mode", ["0"], [["Mode:", "l", "906"]]
-    ),
-    "907t": ActionCode(
-        1, "", ["0"], ["Str"], "Status Bar Icons", ["0"], ["Icons To Hide:"]
-    ),
-    "907418897t": ActionCode(
-        0, "1040876951t", [], [], "AutoTools Action Report", [], []
-    ),
-    "909t": ActionCode(
-        1, "", ["0"], ["Int"], "Contacts", ["0"], [["Mode:", "l", "909"]]
-    ),
+    "906t": ActionCode(1, "", ["0"], ["Int"], "Immersive Mode", ["0"], [["Mode:", "l", "906"]]),
+    "907t": ActionCode(1, "", ["0"], ["Str"], "Status Bar Icons", ["0"], ["Icons To Hide:"]),
+    "907418897t": ActionCode(0, "1040876951t", [], [], "AutoTools Action Report", [], []),
+    "909t": ActionCode(1, "", ["0"], ["Int"], "Contacts", ["0"], [["Mode:", "l", "909"]]),
     "90t": ActionCode(
         3,
         "",
@@ -3847,15 +3678,11 @@ action_codes = {
         ["0", "1", "2"],
         ["Number:", ["", "e", ", Auto Dial"], ", Sim Card:"],
     ),
-    "910t": ActionCode(
-        1, "", ["0"], ["Int"], "Call Log", ["0"], [["Mode:", "l", "910"]]
-    ),
+    "910t": ActionCode(1, "", ["0"], ["Int"], "Call Log", ["0"], [["Mode:", "l", "910"]]),
     "911t": ActionCode(0, "", [], [], "Gentle Alarm", [], []),
     "915t": ActionCode(0, "", [], [], "CPU", [], []),
     "917310686t": ActionCode(0, "1040876951t", [], [], "AutoSpotify Artists", [], []),
-    "918403287t": ActionCode(
-        0, "1040876951t", [], [], "AutoNotification Categories", [], []
-    ),
+    "918403287t": ActionCode(0, "1040876951t", [], [], "AutoNotification Categories", [], []),
     "921575593t": ActionCode(0, "1040876951t", [], [], "AutoInput Keyguard", [], []),
     "940160580t": ActionCode(0, "1040876951t", [], [], "AutoShare", [], []),
     "941t": ActionCode(

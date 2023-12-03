@@ -42,9 +42,7 @@ from maptasker.src.sysconst import (
 # ################################################################################
 # Determine if the argument is a list or string, and return the value as appropriate
 # ################################################################################
-def get_arg_if_in_list(
-    args: namedtuple("ArgNamespace", ["some_arg", "another_arg"]), the_argument: str
-) -> int:
+def get_arg_if_in_list(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"]), the_argument: str) -> int:
     """
     Determine if the argument is a list or string, and return the value as appropriate
         Args:
@@ -103,9 +101,7 @@ def get_name_attributes(value: str) -> None:
 # ##################################################################################
 # Go through all boolean settings, get each and if have it then set value to True
 # ##################################################################################
-def get_and_set_booleans(
-    args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])
-) -> None:
+def get_and_set_booleans(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:
     """
     Go through all boolean settings, get each and if have it then set value to True
         Args:
@@ -144,9 +140,7 @@ def get_and_set_booleans(
 # ##################################################################################
 # Get the the other arguments
 # ##################################################################################
-def get_the_other_arguments(
-    args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])
-) -> None:
+def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:
     """
     Get the remainder of the arguments
         Args:
@@ -166,9 +160,7 @@ def get_the_other_arguments(
 # ##################################################################################
 # Get our parsed program arguments and save them to PrimeItems.program_args"]
 # ##################################################################################
-def get_runtime_arguments(
-    args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])
-) -> None:
+def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:
     """
     Get our parsed program arguments and save them to PrimeItems.program_args"]
         Args:
@@ -181,6 +173,7 @@ def get_runtime_arguments(
     # Not GUI.  Get input from command line arguments
 
     # Get input from command line arguments or unit test defaults.
+    # All booleans and display detail level.
     get_the_other_arguments(args)
 
     # Everything? Display full detail and set various display optionsm to true.
@@ -270,7 +263,7 @@ def process_arguments(args: object) -> dict:
     # Get our runtime arguments that go into PrimeItems.program_arguments
     get_runtime_arguments(args)
 
-    # Process colors
+    # Process color arguments.
     for item in TYPES_OF_COLORS:
         the_name = getattr(args, f"c{item}")
         if the_name is not None:
@@ -284,9 +277,7 @@ def process_arguments(args: object) -> dict:
         (
             PrimeItems.program_arguments,
             PrimeItems.colors_to_use,
-        ) = save_restore_args(
-            PrimeItems.program_arguments, PrimeItems.colors_to_use, True
-        )
+        ) = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)
 
     return
 
@@ -452,16 +443,15 @@ def process_cli() -> None:
             None
     """
 
-    # Convert runtime argument default values to a dictionary if we don't already have them
+    # Intialize runtime arguments if we don't yet have them.
     if not PrimeItems.colors_to_use:
         PrimeItems.program_arguments = initialize_runtime_arguments()
 
-    # Process unit tests if "-test" in arguments, else get normal runtime arguments
-    # args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
+    # Process unit tests if "-test" in arguments, else get normal runtime arguments.
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
     logger.debug(f"Program arguments: {args}")
 
-    # Grab the results
+    # If using the GUI, them process the GUI.
     if getattr(args, "g"):  # GUI for input?
         (
             PrimeItems.program_arguments,
@@ -474,11 +464,11 @@ def process_cli() -> None:
         restore_arguments()
         PrimeItems.program_arguments["restore"] = True
 
-    # Process commands from command line
+    # Not doing the GUI.  Process commands from command line.
     else:
         process_arguments(args)
 
-    # Validate arguements against each other.
+    # Validate arguments against each other (e.g. look for combo problems).
     validate_arguments()
 
     # Return the results

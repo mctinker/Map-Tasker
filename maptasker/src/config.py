@@ -18,7 +18,7 @@
 
 # Define the maximum number of Action lines to continue to avoid runaway for the display
 # of huge binary files
-CONTINUE_LIMIT = 50
+CONTINUE_LIMIT = 75
 # Monospace fonts work best for if/then/else/end indentation alignment
 OUTPUT_FONT = "Courier"  # OS X Default monospace font
 

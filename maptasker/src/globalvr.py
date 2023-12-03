@@ -167,9 +167,7 @@ def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> N
             project (xml element): xml element of the Project.
         Return: list of output lines to be added to output queue.
     """
-    table_definition = (
-        f'<td style="height:16px; color:{color_to_use}; text-align:left">'
-    )
+    table_definition = f'<td style="height:16px; color:{color_to_use}; text-align:left">'
     variable_output_lines = []
 
     # Go through all of the Tasker global variables.
@@ -188,13 +186,8 @@ def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> N
                     if variable_project["xml"] == project
                 )
         # If this is a verified "tasker variable", and not a Project global var?
-        elif (
-            PrimeItems.variables[key]["verified"]
-            and not PrimeItems.variables[key]["project"]
-        ):
-            variable_output_lines.append(
-                f"<tr>{table_definition}{key}</td>{table_definition}{value}</td></tr>"
-            )
+        elif PrimeItems.variables[key]["verified"] and not PrimeItems.variables[key]["project"]:
+            variable_output_lines.append(f"<tr>{table_definition}{key}</td>{table_definition}{value}</td></tr>")
 
     return variable_output_lines
 

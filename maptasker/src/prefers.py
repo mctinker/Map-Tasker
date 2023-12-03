@@ -140,9 +140,7 @@ def process_preferences(temp_output_lines: list) -> None:
                 dummy_num += 1
         # Invalid <Setting> xml element
         else:
-            error_handler(
-                "Error: the backup xml file is corrupt.  Program terminated.", 3
-            )
+            error_handler("Error: the backup xml file is corrupt.  Program terminated.", 3)
 
     return
 
@@ -192,11 +190,7 @@ def get_preferences() -> None:
     # Now output them: go through list of output lines (sorted) and "output" each
     for index, (num, line) in enumerate(sorted_output):
         section = next(
-            (
-                item[1]["section"]
-                for item in service_codes.items()
-                if item[1]["num"] == num
-            ),
+            (item[1]["section"] for item in service_codes.items() if item[1]["num"] == num),
             None,
         )
         if section is not None and section != previous_section:
@@ -207,9 +201,7 @@ def get_preferences() -> None:
                 ["", "preferences_color", FormatLine.add_end_span],
             )
             previous_section = section
-        PrimeItems.output_lines.add_line_to_output(
-            0, f"{line}", FormatLine.dont_format_line
-        )
+        PrimeItems.output_lines.add_line_to_output(0, f"{line}", FormatLine.dont_format_line)
 
     # Let user know that we have not mapped the remaining items
     PrimeItems.output_lines.add_line_to_output(

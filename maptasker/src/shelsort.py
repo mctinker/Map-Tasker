@@ -51,16 +51,8 @@ def shell_sort(arr, do_arguments, by_numeric):
                 # If value on right side is already greater than left side value
                 # We don't do swap else we swap
                 if not comp1.isdigit() or not comp2.isdigit():
-                    logger.debug(
-                        "MapTasker.py:shell_sort:"
-                        f" comp1:{str(comp1)} comp2:{str(comp2)}"
-                    )
-                if (
-                    do_arguments
-                    and int(comp2) > int(comp1)
-                    or not do_arguments
-                    and comp2 > comp1
-                ):
+                    logger.debug("MapTasker.py:shell_sort:" f" comp1:{str(comp1)} comp2:{str(comp2)}")
+                if do_arguments and int(comp2) > int(comp1) or not do_arguments and comp2 > comp1:
                     break
                 else:
                     arr[i + gap], arr[i] = arr[i], arr[i + gap]

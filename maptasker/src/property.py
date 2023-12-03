@@ -53,9 +53,7 @@ def parse_variable(variable_header: defusedxml.ElementTree, color_to_use: str) -
         Configure on Import:{configure_on_import}, Structured Variable (JSON, etc.):{structured_variable}, Immutable:{immutable}, Value:{value}, Display Name:{display_name}, Prompt:{prompt}, Exported Value:{exported_value}",
         True,
     )
-    PrimeItems.output_lines.add_line_to_output(
-        5, out_string, FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(5, out_string, FormatLine.dont_format_line)
 
 
 # Given the xml header to the Project/Profile/Task, get the properties belonging
@@ -82,9 +80,7 @@ def get_properties(header: defusedxml.ElementTree, color_to_use: str) -> None:
             f"<br>Properties comment: {comment_xml.text}",
             True,
         )
-        PrimeItems.output_lines.add_line_to_output(
-            5, out_string, FormatLine.dont_format_line
-        )
+        PrimeItems.output_lines.add_line_to_output(5, out_string, FormatLine.dont_format_line)
         have_property = True
 
     # Look for variables
@@ -94,7 +90,5 @@ def get_properties(header: defusedxml.ElementTree, color_to_use: str) -> None:
             have_property = True
 
     if have_property:
-        PrimeItems.output_lines.add_line_to_output(
-            5, "<br><br>", FormatLine.dont_format_line
-        )
+        PrimeItems.output_lines.add_line_to_output(5, "<br><br>", FormatLine.dont_format_line)
     return

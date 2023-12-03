@@ -75,9 +75,7 @@ def write_out_backup_file(file_contents: bin) -> None:
 # ##################################################################################
 # Issue HTTP Request to get the backup xml file from the Android device.
 # ##################################################################################
-def request_file(
-    backup_file_http: str, backup_file_location: str
-) -> tuple[int, object]:
+def request_file(backup_file_http: str, backup_file_location: str) -> tuple[int, object]:
     """
     Issue HTTP Request to get the backup xml file from the Android device.
     Tasker's HTTP Server Example must be installed for this to work:
@@ -167,6 +165,4 @@ def get_backup_file() -> str:
     # Process the backup file
     write_out_backup_file(file_contents)
 
-    return substring_after_last(
-        PrimeItems.program_arguments["backup_file_location"], "/"
-    )
+    return substring_after_last(PrimeItems.program_arguments["backup_file_location"], "/")

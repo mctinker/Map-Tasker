@@ -1,3 +1,4 @@
+"""Module containing action runner logic."""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -11,7 +12,9 @@
 #                                                                                      #
 # #################################################################################### #
 import re
+
 from maptasker.src.sysconst import (
+    pattern2,
     pattern5,
     pattern6,
     pattern7,
@@ -21,6 +24,7 @@ from maptasker.src.sysconst import (
 )
 
 SPAN_REGEX = re.compile(r'<span class="(\w+)"><span')
+THREE_LINES = 3
 
 
 # ##################################################################################
@@ -38,14 +42,17 @@ def format_line(output_obj: object, num: int, item: str) -> str:
 
     output_lines = output_obj.output_lines
     blank = " "
+
     # If item is a list, then get the actual output line
     if isinstance(item, list):
         item = item[1]
+
     # Get rid of trailing blanks
     item.rstrip()
+
     # Ignore lines with "</ul></ul></ul><br>"
     if (
-        num > 3
+        num > THREE_LINES
         and item[:5] == "</ul>"
         and (
             output_lines[num - 1][:5] == "</ul>"
@@ -66,32 +73,34 @@ def format_line(output_obj: object, num: int, item: str) -> str:
                 action_number,
                 ":",
                 item[action_position + 8 + len(action_number) :],
-            ]
+            ],
         )
         output_line = temp
     # No changes needed
     else:
         output_line = item
 
-    # Format the html...add a number of blanks if some sort of list
-    #
+    # Format the html...add a number of blanks if some sort of list.
     # Replace "<ul>" with "    <ul>\r"
-    output_line = pattern5.sub(f"{blank*5}<ul>\r", output_line)
+    # Use straight concatenation rather than f-strings for performance.
+    output_line = pattern5.sub(blank * 5 + "<ul>\r", output_line)
     # replace("</ul>" with f"{blank*5}</ul>\r"
-    output_line = pattern6.sub(f"{blank*5}</ul>\r", output_line)
+    output_line = pattern6.sub(blank * 5 + "</ul>\r", output_line)
     # replace("<li" with f"{blank*8}<li"
-    output_line = pattern7.sub(f"{blank*8}<li", output_line)
+    output_line = pattern7.sub(blank * 8 + "<li", output_line)
     # Add a carriage return if this is a break
     # replace("<br>" with "<br>\r"
     output_line = pattern8.sub("<br>\r", output_line)
+    # Get rid of trailing blank
+    output_line = pattern2.sub("", output_line)  # Get space-commas: " ,"
 
     # Get rid of extraneous html code that somehow got in to the output
     # replace("</span></span>" with "</span>"
     output_line = pattern9.sub("</span>", output_line)
     # replace("</p></p>" with "</p>"
-    output_line = pattern10.sub("</p>", output_line)
+    # output_line = pattern10.sub("</p>", output_line)
 
-    return output_line
+    return pattern10.sub("</p>", output_line)
 
 
 # ##################################################################################
@@ -125,5 +134,5 @@ def format_html(
         return f'{text_before}<span class="{color_code}">{text_after}{trailing_span}'
 
     # No text after...just return it.
-    else:
-        return text_after
+    return text_after
+

@@ -45,9 +45,7 @@ def remove_twisty() -> None:
     elif PrimeItems.unordered_list_count > 0:
         PrimeItems.unordered_list_count -= 1
         PrimeItems.output_lines.output_lines[-1] = "</ul></details>\n"
-        logger.info(
-            f"linout twisty counter deducted: {PrimeItems.unordered_list_count}"
-        )
+        logger.info(f"linout twisty counter deducted: {PrimeItems.unordered_list_count}")
     else:
         print("Rutroh!")
         import traceback

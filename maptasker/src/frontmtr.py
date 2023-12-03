@@ -43,9 +43,7 @@ def output_the_heading() -> None:
     # Set up highlight background color if needed
     if PrimeItems.program_arguments["highlight"]:
         background_color_html = (
-            "<style>\nmark { \nbackground-color: "
-            + PrimeItems.colors_to_use["highlight_color"]
-            + ";\n}\n</style>\n"
+            "<style>\nmark { \nbackground-color: " + PrimeItems.colors_to_use["highlight_color"] + ";\n}\n</style>\n"
         )
     else:
         background_color_html = ""
@@ -88,10 +86,7 @@ def output_the_heading() -> None:
             f' {PrimeItems.program_arguments["backup_file_http"]} at'
             f' {PrimeItems.program_arguments["backup_file_location"]}'
         )
-    elif (
-        PrimeItems.program_arguments["debug"]
-        or not PrimeItems.program_arguments["file"]
-    ):
+    elif PrimeItems.program_arguments["debug"] or not PrimeItems.program_arguments["file"]:
         filename = isinstance(PrimeItems.file_to_get, str)
         if not filename:
             filename = PrimeItems.file_to_get.name
@@ -129,9 +124,7 @@ def output_the_front_matter() -> None:
     PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
     # Output a flag to indicate this is where the directory goes
-    PrimeItems.output_lines.add_line_to_output(
-        5, "maptasker_directory", FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(5, "maptasker_directory", FormatLine.dont_format_line)
 
     # If doing Tasker preferences, get them
     if PrimeItems.program_arguments["preferences"]:

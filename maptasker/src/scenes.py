@@ -130,10 +130,7 @@ def get_width_and_height(
         if child.tag in SCENE_TAGS_TO_IGNORE:
             continue
         # End of "xxxElement"?
-        if (
-            child.tag == "PropertiesElement"
-            and PrimeItems.program_arguments["display_detail_level"] != 2
-        ):
+        if child.tag == "PropertiesElement" and PrimeItems.program_arguments["display_detail_level"] != 2:
             PrimeItems.output_lines.output_lines.append("<br>")
 
         elif tag_in_type(child.tag, True):  # xxxElement?
@@ -151,9 +148,7 @@ def get_width_and_height(
                     if "-" in temp_task_list[0]:
                         break
                     # Start a list
-                    PrimeItems.output_lines.add_line_to_output(
-                        1, "", FormatLine.dont_format_line
-                    )
+                    PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
                     # Get the name of Task
                     task_element, name_of_task = tasks.get_task_name(
                         sub_child.text,
@@ -165,10 +160,7 @@ def get_width_and_height(
                     # reset to task name since get_task_name changes its value
                     temp_task_list = [sub_child.text]
                     extra = "&nbsp;&nbsp;ID:"
-                    task_type = (
-                        "&nbsp;&#45;&#45;Task:"
-                        f" {SCENE_TASK_TYPES[sub_child.tag]}{extra}"
-                    )
+                    task_type = "&nbsp;&#45;&#45;Task:" f" {SCENE_TASK_TYPES[sub_child.tag]}{extra}"
                     # process the Scene's Task
                     process_list(
                         task_type,
@@ -249,9 +241,7 @@ def process_project_scenes(
             PrimeItems.output_lines.output_lines[-2][:5] == "</ul>"
             and PrimeItems.output_lines.output_lines[-3][:5] == "</ul>"
         ):
-            PrimeItems.output_lines.add_line_to_output(
-                1, "", FormatLine.dont_format_line
-            )
+            PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
         # If last line in output has an end-ordered-list, then it must have been
         # for the list of Tasks not found in any Profile...and it has to be removed
@@ -271,14 +261,10 @@ def process_project_scenes(
             )
 
             # Force a line break
-            PrimeItems.output_lines.add_line_to_output(
-                0, "", FormatLine.dont_format_line
-            )
+            PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
             if PrimeItems.program_arguments["display_detail_level"] == 0:
                 # End list if displaying level 0
-                PrimeItems.output_lines.add_line_to_output(
-                    3, "", FormatLine.dont_format_line
-                )
+                PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
     return bool(scene_names)

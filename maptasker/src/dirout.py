@@ -89,9 +89,7 @@ def calculate_grid_size(items: list, max_columns: int) -> tuple:
         ```
     """
     num_items = len(items)
-    num_columns = min(
-        max_columns, num_items
-    )  # Limit the number of columns to 6 at most
+    num_columns = min(max_columns, num_items)  # Limit the number of columns to 6 at most
     num_rows = math.ceil(num_items / num_columns)
     return num_rows, num_columns
 
@@ -221,15 +219,11 @@ def do_trailing_matters() -> None:
 
     # Do the Configuration Variables
     if PrimeItems.program_arguments["display_detail_level"] == 4:
-        trailing_matter.append(
-            "<a href=#unreferenced_variables>Unreferenced Global Variables</a>"
-        )
+        trailing_matter.append("<a href=#unreferenced_variables>Unreferenced Global Variables</a>")
 
     # Do Configuration Outline
     if PrimeItems.program_arguments["outline"]:
-        trailing_matter.append(
-            "<a href=#configuration_outline>Configuration Outline</a>"
-        )
+        trailing_matter.append("<a href=#configuration_outline>Configuration Outline</a>")
 
     # Add Grand Totals.
     trailing_matter.append("<a href=#grand_totals>Grand Totals</a>")
@@ -243,9 +237,7 @@ def do_trailing_matters() -> None:
 # ##################################################################################
 # Determinme if an item is in a specific a specific Project.
 # ##################################################################################
-def find_task_in_project(
-    start_index: object, item_to_match: str, items_to_search: str
-) -> bool:
+def find_task_in_project(start_index: object, item_to_match: str, items_to_search: str) -> bool:
     """
     Determinme if an item is in a specific a specific Project.
         Args:
@@ -264,10 +256,7 @@ def find_task_in_project(
     for project_item in begin_search_at:
         project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]
         items_in_project = project.find(items_to_search)
-        if (
-            items_in_project is not None
-            and item_to_match in items_in_project.text.split(",")
-        ):
+        if items_in_project is not None and item_to_match in items_in_project.text.split(","):
             return True, project
     return False, ""
 
@@ -294,10 +283,7 @@ def check_scene(item: str) -> bool:
         # Find out if this Scene is in the single Project's Profile' we are looking for.
         # Get the Profile ID for the single Profile we are looking for
         for profile_id in PrimeItems.tasker_root_elements["all_profiles"]:
-            if (
-                PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"]
-                == profile_name
-            ):
+            if PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"] == profile_name:
                 found, project = find_task_in_project("", profile_id, "pids")
                 if found:
                     scenes = project.find("scenes")
@@ -342,10 +328,7 @@ def check_task(item: str) -> bool:
         Returns:
             bool: True if we should output this hperlink, False if it is to be ingored.
     """
-    if (
-        PrimeItems.program_arguments["single_task_name"]
-        and item[1] != PrimeItems.program_arguments["single_task_name"]
-    ):
+    if PrimeItems.program_arguments["single_task_name"] and item[1] != PrimeItems.program_arguments["single_task_name"]:
         return False
     # Doing a single Profile?
     if PrimeItems.program_arguments["single_profile_name"]:
@@ -354,31 +337,24 @@ def check_task(item: str) -> bool:
             (
                 task_item
                 for task_item in PrimeItems.tasker_root_elements["all_tasks"]
-                if PrimeItems.tasker_root_elements["all_tasks"][task_item]["name"]
-                == item[1]
+                if PrimeItems.tasker_root_elements["all_tasks"][task_item]["name"] == item[1]
             ),
             "",
         ):
             # Find the Project that belongs to the Profile we are looking for.
             for project_item in PrimeItems.tasker_root_elements["all_projects"]:
-                project = PrimeItems.tasker_root_elements["all_projects"][project_item][
-                    "xml"
-                ]
+                project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]
                 pids = project.find("pids")
                 # See if the Profile we are looking for is in this Project
                 if pids is not None:
                     for profile_id in pids.text.split(","):
                         if (
                             PrimeItems.program_arguments["single_profile_name"]
-                            == PrimeItems.tasker_root_elements["all_profiles"][
-                                profile_id
-                            ]["name"]
+                            == PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"]
                         ):
                             # Get the Project's Task IDs
                             tids = project.find("tids")
-                            if tids is not None and this_task_id in tids.text.split(
-                                ","
-                            ):
+                            if tids is not None and this_task_id in tids.text.split(","):
                                 return True
         return False
     return True
@@ -488,9 +464,7 @@ def do_tasker_element(name: str) -> None:
                 hyperlink_name = item[0]
                 display_name = item[1]
                 # Append our hyperlink to this Project to the list
-                directory_hyperlinks.append(
-                    f"<a href=#{name}_{hyperlink_name}>{display_name}</a>"
-                )
+                directory_hyperlinks.append(f"<a href=#{name}_{hyperlink_name}>{display_name}</a>")
 
         if directory_hyperlinks:
             # Output the name title: Project, Profile, Task, Scene
@@ -528,10 +502,7 @@ def output_directory() -> None:
     )
     # Ok, run through the Tasker key elements and output the directory for each
     # Only do Projects and Profiles if not looking for a single Project or Profile
-    if not (
-        PrimeItems.program_arguments["single_profile_name"]
-        or PrimeItems.program_arguments["single_task_name"]
-    ):
+    if not (PrimeItems.program_arguments["single_profile_name"] or PrimeItems.program_arguments["single_task_name"]):
         do_tasker_element("projects")
     do_tasker_element("profiles")
     if PrimeItems.program_arguments["display_detail_level"] != 0:
@@ -541,8 +512,6 @@ def output_directory() -> None:
     do_trailing_matters()
 
     # Add final rule and break
-    PrimeItems.output_lines.add_line_to_output(
-        5, "<hr><br><br>\n", FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(5, "<hr><br><br>\n", FormatLine.dont_format_line)
 
     return

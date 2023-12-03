@@ -34,9 +34,7 @@ from maptasker.src.sysconst import TYPES_OF_COLORS, logger
 def indentation_validation(x):
     x = int(x)
     if x > 10:
-        raise argparse.ArgumentTypeError(
-            f"Maximum indentation is 10.  You specified {x}."
-        )
+        raise argparse.ArgumentTypeError(f"Maximum indentation is 10.  You specified {x}.")
     return x
 
 
@@ -309,9 +307,7 @@ def runtime_parser():
     # Display Task details under "hide/twisty"
     parser.add_argument(
         "-twisty",
-        help=(
-            "Hide Task's details under 'twisty' ➤. Click on twisty to display details."
-        ),
+        help=("Hide Task's details under 'twisty' ➤. Click on twisty to display details."),
         action="store_true",
         default=False,
     )

@@ -1,3 +1,4 @@
+"""Module containing action runner logic."""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -11,16 +12,20 @@
 #                                                                                      #
 # #################################################################################### #
 # import re
+from __future__ import annotations
 
-import defusedxml.ElementTree
+from typing import TYPE_CHECKING
 
 from maptasker.src.actiont import lookup_values
 from maptasker.src.error import error_handler
 from maptasker.src.format import format_html
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
-from maptasker.src.sysconst import FONT_FAMILY
+from maptasker.src.sysconst import FONT_FAMILY, RE_FONT, DISPLAY_DETAIL_LEVEL_all_tasks
 from maptasker.src.xmldata import remove_html_tags
+
+if TYPE_CHECKING:
+    import defusedxml.ElementTree
 
 
 # ##################################################################################
@@ -34,9 +39,7 @@ from maptasker.src.xmldata import remove_html_tags
 #   arg_lst: list of sorted args as numbers only (e.g. 'arg' removed from 'arg0')
 #   type_list: list of sorted types (e.g. 'Int', 'Str', etc.)
 # ##################################################################################
-def get_args(
-    action: defusedxml.ElementTree, ignore_list: list
-) -> tuple[list, list, list]:
+def get_args(action: defusedxml.ElementTree, ignore_list: list) -> tuple[list, list, list]:
     """
     Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
     This is only called if the action code is not already in our master dictionary actionc.py
@@ -50,9 +53,7 @@ def get_args(
         if child.tag in ignore_list:  # Ignore certain tags
             continue
         action_arg = child.attrib.get("sr")
-        if action_arg is None:
-            continue
-        else:
+        if action_arg is not None:
             master_list.append(child)  # Build out list of args
     # If we have args then sort them and convert to string
     if master_list:
@@ -112,9 +113,7 @@ def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
     first_string = child.find("lhs").text
     operation = child.find("op").text
     the_operation = the_operations[operation]
-    if (
-        "set" not in the_operation and child.find("rhs").text is not None
-    ):  # No second string if "set/not" set
+    if "set" not in the_operation and child.find("rhs").text is not None:  # No second string if "set/not" set
         second_operation = child.find("rhs").text
     else:
         second_operation = ""
@@ -123,15 +122,16 @@ def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
 
 
 # ################################################################################
-# Given an action line, remove trailing and empty
+# Given an action line, remove the last trailing comma.
 # ################################################################################
 def drop_trailing_comma(match_results: list) -> list:
     """
-    Delete any trailing comma in output line
-        :param match_results: the string to check
-        :return: the string without trailing blanks
-    """
+    Delete any trailing comma from the end of the list of strings.
+            :param match_results: a list of strings to check.
+            :return: the list without trailing comma.
 
+    """
+    # Go thru list in reevers order, looking for the first comma at the end.
     for i in reversed(range(len(match_results))):
         if match_results[i].endswith(", "):
             match_results[i] = match_results[i][:-2]
@@ -149,7 +149,7 @@ def drop_trailing_comma(match_results: list) -> list:
 #   1: the value to test
 #   2: the value to plug in if it meets the test
 # ##################################################################################
-def evaluate_action_setting(*args) -> list:
+def evaluate_action_setting(*args: list) -> list:
     """Evaluates action settings and returns results.
     Define a class for converting string '1' setting to its value.
     Args:
@@ -235,15 +235,13 @@ def process_xml_list(
         if this_element in ["e", "if"]:
             idx = (idx + 1) % len_of_list
             next_element = the_list[idx]  # Second element in pair
-            evaluated_value = evaluate_action_setting(
-                [False, the_int_value, next_element]
-            )
+            evaluated_value = evaluate_action_setting([False, the_int_value, next_element])
             evaluated_value = f"{evaluated_value[0]}, "
             match_results.append(evaluated_value)
             break
 
         # Are we to do a table lookup for the value?
-        elif this_element == "l":
+        if this_element == "l":
             idx = (idx + 1) % len_of_list  # Point to the lookup key
             if the_list[idx] in lookup_values:
                 try:
@@ -254,43 +252,37 @@ def process_xml_list(
                     match_results.append(
                         f"MapTasker 'mapped' error in action: int {the_int_value} not"
                         f" in lookup_values (actiont) for item {the_list[idx]} which is"
-                        f" {[lookup_values[the_list[idx]]]}"
+                        f" {[lookup_values[the_list[idx]]]}",
                     )
                 break
 
             # Error: the element is not in the lookup table.
             # Handle the error and exit.
-            else:
-                match_results.append(
-                    f"MapTasker 'mapped' error in action: {the_list[idx]} is not in"
-                    f" actiont (lookup table) for name:{names}"
-                )
+            match_results.append(
+                f"MapTasker 'mapped' error in action: {the_list[idx]} is not in"
+                f" actiont (lookup table) for name:{names}",
+            )
             # Get out of loop
             break
-        else:
-            # Not a valid entry in the lookup table
-            error_handler(
-                (
-                    "get_xml_int_argument_to_value failed-"
-                    f" this_element:{this_element} {arguments} for element"
-                    f" {this_element}"
-                ),
-                1,
-            )
 
-    return
+        # Not doing a table lookup.  Flag it as an error.
+        error_handler(
+            (
+                "get_xml_int_argument_to_value failed-"
+                f" this_element:{this_element} {arguments} for element"
+                f" {this_element}"
+            ),
+            1,
+        )
 
 
 # ##################################################################################
 # Get Task's label, disabled flag and any conditions
 # ##################################################################################
-def get_label_disabled_condition(
-    child: defusedxml.ElementTree.XML, colormap: dict
-) -> str:
+def get_label_disabled_condition(child: defusedxml.ElementTree.XML) -> str:
     """
     Get Task's label, disabled flag and any conditions
         :param child: head Action xml element
-        :param colormap: the colors to use in the output
         :return: the string containing any found label, disabled flag and conditions
     """
     task_label = ""
@@ -300,7 +292,7 @@ def get_label_disabled_condition(
     if child.find("label") is not None:
         lbl = child.find("label").text
         # Make sure the label doesn't have any HTML crap in it
-        task_label = clean_label(lbl, colormap)
+        task_label = clean_label(lbl)
     # See if Action is disabled
     action_disabled = (
         format_html(
@@ -318,9 +310,7 @@ def get_label_disabled_condition(
 
     # Format conditions if any
     if task_conditions:
-        task_conditions = format_html(
-            "action_condition_color", "", task_conditions, True
-        )
+        task_conditions = format_html("action_condition_color", "", task_conditions, True)
 
     # Return the lot
     return f"{task_conditions}{action_disabled}{task_label}"
@@ -330,7 +320,23 @@ def get_label_disabled_condition(
 # Get any/all conditions associated wwith this Task.
 # ##################################################################################
 # Get any/all conditions associated with Action
-def get_conditions(child, the_action_code):
+def get_conditions(child: defusedxml, the_action_code: str) -> str:
+    """
+    Generates conditional statements for an action.
+
+    Args:
+        child: {The XML element containing conditions}
+        the_action_code: {The action code to check conditions against}
+
+    Returns:
+        result: {A string of concatenated conditional statements}
+
+    1. Counts the number of conditions
+    2. Initializes variables to store booleans and result
+    3. Loops through <ConditionList> sub-elements
+    4. Evaluates each <Condition> and adds to result string
+    5. Returns the concatenated conditional statements or empty string
+    """
     condition_count = 0
     boolean_to_inject = result = ""
     booleans = []
@@ -359,14 +365,13 @@ def get_conditions(child, the_action_code):
 # Given the Task action's label, get rid of anything that could be problematic
 # for the output format
 # ##################################################################################
-def clean_label(lbl: str, colormap: dict) -> str:
+def clean_label(lbl: str) -> str:
     """
     Given the Task action's label, get rid of anything that could be problematic
     for the output format
         :param primary_iterms: dict contining all primary items.
             See primitem.py for details
         :param lbl: the label to clean up
-        :param colormap: the colors to use in the output
         :return: the cleaned up label with added html tags for a label's color
     """
     # Remove html tags associated with label, and then add our own.
@@ -442,33 +447,31 @@ def get_extra_stuff(
     colors_to_use = PrimeItems.colors_to_use
 
     # Only get extras if this is a Task action (vs. a Profile condition)
-    if action_type and program_arguments["display_detail_level"] > 2:
+    if action_type and program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
         # Look for extra Task stuff: label, disabled, conditions
-        extra_stuff = get_label_disabled_condition(code_action, colors_to_use)
+        extra_stuff = get_label_disabled_condition(code_action)
 
         # Get rid of html that might screw up our output
         extra_stuff = (
-            extra_stuff.replace("</font>", "")
+            RE_FONT.sub("", extra_stuff)
+            # extra_stuff.replace("</font>", "")
             if "<font" in extra_stuff and "</font>" not in extra_stuff
             else extra_stuff
         )
         extra_stuff = (
-            extra_stuff.replace("</font>", "")
+            RE_FONT.sub("", extra_stuff)
+            # extra_stuff.replace("</font>", "")
             if "&lt;font" in extra_stuff and "&lt;/font&gt;" not in extra_stuff
             else extra_stuff
         )
         extra_stuff = (
-            extra_stuff.replace("</b>", "")
-            if "<b>" in extra_stuff and "</b>" not in extra_stuff
-            else extra_stuff
+            extra_stuff.replace("</b>", "") if "<b>" in extra_stuff and "</b>" not in extra_stuff else extra_stuff
         )
 
     else:
         extra_stuff = ""
 
-    if (
-        program_arguments["debug"] and action_type
-    ):  # Add the code if this is an Action and in debug mode
+    if program_arguments["debug"] and action_type:  # Add the code if this is an Action and in debug mode
         extra_stuff = extra_stuff + format_html(
             "disabled_action_color",
             "",
@@ -477,15 +480,14 @@ def get_extra_stuff(
         )
 
     # See if Task action is to be continued after error
-    if program_arguments["display_detail_level"] > 2:
+    if program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
         child = code_action.find("se")
         if child is not None and child.text == "false":
-            extra_stuff = f'{format_html("action_color",""," [Continue Task After Error]",True,)}{extra_stuff}'
+            extra_stuff = f'{format_html("action_color",""," [Continue Task After Error]",True)}{extra_stuff}'
 
     # For some reason, we're left with an empty "<span..." element.  Remove it.
     extra_stuff = extra_stuff.replace(
-        f'<span style="color:{colors_to_use["action_color"]};'
-        f'{FONT_FAMILY}{program_arguments["font"]}"><span ',
+        f'<span style="color:{colors_to_use["action_color"]};{FONT_FAMILY}{program_arguments["font"]}"><span ',
         "<span ",
     )
 
@@ -495,14 +497,11 @@ def get_extra_stuff(
 # ##################################################################################
 # Get the application specifics for the given code
 # ##################################################################################
-def get_app_details(
-    code_child: defusedxml.ElementTree.XML, action_type: bool
-) -> tuple[str, str, str, str]:
+def get_app_details(code_child: defusedxml.ElementTree.XML) -> tuple[str, str, str, str]:
     """
     Get the application specifics for the given code (<App>)
 
         :param code_child: Action xml element
-        :param action_type: True if this is a Task, False if a condition
         :return: the aplication specifics - class, package name, app name, extra stuff
     """
     # extra_stuff = get_extra_stuff(code_child, action_type)

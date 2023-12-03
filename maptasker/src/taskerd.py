@@ -60,9 +60,7 @@ def get_the_xml_data() -> dict:
     try:
         PrimeItems.xml_tree = ET.parse(PrimeItems.file_to_get)
     except ET.ParseError:  # Parsing error
-        error_handler(
-            f"Error in taskerd parsing {file_to_parse}", 1
-        )  # Error out and exit
+        error_handler(f"Error in taskerd parsing {file_to_parse}", 1)  # Error out and exit
     except Exception:  # any other error
         error_handler(f"Parsing error in taskerd {file_to_parse}", 1)
 
@@ -72,9 +70,7 @@ def get_the_xml_data() -> dict:
     # Check for valid Tasker backup.xml file
     if PrimeItems.xml_root.tag != "TaskerData":
         error_msg = "You did not select a Tasker backup XML file...exit 2"
-        PrimeItems.output_lines.add_line_to_output(
-            0, error_msg, FormatLine.dont_format_line
-        )
+        PrimeItems.output_lines.add_line_to_output(0, error_msg, FormatLine.dont_format_line)
         logger.debug(f"{error_msg}exit 3")
         sys.exit(3)
 

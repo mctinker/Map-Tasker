@@ -62,10 +62,7 @@ def output_list_of_actions(
                 and UNKNOWN_TASK_NAME in the_item
             ):  # Just show first Task if unknown Task
                 break
-            elif (
-                PrimeItems.program_arguments["display_detail_level"] == 1
-                and UNKNOWN_TASK_NAME not in the_item
-            ):
+            elif PrimeItems.program_arguments["display_detail_level"] == 1 and UNKNOWN_TASK_NAME not in the_item:
                 break
 
     # Close Action list if doing straight print, no twisties
@@ -84,10 +81,7 @@ def get_task_actions_and_output(
     tasks_found: list[str],
 ) -> None:
     # If Unknown task or displaying more detail, then 'the_task' is not valid, and we have to find it.
-    if (
-        UNKNOWN_TASK_NAME in the_item
-        or PrimeItems.program_arguments["display_detail_level"] > 0
-    ):
+    if UNKNOWN_TASK_NAME in the_item or PrimeItems.program_arguments["display_detail_level"] > 0:
         # Get the Task ID so that we can get the Task xml element
         # "--Task:" denotes a Task in a Scene
         temp_id = "x" if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
@@ -107,25 +101,17 @@ def get_task_actions_and_output(
             # If we have Task Actions, then output them
             if alist := tasks.get_actions(the_task):
                 # Start a list of Actions
-                PrimeItems.output_lines.add_line_to_output(
-                    1, "", FormatLine.dont_format_line
-                )
+                PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
                 action_count = 1
                 output_list_of_actions(action_count, alist, the_item)
                 # End list if Scene Task
                 if "&#45;&#45;Task:" in list_type:
-                    PrimeItems.output_lines.add_line_to_output(
-                        3, "", FormatLine.dont_format_line
-                    )
+                    PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
                     # Add an extra </ul> if doing twisties
                     if PrimeItems.program_arguments["twisty"]:
-                        PrimeItems.output_lines.add_line_to_output(
-                            3, "", FormatLine.dont_format_line
-                        )
+                        PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
                 # End the list of Actions
-                PrimeItems.output_lines.add_line_to_output(
-                    3, "", FormatLine.dont_format_line
-                )
+                PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
         else:
             error_handler("No Task found!!!", 0)
 

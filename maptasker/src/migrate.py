@@ -56,10 +56,7 @@ def restore_old_args(file_to_check: Path) -> tuple[dict, dict]:
         )
     except EOFError:
         colormap, program_args = process_error(
-            (
-                f"'-r' Error (Restoring Older Settings File): File {file_to_check} is"
-                " corrupt.  Migration ignored."
-            ),
+            (f"'-r' Error (Restoring Older Settings File): File {file_to_check} is" " corrupt.  Migration ignored."),
         )
 
     f.close()
@@ -103,9 +100,7 @@ def migrate() -> dict:
             PrimeItems.colors_to_use,
         ) = restore_old_args(file_to_check)
         # Save as JSON file.  We don't care about the returned values
-        _, _ = save_restore_args(
-            PrimeItems.colors_to_use, PrimeItems.program_arguments, True
-        )
+        _, _ = save_restore_args(PrimeItems.colors_to_use, PrimeItems.program_arguments, True)
         # Now delete the old file
         file_to_check.unlink()
 

@@ -130,9 +130,7 @@ def add_dictionary_and_twisty(
     ):
         directory_item = f'"{PrimeItems.directory_items["current_item"]}"'
         directory = f"<a id={directory_item}></a>\n"
-        PrimeItems.output_lines.add_line_to_output(
-            5, directory, FormatLine.dont_format_line
-        )
+        PrimeItems.output_lines.add_line_to_output(5, directory, FormatLine.dont_format_line)
 
     if list_type == "Scene:":
         # Force a line break first
@@ -176,14 +174,10 @@ def format_item(
 
     # If "--Task:" then this is a Task under a Scene.
     # Need to temporarily save the_item since add_line_to_output changes the_item
-    temp_item, temp_list = add_dictionary_and_twisty(
-        list_type, the_item, the_task, output_line, color_to_use
-    )
+    temp_item, temp_list = add_dictionary_and_twisty(list_type, the_item, the_task, output_line, color_to_use)
 
     # Add this Task/Scene to the output as a list item
-    PrimeItems.output_lines.add_line_to_output(
-        2, output_line, FormatLine.dont_format_line
-    )
+    PrimeItems.output_lines.add_line_to_output(2, output_line, FormatLine.dont_format_line)
 
     # Put the_item back with the 'ID: nnn' portion included.
     if temp_item:
@@ -240,8 +234,7 @@ def process_item(
     #   and not part of output for Tasks with no Profile(s)
     # Do we get the Task's Actions?
     if (
-        (the_task and "Task:" in list_type and UNKNOWN_TASK_NAME in the_item)
-        or ("Task:" in list_type)
+        (the_task and "Task:" in list_type and UNKNOWN_TASK_NAME in the_item) or ("Task:" in list_type)
     ) and "<em>No Profile" not in the_item:
         get_task_actions_and_output(
             the_task,
@@ -258,10 +251,7 @@ def process_item(
         elif the_item.isdigit:
             PrimeItems.output_lines.delete_last_line()
 
-    elif (
-        list_type == "Scene:"
-        and PrimeItems.program_arguments["display_detail_level"] > 1
-    ):
+    elif list_type == "Scene:" and PrimeItems.program_arguments["display_detail_level"] > 1:
         # We have a Scene: process its details
         process_scene(
             the_item,
@@ -274,9 +264,7 @@ def process_item(
             remove_twisty()
         else:
             # End list if doing twisty and displaying level 0
-            PrimeItems.output_lines.add_line_to_output(
-                3, "", FormatLine.dont_add_end_span
-            )
+            PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_add_end_span)
 
     return
 

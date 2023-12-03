@@ -121,9 +121,7 @@ def display_debug_info() -> None:
         )
 
         # Add the line formatted with HTML
-        color_set_to_width = format_line_debug(
-            f"Color for {color_names[key]} set to", 40
-        )
+        color_set_to_width = format_line_debug(f"Color for {color_names[key]} set to", 40)
         PrimeItems.output_lines.add_line_to_output(
             0,
             f"{ color_set_to_width}{the_color}",

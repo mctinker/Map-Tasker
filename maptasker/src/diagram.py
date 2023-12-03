@@ -101,9 +101,7 @@ def output_the_task(
         call_tasks = ""
         with contextlib.suppress(KeyError):
             if task["call_tasks"]:
-                call_tasks = (
-                    f" [Calls {line_right_arrow} {', '.join(task['call_tasks'])}]"
-                )
+                call_tasks = f" [Calls {line_right_arrow} {', '.join(task['call_tasks'])}]"
 
         # We are still accumating outlines for Profiles.
         # Build lines for the Profile's Tasks as well.
@@ -187,9 +185,7 @@ def print_all_tasks(
                 # Now see if this Task has any "called_by" Tasks.
                 with contextlib.suppress(KeyError):
                     called_by_tasks = f" [Called by {line_left_arrow} {', '.join(temp_task['called_by'])}]"
-                    called_by_tasks = called_by_tasks.replace(
-                        UNKNOWN_TASK_NAME, "Anonymous"
-                    )
+                    called_by_tasks = called_by_tasks.replace(UNKNOWN_TASK_NAME, "Anonymous")
                 break
 
         # We have a full row of Profiles.  Print the Tasks out.
@@ -247,9 +243,7 @@ def print_all_scenes(scenes):
             output_scene_lines = [filler, filler, filler]
 
         # Start/continue building our outlines
-        output_scene_lines, position_for_anchor = build_box(
-            scene, scene_counter, output_scene_lines
-        )
+        output_scene_lines, position_for_anchor = build_box(scene, scene_counter, output_scene_lines)
 
     # Print anyn remaining Scenes
     if not header:
@@ -506,9 +500,7 @@ def draw_arrows_to_called_task(
         else:
             use_arrow = arrow
         # Fill with the arrow first.
-        output_lines[start_line + x] = output_lines[start_line + x].ljust(
-            up_down_location
-        )
+        output_lines[start_line + x] = output_lines[start_line + x].ljust(up_down_location)
         new_line = f"{output_lines[start_line+x][:up_down_location]}{use_arrow}{output_lines[start_line+x][up_down_location+1:]}"
         output_lines[start_line + x] = new_line
 
@@ -550,19 +542,13 @@ def mark_tasks_not_found(output_lines):
                 for called_line_num, check_line in enumerate(output_lines):
                     if search_name in check_line:
                         found_called_task = True
-                        called_task_position = output_lines[called_line_num].index(
-                            called_task_name[0]
-                        )
+                        called_task_position = output_lines[called_line_num].index(called_task_name[0])
                         break
 
                 # If Task doesn't exist, mark it as such.
                 if not found_called_task:
-                    called_task_position = output_lines[caller_line_num].index(
-                        called_task_name[0]
-                    )
-                    end_of_called_task_position = called_task_position + len(
-                        called_task_name[0]
-                    )
+                    called_task_position = output_lines[caller_line_num].index(called_task_name[0])
+                    end_of_called_task_position = called_task_position + len(called_task_name[0])
                     output_lines[caller_line_num] = (
                         output_lines[caller_line_num][:called_task_position]
                         + called_task_name[0]
@@ -659,9 +645,7 @@ def build_profile_box(
         print_tasks = False
 
     # Start/continue building our outlines
-    output_profile_lines, position_for_anchor = build_box(
-        profile, profile_counter, output_profile_lines
-    )
+    output_profile_lines, position_for_anchor = build_box(profile, profile_counter, output_profile_lines)
     return (
         output_profile_lines,
         output_task_lines,
