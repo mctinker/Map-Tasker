@@ -109,8 +109,8 @@ Runtime: `maptasker -option1 -option2` ...
     `-detail 0` for silent mode: simple Project/Profile/Task/Scene names with no details,
     `-detail 1` to display the Action list only if Task is unnamed or anonymous,
     `-detail 2` to display Action list names for *all* Tasks,
-    `-detail 3` to display Action list names with *all* parameters for all Tasks (default),
-    `-detail 4` to display detail at level 3 plus all Project and unreferenced global variables,
+    `-detail 3` to display Action list names with *all* parameters for all Tasks,
+    `-detail 4` to display detail at level 3 plus all Project and unreferenced global variables (default),
 
     `-directory` to display a directory of all Projects/Profiles/Tasks/Scenes,
     `-e` to display 'everything': Runtime settings, Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details with Project variables,
