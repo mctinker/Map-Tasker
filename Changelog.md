@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [2.5.1] 2023-Dec-03
+## [2.5.2] 2023-Dec-03
 
 ### Changed
 
@@ -13,11 +13,11 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Cleaned up this file for legibility.
-- Program abends if the GUI window is closed.
+- The program abends if the GUI window is closed.
 
 ### Added
 
-- Task action code was added to recognize the Termux plugin.
+- The task action code was added to recognize the Termux plugin.
 
 ## Older History Log
 
@@ -106,7 +106,9 @@ All notable changes to this project will be documented in this file!
       - Fixed: The color for labels was not correctly set.
       - Fixed: GUI single name error message displaying in green rather than red.
       - Fixed: Task's extra properties (priority, collision, etc.) not displaying correctly.
+
 ## [2.3.0 -2.3.5] ## 2023-09-06
+
       - Added: Some pazazz for user experience to '-version' runtime option.
       - Added: New runtime option '-outline' to display Configuration Outline at the end of output.
       - Added: New GUI Option: Just Display Everything- no need to click each display option checkbox.
@@ -121,13 +123,17 @@ All notable changes to this project will be documented in this file!
       - Fixed: Program error when selecting color within GUI.
       - Fixed: Fetching backup.xml from the Android device could incorrectly fail with the "Invalid url!" error message.
       - Fixed: Runtime option '-everything' was not including Tasker's preferences
+
 ## [2.2.1] ## 2023-08-30
+
       - Fixed: Condition "matches regex" and "doesn't match regex" are incorrectly reversed.
       - Fixed: If conditions missing compound conditions like AND and OR.
       - Fixed: Profile compound condition format with "and" not consistent with If component "and" statements.
       - Fixed: Enlarged the images in the README file.
       - Changed: Further optimized the code
+
 ## [2.2.0] ## 2023-07-27
+
       - Added: New '-font' runtime argument to specify a specific (monospace) font to use for the map display. Default is 'Courier'.
       - Added: New '-runtime' runtime argument to display all of the runtime arguments and their settings at the beginning of the output.
       - Added: GUI updated to include help information about the Debug tab.
@@ -141,7 +147,9 @@ All notable changes to this project will be documented in this file!
       - Fixed: GUI 'Cancel' button now works.  Remove the message saying that it doesn't work.
       - Fixed: Output contains the unneeded extra commas.
       - Fixed: Runtime option -e (everything) not including Tasker Preferences.
+
 ## [2.1.2] ## 2023-07-18
+
       - Added: New '-indent' runtime argument to control the amount of indentation of if/then/else Task actions. Default is 4 spaces.
       - Fixed: Properties not showing the variable name.
       - Fixed: Project Properties and Taskernet information was not displaying for a specific Project.
@@ -153,10 +161,14 @@ All notable changes to this project will be documented in this file!
       - Fixed: Remove empty parameters from appearing in Task actions and extra spaces before commas
       - Changed: Continued Task actions are now indented properly underneath If/Else conditions
       - Changed: Optimized code
+
 ## [2.1.1] ## 2023-07-09
+
       - Fixed: Minor cosmetic issues with sample output and README file.
       - Fixed: Removed extraneous print color.
+
 ## [2.1.0] ## 2023-07-09
+
       - Added: Display Project/Profile/Task "properties" if the display detail level is 3.
       - Added: New runtime argument '-names {bold, highlight, underline, italicize}' to make all Project/Profile/Task/Scene 'names' display bold, highlighted, underlined and/or italicized.
       - Added: New runtime argument '-cHeading' to assign a color to the output heading lines.
@@ -164,7 +176,7 @@ All notable changes to this project will be documented in this file!
       - Added: GUI: If a checkbox is selected or deselected, display the change in the message window.
       - Added: GUI: Colors for 'highlight' names, and for 'Heading'
       - Added: GUI: support new "names" bold/highlight/italicize/underline display options.
-      - Changed: GUI message box now shows all previous messages along with a new message at the bottom.
+      - Changed: The GUI message box now shows all previous messages along with a new message at the bottom.
       - Fixed: If displaying the directory, some Project names incorrectly have an underscore embedded.
       - Fixed: Runtime argument "-restore" is not restoring all options correctly.
       - Fixed: Display level of 0 includes too much information.
@@ -175,7 +187,9 @@ All notable changes to this project will be documented in this file!
       - Fixed: Appearance mode not being saved correctly across sessions.
       - Fixed: Unit Test code was not handling program arguments properly.
       - Fixed: Setting the Action label color had no effect
+
 ## [2.0.10] ## 2023-07-24
+
       - Added: Support for new "Work Profile" Task Action and Profile State (Tasker version 6.2.9-rc)
       - Added: Added missing "Close After" sub-action on Pick Input Dialog Action
       - Changed: Display Grand Totals regardless of detail display level
