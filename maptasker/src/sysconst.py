@@ -21,7 +21,7 @@ from typing import ClassVar
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 2.5.2"
+MY_VERSION = "MapTasker version 2.5.3"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -155,8 +155,8 @@ clean = re.compile("<.*?>")
 
 # ASCII Color Definitions
 class Colors:
-    """Define ANSI color codes for terminal output.
-    """
+    """Define ANSI color codes for terminal output."""
+
     White = "\033[0m"
     Yellow = "\033[33m"
     Red = "\033[31m"
@@ -169,13 +169,16 @@ class Colors:
 # Used for calls to addline (lineout.py).  Reference as FormatLine.add_end_span.value
 class FormatLine(Enum):
     """Definitions for creating an output line in the output list."""
+
     dont_format_line: ClassVar[list] = []
     add_end_span = True
     dont_add_end_span = False
 
     """Definitions for defining the output display level."""
-DISPLAY_DETAIL_LEVEL_summary:int = 0
-DISPLAY_DETAIL_LEVEL_anon_tasks_only:int = 1
-DISPLAY_DETAIL_LEVEL_all_tasks:int = 2
-DISPLAY_DETAIL_LEVEL_all_parameters:int = 3
-DISPLAY_DETAIL_LEVEL_everything:int = 4
+
+
+DISPLAY_DETAIL_LEVEL_summary: int = 0
+DISPLAY_DETAIL_LEVEL_anon_tasks_only: int = 1
+DISPLAY_DETAIL_LEVEL_all_tasks: int = 2
+DISPLAY_DETAIL_LEVEL_all_parameters: int = 3
+DISPLAY_DETAIL_LEVEL_everything: int = 4

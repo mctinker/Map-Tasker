@@ -1,3 +1,4 @@
+"""Module containing action runner logic."""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -41,7 +42,7 @@ from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
-from maptasker.src.sysconst import NO_PROFILE, FormatLine
+from maptasker.src.sysconst import FormatLine
 
 blank = "&nbsp;"
 list_of_found_tasks = []
@@ -53,7 +54,7 @@ arrow = f"├{line*3}▶"
 # Go through all Tasks for Profile and see if any have a "Perform Task" action.
 # If so, save the link to the other Task to be displayed in the outline.
 # ##################################################################################
-def get_perform_task_actions(profile: defusedxml.ElementTree, the_tasks: list) -> None:
+def get_perform_task_actions(the_tasks: list) -> None:
     """
     Go through all Tasks for Profile and see if any have a "Perform Task" action.
     If so, save the link to the other Task to be displayed in the outline.
@@ -106,18 +107,39 @@ def get_perform_task_actions(profile: defusedxml.ElementTree, the_tasks: list) -
 # ##################################################################################
 # Output the Tasks that are not in any Profile
 # ##################################################################################
-def tasks_not_in_profile(tasks_processed, task_ids):
+def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list) -> None:
     # Now process all Tasks under Project that are not called by any Profile
     # task_ids is a list of strings, each string is a Task id.
+    """
+    Find tasks not processed by any profile
+    Args:
+        tasks_processed: list - Tasks already processed
+        task_ids: defusedxml - All tasks in the project
+    Returns:
+        None
+    1. Loop through all tasks in the project
+    2. Check if the task XML is not in the already processed tasks
+    3. If not processed, add it to the list of tasks not in any profile
+    4. Format and output the tasks not in any profile line
+    5. Get any linked "Perform Task" actions for these uncovered tasks
+    """
+
     task_line = ""
-    no_profile_tasks = no_profile_task_lines = []
-    for task in task_ids:
-        if PrimeItems.tasker_root_elements["all_tasks"][task]["xml"] not in tasks_processed:
+    all_profiles_tasks = list(dict.fromkeys(all_profiles_tasks))  # Remove dups
+    no_profile_tasks = []
+    no_profile_task_lines = []
+    # Go through all Tasks in the Project
+    for task in tasks_in_project:
+        profile_task = f"task{task}"
+        # Go through all Tasks in the Profiles for this Project
+        if profile_task not in all_profiles_tasks:
             # The Task has not been processed = not in any Profile.
             the_task_element = PrimeItems.tasker_root_elements["all_tasks"][task]
-            task_name = the_task_element
-            no_profile_tasks.append(task_name)
-            no_profile_task_lines.append({"xml": task_name["xml"], "name": task_name["name"]})
+            no_profile_task = the_task_element
+            # Add it to the list of Tasks not in any Profile if not already in the list.
+            if no_profile_task not in no_profile_tasks:
+                no_profile_tasks.append(no_profile_task)
+                no_profile_task_lines.append({"xml": no_profile_task["xml"], "name": no_profile_task["name"]})
     # Format the output line
     if no_profile_tasks:
         task_line = f"{blank*5}÷{line*5}▶ Tasks not in any Profile:"
@@ -135,7 +157,7 @@ def tasks_not_in_profile(tasks_processed, task_ids):
         )
 
         # Get any/all "Perform Task" links back to other Tasks
-        get_perform_task_actions("", no_profile_task_lines)
+        get_perform_task_actions(no_profile_task_lines)
 
 
 # ##################################################################################
@@ -201,13 +223,15 @@ def do_profile_tasks(
     # elbow = f"└{line*5}▶"
     arrow_to_use = arrow1
 
-    tasks_processed = []
+    tasks_in_profile = []
     network[project_name][profile_name] = []
 
     # Go through Task's output lines and Tasks, and add arrows as appropriate.
     for task_line, task in zip(task_output_line, the_tasks):
         # Keep track of Tasks processed.
-        tasks_processed.append(task["xml"])
+        taskid = task["xml"].attrib.get("sr")
+        if taskid not in tasks_in_profile:
+            tasks_in_profile.append(taskid)
 
         # Add Task to the network
         network[project_name][profile_name].append(task)
@@ -217,7 +241,7 @@ def do_profile_tasks(
             arrow_to_use = arrow_to_use.replace("├", "└")
 
         # Get just the name
-        task_line = task_line.split("&nbsp;")
+        task_line = task_line.split("&nbsp;")  # noqa: PLW2901
 
         # Add any/all "Perform Task" indicators
         call_task = ""
@@ -230,23 +254,22 @@ def do_profile_tasks(
             call_task = f"{blank*3}{line*3} calls {line*2}▶ {call_task.rstrip(call_task[-1])}"  # Get rid of last comma
 
         # Add the Task output line
-        task_line = f"{blank*5}{arrow_to_use}{blank*2}Task: {task_line[0]}{call_task}"
+        task_line = f"{blank*5}{arrow_to_use}{blank*2}Task: {task_line[0]}{call_task}"  # noqa: PLW2901
         PrimeItems.output_lines.add_line_to_output(
             0,
             task_line,
             ["", "task_color", FormatLine.add_end_span],
         )
-    return tasks_processed
+    return tasks_in_profile
 
 
 # ##################################################################################
 # Given a Project, outline it's Profiles, Tasks and Scenes
 # ##################################################################################
 def outline_profiles_tasks_scenes(
-    project: defusedxml.ElementTree,
     project_name: str,
     profile_ids: list,
-    task_ids: list,
+    tasks_in_project: list,
     network: dict,
 ) -> None:
     """
@@ -259,15 +282,18 @@ def outline_profiles_tasks_scenes(
             task_ids (list): liost of Tasks under this Project
             network (dict): Dictionary structure for our network
     """
+    all_profiles_tasks = []
 
     # Delete the <ul> inserted by get_ids for Profile
     PrimeItems.output_lines.delete_last_line()
+    no_name_counter = 1
     for item in profile_ids:
         # Get the Profile element
         profile = PrimeItems.tasker_root_elements["all_profiles"][item]["xml"]
         # Get the Profile name
         if not (profile_name := PrimeItems.tasker_root_elements["all_profiles"][item]["name"]):
-            profile_name = NO_PROFILE
+            profile_name = f"Anonymous#{no_name_counter!s}"
+            no_name_counter += 1
 
         # Doing all Projects or single Project and this is our Project...
         if (
@@ -276,7 +302,6 @@ def outline_profiles_tasks_scenes(
         ):
             # Add Profile to our network
             # network[project_name][profile_name] = []
-
             profile_line = f"{blank*5}{arrow}{blank*2}Profile: {profile_name}"
             PrimeItems.output_lines.add_line_to_output(
                 0,
@@ -286,7 +311,8 @@ def outline_profiles_tasks_scenes(
 
             # Get Tasks for this Profile and output them
             task_output_line = []  # Profile's Tasks will be filled in here
-            tasks_processed = []  # Keep track of Tasks processed/output.
+            tasks_in_profile = []  # Keep track of Tasks processed/output.
+            list_of_found_tasks = []
 
             the_tasks = get_profile_tasks(
                 profile,
@@ -295,25 +321,24 @@ def outline_profiles_tasks_scenes(
             )
 
             # Get any/all "Perform Task" links back to other Tasks
-            get_perform_task_actions(profile, the_tasks)
+            get_perform_task_actions(the_tasks)
 
             # Output the Profile's Tasks
-            tasks_processed = do_profile_tasks(
+            tasks_in_profile = do_profile_tasks(
                 project_name,
                 profile_name,
                 the_tasks,
                 task_output_line,
                 network,
             )
+            all_profiles_tasks.extend(tasks_in_profile)
 
     # List the Tasks not in any Profile for this Project
     if not PrimeItems.program_arguments["single_profile_name"]:
-        tasks_not_in_profile(tasks_processed, task_ids)
+        tasks_not_in_profile(all_profiles_tasks, tasks_in_project)
 
     # Get the Scenes for this Project
     outline_scenes(project_name, network)
-
-    return
 
 
 # ##################################################################################
@@ -361,7 +386,7 @@ def do_the_outline(network: dict) -> None:
             # Get the Profile IDs for this Project and process them
             # True if we have Profiles for this Project
             if profile_ids := get_ids(True, project, project_name, []):
-                outline_profiles_tasks_scenes(project, project_name, profile_ids, task_ids, network)
+                outline_profiles_tasks_scenes(project_name, profile_ids, task_ids, network)
 
             # No Profiles for Project
             if not profile_ids:
@@ -399,7 +424,7 @@ def outline_the_configuration() -> None:
         ["", "trailing_comments_color", FormatLine.add_end_span],
     )
 
-    # Go do it!
+    # Go do it!  Generate the outline near the bottom of the output.
     do_the_outline(network)
 
     # End the list
@@ -409,4 +434,5 @@ def outline_the_configuration() -> None:
         FormatLine.dont_format_line,
     )
 
+    # Now generate the outline diagram text file.
     network_map(network)

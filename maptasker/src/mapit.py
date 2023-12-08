@@ -100,18 +100,19 @@ def on_crash(exctype: str, value: str, traceback: list) -> None:
         # sys.__excepthook__ is the default excepthook that prints the stack trace
         # So we use it directly if we want to see it
         sys.__excepthook__(exctype, value, traceback)
-        print("MapTasker encountered a runtime error!  Error in maptasker_debug.log")
+        print("MapTasker encountered a runtime error!  Error in maptasker_debug.log")  # noqa: T201
     # Give the user a more graceful error message.
     else:
         # Instead of the stack trace, we print an error message to stderr
-        print("\nMapTasker encountered a runtime error!", file=sys.stderr)
+        print("\nMapTasker encountered a runtime error!", file=sys.stderr)  # noqa: T201
         # print("Exception type:", exctype, " value:", value)
-        print(f"The error log can be found in {debug_file}.")
-        print(
+        print(f"The error log can be found in {debug_file}.")  # noqa: T201
+        print(  # noqa: T201
             "Go to https://github.com/mctinker/Map-Tasker/issues \
             to report the problem.\n",
             file=sys.stderr,
         )
+        print("\a", end="", flush=True)  # noqa: T201
         # Redirect print to a debug log
         with Path.open(debug_file, "w") as log:
             # sys.stdout = log
@@ -208,7 +209,6 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
                 logger.info("Function Exit: write_out_the_file")
 
 
-
 # ##################################################################################
 # Cleanup memory and let user know there was no match found for Task/Profile
 # ##################################################################################
@@ -256,7 +256,7 @@ def output_grand_totals() -> None:
     PrimeItems.output_lines.add_line_to_output(
         1,
         (
-            f"<br>{total_number}Projects: {grand_total_projects}<br>{total_number}Profiles:  {grand_total_profiles}<br>{total_number}Tasks:"
+            f"<br><hr>Tasker Totals...<br>{total_number}Projects: {grand_total_projects}<br>{total_number}Profiles:  {grand_total_profiles}<br>{total_number}Tasks:"
             f" {grand_total_unnamed_tasks + grand_total_named_tasks} ({grand_total_unnamed_tasks} unnamed,"
             f" {grand_total_named_tasks} named)<br>{total_number}Scenes:"
             f" {grand_total_scenes}<br><br>"
@@ -285,7 +285,7 @@ def initialize_everything() -> dict:
 
     # Set up to catch all crashes gracefully
     if sys.excepthook == sys.excepthook:
-        global crash_debug
+        global crash_debug  # noqa: PLW0603
         if PrimeItems.program_arguments["debug"]:
             crash_debug = True
         sys.excepthook = on_crash
@@ -358,15 +358,15 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
         webbrowser.open(f"file://{my_output_dir}{my_file_name}", new=2)
     except webbrowser.Error:
         error_handler("Error: Failed to open output in browser: your browser is not supported.", 1)
-    print("")
+    print("")  # noqa: T201
 
     # If doing the outline, let 'em know about the map file.
     map_text = (
         "The Configuration Map was saved as MapTasker_Map.txt.  " if PrimeItems.program_arguments["outline"] else ""
     )
 
-    print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}Program end.")
-    print("")
+    print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}Program end.")  # noqa: T201
+    print("")  # noqa: T201
 
 
 # ##################################################################################
@@ -396,7 +396,7 @@ def process_outline() -> None:
 
     # Display the map in the first available text editor
     with contextlib.suppress(FileNotFoundError):
-        run(["open", "MapTasker_map.txt"], check=False)
+        run(["open", "MapTasker_map.txt"], check=False)  # noqa: S607, S603
 
 
 # ##################################################################################

@@ -11,6 +11,8 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+from __future__ import annotations
+
 import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.actione as action_evaluate
@@ -19,10 +21,10 @@ from maptasker.src.error import error_handler
 from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.kidapp import get_kid_app
-from maptasker.src.proclist import process_list
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.proclist import process_list
 from maptasker.src.shelsort import shell_sort
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine, logger
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME, DISPLAY_DETAIL_LEVEL_all_tasks, FormatLine, logger
 from maptasker.src.xmldata import tag_in_type
 
 blank = "&nbsp;"
@@ -255,10 +257,9 @@ def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
                     # Is this Task in this specific Scene (child)?
                     if tag_in_type(subchild.tag, False) and the_task_id == subchild.text:
                         return True
-                    elif child.tag == "Str":  # Passed any click Task
+                    if child.tag == "Str":  # Passed any click Task
                         break
-                    else:
-                        continue
+
     return False
 
 
@@ -356,7 +357,18 @@ def get_image(image, title, key):
 # ##################################################################################
 # If Task has an icon, get and format it in the Task output line.
 # ##################################################################################
-def get_icon_info(the_task):
+def get_icon_info(the_task: defusedxml.ElementTree) -> str:
+    """
+    Gets icon information from the task XML.
+    Args:
+        the_task: defusedxml.ElementTree: The task XML tree
+    Returns:
+        str: Formatted icon information text wrapped in brackets
+    - Finds the <Img> element from the task
+    - Extracts the icon name, package and class from the <Img> attributes
+    - Concatenates them together with a space separator and strips trailing spaces
+    - Returns the concatenated text wrapped in [Icon Info()] brackets
+    """
     image = the_task.find("Img")
     if image is None:
         return ""
@@ -433,7 +445,7 @@ def output_task_list(
             do_extra (bool): True to output extra info."""
     for count, task_item in enumerate(list_of_tasks):
         # Doing extra details?
-        if do_extra and PrimeItems.program_arguments["display_detail_level"] > 2:
+        if do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
             # Get the extra details for this Task
             (
                 kid_app_info,

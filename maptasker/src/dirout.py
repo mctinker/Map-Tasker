@@ -513,5 +513,3 @@ def output_directory() -> None:
 
     # Add final rule and break
     PrimeItems.output_lines.add_line_to_output(5, "<hr><br><br>\n", FormatLine.dont_format_line)
-
-    return

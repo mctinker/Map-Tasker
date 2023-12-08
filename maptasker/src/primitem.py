@@ -99,7 +99,19 @@ class PrimeItems:
 # Reset all values
 # ##################################################################################
 class PrimeItemsReset:
-    def __init__(self):
+    def __init__(self) -> None:  # noqa: ANN101
+        """
+        Initialize the PrimeItems class
+        Args:
+            self: The instance of the class
+        Returns:
+            None
+        Initializes all attributes of the PrimeItems class with empty values or dictionaries:
+            - Sets found_named_items flags to False
+            - Initializes grand_totals and directory_items dictionaries
+            - Initializes tasker_root_elements dictionary
+            - Sets other attributes like xml_tree, program_arguments etc to empty values
+        """
         PrimeItems.found_named_items = {
             "single_project_found": False,
             "single_profile_found": False,

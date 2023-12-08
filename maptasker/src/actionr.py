@@ -46,7 +46,7 @@ if TYPE_CHECKING:
 # Given a list of positional items, return a string in the correct order based
 # on position
 # ##################################################################################
-def get_results_in_arg_order(evaluated_results:dict) -> str:
+def get_results_in_arg_order(evaluated_results: dict) -> str:
     """Given a list of positional items, return a string in the correct order based.
 
     Returns results in the order of arguments.

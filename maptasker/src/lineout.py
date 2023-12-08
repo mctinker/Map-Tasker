@@ -31,23 +31,33 @@ So in summary, LineOut handles generating and formatting each line of output wit
 styling and structure based on the type of element being displayed. The output lines
 are accumulated and ultimately used to generate the final HTML output file.
 """
+from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import format_html
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine, debug_out, logger
 from maptasker.src.xmldata import remove_html_tags
-from maptasker.src.dirout import add_directory_item
 
 
 # ##################################################################################
 # Class definition for our output lines
 # ##################################################################################
 class LineOut:
-    def __init__(self):
+    """Class definition for our output lines"""
+
+    def __init__(self) -> None:  # noqa: ANN101
+        """
+        Initialize an object
+        Args:
+            self: The object being initialized
+        Returns:
+            None: Nothing is returned
+        - Initialize an empty list to store output lines
+        - The list will be used to store lines of text as the object is used"""
         self.output_lines = []
 
     def refresh_our_output(
-        self,
+        self,  # noqa: ANN101
         include_the_profile: bool,
         project_name: str,
         profile_name: str,
@@ -80,6 +90,14 @@ class LineOut:
             "scenes": 0,
         }
 
+        PrimeItems.grand_totals = {
+            "projects": 0,
+            "profiles": 0,
+            "unnamed_tasks": 0,
+            "named_tasks": 0,
+            "scenes": 0,
+        }
+
         # Display th starting information in beginning of output
         output_the_front_matter()
 
@@ -105,7 +123,6 @@ class LineOut:
             )
             # Start Project list
             self.add_line_to_output(1, "", FormatLine.dont_format_line)
-        return
 
     # ##################################################################################
     # Generate an updated output line with HTML style details
@@ -126,12 +143,10 @@ class LineOut:
 
         line_with_style = ""
         if style_details["is_list"]:
-            line_with_style = (
-                f'<li "<span class="{style_details["color"]}">' f'{style_details["element"]}</span></li>\n'
-            )
+            line_with_style = f'<li "<span class="{style_details["color"]}">{style_details["element"]}</span></li>\n'
 
         elif style_details["is_taskernet"]:
-            line_with_style = f'<p class="{style_details["color"]}' f'{style_details["element"]}</p>\n'
+            line_with_style = f'<p class="{style_details["color"]}{style_details["element"]}</p>\n'
             line_with_style = line_with_style.replace("<span></span>", "")
 
         return line_with_style
@@ -140,7 +155,7 @@ class LineOut:
     # Given a text string to output, format it based on it's contents:
     #   Project/Profile/Task/Actrion/Scene
     # ##################################################################################
-    def format_line_list_item(self, element: str) -> str:
+    def format_line_list_item(self, element: str) -> str:  # noqa: ANN101
         """
         Generate the output list (<li>) string based on the input XML <code> passed in
 
@@ -152,28 +167,28 @@ class LineOut:
         if "Project:" in element or "Project has no Profiles" in element:
             return self.handle_project(element)
 
-        elif "Profile:" in element:
+        if "Profile:" in element:
             return self.handle_profile(element)
 
-        elif element.startswith("Task:") or "&#45;&#45;Task:" in element:
+        if element.startswith("Task:") or "&#45;&#45;Task:" in element:
             return self.handle_task(element, font)
 
-        elif element.startswith("Scene:"):
+        if element.startswith("Scene:"):
             return self.handle_scene(element, font)
 
-        elif "Action:" in element:
+        if "Action:" in element:
             return self.handle_action(element)
 
-        elif "TaskerNet " in element:
+        if "TaskerNet " in element:
             return self.handle_taskernet(element)
 
-        else:  # Must be additional item
-            return self.handle_additional(element)
+        # Must be additional item
+        return self.handle_additional(element)
 
     # ##################################################################################
     # Insert the hyperlink target if doing a the directory
     # ##################################################################################
-    def handle_project(self, element: str):
+    def handle_project(self, element: str) -> str:  # noqa: ANN101
         """
         Insert the hyperlink target if doing a the directory
                 Args:
@@ -185,13 +200,21 @@ class LineOut:
         """
         return self.add_directory_link("<li ", element, "</li>\n")
 
-    def handle_profile(self, element):
+    def handle_profile(self, element: str) -> None:  # noqa: ANN101
+        """Handles profile element by adding directory link
+        Args:
+            element: Profile element to handle
+        Returns:
+            str: Formatted profile element with directory link
+        - Adds opening and closing tags for list item
+        - Calls method to add directory link
+        - Returns formatted string"""
         return self.add_directory_link("<br><li ", element, "</span></li>\n")
 
     # ##################################################################################
     #  Adds a directory link to the provided string.
     # ##################################################################################
-    def add_directory_link(self, arg1, element, arg3):
+    def add_directory_link(self, arg1: str, element: str, arg3: str) -> str:  # noqa: ANN101
         """
         Adds a directory link to the provided string.
         Args:
@@ -214,7 +237,18 @@ class LineOut:
             directory = f"<a id={directory_item}></a>\n"
         return f"{directory}{arg1}{element}{arg3}"
 
-    def handle_task(self, element, font):
+    def handle_task(self, element: str, font: str) -> str:  # noqa: ANN101
+        """Handle styling for a task element
+        Args:
+            element: Element name in one line
+            font: Font name in one line
+        Returns:
+            style_details: Styled element details in one line
+        Processing Logic:
+            - Check if element name contains UNKNOWN_TASK_NAME
+            - Set color to "unknown_task_color" if true else "task_color"
+            - Add font and element details to style
+            - Return styled element from add_style method"""
         style_details = {
             "is_list": True,
             "font": font,

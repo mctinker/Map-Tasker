@@ -135,4 +135,3 @@ def format_html(
 
     # No text after...just return it.
     return text_after
-

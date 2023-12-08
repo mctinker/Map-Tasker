@@ -69,7 +69,6 @@ def process_missing_tasks_and_profiles(
             )
         # End list
         PrimeItems.output_lines.add_line_to_output(3, "<br>", FormatLine.dont_format_line)
-    return
 
 
 # ##################################################################################
@@ -231,4 +230,3 @@ def process_tasks_not_called_by_profile(
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)  # Close Task list
 
     PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)  # Close out the list
-    return

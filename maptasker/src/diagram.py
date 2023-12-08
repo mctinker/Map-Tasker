@@ -19,6 +19,9 @@ diagram and graphviz.
 
 import contextlib
 from datetime import datetime
+from pathlib import Path
+
+import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.diagutil import (
     add_output_line,
@@ -103,7 +106,7 @@ def output_the_task(
             if task["call_tasks"]:
                 call_tasks = f" [Calls {line_right_arrow} {', '.join(task['call_tasks'])}]"
 
-        # We are still accumating outlines for Profiles.
+        # We are still accumulating outlines for Profiles.
         # Build lines for the Profile's Tasks as well.
         line = f'{blank*position_for_anchor}└─ {task["name"]}{task_type}{called_by_tasks}{call_tasks}'
         last_upward_bar.append(position_for_anchor)
@@ -129,13 +132,13 @@ def output_the_task(
 # Process all Tasks in the Profile
 # ##################################################################################
 def print_all_tasks(
-    project_name,
-    tasks,
-    position_for_anchor,
-    output_task_lines,
-    print_tasks,
-    found_tasks,
-):
+    project_name: str,
+    tasks: defusedxml.ElementTree,
+    position_for_anchor: int,
+    output_task_lines: list,
+    print_tasks: bool,
+    found_tasks: list,
+) -> list:
     """
     Print all tasks in a profile
 
@@ -170,10 +173,7 @@ def print_all_tasks(
             task["name"] = "Anonymous"
 
         # Determine if this is an entry/exit combo.
-        if tasks_length == 2:
-            task_type = " (entry)" if num == 0 else " (exit)"
-        else:
-            task_type = ""
+        task_type = (" (entry)" if num == 0 else " (exit)") if tasks_length == 2 else ""
 
         # See if this Task is called by anyone else.  If so, add it to our list
         called_by_tasks = ""
@@ -256,12 +256,12 @@ def print_all_scenes(scenes):
 # Process Tasks not in any Profile
 # ##################################################################################
 def do_tasks_with_no_profile(
-    project_name,
-    output_profile_lines,
-    output_task_lines,
-    found_tasks,
-    profile_counter,
-):
+    project_name: str,
+    output_profile_lines: list,
+    output_task_lines: list,
+    found_tasks: list,
+    profile_counter: int,
+) -> tuple:
     """
     Process Tasks not in any Profile
     Args:
@@ -279,19 +279,22 @@ def do_tasks_with_no_profile(
     """
 
     project_root = PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"]
+    tasks_not_in_profile = []
 
     # Get all task IDs for this Project.
-    task_ids = get_ids(False, project_root, project_name, [])
+    project_task_ids = get_ids(False, project_root, project_name, [])
 
-    # Go through each Task ID and see if it is in fdound_tasks.
-    if tasks_not_in_profile := [
-        PrimeItems.tasker_root_elements["all_tasks"][id]
-        for id in task_ids
-        if PrimeItems.tasker_root_elements["all_tasks"][id]["name"] not in found_tasks
-    ]:
-        profile = "No Profile"
-        print_tasks = False
+    # Go through each Task ID and see if it is in found_tasks.\
+    for task in project_task_ids:
+        if PrimeItems.tasker_root_elements["all_tasks"][task]["name"] not in found_tasks:
+            profile = "No Profile"
+            print_tasks = False
+            the_task = PrimeItems.tasker_root_elements["all_tasks"][task]
+            if the_task not in tasks_not_in_profile:
+                tasks_not_in_profile.append(the_task)
 
+    # Ok, do we have any Tasks that are not in any Profile?  If so, output them.
+    if tasks_not_in_profile:
         # Build profile box
         (
             output_profile_lines,
@@ -309,7 +312,7 @@ def do_tasks_with_no_profile(
 
         # Print tasks not in any profile
         print_tasks = False
-        found_tasks = print_all_tasks(
+        _ = print_all_tasks(
             project_name,
             tasks_not_in_profile,
             position_for_anchor,
@@ -362,15 +365,15 @@ def fill_line_with_arrows(line, arrow, line_length, call_task_position):
 # Add up and down arrows to the connection points.
 # ##################################################################################
 def add_down_and_up_arrows(
-    caller_line_index,
-    caller_line_num,
-    caller_task_position,
-    called_line_index,
-    called_line_num,
-    called_task_position,
-    up_down_location,
-    output_lines,
-):
+    caller_line_index: int,
+    caller_line_num: int,
+    caller_task_position: int,
+    called_line_index: int,
+    called_line_num: int,
+    called_task_position: int,
+    up_down_location: int,
+    output_lines: list,
+) -> None:
     """
     Adds down and up arrows between caller and called tasks.
     Args:
@@ -409,7 +412,10 @@ def add_down_and_up_arrows(
     # Add left arrows to called Task line.
     line_to_modify = called_line_num - (called_line_index)
     output_lines[line_to_modify] = fill_line_with_arrows(
-        output_lines[line_to_modify], left_arrow, up_down_location, caller_task_position
+        output_lines[line_to_modify],
+        left_arrow,
+        up_down_location,
+        caller_task_position,
     )
     # Add an up arrow.
     output_lines[line_to_modify] = (
@@ -508,7 +514,7 @@ def draw_arrows_to_called_task(
 # ##################################################################################
 # Find and flag in the output those called Tasks that don't exist.
 # ##################################################################################
-def mark_tasks_not_found(output_lines):
+def mark_tasks_not_found(output_lines: list) -> None:
     """
     Mark tasks not found in output lines
     Args:
@@ -528,8 +534,8 @@ def mark_tasks_not_found(output_lines):
             # Go through list of calls to Tasks from this caller Task.
             for called_task_name in called_task_names:
                 # Get the called Task name.
-                called_task_name = called_task_name.lstrip()
-                called_task_name = called_task_name.split("]")
+                called_task_name = called_task_name.lstrip()  # noqa: PLW2901
+                called_task_name = called_task_name.split("]")  # noqa: PLW2901
                 # Don't bother with variables.
                 if called_task_name[0][0] == "%":
                     continue
@@ -556,13 +562,11 @@ def mark_tasks_not_found(output_lines):
                         + output_lines[caller_line_num][end_of_called_task_position:]
                     )
 
-    return
-
 
 # ##################################################################################
 # If Task line has a "Calls", fill it with arrows.
 # ##################################################################################
-def handle_calls(output_lines):
+def handle_calls(output_lines: list) -> None:
     """
     Handle calls in output lines from parsing
     Args:
@@ -595,9 +599,7 @@ def handle_calls(output_lines):
             continue
 
     # Get rid of hanging "│" characters
-    output_lines = delete_hanging_bars(output_lines)
-
-    return output_lines
+    return delete_hanging_bars(output_lines)
 
 
 # ##################################################################################
@@ -658,7 +660,7 @@ def build_profile_box(
 # ##################################################################################
 # Process all Profiles and their Tasks for the given Project
 # ##################################################################################
-def print_profiles_and_tasks(project_name, profiles):
+def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
     """
     Prints profiles and tasks from a project.
 
@@ -682,7 +684,7 @@ def print_profiles_and_tasks(project_name, profiles):
     output_task_lines = []
     found_tasks = []
 
-    # ow output each Profile and it's Tasks.
+    # Now output each Profile and it's Tasks.
     for profile, tasks in profiles.items():
         if profile != "Scenes":
             (
@@ -740,7 +742,7 @@ def print_profiles_and_tasks(project_name, profiles):
 # ##################################################################################
 # Process all Projects
 # ##################################################################################
-def build_network_map(data):
+def build_network_map(data: dict) -> None:
     """
     Builds a network map from project and profile data
     Args:
@@ -813,7 +815,7 @@ def network_map(network: dict) -> None:
 
     # Print it all out.
     # Redirect print to a file
-    with open("MapTasker_Map.txt", "w") as mapfile:
+    with Path.open("MapTasker_Map.txt", "w") as mapfile:
         PrimeItems.printfile = mapfile
         for line in PrimeItems.netmap_output:
             print(line, file=mapfile)

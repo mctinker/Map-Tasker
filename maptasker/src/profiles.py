@@ -13,8 +13,7 @@
 # #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
 
-import maptasker.src.condition as condition
-import maptasker.src.tasks as tasks
+from maptasker.src import condition, tasks
 from maptasker.src.dirout import add_directory_item
 
 # from maptasker.src.kidapp import get_kid_app
@@ -24,7 +23,6 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
 from maptasker.src.share import share
 from maptasker.src.sysconst import NO_PROFILE, FormatLine
-from maptasker.src.xmldata import remove_html_tags
 
 
 # ##################################################################################
@@ -70,7 +68,10 @@ def get_profile_tasks(
             if task_id not in found_tasks_list:
                 PrimeItems.task_count_for_profile = PrimeItems.task_count_for_profile + 1
             the_task_element, the_task_name = tasks.get_task_name(
-                task_id, found_tasks_list, task_output_line, task_type
+                task_id,
+                found_tasks_list,
+                task_output_line,
+                task_type,
             )
             list_of_tasks.append({"xml": the_task_element, "name": the_task_name})
             # list_of_tasks.append([the_task_element, the_task_name])
