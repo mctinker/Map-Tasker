@@ -2,24 +2,35 @@
 
 All notable changes to this project will be documented in this file!
 
-## [2.5.2] 2023-Dec-03
+## [2.5.3] 2023-Dec-08
 
 ### Changed
 
-- Task action "continue limit" increased from 50 to 75 lines before it is cut off.
-- Slight performance optimizations.
-- Renamed depricate.py to deprecate.py
+- Anonymous Profiles in the outline now have a unique number associated with each.
 
 ### Fixed
 
-- Cleaned up this file for legibility.
-- The program abends if the GUI window is closed.
+- The total counts and end of the output are wrong if doing a single Profile or Task.
+- The outline displayed Tasks under "No Profile" which were, in fact, under a profile.
+- In the GUI, selecting everything did not set the detail display level to 4.
+- The GUI did not properly position the "Fetch Backup from Android Device" input field.
+- The GUI was not picking up the correct default font in the font option pulldown.
 
 ### Added
 
-- The task action code was added to recognize the Termux plugin.
+- The GUI messages for getting the backup file from the Android device are clearer.
+- Add a header under grand totals at the end of the output.
 
 ## Older History Log
+
+## [2.5.2] 2023-Dec-04
+
+- Changed: Task action "continue limit" increased from 50 to 75 lines before it is cut off.
+- Changed: Slight performance optimizations.
+- Changed: Renamed depricate.py to deprecate.py
+- Fix: Cleaned up this file for legibility.
+- Fix: The program abends if the GUI window is closed.
+- Added: The task action code was added to recognize the Termux plugin.
 
 ## [2.5.1] ## 2023-Nov-21
 
@@ -51,19 +62,19 @@ All notable changes to this project will be documented in this file!
 
 ## [2.4.6] ## 2023-11-02
 
-- Changed: GUI prompt to fetch backup from Android device now prompts with default value for easy entry/modification.
-- Added: Caller-to-Called Tasks now individually identified in Configuration diagram/map.
+- Changed: GUI prompt to fetch backup from Android device now prompts with the default value for easy entry/modification.
+- Added: Caller-to-Called Tasks are now individually identified in the Configuration diagram/map.
 - Fixed: Configuration diagram/map "No Profiles" box includes Tasks that do have Profiles.
 
 ## [2.4.5] ## 2023-10-29
 
 - Added: Code optimizations.
 - Added: Missing Task plugin action AutoWear Dialog.
-- Added: "Called Tasks" and "Called By Tasks" added to configuration map (file MapTasker_Map.txt).
+- Added: "Called Tasks" and "Called By Tasks" added to the configuration map (file MapTasker_Map.txt).
 - Fixed: For Kid apps, remove the colon from "Kid app:" since it makes it look like the app is missing.
 - Fixed: Set a timeout of 10 seconds for obtaining backup from the Android device.
 - Fixed: Various plugin Task actions were not getting the correct plugin name although values were correct.
-- Fixed: Added missing dependency on packaging by customtkinter.
+- Fixed: Added missing dependency on packaging by 'Customtkinter'.
 
 ## [2.4.3] ## 2023-10-13
 
@@ -109,8 +120,8 @@ All notable changes to this project will be documented in this file!
 
 ## [2.3.0 -2.3.5] ## 2023-09-06
 
-      - Added: Some pazazz for user experience to '-version' runtime option.
-      - Added: New runtime option '-outline' to display Configuration Outline at the end of output.
+      - Added: Some pazazz for user experience to the '-version' runtime option.
+      - Added: New runtime option '-outline' to display Configuration Outline at the end of the output.
       - Added: New GUI Option: Just Display Everything- no need to click each display option checkbox.
       - Added: GUI text/info box font now reflects the font selected in the GUI.
       - Added: Added 'Display Help' button to GUI. Clicking displays help text.
@@ -121,12 +132,12 @@ All notable changes to this project will be documented in this file!
       - Fixed: Outputing "MapTasker Version" twice in the heading.
       - Fixed: Specifying a specific Project/Profile/Task in GUI causes an error in the saved settings file.
       - Fixed: Program error when selecting color within GUI.
-      - Fixed: Fetching backup.xml from the Android device could incorrectly fail with the "Invalid url!" error message.
+      - Fixed: Fetching backup.xml from the Android device could incorrectly fail with the 'Invalid URL!' error message.
       - Fixed: Runtime option '-everything' was not including Tasker's preferences
 
 ## [2.2.1] ## 2023-08-30
 
-      - Fixed: Condition "matches regex" and "doesn't match regex" are incorrectly reversed.
+      - Fixed: The condition "matches regex" and "doesn't match regex" are incorrectly reversed.
       - Fixed: If conditions missing compound conditions like AND and OR.
       - Fixed: Profile compound condition format with "and" not consistent with If component "and" statements.
       - Fixed: Enlarged the images in the README file.
@@ -134,10 +145,10 @@ All notable changes to this project will be documented in this file!
 
 ## [2.2.0] ## 2023-07-27
 
-      - Added: New '-font' runtime argument to specify a specific (monospace) font to use for the map display. Default is 'Courier'.
+      - Added: New '-font' runtime argument to specify a specific (monospace) font to use for the map display. The default is 'Courier'.
       - Added: New '-runtime' runtime argument to display all of the runtime arguments and their settings at the beginning of the output.
       - Added: GUI updated to include help information about the Debug tab.
-      - Changed: Updated GUI for the 'Font To Use' selection option and 'Display Runtime Settings' checkbox (under 'Debug' tab).
+      - Changed: Updated GUI for the 'Font To Use' selection option and 'Display Runtime Settings' checkbox (under the 'Debug' tab).
       - Changed: Optimized code.
       - Changed: Updated README file with new runtime options.
       - Changed: Runtime argument to display Tasker Preferences option -p remove.  Now only -preferences
@@ -150,7 +161,7 @@ All notable changes to this project will be documented in this file!
 
 ## [2.1.2] ## 2023-07-18
 
-      - Added: New '-indent' runtime argument to control the amount of indentation of if/then/else Task actions. Default is 4 spaces.
+      - Added: New '-indent' runtime argument to control the amount of indentation of if/then/else Task actions. The default is 4 spaces.
       - Fixed: Properties not showing the variable name.
       - Fixed: Project Properties and Taskernet information was not displaying for a specific Project.
       - Fixed: Don't display Task Properties if displaying Tasks that are not in any Profile.
@@ -195,23 +206,31 @@ All notable changes to this project will be documented in this file!
       - Changed: Display Grand Totals regardless of detail display level
       - Changed: If debug, redirect program abends (stack trace/error) to a debug log file
       - Fixed: Exit from GUI displays "Error" in printout when it is not an error.
-      - Fixed: Under certain circumstances, fetching the backup xml file from the Android device not working
+      - Fixed: Under certain circumstances, fetching the backup XML file from the Android device not working
       - Fixed: Spurious indentation problems in output for Projects and Profiles
       - Fixed: Gracefully handle condition when Action/State/Event code not found
-      - Fixed: Heading with Tasker and program versions was missing
+      - Fixed: The heading with Tasker and program versions was missing.
+
 ## [2.0.9] ## 2023-07-12
+
       -  Fixed: Rewrite directory code to eliminate problems with duplicate hyperlinks
       -  Fixed: "▶︎ Detail" still appearing if both -twisty and -directory options selected
       -  Fixed: When listing Tasks not called by any Profile, add a blank line first for legibility
+
 ## [2.0.8] ## 2023-07-11
+
       -  Fixed: Using both options "-directory" and "-twisty" together causes Task twisties to incorrectly appear as "▶︎ Detail"
+
 ## [2.0.7] ## 2023-07-09
+
       -  Added: New optional directory, via new runtime option "-directory"
       -  Added: a "Go to top" hotlink has been added to each Project line
       -  Fixed: Heading was displaying properly
       -  Changed: If the program crashes, provide a more graceful error message
       -  Changed: Removed the word "condition" from conditional statements...it is pretty obvious without stating it.
+
 ## [2.0.6] ## 2023-06-27
+
       -  Fixed: GUI use of the "Cancel" button is now properly recognized.
       -  Fixed: Fix Project/Scene indentation issue when using twisty
       -  Fixed: Removed extra blank link between twisties
@@ -219,22 +238,28 @@ All notable changes to this project will be documented in this file!
       -  Fixed: Summary count of unnamed Tasks included those under Scenes
       -  Changed: Total number of unnamed Tasks at the end (in red) removed since invalid
       -  Changed: Cleaned up the output HTML for slightly better reading/debugging
+
 ## [2.0.5] ## 2023-06-19
+
       - Fixed: Cancel button in GUI now recognized
       - Fixed: Project/Profile/Task name selection in GUI caused program error.
       - Fixed: GUI prompts twice for file if displaying by name
+
 ## [2.0.4] ## 2023-06-19
-      - Added: summary totals of Profiles/Tasks under each Project if display detail level is 3
+
+      - Added: summary totals of Profiles/Tasks under each Project if the display detail level is 3
       - Added: Profile "State" of Matter Light
       - Fixed: Event Sleeping missing arguments
       - Fixed: Don't allow Run from GUI if debug on and backup.xml file not found
-      - Fixed: Help information regarding display of a single Task and force the detail level to 3 (not 2)
+      - Fixed: Help information regarding the display of a single Task and force the detail level to 3 (not 2)
 
 ## [2.0.3] ## 2023-06-13
-      - Added: Task additional plug-ins mapped: AutoSpotify, AutoLaunch, AutoInput Actions V2, AutoBubbles, AutoContacts
+
+      - Added: Task additio
+      nal plug-ins mapped: AutoSpotify, AutoLaunch, AutoInput Actions V2, AutoBubbles, AutoContacts
       - Added: Add missing Scene elements
       - Added: Display Task's collision setting if detail = 3
-      - Added: Display backed-up device's screen resolution in heading
+      - Added: Display the backed-up device's screen resolution in the heading
       - Added: Support updated Profile HTTP Request
       - Added: new Task actions HTTP Response (deprecates HTTP GET/PUT/HEAD), Matter Light and Get Network Info (up to Tasker.6.2.5-beta)
       - Added: New Option "-backup" to fetch the Tasker backup file directly from the Android device.  Also available via the GUI via the new option: Get Backup from Device
@@ -248,35 +273,43 @@ All notable changes to this project will be documented in this file!
       - Fixed: miscellaneous formatting and indentation errors
       - Changed: Restructured code for better performance
       - Changed: default display detail level is now 3 (highest level of detail)
+
 ## [1.3.5] ## 2023-05-15
+
       - Added: GUI "Cancel" button does not work.  Comment in the prompt notifies the user of this problem.
       - Added: If Profile has no name, then automatically display its condition(s)
       - Added: GUI single name for Project/Profile/Task now validates name entered before running.
       - Fixed: Program error in GUI when restoring settings.
       - Fixed: GUI restoring the settings does not display all settings restored in the message box.
       - Fixed: When a Task Action "continued" limit is reached, it was using the next Task's number
-      - Fixed: Correct remaining foobar'ed output html
+      - Fixed: Correct remaining garbage output HTML formatting
       - Fixed: Displaying Task action details for "detail" levels other than 3.
+
 ## [1.3.4] ## 2023-04-28
+
       - Added: GUI Rerun option to run multiple times until Exit (remains in GUI)
-      - Fixed: If select "debug" mode in GUI, make sure backup.xml is in current dir
+      - Fixed: If select "debug" mode in GUI, make sure backup.xml is in the current dir
       - Fixed: Error if end-of-file while migrating old settings file.  Now prints the error message that old settings are lost.
       - Fixed: Task Actions with "If x ~ <some trigger>" is not displaying the trigger due to  < >
       - Fixed: Action "Force Rotation" caused an indentation of all following Actions for the given Task
-      - Changed: Moved Task's Priority into same output line as Task, unless it has a Kid app
+      - Changed: Moved Task's Priority into the same output line as Task, unless it has a Kid app
       - Changed: Moved all error handling to a common routine
+
 ## [1.3.3] ## 2023-04-17
-      - Added: Additional error checking in GUI
-      - Fixed: Settings save/restore: replace pickle with json for security purposes.  Old settings file will be converted.
-      - Fixed: Changed from built-in xml.tree to defusedxml for improved security
+
+      - Added: Additional error checking in the GUI
+      - Fixed: Settings save/restore: replace pickle with JSON for security purposes.  The old settings file will be converted.
+      - Fixed: Changed from the built-in XML tree to 'Defusxml' for improved security
       - Fixed: Changed exception handling to proper error types
       - Fixed: Corrected output formatting errors with improper fonts and character attributes
       - Changed: Code optimization for HTML colors and font
+
 ## [1.3.2] ## 2023-04-06: Maintenance Only
-      - Added: Include Map-Tasker version in output title
+
+      - Added: Include the Map-Tasker version in the output title
       - Changed: default color for Profile conditions
       - Changed: eliminated colors in config.py...redundant
-      - Fixed: Bypass extra Task information if "Task not called by Profile" section
+      - Fixed: Bypass extra Task information in the "Task not called by Profile" section
       - Fixed: cleaned up improperly formatted output due to spurious HTML tag
       - Fixed: incorrectly formatted HTML
       - Fixed: Improved Taskernet description formatting
