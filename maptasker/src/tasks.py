@@ -184,10 +184,7 @@ def get_task_name(
             tasks_that_have_been_found.append(the_task_id)
         else:
             duplicate_task = True
-        if PrimeItems.program_arguments["debug"]:
-            extra = f"&nbsp;&nbsp;Task ID: {the_task_id}"
-        else:
-            extra = ""
+        extra = f"&nbsp;&nbsp;Task ID: {the_task_id}" if PrimeItems.program_arguments["debug"] else ""
 
         # Determine if this is an "Entry" or "Exit" Task
         task_output_lines, task_name = extry_or_exit_task(

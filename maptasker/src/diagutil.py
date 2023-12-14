@@ -1,3 +1,4 @@
+"""Utilities used by diagram.py."""
 #! /usr/bin/env python3
 # #################################################################################### #
 #                                                                                      #
@@ -11,13 +12,15 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+from __future__ import annotations
+
 import re
 import string
-import tkinter
-import tkinter.font
-from maptasker.src.primitem import PrimeItems
+import tkinter as tk
 from string import printable
 from typing import Set
+
+from maptasker.src.primitem import PrimeItems
 
 bar = "│"
 blank = " "
@@ -48,7 +51,17 @@ printable_chars = printable_chars.union(extra_cars)
 # ##################################################################################
 # Add line to our output queue.
 # ##################################################################################
-def add_output_line(line):
+def add_output_line(line: str) -> None:
+    """
+    Adds a line to the output of the netmap report
+    Args:
+        line (str): The line to add to the output
+    Returns:
+        None: Does not return anything
+    - Appends the given line to the netmap_output list
+    - This list contains all the lines that will be written to the final output file
+    - By adding lines here they will be included in the generated netmap report
+    - The lines are collected and then later joined with newlines and written to the file"""
     PrimeItems.netmap_output.append(line)
 
 
@@ -77,7 +90,7 @@ def include_heading(header: str, output_lines: list) -> None:
 # ##################################################################################
 # Given a list of 3 text elements, print them.
 # ##################################################################################
-def print_3_lines(lines):
+def print_3_lines(lines: list) -> None:
     """
     Prints 3 lines from a list of items
     Args:
@@ -99,7 +112,16 @@ def print_3_lines(lines):
 # ##################################################################################
 # Given a list of text strings, print all of them.
 # ##################################################################################
-def print_all(lines):
+def print_all(lines: list) -> None:
+    """
+    Print all lines in a list
+    Args:
+        lines: List of lines to print
+    Returns:
+        None: No return value
+    - Iterate through each line in the lines list
+    - Call add_output_line function to print each line
+    - No return value as function has side effect of printing lines"""
     for line in lines:
         add_output_line(line)
 
@@ -107,7 +129,7 @@ def print_all(lines):
 # ##################################################################################
 # Given a text string and title, enclose them in a box and print the box.
 # ##################################################################################
-def print_box(name, title, indent, counter):
+def print_box(name: str, title: str, indent: int) -> None:
     """
     Given a text string and title, enclose them in a box and print the box.
 
@@ -138,7 +160,7 @@ def print_box(name, title, indent, counter):
 # ##################################################################################
 # Get the dimensions of a text string using tkinter to calculate the width needed.
 # ##################################################################################
-def width_and_height_calculator_in_pixel(txt, fontname, fontsize):
+def width_and_height_calculator_in_pixel(txt: str, fontname: str, fontsize: int) -> list:
     """
     Calculates the width and height of the given text in pixels.
 
@@ -155,14 +177,14 @@ def width_and_height_calculator_in_pixel(txt, fontname, fontsize):
         [30, 16]
     """
 
-    font = tkinter.font.Font(family=fontname, size=fontsize)
+    font = tk.font.Font(family=fontname, size=fontsize)
     return [font.measure(txt), font.metrics("linespace")]
 
 
 # ##################################################################################
 # Wew have an icon in our name.  Remove any padding as necessary
 # ##################################################################################
-def fix_icon(name):
+def fix_icon(name: str) -> str:
     """
     Fixes icon characters in a name string.
     Args:
@@ -177,7 +199,7 @@ def fix_icon(name):
     # We have at least one character that is probably an icon.
     for char in name:
         if char.strip() and set(char).difference(printable):
-            _ = tkinter.Frame()  # Initialize Tkinter
+            _ = tk.Frame()  # Initialize Tkinter
             # We have the icon.
             char_dimension = width_and_height_calculator_in_pixel(char, "Courier New", 12)
             trailer = "" if char_dimension[0] > char_dimension[1] else blank
@@ -189,21 +211,8 @@ def fix_icon(name):
 # Remove a character from a string at a specific location and return the modified
 # string.
 # ##################################################################################
-def remove_char(string, index):
+def remove_char(string: str, index: int) -> str:
     """
-    Remove character from string at given index and return modified string
-
-    Args:
-        string (str): The input string
-        index (int): The index to remove the character at
-
-    Returns:
-        str: String with character removed at given index
-
-    - Check if the index is within the length of the string
-    - Slice the string from beginning to index and from index+1 to end
-    - Concatenate both slices to remove the character at index
-    - Return the modified string    """ """
     Remove character from string at given index and return modified string
 
     Args:
@@ -219,7 +228,7 @@ def remove_char(string, index):
 # ##################################################################################
 # Count the number of icons (non-alphanumeric chars) in the line of text
 # ##################################################################################
-def count_icons(text):
+def count_icons(text: str) -> int:
     """Returns the number of icons in the text string.
 
     Args:
@@ -275,7 +284,7 @@ def remove_icon(text: str) -> str:
 # ##################################################################################
 # Given a name, enclose it in a text box
 # ##################################################################################
-def build_box(name, counter, output_lines):
+def build_box(name: str, output_lines: list) -> tuple:
     """
     Builds a box around the given name.
     Args:
@@ -318,7 +327,7 @@ def build_box(name, counter, output_lines):
 # ##################################################################################
 # Trace backwards in the output, inserting a barb (|) through right arrows.
 # ##################################################################################
-def add_bar_above_lines(output_lines, line_to_modify, called_task_position):
+def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_position: int) -> list:
     """
     Adds a bar above the specified line in the output lines.
     Args:
@@ -354,7 +363,7 @@ def add_bar_above_lines(output_lines, line_to_modify, called_task_position):
 # ##################################################################################
 # Go through output and delete all occurances of hanging bars |
 # ##################################################################################
-def delete_hanging_bars(output_lines):
+def delete_hanging_bars(output_lines: list) -> list:
     """
     Go through output and delete all occurances of hanging bars |.
     Args:
@@ -394,7 +403,7 @@ def delete_hanging_bars(output_lines):
 # ##################################################################################
 # Return the index of a caller/called Task name in a specific output line.
 # ##################################################################################
-def get_index(line_num, output_lines, task_to_find, search_for):
+def get_index(line_num: int, output_lines: list, task_to_find: str, search_for: str) -> int:
     """
     Finds the index of a task in a list of tasks
     Args:
@@ -427,12 +436,12 @@ def get_index(line_num, output_lines, task_to_find, search_for):
 # position of the caller Task in the called Task line.
 # ##################################################################################
 def get_indices_of_line(
-    caller_task_name,
-    caller_line_num,
-    called_task_name,
-    called_line_num,
-    output_lines,
-):
+    caller_task_name: str,
+    caller_line_num: int,
+    called_task_name: str,
+    called_line_num: int,
+    output_lines: list,
+) -> tuple:
     """
     Get the index of the caller/called Task from all caller/called Tasks in line.
         Args:
@@ -483,15 +492,15 @@ def build_call_table(output_lines: list) -> list:
 # Complete Task details and save them in call_table
 # ##################################################################################
 def get_task_details_and_save(
-    output_lines,
-    call_table,
-    caller_task_name,
-    caller_line_num,
-    caller_task_position,
-    called_task_name,
-    called_line_num,
-    called_task_position,
-):
+    output_lines: list,
+    call_table: dict,
+    caller_task_name: str,
+    caller_line_num: int,
+    caller_task_position: int,
+    called_task_name: str,
+    called_line_num: int,
+    called_task_position: int,
+) -> dict:
     """
     Saves task call details and returns updated call table
     Args:
@@ -522,6 +531,9 @@ def get_task_details_and_save(
         fill_arrow = right_arrow
         start_line = caller_line_num
         line_count = called_line_num - caller_line_num
+        up_down_start = start_line + 1
+        line_range = line_count - 1
+        up_down_location = called_task_position
     else:
         # Going up.
         arrow = up_arrow
@@ -530,18 +542,21 @@ def get_task_details_and_save(
         fill_arrow = left_arrow
         start_line = called_line_num
         line_count = caller_line_num - called_line_num
+        up_down_start = start_line
+        line_range = line_count + 1
+        up_down_location = called_task_position
 
     # Find the outside boundary for the range of lines to traverse.
-    up_down_location = 0
-    for x in range(line_count + 1):
-        up_down_location = max(up_down_location, len(output_lines[start_line + x]))
-    up_down_location = up_down_location + 5
+    # up_down_location = 0
+    for x in range(line_range):
+        up_down_location = max(up_down_location, len(output_lines[up_down_start + x]))
+    up_down_location = up_down_location + 3
 
     # If this up_down value is already in our table, increment it until
     # it isn't.
     if call_table is not None:
         while up_down_location in call_table:
-            up_down_location += 1
+            up_down_location += 2
 
     # Clean up the names
     caller_task_name = caller_task_name.replace(" (entry)", "")
@@ -569,7 +584,7 @@ def get_task_details_and_save(
 # Go through all caller and called Tasks and build the call table based on the
 # input line passed in.
 # ##################################################################################
-def process_callers_and_called_tasks(output_lines, call_table, caller_line_num, line):
+def process_callers_and_called_tasks(output_lines: list, call_table: dict, caller_line_num: int, line: str) -> dict:
     """
     Processes caller and called tasks
     Args:
@@ -599,9 +614,9 @@ def process_callers_and_called_tasks(output_lines, call_table, caller_line_num, 
     # Go through list of calls to Tasks from this caller Task.
     for called_task_name in called_task_names:
         # Get the called Task name.
-        called_task_name = called_task_name.lstrip()
-        called_task_name = called_task_name.split("]")
-        called_task_name = called_task_name[0]
+        called_task_name = called_task_name.lstrip()  # noqa: PLW2901
+        called_task_name = called_task_name.split("]")  # noqa: PLW2901
+        called_task_name = called_task_name[0]  # noqa: PLW2901
 
         #  Find the "Called" Task line for the caller Task.
         search_name = f"└─ {called_task_name}"
@@ -611,12 +626,11 @@ def process_callers_and_called_tasks(output_lines, call_table, caller_line_num, 
         for called_line_num, check_line in enumerate(output_lines):
             if search_name in check_line:
                 found_called_task = True
+                # Find the position of the "Calls -->" task name on the called line
                 caller_task_position = output_lines[called_line_num].index(called_task_name) + (
                     len(called_task_name) // 2
                 )
-                called_task_position = output_lines[called_line_num].index(called_task_name) + (
-                    len(caller_task_name) // 2
-                )
+                # Find the position of the "Called by" task name on the caller by line
                 called_task_position = output_lines[caller_line_num].index(called_task_name) + (
                     len(called_task_name) // 2
                 )

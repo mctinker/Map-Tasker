@@ -1,3 +1,4 @@
+"""Prime items which are used throughout MapTasker (globals)."""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -44,52 +45,59 @@
 #  current_project = current Project being processed
 #
 #   return
+from __future__ import annotations
+
+from typing import ClassVar
+
+
 class PrimeItems:
+    """PrimeItems class contains global variables used throughout MapTasker"""
+
     xml_tree = None
     xml_root = None
-    program_arguments = {}
-    colors_to_use = {}
+    program_arguments: ClassVar = {}
+    colors_to_use: ClassVar = {}
     output_lines = None
     file_to_get = ""
-    task_count_for_Profile = 0
+    task_count_for_profile = 0
     unordered_list_count = 0
     displaying_named_tasks_not_in_profile = False
-    mono_fonts = {}
-    found_named_items = {
+    mono_fonts: ClassVar = {}
+    found_named_items: ClassVar = {
         "single_project_found": False,
         "single_profile_found": False,
         "single_task_found": False,
     }
-    grand_totals = {
+    grand_totals: ClassVar = {
         "projects": 0,
         "profiles": 0,
         "unnamed_tasks": 0,
         "named_tasks": 0,
         "scenes": 0,
     }
-    directory_items = {
+    directory_items: ClassVar = {
         "current_item": "",
         "projects": [],
         "profiles": [],
         "tasks": [],
         "scenes": [],
     }
-    tasker_root_elements = {
+    tasker_root_elements: ClassVar = {
         "all_projects": [],
         "all_profiles": {},
         "all_scenes": {},
         "all_tasks": {},
         "all_services": [],
     }
-    scene_countgrand_totals = {
+    scene_countgrand_totals: ClassVar = {
         "projects": 0,
         "profiles": 0,
         "unnamed_tasks": 0,
         "named_tasks": 0,
         "scenes": 0,
     }
-    directories = []
-    variables = {}
+    directories: ClassVar = []
+    variables: ClassVar = {}
     current_project = ""
     error_code = 0
     error_msg = ""
@@ -99,6 +107,8 @@ class PrimeItems:
 # Reset all values
 # ##################################################################################
 class PrimeItemsReset:
+    """Re-initialize all values in PrimeItems class"""
+
     def __init__(self) -> None:  # noqa: ANN101
         """
         Initialize the PrimeItems class
@@ -152,7 +162,7 @@ class PrimeItemsReset:
         PrimeItems.colors_to_use = {}
         PrimeItems.output_lines = None
         PrimeItems.file_to_get = ""
-        PrimeItems.task_count_for_Profile = 0
+        PrimeItems.task_count_for_profile = 0
         PrimeItems.unordered_list_count = 0
         PrimeItems.displaying_named_tasks_not_in_profile = False
         PrimeItems.mono_fonts = {}

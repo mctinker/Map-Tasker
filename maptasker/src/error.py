@@ -1,4 +1,7 @@
+"""Error handling module for MapTasker."""
+
 #! /usr/bin/env python3
+import sys
 
 # #################################################################################### #
 #                                                                                      #
@@ -25,7 +28,7 @@ def error_handler(error_message: str, exit_code: int) -> None:
     if exit_code in {0, 99}:
         final_error_message = f"{Colors.Green}{error_message}"
     # Warning?
-    elif exit_code > 100:
+    elif exit_code > 100:  # noqa: PLR2004
         final_error_message = f"{Colors.Yellow}{error_message}"
     else:
         final_error_message = f"{Colors.Red}MapTasker error: {error_message}"
@@ -34,7 +37,7 @@ def error_handler(error_message: str, exit_code: int) -> None:
     if exit_code > 0:
         logger.critical(final_error_message)
         if PrimeItems.program_arguments["debug"]:
-            print(final_error_message)
+            print(final_error_message)  # noqa: T201
 
         # If coming from GUI, set error info. and return to GUI.
         if PrimeItems.program_arguments["gui"]:
@@ -42,9 +45,8 @@ def error_handler(error_message: str, exit_code: int) -> None:
             PrimeItems.error_msg = error_message
             return
         # Not coming from GUI...just print error.
-        else:
-            print(final_error_message)
-        exit(exit_code)
+        print(final_error_message)  # noqa: T201
+        sys.exit(exit_code)
 
     # return code 0
     else:

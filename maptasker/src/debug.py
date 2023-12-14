@@ -1,4 +1,9 @@
 #! /usr/bin/env python3
+"""special debug code for MapTasker
+
+Returns:
+    _type_: _description_
+"""
 
 # #################################################################################### #
 #                                                                                      #
@@ -67,33 +72,30 @@ def display_debug_info() -> None:
     if PrimeItems.program_arguments["debug"]:
         PrimeItems.output_lines.add_line_to_output(
             0,
-            f"sys.argv (runtime arguments):{str(sys.argv)}",
+            f"sys.argv (runtime arguments):{sys.argv!s}",
             ["", "disabled_profile_color", FormatLine.add_end_span],
         )
 
     # Copy our dictionary of runtime arguments and sort it alphabetically
     mydict = ARGUMENT_NAMES.copy()
-    myKeys = sorted(mydict.keys())
-    mydict = {i: mydict[i] for i in myKeys}
+    mykeys = sorted(mydict.keys())
+    mydict = {i: mydict[i] for i in mykeys}
 
     # Go through dictionary of arguments and output each one.
     for key, value in mydict.items():
         try:
             line_formatted_to_length = format_line_debug(ARGUMENT_NAMES[key], 40)
-            value = PrimeItems.program_arguments[key]
+            value = PrimeItems.program_arguments[key]  # noqa: PLW2901
             if value is None or value == "":
-                value = "None"
+                value = "None"  # noqa: PLW2901
             # Set color for value
-            if not value or value == "None":
-                color_to_use = "unknown_task_color"
-            else:
-                color_to_use = "heading_color"
+            color_to_use = "unknown_task_color" if not value or value == "None" else "heading_color"
             PrimeItems.output_lines.add_line_to_output(
                 0,
                 f"{line_formatted_to_length}: {value}",
                 ["", color_to_use, FormatLine.add_end_span],
             )
-        except KeyError:
+        except KeyError:  # noqa: PERF203
             msg = f"{ARGUMENT_NAMES[key]}: Error...not found!"
             PrimeItems.output_lines.add_line_to_output(
                 0,
@@ -111,7 +113,7 @@ def display_debug_info() -> None:
     for key, value in PrimeItems.colors_to_use.items():
         # Highlight background color.  Otherwise it won't be visible
         if key == "background_color":
-            value = f"<mark>{value} (highlighted for visibility)</mark>"
+            value = f"<mark>{value} (highlighted for visibility)</mark>"  # noqa: PLW2901
         # Convert the name of the color to the color
         the_color = format_html(
             key,
@@ -154,15 +156,14 @@ def display_debug_info() -> None:
 # ##################################################################################
 # Argument not found in dictionary
 # ##################################################################################
-def not_in_dictionary(type: str, code: str) -> None:
+def not_in_dictionary(condition_type: str, code: str) -> None:
     """
     Handle condition if Action/Event/State code not found in our dictionary (actionc.py)
         Args:
-            type (str): name of condition: Action, State, Event
+            condition_type (str): name of condition: Action, State, Event
             code (str): the xml code"""
     logger.debug(
         f"Error action code {code} not in the dictionary!",
     )
     if PrimeItems.program_arguments["debug"]:
-        print(f"{type} code {code} not found in actionc!")
-    return
+        print(f"{condition_type} code {code} not found in actionc!")  # noqa: T201

@@ -14,6 +14,7 @@
 # #################################################################################### #
 import defusedxml.ElementTree
 
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import clean
 
 
@@ -183,3 +184,18 @@ def remove_html_tags(text: str, replacement: str) -> str:
     import re
 
     return re.sub(clean, replacement, text)
+
+
+# ##################################################################################
+# Find Task by name in PrimeItems.tasker_root_elements["all_tasks"]
+# ##################################################################################
+def find_task_by_name(task_name: str) -> defusedxml.ElementTree.XML:
+    """
+    Find a task by name in the tasker_root_elements["all_tasks"] list
+    :param task_name: name of task to find
+    :return: the task's id if found, else None
+    """
+    for task in PrimeItems.tasker_root_elements["all_tasks"]:
+        if PrimeItems.tasker_root_elements["all_tasks"][task]["name"] == task_name:
+            return task
+    return None

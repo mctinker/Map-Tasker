@@ -16,12 +16,12 @@ This code is somewhat of a mess.  It is overly complex, but I wanted to develop 
 diagramming app rather than rely on yet-another-dependency such as that for
 diagram and graphviz.
 """
+from __future__ import annotations
 
 import contextlib
 from datetime import datetime
 from pathlib import Path
-
-import defusedxml.ElementTree  # Need for type hints
+from typing import TYPE_CHECKING
 
 from maptasker.src.diagutil import (
     add_output_line,
@@ -38,6 +38,10 @@ from maptasker.src.diagutil import (
 from maptasker.src.getids import get_ids
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, UNKNOWN_TASK_NAME, FormatLine
+from maptasker.src.xmldata import find_task_by_name
+
+if TYPE_CHECKING:
+    import defusedxml.ElementTree
 
 box_line = "═"
 blank = " "
@@ -102,21 +106,25 @@ def output_the_task(
     else:
         # Is this Task calling other Tasks?
         call_tasks = ""
+        task_name = task["name"]
+
+        # Get the primary task pointer for this task.
+        prime_task = PrimeItems.tasker_root_elements["all_tasks"][find_task_by_name(task_name)]
         with contextlib.suppress(KeyError):
-            if task["call_tasks"]:
-                call_tasks = f" [Calls {line_right_arrow} {', '.join(task['call_tasks'])}]"
+            if prime_task["call_tasks"]:
+                call_tasks = f" [Calls {line_right_arrow} {', '.join(prime_task['call_tasks'])}]"
 
         # We are still accumulating outlines for Profiles.
         # Build lines for the Profile's Tasks as well.
-        line = f'{blank*position_for_anchor}└─ {task["name"]}{task_type}{called_by_tasks}{call_tasks}'
+        line = f"{blank*position_for_anchor}└─ {task_name}{task_type}{called_by_tasks}{call_tasks}"
         last_upward_bar.append(position_for_anchor)
         output_task_lines.append(line)
-        if task["name"] not in found_tasks:
-            found_tasks.append(task["name"])
+        if task_name not in found_tasks:
+            found_tasks.append(task_name)
 
         # Add a blank line afterwards for each called Task
         with contextlib.suppress(KeyError):
-            output_task_lines.extend("" for _ in task["call_tasks"])
+            output_task_lines.extend("" for _ in prime_task["call_tasks"])
         # Interject the "|" for previous Tasks under Profile
         for bar in last_upward_bar:
             for line_num, line in enumerate(output_task_lines):
@@ -132,7 +140,6 @@ def output_the_task(
 # Process all Tasks in the Profile
 # ##################################################################################
 def print_all_tasks(
-    project_name: str,
     tasks: defusedxml.ElementTree,
     position_for_anchor: int,
     output_task_lines: list,
@@ -168,10 +175,6 @@ def print_all_tasks(
 
     # Now process each Task in the Profile.
     for num, task in enumerate(tasks):
-        # Rename unnamed/anonymous Tasks to "Anonymous" + number
-        if task["name"] == UNKNOWN_TASK_NAME:
-            task["name"] = "Anonymous"
-
         # Determine if this is an entry/exit combo.
         task_type = (" (entry)" if num == 0 else " (exit)") if tasks_length == 2 else ""
 
@@ -179,14 +182,11 @@ def print_all_tasks(
         called_by_tasks = ""
 
         # First we must find our real Task element that matches this "task".
-        for temp_task_id in PrimeItems.tasker_root_elements["all_tasks"]:
-            temp_task = PrimeItems.tasker_root_elements["all_tasks"][temp_task_id]
-            if task["xml"] == temp_task["xml"]:
-                # Now see if this Task has any "called_by" Tasks.
-                with contextlib.suppress(KeyError):
-                    called_by_tasks = f" [Called by {line_left_arrow} {', '.join(temp_task['called_by'])}]"
-                    called_by_tasks = called_by_tasks.replace(UNKNOWN_TASK_NAME, "Anonymous")
-                break
+        if prime_task_id := find_task_by_name(task["name"]):
+            prime_task = PrimeItems.tasker_root_elements["all_tasks"][prime_task_id]
+            # Now see if this Task has any "called_by" Tasks.
+            with contextlib.suppress(KeyError):
+                called_by_tasks = f" [Called by {line_left_arrow} {', '.join(prime_task['called_by'])}]"
 
         # We have a full row of Profiles.  Print the Tasks out.
         found_tasks, last_upward_bar = output_the_task(
@@ -206,7 +206,7 @@ def print_all_tasks(
 # ##################################################################################
 # Process all Scenes in the Project, 8 Scenes to a row.
 # ##################################################################################
-def print_all_scenes(scenes):
+def print_all_scenes(scenes: list) -> None:
     """
         Prints all scenes in a project, 8 Scenes to a row.
 
@@ -243,7 +243,7 @@ def print_all_scenes(scenes):
             output_scene_lines = [filler, filler, filler]
 
         # Start/continue building our outlines
-        output_scene_lines, position_for_anchor = build_box(scene, scene_counter, output_scene_lines)
+        output_scene_lines, position_for_anchor = build_box(scene, output_scene_lines)
 
     # Print anyn remaining Scenes
     if not header:
@@ -284,7 +284,7 @@ def do_tasks_with_no_profile(
     # Get all task IDs for this Project.
     project_task_ids = get_ids(False, project_root, project_name, [])
 
-    # Go through each Task ID and see if it is in found_tasks.\
+    # Go through each Task ID and see if it is in found_tasks.
     for task in project_task_ids:
         if PrimeItems.tasker_root_elements["all_tasks"][task]["name"] not in found_tasks:
             profile = "No Profile"
@@ -313,7 +313,6 @@ def do_tasks_with_no_profile(
         # Print tasks not in any profile
         print_tasks = False
         _ = print_all_tasks(
-            project_name,
             tasks_not_in_profile,
             position_for_anchor,
             output_task_lines,
@@ -327,7 +326,7 @@ def do_tasks_with_no_profile(
 # ##################################################################################
 # Fill the designated line with arrows starting at the specified position.
 # ##################################################################################
-def fill_line_with_arrows(line, arrow, line_length, call_task_position):
+def fill_line_with_arrows(line: str, arrow: str, line_length: int, call_task_position: int) -> str:
     """
     Fills spaces in a line with arrows up to a specified position.
     Args:
@@ -410,7 +409,7 @@ def add_down_and_up_arrows(
     )
 
     # Add left arrows to called Task line.
-    line_to_modify = called_line_num - (called_line_index)
+    line_to_modify = called_line_num - called_line_index
     output_lines[line_to_modify] = fill_line_with_arrows(
         output_lines[line_to_modify],
         left_arrow,
@@ -582,9 +581,6 @@ def handle_calls(output_lines: list) -> None:
     # Identify called Tasks that don't exist and add blank lines for called/caller Tasks.
     mark_tasks_not_found(output_lines)
 
-    # Add blank lines to caller and called Tasks for interconnections.
-    # output_lines = add_blanks_for_call_tasks(output_lines)
-
     # Create the table of caller/called Tasks and their pointers.
     call_table = build_call_table(output_lines)
 
@@ -606,12 +602,12 @@ def handle_calls(output_lines: list) -> None:
 # Build the Profile box.
 # ##################################################################################
 def build_profile_box(
-    profile,
-    profile_counter,
-    output_profile_lines,
-    output_task_lines,
-    print_tasks,
-):
+    profile: defusedxml.ElementTree,
+    profile_counter: int,
+    output_profile_lines: list,
+    output_task_lines: list,
+    print_tasks: bool,
+) -> tuple:
     """
     Builds a profile box for a given profile
     Args:
@@ -623,10 +619,10 @@ def build_profile_box(
     Returns:
         output_profile_lines, output_task_lines, print_tasks: Updated outputs
     Processing Logic:
-        1. Check if profile_counter exceeds column limit
-        2. If so, print current columns and reset counters
-        3. Add profile to running profile box outline
-        4. Return updated outputs
+       1. Check if profile_counter exceeds column limit
+       2. If so, print current columns and reset counters
+       3. Add profile to running profile box outline
+       4. Return updated outputs
     """
 
     filler = f"{blank*8}"
@@ -647,7 +643,7 @@ def build_profile_box(
         print_tasks = False
 
     # Start/continue building our outlines
-    output_profile_lines, position_for_anchor = build_box(profile, profile_counter, output_profile_lines)
+    output_profile_lines, position_for_anchor = build_box(profile, output_profile_lines)
     return (
         output_profile_lines,
         output_task_lines,
@@ -703,7 +699,6 @@ def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
 
             # Go through the Profile's Tasks
             found_tasks = print_all_tasks(
-                project_name,
                 tasks,
                 position_for_anchor,
                 output_task_lines,
@@ -756,7 +751,7 @@ def build_network_map(data: dict) -> None:
     # Go through each project
     for project, profiles in data.items():
         # Print Project as a box
-        print_box(project, "Project:", 1, 0)
+        print_box(project, "Project:", 1)
         # Print all of the Project's Profiles and their Tasks
         print_profiles_and_tasks(project, profiles)
 
@@ -801,7 +796,7 @@ def network_map(network: dict) -> None:
 
     # Print a heading
     add_output_line(
-        f"{MY_VERSION}{blank*5}Configuration Map{blank*5}{str(datetime.now())}",
+        f"{MY_VERSION}{blank*5}Configuration Map{blank*5}{datetime.now(tz=None)!s}",
     )
     add_output_line(" ")
     add_output_line(

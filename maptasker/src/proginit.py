@@ -140,8 +140,11 @@ def open_and_get_backup_xml_file() -> dict:
             file_error = True
         if PrimeItems.file_to_get is None:
             file_error = True
-        if file_error:
+        if file_error and not PrimeItems.program_arguments["gui"]:
             error_handler("Backup file selection cancelled.  Program ended.", 6)
+        elif file_error:
+            PrimeItems.error_code = 6
+            return
     tkroot.destroy()
     del tkroot
 

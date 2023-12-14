@@ -16,6 +16,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+# TYPE_CHECKING is a special constant that is assumed to be True by 3rd party static type checkers. It is False at runtime.
+if TYPE_CHECKING:
+    import defusedxml.ElementTree
+
 from maptasker.src.actiont import lookup_values
 from maptasker.src.error import error_handler
 from maptasker.src.format import format_html
@@ -23,9 +27,6 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import FONT_FAMILY, RE_FONT, DISPLAY_DETAIL_LEVEL_all_tasks
 from maptasker.src.xmldata import remove_html_tags
-
-if TYPE_CHECKING:
-    import defusedxml.ElementTree
 
 
 # ##################################################################################

@@ -17,18 +17,18 @@
 # network = {
 #   "Project 1": {
 #     "Profile 1": [
-#       {"Task 1": "xml": xml, "name": "Task 1", "calls_tasks": ["Task 2", "Task 3"]}
-#       {"Task 2": "xml": xml, "name": "Task 1", "calls_tasks": []}
+#       {"Task 1": "xml": xml, "name": "Task 1", "call_tasks": ["Task 2", "Task 3"]}
+#       {"Task 2": "xml": xml, "name": "Task 1", "call_tasks": []}
 #     ],
 #     "Profile 1": [
-#       {"Task 1": "xml": xml, "name": "Task 3", "calls_tasks": ["Task 8"]}
-#       {"Task 2": "xml": xml, "name": "Task 4", "calls_tasks": []}
+#       {"Task 1": "xml": xml, "name": "Task 3", "call_tasks": ["Task 8"]}
+#       {"Task 2": "xml": xml, "name": "Task 4", "call_tasks": []}
 #     ],
 #     "Scenes": ["Scene 1", "Scene 2"] # List of Scenes for this Project
 #   },
 #   "Project 2": {
 #     "Profile 1": {
-#       [{"Task 1": {"xml": xml, "name": "Task 4", "calls_tasks": []}
+#       [{"Task 1": {"xml": xml, "name": "Task 4", "call_tasks": []}
 #     }
 #   }
 # }
@@ -43,11 +43,88 @@ from maptasker.src.getids import get_ids
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.sysconst import FormatLine
+from maptasker.src.xmldata import find_task_by_name
 
 blank = "&nbsp;"
 list_of_found_tasks = []
 line = "─"
 arrow = f"├{line*3}▶"
+
+
+# ##################################################################################
+# Update Task with calls and called_by details
+# ##################################################################################
+def update_caler_and_called_tasks(task: defusedxml.ElementTree, perform_task_name: str) -> None:
+    # Find the Task xml element to which this Perform Task refers.
+    """
+    Updates the caller and called tasks lists
+    Args:
+        task: {Task xml element}: Task xml element
+        perform_task_name: {str}: Name of the task being performed
+    Returns:
+        None
+    Processing Logic:
+        - Finds the task element referred to by perform_task_name
+        - Adds perform_task_name to the caller task's call_tasks list
+        - Finds the task element for the perform_task_name
+        - Adds the caller task's name to the performed task's called_by list
+    """
+    if prime_task_id := find_task_by_name(task["name"]):
+        task_called = PrimeItems.tasker_root_elements["all_tasks"][prime_task_id]
+
+        # Add it to the list of Tasks this Task calls.
+        try:
+            if task_called["call_tasks"]:
+                task_called["call_tasks"].append(perform_task_name)
+        except KeyError:
+            task_called["call_tasks"] = [perform_task_name]
+        except AttributeError:
+            task_called["call_tasks"] = [perform_task_name]
+    # Add it to the list of Tasks called by this Task
+    # task["call_tasks"].append(perform_task_name)
+
+    # Find the Task xml element to which this Perform Task refers.
+    if prime_task_id := find_task_by_name(perform_task_name):
+        task_called = PrimeItems.tasker_root_elements["all_tasks"][prime_task_id]
+
+        # Add it to the list of Tasks that call this Task.
+        try:
+            if task_called["called_by"] and task["name"] not in task_called["called_by"]:
+                task_called["called_by"].append(task["name"])
+            elif not task_called["called_by"]:
+                task_called["called_by"] = [task["name"]]
+        except KeyError:
+            task_called["called_by"] = [task["name"]]
+
+
+# ##################################################################################
+# Go through the Task's Actions looking for any Perform Task actions.
+# ##################################################################################
+def do_task_actions(task_actions: defusedxml.ElementTree, task: defusedxml.ElementTree) -> None:
+    """
+    Parses task action elements and updates task call relationships
+    Args:
+        task_actions: defusedxml.ElementTree - Task action elements
+        task: defusedxml.ElementTree - Task element
+    Returns:
+        None
+    Processing Logic:
+        - Loops through each action element
+        - Checks for "Perform Task" code
+        - Gets task name from action
+        - Finds called task element
+        - Adds caller task to called task's call_tasks
+        - Adds called task to caller task's called_by
+    """
+    for action in task_actions:
+        # Have action: go through it looking for a "Perform Task"
+        for child in action:
+            if child.tag == "code" and child.text == "130":
+                # We have a Perform Task.  Get the Task name to be performed.
+                all_strings = action.findall("Str")
+                perform_task_name = all_strings[0].text
+
+                update_caler_and_called_tasks(task, perform_task_name)
 
 
 # ##################################################################################
@@ -65,9 +142,6 @@ def get_perform_task_actions(the_tasks: list) -> None:
     """
     # Go through each Task to find out if this Task is calling other Tasks.
     for task in the_tasks:
-        # Start with no "Perform Tasks" for this Task
-        task["call_tasks"] = []
-
         # Get Task's Actions
         try:
             task_actions = task["xml"].findall("Action")
@@ -76,32 +150,7 @@ def get_perform_task_actions(the_tasks: list) -> None:
             continue
         # Go through Actions and see if any are "Perform Task"
         if task_actions:
-            for action in task_actions:
-                # Have action: go through it looking for a "Perform Task"
-                for child in action:
-                    if child.tag == "code" and child.text == "130":
-                        # We have a Perform Task.  Get the Task name to be performed.
-                        all_strings = action.findall("Str")
-                        perform_task_name = all_strings[0].text
-                        # Add it to the list of Tasks called by this Task
-                        task["call_tasks"].append(perform_task_name)
-
-                        # Find the Task xml element to which this Perform Task refers.
-                        for task_id in PrimeItems.tasker_root_elements["all_tasks"]:
-                            task_called = PrimeItems.tasker_root_elements["all_tasks"][task_id]
-
-                            # If we found the referring Task, add it to the list of
-                            # "called_by" Tasks
-                            if task_called["name"] and task_called["name"] == perform_task_name:
-                                try:
-                                    if task_called["called_by"] and task["name"] not in task_called["called_by"]:
-                                        task_called["called_by"].append(task["name"])
-                                    elif not task_called["called_by"]:
-                                        task_called["called_by"] = [task["name"]]
-                                except KeyError:
-                                    task_called["called_by"] = [task["name"]]
-                                break
-                    break
+            do_task_actions(task_actions, task)
 
 
 # ##################################################################################
@@ -245,8 +294,11 @@ def do_profile_tasks(
 
         # Add any/all "Perform Task" indicators
         call_task = ""
+        prime_task = ""
+        if prime_task_id := find_task_by_name(task["name"]):
+            prime_task = PrimeItems.tasker_root_elements["all_tasks"][prime_task_id]
         try:
-            for perform_task in task["call_tasks"]:
+            for perform_task in prime_task["call_tasks"]:
                 call_task = f"{call_task} {perform_task},"
         except KeyError:
             call_task = ""
@@ -342,6 +394,27 @@ def outline_profiles_tasks_scenes(
 
 
 # ##################################################################################
+# Name anonymous Tasks as "anonymous#1", "anonymous#2", etc.
+# ##################################################################################
+def assign_names_to_anonymous_tasks() -> None:
+    """Assign names to anonymous tasks in the task list
+    Args:
+        None
+    Returns:
+        None: Assign names to anonymous tasks
+    - Count number of anonymous tasks
+    - Iterate through all tasks
+    - Check if task name is empty
+    - If empty, assign default name "Anonymous#{counter}"
+    - Increment counter"""
+    no_name_counter = 1
+    for value in PrimeItems.tasker_root_elements["all_tasks"].values():
+        if not value["name"]:
+            value["name"] = f"Anonymous#{no_name_counter!s}"
+            no_name_counter += 1
+
+
+# ##################################################################################
 # Start outline beginning with the Projects
 # ##################################################################################
 def do_the_outline(network: dict) -> None:
@@ -351,6 +424,8 @@ def do_the_outline(network: dict) -> None:
 
             network (dict): Dictionary structure for our network
     """
+    # Name anonymous Tasks as "anonymous#1", "anonymous#2", etc.
+    assign_names_to_anonymous_tasks()
 
     for project_item in PrimeItems.tasker_root_elements["all_projects"]:
         # Get the Project XML element

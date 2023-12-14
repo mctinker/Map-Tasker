@@ -470,6 +470,3 @@ def process_cli() -> None:
 
     # Validate arguments against each other (e.g. look for combo problems).
     validate_arguments()
-
-    # Return the results
-    return

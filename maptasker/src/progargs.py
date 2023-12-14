@@ -37,5 +37,3 @@ def get_program_arguments():
     # Are we in development mode?  If so, override debug argument
     if DEBUG_PROGRAM:
         PrimeItems.program_arguments["debug"] = True
-
-    return

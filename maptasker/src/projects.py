@@ -14,10 +14,11 @@
 
 import defusedxml.ElementTree  # Need for type hints
 
-import maptasker.src.tasks as tasks
+from maptasker.src import tasks
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
+from maptasker.src.globalvr import output_variables
 from maptasker.src.kidapp import get_kid_app
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
@@ -28,7 +29,6 @@ from maptasker.src.share import share
 from maptasker.src.sysconst import FormatLine
 from maptasker.src.taskflag import get_priority
 from maptasker.src.twisty import add_twisty, remove_twisty
-from maptasker.src.globalvr import output_variables
 
 
 # ##################################################################################
@@ -131,7 +131,7 @@ def do_tasks_in_project(
     found_tasks: list,
     output_the_heading: bool,
     have_tasks_not_in_profile: bool,
-):
+) -> bool:
     """
     Process all of the Tasks in this Project
         Args:
@@ -180,7 +180,7 @@ def do_tasks_in_project(
             # Format the output line
             task_output_lines = [
                 f"{our_task_name}&nbsp;&nbsp;&nbsp;<em>(Not referenced by any Profile in Project"
-                f" {project_name})</em>"
+                f" {project_name})</em>",
             ]
 
             # Output the Task (we don't care about the returned value)

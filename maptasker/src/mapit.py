@@ -59,7 +59,14 @@ from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
-from maptasker.src.sysconst import Colors, DISPLAY_DETAIL_LEVEL_everything, FormatLine, debug_file, debug_out, logger
+from maptasker.src.sysconst import (
+    Colors,
+    DISPLAY_DETAIL_LEVEL_everything,
+    FormatLine,
+    debug_file,
+    debug_out,
+    logger,
+)
 
 # import os
 # print('Path:', os.getcwd())
@@ -100,7 +107,8 @@ def on_crash(exctype: str, value: str, traceback: list) -> None:
         # sys.__excepthook__ is the default excepthook that prints the stack trace
         # So we use it directly if we want to see it
         sys.__excepthook__(exctype, value, traceback)
-        print("MapTasker encountered a runtime error!  Error in maptasker_debug.log")  # noqa: T201
+        print("MapTasker encountered a runtime error!  Error can be found in maptasker_debug.log")  # noqa: T201
+        print("]\nGo to https://github.com/mctinker/Map-Tasker/issues to report the problem.\n")  # noqa: T201
     # Give the user a more graceful error message.
     else:
         # Instead of the stack trace, we print an error message to stderr
@@ -108,8 +116,7 @@ def on_crash(exctype: str, value: str, traceback: list) -> None:
         # print("Exception type:", exctype, " value:", value)
         print(f"The error log can be found in {debug_file}.")  # noqa: T201
         print(  # noqa: T201
-            "Go to https://github.com/mctinker/Map-Tasker/issues \
-            to report the problem.\n",
+            "Go to https://github.com/mctinker/Map-Tasker/issues to report the problem.\n",
             file=sys.stderr,
         )
         print("\a", end="", flush=True)  # noqa: T201
@@ -148,9 +155,10 @@ def clean_up_memory() -> None:
         PrimeItems.xml_root.clear()
     if PrimeItems.output_lines is not None:
         PrimeItems.output_lines.output_lines.clear()
+    # Reset all of our primasry items
     PrimeItemsReset()
     PrimeItems.program_arguments = initialize_runtime_arguments
-
+    # Tell python to collect the garbage
     gc.collect()
 
 

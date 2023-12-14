@@ -115,7 +115,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # Convert indent to integer
     PrimeItems.program_arguments["indent"] = convert_to_integer(PrimeItems.program_arguments["indent"], 4)
     # Get the font
-    if the_font := getattr(user_input, "font"):
+    if the_font := user_input.font:
         PrimeItems.program_arguments["font"] = the_font
 
     # Appearance change: Dark or Light mode?

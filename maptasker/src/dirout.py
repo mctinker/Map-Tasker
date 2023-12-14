@@ -20,6 +20,7 @@ import darkdetect
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import NO_PROFILE, FormatLine
+from maptasker.src.xmldata import find_task_by_name
 
 period = "."
 
@@ -45,7 +46,7 @@ def search_lists(search_string: str, list_of_lists: list) -> bool:
 # ##################################################################################
 # Add directory item (Project/Profile/Task/Scene) to our dictionary of items
 # ##################################################################################
-def add_directory_item(key: str, name: str):
+def add_directory_item(key: str, name: str) -> None:
     """
     We are doing a directory.  Add the Project/Profile/Task/Scene name and hyperlink name to our dictionary of items
         Args:
@@ -124,7 +125,6 @@ def output_table(hyperlinks: list, max_columns: int) -> None:
         html_table,
         ["", "profile_color", FormatLine.add_end_span],
     )
-    return
 
 
 #######################################################################################
@@ -231,8 +231,6 @@ def do_trailing_matters() -> None:
     # Output the table
     output_table(trailing_matter, 4)
 
-    return
-
 
 # ##################################################################################
 # Determinme if an item is in a specific a specific Project.
@@ -292,25 +290,17 @@ def check_scene(item: str) -> bool:
 
         return False
     # Single Task?
-    if profile_name := PrimeItems.program_arguments["single_task_name"]:
-        # Get this Task's ID.
-        if this_task_id := next(
-            (
-                task_item
-                for task_item in PrimeItems.tasker_root_elements["all_tasks"]
-                if PrimeItems.tasker_root_elements["all_tasks"][task_item]["name"]
-                == PrimeItems.program_arguments["single_task_name"]
-            ),
-            "",
-        ):
-            # Find the Project this single Task belongs to.
-            found, project = find_task_in_project("", this_task_id, "tids")
-            if found:
-                # Found Project with Profile, now check If Scenes in Project
-                scenes = project.find("scenes")
-                if scenes is not None and item["name"] in scenes.text.split(","):
-                    return True
-            return False
+    if (profile_name := PrimeItems.program_arguments["single_task_name"]) and (
+        this_task_id := find_task_by_name(PrimeItems.program_arguments["single_task_name"])
+    ):
+        # Find the Project this single Task belongs to.
+        found, project = find_task_in_project("", this_task_id, "tids")
+        if found:
+            # Found Project with Profile, now check If Scenes in Project
+            scenes = project.find("scenes")
+            if scenes is not None and item["name"] in scenes.text.split(","):
+                return True
+        return False
 
     # Not doing single name...Scene hyperlink is okay to include.
     return True
@@ -333,14 +323,7 @@ def check_task(item: str) -> bool:
     # Doing a single Profile?
     if PrimeItems.program_arguments["single_profile_name"]:
         # Get this Task's ID.
-        if this_task_id := next(
-            (
-                task_item
-                for task_item in PrimeItems.tasker_root_elements["all_tasks"]
-                if PrimeItems.tasker_root_elements["all_tasks"][task_item]["name"] == item[1]
-            ),
-            "",
-        ):
+        if this_task_id := find_task_by_name(item[1]):
             # Find the Project that belongs to the Profile we are looking for.
             for project_item in PrimeItems.tasker_root_elements["all_projects"]:
                 project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]
@@ -476,8 +459,6 @@ def do_tasker_element(name: str) -> None:
             # 6 columns for projects, 5 columns for tasks
             number_of_columns = 5 if name == "tasks" else 6
             output_table(directory_hyperlinks, number_of_columns)
-
-    return
 
 
 #######################################################################################

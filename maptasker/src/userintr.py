@@ -15,19 +15,20 @@
 import contextlib
 import os
 from pathlib import Path
-from tkinter import font
 
 import customtkinter
 from CTkColorPicker.ctk_color_picker import AskColor
 from PIL import Image
 
-from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import OUTPUT_FONT
 from maptasker.src.getputer import save_restore_args
-from maptasker.src.lineout import LineOut
+from maptasker.src.guiutils import get_monospace_fonts, ping_android_device, valid_item
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.proginit import get_data_and_output_intro
-from maptasker.src.sysconst import ARGUMENT_NAMES, TYPES_OF_COLOR_NAMES, DISPLAY_DETAIL_LEVEL_all_parameters
+from maptasker.src.sysconst import (
+    ARGUMENT_NAMES,
+    TYPES_OF_COLOR_NAMES,
+    DISPLAY_DETAIL_LEVEL_all_parameters,
+)
 
 # Color Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_appearance_mode("System")
@@ -223,10 +224,15 @@ class MyGui(customtkinter.CTk):
         self.sidebar_frame.grid_rowconfigure(14, weight=1)
 
         # Add our logo
-        # Get the path to our logos
-        current_dir = os.getcwd()
-        abspath = os.path.abspath(__file__)
-        dname = os.path.dirname(abspath)
+        # Get the path to our logos:
+        # current_dir = directory from which we are running.
+        # abspath = path of this source code (userintr.py).
+        # cwd = directory from which the main program is (main.py)
+        # dname = directory of src
+        current_dir = os.getcwd()  # noqa: PTH109
+        abspath = os.path.abspath(__file__)  # noqa: PTH100
+        # cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
+        dname = os.path.dirname(abspath)  # noqa: PTH120
         temp_dir = dname.replace("src", "assets")
         # Switch to our temp directory (assets)
         os.chdir(temp_dir)
@@ -445,15 +451,7 @@ class MyGui(customtkinter.CTk):
         self.font_label = customtkinter.CTkLabel(master=self, text="Font To Use In Output:", anchor="sw")
         self.font_label.grid(row=6, column=1, padx=20, pady=10, sticky="sw")
         # Get fonts from TkInter
-        fonts = self.get_fonts()
-        font_items = ["Courier"]
-        font_items = [value for value in fonts.values() if "Wingdings" not in value]
-        # Find which Courier font is in our list and set.
-        res = [i for i in font_items if "Courier" in i]
-        # If Courier is not found for some reason, default to Monaco
-        if not res:
-            res = [i for i in font_items if "Monaco" in i]
-
+        font_items, res = get_monospace_fonts()
         self.font_optionemenu = customtkinter.CTkOptionMenu(
             master=self,
             values=font_items,
@@ -819,8 +817,8 @@ class MyGui(customtkinter.CTk):
                 "Error:\n\nYou have entered both a Profile and a Task name!\n\nTry again and only select one."
             )
         # Make sure the named item exists
-        elif not self.valid_item(the_name, element_name):
-            error_message = f'Error: "{the_name}" {element_name} not found!!  Try again.'
+        elif not valid_item(the_name, element_name, self.debug, self.appearance_mode):
+            error_message = f'Error: "{the_name}" {element_name} not found!!  Try again.\n{PrimeItems.error_msg}'
 
         # If we have an error, display it and blank out the various individual names
         if error_message:
@@ -863,54 +861,6 @@ class MyGui(customtkinter.CTk):
             text_color=("#0BF075", color_to_use),
         )
         self.single_label.grid(row=5, column=0, padx=20, pady=(10, 10), sticky="nsew")
-
-    # ##################################################################################
-    # Make sure the single named item exists...that it is a valid name
-    # ##################################################################################
-    def valid_item(self, the_name: str, element_name: str) -> bool:  # noqa: ANN101
-        # We need to get all tasker root xml items from the backup xml file.
-        # To do so, we need to go through initializing a temporary PrimaryItems object
-        """
-        Checks if an item name is valid
-        Args:
-            the_name: String - Name to check
-            element_name: String - Element type being checked
-        Returns:
-            Boolean - Whether the name is valid
-        Processing Logic:
-        - Initialize temporary primary items object
-        - Get backup xml data and root elements
-        - Match element type and get corresponding root element
-        - Check if item name exists by going through all names in root element
-        """
-
-        # Set up just enough PrimeItems variables to validate name.
-        if not PrimeItems.file_to_get:
-            PrimeItems.file_to_get = "backup.xml" if self.debug else ""
-        PrimeItems.program_arguments["debug"] = self.debug
-        PrimeItems.colors_to_use = set_color_mode(self.appearance_mode)
-        PrimeItems.output_lines = LineOut()
-        return_code = get_data_and_output_intro()
-
-        # Did we get an error reading the backlup file?
-        if return_code > 0:
-            error_msg = PrimeItems.error_msg.replace("  Program ended.", "")
-            self.display_message_box(error_msg, False)
-            PrimeItems.error_code = 0
-            PrimeItems.error_msg = ""
-            return False
-
-        # Set up for name checking
-        # Find the specific item and get it's root element
-        root_element_choices = {
-            "Project": PrimeItems.tasker_root_elements["all_projects"],
-            "Profile": PrimeItems.tasker_root_elements["all_profiles"],
-            "Task": PrimeItems.tasker_root_elements["all_tasks"],
-        }
-        root_element = root_element_choices[element_name]
-
-        # See if the item exists by going through all names
-        return any(root_element[item]["name"] == the_name for item in root_element)
 
     # ##################################################################################
     # Process single name selection/event
@@ -1956,56 +1906,9 @@ class MyGui(customtkinter.CTk):
         backup_info = self.entry.get()
         # User entered values other than default?
         if backup_info != "*":
-            # The following should return a list: [ip_address:port_number, file_location]
-            temp_info = backup_info.split(",")
-            temp_ip = temp_info[0].split(":")
-
-            # Validate IP Address
-            temp_ipaddr = temp_ip[0].split(".")
-            if len(temp_ipaddr) < 4:  # noqa: PLR2004
-                self.backup_error(f"Invalid IP Address: {temp_ip[0]}.  Try again.")
+            failure, self.backup_file_http, self.backup_file_location = ping_android_device(self, backup_info)
+            if failure:
                 return
-            for item in temp_ipaddr[0]:
-                if not item.isdigit():
-                    self.backup_error(
-                        f"Invalid IP Address: {temp_ip[0]}.  Try again.",
-                    )
-                    return
-            # Verify that the host IP (temp_ip[0]) is reachable:
-            self.display_message_box(
-                f"Pinging address {temp_ip[0]}.  Please wait...",
-                True,
-            )
-            MyGui.update(self)  # Force a window refresh.
-            # Ping IP address.
-            response = os.system("ping -c 1 -t50 > /dev/null " + temp_ip[0])  # noqa: S605
-            if response != 0:
-                self.backup_error(
-                    f"{temp_ip[0]} is not reachable (error {response}).  Try again.",
-                )
-                return
-            self.display_message_box(
-                "Ping successful.",
-                False,
-            )
-            # Validate port number
-            if not temp_ipaddr[1].isdigit:
-                self.backup_error(
-                    f"Invalid port number: {temp_ipaddr[1]}.  Try again.",
-                )
-                return
-
-            # Validate file location
-            if len(temp_info) < 2:  # noqa: PLR2004
-                self.backup_error("File location is missing.  Try again.")
-                return
-
-            # All is well so far...
-            self.backup_file_http = temp_info[0]
-            self.backup_file_location = temp_info[1]
-
-            # Empty message = good to go...no error.
-            self.backup_error("")
 
         self.get_backup_button.grid(row=10, column=1, padx=10, pady=(20, 20), sticky="w")
 
@@ -2084,23 +1987,6 @@ class MyGui(customtkinter.CTk):
                 self.debug = False
         else:
             self.display_message_box("Debug mode disabled.", True)
-
-    # ##################################################################################
-    # Get all monospace fonts from TKInter
-    # ##################################################################################
-    def get_fonts(self) -> None:  # noqa: ANN101
-        """
-        Returns a dictionary of fixed-width fonts
-        Args:
-            self: The class instance
-        Returns:
-            dict: A dictionary of fixed-width fonts and their family names
-        - Get all available fonts from the font module
-        - Filter fonts to only those with a fixed width
-        - Build a dictionary with font name as key and family as value
-        """
-        fonts = [font.Font(family=f) for f in font.families()]
-        return {f.name: f.actual("family") for f in fonts if f.metrics("fixed")}
 
     # ##################################################################################
     # The 'Run' program button has been pressed.  Set the run flag and close the GUI
