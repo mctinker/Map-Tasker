@@ -2,19 +2,18 @@
 
 All notable changes to this project will be documented in this file!
 
-## [2.5.3] 2023-Dec-08
+## [2.5.4] 2023-Dec-14
 
 ### Changed
 
-- Anonymous Profiles in the outline now have a unique number associated with each.
+- Anonymous Profiles and Tasks in the outline now have a unique number associated with each.
+- Better arrow spacing in the outline diagram map.
+- Moved the position of the down arrows in the diagram closer to the beginning for legibility.
 
 ### Fixed
 
-- The total counts and end of the output are wrong if doing a single Profile or Task.
-- The outline displayed Tasks under "No Profile" which were, in fact, under a profile.
-- In the GUI, selecting everything did not set the detail display level to 4.
-- The GUI did not properly position the "Fetch Backup from Android Device" input field.
-- The GUI was not picking up the correct default font in the font option pulldown.
+- The GUI allows invalid port and file location input on the "Get Backup from Android Device" input field.
+- The outline diagram is missing some links between called and caller Tasks.
 
 ### Added
 
@@ -22,6 +21,17 @@ All notable changes to this project will be documented in this file!
 - Add a header under grand totals at the end of the output.
 
 ## Older History Log
+
+## [2.5.3] 2023-Dec-08
+
+- Changed: Anonymous Profiles in the outline now have a unique number associated with each.
+- Fixed: The total counts and end of the output are wrong if doing a single Profile or Task.
+- Fixed: The outline displayed Tasks under "No Profile" which were, in fact, under a profile.
+- Fixed: In the GUI, selecting everything did not set the detail display level to 4.
+- Fixed: The GUI did not properly position the "Fetch Backup from Android Device" input field.
+- Fixed: The GUI was not picking up the correct default font in the font option pulldown.
+- Added: The GUI messages for getting the backup file from the Android device are clearer.
+- Added: Add a header under grand totals at the end of the output.
 
 ## [2.5.2] 2023-Dec-04
 
@@ -46,7 +56,7 @@ All notable changes to this project will be documented in this file!
 ## [2.5.0] 2023-Nov-15
 
 - Changed: Rewrite code to improve performance and maintainability.
-- Changed: Renamed files deprecated > depricate, getputarg > getputer, variables > globalvr, shellsort > shelsort for OS compatibility.
+- Changed: Renamed the files: deprecated > depricate, getputarg > getputer, variables > globalvr, shellsort > shelsort for OS compatibility.
 - Changed: A "rerun" now clears all settings after the run to avoid ever-growing memory demand.
 - Fixed: The GUI now pings the IP address of the Android device to make sure it is reachable before fetching the backup from it.
 - Fixed; The GUI "Get Backup FFrom Android Device" button is now properly formatted after usage.
@@ -255,8 +265,7 @@ All notable changes to this project will be documented in this file!
 
 ## [2.0.3] 2023-06-13
 
-      - Added: Task additio
-      nal plug-ins mapped: AutoSpotify, AutoLaunch, AutoInput Actions V2, AutoBubbles, AutoContacts
+      - Added: Task additional plug-ins mapped: AutoSpotify, AutoLaunch, AutoInput Actions V2, AutoBubbles, AutoContacts
       - Added: Add missing Scene elements
       - Added: Display Task's collision setting if detail = 3
       - Added: Display the backed-up device's screen resolution in the heading
@@ -311,107 +320,141 @@ All notable changes to this project will be documented in this file!
       - Changed: eliminated colors in config.py...redundant
       - Fixed: Bypass extra Task information in the "Task not called by Profile" section
       - Fixed: cleaned up improperly formatted output due to spurious HTML tag
-      - Fixed: incorrectly formatted HTML
+      - Fixed: Incorrectly formatted HTML
       - Fixed: Improved Taskernet description formatting
       - Fixed: Spacing on indented If/For segments
       - Added: Clearly identify Projects that have no Profiles
+
 ## [1.3.1] 2023-03-19
-      - Added: GUI Appearance mode change (Dark/Light) now reflected in output
-      - Added: new color 'cTrailingComments' for comments at end of output
+
+      - Added: The GUI Appearance mode change (Dark/Light) is now reflected in the output
+      - Added: new color 'cTrailingComments' for comments at the end of the output
       - Changed: GUI message box widths extended for readability
       - Changed: Background color set to DarkBlue for better contrast
       - Fixed: Runtime color selection error for certain parameter formats
-      - Fixed: Tasks not found in any Profile were not listing at the end
+      - Fixed: Tasks not found in any Profile were not being listed at the end
       - Fixed: assigned comment color was not being used
       - Fixed: Action 'set clipboard' missing details
       - Fixed: List of Projects with no Tasks was repeating the same Project
+
 ## [1.3.0] 2023-03-11
+
       - Added: Support for unit testing (no user impact)
       - Added: Optionally display Tasker Preferences = runtime option '-preferences'
       - Changed: Optimized initialization code
       - Changed: Task(s) with no Profile will now be displayed under the Project it/they belong to
       - Fixed: Go To 'action' not showing the label to go to.
+
 ## [1.2.26] 2023-02-27
+
       - Added: New Task actions: Request Add Tile
       - Added: Support for new parameters in Set Quick Tile, Progress Dialog
-      - Added: Display Project's/Task's Kid App info if details = 3
+      - Added: Display Project's/Task's Kid App info if 'details = 3'
       - Added: Display Profile/Task priority if details = 3
       - Added: Log now includes 'Error:' for program/functional errors
+
 ## [1.2.25] 2023-02-22
-      - Fixed: Only first (TAP/LONG TAP) Task in Scene is displayed
+
+      - Fixed: Only the first (TAP/LONG TAP) Task in the Scene is displayed
       - Fixed: Scene Tasks for rectangle, web elements, and 'ITEM TAP' missing
-      - Fixed: Corrected URL provided in 'Caveats' at bottom of output
+      - Fixed: Corrected URL provided in 'Caveats' at the bottom of the output
       - Added: Display Scene elements
+
 ## [1.2.23] 2023-02-20
+
       - Fixed: GUI Restore not displaying 'file not found' in GUI
       - Added: GUI Restore changes display settings based on restored settings
+
 ## [1.2.22] 2023-02-17
-      - Changed: Moved code base to src directory
+
+      - Changed: Moved the code base to the src directory
       - Changed: Primary program renamed from 'main' to 'maptasker'
+
 ## [1.2.2-thru-1.2.21] 2023-02-17
+
        Added: Packaged for pip install
+
 ## [1.2.1] 2023-02-05
+
       - Updated for pip packaging
       - Fixed: GUI 'Restore Settings' not changing the colors from saved settings
       - Fixed: Bullet color not properly set in output
       - Changed: Simplified command line code
       - Added: Clarification on color argument options help by providing examples (-c)
+
 ## [1.2.0] 2023-02-04
+
       - Added:  Formal argument parser
       - Added:  Save runtime arguments to file and optionally restore them
-      - Added: Messages provided in GUI for Reset button and Color selection
+      - Added: Messages provided in the GUI for the Reset button and the Color selection
       - Added: Check for valid hex digits for program argument color
       - Changed: Command Line Interface options have changed (see README)
       - Fixed: Option '-e' only recognized via GUI and not CLI
       - Changed: GUI Project/Profile/Task 'Name' buttons changed to radio buttons
+
 ## [1.1.1] 2023-01-27
-      - Added:  Project/Profile Taskernet details optionally displayed (see option -taskernet)
-      - Added: '-e' option for display "everything": Profile conditions, TaskerNet info and full details
-      - Fixed: Project 'launch' Tasks now properly displayed
+
+      - Added:  Project/Profile Taskernet details optionally displayed (see option '-taskernet')
+      - Added: '-e' option for the display "everything": Profile conditions, TaskerNet info and full details
+      - Fixed: Project 'launch' Tasks are now properly displayed
       - Fixed: README runtime options not formatted properly
       - Fixed: Program error processing invalid color choice
+
 ## [1.1.0] 2023-01-23
+
       - Added:  Optional GUI front-end for runtime options
       - Added:  Sample images to README
       - Changed: Relocated called modules to subdirectory 'routines'
       - Changed: Main program top all lowercase: maptasker.py
       - Fixed: no longer producing log file if not in debug mode
+
 ## [1.0.1] 2023-01-03
-      - Changed: Cleaned up output html
+
+      - Changed: Cleaned up the output HTML
       - Fixed: Removed extra comma at end of Task action
+
 ## 1.0.0 ## 2022-12-29
+
        Changed: Program rewrite for performance, level of detail and readability
        Changed: Removed word "Action" from output to remain consistent with Tasker
        Added: full package as a zip file (see README)
        Added: Support for 99% of Tasks, 90% of Plugins
        Added: Support for action *name* only (no Task action parameters).  See -d2 option
-       Changed: '-d2' display detail option is now '-d3' option (see above change)
+       Changed: The '-d2' display detail option is now the '-d3' option (see above change)
        Fixed: Several improperly reported Task actions
+
 ## 0.8.0 ## 2022-11-03
+
        Changed: Restructured code for better readability and performance
        Added: New option (-project='project name') to display a single Project, its Profiles and Tasks
        Added: Missing Plugin Actions: AutoTools Action Wait, Autotools Time, Autotools Json Read
        Fixed: Cleaned up several Task Actions
-       Fixed: Background color option not getting properly set
-       Fixed: -task= option could result in multiple Tasks being displayed for same Profile
+       Fixed: The background color option is not getting properly set
+       Fixed: -task= option could result in multiple Tasks being displayed for the same Profile
+
 ## 0.7.0 ## 2022-10-26
+
        Changed: Restructured code for better readability
-       Added: New option (-profile='profile name') to display a single Profile and it's Tasks
+       Added: New option (-profile='profile name') to display a single Profile and its Tasks
        Changed: runtime option -p is now -profcon (display Profile conditions)
        Changed: runtime option -t='task_name' is now -task='task_name' (display a single Task)
-       Fixed: Certain Tasks not being identified within Profile for option to display a single Task
+       Fixed: Certain Tasks not being identified within Profile for the option to display a single Task
        Fixed: Not properly reporting bad arguments
+
 ## 0.6.7 ## 2022-10-17
+
        Added: additional Task actions recognized and more in-depth detail for some preexisting Actions
               Actions completed: Zoom
        Added: More details for some Actions Flash, Notify, Google Drive
        Added: Force continued Actions limit to avoid super large binary files from displaying
-       Added: Orientation Profile 'State' as condition
+       Added: Orientation Profile 'State' as the condition
        Added: Dark mode in the user-defined variables Change: Converted lists to dictionaries for better performance
        Fixed: Changed logic to allow for output cleanup after Action details
-       Fixed: Font corruption if Action label contains HTML.  Try to maintain most of the HTML.
+       Fixed: Font corruption if the Action label contains HTML.  Try to maintain most of the HTML.
        Fixed: Invalid Project identified for Task ('...in Project xxx') if Task ID is a subset of Project's Tasks (e.g. '83' in '283')
+
 ## 0.6.6 ## 2022-10-06
+
        Added: Additional Task actions recognized and more in-depth detail for some preexisting Actions
               Actions completed: Settings, System, Tasks, Tasker, Variables
        Added: Optimized code for debug/testing mode

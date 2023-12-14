@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maptasker"
-version = "2.5.3"
+version = "2.5.4"
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README_PyPl.md"
@@ -97,6 +97,9 @@ select = [
     'W',    # Warnings
     'YTT',  # sys.version
 ]
+ignore = [
+    "PLR2004",  # Constant value comparison
+    ]
 show-fixes = true
 src = ['src',]
 
