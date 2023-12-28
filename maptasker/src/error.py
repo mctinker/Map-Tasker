@@ -28,7 +28,7 @@ def error_handler(error_message: str, exit_code: int) -> None:
     if exit_code in {0, 99}:
         final_error_message = f"{Colors.Green}{error_message}"
     # Warning?
-    elif exit_code > 100:  # noqa: PLR2004
+    elif exit_code > 100:
         final_error_message = f"{Colors.Yellow}{error_message}"
     else:
         final_error_message = f"{Colors.Red}MapTasker error: {error_message}"
@@ -36,11 +36,11 @@ def error_handler(error_message: str, exit_code: int) -> None:
     # Process an error?
     if exit_code > 0:
         logger.critical(final_error_message)
-        if PrimeItems.program_arguments["debug"]:
+        if PrimeItems.program_arguments and PrimeItems.program_arguments["debug"]:
             print(final_error_message)  # noqa: T201
 
         # If coming from GUI, set error info. and return to GUI.
-        if PrimeItems.program_arguments["gui"]:
+        if PrimeItems.program_arguments and PrimeItems.program_arguments["gui"]:
             PrimeItems.error_code = exit_code
             PrimeItems.error_msg = error_message
             return

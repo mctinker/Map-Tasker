@@ -193,7 +193,7 @@ def find_task_by_name(task_name: str) -> defusedxml.ElementTree.XML:
     """
     Find a task by name in the tasker_root_elements["all_tasks"] list
     :param task_name: name of task to find
-    :return: the task's id if found, else None
+    :return: the task's (root) dictionary pointer, else None
     """
     for task in PrimeItems.tasker_root_elements["all_tasks"]:
         if PrimeItems.tasker_root_elements["all_tasks"][task]["name"] == task_name:

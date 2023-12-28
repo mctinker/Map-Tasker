@@ -2,7 +2,7 @@
 
 # #################################################################################### #
 #                                                                                      #
-# tasks: shell_sort   Sort Actions, args and misc.                                           #
+# tasks: shell_sort   Sort Actions, args and misc.                                     #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #

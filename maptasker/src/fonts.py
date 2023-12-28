@@ -11,7 +11,10 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+import sys
 from tkinter import Tk, font
+
+# from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 
 
@@ -25,6 +28,7 @@ def get_fonts(save_fonts: bool) -> dict:
         Returns:
             dict: list of avilable monospace fonts
     """
+    # get_tk()  # Get the Tkinter root window
     _ = Tk()
     fonts = [font.Font(family=f) for f in font.families()]
     our_font = PrimeItems.program_arguments["font"]
@@ -34,8 +38,8 @@ def get_fonts(save_fonts: bool) -> dict:
 
     # If the font requested is 'help', then just display the fonts and exit
     if our_font == "help":
-        print("Valid monospace fonts...")
-        print('  "Courier" is the default')
+        print("Valid monospace fonts...")  # noqa: T201
+        print('  "Courier" is the default')  # noqa: T201
 
     # Go thru list of fonts from tkinter
     PrimeItems.mono_fonts = {}
@@ -43,10 +47,12 @@ def get_fonts(save_fonts: bool) -> dict:
         # Monospace only
         if f.metrics("fixed") and "Wingding" not in f.actual("family"):
             if our_font == "help":
-                print(f'  "{f.actual("family")}"')
+                print(f'  "{f.actual("family")}"')  # noqa: T201
             elif save_fonts:
                 PrimeItems.mono_fonts[f.name] = f.actual("family")
             mono_fonts.append(f.actual("family"))
     if our_font == "help":
-        exit(0)
+        sys.exit(0)
+
+    del fonts
     return mono_fonts

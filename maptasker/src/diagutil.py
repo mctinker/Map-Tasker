@@ -14,12 +14,13 @@
 # #################################################################################### #
 from __future__ import annotations
 
+import contextlib
 import re
 import string
-import tkinter as tk
 from string import printable
-from typing import Set
+from tkinter import font
 
+from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 
 bar = "│"
@@ -42,9 +43,9 @@ arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_do
 directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
 
 # Define additional "printable" characters to allow.
-extra_cars: Set[str] = set(f"│└─╔═║╚╝╗▶◄{arrows}")
+extra_cars: set[str] = set(f"│└─╔═║╚╝╗▶◄{arrows}")
 # List of printable ASCII characters
-printable_chars: Set[str] = set(string.printable)
+printable_chars: set[str] = set(string.printable)
 printable_chars = printable_chars.union(extra_cars)
 
 
@@ -176,9 +177,10 @@ def width_and_height_calculator_in_pixel(txt: str, fontname: str, fontsize: int)
         >>> width_and_height_calculator_in_pixel("Hello", "Arial", 12)
         [30, 16]
     """
-
-    font = tk.font.Font(family=fontname, size=fontsize)
-    return [font.measure(txt), font.metrics("linespace")]
+    # Get the Tkinter window
+    get_tk()
+    the_font = font.Font(family=fontname, size=fontsize)
+    return [the_font.measure(txt), the_font.metrics("linespace")]
 
 
 # ##################################################################################
@@ -199,7 +201,7 @@ def fix_icon(name: str) -> str:
     # We have at least one character that is probably an icon.
     for char in name:
         if char.strip() and set(char).difference(printable):
-            _ = tk.Frame()  # Initialize Tkinter
+            # tkframe = PrimeItems.tkroot.frame()  # Initialize Tkinter
             # We have the icon.
             char_dimension = width_and_height_calculator_in_pixel(char, "Courier New", 12)
             trailer = "" if char_dimension[0] > char_dimension[1] else blank
@@ -344,7 +346,7 @@ def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_pos
     line_num = line_to_modify - 1
     check_line = True
     while check_line:
-        try:
+        with contextlib.suppress(IndexError):
             # Only insert bar if previous line character is a right arrow or two blanks.
             if output_lines[line_num][called_task_position] == right_arrow or (
                 output_lines[line_num][called_task_position] == " "
@@ -356,8 +358,6 @@ def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_pos
                 line_num -= 1
             else:
                 check_line = False
-        except IndexError:
-            return
 
 
 # ##################################################################################
@@ -456,7 +456,10 @@ def get_indices_of_line(
     """
 
     return get_index(caller_line_num, output_lines, called_task_name, "[Calls ──▶"), get_index(
-        called_line_num, output_lines, caller_task_name, "[Called by ◄──"
+        called_line_num,
+        output_lines,
+        caller_task_name,
+        "[Called by ◄──",
     )
 
 

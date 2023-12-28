@@ -52,4 +52,5 @@ def initialize_runtime_arguments() -> dict:
         "single_task_name": "",  # Display single Task name only
         "twisty": False,  # Add Task twisty "▶︎" clickable icons for Task details
         "underline": False,  # Underline Project/Profile?Task/Scene names
+        "reset": False,  # Reset settings to default values
     }

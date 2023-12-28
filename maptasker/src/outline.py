@@ -43,7 +43,6 @@ from maptasker.src.getids import get_ids
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.sysconst import FormatLine
-from maptasker.src.xmldata import find_task_by_name
 
 blank = "&nbsp;"
 list_of_found_tasks = []
@@ -54,7 +53,7 @@ arrow = f"├{line*3}▶"
 # ##################################################################################
 # Update Task with calls and called_by details
 # ##################################################################################
-def update_caler_and_called_tasks(task: defusedxml.ElementTree, perform_task_name: str) -> None:
+def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_name: str) -> None:
     # Find the Task xml element to which this Perform Task refers.
     """
     Updates the caller and called tasks lists
@@ -69,8 +68,8 @@ def update_caler_and_called_tasks(task: defusedxml.ElementTree, perform_task_nam
         - Finds the task element for the perform_task_name
         - Adds the caller task's name to the performed task's called_by list
     """
-    if prime_task_id := find_task_by_name(task["name"]):
-        task_called = PrimeItems.tasker_root_elements["all_tasks"][prime_task_id]
+    if PrimeItems.tasks_by_name[task["name"]]:
+        task_called = PrimeItems.tasks_by_name[task["name"]]
 
         # Add it to the list of Tasks this Task calls.
         try:
@@ -80,21 +79,20 @@ def update_caler_and_called_tasks(task: defusedxml.ElementTree, perform_task_nam
             task_called["call_tasks"] = [perform_task_name]
         except AttributeError:
             task_called["call_tasks"] = [perform_task_name]
-    # Add it to the list of Tasks called by this Task
-    # task["call_tasks"].append(perform_task_name)
 
-    # Find the Task xml element to which this Perform Task refers.
-    if prime_task_id := find_task_by_name(perform_task_name):
-        task_called = PrimeItems.tasker_root_elements["all_tasks"][prime_task_id]
+    # Find the Task xml element to which this Perform Task refers.  Set up the called by Task list.
+    with contextlib.suppress(KeyError):
+        if PrimeItems.tasks_by_name[perform_task_name]:
+            task_called = PrimeItems.tasks_by_name[perform_task_name]
 
-        # Add it to the list of Tasks that call this Task.
-        try:
-            if task_called["called_by"] and task["name"] not in task_called["called_by"]:
-                task_called["called_by"].append(task["name"])
-            elif not task_called["called_by"]:
+            # Add it to the list of Tasks that call this Task.
+            try:
+                if task_called["called_by"] and task["name"] not in task_called["called_by"]:
+                    task_called["called_by"].append(task["name"])
+                elif not task_called["called_by"]:
+                    task_called["called_by"] = [task["name"]]
+            except KeyError:
                 task_called["called_by"] = [task["name"]]
-        except KeyError:
-            task_called["called_by"] = [task["name"]]
 
 
 # ##################################################################################
@@ -124,7 +122,7 @@ def do_task_actions(task_actions: defusedxml.ElementTree, task: defusedxml.Eleme
                 all_strings = action.findall("Str")
                 perform_task_name = all_strings[0].text
 
-                update_caler_and_called_tasks(task, perform_task_name)
+                update_caller_and_called_tasks(task, perform_task_name)
 
 
 # ##################################################################################
@@ -295,13 +293,15 @@ def do_profile_tasks(
         # Add any/all "Perform Task" indicators
         call_task = ""
         prime_task = ""
-        if prime_task_id := find_task_by_name(task["name"]):
-            prime_task = PrimeItems.tasker_root_elements["all_tasks"][prime_task_id]
-        try:
-            for perform_task in prime_task["call_tasks"]:
-                call_task = f"{call_task} {perform_task},"
-        except KeyError:
-            call_task = ""
+
+        with contextlib.suppress(KeyError):
+            if PrimeItems.tasks_by_name[task["name"]]:
+                prime_task = PrimeItems.tasks_by_name[task["name"]]
+                try:
+                    for perform_task in prime_task["call_tasks"]:
+                        call_task = f"{call_task} {perform_task},"
+                except KeyError:
+                    call_task = ""
         if call_task:
             call_task = f"{blank*3}{line*3} calls {line*2}▶ {call_task.rstrip(call_task[-1])}"  # Get rid of last comma
 
@@ -408,10 +408,16 @@ def assign_names_to_anonymous_tasks() -> None:
     - If empty, assign default name "Anonymous#{counter}"
     - Increment counter"""
     no_name_counter = 1
+    PrimeItems.tasks_by_name = {}
     for value in PrimeItems.tasker_root_elements["all_tasks"].values():
         if not value["name"]:
             value["name"] = f"Anonymous#{no_name_counter!s}"
             no_name_counter += 1
+
+        # From this point on, we only need to find Tasks by Name.  So create a dict of all Tasks by name.
+        # PrimeItems.tasks_by_name[value["name"]] = {"id": key, "name": value["name"], "xml": value["xml"]}
+        PrimeItems.tasks_by_name[value["name"]] = value
+        ...
 
 
 # ##################################################################################

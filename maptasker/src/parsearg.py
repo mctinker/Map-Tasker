@@ -22,16 +22,26 @@
 import argparse
 import textwrap
 from argparse import ArgumentParser
-from tkinter import Tk, font
+from tkinter import font
 
-from maptasker.src.config import GUI
+from maptasker.src.nameattr import get_tk
 from maptasker.src.sysconst import TYPES_OF_COLORS, logger
 
 
 # ################################################################################
 # Validate amount of indentation -i argument
 # ################################################################################
-def indentation_validation(x):
+def indentation_validation(x: int) -> int:
+    """
+    Validate indentation level
+    Args:
+        x: Indentation level to validate
+    Returns:
+        x: Validated indentation level
+    - Convert input to integer
+    - Check if indentation level is greater than 10
+    - Raise error if indentation is greater than 10
+    - Return indentation level if valid"""
     x = int(x)
     if x > 10:
         raise argparse.ArgumentTypeError(f"Maximum indentation is 10.  You specified {x}.")
@@ -41,9 +51,20 @@ def indentation_validation(x):
 ################################################################################
 # Validate font entered
 ################################################################################
-def font_validation(x):
+def font_validation(x: str) -> str:
+    """
+    Validate font name and return valid font
+    Args:
+        x: Font name to validate
+    Returns:
+        x: Validated font name
+    - Check if input font name is 'help'
+    - Check if input font name is in list of valid monospace fonts
+    - If not valid, raise error
+    - Otherwise return input font name"""
     valid_fonts = ["Courier"]
-    _ = Tk()
+    # Get our Tkinter window
+    get_tk()
     # Get all monospace ("f"=fixed) fonts
     fonts = [font.Font(family=f) for f in font.families()]
     valid_fonts.extend(f.actual("family") for f in fonts if f.metrics("fixed"))
@@ -55,11 +76,19 @@ def font_validation(x):
 # ##################################################################################
 # Get the program arguments using via a GUI (Gooey)
 # ##################################################################################
-def runtime_parser():
-    if GUI:
-        return None
+def runtime_parser() -> None:
+    """
+    Get the program arguments using via a GUI (Gooey)
+    Args:
+        function: {Function description in one line}
+    Returns:
+        None: {Return description in one line}
+    {Processing Logic}:
+        - Setup argument parser
+        - Add arguments for runtime settings
+        - Parse arguments and call output function
+    """
     # Setup for argument parsing
-    # parser = argparse.ArgumentParser(
     parser = ArgumentParser(
         prog="MapTasker",
         description=(
@@ -79,7 +108,7 @@ def runtime_parser():
 
                                 The output HTML file is saved in your current folder/directory
                                 .
-                                """
+                                """,
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
@@ -92,7 +121,7 @@ def runtime_parser():
             """ \
                         Display appearance mode: system (default), light, dark
                             Example: appearance dark
-                            """
+                            """,
         ),
         nargs=1,
         required=False,
@@ -113,7 +142,7 @@ def runtime_parser():
                             Tasker's HTTP Server Example must be installed on the Android device for this to work:
                             Specify the Tasker server port number and the location of the file. Enter both or none.
                             Default: -backup http://192.168.0.210:1821+/Tasker/configs/user/backup.xml
-                            """
+                            """,
         ),
     )
     # Display Profile/Task conditions
@@ -142,7 +171,7 @@ def runtime_parser():
                             3 = display full Task action details on every Task with action details (default)
                             4 = detail level 3 plus global variables
                             Example: '-detail 2' for Task action names only
-                            """
+                            """,
         ),
         choices=[0, 1, 2, 3, 4],
         required=False,
@@ -165,7 +194,7 @@ def runtime_parser():
             """ \
                         Display everything: full detail, Profile/Task conditions,
                         TaskerNet information, directory, etc..
-                            """
+                            """,
         ),
         action="store_true",
         default=False,
@@ -176,9 +205,9 @@ def runtime_parser():
         "-font",
         help=textwrap.dedent(
             """ \
-                        Name of monospaced font to use in output (default = 'Courier').  
+                        Name of monospaced font to use in output (default = 'Courier').
                         Enter font name of 'help' for a list of valid fonts.
-                            """
+                            """,
         ),
         required=False,
         type=font_validation,
@@ -193,7 +222,7 @@ def runtime_parser():
             """ \
                         Prompt for (these) settings via the graphical user interface (GUI):
                             This argument overrides all other arguments.
-                            """
+                            """,
         ),
         action="store_true",
         default=False,
@@ -216,7 +245,7 @@ def runtime_parser():
             """ \
                         Display all Projects/Profiles/Tasks/Scenes in bold, underlined, italicized and/or highlighted text.
                             Example: names underline italicize
-                            """
+                            """,
         ),
         nargs="+",
         required=False,
@@ -230,7 +259,7 @@ def runtime_parser():
             """ \
                         Display configuration outline of Projects, Profiles, Tasks and Scenes, and
                         display the configuraion Map (MapTasker_map.txt) in the default text editor"
-                            """
+                            """,
         ),
         action="store_true",
         default=False,
@@ -259,32 +288,17 @@ def runtime_parser():
         type=str,
         help="Display the details for a specific Profile only.",
     )
-    # Save and Restore are mutually exclusive
-    group1 = parser.add_mutually_exclusive_group()
-    # Restore arguments
-    group1.add_argument(
-        "-restore",
+    # Reset arguments
+    parser.add_argument(
+        "-reset",
         action="store_true",
         default=False,
-        help=textwrap.dedent(
-            """ \
-                        Restore previously saved arguments for reuse:
-                            This argument overrides all other arguments except '-g'
-                            """
-        ),
+        help="Reset previously saved arguments...start fresh.",
     )
     # Display runtime arguments/settings
     parser.add_argument(
         "-runtime",
         help="Display all runtime arguments/settings at the top of the output.",
-        action="store_true",
-        default=False,
-    )
-    # Save arguments
-    group1.add_argument(
-        "-s",
-        "-save",
-        help="Save arguments for reuse",
         action="store_true",
         default=False,
     )
@@ -354,7 +368,14 @@ def runtime_parser():
 # ##################################################################################
 # Get the program arguments using via a GUI (Gooey)
 # ##################################################################################
-def output_results(args):
+def output_results(args: object) -> None:
     # Arguments have been provided
+    """Outputs logging information about function arguments
+    Args:
+        args: The arguments passed to the function
+    Returns:
+        None: This function does not return anything
+    - Format the arguments into a message string
+    - Call the logger to output an info log message with the arguments"""
     message_out = f"Arguments: {args}"
     logger.info(message_out)

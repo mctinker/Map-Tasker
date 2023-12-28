@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#! /usr/bin/env python3  # noqa: D100
 
 # #################################################################################### #
 #                                                                                      #
@@ -11,7 +11,6 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-
 import atexit
 import contextlib
 import sys
@@ -20,17 +19,17 @@ from json import dumps, loads  # For write and read counter
 from pathlib import Path
 
 # importing tkinter and tkinter.ttk and all their functions and classes
-from tkinter import Tk, messagebox
+from tkinter import TkVersion, messagebox
 
 # importing askopenfile (from class filedialog) and messagebox functions
 from tkinter.filedialog import askopenfile
 
-import maptasker.src.migrate as old_to_new
 import maptasker.src.progargs as get_arguments
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DARK_MODE, GUI
 from maptasker.src.error import error_handler
-from maptasker.src.fonts import get_fonts
+
+# from maptasker.src.fonts import get_fonts
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getbakup import get_backup_file
 from maptasker.src.primitem import PrimeItems
@@ -48,17 +47,19 @@ from maptasker.src.taskerd import get_the_xml_data
 # Use a counter to determine if this is the first time run.
 #  If first time only, then provide a user prompt to locate the backup file
 # ##################################################################################
-def read_counter():
+def read_counter() -> int:
     """
     Read the program counter
     Get the count of the number of times MapTasker has been called
         Parameters: none
         Returns: the count of the number of times the program has been called
     """
-    return loads(open(COUNTER_FILE, "r").read()) + 1 if Path.exists(Path(COUNTER_FILE).resolve()) else 0
+    with open(COUNTER_FILE) as f:
+        return loads(f.read()) + 1 if Path.exists(Path(COUNTER_FILE).resolve()) else 0
 
 
-def write_counter():
+
+def write_counter() -> None:
     """
     Write the program counter
     Write out the number of times MapTasker has been called
@@ -67,7 +68,6 @@ def write_counter():
     """
     with open(COUNTER_FILE, "w") as f:
         f.write(dumps(run_counter))
-    return
 
 
 run_counter = read_counter()
@@ -90,10 +90,11 @@ def open_and_get_backup_xml_file() -> dict:
 
     logger.info("entry")
     file_error = False
-    # Initialize tkinter
-    tkroot = Tk()
-    tkroot.geometry("200x100")
-    tkroot.title("Select Tasker backup xml file")
+
+    # Initialize window...no longer need this since everything is going thru the GUI
+    # get_tk()
+    # PrimeItems.tkroot.geometry("200x100")
+    # PrimeItems.tkroot.title("Select Tasker backup xml file")
     PrimeItems.file_to_get = None
 
     # dir_path = path.dirname(path.realpath(__file__))  # Get current directory
@@ -106,31 +107,28 @@ def open_and_get_backup_xml_file() -> dict:
     if PrimeItems.program_arguments["debug"] and PrimeItems.program_arguments["fetched_backup_from_android"] is False:
         PrimeItems.program_arguments["file"] = ""
         try:
-            PrimeItems.file_to_get = open(f"{dir_path}/backup.xml", "r")
+            PrimeItems.file_to_get = open(f"{dir_path}/backup.xml")
         except OSError:
             error_handler(
-                (f"Error: The backup.xml file was not found in {dir_path}.  Program" " terminated!"),
+                (f"Error: The backup.xml file was not found in {dir_path}.  Program terminated!"),
                 3,
             )
 
     # See if we already have the file
     elif PrimeItems.program_arguments["file"]:
         filename = isinstance(PrimeItems.program_arguments["file"], str)
-        if not filename:
-            filename = PrimeItems.program_arguments["file"].name
-        else:
-            filename = PrimeItems.program_arguments["file"]
+        filename = PrimeItems.program_arguments["file"].name if not filename else PrimeItems.program_arguments["file"]
 
         # We already have the file name...open it.
         try:
-            PrimeItems.file_to_get = open(filename, "r")
+            PrimeItems.file_to_get = open(filename)
         except FileNotFoundError:
             file_not_found = filename
             error_handler(f"Backup file {file_not_found} not found.  Program ended.", 6)
     else:
         try:
             PrimeItems.file_to_get = askopenfile(
-                parent=tkroot,
+                parent=PrimeItems.tkroot,
                 mode="r",
                 title="Select Tasker backup xml file",
                 initialdir=dir_path,
@@ -145,8 +143,6 @@ def open_and_get_backup_xml_file() -> dict:
         elif file_error:
             PrimeItems.error_code = 6
             return
-    tkroot.destroy()
-    del tkroot
 
     return
 
@@ -182,7 +178,7 @@ def setup_colors() -> dict:
                 try:
                     if PrimeItems.colors_to_use[color_argument_name]:
                         colors_to_use[color_argument_name] = PrimeItems.colors_to_use[color_argument_name]
-                except KeyError:
+                except KeyError:  # noqa: PERF203
                     continue
 
     return colors_to_use
@@ -213,8 +209,8 @@ def log_startup_values() -> None:
     Log the runtime arguments and color mappings
     """
     setup_logging()  # Get logging going
-    logger.info(f"{MY_VERSION} {str(datetime.now())}")
-    logger.info(f"sys.argv:{str(sys.argv)}")
+    logger.info(f"{MY_VERSION} {str(datetime.now())}")  # noqa: RUF010, DTZ005
+    logger.info(f"sys.argv:{str(sys.argv)}")  # noqa: RUF010
     for key, value in PrimeItems.program_arguments.items():
         logger.info(f"{key}: {value}")
     for key, value in PrimeItems.colors_to_use.items():
@@ -264,21 +260,74 @@ def get_data_and_output_intro() -> int:
 
 
 # ##################################################################################
+# Make sure we have the appropriate version of Python and Tkinter
+# ##################################################################################
+def check_versions() -> None:
+    """
+    Checks the Python and Tkinter versions
+    Args:
+        None: No arguments
+    Returns:
+        None: Does not return anything
+    - It gets the Python version and splits it into major, minor, and patch numbers
+    - It checks if the major version is less than 3 or the major is 3 and minor is less than 10
+    - It gets the Tkinter version and splits it into major and minor
+    - It checks if the major is less than 8 or the major is 8 and minor is less than 6
+    - If either check fails, it logs and prints an error message and exits
+    """
+    msg = ""
+    version = sys.version
+    version = version.split(" ")
+    major, minor, patch = (int(x, 10) for x in version[0].split("."))
+    if major < 3 or (major == 3 and minor < 10):
+        msg = f"Python version {sys.version} is not supported.  Please use Python 3.10 or greater."
+    version = str(TkVersion)
+    major, minor = version.split(".")
+    if int(major) < 8 or (int(major) == 8 and int(minor) < 6):
+        msg = (
+            f"{msg}  Tcl/tk (Tkinter) version {TkVersion} is not supported.  Please use Tkinter version 8.6 or greater."
+        )
+        logger.error(msg)
+    if msg:
+        logger.error("MapTasker", msg)
+        print(msg)  # noqa: T201
+        sys.exit(1)
+
+
+# ##################################################################################
 # Perform maptasker program initialization functions
 # ##################################################################################
 def start_up() -> dict:
     # Get any arguments passed to program
-    logger.info(f"sys.argv{str(sys.argv)}")
+    """
+    Initializes the program startup.
+    Args:
+        None
+    Returns:
+        None
+    Processing Logic:
+        - Gets any arguments passed to the program
+        - Migrates any old argument files to a new format
+        - Gets runtime arguments from the command line or GUI
+        - Gets the list of available fonts
+        - Gets a map of colors to use
+        - Gets key program elements and outputs intro text
+        - Logs startup values if debug mode is enabled
+    """
+    logger.info(f"sys.argv{sys.argv!s}")
+
+    # Validate runtime versions
+    check_versions()
 
     # Rename/convert any old argument file to new name/format for clarity
     # (one time only operation)
-    old_to_new.migrate()
+    # old_to_new.migrate()
 
     # Get runtime arguments (from CLI or GUI)
     get_arguments.get_program_arguments()
 
     # Get our list of fonts
-    _ = get_fonts(True)
+    # _ = get_fonts(True)
 
     # Get our map of colors
     PrimeItems.colors_to_use = setup_colors()

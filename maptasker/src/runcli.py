@@ -4,19 +4,20 @@
 #                                                                                      #
 # runcli: process command line interface arguments for MapTasker                       #
 #                                                                                      #
-# Add the following statement (without quotes) to your Terminal Shell config file.     #
+# Add the following statement (without quotes) to your Terminal Shell config file.       #
 #  (BASH, Fish, etc.) to eliminate the runtime msg:                                    #
 #  DEPRECATION WARNING: The system version of Tk is deprecated ...                     #
 #  "export TK_SILENCE_DEPRECATION = 1"                                                 #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
+# complete source code of licensed works and modifications, which include larger works  #
 # using a licensed work, under the same license. Copyright and license notices must be #
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
 import contextlib
+import os
 import sys
 from collections import namedtuple
 
@@ -31,6 +32,7 @@ from maptasker.src.parsearg import runtime_parser
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.rungui import process_gui
 from maptasker.src.sysconst import (
+    ARGUMENTS_FILE,
     MY_LICENSE,
     MY_VERSION,
     TYPES_OF_COLORS,
@@ -241,11 +243,11 @@ def display_version():
 
 """
     color_to_use = Colors.Yellow if darkdetect.isDark() else Colors.Blue
-    print(header)
-    print(f"{color_to_use}{MY_VERSION}, under license {MY_LICENSE}\033[0m")
-    print("")
+    print(header)  # noqa: T201
+    print(f"{color_to_use}{MY_VERSION}, under license {MY_LICENSE}\033[0m")  # noqa: T201
+    print("")  # noqa: T201
     clip_figure("castles", False)
-    exit(0)
+    sys.exit(0)
 
 
 # ##################################################################################
@@ -271,13 +273,6 @@ def process_arguments(args: object) -> dict:
                 get_and_set_the_color(f"-c{item}={the_name[0]}")
             else:
                 get_and_set_the_color(f"-c{item}={the_name}")
-
-    # Save the arguments
-    if getattr(args, "s"):
-        (
-            PrimeItems.program_arguments,
-            PrimeItems.colors_to_use,
-        ) = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)
 
     return
 
@@ -372,6 +367,7 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):
         p=False,
         profile=None,
         project=None,
+        reset=False,
         restore=False,
         runtime=False,
         s=False,
@@ -442,6 +438,9 @@ def process_cli() -> None:
         Returns:
             None
     """
+    gui_flag = "g"
+    restore_flag = "restore"
+    reset_flag = "reset"
 
     # Intialize runtime arguments if we don't yet have them.
     if not PrimeItems.colors_to_use:
@@ -451,18 +450,17 @@ def process_cli() -> None:
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
     logger.debug(f"Program arguments: {args}")
 
+    # Restore runtime arguments if we are not doing a reset and there is a restore file.
+    PrimeItems.program_arguments["reset"] = getattr(args, reset_flag)
+    if not PrimeItems.program_arguments["reset"] and os.path.isfile(ARGUMENTS_FILE):
+        restore_arguments()
+
     # If using the GUI, them process the GUI.
-    if getattr(args, "g"):  # GUI for input?
+    if getattr(args, gui_flag):  # GUI for input?
         (
             PrimeItems.program_arguments,
             PrimeItems.colors_to_use,
         ) = process_gui(True)
-
-    # Restore arguments from file?
-    elif getattr(args, "restore"):
-        # Restore all changes that have been saved for progargs
-        restore_arguments()
-        PrimeItems.program_arguments["restore"] = True
 
     # Not doing the GUI.  Process commands from command line.
     else:

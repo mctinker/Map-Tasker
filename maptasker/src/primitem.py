@@ -43,6 +43,7 @@
 #  directories = points to our directory items if we are displaying a directory
 #  variables = Tasker variables.
 #  current_project = current Project being processed
+#  tkroot = root for Tkinter (can only get it once)
 #
 #   return
 from __future__ import annotations
@@ -101,6 +102,7 @@ class PrimeItems:
     current_project = ""
     error_code = 0
     error_msg = ""
+    tkroot = None
 
 
 # ##################################################################################

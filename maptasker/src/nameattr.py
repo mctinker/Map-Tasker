@@ -3,7 +3,7 @@
 # #################################################################################### #
 #                                                                                      #
 # nameattr: Format the Project/Profile/Task/Scene name with bold, highlighting or      #
-#            italisized.                                                               #
+#            italisized.  Also used for some utility functions.                        #
 #                                                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
 # complete source code of licensed works and modifications, which include larger works #
@@ -11,6 +11,8 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+import tkinter as tk
+
 from maptasker.src.primitem import PrimeItems
 
 
@@ -49,3 +51,20 @@ def add_name_attribute(name: str) -> str:
         end_underline = "</u>"
 
     return f"{underline}{highlight}{bold}{italicize}{name}{end_italicize}{end_bold}{end_highlight}{end_underline}"
+
+
+# ##################################################################################
+# Get Tkinter (can only get it once)
+# ##################################################################################
+def get_tk() -> None:
+    """
+    Initialize tkinter root window
+    Args:
+        None
+    Returns:
+        None
+    - Check if PrimeItems.tkroot already exists
+    - If not, initialize new Tkinter root window object and assign to PrimeItems.tkroot
+    - Return PrimeItems.tkroot"""
+    if not PrimeItems.program_arguments["gui"]:
+        PrimeItems.tkroot = tk.Tk()

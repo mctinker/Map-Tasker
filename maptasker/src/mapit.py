@@ -21,18 +21,18 @@
 # #################################################################################### #
 #                                                                                      #
 # mapit: Main Program                                                                  #
-#            Read the Tasker backup file to build a visual map of its configuration:   #
-#            Projects, Profiles, Tasks, Scenes                                         #
+#            Read the Tasker backup file to build a visual map of its configuration:     #
+#            Projects, Profiles, Tasks, Scenes                                          #
 #                                                                                      #
-# mapitall: Kick-off function                                                          #
+# mapitall: Kick-off function                                                           #
 #                                                                                      #
 # Requirements                                                                         #
 #      1- Python version 3.10 or higher                                                #
-#      2- Your Tasker backup.xml file, uploaded to your MAC                            #
+#      2- Your Tasker backup.xml file, uploaded to your MAC                             #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
+# complete source code of licensed works and modifications, which include larger works  #
 # using a licensed work, under the same license. Copyright and license notices must be #
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
@@ -43,9 +43,12 @@
 import contextlib
 import copy
 import gc
+import os
 import sys
 import webbrowser
-from pathlib import Path
+from subprocess import run
+
+import psutil
 
 import maptasker.src.proginit as initialize
 import maptasker.src.taskuniq as special_tasks
@@ -54,6 +57,7 @@ from maptasker.src.caveats import display_caveats
 from maptasker.src.dirout import output_directory
 from maptasker.src.error import error_handler
 from maptasker.src.format import format_line
+from maptasker.src.getputer import save_restore_args
 from maptasker.src.globalvr import get_variables, output_variables
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
@@ -68,7 +72,6 @@ from maptasker.src.sysconst import (
     logger,
 )
 
-# import os
 # print('Path:', os.getcwd())
 # print(
 #     "__file__={0:<35} | __name__={1:<25} | __package__={2:<25}".format(
@@ -76,10 +79,11 @@ from maptasker.src.sysconst import (
 #     )
 # )
 # print(sys.argv)
-
 # This is the one-and-only global variable needed for a special circumstance:
 #   ...program crash
-#   print(sys.version)  # Which Python are we using today?
+#   print("Python version ", sys.version)  # Which Python are we using today?
+# print("Tkinter version ", tk.TkVersion)  # Which Tkinter?
+
 
 crash_debug = False
 
@@ -121,7 +125,7 @@ def on_crash(exctype: str, value: str, traceback: list) -> None:
         )
         print("\a", end="", flush=True)  # noqa: T201
         # Redirect print to a debug log
-        with Path.open(debug_file, "w") as log:
+        with open(debug_file, "w") as log:
             # sys.stdout = log
             sys.stderr = log
             sys.__excepthook__(exctype, value, traceback)
@@ -158,6 +162,7 @@ def clean_up_memory() -> None:
     # Reset all of our primasry items
     PrimeItemsReset()
     PrimeItems.program_arguments = initialize_runtime_arguments
+
     # Tell python to collect the garbage
     gc.collect()
 
@@ -173,11 +178,12 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
         :return: nothing
     """
     logger.info(f"Function Entry: write_out_the_file dir:{my_output_dir}")
-    with Path.open(f"{my_output_dir}{my_file_name}", "w") as out_file:
+    output_file = f"{my_output_dir}{my_file_name}"
+    with open(output_file, "w") as out_file:
         # Output the rest that is in our output queue
         for num, item in enumerate(PrimeItems.output_lines.output_lines):
-            # Check to see if this is where the directory is to go.
-            # Output directory if so.  output_directory will create it's own list of
+            # Check to see if this is where the directory is to go in the
+            # Output directory. if so, output_directory will create it's own list of
             # output lines.
             if "maptasker_directory" in item:
                 # Temporarily save our output lines
@@ -392,7 +398,6 @@ def process_outline() -> None:
     - Try to open and display the generated map file MapTasker_map.txt using the default text editor
     - If the map file is not found, suppress the error and do not display anything
     """
-    from subprocess import run
 
     """
     Output the configuration outline and map
@@ -480,7 +485,7 @@ def display_back_matter(
         output_variables("Unreferenced Global Variables", "")
 
     # Get the output directory/folder path
-    my_output_dir = Path.cwd()
+    my_output_dir = os.getcwd()
 
     # Output the Configuration Outline
     if program_arguments["outline"]:
@@ -520,6 +525,57 @@ def display_back_matter(
 
     # Display the final results in the default web browser
     display_output(my_output_dir, my_file_name)
+
+
+# ##################################################################################
+# Re-launch our program via the "rerun" feature.
+# ##################################################################################
+def restart_program() -> None:
+    """Restarts the current program, with file objects and descriptors
+       cleanup
+    """
+
+    try:
+        p = psutil.Process(os.getpid())
+        for handler in p.get_open_files() + p.connections():
+            os.close(handler.fd)
+    except Exception as e:
+        logger.error(e)
+
+    python = sys.executable
+    os.execl(python, python, *sys.argv)
+
+
+# ##################################################################################
+# Handle "rerun" request
+# ##################################################################################
+def do_rerun() -> None:
+    """
+    Re-runs the program with a new file
+    Args:
+        None: No arguments required
+    Returns:
+        None: Function does not return anything
+    Re-runs the program with a new file by:
+    - Checking if a file is specified to rerun with
+    - Getting the file name
+    - Freeing up memory
+    - Rerunning the program with the new file
+    """
+    if PrimeItems.file_to_get:
+        file_is_string = isinstance(PrimeItems.file_to_get, str)
+        if file_is_string:
+            filename = copy.deepcopy(PrimeItems.file_to_get)
+        else:
+            filename = copy.deepcopy(PrimeItems.file_to_get.name)
+
+        # Free up most of our storage.
+        clean_up_memory()
+
+        # Now do it!  Rerun the program.
+        with contextlib.suppress(KeyError):
+            restart_program()
+            # mapit_all(filename)
 
 
 ########################################################################################
@@ -665,22 +721,14 @@ def mapit_all(file_to_get: str) -> int:
         single_task_found,
     )
 
+    # Save our runtime settings for next time.
+    _, _ = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)
+
     # Rerun this program if "Rerun" was selected from GUI
     # First get the filename as a string.
     if program_arguments["rerun"]:
-        if PrimeItems.file_to_get:
-            file_is_string = isinstance(PrimeItems.file_to_get, str)
-            if file_is_string:
-                filename = copy.deepcopy(PrimeItems.file_to_get)
-            else:
-                filename = copy.deepcopy(PrimeItems.file_to_get.name)
-
-        # Free up most of our storage.
-        clean_up_memory()
-
-        # Now do it!  Rerun the program.
-        with contextlib.suppress(KeyError):
-            mapit_all(filename)  # Not rerun...just cleanup.
+        do_rerun()
+    # Just a "run".  Clean up and exit.
     else:
         clean_up_memory()
 

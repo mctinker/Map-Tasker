@@ -19,6 +19,7 @@ from tkinter import font
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.lineout import LineOut
+from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proginit import get_data_and_output_intro
 
@@ -77,7 +78,7 @@ def valid_item(the_name: str, element_name: str, debug: bool, appearance_mode: s
 # ##################################################################################
 # Get all monospace fonts from TKInter
 # ##################################################################################
-def get_fonts() -> None:
+def get_mono_fonts() -> None:
     """
     Returns a dictionary of fixed-width fonts
     Args:
@@ -88,6 +89,8 @@ def get_fonts() -> None:
     - Filter fonts to only those with a fixed width
     - Build a dictionary with font name as key and family as value
     """
+    # Make sure we have the Tkinter window/root
+    get_tk()
     fonts = [font.Font(family=f) for f in font.families()]
     return {f.name: f.actual("family") for f in fonts if f.metrics("fixed")}
 
@@ -109,7 +112,7 @@ def get_monospace_fonts() -> dict:
     - If Courier not found, set Monaco as default res
     - Return lists of monospace fonts and Courier/Monaco font
     """
-    fonts = get_fonts()
+    fonts = get_mono_fonts()
     font_items = ["Courier"]
     font_items = [value for value in fonts.values() if "Wingdings" not in value]
     # Find which Courier font is in our list and set.

@@ -316,7 +316,7 @@ def check_task(item: str) -> bool:
             item (str): directory hyperlink item we are processing
 
         Returns:
-            bool: True if we should output this hperlink, False if it is to be ingored.
+            bool: True if we should output this hyperlink, False if it is to be ingored.
     """
     if PrimeItems.program_arguments["single_task_name"] and item[1] != PrimeItems.program_arguments["single_task_name"]:
         return False

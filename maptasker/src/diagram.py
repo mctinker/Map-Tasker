@@ -19,6 +19,7 @@ diagram and graphviz.
 from __future__ import annotations
 
 import contextlib
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -37,8 +38,7 @@ from maptasker.src.diagutil import (
 )
 from maptasker.src.getids import get_ids
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import MY_VERSION, UNKNOWN_TASK_NAME, FormatLine
-from maptasker.src.xmldata import find_task_by_name
+from maptasker.src.sysconst import MY_VERSION, FormatLine
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -109,7 +109,7 @@ def output_the_task(
         task_name = task["name"]
 
         # Get the primary task pointer for this task.
-        prime_task = PrimeItems.tasker_root_elements["all_tasks"][find_task_by_name(task_name)]
+        prime_task = PrimeItems.tasks_by_name[task_name]
         with contextlib.suppress(KeyError):
             if prime_task["call_tasks"]:
                 call_tasks = f" [Calls {line_right_arrow} {', '.join(prime_task['call_tasks'])}]"
@@ -182,8 +182,8 @@ def print_all_tasks(
         called_by_tasks = ""
 
         # First we must find our real Task element that matches this "task".
-        if prime_task_id := find_task_by_name(task["name"]):
-            prime_task = PrimeItems.tasker_root_elements["all_tasks"][prime_task_id]
+        if PrimeItems.tasks_by_name[task["name"]]:
+            prime_task = PrimeItems.tasks_by_name[task["name"]]
             # Now see if this Task has any "called_by" Tasks.
             with contextlib.suppress(KeyError):
                 called_by_tasks = f" [Called by {line_left_arrow} {', '.join(prime_task['called_by'])}]"
@@ -810,10 +810,9 @@ def network_map(network: dict) -> None:
 
     # Print it all out.
     # Redirect print to a file
-    with Path.open("MapTasker_Map.txt", "w") as mapfile:
-        PrimeItems.printfile = mapfile
+    output_dir = f"{os.getcwd()}/MapTasker_Map.txt"  # Get the directory from which we are running.
+    with open(str(output_dir), "w", encoding="utf-8") as mapfile:
+        # PrimeItems.printfile = mapfile
         for line in PrimeItems.netmap_output:
-            print(line, file=mapfile)
-
-    # Close the output print file
-    mapfile.close()
+            # print(line, file=mapfile)
+            mapfile.write(f"{line}\n")
