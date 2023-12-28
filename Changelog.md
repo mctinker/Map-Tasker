@@ -2,25 +2,37 @@
 
 All notable changes to this project will be documented in this file!
 
-## [2.5.4] 2023-Dec-14
+## [2.6.0] 2023-Dec-28
 
 ### Changed
 
-- Anonymous Profiles and Tasks in the outline now have a unique number associated with each.
-- Better arrow spacing in the outline diagram map.
-- Moved the position of the down arrows in the diagram closer to the beginning for legibility.
+- The runtime options are now automatically saved on exit and restored on entry.  The runtime options '-save' and '-restore' have been removed.
+- The "Rerun" GUI option has been modified to use PSUTIL to avoid a program error.
+- The migration functionality to support the older internal backup file format has been removed.
 
 ### Fixed
 
-- The GUI allows invalid port and file location input on the "Get Backup from Android Device" input field.
-- The outline diagram is missing some links between called and caller Tasks.
+- "Rerun" causes program error.
+- Program error writing diagram file (MapTasker_Map.txt) if on Python version 3.10.
+- Fixed bug in the program when opening output file if on Python version 3.10.
+- Program error if the window is closed before entering any input into the GUI.
 
 ### Added
 
-- The GUI messages for getting the backup file from the Android device are clearer.
-- Add a header under grand totals at the end of the output.
+- New "-reset" runtime option to reset the program to the default settings rather than restore and use saved settings.
+- Performance enhanced for outline/diagram
 
 ## Older History Log
+
+## [2.5.4]
+
+- Changed: Anonymous Profiles and Tasks in the outline now have a unique number associated with each.
+- Changed: Better arrow spacing in the outline diagram map.
+- Changed: Moved the position of the down arrows in the diagram closer to the beginning for legibility.
+- Fixed: The GUI allows invalid port and file location input on the "Get Backup from Android Device" input field.
+- Fixed: The outline diagram is missing some links between called and caller Tasks.
+- Added: Added: The GUI messages for getting the backup file from the Android device are clearer.
+- Added: Add a header under grand totals at the end of the output.
 
 ## [2.5.3] 2023-Dec-08
 
@@ -56,7 +68,7 @@ All notable changes to this project will be documented in this file!
 ## [2.5.0] 2023-Nov-15
 
 - Changed: Rewrite code to improve performance and maintainability.
-- Changed: Renamed the files: deprecated > depricate, getputarg > getputer, variables > globalvr, shellsort > shelsort for OS compatibility.
+- Changed: Renamed the files: "deprecated" > "depricate", "getputarg" > "getputer", "variables" > "globalvr", "shellsort" > "shelsort" for OS compatibility.
 - Changed: A "rerun" now clears all settings after the run to avoid ever-growing memory demand.
 - Fixed: The GUI now pings the IP address of the Android device to make sure it is reachable before fetching the backup from it.
 - Fixed; The GUI "Get Backup FFrom Android Device" button is now properly formatted after usage.
@@ -323,7 +335,7 @@ All notable changes to this project will be documented in this file!
       - Fixed: Incorrectly formatted HTML
       - Fixed: Improved Taskernet description formatting
       - Fixed: Spacing on indented If/For segments
-      - Added: Clearly identify Projects that have no Profiles
+      - Added: More clearly identify Projects that have no Profiles
 
 ## [1.3.1] 2023-03-19
 
@@ -429,7 +441,7 @@ All notable changes to this project will be documented in this file!
        Added: New option (-project='project name') to display a single Project, its Profiles and Tasks
        Added: Missing Plugin Actions: AutoTools Action Wait, Autotools Time, Autotools Json Read
        Fixed: Cleaned up several Task Actions
-       Fixed: The background color option is not getting properly set
+       Fixed: The background color option is not properly set
        Fixed: -task= option could result in multiple Tasks being displayed for the same Profile
 
 ## 0.7.0 ## 2022-10-26
@@ -460,88 +472,122 @@ All notable changes to this project will be documented in this file!
        Added: Optimized code for debug/testing mode
        Added: More details for some Actions Fixed: incorrect colors used if displaying specific Task
        Fixed: Not capturing all Action attributes if type is Int (integer)
-       Fixed: Drop final comma from Action details since nothing follows after the comma
+       Fixed: Drop the final comma from Action details since nothing follows after the comma
+
 ## 0.6.5 ## 2022-09-27
-       Added: additional Task actions recognized
+
+       Added: Additional Task actions recognized
               Actions complete: Phone, Scenes
        Fixed: Incorrect indentation for Scene's Tasks and regular Tasks
        Fixed: Established a standard Action output format that will be used going forward
        Fixed: Eliminate extraneous print commands
        Fixed: Bug in Action, for which an integer value is stored in a variable
        Fixed: Not properly stripping all extraneous html from backup XML
-## 6.4 Added: additional Task actions recognized
+
+## 6.4 Added: Additional Task actions recognized
+
               Actions complete: Media, Net
        Fixed: Single Task option -t='task' sometimes returns multiple Tasks by mistake
-## 6.3 Added: additional Task actions and Profile configurations recognized
-              Actions complete: Google, Image, Input, Location
+
+## 6.3 Added: Additional Task actions and Profile configurations recognized
+
+       Actions complete: Google, Image, Input, Location
        Added: Start providing explicit detail for Actions
        Changed: Moved this change log to Changelog.md
-## 6.2 Added: additional Task actions and Profile configurations recognized
-              Actions complete: Alert, App, Audio, Code, Display, File
+
+## 6.2 Added: Additional Task actions and Profile configurations recognized
+
+       Actions complete: Alert, App, Audio, Code, Display, File
        Added: prompt msgbox user to locate the file the first time the program is run
        Fixed: don't display Scenes if displaying a single Task
        Fixed: not always finding Task being searched for (-t='task_name')
-## 6.1 Changed: removed requirements for easygui and python-tk@3.9
-       Added: additional Task actions and Profile configurations recognized
-## 6.0 Added: support for colors as arguments -c(type)=color_name  type: Task/Profile/etc.
-       Added: additional Task actions and Profile configurations recognized
+
+## 6.1 Changed: Removed requirements for "easygui" and python-tk@3.9
+
+       Added: Additional Task actions and Profile configurations recognized
+
+## 6.0 Added: support for colors as arguments -c(type)=color_name  type: Task/Profile/etc
+
+       Added: Additional Task actions and Profile configurations recognized
        Fixed: code refinement for better performance
        Fixed: Action 'Turn Wifi' was not designated on/off/toggle
-       Fixed: xml Actions with string 'Task' displaying in wrong color
-       Perform: converted if-then-else processes to python 3.10's match case statements
-       Fixed: deal with extra html tags in plugin data which caused corrupted output font
+       Fixed: XML Actions with string 'Task' displaying in the wrong color
+       Perform: converted if-then-else processes to Python 3.10's match case statements
+       Fixed: deal with extra HTML tags in plugin data which caused corrupted output font
        Fixed: Go To Action had incorrect details
        Fixed: Single Task option -t not working properly
        Changed: Removed list output style (option -l)
+
 ## 5.2 Added: Additional Task actions and Profile configurations recognized
-       Added: If Profile condition is displayed, identify inverted conditions
+
+       Added: If the Profile condition is displayed, identify inverted conditions
        Added: Summary at end of all Projects with no Profiles
        Added: Recognition of the existence of a Launcher Task
        Fixed: Scene details not displaying for runtime option -d1 (default)
        Fixed: Eliminated Profile & Task ID numbers...only needed for debug
        Fixed: code with name of 'Task:' incorrectly caused Task color
+
 ## 5.1 Added: Additional Task actions and Profile configurations recognized
+
 ## 5.0 Added: Changed default font to monospace: Courier
+
        Added: Action details for Power Mode, Mobile Data, Autosync and Setup Quick Setting
        Added: Display Profile's condition (Time, State, Event, etc.) with option -p
        Added: If Task is Unnamed, display just the first Task for -d0 option (like Tasker)
-       Added: identify disabled Profiles
-       Fixed: exit code 1 is due to an program error...corrected and added exit 6
+       Added: identify the disabled Profiles
+       Fixed: exit code 1 is due to a program error...corrected and added exit 6
        Fixed: some Scene-related Tasks were not being listed
-       Fixed: Listing total unknown Tasks included those associated with Scenes
+       Fixed: Listing total unknown Tasks including those associated with Scenes
        Fixed: Changed 'Action: nn' to 'Action nn:'   (moved then colon)
-## 4.3 Added: Support for more Action codes (e.g. plugin & other Task calls
+
+## 4.3 Added: Support for more Action codes (e.g. plugin & other Task calls)
+
        Fixed: Variable Search Replace action value 2 was sometimes incorrect
        Fixed: Removed print output line for -t='task-name' option
-       Fixed: Not displaying owning Project for Tasks not associated to a Profile
+       Fixed: Not displaying owning Project for Tasks not associated with a Profile
        Fixed: Invalid Tasks Not Found Count at the end, if -d0 or -d1 options
+
 ## 4.2 Fixed: Only display Scene Action detail for option -d2
+
        Added: Support for single Task detail only (option -t='Task Name Here')
        Fixed: missing detail in Actions Notify, Custom Settings, Input Dialog & Set Alarm
        Added: Details for plugin Actions
-       Fixed: Unnamed/Anonymous Tasks output in wrong (Green) color when should be Red
+       Fixed: Unnamed/Anonymous Tasks output in the wrong (Green) color when should be Red
        Fixed: Remove 'Task ID: nnn' from output (of no benefit)
-## 4.1 Fixed: Location of output file corrected to be the current folder in msg box
+
+## 4.1 Fixed: The location of the output file is corrected to be the current folder in the msg box
+
        Fixed: If set / not set were reversed
-       Added: Support for disabled Actions and Action conditions (If...
+       Added: Support for disabled Actions and Action conditions (If...)
+
 ## 4.0 Added: indentation support for if/then sequences
+
        Fixed: Action "End For or Stop" is just "End For"
        Added: Support for more Task Action codes
        Added: Action numbers
+
 ## 3.0 Added: display label if found for Task action(s)
+
        Added: Display entry vs exit Task type
        Added: Support for many more Task Action codes
        Added: Support for 3 levels of detail: none, unnamed Tasks only, all Tasks
               Replaced argument -s with -d0 (no actions) and -d2 (all Task actions
               Default is -d1: actions for unnamed/anonymous Tasks only)
        Fixed: Some Scenes with Long Tap were not capturing the Task
-       Fixed: Project with no Tasks was showing incorrect Project name
+       Fixed: Projects with no Tasks were showing an incorrect Project name
+
 ## 2.1 Fixed: actions were not sorted properly
+
        Fixed: Stop action improperly reported as Else action
        Added: Support for more Task Action codes
+
 ## 2.0 Added output style (linear or bullet), colormap['bullet_color'] as global var
+
        Added detail mode (default) which can be turned off with option -s
        displaying unnamed Task's Actions
+
 ## 1.2 Added -v and -h arguments to display the program version and help
+
 ## 1.2 launch browser to display results
+
 ## 1.1 Added list of Tasks for which there is no Profile

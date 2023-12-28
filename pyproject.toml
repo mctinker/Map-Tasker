@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maptasker"
-version = "2.5.4"
+version = "2.6.0"
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README_PyPl.md"
@@ -16,7 +16,7 @@ include = ["**/maptasker/**/*.py", "**/maptasker/assets/*.*"]
 exclude = ["run_test.py", "**/maptasker/**/backup.xml", "**/maptasker/maptasker.log", "**/maptasker/MapTasker.html", "**/maptasker/.MapTasker_RunCount.txt", "**/maptasker/.arguments.txt", "**/maptasker/**/__pycache__", "**/maptasker/**/.dep-tree.yml"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.10.13"
 customtkinter = "^5.2.1"
 ctkcolorpicker = "^0.8.0"
 pillow = "^10.1.0"
@@ -24,6 +24,7 @@ darkdetect = "^0.8.0"
 defusedxml = "^0.7.1"
 requests = "^2.31.0"
 packaging = "^23.2"  # Needed due to bug in customtkinter
+psutil = "^5.9.7"
 
 [tool.poetry.scripts]
 maptasker = "maptasker.main:main"
@@ -43,6 +44,7 @@ priority = "primary"
 
 [tool.ruff]
 line-length = 120
+respect-gitignore = true
 select = [
     'A',    # Builtins
     'ANN',  # Annotations
@@ -78,7 +80,7 @@ select = [
     'PIE',  # Unnecessary code
     'PL',   # Pylint
     'PT',   # Pytest
-    'PTH',  # Use Pathlib
+    # 'PTH',  # Use Pathlib
     'PYI',  # Stub files
     'Q',    # Quotes
     'RET',  # Return
@@ -99,6 +101,7 @@ select = [
 ]
 ignore = [
     "PLR2004",  # Constant value comparison
+    "SIM115",   # Missing "with" on oepn file
     ]
 show-fixes = true
 src = ['src',]
