@@ -2,27 +2,36 @@
 
 All notable changes to this project will be documented in this file!
 
-## [2.6.0] 2023-Dec-28
+## [2.6.2] 2024-Jan-08
 
 ### Changed
 
-- The runtime options are now automatically saved on exit and restored on entry.  The runtime options '-save' and '-restore' have been removed.
-- The "Rerun" GUI option has been modified to use PSUTIL to avoid a program error.
-- The migration functionality to support the older internal backup file format has been removed.
+- Eliminated PSUTIL dependency.
+- On entry to the GUI, the individual items that have been automatically restored are no longer displayed in the text message window.
 
 ### Fixed
 
-- "Rerun" causes program error.
-- Program error writing diagram file (MapTasker_Map.txt) if on Python version 3.10.
-- Fixed bug in the program when opening output file if on Python version 3.10.
-- Program error if the window is closed before entering any input into the GUI.
+- "Rerun" command under certain conditions would never end.
+- Normal exits were not displaying the message that all had ended normally.
+- The saved runtime arguments were restored twice if using the GUI.
 
 ### Added
 
-- New "-reset" runtime option to reset the program to the default settings rather than restore and use saved settings.
-- Performance enhanced for outline/diagram
+- Added: Recognize AutoLocation plugin (Geofences) for Task actions and Profile Events.
 
 ## Older History Log
+
+## [2.6.1]
+
+- Changed: The runtime options are now automatically saved on exit and restored on entry.  The runtime options '-save' and '-restore' have been removed.
+- Changed: The "Rerun" GUI option has been modified to use PSUTIL to avoid a program error.
+- Changed: The migration functionality to support the older internal backup file format has been removed.
+- Fixed: "Rerun" causes program error.
+- Fixed: Program error writing diagram file (MapTasker_Map.txt) if on Python version 3.10.
+- Fixed: Fixed bug in the program when opening output file if on Python version 3.10.
+- Fixed: Program error if the window is closed before entering any input into the GUI.
+- Added: New "-reset" runtime option to reset the program to the default settings rather than restore and use saved settings.
+- Added: Added: Performance enhanced for outline/diagram
 
 ## [2.5.4]
 
@@ -493,7 +502,7 @@ All notable changes to this project will be documented in this file!
 
        Actions complete: Google, Image, Input, Location
        Added: Start providing explicit detail for Actions
-       Changed: Moved this change log to Changelog.md
+       Changed: Moved this change log to "Changelog.md"
 
 ## 6.2 Added: Additional Task actions and Profile configurations recognized
 

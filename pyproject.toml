@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maptasker"
-version = "2.6.0"
+version = "2.6.2"
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README_PyPl.md"
@@ -24,7 +24,6 @@ darkdetect = "^0.8.0"
 defusedxml = "^0.7.1"
 requests = "^2.31.0"
 packaging = "^23.2"  # Needed due to bug in customtkinter
-psutil = "^5.9.7"
 
 [tool.poetry.scripts]
 maptasker = "maptasker.main:main"
@@ -99,9 +98,31 @@ select = [
     'W',    # Warnings
     'YTT',  # sys.version
 ]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "build",
+    "dist",
+    "site-packages",
+    "venv",
+    "README.md",
+]
 ignore = [
     "PLR2004",  # Constant value comparison
     "SIM115",   # Missing "with" on oepn file
+    "S606",     # No shell
     ]
 show-fixes = true
 src = ['src',]

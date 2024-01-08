@@ -35,11 +35,12 @@ The Tasker backup XML can either be manually uploaded to your Mac/Google Drive, 
 
 
     python 3.10: `brew install python3.10`
-    Tkinter 8.6:     `brew install python-tk@3.10`
+    Tkinter 8.6:     `brew install tcl-tk`<sup>3</sup>
 
     Alternatively and preferred, use pyenv to install and establish the correct version of Python:
     `pyenv install 3.10.13`  (tkinter is included in this version of Python)
     `pyenv local 3.10.13`
+
 
 -	Tasker full or partial backup.xml (anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6.  Optionally<sup>2</sup>, this can be fetched directly from your Android device.
 
@@ -94,7 +95,7 @@ Runtime: `maptasker -option1 -option2` ...
         Example: 192.168.0.210:8120+//Tasker/configs/user/backup.xml
 
     `-conditions` to display a Profile's and Task's condition(s),
-    `-c(type) color_name`  define a specific color to 'type', where 'type' is *one* of the following:
+    `-c(type) color_name` defines a specific color to 'type', where 'type' is *one* of the following:
 
       'Project' 'Profile' 'Task' 'Action' 'DisabledProfile' 'UnknownTask'
       'DisabledAction' 'ActionCondition' 'ProfileCondition' 'LauncherTask'
@@ -106,7 +107,7 @@ Runtime: `maptasker -option1 -option2` ...
     `-ch` color help: display all valid colors",
 
     `-detail 0` for silent mode: simple Project/Profile/Task/Scene names with no details,
-    `-detail 1` to display the Action list only if Task is unnamed or anonymous,
+    `-detail 1` to display the Action list only if the Task is unnamed or anonymous,
     `-detail 2` to display Action list names for *all* Tasks,
     `-detail 3` to display Action list names with *all* parameters for all Tasks,
     `-detail 4` to display detail at level 3 plus all Project and unreferenced global variables (default),
@@ -119,7 +120,7 @@ Runtime: `maptasker -option1 -option2` ...
     `-n {bold highlight italicize}` to add formatting options to Project/Profile/Task/Scene names,
     `-o` to display the Configuration outline and output a map as MapTasker_map.txt
     `-preferences` to display Tasker's preference settings,
-    `-reset` to ignore and reset the previously stored runtime arguments (e.g. fresh start, previously stored/saved arguments are ignored),
+    `-reset` to ignore and reset the previously stored runtime arguments to default values,
     `-runtime` to display the runtime arguments and their settings at the top of the output,
     `-twisty` to display Task details hidden by a twisty "▶︎".  Click on twisty to reveal.
     `-taskernet` to display any TaskerNet share details,
@@ -175,6 +176,7 @@ Example fetching backup file directly from your Android device:
 Alternatively, see *config.py* for some user-customizable options.  Make user-specific changes in this file and save it rather than specifying them as arguments or via the GUI.
 
 ## Notes
+
 <sup>1</sup> While this app has been extensively tested on OS X, there is no reason it should not also run on a Windows PC or a machine running Linux.  Unfortunately, I do not have a Windows or Linux PC to test this on.
 
 <sup>2</sup> For the "Get backup" (fetch backup.xml directly from your Android device) option to work, you must have the following prerequisites:
@@ -182,14 +184,19 @@ Alternatively, see *config.py* for some user-customizable options.  Make user-sp
           2- The [sample Tasker Project](https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example) must be installed and active on the Android device,  and the server must be running..see Android notification: "HTTP Server Info...".
           3- See config.py to change the default settings permanently
 
+<sup>1</sup> If having problems getting Tkinter to version 8.6, try the following:
+1- uninstall python
+2- brew install tcl-tk
+3- reinstall python
+If still having Tkinter version problems, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
+
 ### To-Do List (in no particular order)
 
 [] Include/map remaining Tasker preferences
 [] Support additional plugins
 
+### Contributions
 
-
-### Contributions:
 [Taskometer](https://github.com/Taskomater/Tasker-XML-Info)
 
 [©Connor Talbot 2021 for Clippy](https://github.com/con-dog/clippy)
