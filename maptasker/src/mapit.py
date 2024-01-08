@@ -21,18 +21,18 @@
 # #################################################################################### #
 #                                                                                      #
 # mapit: Main Program                                                                  #
-#            Read the Tasker backup file to build a visual map of its configuration:     #
-#            Projects, Profiles, Tasks, Scenes                                          #
+#            Read the Tasker backup file to build a visual map of its configuration:   #
+#            Projects, Profiles, Tasks, Scenes                                         #
 #                                                                                      #
-# mapitall: Kick-off function                                                           #
+# mapitall: Kick-off function                                                          #
 #                                                                                      #
 # Requirements                                                                         #
 #      1- Python version 3.10 or higher                                                #
-#      2- Your Tasker backup.xml file, uploaded to your MAC                             #
+#      2- Your Tasker backup.xml file, uploaded to your MAC                            #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works  #
+# complete source code of licensed works and modifications, which include larger works #
 # using a licensed work, under the same license. Copyright and license notices must be #
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
@@ -41,14 +41,11 @@
 # #################################################################################### #
 
 import contextlib
-import copy
 import gc
 import os
 import sys
 import webbrowser
 from subprocess import run
-
-import psutil
 
 import maptasker.src.proginit as initialize
 import maptasker.src.taskuniq as special_tasks
@@ -82,6 +79,7 @@ from maptasker.src.sysconst import (
 # This is the one-and-only global variable needed for a special circumstance:
 #   ...program crash
 #   print("Python version ", sys.version)  # Which Python are we using today?
+# import tkinter as tk
 # print("Tkinter version ", tk.TkVersion)  # Which Tkinter?
 
 
@@ -532,18 +530,16 @@ def display_back_matter(
 # ##################################################################################
 def restart_program() -> None:
     """Restarts the current program, with file objects and descriptors
-       cleanup
+    cleanup
     """
-
-    try:
-        p = psutil.Process(os.getpid())
-        for handler in p.get_open_files() + p.connections():
-            os.close(handler.fd)
-    except Exception as e:
-        logger.error(e)
-
+    # Get the path of the python interpreter and use it to execute ourselves again.
     python = sys.executable
-    os.execl(python, python, *sys.argv)
+
+    # Restart our program (sys.argv[0])
+    with contextlib.suppress(OSError):
+        # Asterisk before sys.argv breaks it into separate arguments
+        os.execl(python, python, *sys.argv)
+    sys.exit(0)
 
 
 # ##################################################################################
@@ -562,20 +558,14 @@ def do_rerun() -> None:
     - Freeing up memory
     - Rerunning the program with the new file
     """
-    if PrimeItems.file_to_get:
-        file_is_string = isinstance(PrimeItems.file_to_get, str)
-        if file_is_string:
-            filename = copy.deepcopy(PrimeItems.file_to_get)
-        else:
-            filename = copy.deepcopy(PrimeItems.file_to_get.name)
 
-        # Free up most of our storage.
-        clean_up_memory()
+    # Get rid of everything.
+    clean_up_memory()
 
-        # Now do it!  Rerun the program.
-        with contextlib.suppress(KeyError):
-            restart_program()
-            # mapit_all(filename)
+    # Now do it!  Rerun the program.
+    with contextlib.suppress(KeyError):
+        restart_program()
+        # mapit_all(filename)
 
 
 ########################################################################################

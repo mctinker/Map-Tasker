@@ -50,5 +50,6 @@ def error_handler(error_message: str, exit_code: int) -> None:
 
     # return code 0
     else:
-        logger.debug(final_error_message)
+        print(final_error_message)  # noqa: T201
+        logger.info(final_error_message)
         return

@@ -658,6 +658,8 @@ class MyGui(customtkinter.CTk):
         # Now restore the settings and update the fields if not resetting.
         if not PrimeItems.program_arguments["reset"]:
             self.restore_settings_event()
+            self.textbox.destroy()  # Clear any prior error message
+            self.display_message_box("Settings restored.", True)
 
     # ##################################################################################
     # Establish all of the default values used
@@ -2033,7 +2035,6 @@ class MyGui(customtkinter.CTk):
         self.withdraw()
         self.quit()
         self.quit()
-
 
     # ##################################################################################
     # The 'Exit' program button has been pressed.  Call it quits

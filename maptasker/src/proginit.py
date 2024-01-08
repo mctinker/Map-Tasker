@@ -54,9 +54,11 @@ def read_counter() -> int:
         Parameters: none
         Returns: the count of the number of times the program has been called
     """
-    with open(COUNTER_FILE) as f:
-        return loads(f.read()) + 1 if Path.exists(Path(COUNTER_FILE).resolve()) else 0
-
+    try:
+        with open(COUNTER_FILE) as f:
+            return loads(f.read()) + 1 if Path.exists(Path(COUNTER_FILE).resolve()) else 0
+    except FileNotFoundError:
+        return 0
 
 
 def write_counter() -> None:
@@ -291,7 +293,7 @@ def check_versions() -> None:
     if msg:
         logger.error("MapTasker", msg)
         print(msg)  # noqa: T201
-        sys.exit(1)
+        exit(0)  # noqa: PLR1722
 
 
 # ##################################################################################

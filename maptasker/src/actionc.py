@@ -666,6 +666,8 @@ action_codes = {
         ["0", "1", "2"],
         ["File:", ", Image Quality:", ["", "e", ", Delete From Memory After"]],
     ),
+    "1879487834t": ActionCode(0, "1040876951t", [], [], "AutoLocation Geofences", [], []),
+    "1957670352t": ActionCode(0, "1040876951t", [], [], "AutoLocation", [], []),
     "188s": ActionCode(3, "", ["0", "1", "2"], ["Img", "Int", "Int"], "Dark Mode", [], []),
     "188t": ActionCode(
         3,
@@ -3666,6 +3668,7 @@ action_codes = {
     "905t": ActionCode(1, "", ["0"], ["Int"], "Location Mode", ["0"], [["Mode:", "l", "905"]]),
     "906355163t": ActionCode(0, "1040876951t", [], [], "AutoWear Voice Screen", [], []),
     "906t": ActionCode(1, "", ["0"], ["Int"], "Immersive Mode", ["0"], [["Mode:", "l", "906"]]),
+    "906686306e": ActionCode(0, "1040876951t", [], [], "AutoLocation Geofences", [], []),
     "907t": ActionCode(1, "", ["0"], ["Str"], "Status Bar Icons", ["0"], ["Icons To Hide:"]),
     "907418897t": ActionCode(0, "1040876951t", [], [], "AutoTools Action Report", [], []),
     "909t": ActionCode(1, "", ["0"], ["Int"], "Contacts", ["0"], [["Mode:", "l", "909"]]),
@@ -3712,6 +3715,7 @@ action_codes = {
         ["0", "1"],
         ["Number Match:", ["", "e", "Info"]],
     ),
+    "96135575t": ActionCode(0, "1040876951t", [], [], "AutoLocation Info", [], []),
     "96585332t": ActionCode(0, "1040876951t", [], [], "AutoWear Settings", [], []),
     "97t": ActionCode(
         3,

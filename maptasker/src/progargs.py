@@ -45,8 +45,6 @@ def get_program_arguments() -> None:
     if GUI:
         process_gui(True)
 
-
-
     # Are we in development mode?  If so, override debug argument
     if DEBUG_PROGRAM:
         PrimeItems.program_arguments["debug"] = True

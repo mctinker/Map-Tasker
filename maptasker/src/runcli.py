@@ -1,17 +1,18 @@
+"""Process command line interface arguments for MapTasker"""
 #! /usr/bin/env python3
 
 # #################################################################################### #
 #                                                                                      #
 # runcli: process command line interface arguments for MapTasker                       #
 #                                                                                      #
-# Add the following statement (without quotes) to your Terminal Shell config file.       #
+# Add the following statement (without quotes) to your Terminal Shell config file.     #
 #  (BASH, Fish, etc.) to eliminate the runtime msg:                                    #
 #  DEPRECATION WARNING: The system version of Tk is deprecated ...                     #
 #  "export TK_SILENCE_DEPRECATION = 1"                                                 #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works  #
+# complete source code of licensed works and modifications, which include larger works #
 # using a licensed work, under the same license. Copyright and license notices must be #
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
@@ -56,8 +57,8 @@ def get_arg_if_in_list(args: namedtuple("ArgNamespace", ["some_arg", "another_ar
     """
     if the_value := getattr(args, the_argument):
         return int(the_value[0]) if isinstance(the_value, list) else int(the_value)
-    else:
-        return the_value
+
+    return the_value
 
 
 # ##################################################################################
@@ -133,7 +134,7 @@ def get_and_set_booleans(args: namedtuple("ArgNamespace", ["some_arg", "another_
         try:
             if getattr(args, key):
                 PrimeItems.program_arguments[key] = True
-        except AttributeError:
+        except AttributeError:  # noqa: PERF203
             with contextlib.suppress(AttributeError):
                 if value and getattr(args, value):
                     PrimeItems.program_arguments[key] = True
@@ -151,25 +152,22 @@ def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "anoth
     get_and_set_booleans(args)
 
     # Get display detail level, if provided.
-    detail = getattr(args, "detail")
-    if detail is not None and isinstance(detail, int):
-        PrimeItems.program_arguments["display_detail_level"] = detail
-
-    elif (detail := get_arg_if_in_list(args, "detail")) is not None:
+    detail = getattr(args, "detail")  # noqa: B009
+    if detail is not None and isinstance(detail, int) or (detail := get_arg_if_in_list(args, "detail")):
         PrimeItems.program_arguments["display_detail_level"] = detail
 
 
 # ##################################################################################
 # Get our parsed program arguments and save them to PrimeItems.program_args"]
 # ##################################################################################
-def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:
+def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:  # noqa: C901
     """
     Get our parsed program arguments and save them to PrimeItems.program_args"]
         Args:
             args (list): runtime arguments namespace"""
 
     # Color help?
-    if getattr(args, "ch"):
+    if getattr(args, "ch"):  # noqa: B009
         validate_color("h")
 
     # Not GUI.  Get input from command line arguments
@@ -179,7 +177,7 @@ def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another
     get_the_other_arguments(args)
 
     # Everything? Display full detail and set various display optionsm to true.
-    if getattr(args, "e"):
+    if getattr(args, "e"):  # noqa: B009
         PrimeItems.program_arguments["display_detail_level"] = 4
         PrimeItems.program_arguments["conditions"] = True
         PrimeItems.program_arguments["preferences"] = True
@@ -188,29 +186,29 @@ def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another
         PrimeItems.program_arguments["outline"] = True
         PrimeItems.program_arguments["runtime"] = True
 
-    the_name = getattr(args, "project")  # Display single Project
+    the_name = getattr(args, "project")  # Display single Project  # noqa: B009
     if the_name is not None:
         PrimeItems.program_arguments["single_project_name"] = the_name[0]
-    the_name = getattr(args, "profile")  # Display single Profile
+    the_name = getattr(args, "profile")  # Display single Profile  # noqa: B009
     if the_name is not None:
         PrimeItems.program_arguments["single_profile_name"] = the_name[0]
-    the_name = getattr(args, "task")  # Display single task
+    the_name = getattr(args, "task")  # Display single task  # noqa: B009
     if the_name is not None:
         PrimeItems.program_arguments["single_task_name"] = the_name[0]
-    if getattr(args, "v"):  # Display version info
+    if getattr(args, "v"):  # Display version info  # noqa: B009
         display_version()
 
     # Get names (bold, highlight, underline and/or highlight)
-    if value := getattr(args, "names"):
+    if value := getattr(args, "names"):  # noqa: B009
         get_name_attributes(value)
     # Get backup file directly from Android device
     # It is a list if coming from program arguments.
     # Otherwise, just a string if coming from run_test (unit test)
-    if backup_file_info := getattr(args, "b"):
+    if backup_file_info := getattr(args, "b"):  # noqa: B009
         process_backup(backup_file_info)
 
     # Appearance
-    if appearance := getattr(args, "a"):
+    if appearance := getattr(args, "a"):  # noqa: B009
         PrimeItems.program_arguments["appearance_mode"] = appearance
 
     # Indentation amount
@@ -218,7 +216,7 @@ def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another
         PrimeItems.program_arguments["indent"] = indent
 
     # Font
-    if font := getattr(args, "f"):
+    if font := getattr(args, "f"):  # noqa: B009
         if isinstance(font, list):
             PrimeItems.program_arguments["font"] = font[0]
         else:
@@ -228,7 +226,19 @@ def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another
 # ##################################################################################
 # Add some pazaazz to the version identiifer
 # ##################################################################################
-def display_version():
+def display_version() -> None:
+    """
+    Display the version of the program.
+
+    This function prints the program version and license information to the console.
+    It also displays an ASCII art header with the program name.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
     header = f"""
 
     {Colors.Purple}
@@ -320,7 +330,7 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):
     single_names = ["project", "profile", "task"]
 
     class Namespace:
-        def __init__(self, **kwargs):
+        def __init__(self: object, **kwargs: tuple) -> None:
             self.__dict__.update(kwargs)
 
     # Setup default argument Namespace based on parsearg.py add_argument
@@ -377,7 +387,7 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):
         v=False,
     )
     # Go through each argument from runtest
-    print("Running Unit Test.")
+    print("Running Unit Test.")  # noqa: T201
     for the_argument in sys.argv:
         if the_argument == "-test=yes":  # Remove unit test trigger
             continue
@@ -421,7 +431,7 @@ def validate_arguments() -> None:
     # It doesn't make sense to do twisties if notr displaying full detail.
     if program_arguments["display_detail_level"] < 3 and program_arguments["twisty"]:
         message = "Twisty disabled since the display level is not 3 or above."
-        print(f"{Colors.Yellow}{message}")
+        print(f"{Colors.Yellow}{message}")  # noqa: T201
         logger.info(message)
 
 
@@ -439,7 +449,6 @@ def process_cli() -> None:
             None
     """
     gui_flag = "g"
-    restore_flag = "restore"
     reset_flag = "reset"
 
     # Intialize runtime arguments if we don't yet have them.
@@ -450,13 +459,20 @@ def process_cli() -> None:
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
     logger.debug(f"Program arguments: {args}")
 
-    # Restore runtime arguments if we are not doing a reset and there is a restore file.
+    # Restore runtime arguments if we are not doing a reset and not doing the GUI and there is a restore file.
+    # If doing thew GUI, then the arguments are restored by userintr.py
     PrimeItems.program_arguments["reset"] = getattr(args, reset_flag)
-    if not PrimeItems.program_arguments["reset"] and os.path.isfile(ARGUMENTS_FILE):
+    PrimeItems.program_arguments["gui"] = getattr(args, gui_flag)
+    if (
+        not PrimeItems.program_arguments["reset"]
+        and not PrimeItems.program_arguments["gui"]
+        and os.path.isfile(ARGUMENTS_FILE)
+    ):
         restore_arguments()
+        PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.
 
     # If using the GUI, them process the GUI.
-    if getattr(args, gui_flag):  # GUI for input?
+    if PrimeItems.program_arguments["gui"]:  # GUI for input?
         (
             PrimeItems.program_arguments,
             PrimeItems.colors_to_use,

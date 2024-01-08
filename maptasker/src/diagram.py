@@ -21,7 +21,6 @@ from __future__ import annotations
 import contextlib
 import os
 from datetime import datetime
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from maptasker.src.diagutil import (
@@ -795,8 +794,13 @@ def network_map(network: dict) -> None:
     PrimeItems.netmap_output = []
 
     # Print a heading
+    # datetime object containing current date and time
+    now = datetime.now()  # noqa: DTZ005
+
+    # dd/mm/YY H:M:S
+    dt_string = now.strftime("%B %d, %Y  %H:%M:%S")
     add_output_line(
-        f"{MY_VERSION}{blank*5}Configuration Map{blank*5}{datetime.now(tz=None)!s}",
+        f"{MY_VERSION}{blank*5}Configuration Map{blank*5}{dt_string}",
     )
     add_output_line(" ")
     add_output_line(

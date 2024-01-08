@@ -1,3 +1,4 @@
+"""Intialize command line interface/runtime arguments for MapTasker"""
 #! /usr/bin/env python3
 
 # #################################################################################### #

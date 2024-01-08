@@ -23,7 +23,9 @@ from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.getputer import save_restore_args
 from maptasker.src.sysconst import ARGUMENT_NAMES, logger
+import sys
 
 
 # ################################################################################
@@ -73,8 +75,11 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # If user selected the "Exit" button, call it quits.
     if user_input.exit:
-        PrimeItems.program_arguments["gui"] = False  # Make sure we don't come back.
+        # Save our runtime settings for next time.
+        _, _ = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)
+        # Spit out the message and log it.
         error_handler("Program exited. Goodbye.", 0)
+        sys.exit(0)
 
     # User has either closed the window.
     if not user_input.go_program and not user_input.rerun:
@@ -100,7 +105,8 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # Convert display_detail_level to integer
     PrimeItems.program_arguments["display_detail_level"] = convert_to_integer(
-        PrimeItems.program_arguments["display_detail_level"], 4,
+        PrimeItems.program_arguments["display_detail_level"],
+        4,
     )
     # Convert indent to integer
     PrimeItems.program_arguments["indent"] = convert_to_integer(PrimeItems.program_arguments["indent"], 4)

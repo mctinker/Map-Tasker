@@ -60,7 +60,8 @@ def process_projects_and_their_profiles(
 
     # Return a list of Tasks found thus far with duplicates remove
     # Reference: https://www.pythonmorsels.com/deduplicate-lists/
-    return list(dict.fromkeys(found_tasks).keys())
+    # return list(dict.fromkeys(found_tasks).keys())
+    return list(set(found_tasks))
 
 
 # ################################################################################

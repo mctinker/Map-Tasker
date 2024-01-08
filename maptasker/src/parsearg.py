@@ -1,21 +1,15 @@
+"""MapTasker runtime argument parser"""
 #! /usr/bin/env python3
 
 # #################################################################################### #
 #                                                                                      #
-# parsearg: MapTasker GUI                                                              #
-#                                                                                      #
-# Add the following statement (without quotes) to your Terminal Shell config file      #
-#  (BASH, Fish, etc.) to eliminate the runtime msg:                                    #
-#  DEPRECATION WARNING: The system version of Tk is deprecated ...                     #
-#  "export TK_SILENCE_DEPRECATION = 1"                                                 #
+# parsearg: MapTasker runtime argument parser                                          #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
 # complete source code of licensed works and modifications, which include larger works #
 # using a licensed work, under the same license. Copyright and license notices must be #
 # preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
-# To add an argument, see Program_Guide as reference to necessary changes.             #
 #                                                                                      #
 # #################################################################################### #
 
@@ -44,7 +38,8 @@ def indentation_validation(x: int) -> int:
     - Return indentation level if valid"""
     x = int(x)
     if x > 10:
-        raise argparse.ArgumentTypeError(f"Maximum indentation is 10.  You specified {x}.")
+        msg = f"Maximum indentation is 10.  You specified {x}."
+        raise argparse.ArgumentTypeError(msg)
     return x
 
 
@@ -69,7 +64,8 @@ def font_validation(x: str) -> str:
     fonts = [font.Font(family=f) for f in font.families()]
     valid_fonts.extend(f.actual("family") for f in fonts if f.metrics("fixed"))
     if x != "help" and x not in valid_fonts:
-        raise argparse.ArgumentTypeError(f"Invalid or non-monospace font name '{x}'.")
+        msg = f"Invalid or non-monospace font name '{x}'."
+        raise argparse.ArgumentTypeError(msg)
     return x
 
 
