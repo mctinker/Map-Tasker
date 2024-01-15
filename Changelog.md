@@ -2,24 +2,39 @@
 
 All notable changes to this project will be documented in this file!
 
-## [2.6.2] 2024-Jan-08
+## [2.6.3] 15-January-2024
 
 ### Changed
 
-- Eliminated PSUTIL dependency.
-- On entry to the GUI, the individual items that have been automatically restored are no longer displayed in the text message window.
+- The runtime options to fetch the backup file from the Android device have changed.
+      See the 'Added" section.  '-backup' is no longer supported.
+      If the old options exist in the saved runtime file, they will automatically be converted to the new runtime option format.
+- The runtime option '-appearance' can no longer be abbreviated as '-a'.
+- The old format for the saved settings that date back to the year 2022 is no longer supported.
+- Updated README to reflect new '-android...' runtime options.
+- The GUI message box now only displays the current message and not any previous messages.
 
 ### Fixed
 
-- "Rerun" command under certain conditions would never end.
-- Normal exits were not displaying the message that all had ended normally.
-- The saved runtime arguments were restored twice if using the GUI.
+- README had a bad reference to the supplemental information regarding Tkinter.
+- If the backup file is not found on the Android device via the GUI, the program ends rather than catching the error in the GUI.
+- Gracefully handle invalid command line options.
 
 ### Added
 
-- Added: Recognize AutoLocation plugin (Geofences) for Task actions and Profile Events.
+- The runtime options for fetching the backup file directly from the Android device are 'android_ipaddr', 'android_port', and 'android_file'.
+- Added additional Task properties.
 
-## Older History Log
+## Older History Logs
+
+## [2.6.2]
+
+- Changed: Eliminated PSUTIL dependency.
+- Changed: On entry to the GUI, the individual items that have been automatically restored are no longer displayed in the text message window.
+- Fixed: The "Rerun" command under certain conditions would never end.
+- Fixed: Normal exits were not displaying the message that all had ended normally.
+- Fixed: The saved runtime arguments were restored twice if using the GUI.
+- Added: Recognize AutoLocation plugin (Geofences) for Task actions and Profile Events.
 
 ## [2.6.1]
 

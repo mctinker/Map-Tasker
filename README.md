@@ -31,7 +31,7 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
 The Tasker backup XML can either be manually uploaded to your Mac/Google Drive, or this program can fetch it directly from your Android device.
 
 ### Program Dependencies
--	Python version v3.10 or higher and Tkinter (not included with Python 3.10 via the 'brew' installation method)
+-	Python version v3.10 or higher and Tkinter (not included with Python 3.10.  Use the 'brew' installation method)
 
 
     python 3.10: `brew install python3.10`
@@ -89,10 +89,18 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-h` for help.
 
-    `-a` for appearance mode, one of system, light, dark.
+    `-android_ipaddr` TCP IP address of the Android device from which to fetch the backup file.
+    Example: 192.168.0.210
 
-    `-b ip_addr:port+file_location` to get the backup file directly from the Android device (* = use default)<sup>2</sup>.
-        Example: 192.168.0.210:8120+//Tasker/configs/user/backup.xml
+    `-android_port` the port number of the Android device from which to fetch the backup file.
+    Example: 1821
+
+    `-android_file` the location of the backup xml file on the Android device.
+    Example: /Tasker/configs/user/backup.xml
+
+    The above three 'android' options are mutually inclusive.
+
+    `-appearance` for appearance mode, one of system, light, dark.
 
     `-conditions` to display a Profile's and Task's condition(s),
     `-c(type) color_name` defines a specific color to 'type', where 'type' is *one* of the following:
@@ -184,7 +192,7 @@ Alternatively, see *config.py* for some user-customizable options.  Make user-sp
           2- The [sample Tasker Project](https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example) must be installed and active on the Android device,  and the server must be running..see Android notification: "HTTP Server Info...".
           3- See config.py to change the default settings permanently
 
-<sup>1</sup> If having problems getting Tkinter to version 8.6, try the following:
+<sup>3</sup> If having problems getting Tkinter to version 8.6, try the following:
 1- uninstall python
 2- brew install tcl-tk
 3- reinstall python

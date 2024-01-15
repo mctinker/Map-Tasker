@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maptasker"
-version = "2.6.2"
+version = "2.6.3"
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README_PyPl.md"
@@ -123,6 +123,7 @@ ignore = [
     "PLR2004",  # Constant value comparison
     "SIM115",   # Missing "with" on oepn file
     "S606",     # No shell
+    "B009",     # Do not perform function calls in argument defaults
     ]
 show-fixes = true
 src = ['src',]
@@ -151,6 +152,11 @@ max-statements = 80
 
 [tool.ruff.flake8-tidy-imports]
 ban-relative-imports = 'all'
+
+[tool.ruff.format]
+quote-style = "double"
+# indent-style = "tab"
+docstring-code-format = true
 
 [tool.black]
 --line-length = 120
