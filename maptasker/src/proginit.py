@@ -17,8 +17,6 @@ import sys
 from datetime import datetime
 from json import dumps, loads  # For write and read counter
 from pathlib import Path
-
-# importing tkinter and tkinter.ttk and all their functions and classes
 from tkinter import TkVersion, messagebox
 
 # importing askopenfile (from class filedialog) and messagebox functions
@@ -85,18 +83,20 @@ def open_and_get_backup_xml_file() -> dict:
     Open the Tasker backup file and return the file object
     """
     # Fetch backup xml directly from Android device?
-    if PrimeItems.program_arguments["backup_file_http"] and PrimeItems.program_arguments["backup_file_location"]:
+    if PrimeItems.program_arguments["android_ipaddr"] and PrimeItems.program_arguments["android_file"] and PrimeItems.program_arguments["android_port"]:
         backup_file_name = get_backup_file()
+
+        # If no backup file and we're coming from the GUI, then rerturn to GUI.
+        if backup_file_name is None and PrimeItems.program_arguments["gui"]:
+            return None
+
         # Make sure we automatically use the file we just fetched
         PrimeItems.program_arguments["file"] = backup_file_name
 
     logger.info("entry")
     file_error = False
 
-    # Initialize window...no longer need this since everything is going thru the GUI
-    # get_tk()
-    # PrimeItems.tkroot.geometry("200x100")
-    # PrimeItems.tkroot.title("Select Tasker backup xml file")
+    # Reset the file name
     PrimeItems.file_to_get = None
 
     # dir_path = path.dirname(path.realpath(__file__))  # Get current directory
@@ -321,10 +321,6 @@ def start_up() -> dict:
     # Validate runtime versions
     check_versions()
 
-    # Rename/convert any old argument file to new name/format for clarity
-    # (one time only operation)
-    # old_to_new.migrate()
-
     # Get runtime arguments (from CLI or GUI)
     get_arguments.get_program_arguments()
 
@@ -335,7 +331,7 @@ def start_up() -> dict:
     PrimeItems.colors_to_use = setup_colors()
 
     # get_data_and_output_intro program key elements
-    PrimeItems.program_arguments["gui"] = False  # Turn off...we don't want this on anymore.
+    # PrimeItems.program_arguments["gui"] = False  # Turn off...we don't want this on anymore.
     _ = get_data_and_output_intro()
 
     # If debug mode, log the arguments

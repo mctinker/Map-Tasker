@@ -69,6 +69,7 @@ def get_properties(header: defusedxml.ElementTree, color_to_use: str) -> None:
     Returns:
         nothing
     """
+    collision = ["Abort New Task", "Abort Existing Task", "Run Both Together"]
 
     have_property = False
     # Get the item comment, if any
@@ -82,6 +83,26 @@ def get_properties(header: defusedxml.ElementTree, color_to_use: str) -> None:
         )
         PrimeItems.output_lines.add_line_to_output(5, out_string, FormatLine.dont_format_line)
         have_property = True
+    keep_alive = header.find("stayawake")
+    if keep_alive is not None:
+        out_string = format_html(
+            color_to_use,
+            "",
+            f"<br>Properties Keep Device Awake: {keep_alive.text}",
+            True,
+        )
+        PrimeItems.output_lines.add_line_to_output(5, out_string, FormatLine.dont_format_line)
+        have_property = True
+    collision_handling = header.find("rty")
+    if collision_handling is not None:
+        out_string = format_html(
+            color_to_use,
+            "",
+            f"<br>Properties Collision Handling: {collision[int(collision_handling.text)]}",
+            True,
+        )
+        PrimeItems.output_lines.add_line_to_output(5, out_string, FormatLine.dont_format_line)
+        have_property = True
 
     # Look for variables
     for item in header:
@@ -91,4 +112,3 @@ def get_properties(header: defusedxml.ElementTree, color_to_use: str) -> None:
 
     if have_property:
         PrimeItems.output_lines.add_line_to_output(5, "<br><br>", FormatLine.dont_format_line)
-    return

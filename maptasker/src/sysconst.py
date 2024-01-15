@@ -21,7 +21,7 @@ from typing import ClassVar
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 2.6.2"
+MY_VERSION = "MapTasker version 2.6.3"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -98,9 +98,10 @@ TYPES_OF_COLORS = {
 
 # Runtime argument names/keywords that are used throughout the program
 ARGUMENT_NAMES = {
+    "android_ipaddr": "Android IP Address",
+    "android_file": "Android Backup File location on Android device",
+    "android_port": "Android Port Number",
     "appearance_mode": "Appearance Mode",
-    "backup_file_http": "HTTP Backup File URL",
-    "backup_file_location": "Local Backup File Location",
     "bold": "Bold Names",
     "debug": "Debug Mode",
     "directory": "Display Directory",

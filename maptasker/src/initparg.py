@@ -12,7 +12,7 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-from maptasker.src.config import BACKUP_FILE_HTTP, BACKUP_FILE_LOCATION, OUTPUT_FONT
+from maptasker.src.config import ANDROID_IPADDR, ANDROID_PORT, ANDROID_FILE, OUTPUT_FONT
 
 
 #######################################################################################
@@ -26,9 +26,10 @@ def initialize_runtime_arguments() -> dict:
         :return: runtime arguments in dictionary
     """
     return {
+        "android_ipaddr": ANDROID_IPADDR,  # IP address of Android device
+        "android_port": ANDROID_PORT,  # Port of Android device
+        "android_file": ANDROID_FILE,
         "appearance_mode": "system",  # Appearance mode: "system", "dark", or "light"
-        "backup_file_http": BACKUP_FILE_HTTP,  # Port for Android-based Tasker server, to get backup file from
-        "backup_file_location": BACKUP_FILE_LOCATION,  # Location of the backup file to grab from Android device
         "bold": False,  # Display Project/Profile?Task/Scene names in bold text
         "debug": False,  # Run in debug mode (create log file)
         "directory": False,  # Display directory

@@ -11,6 +11,9 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+from __future__ import annotations
+
+import contextlib
 import json
 from pathlib import Path
 
@@ -18,7 +21,19 @@ from maptasker.src.error import error_handler
 from maptasker.src.sysconst import ARGUMENTS_FILE
 
 
-def corrupted_file(program_arguments, colors_to_use):
+def corrupted_file(program_arguments, colors_to_use) -> None:
+    """
+    Checks for corrupted settings file and handles error
+    Args:
+        program_arguments: Command line arguments
+        colors_to_use: Color settings
+    Returns:
+        None: Returns None
+    Processing Logic:
+        1. Checks settings file for corruption
+        2. Generates error message if corrupted
+        3. Returns error message and settings as dictionaries for GUI display
+        4. Does not restore corrupted settings, asks user to re-save"""
     error_handler(
         (
             f"'-restore' option... The settings file,  {ARGUMENTS_FILE} is"
@@ -33,8 +48,8 @@ def corrupted_file(program_arguments, colors_to_use):
         "msg": (
             "The settings file is corrupt or not compatible with the new verison of \
             MapTasker!"
-            "The old settings can not be restored.  Re-save your settings."
-        )
+            "The old settings can not be restored.  Re-save your settings.",
+        ),
     }
     return program_arguments, colors_to_use
 
@@ -93,5 +108,15 @@ def save_restore_args(
         # Handle file format error
         except json.decoder.JSONDecodeError:  # no saved file
             corrupted_file(program_arguments, colors_to_use)
+
+        # Convert old android device settings to new settings.
+        with contextlib.suppress(KeyError):
+            if program_arguments["backup_file_http"]:
+                temp_args = program_arguments["backup_file_http"].split(":")
+                program_arguments["android_ipaddr"] = temp_args[1][2:]
+                program_arguments["android_port"] = temp_args[2]
+                program_arguments["android_file"] = program_arguments["backup_file_location"]
+                del program_arguments["backup_file_http"]
+                del program_arguments["backup_file_location"]
 
     return program_arguments, colors_to_use

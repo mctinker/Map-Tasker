@@ -43,15 +43,15 @@ def write_out_backup_file(file_contents: bin) -> None:
 
     # We are going to save the file as...
     # Get position of the last "/" in path/file
-    name_location = PrimeItems.program_arguments["backup_file_location"].rfind("/") + 1
+    name_location = PrimeItems.program_arguments["android_file"].rfind("/") + 1
     # Get the name of the file
-    my_file_name = PrimeItems.program_arguments["backup_file_location"][name_location:]
+    my_file_name = PrimeItems.program_arguments["android_file"][name_location:]
 
     # Convert the binary code to string
     output_lines = file_contents.decode("utf-8")
 
     # Set up the backup file full path
-    the_backup_file = PrimeItems.program_arguments["backup_file_location"]
+    the_backup_file = PrimeItems.program_arguments["android_file"]
     put_message = f"Fetching backup file {my_file_name}: {the_backup_file}"
     logger.debug(put_message)
 
@@ -69,13 +69,11 @@ def write_out_backup_file(file_contents: bin) -> None:
     # Set flag to identify that backup file was fetched from Android device
     PrimeItems.program_arguments["fetched_backup_from_android"] = True
 
-    return
-
 
 # ##################################################################################
 # Issue HTTP Request to get the backup xml file from the Android device.
 # ##################################################################################
-def request_file(backup_file_http: str, backup_file_location: str) -> tuple[int, object]:
+def request_file(ip_addr: str, port_number: str, file_location: str) -> tuple[int, object]:
     """
     Issue HTTP Request to get the backup xml file from the Android device.
     Tasker's HTTP Server Example must be installed for this to work:
@@ -88,8 +86,8 @@ def request_file(backup_file_http: str, backup_file_location: str) -> tuple[int,
     # Create the URL to request the backup xml file from the Android device running the
     # Tasker server.
     # Something like: 192.168.0.210:1821/file/path/to/backup.xml?download=1
-    http = "http://" if "http://" not in backup_file_http else ""
-    url = f"{http}{backup_file_http}/file{backup_file_location}?download=1"
+    http = "http://" if "http://" not in ip_addr else ""
+    url = f"{http}{ip_addr}:{port_number}/file{file_location}?download=1"
 
     # Make the request.
     try:
@@ -115,7 +113,7 @@ def request_file(backup_file_http: str, backup_file_location: str) -> tuple[int,
         # Return the contents of the file.
         return 0, response.content
     elif response.status_code == 404:
-        return 6, f"File '{backup_file_location}' not found."
+        return 6, f"File '{file_location}' not found."
     else:
         return (
             8,
@@ -152,17 +150,18 @@ def get_backup_file() -> str:
     """
     # Get the contents of the file.
     return_code, file_contents = request_file(
-        PrimeItems.program_arguments["backup_file_http"],
-        PrimeItems.program_arguments["backup_file_location"],
+        PrimeItems.program_arguments["android_ipaddr"],
+        PrimeItems.program_arguments["android_port"],
+        PrimeItems.program_arguments["android_file"],
     )
 
     if return_code != 0:
         if PrimeItems.program_arguments["gui"]:
             PrimeItems.error_code = return_code
-            return
+            return None
         error_handler(str(file_contents), 8)
 
     # Process the backup file
     write_out_backup_file(file_contents)
 
-    return substring_after_last(PrimeItems.program_arguments["backup_file_location"], "/")
+    return substring_after_last(PrimeItems.program_arguments["android_file"], "/")

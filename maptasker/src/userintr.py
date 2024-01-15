@@ -1,4 +1,4 @@
-"""Module containing action runner logic."""
+"""Code to manage the graphical user interface."""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -21,8 +21,9 @@ from CTkColorPicker.ctk_color_picker import AskColor
 from PIL import Image
 
 from maptasker.src.config import OUTPUT_FONT
+from maptasker.src.getbakup import request_file
 from maptasker.src.getputer import save_restore_args
-from maptasker.src.guiutils import get_monospace_fonts, ping_android_device, valid_item
+from maptasker.src.guiutils import clear_android_buttons, get_monospace_fonts, ping_android_device, valid_item
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
@@ -110,32 +111,28 @@ INFO_TEXT = (
     "backup file once you hit the 'Run' button."
 )
 BACKUP_HELP_TEXT = (
-    "The following steps aree required in order to fetch a Tasker backup file directly"
+    "The following steps are required in order to fetch a Tasker backup file directly"
     " from your Android device.\n\n"
     "1- Both this device and the Android device must be on the same named network.\n\n"
     "2- The Tasker Project 'HTTP Server Example' or identical function must be"
     " installed and active on the Android device (the server must be running):\n\n"
-    "https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example\n\n"
-    "You will be asked for the IP address and port number for your Android device,"
-    " as well as the file location on the device.  The input format is...\n\n"
-    "    'IP Address:Port Number,/path/to/file'\n\n"
-    "The default value is for this field is: \n\n'192.168.0.210:1821,/Tasker/configs/user/backup.xml'\n\n,"
-    "...where '192.168.0.210' is the IP address and '1821' is the port number for the Tasker HTTP"
-    " Server Example running on your Android device.  The default file location of\n"
-    " the Tasker backup file on the Android device is: '/Tasker/configs/user/backup.xml'.\n\n"
+    "    https://shorturl.at/bwCD4\n\n"
+    "You will be asked for the IP address, the port number for your Android device,"
+    " as well as the file location on the Android device.  Default values are supplied, where...\n\n"
+    "'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP"
+    " Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.\n\n"
     "Usage Notes:\n\n"
-    "The IP address and port can be obtained from your Android device by running the"
-    " 'HTTP Server Example' Tasker Project on your Android device, and this will"
-    " then issue the notification something like:\n\n"
+    "The IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL "
+    "on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\n"
     "HTTP Server Info\n"
     'Server info updated {"device name":"http://192.168.0.49:1821"}\n\n'
-    "- To fetch the backup fille, click on the 'Get Backup from Android Device' button,"
-    " modify the default value presented in the input field to the right, and then"
-    " click on the button 'Enter and Click Here to Set >>=>'.\n\n"
+    "- To fetch the backup file, click on the button\n\n 'Get Backup from Android Device'\n\n"
+    "Then modify the default values presented in the input fields below this button, and then"
+    " click on the button\n\n'Finally, enter and Click Here to Set Baclup Details'.\n\n"
     "- the Fetch backup settings are only used once the 'Run' button is pressed, but"
     " this program will try to ping your Android device to see if it is available"
-    " once your enter the HTTP and file location values.  The ping will timeout after"
-    " 10 seconds if the device is not reachable.  Check that the IP address is correct.\n\n"
+    " once your enter the TCP IP Address, Port Number and File Location values.  The ping will timeout after"
+    " 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\n"
 )
 
 
@@ -167,9 +164,10 @@ class MyGui(customtkinter.CTk):
         super().__init__()
 
         # configure window
+        self.android_ipaddr = ""
+        self.android_port = ""
+        self.android_file = ""
         self.appearance_mode = None
-        self.backup_file_http = None
-        self.backup_file_location = None
         self.bold = None
         self.color_labels = None
         self.color_lookup = None
@@ -473,7 +471,7 @@ class MyGui(customtkinter.CTk):
             text="Save Settings",
             command=self.save_settings_event,
         )
-        self.save_settings_button.grid(row=8, column=1, padx=20, pady=10, sticky="sw")
+        self.save_settings_button.grid(row=8, column=1, padx=20, sticky="sw")
 
         # Restore settings button
         self.restore_settings_button = customtkinter.CTkButton(
@@ -486,16 +484,7 @@ class MyGui(customtkinter.CTk):
         self.restore_settings_button.grid(row=9, column=1, padx=20, pady=10, sticky="nw")
 
         # 'Get Backup Settings' button definition
-        self.get_backup_button = customtkinter.CTkButton(
-            master=self,
-            fg_color="#246FB6",
-            border_color="#6563ff",
-            border_width=2,
-            text="Get Backup from Android Device",
-            command=self.get_backup_event,
-            text_color=("#0BF075", "#1AD63D"),
-        )
-        self.get_backup_button.grid(row=10, column=1, padx=10, pady=(20, 20), sticky="w")
+        self.display_backup_button("Get Backup from Android Device", "#246FB6", "#6563ff", self.get_backup_event)
 
         # 'Display Help' button definition
         self.help_button = customtkinter.CTkButton(
@@ -722,6 +711,9 @@ class MyGui(customtkinter.CTk):
         self.indent_option.set("4")
         self.indent = 4
         self.color_labels = []
+        self.android_ipaddr = ""
+        self.android_port = ""
+        self.android_file = ""
         if first_time:
             self.textbox.insert("0.0", "MapTasker Help\n\n" + INFO_TEXT)
             self.all_messages = ""
@@ -730,29 +722,44 @@ class MyGui(customtkinter.CTk):
         self.gui = True
         self.color_row = 4
 
-        # We only want to initialize the next two variables only if they have not yet
-        # been defined.
-        #  Ignore sourcery recommendation to reformat these!!
-        # The following will fail with an attribute error if it does not already existis not set to display!
-        try:
-            if self.backup_file_http:
-                pass
-        except AttributeError:
-            self.backup_file_http = ""
-        try:
-            if self.backup_file_location:
-                pass
-        except AttributeError:
-            self.backup_file_location = ""
         # Display current Items setting.
         self.single_name_status("Display all Projects, Profiles, and Tasks.", "#3f99ff")
+
+    # ##################################################################################
+    # Display the Backup button
+    # ##################################################################################
+    def display_backup_button(self, the_text: str, color1: str, color2: str, routine: object) -> None:  # noqa: ANN101
+        # 'Get Backup Settings' button definition
+        """
+        Displays a backup button on the GUI.
+        Args:
+            the_text: The text to display on the button in one line
+            color1: The foreground color of the button in one line
+            color2: The border color of the button in one line
+        Returns:
+            None: Does not return anything
+        Processing Logic:
+            - Creates a CTkButton object with the given text, colors and command
+            - Places the button on row 7, column 1 spanning 2 columns with padding
+            - Configures the button to be stuck to the northwest side of its cell
+        """
+        self.get_backup_button = customtkinter.CTkButton(
+            master=self,
+            fg_color=color1,
+            border_color=color2,
+            border_width=2,
+            text=the_text,
+            command=routine,
+            text_color=("#0BF075", "#1AD63D"),
+        )
+        self.get_backup_button.grid(row=7, column=1, columnspan=2, padx=(200, 10), pady=(0, 10), sticky="nw")
 
     # ##################################################################################
     # Display Message Box
     # ##################################################################################
     def display_message_box(self, message: str, good: bool) -> None:  # noqa: ANN101
         # If "good", display in green.  Otherwise, must be bad and display in red.
-        """
+        r"""
         Displays a message box with the given message and color.
 
         Args:
@@ -780,7 +787,8 @@ class MyGui(customtkinter.CTk):
         # self.textbox.tag_add('color', '1.5', '1.11')  # '1.5' means first line, 5th character; '1.11' means first line, 11th character
         # self.textbox.tag_config('color', foreground='red')
 
-        self.all_messages = f"{self.all_messages}{message}\n"
+        # self.all_messages = f"{self.all_messages}{message}\n"
+        self.all_messages = f"{message}\n"
         # insert at line 0 character 0
         self.textbox.insert("0.0", self.all_messages)
         # Set read-only, color, wrap around and font
@@ -1641,9 +1649,10 @@ class MyGui(customtkinter.CTk):
         """
         message = ""
         message_map = {
+            "android_ipaddrt": lambda: f"Get Backup TCP IP Address set to {value}\n",
+            "android_port": lambda: f"Get Backup Port Number set to {value}\n",
+            "android_file": lambda: f"Get Backup File Location set to {value}\n",
             "appearance_mode": lambda: f"Appearance mode set to {value}.\n",
-            "backup_file_http": lambda: f"Get Backup IP Address set to {value}\n",
-            "backup_file_location": lambda: f"Get Backup File Location set to {value}\n",
             "bold": lambda: self.select_deselect_checkbox(self.bold_checkbox, value, "Display Names in Bold"),
             "conditions": lambda: self.select_deselect_checkbox(
                 self.condition_checkbox,
@@ -1784,6 +1793,71 @@ class MyGui(customtkinter.CTk):
         self.display_message_box(f"{all_messages}\nSettings restored.", True)
 
     # ##################################################################################
+    # Display an input field and a label for the user to input a value
+    # ##################################################################################
+    def display_label_and_input(
+        self,  # noqa: ANN101
+        label: str,
+        default_value: str,
+        starting_row: int,
+        indentation_label: int,
+        input_name: customtkinter.CTkButton,
+        label_name: customtkinter.CTkLabel,
+    ) -> None:
+        """
+        Display an input field and a label for the user to input a value
+        Args:
+            label: The label to display
+            default_value: The default value to display
+            starting_row: The grid row that the label starts on
+            indentation_label: the x indentation amount for the label
+            input_name: the name of the input field
+        Returns:
+            The value entered by the user
+        Processing Logic:
+            - Creates an entry field
+            - Adds a label above the entry field
+            - Inserts the default value into the entry field
+            - Returns the value entered by the user
+        """
+        # Add a label over the TCPIP entry field.
+        label_name = customtkinter.CTkLabel(
+            master=self,
+            text=label,
+            anchor="sw",
+        )
+        label_name.grid(
+            row=starting_row,
+            column=1,
+            columnspan=1,
+            padx=(0, indentation_label),
+            pady=(30, 0),
+            sticky="ne",
+        )
+
+        # Display prompt/input field
+        input_name = customtkinter.CTkEntry(
+            self,
+            placeholder_text=default_value,
+        )
+        input_name.configure(
+            # width=320,
+            fg_color="#246FB6",
+            border_color="#1bc9ff",
+            text_color=("#0BF075", "#1AD63D"),
+        )
+        input_name.insert(0, default_value)
+        input_name.grid(
+            row=starting_row + 1,
+            column=1,
+            columnspan=1,
+            padx=(0, 100),
+            pady=(0, 0),
+            sticky="ne",
+        )
+        return input_name, label_name
+
+    # ##################################################################################
     # Process the 'Backup' IP Address
     # ##################################################################################
     def get_backup_event(self) -> None:  # noqa: ANN101
@@ -1801,61 +1875,50 @@ class MyGui(customtkinter.CTk):
         - Inserts the default backup info into the entry field
         - Replaces the backup button to fetch input details on click
         """
-        if self.backup_file_http == "" or self.backup_file_http is None:
-            self.backup_file_http = "192.168.0.210:1821"
-
-        if not self.backup_file_location:
-            self.backup_file_location = "/Tasker/configs/user/backup.xml"
-
-        # Create main entry field right next to backup button.
-        self.entry = customtkinter.CTkEntry(
-            self,
-            placeholder_text=f"{self.backup_file_http},{self.backup_file_location}",
+        ###  TCP/IP Address ###
+        if self.android_ipaddr == "" or self.android_ipaddr is None:
+            self.android_ipaddr = "192.168.0.210"
+        self.ip_entry = self.ip_label = None
+        self.ip_entry, self.ip_label = self.display_label_and_input(
+            "TCP/IP Address:", self.android_ipaddr, 7, 140, self.ip_entry, self.ip_label,
         )
-        self.entry.configure(
-            width=320,
+
+        ### Port Number ###
+        if self.android_port == "" or self.android_port is None:
+            self.android_port = "1821"
+        self.port_entry = self.port_label = None
+        self.port_entry, self.port_label = self.display_label_and_input(
+            "Port Number:", self.android_port, 8, 157, self.port_entry, self.port_label,
+        )
+
+        ###  File Location ###
+        if self.android_file == "" or self.android_file is None:
+            self.android_file = "/Tasker/configs/user/backup.xml"
+        self.file_entry = self.file_label = None
+        self.file_entry, self.file_label = self.display_label_and_input(
+            "File Location:", self.android_file, 9, 159, self.file_entry, self.file_label,
+        )
+
+        # Add Cancel button
+        self.cancel_entry_button = customtkinter.CTkButton(
+            self,
+            fg_color="#246FB6",
+            border_width=2,
+            text="Cancel Entry",
+            command=self.backup_cancel_event,
+        )
+        self.cancel_entry_button.configure(
+            # width=320,
             fg_color="#246FB6",
             border_color="#1bc9ff",
-            text_color=("#0BF075", "#1AD63D"),
+            # text_color=("#0BF075", "#1AD63D"),
         )
-
-        # Add a label over the main entry field.
-        self.detail_label = customtkinter.CTkLabel(
-            master=self,
-            text="Enter Android Device IP Address/Port/Location:",
-            anchor="sw",
-        )
-        self.detail_label.grid(
-            row=9,
-            column=1,
-            columnspan=2,
-            padx=(0, 0),
-            pady=(20, 0),
-            sticky="s",
-        )
-
-        # Insert the backup info for input by user.
-        self.entry.insert(0, f"{self.backup_file_http},{self.backup_file_location}")
-        self.entry.grid(
-            row=10,
-            column=1,
-            columnspan=2,
-            padx=(10, 0),
-            pady=(20, 0),
-            sticky="n",
-        )
+        self.cancel_entry_button.grid(row=10, column=1, columnspan=1, padx=(370, 0), pady=(0, 0), sticky="ne")
 
         # Replace backup button.
-        self.get_backup_button = customtkinter.CTkButton(
-            master=self,
-            fg_color="#D62CFF",
-            border_color="#6563ff",
-            border_width=2,
-            text="Enter and Click Here to Set >>=>",
-            command=self.fetch_backup_event,
-            text_color=("#0BF075", "#1AD63D"),
+        self.display_backup_button(
+            "Enter and Click Here to Set Backup Details", "#D62CFF", "#6563ff", self.fetch_backup_event,
         )
-        self.get_backup_button.grid(row=10, column=1, padx=10, pady=(20, 20), sticky="w")
 
     # ##################################################################################
     # Fetch Backup info error...process it.
@@ -1881,21 +1944,6 @@ class MyGui(customtkinter.CTk):
                 False,
             )
 
-            # Delete entry field by overlaying it.
-            self.entry.delete(0, "end")
-
-        # Reset 'Get Backup Settings' button definition
-        self.get_backup_button = customtkinter.CTkButton(
-            master=self,
-            fg_color="#246FB6",
-            border_color="#6563ff",
-            border_width=2,
-            text="Get Backup from Android Device",
-            command=self.get_backup_event,
-            text_color=("#0BF075", "#1AD63D"),
-        )
-        self.get_backup_button.grid(row=10, column=1, padx=10, pady=(20, 20), sticky="w")
-
     # ##################################################################################
     # Fetch the backup ip and file details, and validate.
     # ##################################################################################
@@ -1915,23 +1963,68 @@ class MyGui(customtkinter.CTk):
         - Sets backup IP and file location attributes if valid
         - Displays message with backup details
         """
-        backup_info = self.entry.get()
-        # User entered values other than default?
-        if backup_info != "*":
-            failure, self.backup_file_http, self.backup_file_location = ping_android_device(self, backup_info)
-            if failure:
-                return
+        # Get the input entered by the user.
+        android_ipaddr = self.ip_entry.get()
+        android_port = self.port_entry.get()
+        android_file = self.file_entry.get()
 
-        self.get_backup_button.grid(row=10, column=1, padx=10, pady=(20, 20), sticky="w")
+        # Make sure something was entered into each field.
+        error_msg = ""
+        if android_ipaddr == "" or android_ipaddr is None:
+            error_msg = "Please enter an IP address."
+        if android_port == "" or android_port is None:
+            error_msg = "Please enter a port number."
+        if android_file == "" or android_file is None:
+            error_msg = "Please enter a file location."
+        if error_msg:
+            self.display_message_box(error_msg, False)
+            return
 
+        # Validate each field entered and ping the Android device to make sure it is reachible.
+        failure = ping_android_device(
+            self,
+            android_ipaddr,
+            android_port,
+            android_file,
+        )
+        if failure:
+            return
+
+        # Get the contents of the file to confirm it is really there.
+        return_code, file_contents = request_file(android_ipaddr, android_port,  android_file)
+
+        if return_code != 0:
+            self.backup_error("File not found.  Return code: " + str(return_code))
+            return
+
+        # All is well.  Dave the info, restore the button and get rid of the input fields.
+        self.android_ipaddr = android_ipaddr
+        self.android_port = android_port
+        self.android_file = android_file
+        clear_android_buttons(self)
         self.display_message_box(
             (
-                f"\n\nGet Backup IP Address set to: {self.backup_file_http}\n\nGet"
-                f" Location set to: {self.backup_file_location}"
+                f"\n\nGet Backup IP Address set to: {self.android_ipaddr}\n\nPort"
+                f" Number set to: {self.android_port}\n\nGet"
+                f" Location set to: {self.android_file}"
                 f"\n\nBackup file will be fetched when 'Run' is selected."
             ),
             True,
         )
+
+    # ##################################################################################
+    # Cancel the entry of backup parameters
+    # ##################################################################################
+    def backup_cancel_event(self) -> None:  # noqa: ANN101
+        """
+        Closes the backup details window.
+        Args:
+            self: The class instance
+        Returns:
+            None
+        """
+        clear_android_buttons(self)
+        self.display_message_box("Get Backup Details Cancelled.", True)
 
     # ##################################################################################
     # Process the 'Reset Settings' button
@@ -1944,6 +2037,10 @@ class MyGui(customtkinter.CTk):
         Returns:
             None
         """
+        clear_android_buttons(self)
+        self.android_ipaddr = ""
+        self.android_port = ""
+        self.android_file = ""
         self.sidebar_detail_option.set("3")  # display detail level
         self.indent_option.set("4")  # Indentation amount
         self.condition_checkbox.deselect()  # Conditions
@@ -1959,7 +2056,6 @@ class MyGui(customtkinter.CTk):
         self.italicize_checkbox.deselect()  # italicize
         self.highlight_checkbox.deselect()  # highlight
         self.underline_checkbox.deselect()  # underline
-        self.backup_file_location = self.backup_file_http = ""
         self.runtime_checkbox.deselect()  # Display runtime
         self.outline_checkbox.deselect()  # Display outline
         self.everything_checkbox.deselect()  # Display everything

@@ -18,8 +18,77 @@ import textwrap
 from argparse import ArgumentParser
 from tkinter import font
 
+from maptasker.src.error import error_handler
+from maptasker.src.maputils import validate_ip_address, validate_port
 from maptasker.src.nameattr import get_tk
 from maptasker.src.sysconst import TYPES_OF_COLORS, logger
+
+# class MutuallyInclusiveArgumentError(Exception):
+#     pass
+
+
+def validate_vars(var1: str, var2: int, var3: str) -> None:
+    """Validate mutually inclusive arguments
+    Args:
+        var1: First argument to validate
+        var2: Second argument to validate
+        var3: Third argument to validate
+    Returns:
+        None: No value is returned
+    Processing Logic:
+        - Check if only var1 is True and var2 and var3 are False
+        - Check if only var2 is True and var1 and var3 are False
+        - Check if only var3 is True and var1 and var2 are False
+        - If any of the above conditions are True, raise an error"""
+    if (var1 and not var2 and not var3) or (not var1 and var2 and not var3) or (not var1 and not var2 and var3):
+        msg = "The -android_ipaddr, -android_port and -xandroid_file options are mutually inclusive.  If one is specified, they each must have a value."
+        error_handler(msg, 7)
+        # raise argparse.ArgumentTypeError(msg)
+        # raise MutuallyInclusiveArgumentError(
+        #     "The -android_ipaddr, -android_port and -xandroid_file options are mutually inclusive.  If one is specified, they each must have a value."
+        # )
+
+
+# ################################################################################
+# TCP IP Address validation
+# ################################################################################
+def ipaddr_validation(ip_address: str) -> str:
+    """Validate IP address string
+    Args:
+        ip_address: IP address string to validate
+    Returns:
+        ip_address: Validated IP address string
+    Validate IP address:
+    - Check if IP address is valid using validate_ip_address function
+    - If invalid, raise ArgumentTypeError with error message
+    - If valid, simply return IP address string"""
+    if ip_address != "" and not validate_ip_address(ip_address):
+        msg = f"Invalid TCP IP address.  You specified {ip_address}."
+        error_handler(msg, 7)
+        # raise argparse.ArgumentTypeError(msg) from ValueError
+
+    return ip_address
+
+
+# ################################################################################
+# TCP IP Address validation
+# ################################################################################
+def port_validation(port_number: str) -> str:
+    """Validate IP address string
+    Args:
+        ip_address: IP address string to validate
+    Returns:
+        ip_address: Validated IP address string
+    Validate IP address:
+    - Check if IP address is valid using validate_ip_address function
+    - If invalid, raise ArgumentTypeError with error message
+    - If valid, simply return IP address string"""
+    if port_number != "" and validate_port("", port_number) != 0:
+        msg = f"Invalid port number.  You specified {port_number}."
+        error_handler(msg, 7)
+        # raise argparse.ArgumentTypeError(msg) from ValueError
+
+    return port_number
 
 
 # ################################################################################
@@ -39,7 +108,8 @@ def indentation_validation(x: int) -> int:
     x = int(x)
     if x > 10:
         msg = f"Maximum indentation is 10.  You specified {x}."
-        raise argparse.ArgumentTypeError(msg)
+        error_handler(msg, 7)
+        # raise argparse.ArgumentTypeError(msg)
     return x
 
 
@@ -65,11 +135,33 @@ def font_validation(x: str) -> str:
     valid_fonts.extend(f.actual("family") for f in fonts if f.metrics("fixed"))
     if x != "help" and x not in valid_fonts:
         msg = f"Invalid or non-monospace font name '{x}'."
-        raise argparse.ArgumentTypeError(msg)
+        error_handler(msg, 7)
+        # raise argparse.ArgumentTypeError(msg)
     return x
 
 
-# ##################################################################################
+################################################################################
+# Validate file location entered
+################################################################################
+def file_validation(file: str) -> str:
+    """
+    Validate file extension for android backup file
+    Args:
+        file: File path to validate
+    Returns:
+        file: Validated file path
+    - Check if file extension contains ".xml"
+    - If not, raise error with message specifying missing ".xml" extension
+    - Otherwise, return original file path
+    """
+    if file != "" and "xml" not in file:
+        msg = f"Invalid android file location '{file}'.  Missing the backup '.xml' extension."
+        error_handler(msg, 7)
+        # raise argparse.ArgumentTypeError(msg)
+    return file
+
+
+##################################################################################
 # Get the program arguments using via a GUI (Gooey)
 # ##################################################################################
 def runtime_parser() -> None:
@@ -108,38 +200,68 @@ def runtime_parser() -> None:
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    # Display Project/Profile/Task/Scene names in bold
+
+    # Android mutually inclusive group
+    android_group = parser.add_argument_group("mutually inclusive")
+    # Android device TCP IP Address
+    android_group.add_argument(
+        "-android_ipaddr",
+        help=textwrap.dedent(
+            """ \
+                        TCP/IP Address of Android device running Tasker server
+                            Example: -android_ipaddr 192.168.0.210
+                            Also requires -android_port and -android_file arguments
+                            """,
+        ),
+        type=ipaddr_validation,
+        nargs=1,
+        required=False,
+        default="",
+    )
+    # Android Port Number
+    android_group.add_argument(
+        "-android_port",
+        type=port_validation,
+        help=textwrap.dedent(
+            """ \
+                        Port number of Android device running Tasker server
+                            Example: -android_port 1821
+                        Also requires -android_ipaddr and -android_file arguments
+                            """,
+        ),
+        nargs=1,
+        required=False,
+        default="",
+    )
+    # Android device file location
+    android_group.add_argument(
+        "-android_file",
+        type=file_validation,
+        help=textwrap.dedent(
+            """ \
+                        File location of Tasker backup file on Android device
+                            Example: -a-android_file /Tasker/configs/user/backup.xml
+                        Also requires -android_ipaddr and -android_port arguments
+                            """,
+        ),
+        nargs=1,
+        required=False,
+        default="",
+    )
+
+    # Display Background Appearnace: system, light or dark.
     parser.add_argument(
-        "-a",
         "-appearance",
         choices=["system", "light", "dark"],
         help=textwrap.dedent(
             """ \
                         Display appearance mode: system (default), light, dark
-                            Example: appearance dark
+                            Example: -appearance dark
                             """,
         ),
         nargs=1,
         required=False,
         default="system",
-    )
-    # Get Backup (get backup xml) preferences
-    parser.add_argument(
-        "-b",
-        "-backups",
-        metavar="http+location",
-        nargs=1,
-        required=False,
-        default="",
-        type=str,
-        help=textwrap.dedent(
-            """ \
-                        Get backup file directly from Android device running Tasker:
-                            Tasker's HTTP Server Example must be installed on the Android device for this to work:
-                            Specify the Tasker server port number and the location of the file. Enter both or none.
-                            Default: -backup http://192.168.0.210:1821+/Tasker/configs/user/backup.xml
-                            """,
-        ),
     )
     # Display Profile/Task conditions
     parser.add_argument(
@@ -356,7 +478,10 @@ def runtime_parser() -> None:
     if args is None:
         # No arguments provide
         parser.print_help()
-    else:
+
+    # Make certain that if android args entered, they are inclusive.
+    elif args.android_ipaddr or args.android_port or args.android_file:
+        validate_vars(args.android_ipaddr[0], args.android_port[0], args.android_file[0])
         output_results(args)
     return args
 

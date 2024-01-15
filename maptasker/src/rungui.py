@@ -90,18 +90,12 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # Do we already have the file object?
     if value := user_input.file:
         PrimeItems.file_to_get = value if isinstance(value, str) else value.name
+
     # Get the program arguments and save them in our dictionary
     for value in ARGUMENT_NAMES:
-        # Special handling for backup file
-        if value == "backup_file_http":
-            if http_info := getattr(user_input, value):
-                PrimeItems.program_arguments[value] = f"http://{http_info}"
-        else:
-            # Get the program arguments from the GUI and save them
-            # into our runtime arguments dictonary (of same name)
-            with contextlib.suppress(AttributeError):
-                PrimeItems.program_arguments[value] = getattr(user_input, value)
-                logger.info(f"GUI arg: {value} set to: {getattr(user_input, value)}")
+        with contextlib.suppress(AttributeError):
+            PrimeItems.program_arguments[value] = getattr(user_input, value)
+            logger.info(f"GUI arg: {value} set to: {getattr(user_input, value)}")
 
     # Convert display_detail_level to integer
     PrimeItems.program_arguments["display_detail_level"] = convert_to_integer(
@@ -122,7 +116,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         for key, value in user_input.color_lookup.items():
             colormap[key] = value
 
-    PrimeItems.program_arguments["gui"] = False  # Don't return from error_handler if it is called.
+    PrimeItems.program_arguments["gui"] = True  # Set flag to indicate we are using GUI
 
     return (
         PrimeItems.program_arguments,

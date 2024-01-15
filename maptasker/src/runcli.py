@@ -62,26 +62,6 @@ def get_arg_if_in_list(args: namedtuple("ArgNamespace", ["some_arg", "another_ar
 
 
 # ##################################################################################
-# We have the "backup" argument.  Validate and save it.
-# ##################################################################################
-def process_backup(backup_file_info: list) -> None:
-    """
-    We have the "backup" argument.  Validate info and save it.
-        Args:
-            backup_file_info (list): A list of the values for the backup to use
-    """
-    if isinstance(backup_file_info, list):
-        backup_details = backup_file_info[0].split("+")
-    else:
-        backup_details = backup_file_info.split("+")
-
-    # Break up the command into http portion and file-location portion
-    if backup_details[0].isdigit and backup_details[1]:
-        PrimeItems.program_arguments["backup_file_http"] = backup_details[0]
-        PrimeItems.program_arguments["backup_file_location"] = backup_details[1]
-
-
-# ##################################################################################
 # We have a -name argument.  Get the name's attributes and save them
 # ##################################################################################
 def get_name_attributes(value: str) -> None:
@@ -152,7 +132,7 @@ def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "anoth
     get_and_set_booleans(args)
 
     # Get display detail level, if provided.
-    detail = getattr(args, "detail")  # noqa: B009
+    detail = getattr(args, "detail")
     if detail is not None and isinstance(detail, int) or (detail := get_arg_if_in_list(args, "detail")):
         PrimeItems.program_arguments["display_detail_level"] = detail
 
@@ -167,7 +147,7 @@ def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another
             args (list): runtime arguments namespace"""
 
     # Color help?
-    if getattr(args, "ch"):  # noqa: B009
+    if getattr(args, "ch"):
         validate_color("h")
 
     # Not GUI.  Get input from command line arguments
@@ -176,51 +156,55 @@ def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another
     # All booleans and display detail level.
     get_the_other_arguments(args)
 
-    # Everything? Display full detail and set various display optionsm to true.
-    if getattr(args, "e"):  # noqa: B009
-        PrimeItems.program_arguments["display_detail_level"] = 4
-        PrimeItems.program_arguments["conditions"] = True
-        PrimeItems.program_arguments["preferences"] = True
-        PrimeItems.program_arguments["directory"] = True
-        PrimeItems.program_arguments["taskernet"] = True
-        PrimeItems.program_arguments["outline"] = True
-        PrimeItems.program_arguments["runtime"] = True
+    program_arguments = PrimeItems.program_arguments
 
-    the_name = getattr(args, "project")  # Display single Project  # noqa: B009
+    # Everything? Display full detail and set various display optionsm to true.
+    if getattr(args, "e"):
+        program_arguments["display_detail_level"] = 4
+        program_arguments["conditions"] = True
+        program_arguments["preferences"] = True
+        program_arguments["directory"] = True
+        program_arguments["taskernet"] = True
+        program_arguments["outline"] = True
+        program_arguments["runtime"] = True
+
+    the_name = getattr(args, "project")  # Display single Project
     if the_name is not None:
-        PrimeItems.program_arguments["single_project_name"] = the_name[0]
-    the_name = getattr(args, "profile")  # Display single Profile  # noqa: B009
+        program_arguments["single_project_name"] = the_name[0]
+    the_name = getattr(args, "profile")  # Display single Profile
     if the_name is not None:
-        PrimeItems.program_arguments["single_profile_name"] = the_name[0]
-    the_name = getattr(args, "task")  # Display single task  # noqa: B009
+        program_arguments["single_profile_name"] = the_name[0]
+    the_name = getattr(args, "task")  # Display single task
     if the_name is not None:
-        PrimeItems.program_arguments["single_task_name"] = the_name[0]
-    if getattr(args, "v"):  # Display version info  # noqa: B009
+        program_arguments["single_task_name"] = the_name[0]
+    if getattr(args, "v"):  # Display version info
         display_version()
 
     # Get names (bold, highlight, underline and/or highlight)
-    if value := getattr(args, "names"):  # noqa: B009
+    if value := getattr(args, "names"):
         get_name_attributes(value)
-    # Get backup file directly from Android device
-    # It is a list if coming from program arguments.
-    # Otherwise, just a string if coming from run_test (unit test)
-    if backup_file_info := getattr(args, "b"):  # noqa: B009
-        process_backup(backup_file_info)
+
+    # Get Android device info for fetching the backup xml file
+    if value := getattr(args, "android_ipaddr"):
+        program_arguments["android_ipaddr"] = value[0]
+        program_arguments["android_port"] = getattr(args, "android_port")[0]
+        program_arguments["android_file"] = getattr(args, "android_file")[0]
+
 
     # Appearance
-    if appearance := getattr(args, "a"):  # noqa: B009
-        PrimeItems.program_arguments["appearance_mode"] = appearance
+    if appearance := getattr(args, "appearance"):
+        program_arguments["appearance_mode"] = appearance
 
     # Indentation amount
     if indent := get_arg_if_in_list(args, "i"):
-        PrimeItems.program_arguments["indent"] = indent
+        program_arguments["indent"] = indent
 
     # Font
-    if font := getattr(args, "f"):  # noqa: B009
+    if font := getattr(args, "f"):
         if isinstance(font, list):
-            PrimeItems.program_arguments["font"] = font[0]
+            program_arguments["font"] = font[0]
         else:
-            PrimeItems.program_arguments["font"] = font
+            program_arguments["font"] = font
 
 
 # ##################################################################################
@@ -341,8 +325,10 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):
     # single letter if the first name is a single letter, otherwise full name
     # Example: parser.add_argument( "-g","-gui",... then -g is the short name
     args = Namespace(
-        a=None,
-        b=False,
+        appearance=None,
+        android_ipaddr="",
+        android_file="",
+        android_port="",
         cAction=None,
         cActionCondition=None,
         cActionLabel=None,

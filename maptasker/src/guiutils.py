@@ -14,11 +14,13 @@
 # #################################################################################### #
 from __future__ import annotations
 
+import contextlib
 import os
 from tkinter import font
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.lineout import LineOut
+from maptasker.src.maputils import validate_ip_address, validate_port
 from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proginit import get_data_and_output_intro
@@ -126,68 +128,87 @@ def get_monospace_fonts() -> dict:
 # ##################################################################################
 # Ping the Android evice to make sure it is reachable.
 # ##################################################################################
-def ping_android_device(self, backup_info: str) -> tuple[bool, str]:  # noqa: ANN001
+def ping_android_device(self, ip_address: str, port_number: str, file_location: str) -> bool:  # noqa: ANN001
     # The following should return a list: [ip_address:port_number, file_location]
     """
     Pings an Android device
     Args:
-        backup_info: str - Backup information in ip_address:port_number,file_location format
-    Returns:
-        tuple[bool, str] - A tuple containing a bool for success/failure and a error message string
-                    - If failure, returns True and a blank strings, else False and ip addr and location
+        ip_address: str - TCP IP address of the Android device
+        port_number: str - TCP port number of the Android device
+        file_location: str - File location on the Android device
+    Return:
+        Error: True if error, false if all is good.
     Processing Logic:
     - Splits the backup_info string into ip_address, port_number, and file_location
     - Validates the IP address, port number, and file location
     - Pings the IP address to check connectivity
     - Returns a tuple indicating success/failure and any error message
     """
-    temp_info = backup_info.split(",")
-    temp_ip = temp_info[0].split(":")
-
     # Validate IP Address
-    temp_ipaddr = temp_ip[0].split(".")
-    if len(temp_ipaddr) < 4:
-        self.backup_error(f"Invalid IP Address: {temp_ip[0]}.  Try again.")
-        return True, "", ""
-    for item in temp_ipaddr[0]:
-        if not item.isdigit():
+    if validate_ip_address(ip_address):
+
+        # Verify that the host IP is reachable:
+        self.display_message_box(
+            f"Pinging address {ip_address}.  Please wait...",
+            True,
+        )
+        self.update()  # Force a window refresh.
+
+        # Ping IP address.
+        response = os.system("ping -c 1 -t50 > /dev/null " + ip_address)  # noqa: S605
+        if response != 0:
             self.backup_error(
-                f"Invalid IP Address: {temp_ip[0]}.  Try again.",
+                f"{ip_address} is not reachable (error {response}).  Try again.",
             )
-            return True, "", ""
-    # Verify that the host IP (temp_ip[0]) is reachable:
-    self.display_message_box(
-        f"Pinging address {temp_ip[0]}.  Please wait...",
-        True,
-    )
-    self.update()  # Force a window refresh.
-    # Ping IP address.
-    response = os.system("ping -c 1 -t50 > /dev/null " + temp_ip[0])  # noqa: S605
-    if response != 0:
-        self.backup_error(
-            f"{temp_ip[0]} is not reachable (error {response}).  Try again.",
+            return True
+        self.display_message_box(
+            "Ping successful.",
+            True,
         )
-        return True, "", ""
-    self.display_message_box(
-        "Ping successful.",
-        False,
-    )
+    else:
+        self.backup_error(
+            f"Invalid IP address: {ip_address}.  Try again.",
+        )
+        return True
+
     # Validate port number
-    if len(temp_ip) == 1 or not temp_ip[1].isdigit:
+    if validate_port(ip_address, port_number) != 0:
         self.backup_error(
-            f"Invalid port number: {temp_ipaddr[1]}.  Try again.",
+            f"Invalid Port number: {port_number}.  Try again.",
         )
-        return True, "", ""
+        return True
 
     # Validate file location
-    if len(temp_info) < 2 or temp_info[1] == "":
+    if len(file_location) < 2 or file_location == "":
         self.backup_error("File location is missing.  Try again.")
-        return None
-
-    # All is well so far...
-    self.backup_file_http = temp_info[0]
-    self.backup_file_location = temp_info[1]
+        return True
 
     # Empty message = good to go...no error.
     self.backup_error("")
-    return False, self.backup_file_http, self.backup_file_location
+    return False
+
+
+# ##################################################################################
+# Clear all buttons associated with fetching the backup file from Android device
+# ##################################################################################
+def clear_android_buttons(self) -> None:  # noqa: ANN001
+    """
+    Clears android device configuration buttons and displays backup button
+    Args:
+        self: The class instance
+    Returns:
+        None
+    - Destroys IP, port, file entry and label widgets
+    - Destroys get backup button
+    - Displays new backup button with callback to get_backup_event method"""
+    with contextlib.suppress(AttributeError):
+        self.ip_entry.destroy()
+        self.port_entry.destroy()
+        self.file_entry.destroy()
+        self.ip_label.destroy()
+        self.port_label.destroy()
+        self.file_label.destroy()
+        self.get_backup_button.destroy()
+        self.cancel_entry_button.destroy()
+
+    self.display_backup_button("Get Backup from Android Device", "#246FB6", "#6563ff", self.get_backup_event)

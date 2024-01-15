@@ -83,15 +83,13 @@ def output_the_heading() -> None:
     if PrimeItems.program_arguments["fetched_backup_from_android"]:
         source_file = (
             "From Android device"
-            f' {PrimeItems.program_arguments["backup_file_http"]} at'
-            f' {PrimeItems.program_arguments["backup_file_location"]}'
+            f' TCP IP address:{PrimeItems.program_arguments["android_ipaddr"]}'
+            f' on port:{PrimeItems.program_arguments["android_port"]}'
+            f' with file location: {PrimeItems.program_arguments["android_file"]}'
         )
     elif PrimeItems.program_arguments["debug"] or not PrimeItems.program_arguments["file"]:
         filename = isinstance(PrimeItems.file_to_get, str)
-        if not filename:
-            filename = PrimeItems.file_to_get.name
-        else:
-            filename = PrimeItems.file_to_get
+        filename = PrimeItems.file_to_get.name if not filename else PrimeItems.file_to_get
         source_file = filename
     else:
         source_file = PrimeItems.program_arguments["file"]

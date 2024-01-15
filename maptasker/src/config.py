@@ -28,27 +28,29 @@ GUI = False
 DARK_MODE = True
 
 #
-# Set up to fetch the backup file from Android device running the Tasker server
+# Set up to fetch the backup file from Android device running the Tasker server.
 #
-# The following two parameters must both be filled in for the fetch to work:
-#   BACKUP_FILE_HTTP is the Tasker server ip address and port number on the Android
-#    device from which to fetch the file
-#   BACKUP_FILE_LOCATION is the location of the backup file on the Android device
-#
-# In addition, the Tasker HTTP sample Project must be active on the Android device
-#  (https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example),
-# and the server must be active.
+# In addition, the Tasker HTTP sample Project must be installed on the Android device,
+# found at...
+#  (https://shorturl.at/bwCD4),
+# and the server must be active on the Android device.
 
-# This is the HTTP IP address and port number (e.g. 1821) that Tasker assigns to the
-# server on the device containing the backup file to get.
-# Example: BACKUP_FILE_HTTP = "http://192.168.0.210:1821" (note: not "https")
+# This is the HTTP IP address of the Android device from which to fetch the backup.
+# Example: ANDROID_IPADDR = "192.168.0.210"
 
-BACKUP_FILE_HTTP = ""
+ANDROID_IPADDR = ""
+
+# This is the port number for the Android device from which to fetch the backup,
+# and is specified in the Tasker HTTP Server Example project notification.
+# From notification: HTTP Server Info  {"device_name":"http://192.168.0.49:1821"}
+# Example: ANDROID_PORT = "1821"
+
+ANDROID_PORT = ""
 
 # This is the location on the Android device from which to pull the backup file
-# Example: BACKUP_FILE_LOCATION = "/Tasker/configs/user/backup.xml"
+# Example: ANDROID_FILE = "/Tasker/configs/user/backup.xml"
 
-BACKUP_FILE_LOCATION = ""
+ANDROID_FILE = ""
 
 # ##################################################################################
 #  END User-modifiable global constants

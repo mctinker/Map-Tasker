@@ -248,7 +248,7 @@ def process_item(
             remove_twisty()
         # If not a twisty but is a digit, then this is a Scene's Task...
         # delete previous </ul>
-        elif the_item.isdigit:
+        elif the_item.isdigit():
             PrimeItems.output_lines.delete_last_line()
 
     elif list_type == "Scene:" and PrimeItems.program_arguments["display_detail_level"] > 1:
