@@ -272,7 +272,7 @@ def check_versions() -> None:
     Returns:
         None: Does not return anything
     - It gets the Python version and splits it into major, minor, and patch numbers
-    - It checks if the major version is less than 3 or the major is 3 and minor is less than 10
+    - It checks if the major version is less than 3 or the major is 3 and minor is less than 11
     - It gets the Tkinter version and splits it into major and minor
     - It checks if the major is less than 8 or the major is 8 and minor is less than 6
     - If either check fails, it logs and prints an error message and exits
@@ -281,8 +281,8 @@ def check_versions() -> None:
     version = sys.version
     version = version.split(" ")
     major, minor, patch = (int(x, 10) for x in version[0].split("."))
-    if major < 3 or (major == 3 and minor < 10):
-        msg = f"Python version {sys.version} is not supported.  Please use Python 3.10 or greater."
+    if major < 3 or (major == 3 and minor < 11):
+        msg = f"Python version {sys.version} is not supported.  Please use Python 3.11 or greater."
     version = str(TkVersion)
     major, minor = version.split(".")
     if int(major) < 8 or (int(major) == 8 and int(minor) < 6):
