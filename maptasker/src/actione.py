@@ -122,10 +122,7 @@ def get_action_code(
         else:
             the_result = f"{action_codes[the_action_code_plus].display}{depricated}"
 
-        if action_codes[the_action_code_plus].numargs:
-            numargs = action_codes[the_action_code_plus].numargs
-        else:
-            numargs = 0
+        numargs = action_codes[the_action_code_plus].numargs if action_codes[the_action_code_plus].numargs else 0
 
         # If there are required args, then parse them
         if numargs != 0 and action_codes[the_action_code_plus].reqargs:

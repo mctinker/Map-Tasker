@@ -152,7 +152,7 @@ def format_item(
     the_item: str,
     the_list: list,
     the_task: defusedxml,
-):
+) -> None:
     """
     Given an item, format it with all of the particulars:
         Proper html/color/font, twisty, directory, properties, etc.
@@ -166,7 +166,7 @@ def format_item(
     if PrimeItems.program_arguments["debug"]:
         logger.debug(
             f"process_list  the_item:{the_item} the_list:{the_list} list_type:\
-            {list_type}"
+            {list_type}",
         )
 
     # Format the Task or Scene
@@ -275,7 +275,7 @@ def process_item(
 def process_list(
     list_type: str,
     the_list: list,
-    the_task: defusedxml.ElementTree.XML,  # type: ignore
+    the_task: defusedxml.ElementTree.XML,
     tasks_found: list,
 ) -> None:
     """
@@ -289,8 +289,8 @@ def process_list(
     """
 
     # Go through all Tasks in the list
+    # The list looks like...
+    # 'Battery Full Alert&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task&nbsp;&nbsp;Task ID: 18 &nbsp;&nbsp;[Priority: 6]&nbsp;&nbsp;')
     for the_item in the_list:
         # Process the item (list of items)
         process_item(the_item, list_type, the_task, tasks_found)
-
-    return

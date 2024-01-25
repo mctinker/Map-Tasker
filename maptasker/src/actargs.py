@@ -20,33 +20,39 @@ from maptasker.src.actiond import process_condition_list
 from maptasker.src.format import format_html
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
+from maptasker.src.xmldata import extract_integer, extract_string
 
 
 # ##################################################################################
 # We have a <bundle>.   Process it
 # ##################################################################################
-def get_bundle(code_action: defusedxml.ElementTree.XML, evaluated_results: dict) -> dict:
-    """
-    Get the details regarding the <bundle> action argument type
-        Args:
-            code_action (defusedxml.ElementTree.XML): XML element of the action code <code>
-            evaluated_results (dict): We stuff the findings in here for passing to the caller
+def get_bundle(code_action: defusedxml.ElementTree.XML, evaluated_results: dict, arg: str) -> dict:
 
-        Returns:
-            dict: The results from the <bundle> argument
+    """
+    Gets a bundle from an XML code action.
+    Args:
+        code_action: ElementTree.XML: The XML code action
+        evaluated_results: dict: The dictionary to store results
+        arg: str: The argument name
+    Returns:
+        dict: The evaluated results dictionary with the bundle value
+    Processing Logic:
+    - Finds the "Bundle" child in the code action
+    - Finds the "Vals" child of "Bundle"
+    - Finds either the "com.twofortyfouram.locale.intent.extra.BLURB" or "Configcommand" child of "Vals"
+    - If either is found, gets the text and stores in the results dict
+    - Else, sets a flag and empty string in results
     """
     child1 = code_action.find("Bundle")
     child2 = child1.find("Vals")
-    child3 = child2.find("com.twofortyfouram.locale.intent.extra.BLURB")  # 2:40 am...funny!
-    if child3 is not None and child3.text is not None:
-        # Get rid of extraneous html in Action's label
-        # clean_string = child3.text.replace("</font><br><br>", "<br><br>")
-        # clean_string = clean_string.replace("&lt;", "<")
-        # clean_string = clean_string.replace("&gt;", ">")
-        clean_string = child3.text
-        evaluated_results["result_bun"].append(clean_string)
+    child3 = child2.find("com.twofortyfouram.locale.intent.extra.BLURB")
+    child4 = child2.find("Configcommand")
+    if (child3 is not None or child4 is not None) or (child4 is not None and child4.text is not None):
+        clean_string = child3.text if child3 is not None else child4.text
+        evaluated_results[f"arg{arg}"]["value"] = f"Configuration Parameter(s):\n{clean_string}\n"
     else:
         evaluated_results["returning_something"] = False
+        evaluated_results[f"arg{arg}"]["value"] = ""
     return evaluated_results
 
 
@@ -61,50 +67,54 @@ def get_action_arguments(
     code_action: defusedxml.ElementTree.XML,
 ) -> dict:
     """
-    Given an <argn> element, evaluate it's contents based on our Action code dictionary
-    (actionc.py)
-
-        :param evaluated_results: all the Action argument "types" and "arguments" as
-            a dictionary
-        :param arg: the incoming argument location/number (e.g. "0" for <arg0>)
-        :param argeval: the evaluation argument from our action code table (actionc.py)
-            e.g. "Timeout:" in "evalargs": ["", "Timeout:", ["", "e", ",
-            Structure Output (JSON, etc)"]],
-        :param argtype: the argument "type"- Str, Int, App, ConditionList, Bundle, Img
-        :param code_action: xml element of the Action code (<code>nnn</code>)
-        :return:  of results
+    Gets action arguments from XML code action
+    Args:
+        evaluated_results: dict - Stores evaluation results
+        arg: object - Argument object
+        argeval: list - Argument evaluation
+        argtype: list - Argument type
+        code_action: defusedxml.ElementTree.XML - XML code action
+    Returns:
+        dict - Updated evaluated results dictionary
+    Processing Logic:
+        - Sets flags for returning value and parsing XML
+        - Extracts argument value based on type by calling extraction functions
+        - Handles special types like App, ConditionList, Image, Bundle
+        - Returns updated evaluated results
     """
 
     # Assume we are returing something and that we have a <str> or <int> argument to get
     evaluated_results["returning_something"] = True
-    evaluated_results["get_xml_flag"] = True
 
     # Evaluate the argument based on its type.
+    the_arg = f"arg{arg}"
     match argtype:
         case "Int":
-            evaluated_results["intargs"].append(f"arg{arg}")
-            evaluated_results["inteval"].append(argeval)
-
+            evaluated_results[the_arg]["value"] = extract_integer(code_action, the_arg, argeval)
+            ...
         case "Str":
-            evaluated_results["strargs"].append(f"arg{arg}")
-            evaluated_results["streval"].append(argeval)
-
+            if argeval == "Label":
+                for child in code_action:
+                    if child.tag == "label":
+                        evaluated_results[the_arg]["value"] = child.text
+                        break
+            else:
+                evaluated_results[the_arg]["value"] = extract_string(code_action, the_arg, argeval)
+            ...
         case "App":
             extract_argument(evaluated_results, arg, argeval)
             app_class, app_pkg, app = get_action.get_app_details(code_action)
-            evaluated_results["result_app"].append(f"{app_class}, {app_pkg}, {app}")
+            evaluated_results[the_arg]["value"] = f"{app_class}, {app_pkg}, {app}"
 
         case "ConditionList":
             extract_condition(evaluated_results, arg, argeval, code_action)
 
         case "Img":
-            extract_image(evaluated_results, code_action, argeval)
+            extract_image(evaluated_results, code_action, argeval, arg)
         case "Bundle":  # It's a plugin
-            evaluated_results["get_xml_flag"] = False
-            evaluated_results = get_bundle(code_action, evaluated_results)
+            evaluated_results = get_bundle(code_action, evaluated_results, arg)
 
         case _:
-            evaluated_results["get_xml_flag"] = False
             logger.debug(f"actargs get_action_results error unknown argtype:{argtype}!!!!!")
             evaluated_results["returning_something"] = False
     return evaluated_results
@@ -114,13 +124,14 @@ def get_action_arguments(
 # Get image details from <img> sub-elements.
 # ##################################################################################
 # Get image related details from action xml
-def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str) -> None:
+def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str, arg: str) -> None:
     """
     Extract image from evaluated results
     Args:
         evaluated_results: dict - The dictionary containing the evaluation results
         code_action: defusedxml - The parsed defusedxml object
         argeval: str - The argument evaluation string
+        arg: str - The argument number
     Returns:
         None - No return value
     Processing Logic:
@@ -129,7 +140,6 @@ def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str
         - Append the image details to the result_img list in evaluated_results dictionary
         - Set returning_something to False if no image is found
     """
-    evaluated_results["get_xml_flag"] = False
     image, package = "", ""
     child = code_action.find("Img")
     # Image name
@@ -140,12 +150,16 @@ def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str
     elif child.find("var") is not None:  # There is a variable name?
         image = child.find("var").text
     if image:
-        evaluated_results["result_img"].append(f"{argeval}{image}{package}")
+        evaluated_results[f"arg{arg}"]["value"] = f"{argeval}{image}{package}"
+
     else:
-        evaluated_results["result_img"].append(" ")
+        evaluated_results[f"arg{arg}"]["value"] = " "
         evaluated_results["returning_something"] = False
 
 
+# ##################################################################################
+# Get condition releated details from action xml
+# ##################################################################################
 # Get condition releated details from action xml
 def extract_condition(evaluated_results: dict, arg: str, argeval: str, code_action: str) -> None:
     # Get argument
@@ -178,9 +192,13 @@ def extract_condition(evaluated_results: dict, arg: str, argeval: str, code_acti
         if boolean_list and len(boolean_list) > numx:
             conditions.append(f" {boolean_list[numx]}")
     seperator = ""
-    evaluated_results["result_con"].append(seperator.join(conditions))
+
+    evaluated_results[f"arg{arg}"]["value"] = seperator.join(conditions)
 
 
+# ##################################################################################
+# Get the argument details from action xml
+# ##################################################################################
 # Get the argument details from action xml
 def extract_argument(evaluated_results: dict, arg: str, argeval: str) -> None:
     """
@@ -194,9 +212,7 @@ def extract_argument(evaluated_results: dict, arg: str, argeval: str) -> None:
     - Appends argument name to strargs list in evaluated_results
     - Appends argument evaluation to streval list in evaluated_results
     - Sets get_xml_flag to False"""
-    evaluated_results["get_xml_flag"] = False
-    evaluated_results["strargs"].append(f"arg{arg!s}")
-    evaluated_results["streval"].append(argeval)
+    evaluated_results[f"arg{arg}"]["value"] = argeval
 
 
 # ##################################################################################
@@ -278,7 +294,9 @@ def action_args(
             argtype = handle_missing_code(the_action_code_plus, index)
 
         # Get the Action arguments
-        evaluated_results["position_arg_type"].append(argtype)
+        evaluated_results[f"arg{arg}"] = {}
+        evaluated_results[f"arg{arg}"]["type"] = argtype
+
         evaluated_results = get_action_arguments(
             evaluated_results,
             arg,

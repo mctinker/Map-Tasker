@@ -45,7 +45,7 @@ from maptasker.src.sysconst import (
 # ################################################################################
 # Determine if the argument is a list or string, and return the value as appropriate
 # ################################################################################
-def get_arg_if_in_list(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"]), the_argument: str) -> int:
+def get_arg_if_in_list(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"]), the_argument: str) -> int:  # noqa: PYI024
     """
     Determine if the argument is a list or string, and return the value as appropriate
         Args:
@@ -84,7 +84,7 @@ def get_name_attributes(value: str) -> None:
 # ##################################################################################
 # Go through all boolean settings, get each and if have it then set value to True
 # ##################################################################################
-def get_and_set_booleans(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:
+def get_and_set_booleans(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:  # noqa: PYI024
     """
     Go through all boolean settings, get each and if have it then set value to True
         Args:
@@ -98,9 +98,8 @@ def get_and_set_booleans(args: namedtuple("ArgNamespace", ["some_arg", "another_
         "everything": "e",
         "outline": "o",
         "preferences": "",
-        "restore": "",
+        "reset": "",
         "runtime": "",
-        "save": "s",
         "taskernet": "",
         "twisty": "",
     }
@@ -123,7 +122,7 @@ def get_and_set_booleans(args: namedtuple("ArgNamespace", ["some_arg", "another_
 # ##################################################################################
 # Get the the other arguments
 # ##################################################################################
-def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:
+def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:  # noqa:PYI024
     """
     Get the remainder of the arguments
         Args:
@@ -140,7 +139,7 @@ def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "anoth
 # ##################################################################################
 # Get our parsed program arguments and save them to PrimeItems.program_args"]
 # ##################################################################################
-def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:  # noqa: C901
+def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:  # noqa: C901, PYI024
     """
     Get our parsed program arguments and save them to PrimeItems.program_args"]
         Args:
@@ -158,7 +157,7 @@ def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another
 
     program_arguments = PrimeItems.program_arguments
 
-    # Everything? Display full detail and set various display optionsm to true.
+    # Everything? Display full detail and set various display options to true.
     if getattr(args, "e"):
         program_arguments["display_detail_level"] = 4
         program_arguments["conditions"] = True
@@ -186,9 +185,14 @@ def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another
 
     # Get Android device info for fetching the backup xml file
     if value := getattr(args, "android_ipaddr"):
-        program_arguments["android_ipaddr"] = value[0]
-        program_arguments["android_port"] = getattr(args, "android_port")[0]
-        program_arguments["android_file"] = getattr(args, "android_file")[0]
+        if isinstance(value, list):
+            program_arguments["android_ipaddr"] = value[0]
+            program_arguments["android_port"] = getattr(args, "android_port")[0]
+            program_arguments["android_file"] = getattr(args, "android_file")[0]
+        else:
+            program_arguments["android_ipaddr"] = value
+            program_arguments["android_port"] = getattr(args, "android_port")
+            program_arguments["android_file"] = getattr(args, "android_file")
 
 
     # Appearance
@@ -279,6 +283,7 @@ def restore_arguments() -> dict:
     Get arguments from saved file and restore them to the proper settings
     """
     temp_arguments = temp_colors = {}
+    # Get the arguments from our saved settings file.
     temp_arguments, temp_colors = save_restore_args(temp_arguments, temp_colors, False)
 
     # We will get a Keyerror if the restore file does not exist
@@ -304,9 +309,12 @@ def restore_arguments() -> dict:
 
 
 # ##################################################################################
-# We're running a unit test. Get the unit test arguments and create the arg namespace
+# Unit tests...
+# We're running a unit test. Get the unit test arguments and create the arg namespace.
+# We do this so that 1) we can run a unit test without command line arguments, and
+# 2) we can rerun over and over as many times as needed.
 # ##################################################################################
-def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):
+def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):  # noqa: PYI024
     """
     We're running a unit test. Get the unit test arguments and create the arg namespace
             :return: args Namespace with arguments from run_test.py
@@ -364,9 +372,7 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):
         profile=None,
         project=None,
         reset=False,
-        restore=False,
         runtime=False,
-        s=False,
         task=None,
         taskernet=False,
         twisty=False,
@@ -436,16 +442,18 @@ def process_cli() -> None:
     """
     gui_flag = "g"
     reset_flag = "reset"
+    version_flag = "v"
 
     # Intialize runtime arguments if we don't yet have them.
     if not PrimeItems.colors_to_use:
+        # Empty/reset the runtime arguments.
         PrimeItems.program_arguments = initialize_runtime_arguments()
 
-    # Process unit tests if "-test" in arguments, else get normal runtime arguments.
+    # Process unit tests if "-test" in arguments, else get normal runtime arguments via Parsearg.
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
     logger.debug(f"Program arguments: {args}")
 
-    # Restore runtime arguments if we are not doing a reset and not doing the GUI and there is a restore file.
+    # Restore runtime arguments if we are not doing a reset and not doing the GUI and there is a settings file to restore.
     # If doing thew GUI, then the arguments are restored by userintr.py
     PrimeItems.program_arguments["reset"] = getattr(args, reset_flag)
     PrimeItems.program_arguments["gui"] = getattr(args, gui_flag)
@@ -458,7 +466,8 @@ def process_cli() -> None:
         PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.
 
     # If using the GUI, them process the GUI.
-    if PrimeItems.program_arguments["gui"]:  # GUI for input?
+    do_version = getattr(args, version_flag)
+    if PrimeItems.program_arguments["gui"] and not do_version:  # GUI for input?
         (
             PrimeItems.program_arguments,
             PrimeItems.colors_to_use,

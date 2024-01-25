@@ -13,7 +13,6 @@
 # #################################################################################### #
 from __future__ import annotations
 
-import contextlib
 import re
 from collections import defaultdict
 from typing import TYPE_CHECKING
@@ -33,10 +32,6 @@ from maptasker.src.sysconst import (
     pattern11,
     pattern12,
 )
-from maptasker.src.xmldata import (
-    get_xml_int_argument_to_value,
-    get_xml_str_argument_to_value,
-)
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -47,103 +42,30 @@ if TYPE_CHECKING:
 # on position
 # ##################################################################################
 def get_results_in_arg_order(evaluated_results: dict) -> str:
-    """Given a list of positional items, return a string in the correct order based.
-
-    Returns results in the order of arguments.
-    Args:
-        evaluated_results: Dictionary containing results and argument types.
-    Returns:
-        String: Results joined into a single string in argument order.
-    Processing Logic:
-        1. Initialize an empty list to store result parts
-        2. Iterate through argument types
-        3. Append matching result to list based on argument type
-        4. Join results into a single string and return
     """
-    result_parts = []
-    for arg in evaluated_results["position_arg_type"]:
-        if arg == "Str" and evaluated_results["result_str"]:
-            result_parts.append(evaluated_results["result_str"].pop(0))
-        elif arg == "Int" and evaluated_results["result_int"]:
-            result_parts.append(str(evaluated_results["result_int"].pop(0)))
-        elif arg == "App" and evaluated_results["result_app"]:
-            result_parts.append(evaluated_results["result_app"].pop(0))
-        elif arg == "ConditionList" and evaluated_results["result_con"]:
-            result_parts.append(evaluated_results["result_con"].pop(0))
-        elif arg == "Img" and evaluated_results["result_img"]:
-            result_parts.append(evaluated_results["result_img"].pop(0))
-        elif arg == "Bundle" and evaluated_results["result_bun"]:
-            result_parts.append(evaluated_results["result_bun"].pop(0))
+    Get all of the evaluated results into a single list and return results as a string.
+    :param evaluated_results: a dictionary containing evaluated results
+    :type evaluated_results: dict
+    :return: a string containing the evaluated results in order
+    :rtype: str
+    """
 
+    # Get all of the evaluated results into a single list
+    result_parts = []
+    for arg in evaluated_results["required_args"]:
+        value = evaluated_results[f"arg{arg}"]["value"]
+        if value is not None:
+            result_parts.append(value)
         # Eliminate empty values
         if result_parts and result_parts[-1] == ", ":
             result_parts.pop()
             continue
 
-    return " ".join(result_parts)
+    # Return results as a string
+    if result_parts:
+        return " ".join(result_parts)
 
-
-# ##################################################################################
-# For the given code, save the display_name, required arg list and associated
-# type list in dictionary
-# Then evaluate the data against the master dictionary of actions
-# ##################################################################################
-def evaluate_action_args(
-    the_action_code_plus: defusedxml.ElementTree.XML,
-    arg_list: list,
-    code_action: defusedxml.ElementTree.XML,
-    lookup_code_entry: dict,
-    evaluate_list: list,
-    evaluated_results: dict,
-) -> object:
-    """
-    For the given code, save the display_name, required arg list and associated type
-    list in dictionary. Then evaluate the data against the master dictionary of actions.
-
-        :param the_action_code_plus: the code found in <code> for the Action (<Action>)
-            plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
-        :param arg_list: list of arguments (<argn>) under Action
-        :param code_action: Action code found in <code>
-        :param lookup_code_entry: The key to our Action code dictionary in actionc.py
-        :param evaluate_list: list of arguments to evaluate
-        :param evaluated_results: a list into which to put the evaluated results
-        :return: the evaluated results as a list
-    """
-    # Process the Task action arguments
-    evaluated_results = action_args(
-        arg_list,
-        the_action_code_plus,
-        lookup_code_entry,
-        evaluate_list,
-        code_action,
-        evaluated_results,
-    )
-
-    # If we had at least one Int or Str then deal with them
-
-    # If TypeError, then we haven't properly mapped the action code in actionc.py.
-    #   evaluated_results["error"] will have been filled with an error msg by actarg.py
-    #   ...just return with error msg
-    # Otherwise, get the results by evaluating and formatting the str arguments and
-    # int arguments from xml
-    with contextlib.suppress(TypeError):
-        if evaluated_results["get_xml_flag"]:
-            # Get string args? <Str>
-            if evaluated_results["strargs"]:
-                evaluated_results["result_str"] = get_xml_str_argument_to_value(
-                    code_action,
-                    evaluated_results["strargs"],
-                    evaluated_results["streval"],
-                )
-            # Get integer args? <Int>
-            if evaluated_results["intargs"]:
-                evaluated_results["result_int"] = get_xml_int_argument_to_value(
-                    code_action,
-                    evaluated_results["intargs"],
-                    evaluated_results["inteval"],
-                )
-
-    return evaluated_results
+    return ""
 
 
 # ##################################################################################
@@ -234,23 +156,21 @@ def get_action_results(
     """
     # Setup default dictionary as empty list
     evaluated_results = defaultdict(list)
+    evaluated_results["required_args"] = arg_list
     result = ""
     our_action_code = lookup_code_entry[the_action_code_plus]
 
-    # Save the associated data, in the event
-    # our_action_code.reqargs = arg_list
-    # our_action_code.evalargs = evaluate_list
     program_arguments = PrimeItems.program_arguments
     # If just displaying action names or there are no action details, then just
     # display the name
     if arg_list and program_arguments["display_detail_level"] != DISPLAY_DETAIL_LEVEL_all_tasks:
-        # Evaluate the required args per arg_list
-        evaluated_results = evaluate_action_args(
-            the_action_code_plus,
+        # Process the Task action arguments
+        evaluated_results = action_args(
             arg_list,
-            code_action,
+            the_action_code_plus,
             lookup_code_entry,
             evaluate_list,
+            code_action,
             evaluated_results,
         )
 

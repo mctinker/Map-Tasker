@@ -290,8 +290,8 @@ class LineOut:
     #     scene_name = scene_name.replace("</u>", "")
     #     return scene_name
 
-    def handle_action(self, element):
-        """
+    def handle_action(self, element) -> str:
+        r"""
         Handles the action element.
 
         Args:
@@ -327,6 +327,7 @@ class LineOut:
             #     )
             # )
             element = tmp
+
         return f"<li {element}</span></li>\n"
 
     def handle_taskernet(self, element):

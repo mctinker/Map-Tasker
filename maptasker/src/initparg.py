@@ -12,7 +12,7 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-from maptasker.src.config import ANDROID_IPADDR, ANDROID_PORT, ANDROID_FILE, OUTPUT_FONT
+from maptasker.src.config import ANDROID_FILE, ANDROID_IPADDR, ANDROID_PORT, OUTPUT_FONT
 
 
 #######################################################################################
@@ -46,13 +46,11 @@ def initialize_runtime_arguments() -> dict:
         "italicize": False,  # Italicise Project/Profile?Task/Scene names
         "outline": False,  # Outline Project/Profile?Task/Scene names
         "rerun": False,  # Is this a GUI re-run?
-        "restore": False,  # Restore settings from a previous run
+        "reset": False,  # Reset settings to default values
         "runtime": False,  # Display the runtime arguments/settings
-        "save": False,  # Save settings for reuse
         "single_profile_name": "",  # Display single Profile name only
         "single_project_name": "",  # Display single Project name only
         "single_task_name": "",  # Display single Task name only
         "twisty": False,  # Add Task twisty "▶︎" clickable icons for Task details
         "underline": False,  # Underline Project/Profile?Task/Scene names
-        "reset": False,  # Reset settings to default values
     }

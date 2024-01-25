@@ -203,7 +203,7 @@ def fix_icon(name: str) -> str:
         if char.strip() and set(char).difference(printable):
             # tkframe = PrimeItems.tkroot.frame()  # Initialize Tkinter
             # We have the icon.
-            char_dimension = width_and_height_calculator_in_pixel(char, "Courier New", 12)
+            char_dimension = width_and_height_calculator_in_pixel(char, "Courier", 12)
             trailer = "" if char_dimension[0] > char_dimension[1] else blank
             break
     return trailer

@@ -38,9 +38,17 @@ def get_actions(
     current_task: defusedxml.ElementTree.XML,
 ) -> list:
     """
-    Return a list of Task's actions for the given Task
-        :param current_task: xml element of the Task we are getting actions for
-        :return: list of Task 'action' output lines
+    Get the actions for a task
+    Args:
+        current_task: defusedxml.ElementTree.XML - The XML element of the current task
+    Returns:
+        list - The list of actions for the task
+    Processing Logic:
+        1. Get all <Action> elements from the current task
+        2. Sort the actions by their "sr" attribute to get them in proper order
+        3. Iterate through each action and get its code
+        4. Build the action and add indentation if it is a conditional statement
+        5. Return the list of actions
     """
     tasklist = []
     blanks = f'{"&nbsp;" * PrimeItems.program_arguments["indent"]}'
@@ -49,7 +57,7 @@ def get_actions(
     try:
         task_actions = current_task.findall("Action")
     except defusedxml.DefusedXmlException:
-        print("tasks.py current Task:", current_task)
+        print("tasks.py current Task:", current_task)  # noqa: T201
         error_handler("Error: No action found!!!", 0)
         return []
 
@@ -64,7 +72,7 @@ def get_actions(
         if len(task_actions) > 0:
             shell_sort(task_actions, True, False)
 
-        # Now go through each Action to start processing it.
+        # Now go through each Action to start processing it.  They are in "argn" "n" order.
         for action in task_actions:
             child = action.find("code")  # Get the <code> element
             # Get the Action code ( <code> )

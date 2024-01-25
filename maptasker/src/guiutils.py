@@ -203,12 +203,19 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
     - Displays new backup button with callback to get_backup_event method"""
     with contextlib.suppress(AttributeError):
         self.ip_entry.destroy()
+    with contextlib.suppress(AttributeError):
         self.port_entry.destroy()
+    with contextlib.suppress(AttributeError):
         self.file_entry.destroy()
+    with contextlib.suppress(AttributeError):
         self.ip_label.destroy()
+    with contextlib.suppress(AttributeError):
         self.port_label.destroy()
+    with contextlib.suppress(AttributeError):
         self.file_label.destroy()
+    with contextlib.suppress(AttributeError):
         self.get_backup_button.destroy()
+    with contextlib.suppress(AttributeError):
         self.cancel_entry_button.destroy()
 
     self.display_backup_button("Get Backup from Android Device", "#246FB6", "#6563ff", self.get_backup_event)

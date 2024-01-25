@@ -43,7 +43,7 @@ def set_color_mode(appearance_mode: str) -> dict:
             "action_condition_color": "PapayaWhip",
             "disabled_action_color": "Crimson",
             "profile_condition_color": "Lavender",
-            "background_color": "DarkBlue",
+            "background_color": "222623",
             "trailing_comments_color": "PeachPuff",
             "taskernet_color": "LightPink",
             "preferences_color": "PeachPuff",

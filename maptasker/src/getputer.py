@@ -1,3 +1,4 @@
+"""Read/write the settings file"""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -15,13 +16,17 @@ from __future__ import annotations
 
 import contextlib
 import json
+import os
 from pathlib import Path
 
+import tomli_w
+import tomllib
+
 from maptasker.src.error import error_handler
-from maptasker.src.sysconst import ARGUMENTS_FILE
+from maptasker.src.sysconst import ARGUMENTS_FILE, OLD_ARGUMENTS_FILE
 
 
-def corrupted_file(program_arguments, colors_to_use) -> None:
+def corrupted_file(program_arguments: dict, colors_to_use: dict) -> None:
     """
     Checks for corrupted settings file and handles error
     Args:
@@ -48,48 +53,68 @@ def corrupted_file(program_arguments, colors_to_use) -> None:
         "msg": (
             "The settings file is corrupt or not compatible with the new verison of \
             MapTasker!"
-            "The old settings can not be restored.  Re-save your settings.",
+            "The old settings can not be restored.  A new default settings file has been saved.",
         ),
     }
     return program_arguments, colors_to_use
 
 
 # ##################################################################################
-# Save and restore colors to use and program arguments
+# Write out our runtime settings as a TOML file
 # ##################################################################################
-def save_restore_args(
-    program_arguments: dict,
-    colors_to_use: dict,
-    to_save: bool,
-) -> tuple[dict, dict]:
+def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) -> None:
     """
-    Save and restore colors to use and program arguments
-        :param program_arguments: program runtime arguments to save or restore into
-        :param colors_to_use: color dictionary to save or restore into
-        :param to_save: True if this is a save reques6t, False is restore request
-        :return: program runtime arguments saved/restored, colors to use saved/restored
-    """
-    the_file = f"{Path.cwd()}/{ARGUMENTS_FILE}"
-    if to_save:
-        # Force file object into a dictionary for json encoding
-        try:
-            if not isinstance(program_arguments["file"], str):
-                program_arguments["file"] = program_arguments["file"].name
-        except AttributeError:
-            program_arguments["file"] = ""
-        # Save dictionaries
-        list_to_save = [
-            colors_to_use,
-            program_arguments,
-        ]
-        with open(the_file, "w") as json_file:
-            json.dump(list_to_save, json_file)
-            json_file.close()
+    Save the program arguments, colors to use, and new file to a JSON file.
 
-    # Restore dictionaries
-    else:
+    Args:
+        program_arguments (dict): The program arguments.
+        colors_to_use (list): The colors to use.
+        new_file (str): The new file to save the data to.
+
+    Returns:
+        None
+    """
+    guidance = {"Guidance": "Modify this file as needed.  All but one of the entries under [program_arguments] equates to a runtime argument.  [colors_to_use] items refer to colors to use for the output.  Run 'maptasker -h' for details."}
+    # Force file object into a dictionary for json encoding
+    try:
+        if not isinstance(program_arguments["file"], str):
+            program_arguments["file"] = program_arguments["file"].name
+    except AttributeError:
+        program_arguments["file"] = ""
+    # Save dictionaries
+    settings = {"program_arguments": program_arguments, "colors_to_use": colors_to_use}
+
+    with open(new_file, "wb") as settings_file:
+        tomli_w.dump(guidance, settings_file)
+        settings_file.close()
+
+
+    # Write out the program arguments in TOML format
+    with open(new_file, "ab") as settings_file:
+        tomli_w.dump(settings, settings_file)
+        settings_file.close()
+
+
+# ##################################################################################
+# Read in the TOML runtime settings
+# ##################################################################################
+def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, new_file: str) -> None:
+    """
+    Reads the program arguments, colors to use, old file, and new file.
+
+    Parameters:
+        program_arguments (dict): A dictionary containing program arguments.
+        colors_to_use (dict): A dictionary containing colors to use.
+        old_file (str): The path to the old file.
+        new_file (str): The path to the new file.
+
+    Returns:
+        None: This function does not return anything.
+    """
+    # First see if there is an old formatted file to restore.
+    if os.path.isfile(old_file):
         try:
-            with open(the_file, "r") as f:
+            with open(old_file) as f:
                 list_to_restore = json.load(f)
                 colors_to_use = list_to_restore[0]
                 program_arguments = list_to_restore[1]
@@ -118,5 +143,46 @@ def save_restore_args(
                 program_arguments["android_file"] = program_arguments["backup_file_location"]
                 del program_arguments["backup_file_http"]
                 del program_arguments["backup_file_location"]
+
+        # Finally, erase the old file since it is no longer needed.
+        os.remove(old_file)
+
+    # Read the TOML file
+    else:
+        with open(new_file, "rb") as f:
+            try:
+                settings = tomllib.load(f)
+                colors_to_use = settings["colors_to_use"]
+                program_arguments = settings["program_arguments"]
+                f.close()
+            except tomllib.TOMLDecodeError:  # no saved file
+                corrupted_file(program_arguments, colors_to_use)
+
+    return program_arguments, colors_to_use
+
+
+# ##################################################################################
+# Save and restore colors to use and program arguments
+# ##################################################################################
+def save_restore_args(
+    program_arguments: dict,
+    colors_to_use: dict,
+    to_save: bool,
+) -> tuple[dict, dict]:
+    """
+    Save and restore colors to use and program arguments
+        :param program_arguments: program runtime arguments to save or restore into
+        :param colors_to_use: color dictionary to save or restore into
+        :param to_save: True if this is a save request, False is restore request
+        :return: program runtime arguments saved/restored, colors to use saved/restored
+    """
+    new_file = f"{Path.cwd()}/{ARGUMENTS_FILE}"
+    old_file = f"{Path.cwd()}/{OLD_ARGUMENTS_FILE}"
+    if to_save:
+        save_arguments(program_arguments, colors_to_use, new_file)
+
+    # Restore dictionaries
+    else:
+        program_arguments, colors_to_use = read_arguments(program_arguments, colors_to_use, old_file, new_file)
 
     return program_arguments, colors_to_use

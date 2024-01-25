@@ -11,12 +11,17 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-import defusedxml.ElementTree  # Need for type hints
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import maptasker.src.tasks as tasks
 from maptasker.src.error import error_handler
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine
+
+if TYPE_CHECKING:
+    import defusedxml.ElementTree
 
 
 # ##################################################################################
@@ -68,7 +73,6 @@ def output_list_of_actions(
     # Close Action list if doing straight print, no twisties
     if not PrimeItems.program_arguments["twisty"]:
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
-    return
 
 
 # ##################################################################################
@@ -81,6 +85,22 @@ def get_task_actions_and_output(
     tasks_found: list[str],
 ) -> None:
     # If Unknown task or displaying more detail, then 'the_task' is not valid, and we have to find it.
+    """
+    Get task actions and output.
+    Args:
+        the_task: {Task xml element}: Task xml element
+        list_type: {str}: Type of list
+        the_item: {str}: Item being displayed
+        tasks_found: {list[str]}: Tasks found so far
+    Returns:
+        None: No return value
+    {Processing Logic}:
+    1. Check if task is unknown or detail level is high, find task ID
+    2. Get task xml element from ID
+    3. Get task actions from xml element
+    4. Output actions list with formatting
+    5. Handle errors if no task found
+    """
     if UNKNOWN_TASK_NAME in the_item or PrimeItems.program_arguments["display_detail_level"] > 0:
         # Get the Task ID so that we can get the Task xml element
         # "--Task:" denotes a Task in a Scene
@@ -98,7 +118,8 @@ def get_task_actions_and_output(
 
         # Get Task actions
         if the_task:
-            # If we have Task Actions, then output them
+            # If we have Task Actions, then output them.  The action list is a list of the Action output lines already
+            # formatted.
             if alist := tasks.get_actions(the_task):
                 # Start a list of Actions
                 PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)

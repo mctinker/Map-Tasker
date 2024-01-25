@@ -214,9 +214,10 @@ class MyGui(customtkinter.CTk):
 
         # load and create background image
 
-        # create sidebar frame with widgets
+        # create sidebar frame with widgets on the left side of the window.
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
         # self.sidebar_frame.configure(height=self._apply_window_scaling(800))
+        self.sidebar_frame.configure(bg_color="black")
         self.sidebar_frame.grid(row=0, column=0, rowspan=13, sticky="nsew")
         # Define sidebar background frame with 14 rows
         self.sidebar_frame.grid_rowconfigure(14, weight=1)
@@ -647,8 +648,11 @@ class MyGui(customtkinter.CTk):
         # Now restore the settings and update the fields if not resetting.
         if not PrimeItems.program_arguments["reset"]:
             self.restore_settings_event()
-            self.textbox.destroy()  # Clear any prior error message
             self.display_message_box("Settings restored.", True)
+
+            if self.android_ipaddr:
+                # Display backup details as a label
+                self.display_backup_details()
 
     # ##################################################################################
     # Establish all of the default values used
@@ -1800,9 +1804,11 @@ class MyGui(customtkinter.CTk):
         label: str,
         default_value: str,
         starting_row: int,
-        indentation_label: int,
+        indentation_x_label: int,
+        indentation_y_label: int,
         input_name: customtkinter.CTkButton,
         label_name: customtkinter.CTkLabel,
+        do_input: bool,
     ) -> None:
         """
         Display an input field and a label for the user to input a value
@@ -1810,8 +1816,10 @@ class MyGui(customtkinter.CTk):
             label: The label to display
             default_value: The default value to display
             starting_row: The grid row that the label starts on
-            indentation_label: the x indentation amount for the label
+            indentation_x_label: the x indentation amount for the label
+            indentation_y_label: the x indentation amount for the label
             input_name: the name of the input field
+            do_input: whether to display the input field (True) or not (False)
         Returns:
             The value entered by the user
         Processing Logic:
@@ -1830,31 +1838,32 @@ class MyGui(customtkinter.CTk):
             row=starting_row,
             column=1,
             columnspan=1,
-            padx=(0, indentation_label),
-            pady=(30, 0),
+            padx=(0, indentation_x_label),
+            pady=(indentation_y_label, 0),
             sticky="ne",
         )
 
-        # Display prompt/input field
-        input_name = customtkinter.CTkEntry(
-            self,
-            placeholder_text=default_value,
-        )
-        input_name.configure(
-            # width=320,
-            fg_color="#246FB6",
-            border_color="#1bc9ff",
-            text_color=("#0BF075", "#1AD63D"),
-        )
-        input_name.insert(0, default_value)
-        input_name.grid(
-            row=starting_row + 1,
-            column=1,
-            columnspan=1,
-            padx=(0, 100),
-            pady=(0, 0),
-            sticky="ne",
-        )
+        if do_input:
+            # Display prompt/input field
+            input_name = customtkinter.CTkEntry(
+                self,
+                placeholder_text=default_value,
+            )
+            input_name.configure(
+                # width=320,
+                fg_color="#246FB6",
+                border_color="#1bc9ff",
+                text_color=("#0BF075", "#1AD63D"),
+            )
+            input_name.insert(0, default_value)
+            input_name.grid(
+                row=starting_row + 1,
+                column=1,
+                columnspan=1,
+                padx=(0, 100),
+                pady=(0, 0),
+                sticky="ne",
+            )
         return input_name, label_name
 
     # ##################################################################################
@@ -1875,12 +1884,21 @@ class MyGui(customtkinter.CTk):
         - Inserts the default backup info into the entry field
         - Replaces the backup button to fetch input details on click
         """
+        # First clear out any entries we may already have filled in.
+        clear_android_buttons(self)
         ###  TCP/IP Address ###
         if self.android_ipaddr == "" or self.android_ipaddr is None:
             self.android_ipaddr = "192.168.0.210"
         self.ip_entry = self.ip_label = None
         self.ip_entry, self.ip_label = self.display_label_and_input(
-            "TCP/IP Address:", self.android_ipaddr, 7, 140, self.ip_entry, self.ip_label,
+            "TCP/IP Address:",
+            self.android_ipaddr,
+            7,
+            140,
+            30,
+            self.ip_entry,
+            self.ip_label,
+            True,
         )
 
         ### Port Number ###
@@ -1888,7 +1906,14 @@ class MyGui(customtkinter.CTk):
             self.android_port = "1821"
         self.port_entry = self.port_label = None
         self.port_entry, self.port_label = self.display_label_and_input(
-            "Port Number:", self.android_port, 8, 157, self.port_entry, self.port_label,
+            "Port Number:",
+            self.android_port,
+            8,
+            157,
+            30,
+            self.port_entry,
+            self.port_label,
+            True,
         )
 
         ###  File Location ###
@@ -1896,7 +1921,14 @@ class MyGui(customtkinter.CTk):
             self.android_file = "/Tasker/configs/user/backup.xml"
         self.file_entry = self.file_label = None
         self.file_entry, self.file_label = self.display_label_and_input(
-            "File Location:", self.android_file, 9, 159, self.file_entry, self.file_label,
+            "File Location:",
+            self.android_file,
+            9,
+            159,
+            30,
+            self.file_entry,
+            self.file_label,
+            True,
         )
 
         # Add Cancel button
@@ -1917,7 +1949,10 @@ class MyGui(customtkinter.CTk):
 
         # Replace backup button.
         self.display_backup_button(
-            "Enter and Click Here to Set Backup Details", "#D62CFF", "#6563ff", self.fetch_backup_event,
+            "Enter and Click Here to Set Backup Details",
+            "#D62CFF",
+            "#6563ff",
+            self.fetch_backup_event,
         )
 
     # ##################################################################################
@@ -1991,7 +2026,7 @@ class MyGui(customtkinter.CTk):
             return
 
         # Get the contents of the file to confirm it is really there.
-        return_code, file_contents = request_file(android_ipaddr, android_port,  android_file)
+        return_code, file_contents = request_file(android_ipaddr, android_port, android_file)
 
         if return_code != 0:
             self.backup_error("File not found.  Return code: " + str(return_code))
@@ -2010,6 +2045,56 @@ class MyGui(customtkinter.CTk):
                 f"\n\nBackup file will be fetched when 'Run' is selected."
             ),
             True,
+        )
+
+        # Display backup details as a label
+        self.display_backup_details()
+
+    # ##################################################################################
+    # Fettching backup from Android.  Let the user know.
+    # ##################################################################################
+    def display_backup_details(self) -> None:  # noqa: ANN101
+        """
+        Displays backup details from Android device.
+        Args:
+            self: The class instance.
+        Returns:
+            None: Does not return anything.
+        Processing Logic:
+            - Displays label and input for getting backup.xml file from Android device
+            - Displays label and input for TCP/IP Address and Port of Android device
+            - Displays label and input for location of backup file on Android device
+        """
+        self.ip_label = self.port_label = self.file_label = None
+        self.file_entry, self.ip_label = self.display_label_and_input(
+            "Getting backup.xml file from Android device:",
+            None,
+            7,
+            10,
+            50,
+            None,
+            self.ip_label,
+            False,
+        )
+        self.file_entry, self.port_label = self.display_label_and_input(
+            f"TCP/IP Address: {self.android_ipaddr}          Port: {self.android_port}",
+            None,
+            8,
+            0,
+            10,
+            None,
+            self.port_label,
+            False,
+        )
+        self.file_entry, self.file_label = self.display_label_and_input(
+            f"Location: {self.android_file}",
+            None,
+            9,
+            20,
+            0,
+            None,
+            self.file_label,
+            False,
         )
 
     # ##################################################################################

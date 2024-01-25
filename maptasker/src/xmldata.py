@@ -12,6 +12,7 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+
 import defusedxml.ElementTree
 
 from maptasker.src.primitem import PrimeItems
@@ -72,103 +73,99 @@ def tag_in_type(tag: str, flag: bool) -> bool:
 
 
 # ##################################################################################
-#  Given an action code (xml), find Int (integer) args and match with names
-#  Example:
-#  3 Ints with arg0, arg1 and arg2, to be filled in with their matching name0, name1
-#   and name2 + the associated text
-#  action = xml element for Action <code>
-#  arguments = list of Int arguments to look for (e.g. arg1,arg5,arg9)
-#  names = list of entries to substitute the argn value against.
-#    ...It can be a list, which signifies a pull-down list of options to map against:
-#         [ preceding_text1, value1, evaluated_text1, preceding_text2, value2,
-#           evaluated_text2, ...]
-#         ['', 'e', 'name'] > Test for '1' and plug in 'name' if '1'
-#         ['some_text', 'l', lookup_code] > use lookup_values dictionary to translate
-#           code and plug in value
+# We have an integer.  Evaluaate it's value based oon the code's evaluation parameters.
 # ##################################################################################
-def get_xml_int_argument_to_value(action: defusedxml.ElementTree.XML, arguments: list, names: list) -> list:
-    """
-    Given an action code (xml), find Int (integer) args and match with names
-        Args:
-            action (defusedxml.ElementTree.XML): Current <Action> to process
-            arguments (list): List of args to look for (e.g. ['arg1','arg5'])
-            names (list): list of names to substitute arg value against
+def extract_integer(action: defusedxml.ElementTree.XML, arg: str, argeval: str) -> str:
 
-        Returns:
-            list: List of translated results for each <arg with trailing blanks stripped off end.
+    # Don't move import to avoid cirtcular import
     """
-    # These imports MUST be here and not at top to avoid circular import error
+    Extract an integer value from an XML action element
+    Args:
+        action: {XML element}: The XML action element to search
+        arg: {str}: The name of the argument to search for
+        argeval: {str}: The evaluation to perform on the integer
+    Returns:
+        {str}: The result of the integer evaluation
+    {Processes the XML action element to find the integer value associated with the given argument name.
+    If found, performs the specified evaluation on the integer and returns the result. Returns an empty string if no integer is found.}
+    - Searches child elements of the action for an 'Int' element matching the given argument name
+    - Extracts the integer value or variable name if found
+    - Performs the specified evaluation on the integer/variable, joining results into a string if a list
+    - Returns the result of the evaluation or an empty string if no integer was found
+    """
     from maptasker.src.action import drop_trailing_comma, process_xml_list
-
-    match_results = []
-
-    # Go through all children of Action and look for <Int>
+    the_int_value = ""
+    result = []
+    # Find the arg we are looking for.
     for child in action:
         if child.tag == "Int":
             the_arg = child.attrib.get("sr")
-            # We have an Int...get it's arguments
-            for arg in arguments:
-                if arg == the_arg:
-                    arg_location = arguments.index(arg)
-                    the_int_value = ""
-                    if child.attrib.get("val") is not None:
-                        the_int_value = child.attrib.get("val")  # There a numeric value as a string?
-                    elif child.find("var") is not None:  # There is a variable name?
-                        the_int_value = child.find("var").text
-                    if the_int_value:  # If we have an integer or variable name
-                        # List of options for this Int?
-                        if isinstance(names[arg_location], list):
-                            process_xml_list(
-                                names,
-                                arg_location,
-                                the_int_value,
-                                match_results,
-                                arguments,
-                            )
-                        else:  # Not a list
-                            match_results.append(names[arg_location] + the_int_value)  # Just grab the integer value
-                        break  # Get out of arg loop and get next child
-                    # No integer value or variable name found
-                    match_results.append("")  # No Integer value or variable found...return empty
-    if match_results:
-        return drop_trailing_comma(match_results)
-    return []  # No matches found
+            # Is this our arg?
+            if arg == the_arg:
+
+                # We have the arg we are looking for.
+                if child.attrib.get("val") is not None:
+                    the_int_value = child.attrib.get("val")  # There a numeric value as a string?
+                elif child.find("var") is not None:  # There is a variable name?
+                    the_int_value = child.find("var").text
+                if the_int_value:  # If we have an integer or variable name
+                    # List of options for this Int?
+                    if isinstance(argeval, list):
+                        process_xml_list(
+                            [argeval],
+                            0,
+                            the_int_value,
+                            result,
+                            [arg],
+                        )
+                        result = " ".join(result)
+                    else:  # Not a list
+                        result = argeval + the_int_value  # Just grab the integer value
+                        break
+
+                # No integer value or variable name found
+                else:
+                    result = ""
+
+    # If we have a result, get rid of the trailing comma if there is one.
+    if result:
+        return drop_trailing_comma([result])[0]
+
+    return ""  # No Integer value or variable found...return empty
 
 
 # ##################################################################################
-#  Given an action code (xml), find Str (string) args and match with names
-#  Example:
-#  3 Strs with arg0, arg1 and arg2, to be filled in with their matching name0, name1
-#   and name2 + the associated text
+# Extracts and returns the text from the given argument as a string.
 # ##################################################################################
-def get_xml_str_argument_to_value(action: defusedxml.ElementTree.XML, arguments: list, names: list) -> list:
+def extract_string(action: defusedxml.ElementTree.XML, arg: str, argeval: str) -> str:
     """
-    Given an action code (xml), find Str (string) args and match with names
-        Args:
-            action (defusedxml.ElementTree.XML): Current <Action> to process
-            arguments (list): List of args to look for (e.g. ['arg1','arg5'])
-            names (list): list of names to substitute arg value against
-
-        Returns:
-            list: List of translated results for each <arg with trailing blanks stripped off end.
+    Extracts a string from an XML action element.
+    Args:
+        action: XML element to search in one line
+        arg: Name of string argument to search for in one line
+        argeval: Prefix to add to matched string in one line
+    Returns:
+        str: Extracted string with prefix or empty string in one line
+    Processes the XML action element:
+    - Loops through child elements looking for matching "Str" tag
+    - Checks if tag attribute matches arg
+    - Appends child text to list with argeval prefix
+    - Returns first item after processing or empty string
     """
     from maptasker.src.action import drop_trailing_comma
-
     match_results = []
     for child in action:
         if child.tag == "Str":
             the_arg = child.attrib.get("sr")
-            for arg in arguments:
-                if arg == the_arg:
-                    arg_location = arguments.index(arg)
-                    if child.text is not None:
-                        match_results.append(f"{names[arg_location]}{child.text}")
-                    else:
-                        match_results.append("")
-                    break  # We have what we want.  Go to next child
+            if arg == the_arg:
+                if child.text is not None:
+                    match_results.append(f"{argeval}{child.text}")
+                else:
+                    match_results.append("")
+                break  # We have what we want.  Go to next child
     if match_results:
-        return drop_trailing_comma(match_results)
-    return []
+        return drop_trailing_comma(match_results)[0]
+    return ""
 
 
 # ##################################################################################

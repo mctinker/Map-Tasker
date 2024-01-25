@@ -78,6 +78,7 @@ action_codes = {
     "107361459t": ActionCode(0, "1040876951t", [], [], "AutoInput Actions V2", [], []),
     "109t": ActionCode(0, "", [], [], "Set Wallpaper", [], []),
     "1099157652t": ActionCode(0, "1040876951t", [], [], "AutoTools Json Write", [], []),
+    "1094115366t": ActionCode(0, "1040876951t", [], [], "AutoCast Device Settings", [], []),
     "10s": ActionCode(1, "", ["0"], ["Int"], "Power", ["0"], [["Set:", "l", "10s"]]),
     "110s": ActionCode(
         6,
@@ -596,6 +597,7 @@ action_codes = {
         ["0", "1"],
         ["File:", ["", "e", ", Insert In Gallery"]],
     ),
+    "1764880755t": ActionCode(0, "1040876951t", [], [], "AutoCast Best Guess", [], []),
     "177t": ActionCode(1, "", ["0"], ["Int"], "Haptic Feedback", ["0"], [["Set:", "l", "switch_set"]]),
     "1788518030e": ActionCode(
         4,
@@ -621,6 +623,8 @@ action_codes = {
         ["", ["", "e", ", Structure Output (JSON, etc)"]],
     ),
     "182s": ActionCode(0, "", [], [], "Heart Rate", [], []),
+    "1828597236t": ActionCode(0, "1040876951t", [], [], "AutoCast App", [], []),
+    "1831781712t": ActionCode(0, "1040876951t", [], [], "AutoCast Settings", [], []),
     "1830656901t": ActionCode(0, "1040876951t", [], [], "AutoWear List Screens", [], []),
     "1830829821t": ActionCode(0, "1040876951t", [], [], "AutoWear 4 Screen", [], []),
     "185s": ActionCode(0, "", [], [], "Humidity", [], []),
@@ -750,6 +754,7 @@ action_codes = {
         ["0", "1", "2"],
         [["Direction:", "l", "192"], ", Sound:", [", Stream:", "l", "171"]],
     ),
+    "1928381944t": ActionCode(0, "1040876951t", [], [], "AutoCast Control Media", [], []),
     "193t": ActionCode(
         2,
         "",
@@ -1068,7 +1073,7 @@ action_codes = {
         ],
     ),
     "300e": ActionCode(0, "", [], [], "Date Set", [], []),
-    "300t": ActionCode(1, "", ["0"], ["Int"], "Anchor", ["0"], ["Label"]),
+    "300t": ActionCode(1, "", ["0"], ["Str"], "Anchor", ["0"], ["Label"]),
     "301t": ActionCode(0, "", [], [], "Mic Mute", [], []),
     "302e": ActionCode(0, "", [], [], "Time/Date Set", [], []),
     "303e": ActionCode(0, "", [], [], "Timer Change", [], []),
@@ -2128,10 +2133,10 @@ action_codes = {
             "Int",
             "Int",
             "Str",
-            "ConditionList",
+            "Str",
         ],
         "Parse/Format DateTime",
-        ["1", "2", "3", "4", "5", "7", "8", "9", "10", "11"],
+        ["1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12"],
         [
             ["Input Type:", "l", "394"],
             ", Input:",
@@ -2143,6 +2148,7 @@ action_codes = {
             ["", "e", ", Do Maths"],
             [", Output Offset Type:", "l", "394a"],
             ", Output Offset:",
+            ", Time Zone:",
         ],
     ),
     "395t": ActionCode(0, "", [], [], "JD Status", [], []),
@@ -2281,6 +2287,7 @@ action_codes = {
         ["0", "1", "2"],
         ["Directory:", ["", "e", ", Create All"], ["", "e", ", Use Root"]],
     ),
+    "40966172t": ActionCode(0, "1040876951t", [], [], "AutoCast", [], []),
     "40s": ActionCode(0, "", 0, [], "Call", ["0", "1"], ["Type:", ", Number:"]),
     "40t": ActionCode(0, "", [], [], "End For", [], []),
     "410t": ActionCode(
@@ -3244,6 +3251,7 @@ action_codes = {
             ", Spot Color:",
         ],
     ),
+    "610246503t": ActionCode(0, "1040876951t", [], [], "AutoCast Query", [], []),
     "612t": ActionCode(
         4,
         "",
@@ -3254,6 +3262,7 @@ action_codes = {
         ["Scene Name:", ", Element:", [", Mode:", "l", "612"], ", MilliSeconds:"],
     ),
     "61t": ActionCode(2, "", ["0", "1"], ["Int", "ConditionList"], "Vibrate", ["0"], ["Time:"]),
+    "611944049t": ActionCode(0, "1040876951t", [], [], "AutoCast Speak", [], []),
     "62t": ActionCode(
         2,
         "",

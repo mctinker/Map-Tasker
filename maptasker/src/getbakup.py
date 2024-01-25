@@ -11,6 +11,7 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+from __future__ import annotations
 
 import os.path
 from os import getcwd

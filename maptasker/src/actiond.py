@@ -11,6 +11,7 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+from __future__ import annotations
 import contextlib
 from typing import Any
 
@@ -36,7 +37,7 @@ IGNORE_ITEMS = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
 #  dictionary of codes.
 # ##################################################################################
 def update_action_codes(
-    action: defusedxml.ElementTree.XML, the_action_code_plus: defusedxml.ElementTree
+    action: defusedxml.ElementTree.XML, the_action_code_plus: defusedxml.ElementTree,
 ) -> defusedxml.ElementTree:
     """
     Update the dictionary for the Action code
@@ -63,7 +64,7 @@ def update_action_codes(
 
         logger.debug(
             "update_action_codes:"
-            f" {the_action_code_plus} {str(action_codes[the_action_code_plus])} numargs of {action_codes[the_action_code_plus].numargs} update to {arg_count}:  needs to be updated in actionc.py!"
+            f" {the_action_code_plus} {str(action_codes[the_action_code_plus])} numargs of {action_codes[the_action_code_plus].numargs} update to {arg_count}:  needs to be updated in actionc.py!",
         )
     return
 
@@ -73,7 +74,7 @@ def update_action_codes(
 #   in our master dictionary of codes.
 # ##################################################################################
 def build_new_action_codes(
-    action: defusedxml.ElementTree.XML, the_action_code_plus: defusedxml.ElementTree
+    action: defusedxml.ElementTree.XML, the_action_code_plus: defusedxml.ElementTree,
 ) -> defusedxml.ElementTree:
     """
     Build the dictionary for the Action code
@@ -155,7 +156,7 @@ def add_name_to_action_codes(
 # add return if in a list
 # ##################################################################################
 def get_boolean_or_condition(
-    child: defusedxml.ElementTree, condition_list: list, boolean_list: list
+    child: defusedxml.ElementTree, condition_list: list, boolean_list: list,
 ) -> tuple[list, list]:
     """
     Evaluates the condition/boolean and updates the condition_list and boolean_list.
@@ -198,5 +199,4 @@ def process_condition_list(
     if condition_list_str is not None:
         for child in condition_list_str:
             condition_list, boolean_list = get_boolean_or_condition(child, condition_list, boolean_list)
-    return condition_list, boolean_list
     return condition_list, boolean_list

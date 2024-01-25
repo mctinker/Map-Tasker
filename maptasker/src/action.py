@@ -204,8 +204,7 @@ def process_xml_list(
             ["", "e", "Use Root"],
             ", Read Setting To:",
         ]
-    arg_locvation points to the specific item in the agbove list that we are to
-    process here.
+    arg_location points to the specific item in the above list that we are to process here.
     # code_flag identifies the type of xml data to go after based on the specific code
     #   in <code>xxx</code>
     # *args is an undetermined number of lists, each consisting of 3 pairs:
@@ -258,7 +257,6 @@ def process_xml_list(
                 break
 
             # Error: the element is not in the lookup table.
-            # Handle the error and exit.
             match_results.append(
                 f"MapTasker 'mapped' error in action: {the_list[idx]} is not in"
                 f" actiont (lookup table) for name:{names}",
@@ -430,6 +428,9 @@ Additional aspects:
 """
 
 
+# ##################################################################################
+# Chase after relevant data after <code> Task action
+# ##################################################################################
 def get_extra_stuff(
     code_action: defusedxml.ElementTree,
     action_type: bool,

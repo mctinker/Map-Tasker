@@ -21,11 +21,12 @@ from typing import ClassVar
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 2.6.3"
+MY_VERSION = "MapTasker version 3.0.0"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
-ARGUMENTS_FILE = ".MapTasker_arguments.json"
+OLD_ARGUMENTS_FILE = ".MapTasker_arguments.json"
+ARGUMENTS_FILE = "MapTasker_Settings.toml"
 FONT_FAMILY = ";font-family:"
 NO_PROFILE = "None or unnamed!"
 
@@ -118,9 +119,7 @@ ARGUMENT_NAMES = {
     "italicize": "Italicize Names",
     "outline": "Display Configuration Outline",
     "rerun": "ReRun Program",
-    "restore": "Restore Settings",
     "runtime": "Display Runtime Arguments/Settings",
-    "save": "Save Settings",
     "single_profile_name": "Single Profile Name",
     "single_project_name": "Single Project Name",
     "single_task_name": "Single Task Name",
