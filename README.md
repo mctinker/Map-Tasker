@@ -95,7 +95,7 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-h` for help.
 
-        `-android_ipaddr` TCP/IP address of the Android device from which to fetch the backup file.<sup>2</sup>
+    `-android_ipaddr` TCP/IP address of the Android device from which to fetch the backup file.<sup>2</sup>
     Example: 192.168.0.210
 
     `-android_port` the port number of the Android device from which to fetch the backup file.
