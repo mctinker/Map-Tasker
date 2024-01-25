@@ -19,7 +19,9 @@
 </div>
 
 ---
+
 # MapTasker
+
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC/PC based on Tasker's backup.xml
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a MAC<sup>1</sup>.  While not tested, this should also work on a Windows PC or Linux machine.
@@ -31,57 +33,61 @@ A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
 The Tasker backup XML can either be manually uploaded to your Mac/Google Drive, or this program can fetch it directly from your Android device.
 
 ### Program Dependencies
--	Python version v3.10 or higher and Tkinter (not included with Python 3.10.  Use the 'brew' installation method)
 
+#### - Python version v3.11 or higher<sup>4</sup> and Tkinter 8.6 or higher, using one of these methods...
 
-    python 3.10: `brew install python3.10`
-    Tkinter 8.6:     `brew install tcl-tk`<sup>3</sup>
+##### Install Python directly from python.org (includes Tkinter).
 
-    Alternatively and preferred, use pyenv to install and establish the correct version of Python:
-    `pyenv install 3.10.13`  (tkinter is included in this version of Python)
-    `pyenv local 3.10.13`
+##### Install Python using "pyenv" on macOS:
 
+    `pyenv install 3.11`  (includes Tkinter)
+    `pyenv local 3.11`
 
--	Tasker full or partial backup.xml (anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6.  Optionally<sup>2</sup>, this can be fetched directly from your Android device.
+##### Install Python via Homebrew on macOS:
+
+    python 3.11: `brew install python3.11`
+    Tkinter 8.6: `brew install tcl-tk`<sup>3</sup>
+
+#### - Tasker full or partial backup.xml
+
+(anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6.  Optionally<sup>2</sup>, this can be fetched directly from your Android device.
 
 
 ### Installation
 
-- Make sure Python 3.10 or higher is installed on your MAC, along with Tkinter.
 - Install MapTasker by entering the following command into the Terminal:
 
      `pip3 install maptasker`
 
 - To install it into a virtual environment, enter the following command into Terminal:
 
-     `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment
-     `python -m venv venv`
-     `set VIRTUAL_ENV {directory path to 'xxx'}/venv`
-     `source {directory path to 'xxx'}/venv/bin/activate`
-     `pip3 install maptasker`
-
+    - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment:
+    -  `python -m venv venv`
+    - `set VIRTUAL_ENV {directory path to 'xxx'}/venv`
+    - `source {directory path to 'xxx'}/venv/bin/activate`
+    - `pip3 install maptasker`
 
 - To install it from GitHub, get the zip file by clicking on the ['Code'](https://github.com/mctinker/Map-Tasker) pull-down menu, select 'Download ZIP', save it into a new directory (e.g. /your_id/maptasker) and uncompress it into that directory.
 
 
 ### Usage
 
-- Ensure the dependencies are already installed.  Performing  `pip3 install maptasker` will automatically install the dependencies along with MapTasker.
-- If installed from Github, open a terminal window and change to the directory into which the zip file was uncompressed
 - Enter the command:
-
 
      `maptasker (runtime options...se below)`
 
  See below for runtime options.
 
-If running from the sourced GITHUB zip file, then do the following to run the program:
+- If running from the sourced GITHUB zip file, then do the following to run the program:
 
      `pip install -r requirements.txt`   ...one time only, to first install the prerequisites
 
      `python main.py (runtime options...se below)`   ...to run Map-Tasker
 
-Program out: the file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.
+Program output: 
+- The file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.
+- If the "-outline" runtime option is used, then a textual diagram of the configuration is also written as "MapTasker_Map.txt" and will be displayed in your default text editor.  Ensure that text-wrap is off and a monospace font is used when viewing this map in the text editor.
+- The runtime settings are saved in the file" MapTasker_Settings.toml".  You can modify this file but care should be taken not to change the field formats (e.g. change an integer to a text string).  Incorrect values will be ignored.
 
 Runtime: `maptasker -option1 -option2` ...
 
@@ -89,7 +95,7 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-h` for help.
 
-    `-android_ipaddr` TCP IP address of the Android device from which to fetch the backup file.
+        `-android_ipaddr` TCP/IP address of the Android device from which to fetch the backup file.<sup>2</sup>
     Example: 192.168.0.210
 
     `-android_port` the port number of the Android device from which to fetch the backup file.
@@ -103,6 +109,7 @@ Runtime: `maptasker -option1 -option2` ...
     `-appearance` for appearance mode, one of system, light, dark.
 
     `-conditions` to display a Profile's and Task's condition(s),
+
     `-c(type) color_name` defines a specific color to 'type', where 'type' is *one* of the following:
 
       'Project' 'Profile' 'Task' 'Action' 'DisabledProfile' 'UnknownTask'
@@ -141,17 +148,17 @@ Runtime: `maptasker -option1 -option2` ...
 
     Get the backup file directly from the Android device<sup>2</sup>:
 
-    `-b ip_addr:port+file_location`  example: 192.168.0.210:8120+//Tasker/configs/user/backup.xml
+
 
 The MapTasker GUI:
 
 <img src="/documentation_images/display_gui.png" width="800"/>
 
-Sample output with runtime option '-detail 0':
+Sample output with runtime option '-everything':
 
-<img src="/documentation_images/display_level-d0.png" width="800"/>
+<img src="/documentation_images/display_level-d4.png" width="800"/>
 
-Sample output with runtime option '-detail 1':
+<!-- Sample output with runtime option '-detail 1':
 
 <img src="/documentation_images/display_level-d1.png" width="800"/>
 
@@ -161,7 +168,7 @@ Sample output with runtime option '-detail 2':
 
 Sample output with runtime options '-detail 3 -conditions':
 
-<img src="/documentation_images/display_level-d3.png" width="800"/>
+<img src="/documentation_images/display_level-d3.png" width="800"/> -->
 
  Sample Configuration Map from runtime option -outline:
 
@@ -169,9 +176,8 @@ Sample output with runtime options '-detail 3 -conditions':
 
 Example runtime options:
 
-    'maptasker -detail 3 -conditions -taskernet -s'
-        (show full detail including Profile/Task 'conditions' and TaskerNet
-         information, and save the settings)
+    'maptasker -detail 2 -conditions -taskernet'
+        (show limited details and include Profile and Task 'conditions' and TaskerNet details.)
 
 Example using the GUI:
 
@@ -179,24 +185,36 @@ Example using the GUI:
 
 Example fetching backup file directly from your Android device:
 
-    'maptasker -b 192.168.0.210:1821+/Tasker/configs/user/backup.xml'
+    'maptasker -android_ipaddr=192.168.0.60 -android_port=1821 -android_file=/Tasker/configs/user/backup.xml'
 
-Alternatively, see *config.py* for some user-customizable options.  Make user-specific changes in this file and save it rather than specifying them as arguments or via the GUI.
 
 ## Notes
 
 <sup>1</sup> While this app has been extensively tested on OS X, there is no reason it should not also run on a Windows PC or a machine running Linux.  Unfortunately, I do not have a Windows or Linux PC to test this on.
 
-<sup>2</sup> For the "Get backup" (fetch backup.xml directly from your Android device) option to work, you must have the following prerequisites:
-          1- Both the MAC and Android devices must be on the same network
-          2- The [sample Tasker Project](https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example) must be installed and active on the Android device,  and the server must be running..see Android notification: "HTTP Server Info...".
-          3- See config.py to change the default settings permanently
+<sup>2</sup> For the "Get backup" (retrieve backup.xml directly from your Android device) option to work, you must have the following prerequisites:
+
+    - Both the MAC and Android devices must be on the same network
+
+    - The [sample Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").
+
+
+- Once the backup has been retrieved from your Android device, it is not necessary to keep retrieving it unless it has changed since it is automatically saved on your Mac.
 
 <sup>3</sup> If having problems getting Tkinter to version 8.6, try the following:
-1- uninstall python
-2- brew install tcl-tk
-3- reinstall python
+
+- uninstall python
+- brew install tcl-tk
+- reinstall python
+
 If still having Tkinter version problems, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
+
+<sup>4</sup>
+If you are unable to upgrade to Python version 3.11 or higher, an older version of MapTasker is still available for Python version 3.10, via the command:
+
+	'pip install maptasker==3.6.3'
+	 
+With this older version, you will not get the benefits offered by the newer version.  Refer to Changelog for details.
 
 ### To-Do List (in no particular order)
 

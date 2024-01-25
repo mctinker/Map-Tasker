@@ -2,30 +2,49 @@
 
 All notable changes to this project will be documented in this file!
 
-## [2.6.3] 15-January-2024
+## [3.0.0] 25-January-2024
 
 ### Changed
 
-- The runtime options to fetch the backup file from the Android device have changed.
-      See the 'Added" section.  '-backup' is no longer supported.
-      If the old options exist in the saved runtime file, they will automatically be converted to the new runtime option format.
-- The runtime option '-appearance' can no longer be abbreviated as '-a'.
-- The old format for the saved settings that date back to the year 2022 is no longer supported.
-- Updated README to reflect new '-android...' runtime options.
-- The GUI message box now only displays the current message and not any previous messages.
+- The minimum version of Python is now 3.11.7 for TOML file settings support.
+- README updated to reflect the new minimum version of Python and newer sample screenshots.
+- Updated prerequisite versions for "customtkinter", "ctkcolorpicker" and "pillow".  Eliminated "packaging" prerequisite.
+- The default dark background color has been changed to a dark gray/brown color.
+- Eliminated the "-save" and "-restore" runtime options.  These are replaced by the "-reset" runtime option.
+- Force plug-in configuration parameters to appear on separate output lines.
 
 ### Fixed
 
-- README had a bad reference to the supplemental information regarding Tkinter.
-- If the backup file is not found on the Android device via the GUI, the program ends rather than catching the error in the GUI.
-- Gracefully handle invalid command line options.
+- Unable to get the program version ('-version') if the last run was with the GUI.
+- The Task action arguments were being displayed out of order.
+- Not handling Task anchors properly.
+- Removed "save" and "restore" from the display of runtime options, which caused error messages to appear in the output.
 
 ### Added
 
-- The runtime options for fetching the backup file directly from the Android device are 'android_ipaddr', 'android_port', and 'android_file'.
-- Added additional Task properties.
+- The settings are now saved in the TOML format and can be user-viewed and/or edited.  If a saved file is still in the old format, it will automatically be converted.
+- Added new "tomli_w" prerequisite for TOML file settings support.
+- Added "Time Zone" to the Task action "Parse/Format DateTime".
+- Added "Configuration Parameters" for Plugin actions.
+- Added "AutoCast" plug-in recognition.
+- If fetching the backup XML file from the Android device, display the 'android_...' settings in the GUI.
 
 ## Older History Logs
+
+## [2.6.3]
+
+- Changed: The runtime options to fetch the backup file from the Android device have changed.
+      See the 'Added" section.  '-backup' is no longer supported.
+      If the old options exist in the saved runtime file, they will automatically be converted to the new runtime option format.
+- Changed: The runtime option '-appearance' can no longer be abbreviated as '-a'.
+- Changed: The old format for the saved settings that date back to the year 2022 is no longer supported.
+- Changed: Updated README to reflect new '-android_...' runtime options.
+- Changed: The GUI message box now only displays the current message and not any previous messages.
+- Fixed: README had a bad reference to the supplemental information regarding Tkinter.
+- Fixed: If the backup file is not found on the Android device via the GUI, the program ends rather than catching the error in the GUI.
+- Fixed: Gracefully handle invalid command line options.
+- Added: The runtime options for fetching the backup file directly from the Android device are 'android_ipaddr', 'android_port', and 'android_file'.
+- Added: Added additional Task properties.
 
 ## [2.6.2]
 
