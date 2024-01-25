@@ -1,8 +1,7 @@
-CTkColorPicker==0.8.0
-customtkinter==5.2.1
+CTkColorPicker==0.9.0
+customtkinter==5.2.2
 darkdetect==0.8.0
 defusedxml==0.7.1
-packaging==23.2
-Pillow==10.1.0
-psutil==5.9.7
+pillow==10.2.0
 requests==2.31.0
+tomli_w==1.0.0
