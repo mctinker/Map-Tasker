@@ -2,34 +2,33 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.0.0] 25-January-2024
+## [3.0.2] 25-January-2024
 
-### Changed
-
-- The minimum version of Python is now 3.11.7 for TOML file settings support.
-- README updated to reflect the new minimum version of Python and newer sample screenshots.
-- Updated prerequisite versions for "customtkinter", "ctkcolorpicker" and "pillow".  Eliminated "packaging" prerequisite.
-- The default dark background color has been changed to a dark gray/brown color.
-- Eliminated the "-save" and "-restore" runtime options.  These are replaced by the "-reset" runtime option.
-- Force plug-in configuration parameters to appear on separate output lines.
 
 ### Fixed
 
-- Unable to get the program version ('-version') if the last run was with the GUI.
-- The Task action arguments were being displayed out of order.
-- Not handling Task anchors properly.
-- Removed "save" and "restore" from the display of runtime options, which caused error messages to appear in the output.
-
-### Added
-
-- The settings are now saved in the TOML format and can be user-viewed and/or edited.  If a saved file is still in the old format, it will automatically be converted.
-- Added new "tomli_w" prerequisite for TOML file settings support.
-- Added "Time Zone" to the Task action "Parse/Format DateTime".
-- Added "Configuration Parameters" for Plugin actions.
-- Added "AutoCast" plug-in recognition.
-- If fetching the backup XML file from the Android device, display the 'android_...' settings in the GUI.
+- Program error if the toml settings file is not found.
 
 ## Older History Logs
+
+[3.0.1]
+
+- Changed: The minimum version of Python is now 3.11.7 for TOML file settings support.
+- Changed: README updated to reflect the new minimum version of Python and newer sample screenshots.
+- Changed: Updated prerequisite versions for "customtkinter", "ctkcolorpicker" and "pillow".  Eliminated "packaging" prerequisite.
+- Changed: The default dark background color has been changed to a dark gray/brown color.
+- Changed: Eliminated the "-save" and "-restore" runtime options.  These are replaced by the "-reset" runtime option.
+- Changed: Force plug-in configuration parameters to appear on separate output lines.
+- Fixed: Unable to get the program version ('-version') if the last run was with the GUI.
+- Fixed: The Task action arguments were being displayed out of order.
+- Fixed: Not handling Task anchors properly.
+- Fixed: Removed "save" and "restore" from the display of runtime options, which caused error messages to appear in the output.
+- Added: The settings are now saved in the TOML format and can be user-viewed and/or edited.  If a saved file is still in the old format, it will automatically be converted.
+- Added: new "tomli_w" prerequisite for TOML file settings support.
+- Added: "Time Zone" to the Task action "Parse/Format DateTime".
+- Added: "Configuration Parameters" for Plugin actions.
+- Added: "AutoCast" plug-in recognition.
+- Added: If fetching the backup XML file from the Android device, display the 'android_...' settings in the GUI.
 
 ## [2.6.3]
 
