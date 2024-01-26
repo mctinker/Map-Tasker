@@ -148,15 +148,15 @@ def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, 
         os.remove(old_file)
 
     # Read the TOML file
-    else:
-        with open(new_file, "rb") as f:
-            try:
-                settings = tomllib.load(f)
-                colors_to_use = settings["colors_to_use"]
-                program_arguments = settings["program_arguments"]
-                f.close()
-            except tomllib.TOMLDecodeError:  # no saved file
-                corrupted_file(program_arguments, colors_to_use)
+    elif os.path.isfile(new_file):
+            with open(new_file, "rb") as f:
+                try:
+                    settings = tomllib.load(f)
+                    colors_to_use = settings["colors_to_use"]
+                    program_arguments = settings["program_arguments"]
+                    f.close()
+                except tomllib.TOMLDecodeError:  # no saved file
+                    corrupted_file(program_arguments, colors_to_use)
 
     return program_arguments, colors_to_use
 
