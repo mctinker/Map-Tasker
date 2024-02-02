@@ -82,14 +82,6 @@ class LineOut:
             "scenes": [],
         }
 
-        PrimeItems.scene_countgrand_totals = {
-            "projects": 0,
-            "profiles": 0,
-            "unnamed_tasks": 0,
-            "named_tasks": 0,
-            "scenes": 0,
-        }
-
         PrimeItems.grand_totals = {
             "projects": 0,
             "profiles": 0,
@@ -321,11 +313,7 @@ class LineOut:
                 indentation = f'{blanks*int(start2[0])}{"&nbsp;"*int(start2[0])}&nbsp;'
             # Add indentation for contination line
             tmp = start1[0].replace("Action: ...", f"{indentation}continued >>> {start2[1]}")
-            # tmp = action_evaluate.cleanup_the_result(
-            #     start1[0].replace(
-            #         "Action: ...", f"{indentation}continued >>> {start2[1]}"
-            #     )
-            # )
+
             element = tmp
 
         return f"<li {element}</span></li>\n"
@@ -342,21 +330,12 @@ class LineOut:
         return "</ul>" if PrimeItems.unordered_list_count >= 0 else ""
 
     def delete_last_line(self):
-        # self.my_traceback("3", f"delete last element:{self.output_lines[-1]}")
         if PrimeItems.unordered_list_count > 0:
             if self.output_lines[-1] == "</ul>":
                 PrimeItems.unordered_list_count += 1
             else:
                 PrimeItems.unordered_list_count -= 1
         self.output_lines[-1] = ""
-
-    def my_traceback(self, key, element):
-        import sys
-        import traceback
-
-        print(f"--------------------------- Traceback:{key}", file=sys.stderr)
-        print(element, file=sys.stderr)
-        traceback.print_stack()
 
     # ##################################################################################
     # Generate the output string based on the input XML <code> passed in

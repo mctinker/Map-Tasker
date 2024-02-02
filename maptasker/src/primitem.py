@@ -1,4 +1,5 @@
 """Prime items which are used throughout MapTasker (globals)."""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -90,13 +91,6 @@ class PrimeItems:
         "all_tasks": {},
         "all_services": [],
     }
-    scene_countgrand_totals: ClassVar = {
-        "projects": 0,
-        "profiles": 0,
-        "unnamed_tasks": 0,
-        "named_tasks": 0,
-        "scenes": 0,
-    }
     directories: ClassVar = []
     variables: ClassVar = {}
     current_project = ""
@@ -150,13 +144,6 @@ class PrimeItemsReset:
             "all_tasks": {},
             "all_services": [],
         }
-        PrimeItems.scene_countgrand_totals = {
-            "projects": 0,
-            "profiles": 0,
-            "unnamed_tasks": 0,
-            "named_tasks": 0,
-            "scenes": 0,
-        }
         PrimeItems.directories = []
         PrimeItems.xml_tree = None
         PrimeItems.xml_root = None
@@ -173,3 +160,4 @@ class PrimeItemsReset:
         PrimeItems.current_project = ""
         PrimeItems.error_code = 0
         PrimeItems.error_msg = ""
+        PrimeItems.tkroot = None

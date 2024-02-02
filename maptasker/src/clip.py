@@ -217,7 +217,7 @@ class ClipException(Exception):
 class Clip:
     """A class to manage all aspects of a clip."""
 
-    def __init__(self, source_folder, play_speed, play_cycles, color=False) -> None: 
+    def __init__(self, source_folder, play_speed, play_cycles, color=False) -> None:
         """Initialize instance of Tile"""
         sys.stdout.write(CURSOR_OFF)
         self._source_folder = source_folder

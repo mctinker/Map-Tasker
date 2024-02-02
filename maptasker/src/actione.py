@@ -25,39 +25,6 @@ from maptasker.src.deprecate import depricated
 from maptasker.src.format import format_html
 from maptasker.src.sysconst import logger
 
-# pattern1 = re.compile(r'<.*?>')  # Get rid of all <something> html code
-
-
-# ##################################################################################
-# Delete crap that might be in the label
-# ##################################################################################
-def cleanup_the_result(results: str) -> str:
-    """
-    Delete html crap that might be in the label, and which would screw up the
-    output formatting
-        :param results: the string to clean
-        :return: the cleaned string
-    """
-    # The following line works as well, going through each character in the string
-    # results = ', '.join([x.strip() for x in results.split(',') if not x.isspace()
-    # and x != ''])
-    # results = results.replace(
-    #     ",  <FONT>", "<FONT>"
-    # )  # Get rid of comma on last parameter
-    # results = results.replace(", (", "")
-    # pattern = re.compile(r",[, ]+")
-    # results = pattern.sub(", ", results)  # Delete repeating commas
-    # results = results.replace(", <span", "<span")
-    # results = results.replace(",  <span", "  <span")
-    # results = results.replace(", code:", "")
-    # results = results.replace("<big>", "")
-    # results = results.replace("<small>", "")
-    # results = results.replace("<tt>", "")
-    # results = results.replace("<i>", "")
-    # results = results.replace("<u>", "")
-    # results = results.replace(", <FONT", "<FONT")
-    return results
-
 
 # ##################################################################################
 # See if this Task or Profile code is deprecated.
@@ -165,7 +132,6 @@ def get_action_code(
                     temp_lookup_codes[the_action_code_plus].evalargs,
                 )
 
-    # the_result = cleanup_the_result(the_result)
     return the_result
 
 

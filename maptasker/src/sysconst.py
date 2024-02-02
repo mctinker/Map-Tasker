@@ -1,4 +1,5 @@
 """Module containing action runner logic."""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -21,7 +22,7 @@ from typing import ClassVar
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 3.0.2"
+MY_VERSION = "MapTasker version 3.0.3"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -125,6 +126,8 @@ ARGUMENT_NAMES = {
     "single_task_name": "Single Task Name",
     "twisty": "Hide Task Details under Twisty",
     "underline": "Underline Names",
+    "edit": "Edit",
+    "edit_type": "Edit Type",
 }
 
 # Debug stuff
@@ -182,3 +185,5 @@ DISPLAY_DETAIL_LEVEL_anon_tasks_only: int = 1
 DISPLAY_DETAIL_LEVEL_all_tasks: int = 2
 DISPLAY_DETAIL_LEVEL_all_parameters: int = 3
 DISPLAY_DETAIL_LEVEL_everything: int = 4
+
+EDIT = False

@@ -1,4 +1,5 @@
 """Read/write the settings file"""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -74,7 +75,9 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     Returns:
         None
     """
-    guidance = {"Guidance": "Modify this file as needed.  All but one of the entries under [program_arguments] equates to a runtime argument.  [colors_to_use] items refer to colors to use for the output.  Run 'maptasker -h' for details."}
+    guidance = {
+        "Guidance": "Modify this file as needed.  All but one of the entries under [program_arguments] equates to a runtime argument.  [colors_to_use] items refer to colors to use for the output.  Run 'maptasker -h' for details."
+    }
     # Force file object into a dictionary for json encoding
     try:
         if not isinstance(program_arguments["file"], str):
@@ -87,7 +90,6 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     with open(new_file, "wb") as settings_file:
         tomli_w.dump(guidance, settings_file)
         settings_file.close()
-
 
     # Write out the program arguments in TOML format
     with open(new_file, "ab") as settings_file:
@@ -149,14 +151,14 @@ def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, 
 
     # Read the TOML file
     elif os.path.isfile(new_file):
-            with open(new_file, "rb") as f:
-                try:
-                    settings = tomllib.load(f)
-                    colors_to_use = settings["colors_to_use"]
-                    program_arguments = settings["program_arguments"]
-                    f.close()
-                except tomllib.TOMLDecodeError:  # no saved file
-                    corrupted_file(program_arguments, colors_to_use)
+        with open(new_file, "rb") as f:
+            try:
+                settings = tomllib.load(f)
+                colors_to_use = settings["colors_to_use"]
+                program_arguments = settings["program_arguments"]
+                f.close()
+            except tomllib.TOMLDecodeError:  # no saved file
+                corrupted_file(program_arguments, colors_to_use)
 
     return program_arguments, colors_to_use
 

@@ -144,7 +144,7 @@ service_codes = {
     },
     "lae": {
         "display": "Lock On Startup",
-        "section": 1,
+        "section": 2,
         "num": 20,
     },
     "lang": {
@@ -201,6 +201,11 @@ service_codes = {
         "display": "NFC Detection Enabled",
         "section": 4,
         "num": 30,
+    },
+    "PREF_START_MONITOR_ON_APP_OPEN": {
+        "display": "Start Monitor On App Open",
+        "section": 4,
+        "num": 30.5,
     },
     "PREF_KEEP_ACCESSIBILITY_SERVICES_RUNNING": {
         "display": "KEEP ACCESSIBILITY RUNNING",
@@ -456,7 +461,7 @@ service_codes = {
         "section": 9,
         "num": 67,
     },
-    "????????": {
+    "mFn": {
         "display": "Flash Problems",
         "section": 9,
         "num": 68,
@@ -552,7 +557,7 @@ service_codes = {
         "section": 12,
         "num": 84,
     },
-    "?????????": {
+    "lEnable": {
         "display": "Popup Errors/Warnings",
         "section": 12,
         "num": 85,

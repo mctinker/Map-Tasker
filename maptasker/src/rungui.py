@@ -65,6 +65,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # Get rid of any previous Tkinter window
     if PrimeItems.tkroot is not None:
         del PrimeItems.tkroot
+        PrimeItems.tkroot = None
     # Display GUI and get the user input
     user_input = MyGui()
     user_input.mainloop()

@@ -37,7 +37,8 @@ IGNORE_ITEMS = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
 #  dictionary of codes.
 # ##################################################################################
 def update_action_codes(
-    action: defusedxml.ElementTree.XML, the_action_code_plus: defusedxml.ElementTree,
+    action: defusedxml.ElementTree.XML,
+    the_action_code_plus: defusedxml.ElementTree,
 ) -> defusedxml.ElementTree:
     """
     Update the dictionary for the Action code
@@ -74,7 +75,8 @@ def update_action_codes(
 #   in our master dictionary of codes.
 # ##################################################################################
 def build_new_action_codes(
-    action: defusedxml.ElementTree.XML, the_action_code_plus: defusedxml.ElementTree,
+    action: defusedxml.ElementTree.XML,
+    the_action_code_plus: defusedxml.ElementTree,
 ) -> defusedxml.ElementTree:
     """
     Build the dictionary for the Action code
@@ -131,32 +133,13 @@ def build_action_codes(
 
 
 # ##################################################################################
-# See if the display name is already in our Action dictionary.  If not, add it.
-# ##################################################################################
-def add_name_to_action_codes(
-    the_action_code_plus: defusedxml.ElementTree.XML,
-    display_name: defusedxml.ElementTree,
-) -> defusedxml.ElementTree:
-    """
-    See if the display name is already in our Action dictionary.  If not, add it.
-        :param the_action_code_plus: the Action code with "action type"
-                (e.g. 861t, t=Task, e=Event, s=State)
-        :param display_name: the name to appear in the output for this action
-        :return: nothing
-    """
-    if the_action_code_plus not in action_codes:
-        build_new_action_codes("", the_action_code_plus)
-    if display_name not in action_codes[the_action_code_plus]:
-        action_codes[the_action_code_plus].display = display_name
-    return
-
-
-# ##################################################################################
 # Given a child xml element, determine if it is a boolean of condtion
 # add return if in a list
 # ##################################################################################
 def get_boolean_or_condition(
-    child: defusedxml.ElementTree, condition_list: list, boolean_list: list,
+    child: defusedxml.ElementTree,
+    condition_list: list,
+    boolean_list: list,
 ) -> tuple[list, list]:
     """
     Evaluates the condition/boolean and updates the condition_list and boolean_list.

@@ -1,4 +1,5 @@
 """Utilities used by diagram.py."""
+
 #! /usr/bin/env python3
 # #################################################################################### #
 #                                                                                      #
@@ -352,9 +353,9 @@ def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_pos
                 output_lines[line_num][called_task_position] == " "
                 and output_lines[line_num][called_task_position - 1] == " "
             ):
-                output_lines[
-                    line_num
-                ] = f"{output_lines[line_num][:called_task_position]}{bar}{output_lines[line_num][called_task_position + 1:]}"
+                output_lines[line_num] = (
+                    f"{output_lines[line_num][:called_task_position]}{bar}{output_lines[line_num][called_task_position + 1:]}"
+                )
                 line_num -= 1
             else:
                 check_line = False
@@ -385,9 +386,9 @@ def delete_hanging_bars(output_lines: list) -> list:
         # Go through list of bar positions in line.
         for position_bar in indices:
             if len(output_lines[line_num + 1]) < position_bar or output_lines[line_num + 1][position_bar] == " ":
-                output_lines[
-                    line_num
-                ] = f"{output_lines[line_num][:position_bar]} {output_lines[line_num][position_bar + 1:]}"
+                output_lines[line_num] = (
+                    f"{output_lines[line_num][:position_bar]} {output_lines[line_num][position_bar + 1:]}"
+                )
 
         # Now let's make sure there is a bar connecting right down arrow to Task.
         # Add bar(s) (|) above right-down arrow as necessary.

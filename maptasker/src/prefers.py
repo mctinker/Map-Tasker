@@ -25,7 +25,7 @@ from maptasker.src.sysconst import FormatLine
 def process_service(
     service_name: str,
     service_value: str,
-    temp_output_lines,
+    temp_output_lines: list,
 ) -> None:
     """
     We have a service xml element that we have mapped as a preference.  Process it.
@@ -83,7 +83,7 @@ def process_service(
                     True,
                 )
             ),
-        ]
+        ],
     )
 
 
@@ -135,7 +135,7 @@ def process_preferences(temp_output_lines: list) -> None:
                             ),
                             True,
                         ),
-                    ]
+                    ],
                 )
                 dummy_num += 1
         # Invalid <Setting> xml element

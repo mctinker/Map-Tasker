@@ -1,4 +1,5 @@
 """Module containing action runner logic."""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -70,21 +71,6 @@ def get_args(action: defusedxml.ElementTree, ignore_list: list) -> tuple[list, l
         ]  # Build list of arg position only (numeric part of argn)
 
     return arguments, argument_types, arg_nums
-
-
-# ##################################################################################
-# Check a value for '0' and return the appropriate string if it is/isn't
-# ##################################################################################
-def if_zero_else(the_value: str, if_zero_string: str, if_not_zero_string: str) -> str:
-    """
-    Returns string #1 if the value is 0, otherwise return string #2
-        :param the_value: the value to evaluate
-        :param if_zero_string: the string to return if the value to evaluate is zero
-        :param if_not_zero_string: the string to return if the value to evaluate
-                is not zero
-        :return: the value set by the above evaluation
-    """
-    return if_zero_string if the_value == "0" else if_not_zero_string
 
 
 # ##################################################################################

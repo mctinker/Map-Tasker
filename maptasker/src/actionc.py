@@ -1897,6 +1897,28 @@ action_codes = {
             ", Text:",
         ],
     ),
+    "379t": ActionCode(
+        6,
+        "",
+        ["0", "1", "2", "3", "4", "5"],
+        [
+            "Bundle",
+            "Int",
+            "App",
+            "Str",
+            "Int",
+            "Str",
+        ],
+        "Device Admin/Owner",
+        ["1", "2", "3", "4", "5"],
+        [
+            ["Action:", "l", "379"],
+            ", App:",
+            ", Function:",
+            ["", "e", ", Enable"],
+            ", Restrictions:",
+        ],
+    ),
     "37s": ActionCode(1, "", ["0"], ["ConditionList"], "Variable Set", [], []),
     "37t": ActionCode(1, "", ["0"], ["ConditionList"], "If", ["if"], [""]),
     "380t": ActionCode(
@@ -2498,6 +2520,15 @@ action_codes = {
         ],
     ),
     "446e": ActionCode(0, "", [], [], "Gentle Alarm", [], []),
+    "446t": ActionCode(
+        6,
+        "",
+        ["0", "1", "2", "3", "4", "5"],
+        ["Bundle", "Str", "Str", "Str", "Str", "Int"],
+        "List File/Folder Properties",
+        ["1", "2", "3", "4", "5"],
+        ["Path:", ", Type:", ", Name/Path Filter:", ", Other Filters:", ["", "e", ", Recurse"]],
+    ),
     "447e": ActionCode(0, "", [], [], "Reddit Notify", [], []),
     "447t": ActionCode(
         6,
@@ -2516,6 +2547,7 @@ action_codes = {
         ],
     ),
     "448e": ActionCode(0, "", [], [], "Notify My Android", [], []),
+    "448t": ActionCode(2, "", ["0", "1"], ["Bundle", "Str"], "Array Compare", ["1"], ["Names:"]),
     "449t": ActionCode(1, "", ["0"], ["Int"], "Music Stop", ["0"], [["", "e", ", Clear Dir"]]),
     "450e": ActionCode(
         2,

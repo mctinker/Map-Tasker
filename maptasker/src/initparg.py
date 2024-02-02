@@ -1,4 +1,5 @@
 """Intialize command line interface/runtime arguments for MapTasker"""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -53,4 +54,6 @@ def initialize_runtime_arguments() -> dict:
         "single_task_name": "",  # Display single Task name only
         "twisty": False,  # Add Task twisty "▶︎" clickable icons for Task details
         "underline": False,  # Underline Project/Profile?Task/Scene names
+        "edit": False,  # Edit mode
+        "edit_type": "",  # Edit type: Create New or Edit Existing
     }

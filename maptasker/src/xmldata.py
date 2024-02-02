@@ -1,4 +1,5 @@
 """Module containing action runner logic."""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -94,6 +95,7 @@ def extract_integer(action: defusedxml.ElementTree.XML, arg: str, argeval: str) 
     - Returns the result of the evaluation or an empty string if no integer was found
     """
     from maptasker.src.action import drop_trailing_comma, process_xml_list
+
     the_int_value = ""
     result = []
     # Find the arg we are looking for.
@@ -153,6 +155,7 @@ def extract_string(action: defusedxml.ElementTree.XML, arg: str, argeval: str) -
     - Returns first item after processing or empty string
     """
     from maptasker.src.action import drop_trailing_comma
+
     match_results = []
     for child in action:
         if child.tag == "Str":

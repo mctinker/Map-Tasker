@@ -306,6 +306,7 @@ lookup_values = {
         "Tasks",
         "Timer Widget Remaining",
         "Current Task Name",
+        "Used Memory",
     ],
     "348": [
         "AutoRotate",
@@ -355,6 +356,16 @@ lookup_values = {
     ],
     "374": ["Start", "Stop", "Query"],
     "378": ["Select Single Item", "Multiple Choices"],
+    "379": [
+        "Custom",
+        "Freeze App",
+        "Suspend App",
+        "Kill App",
+        "Clear App Data",
+        "Reboot",
+        "User Restrictions",
+        "Backup Service",
+    ],
     "380": ["Text", "File", "Redirect"],
     "383": ["Connectivity", "NFC", "Volume", "WiFi", "Media Output"],
     "384": ["Add/Edit", "Delete"],
@@ -409,6 +420,7 @@ lookup_values = {
     ],
     "455": ["Default", "Microphone", "Call Outgoing", "Call Incoming", "Call"],
     "455a": ["MP4", "3GPP", "AMR Narrowband", "AMR Wideband"],
+    "446": ["Directories", "Files"],
     "490": ["Grab", "Release"],
     "512": ["Expanded", "Collapsed"],
     "523": [

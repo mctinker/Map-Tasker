@@ -1,4 +1,5 @@
 """Module containing action runner logic."""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -27,7 +28,6 @@ from maptasker.src.xmldata import extract_integer, extract_string
 # We have a <bundle>.   Process it
 # ##################################################################################
 def get_bundle(code_action: defusedxml.ElementTree.XML, evaluated_results: dict, arg: str) -> dict:
-
     """
     Gets a bundle from an XML code action.
     Args:
@@ -284,9 +284,9 @@ def action_args(
             argeval = evaluate_list[num]
         except IndexError:
             evaluated_results["returning_something"] = False
-            evaluated_results[
-                "error"
-            ] = "MapTasker mapped IndexError error in action_args...action details not displayed"
+            evaluated_results["error"] = (
+                "MapTasker mapped IndexError error in action_args...action details not displayed"
+            )
             return evaluated_results
         try:
             argtype = our_action_code.types[index]
