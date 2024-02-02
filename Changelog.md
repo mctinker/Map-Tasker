@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file!
 
 - Eliminated redundant and unused code.
 - A program error occurs with the use of a unique runtime combination of options.
+- The program gets an error if debug is on and the file "backup.xml" is not found.
+- Setting the runtime option of "-detail 0" via the command line is ignored.
 
 ### Added
 
