@@ -166,4 +166,4 @@ def not_in_dictionary(condition_type: str, code: str) -> None:
         f"Error action code {code} not in the dictionary!",
     )
     if PrimeItems.program_arguments["debug"]:
-        print(f"{condition_type} code {code} not found in actionc!")  # noqa: T201
+        print(f"{condition_type} code {code} not found in actionc!")

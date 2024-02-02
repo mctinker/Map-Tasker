@@ -1,4 +1,5 @@
 """MapTasker runtime argument parser"""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -137,6 +138,8 @@ def font_validation(x: str) -> str:
         msg = f"Invalid or non-monospace font name '{x}'."
         error_handler(msg, 7)
         # raise argparse.ArgumentTypeError(msg)
+    elif x == "help":
+        print("Valid monospace fonts: ", ", ".join(valid_fonts))
     return x
 
 

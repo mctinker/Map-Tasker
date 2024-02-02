@@ -109,19 +109,19 @@ def on_crash(exctype: str, value: str, traceback: list) -> None:
         # sys.__excepthook__ is the default excepthook that prints the stack trace
         # So we use it directly if we want to see it
         sys.__excepthook__(exctype, value, traceback)
-        print("MapTasker encountered a runtime error!  Error can be found in maptasker_debug.log")  # noqa: T201
-        print("]\nGo to https://github.com/mctinker/Map-Tasker/issues to report the problem.\n")  # noqa: T201
+        print("MapTasker encountered a runtime error!  Error can be found in maptasker_debug.log")
+        print("]\nGo to https://github.com/mctinker/Map-Tasker/issues to report the problem.\n")
     # Give the user a more graceful error message.
     else:
         # Instead of the stack trace, we print an error message to stderr
-        print("\nMapTasker encountered a runtime error!", file=sys.stderr)  # noqa: T201
+        print("\nMapTasker encountered a runtime error!", file=sys.stderr)
         # print("Exception type:", exctype, " value:", value)
-        print(f"The error log can be found in {debug_file}.")  # noqa: T201
-        print(  # noqa: T201
+        print(f"The error log can be found in {debug_file}.")
+        print(
             "Go to https://github.com/mctinker/Map-Tasker/issues to report the problem.\n",
             file=sys.stderr,
         )
-        print("\a", end="", flush=True)  # noqa: T201
+        print("\a", end="", flush=True)
         # Redirect print to a debug log
         with open(debug_file, "w") as log:
             # sys.stdout = log
@@ -287,6 +287,11 @@ def initialize_everything() -> dict:
         :return: dictionary of primary items used throughout project, and empty staring
     """
 
+    # Check to see if we might be coming from another program (e.g. run_test.py).
+    # If so, re-initialize PrimeItems since it is still carrying the values from the last test/run.
+    if PrimeItems.colors_to_use:
+        PrimeItemsReset()
+
     # We have to initialize output_lines here. Otherwise, we'll lose the output class
     # with the upcoming call to start_up.
     PrimeItems.output_lines = LineOut()
@@ -370,15 +375,15 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
         webbrowser.open(f"file://{my_output_dir}{my_file_name}", new=2)
     except webbrowser.Error:
         error_handler("Error: Failed to open output in browser: your browser is not supported.", 1)
-    print("")  # noqa: T201
+    print("")
 
     # If doing the outline, let 'em know about the map file.
     map_text = (
         "The Configuration Map was saved as MapTasker_Map.txt.  " if PrimeItems.program_arguments["outline"] else ""
     )
 
-    print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}Program end.")  # noqa: T201
-    print("")  # noqa: T201
+    print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}Program end.")
+    print("")
 
 
 # ##################################################################################
@@ -529,9 +534,7 @@ def display_back_matter(
 # Re-launch our program via the "rerun" feature.
 # ##################################################################################
 def restart_program() -> None:
-    """Restarts the current program, with file objects and descriptors
-    cleanup
-    """
+    """Restarts the current program, with file objects and descriptors"""
     # Get the path of the python interpreter and use it to execute ourselves again.
     python = sys.executable
 
@@ -568,104 +571,30 @@ def do_rerun() -> None:
         # mapit_all(filename)
 
 
-########################################################################################
-#                                                                                      #
-#   Main Program Starts Here                                                           #
-#                                                                                      #
-########################################################################################
-"""
--The function 'mapit_all' is the main function of the MapTasker program, which maps the
-Tasker environment and generates an HTML output file.
-
-
-
-- The function initializes local variables and other necessary stuff.
-
-- It gets colors to use, runtime arguments, found items, and heading by calling the
-'start_up' function from the 'proginit' module.
-
-- It prompts the user to locate the Tasker backup XML file to use to map the Tasker
-environment.
-
-- It opens and reads the file by calling the 'open_and_get_backup_xml_file' function
-from the 'proginit' module.
-
-- It gets all the XML data by calling the 'get_the_xml_data' function from the 'taskerd'
-module.
-
-- It checks for a valid Tasker backup XML file.
-
-- It processes Tasker preferences and displays them if the 'display_preferences'
-argument is True.
-
-- It processes all projects and their profiles by calling the
-'process_projects_and_their_profiles' function from the 'projects' module.
-
-- If a specific project or profile is requested but not found, it exits the program by
-calling the 'clean_up_and_exit' function.
-
-- It looks for tasks that are not referenced by profiles and displays a total count.
-
-- It lists any projects without tasks and projects without profiles.
-
-- If a specific task is requested but not found, it exits the program by calling the
-'clean_up_and_exit' function.
-
-- It outputs caveats if the 'display_detail_level' argument is greater than or equal
-to 3.
-
-- It adds HTML complete code to the output.
-
-- It generates the actual output file and stores it in the current directory.
-
-- It cleans up memory by calling the 'clean_up_memory' function.
-
-- It displays the final output by opening the output file in the default browser.
-
-- It returns the exit code of the program.
-"""
-
-
-def mapit_all(file_to_get: str) -> int:
-    # Initialize variables and get the backup xml file
+# ##################################################################################
+# Do the cleanup stuff: check for single name, do unique situations, and display
+# back matter.
+# ##################################################################################
+def special_handling(found_tasks: list, projects_without_profiles: list, projects_with_no_tasks: list) -> None:
+    # Store single item details in local variables
     """
-    Maps all Projects, Profiles, Tasks and Scenes in a Tasker backup file
+    Processes special handling of found tasks, projects without profiles, and projects with no tasks.
 
     Args:
-        file_to_get (str): The Tasker backup file to process
-
+        found_tasks: list - List of found tasks
+        projects_without_profiles: list - List of projects without profiles
+        projects_with_no_tasks: list - List of projects with no tasks
     Returns:
-        int: 0
+        None
 
-    Processes Projects and their Profiles:
-        - Gets all Project and Profile variables
-        - Processes each Project and its associated Profiles
-        - Stores details of single selected Project, Profile or Task
-    Checks for single selected item and processes accordingly
-    Processes unique situations like Tasks not in Profiles and Projects without Profiles/Tasks
-    Cleans up memory after completing processing
+    Processing Logic:
+        - Store single item details in local variables
+        - Check if only looking for a single Project/Profile/Task
+        - Turn off directory temporarily to avoid duplicates
+        - Get list of tasks not called by profiles and projects without profiles/tasks
+        - Restore original directory setting
+        - Display back matter after processing projects, profiles, tasks, scenes
     """
-    (
-        found_tasks,
-        projects_without_profiles,
-        projects_with_no_tasks,
-    ) = initialize_everything()
-
-    # Set up file to read if it is passed in (via rerun)
-    if file_to_get:
-        PrimeItems.file_to_get = file_to_get
-
-    # Get all Tasker variables
-    if PrimeItems.program_arguments["display_detail_level"] == DISPLAY_DETAIL_LEVEL_everything:
-        get_variables()
-
-    # Process all Projects and their Profiles
-    found_tasks = projects.process_projects_and_their_profiles(
-        found_tasks,
-        projects_without_profiles,
-    )
-
-    # Store single item details in local variables
     program_arguments = PrimeItems.program_arguments
     single_project_name = program_arguments["single_project_name"]
     single_profile_name = program_arguments["single_profile_name"]
@@ -711,15 +640,63 @@ def mapit_all(file_to_get: str) -> int:
         single_task_found,
     )
 
+
+########################################################################################
+#                                                                                      #
+#   Main Program Starts Here                                                           #
+#                                                                                      #
+########################################################################################
+def mapit_all(file_to_get: str) -> int:
+    # Initialize variables and get the backup xml file
+    """
+    Maps all Projects, Profiles, Tasks and Scenes in a Tasker backup file
+
+    Args:
+        file_to_get (str): The Tasker backup file to process
+
+    Returns:
+        int: 0
+
+    Processes Projects and their Profiles:
+        - Gets all Project and Profile variables
+        - Processes each Project and its associated Profiles
+        - Stores details of single selected Project, Profile or Task
+    Checks for single selected item and processes accordingly
+    Processes unique situations like Tasks not in Profiles and Projects without Profiles/Tasks
+    Cleans up memory after completing processing
+    """
+    (
+        found_tasks,
+        projects_without_profiles,
+        projects_with_no_tasks,
+    ) = initialize_everything()
+    if PrimeItems.error_code > 0:
+        sys.exit(PrimeItems.error_code)
+
+    # Set up file to read if it is passed in (via rerun)
+    if file_to_get:
+        PrimeItems.file_to_get = file_to_get
+
+    # Get all Tasker variables
+    if PrimeItems.program_arguments["display_detail_level"] == DISPLAY_DETAIL_LEVEL_everything:
+        get_variables()
+
+    # Process all Projects and their Profiles
+    found_tasks = projects.process_projects_and_their_profiles(
+        found_tasks,
+        projects_without_profiles,
+    )
+
+    # Do special handling
+    special_handling(found_tasks, projects_without_profiles, projects_with_no_tasks)
+
     # Save our runtime settings for next time.
     _, _ = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)
 
     # Rerun this program if "Rerun" was selected from GUI
     # First get the filename as a string.
-    if program_arguments["rerun"]:
+    if PrimeItems.program_arguments["rerun"]:
         do_rerun()
-    # Just a "run".  Clean up and exit.
-    else:
-        clean_up_memory()
+    # Just exit.
 
     return 0

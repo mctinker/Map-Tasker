@@ -1,4 +1,5 @@
 """Code to manage the graphical user interface."""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -27,6 +28,7 @@ from maptasker.src.guiutils import clear_android_buttons, get_monospace_fonts, p
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
+    EDIT,
     TYPES_OF_COLOR_NAMES,
     DISPLAY_DETAIL_LEVEL_all_parameters,
 )
@@ -174,6 +176,8 @@ class MyGui(customtkinter.CTk):
         self.color_text_row = None
         self.debug = None
         self.display_detail_level = None
+        self.edit = False
+        self.edit_type = ""
         self.preferences = None
         self.conditions = None
         self.everything = None
@@ -242,14 +246,17 @@ class MyGui(customtkinter.CTk):
             dark_image=Image.open("maptasker_logo_dark.png"),
             size=(190, 50),
         )
-        self.logo_label = customtkinter.CTkLabel(
-            self.sidebar_frame,
-            image=my_image,
-            text="",
-            compound="left",
-            font=customtkinter.CTkFont(size=1, weight="bold"),
-        )  # display image with a CTkLabel
-        self.logo_label.grid(row=0, column=0, padx=0, pady=0, sticky="n")
+        try:
+            self.logo_label = customtkinter.CTkLabel(
+                self.sidebar_frame,
+                image=my_image,
+                text="",
+                compound="left",
+                font=customtkinter.CTkFont(size=1, weight="bold"),
+            )  # display image with a CTkLabel
+            self.logo_label.grid(row=0, column=0, padx=0, pady=0, sticky="n")
+        except:  # noqa: S110
+            pass
         # del my_image  # Done with image...get rid of it.
 
         # # Add the background image.
@@ -453,7 +460,7 @@ class MyGui(customtkinter.CTk):
         # Get fonts from TkInter
         font_items, res = get_monospace_fonts()
         # Delete the tkroot obtained by get_monospace_fonts
-        if PrimeItems.tkroot:
+        if PrimeItems.tkroot is not None:
             del PrimeItems.tkroot
             PrimeItems.tkroot = None
         self.font_optionemenu = customtkinter.CTkOptionMenu(
@@ -554,6 +561,8 @@ class MyGui(customtkinter.CTk):
         self.tabview.add("Specific Name")
         self.tabview.add("Colors")
         self.tabview.add("Debug")
+        if EDIT:
+            self.tabview.add("Edit")
 
         self.tabview.tab("Specific Name").grid_columnconfigure(0, weight=1)  # configure grid of individual tabs
         self.tabview.tab("Colors").grid_columnconfigure(0, weight=1)
@@ -631,6 +640,19 @@ class MyGui(customtkinter.CTk):
         self.debug_checkbox.configure(border_color="#6563ff")
         self.debug_checkbox.grid(row=4, column=3, padx=20, pady=10, sticky="w")
 
+        # Edit Section Prompts
+        if EDIT:
+            self.edit_optionemenu = customtkinter.CTkOptionMenu(
+                self.tabview.tab("Edit"),
+                values=[
+                    "Create New",
+                    "Edit Existing",
+                ],
+                fg_color="#246FB6",
+                command=self.edit_event,
+            )
+            self.edit_optionemenu.grid(row=10, column=2, padx=(20, 20), pady=(20, 20), sticky="e")
+
         # Runtime
         self.runtime_checkbox = customtkinter.CTkCheckBox(
             self.tabview.tab("Debug"),
@@ -677,37 +699,13 @@ class MyGui(customtkinter.CTk):
         self.sidebar_detail_option.configure(values=["0", "1", "2", "3", "4"])
         self.sidebar_detail_option.set("4")
         self.display_detail_level = 4
-        self.conditions = (
-            self.preferences
-        ) = (
-            self.taskernet
-        ) = (
-            self.debug
-        ) = (
-            self.everything
-        ) = (
-            self.clear_settings
-        ) = (
+        self.conditions = self.preferences = self.taskernet = self.debug = self.everything = self.clear_settings = (
             self.reset
-        ) = (
-            self.restore
-        ) = (
-            self.exit
-        ) = (
-            self.bold
-        ) = (
-            self.highlight
-        ) = (
-            self.italicize
-        ) = (
-            self.underline
-        ) = (
+        ) = self.restore = self.exit = self.bold = self.highlight = self.italicize = self.underline = (
             self.go_program
-        ) = (
-            self.outline
-        ) = (
-            self.rerun
-        ) = self.runtime = self.save = self.twisty = self.directory = self.fetched_backup_from_android = False
+        ) = self.outline = self.rerun = self.runtime = self.save = self.twisty = self.directory = (
+            self.fetched_backup_from_android
+        ) = False
         self.single_project_name = self.single_profile_name = self.single_task_name = self.file = ""
         self.color_text_row = 2
         self.appearance_mode_optionemenu.set("System")
@@ -725,6 +723,8 @@ class MyGui(customtkinter.CTk):
         self.font = OUTPUT_FONT
         self.gui = True
         self.color_row = 4
+        self.edit = False
+        self.edit_type = ""
 
         # Display current Items setting.
         self.single_name_status("Display all Projects, Profiles, and Tasks.", "#3f99ff")
@@ -1153,6 +1153,19 @@ class MyGui(customtkinter.CTk):
         self.inform_message("Indentation Amount", True, ident_amount)
 
     # ##################################################################################
+    # Edit selection
+    # ##################################################################################
+    def edit_event(self, edit_type: str) -> None:  # noqa: ANN101
+        """
+        Edit an event by setting the edit type.
+
+        :param edit_type: A string representing the type of edit.
+        :return: None
+        """
+        self.edit_type = edit_type
+        self.edit = True
+
+    # ##################################################################################
     # Process color selection
     # ##################################################################################
     def colors_event(self, color_selected_item: str) -> None:  # noqa: ANN101
@@ -1229,9 +1242,9 @@ class MyGui(customtkinter.CTk):
             - Looks up the color name in a dictionary of color types
             - Adds the color as a value to the color lookup dictionary using the looked up color type as the key
             - This associates the given color with the given selected item"""
-        self.color_lookup[
-            TYPES_OF_COLOR_NAMES[color_selected_item]
-        ] = color  # Add color for the selected item to our dictionary
+        self.color_lookup[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
+            color  # Add color for the selected item to our dictionary
+        )
 
     # ##################################################################################
     # Process the 'conditions' checkbox

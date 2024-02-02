@@ -1,4 +1,5 @@
 """Process command line interface arguments for MapTasker"""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -45,7 +46,9 @@ from maptasker.src.sysconst import (
 # ################################################################################
 # Determine if the argument is a list or string, and return the value as appropriate
 # ################################################################################
-def get_arg_if_in_list(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"]), the_argument: str) -> int:  # noqa: PYI024
+def get_arg_if_in_list(
+    args: namedtuple("ArgNamespace", ["some_arg", "another_arg"]), the_argument: str
+) -> int:
     """
     Determine if the argument is a list or string, and return the value as appropriate
         Args:
@@ -53,7 +56,7 @@ def get_arg_if_in_list(args: namedtuple("ArgNamespace", ["some_arg", "another_ar
             the_argument (str): the arguemnt to get
 
         Returns:
-            int: the numeric value for the argument that was gotten
+            tuple: boolean True if it is a list and the numeric value for the argument that was gotten
     """
     if the_value := getattr(args, the_argument):
         return int(the_value[0]) if isinstance(the_value, list) else int(the_value)
@@ -132,8 +135,11 @@ def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "anoth
 
     # Get display detail level, if provided.
     detail = getattr(args, "detail")
-    if detail is not None and isinstance(detail, int) or (detail := get_arg_if_in_list(args, "detail")):
-        PrimeItems.program_arguments["display_detail_level"] = detail
+    if detail is not None:
+        if  isinstance(detail, int):
+            PrimeItems.program_arguments["display_detail_level"] = detail
+        elif isinstance(detail, list):
+            PrimeItems.program_arguments["display_detail_level"] = detail[0]
 
 
 # ##################################################################################
@@ -194,7 +200,6 @@ def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another
             program_arguments["android_port"] = getattr(args, "android_port")
             program_arguments["android_file"] = getattr(args, "android_file")
 
-
     # Appearance
     if appearance := getattr(args, "appearance"):
         program_arguments["appearance_mode"] = appearance
@@ -241,9 +246,9 @@ def display_version() -> None:
 
 """
     color_to_use = Colors.Yellow if darkdetect.isDark() else Colors.Blue
-    print(header)  # noqa: T201
-    print(f"{color_to_use}{MY_VERSION}, under license {MY_LICENSE}\033[0m")  # noqa: T201
-    print("")  # noqa: T201
+    print(header)
+    print(f"{color_to_use}{MY_VERSION}, under license {MY_LICENSE}\033[0m")
+    print("")
     clip_figure("castles", False)
     sys.exit(0)
 
@@ -379,7 +384,7 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):  # n
         v=False,
     )
     # Go through each argument from runtest
-    print("Running Unit Test.")  # noqa: T201
+    print("Running Unit Test.")
     for the_argument in sys.argv:
         if the_argument == "-test=yes":  # Remove unit test trigger
             continue
@@ -423,7 +428,7 @@ def validate_arguments() -> None:
     # It doesn't make sense to do twisties if notr displaying full detail.
     if program_arguments["display_detail_level"] < 3 and program_arguments["twisty"]:
         message = "Twisty disabled since the display level is not 3 or above."
-        print(f"{Colors.Yellow}{message}")  # noqa: T201
+        print(f"{Colors.Yellow}{message}")
         logger.info(message)
 
 
@@ -444,10 +449,8 @@ def process_cli() -> None:
     reset_flag = "reset"
     version_flag = "v"
 
-    # Intialize runtime arguments if we don't yet have them.
-    if not PrimeItems.colors_to_use:
-        # Empty/reset the runtime arguments.
-        PrimeItems.program_arguments = initialize_runtime_arguments()
+    # Intialize runtime arguments.
+    PrimeItems.program_arguments = initialize_runtime_arguments()
 
     # Process unit tests if "-test" in arguments, else get normal runtime arguments via Parsearg.
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()

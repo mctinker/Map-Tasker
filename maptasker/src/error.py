@@ -37,7 +37,7 @@ def error_handler(error_message: str, exit_code: int) -> None:
     if exit_code > 0:
         logger.critical(final_error_message)
         if PrimeItems.program_arguments and PrimeItems.program_arguments["debug"]:
-            print(final_error_message)  # noqa: T201
+            print(final_error_message)
 
         # If coming from GUI, set error info. and return to GUI.
         if PrimeItems.program_arguments and PrimeItems.program_arguments["gui"]:
@@ -45,11 +45,11 @@ def error_handler(error_message: str, exit_code: int) -> None:
             PrimeItems.error_msg = error_message
             return
         # Not coming from GUI...just print error.
-        print(final_error_message)  # noqa: T201
+        print(final_error_message)
         sys.exit(exit_code)
 
     # return code 0
     else:
-        print(final_error_message)  # noqa: T201
+        print(final_error_message)
         logger.info(final_error_message)
         return

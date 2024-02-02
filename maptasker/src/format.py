@@ -1,4 +1,5 @@
 """Module containing action runner logic."""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -23,7 +24,6 @@ from maptasker.src.sysconst import (
     pattern10,
 )
 
-SPAN_REGEX = re.compile(r'<span class="(\w+)"><span')
 THREE_LINES = 3
 
 

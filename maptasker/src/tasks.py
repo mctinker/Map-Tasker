@@ -57,7 +57,7 @@ def get_actions(
     try:
         task_actions = current_task.findall("Action")
     except defusedxml.DefusedXmlException:
-        print("tasks.py current Task:", current_task)  # noqa: T201
+        print("tasks.py current Task:", current_task)
         error_handler("Error: No action found!!!", 0)
         return []
 
@@ -302,7 +302,7 @@ def do_single_task(
         and PrimeItems.program_arguments["single_task_name"] == our_task_name
     ):
         # We have the single Task we are looking for
-        # Set all the "found" items
+        # Set all the "found" items so that everyone bails out of their loops.
         PrimeItems.found_named_items["single_task_found"] = True
         PrimeItems.found_named_items["single_project_found"] = True
         PrimeItems.found_named_items["single_profile_found"] = True
@@ -436,7 +436,7 @@ def output_task_list(
     task_output_lines: str,
     list_of_found_tasks: list,
     do_extra: bool,
-) -> None:
+) -> bool:
     """
     Given a list of tasks, output them.  The list of tasks is a list of tuples.
         The first element is the Task name, the second is the Task element.
@@ -447,7 +447,9 @@ def output_task_list(
             profile_name (str): name of the owning Profile
             task_output_lines (str): the output lines for the Tasks
             list_of_found_tasks (list): list of Tasks found so far
-            do_extra (bool): True to output extra info."""
+            do_extra (bool): True to output extra info.
+        Returns:
+            bool: True if we found a Task"""
     for count, task_item in enumerate(list_of_tasks):
         # Doing extra details?
         if do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
@@ -463,9 +465,9 @@ def output_task_list(
                 [task_output_lines[count]],
             )
             # Tack on the extra info since [task_output_lines[count]] is immutable
-            task_output_lines[
-                count
-            ] = f"{task_output_lines[count]} {kid_app_info}{priority}{collision}{stay_awake}{blank*2}{icon_info}"
+            task_output_lines[count] = (
+                f"{task_output_lines[count]} {kid_app_info}{priority}{collision}{stay_awake}{blank*2}{icon_info}"
+            )
 
         do_single_task(
             task_item["name"],
@@ -481,6 +483,7 @@ def output_task_list(
             PrimeItems.program_arguments["single_task_name"]
             and PrimeItems.program_arguments["single_task_name"] == task_item["name"]
         ):
+            PrimeItems.found_named_items["single_task_found"] = True
             return True
 
     return False

@@ -73,8 +73,8 @@ def get_profile_tasks(
                 task_output_line,
                 task_type,
             )
+            # Add this Task to our list of Tasks processed thus far.
             list_of_tasks.append({"xml": the_task_element, "name": the_task_name})
-            # list_of_tasks.append([the_task_element, the_task_name])
             if (
                 PrimeItems.program_arguments["single_task_name"]
                 and PrimeItems.program_arguments["single_task_name"] == the_task_name
@@ -157,10 +157,7 @@ def build_profile_line(
 
     # Look for disabled Profile
     limit = profile.find("limit")  # Is the Profile disabled?
-    if limit is not None and limit.text == "true":
-        disabled = disabled_profile_html
-    else:
-        disabled = ""
+    disabled = disabled_profile_html if limit is not None and limit.text == "true" else ""
 
     # Is there a Launcher Task with this Project?
     launcher_xml = project.find("ProfileVariable")
@@ -175,15 +172,7 @@ def build_profile_line(
     # Display flags for debug mode
     if PrimeItems.program_arguments["debug"]:
         flags = profile.find("flags")
-        if flags is not None:
-            flags = format_html(
-                "GreenYellow",
-                "",
-                f" flags: {flags.text}",
-                True,
-            )
-        else:
-            flags = ""
+        flags = format_html("GreenYellow", "", f" flags: {flags.text}", True) if flags is not None else ""
 
     # Get the Profile name
     profile_name_with_html, profile_name = get_profile_name(profile)
@@ -193,10 +182,8 @@ def build_profile_line(
         add_directory_item("profiles", profile_name)
 
     # Get the Profile's conditions
-    if PrimeItems.program_arguments["conditions"] or profile_name == "NO_PROFILE":
-        if profile_conditions := condition.parse_profile_condition(
-            profile,
-        ):
+    if PrimeItems.program_arguments["conditions"] or profile_name == "NO_PROFILE":  # noqa: SIM102
+        if profile_conditions := condition.parse_profile_condition(profile):
             # Strip pre-existing HTML from conditions, since some condition codes
             # may be same as Actions.
             # And the Actions would have plugged in the action_color HTML.

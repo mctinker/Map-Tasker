@@ -38,8 +38,8 @@ def get_fonts(save_fonts: bool) -> dict:
 
     # If the font requested is 'help', then just display the fonts and exit
     if our_font == "help":
-        print("Valid monospace fonts...")  # noqa: T201
-        print('  "Courier" is the default')  # noqa: T201
+        print("Valid monospace fonts...")
+        print('  "Courier" is the default')
 
     # Go thru list of fonts from tkinter
     PrimeItems.mono_fonts = {}
@@ -47,7 +47,7 @@ def get_fonts(save_fonts: bool) -> dict:
         # Monospace only
         if f.metrics("fixed") and "Wingding" not in f.actual("family"):
             if our_font == "help":
-                print(f'  "{f.actual("family")}"')  # noqa: T201
+                print(f'  "{f.actual("family")}"')
             elif save_fonts:
                 PrimeItems.mono_fonts[f.name] = f.actual("family")
             mono_fonts.append(f.actual("family"))

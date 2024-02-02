@@ -75,6 +75,43 @@ atexit.register(write_counter)
 
 
 # ##################################################################################
+# Prompt user to select the backup xml file to use.
+# ##################################################################################
+def prompt_for_backup_file(dir_path: str) -> None:
+    """
+    Prompt user to select a backup file
+    Args:
+        dir_path (str): Path to initial directory for file selection dialog
+    Returns:
+        None: No value is returned
+    Processing Logic:
+        - Try to open a file selection dialog to choose an XML backup file
+        - Set a flag if any exception occurs or no file is selected
+        - Check the flag and call an error handler if running without GUI
+        - Set an error code if running with GUI
+    """
+    file_error = False
+    # Tkinter prompt for file selection.
+    try:
+        PrimeItems.file_to_get = askopenfile(
+            parent=PrimeItems.tkroot,
+            mode="r",
+            title="Select Tasker backup xml file",
+            initialdir=dir_path,
+            filetypes=[("XML Files", "*.xml")],
+        )
+        PrimeItems.error_code = 0  # No error.  Clear the code if there is one.
+    except Exception:
+        file_error = True
+    if PrimeItems.file_to_get is None:
+        file_error = True
+    if file_error and not PrimeItems.program_arguments["gui"]:
+        error_handler("Backup file selection cancelled.  Program ended.", 6)
+    elif file_error:
+        PrimeItems.error_code = 6
+
+
+# ##################################################################################
 # Open and read the Tasker backup XML file
 # Return the file name for use for
 # ##################################################################################
@@ -83,7 +120,11 @@ def open_and_get_backup_xml_file() -> dict:
     Open the Tasker backup file and return the file object
     """
     # Fetch backup xml directly from Android device?
-    if PrimeItems.program_arguments["android_ipaddr"] and PrimeItems.program_arguments["android_file"] and PrimeItems.program_arguments["android_port"]:
+    if (
+        PrimeItems.program_arguments["android_ipaddr"]
+        and PrimeItems.program_arguments["android_file"]
+        and PrimeItems.program_arguments["android_port"]
+    ):
         backup_file_name = get_backup_file()
 
         # If no backup file and we're coming from the GUI, then rerturn to GUI.
@@ -94,7 +135,6 @@ def open_and_get_backup_xml_file() -> dict:
         PrimeItems.program_arguments["file"] = backup_file_name
 
     logger.info("entry")
-    file_error = False
 
     # Reset the file name
     PrimeItems.file_to_get = None
@@ -112,9 +152,10 @@ def open_and_get_backup_xml_file() -> dict:
             PrimeItems.file_to_get = open(f"{dir_path}/backup.xml")
         except OSError:
             error_handler(
-                (f"Error: The backup.xml file was not found in {dir_path}.  Program terminated!"),
+                (f"Error: Debug is on and the backup.xml file was not found in {dir_path}."),
                 3,
             )
+            prompt_for_backup_file(dir_path)
 
     # See if we already have the file
     elif PrimeItems.program_arguments["file"]:
@@ -128,23 +169,7 @@ def open_and_get_backup_xml_file() -> dict:
             file_not_found = filename
             error_handler(f"Backup file {file_not_found} not found.  Program ended.", 6)
     else:
-        try:
-            PrimeItems.file_to_get = askopenfile(
-                parent=PrimeItems.tkroot,
-                mode="r",
-                title="Select Tasker backup xml file",
-                initialdir=dir_path,
-                filetypes=[("XML Files", "*.xml")],
-            )
-        except Exception:
-            file_error = True
-        if PrimeItems.file_to_get is None:
-            file_error = True
-        if file_error and not PrimeItems.program_arguments["gui"]:
-            error_handler("Backup file selection cancelled.  Program ended.", 6)
-        elif file_error:
-            PrimeItems.error_code = 6
-            return
+        prompt_for_backup_file(dir_path)
 
     return
 
@@ -292,7 +317,7 @@ def check_versions() -> None:
         logger.error(msg)
     if msg:
         logger.error("MapTasker", msg)
-        print(msg)  # noqa: T201
+        print(msg)
         exit(0)  # noqa: PLR1722
 
 
