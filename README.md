@@ -129,7 +129,7 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-directory` to display a directory of all Projects/Profiles/Tasks/Scenes,
     `-e` to display 'everything': Runtime settings, Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details with Project variables,
-    `-f` font to use (preferably a monospace font),
+    `-f` font to use (preferably a monospace font),  If "-f help" is entered, then the list of installed monospace fonts on your system will be printed out on the runtime console.
     `-g` to get arguments from the GUI rather than via the command line,
     `-i` the amount of indentation for If/Then/Else Task actions (default=4),
     `-n {bold highlight italicize}` to add formatting options to Project/Profile/Task/Scene names,
@@ -219,7 +219,10 @@ With this older version, you will not get the benefits offered by the newer vers
 ### To-Do List (in no particular order)
 
 [] Include/map remaining Tasker preferences
+
 [] Support additional plugins
+
+[] If getting the backup xml file from Android, prompt user with a directory/file search and prompt.
 
 ### Contributions
 

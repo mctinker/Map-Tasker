@@ -2,16 +2,27 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.0.2] 25-January-2024
-
+## [3.0.3] 02-February-2024
 
 ### Fixed
 
-- Program error if the toml settings file is not found.
+- Eliminated redundant and unused code.
+- A program error occurs with the use of a unique runtime combination of options.
+
+### Added
+
+- Added support for Tasker 3.6.1 with the following new Task actions: Device Admin, Array Compare, List File/Folder Properties.
+- Added support for Tasker 3.6.1 with "Used Memory" as a Test Tasker task action option.
+- Recognize a few additional Tasker preferences.
+- The runtime argument "-font help" will print the list of valid monospace fonts on your system.
 
 ## Older History Logs
 
-[3.0.1]
+## [3.0.2]
+
+- Fixed: Program error if the settings file is not found.
+
+## [3.0.1]
 
 - Changed: The minimum version of Python is now 3.11.7 for TOML file settings support.
 - Changed: README updated to reflect the new minimum version of Python and newer sample screenshots.

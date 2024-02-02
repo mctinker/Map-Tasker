@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maptasker"
-version = "3.0.2"
+version = "3.0.3"
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README_PyPl.md"
@@ -124,6 +124,7 @@ ignore = [
     "SIM115",   # Missing "with" on oepn file
     "S606",     # No shell
     "B009",     # Do not perform function calls in argument defaults
+    "T201",     # Print found
     ]
 show-fixes = true
 src = ['src',]
