@@ -132,15 +132,16 @@ def extry_or_exit_task(
         Returns:
             tuple: task_output_lines and task_name
     """
+    line_left_arrow = "&#11013;"
     # Determine if this is an "Entry" or "Exit" Task
     if task_name:
         # Don't add the entry/exit text if display level = 0
         if PrimeItems.program_arguments["display_detail_level"] > 0:
             if task_type == "Exit":
-                task_output_lines.append(f"{task_name}{blank*4}<<< Exit Task{extra}")
+                task_output_lines.append(f"{task_name}{blank*4}{line_left_arrow} Exit Task{extra}")
 
             else:
-                task_output_lines.append(f"{task_name}{blank*4}<<< Entry Task{extra}")
+                task_output_lines.append(f"{task_name}{blank*4}{line_left_arrow} Entry Task{extra}")
         else:
             task_output_lines.append(f"{task_name}{blank*4}")
     else:
@@ -153,10 +154,10 @@ def extry_or_exit_task(
         # Don't add the entry/exit text if display level = 0
         if PrimeItems.program_arguments["display_detail_level"] > 0:
             if task_type == "Exit":
-                task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}<<< Exit Task{extra}")
+                task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}{line_left_arrow} Exit Task{extra}")
 
             else:
-                task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}<<< Entry Task{extra}")
+                task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}{line_left_arrow} Entry Task{extra}")
         else:
             task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}")
 

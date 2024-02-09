@@ -1,3 +1,4 @@
+"""Display global variables in output HTML"""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -11,10 +12,11 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+import darkdetect
 import defusedxml.ElementTree  # Need for type hints
 
-from maptasker.src.sysconst import FormatLine
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.sysconst import NORMAL_TAB, TABLE_BACKGROUND_COLOR, TABLE_BORDER, FormatLine
 
 # List of Tasker global variables
 tasker_global_variables = [
@@ -232,15 +234,16 @@ def output_variables(heading: str, project: defusedxml.ElementTree) -> None:
         color_to_use = PrimeItems.colors_to_use["project_color"]
         color_name = "project_color"
 
+    # Print the heading if we have global variables.
     if variable_output_lines := print_the_variables(color_to_use, project):
         PrimeItems.output_lines.add_line_to_output(
             5,
-            heading,
+            f"<br>{NORMAL_TAB}{heading}",
             ["", color_name, FormatLine.add_end_span],
         )
 
         # Define table
-        table_definition = f'<table cellspacing="1" cellpadding="2" border="1" style="height:16px; color:{color_to_use}; text-align:left">\n<tr>\n<th>Name</th>\n<th>Value</th>\n</tr>'
+        table_definition = f'{TABLE_BORDER}<table cellspacing="1" cellpadding="2" border="1" style="height:16px; margin-left: 20;color:{color_to_use};background-color:{TABLE_BACKGROUND_COLOR};font-family:{PrimeItems.program_arguments["font"]};text-align:left">\n<tr>\n<th>Name</th>\n<th>Value</th>\n</tr>'
         PrimeItems.output_lines.add_line_to_output(
             5,
             table_definition,

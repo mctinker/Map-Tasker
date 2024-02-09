@@ -206,11 +206,8 @@ def process_scene(
     get_width_and_height(scene, tasks_found)
 
     # If we are doing twisties, then we need to close the unordered list.
-    #  (see lineout format_line, where we add a <ul> for this "Scene:" special case)
     if PrimeItems.program_arguments["twisty"]:
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
-
-    return
 
 
 # ##################################################################################
@@ -234,21 +231,6 @@ def process_project_scenes(
         scene_names = project.find("scenes").text
     if scene_names is not None:
         scene_list = scene_names.split(",")
-
-        # If 2nd and 3rd last output lines are </ul>, then there is one too many.
-        # Counter by adding a new line for the Scene.
-        if (
-            PrimeItems.output_lines.output_lines[-2][:5] == "</ul>"
-            and PrimeItems.output_lines.output_lines[-3][:5] == "</ul>"
-        ):
-            PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
-
-        # If last line in output has an end-ordered-list, then it must have been
-        # for the list of Tasks not found in any Profile...and it has to be removed
-        # to avoid a double end underline causing mis-alignment of Scene:
-        #   statements in output
-        if PrimeItems.output_lines.output_lines[-1] == "</ul>":
-            PrimeItems.output_lines.delete_last_line()
 
         # If we have at least one Scene, process it
         if scene_list[0]:

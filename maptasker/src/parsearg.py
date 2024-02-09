@@ -24,10 +24,10 @@ from maptasker.src.maputils import validate_ip_address, validate_port
 from maptasker.src.nameattr import get_tk
 from maptasker.src.sysconst import TYPES_OF_COLORS, logger
 
-# class MutuallyInclusiveArgumentError(Exception):
-#     pass
 
-
+# ##################################################################################
+# Validate mutually inclusive variables
+# ##################################################################################
 def validate_vars(var1: str, var2: int, var3: str) -> None:
     """Validate mutually inclusive arguments
     Args:

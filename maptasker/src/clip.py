@@ -364,3 +364,4 @@ def clip_figure(figure: str, colored: bool) -> None:
 
     my_output_dir = f"{os.getcwd()}/clip/{figure}"
     clippy(my_output_dir, 100, 3, colored)
+    print("\a")  # Bell/alert

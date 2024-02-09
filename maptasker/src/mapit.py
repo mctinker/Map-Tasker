@@ -61,6 +61,7 @@ from maptasker.src.lineout import LineOut
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
+    NORMAL_TAB,
     Colors,
     DISPLAY_DETAIL_LEVEL_everything,
     FormatLine,
@@ -252,9 +253,15 @@ def output_grand_totals() -> None:
     Output the grand totals of Projects/Profiles/Tasks/Scenes
     """
     grand_total_projects = PrimeItems.grand_totals["projects"]
+    if PrimeItems.program_arguments["single_project_name"] or PrimeItems.program_arguments["single_profile_name"]:
+        grand_total_projects = 1
     grand_total_profiles = PrimeItems.grand_totals["profiles"]
+    if PrimeItems.program_arguments["single_profile_name"]:
+        grand_total_profiles = 1
     grand_total_unnamed_tasks = PrimeItems.grand_totals["unnamed_tasks"]
     grand_total_named_tasks = PrimeItems.grand_totals["named_tasks"]
+    if PrimeItems.program_arguments["single_task_name"]:
+        grand_total_named_tasks = 1
     grand_total_scenes = PrimeItems.grand_totals["scenes"]
     # If doing a directory, then add id to hyperlink to.
     if PrimeItems.program_arguments["directory"]:
@@ -268,9 +275,9 @@ def output_grand_totals() -> None:
     PrimeItems.output_lines.add_line_to_output(
         1,
         (
-            f"<br><hr>Tasker Totals...<br>{total_number}Projects: {grand_total_projects}<br>{total_number}Profiles:  {grand_total_profiles}<br>{total_number}Tasks:"
+            f"<br><hr>{NORMAL_TAB}Tasker Displayed Totals...<br>{NORMAL_TAB}{total_number}Projects: {grand_total_projects}<br>{NORMAL_TAB}{total_number}Profiles:  {grand_total_profiles}<br>{NORMAL_TAB}{total_number}Tasks:"
             f" {grand_total_unnamed_tasks + grand_total_named_tasks} ({grand_total_unnamed_tasks} unnamed,"
-            f" {grand_total_named_tasks} named)<br>{total_number}Scenes:"
+            f" {grand_total_named_tasks} named)<br>{NORMAL_TAB}{total_number}Scenes:"
             f" {grand_total_scenes}<br><br>"
         ),
         ["", "trailing_comments_color", FormatLine.add_end_span],

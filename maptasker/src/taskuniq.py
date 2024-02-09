@@ -17,7 +17,7 @@ import defusedxml.ElementTree
 
 import maptasker.src.tasks as tasks
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import NO_PROJECT, UNKNOWN_TASK_NAME, FormatLine
+from maptasker.src.sysconst import NO_PROJECT, NORMAL_TAB, UNKNOWN_TASK_NAME, FormatLine
 from maptasker.src.twisty import add_twisty, remove_twisty
 
 
@@ -40,7 +40,7 @@ def process_missing_tasks_and_profiles(
     if len(projects_with_no_tasks) > 0 and not PrimeItems.found_named_items["single_task_found"]:
         PrimeItems.output_lines.add_line_to_output(
             1,
-            "<hr><em>Projects Without Tasks...</em><br>",
+            f"{NORMAL_TAB}<hr>{NORMAL_TAB}<em>Projects Without Tasks...</em><br>",
             ["", "trailing_comments_color", FormatLine.add_end_span],
         )
 
@@ -58,13 +58,13 @@ def process_missing_tasks_and_profiles(
         # Add heading
         PrimeItems.output_lines.add_line_to_output(
             1,
-            "<em>Projects Without Profiles...</em><br>",
+            f"{NORMAL_TAB}<em>Projects Without Profiles...</em><br>",
             ["<br>", "trailing_comments_color", FormatLine.add_end_span],
         )
         for item in projects_without_profiles:
             PrimeItems.output_lines.add_line_to_output(
                 0,
-                f"- Project {item} has no Profiles",
+                f"- Project '{item}' has no Profiles",
                 ["", "trailing_comments_color", FormatLine.add_end_span],
             )
         # End list
@@ -84,7 +84,7 @@ def add_heading(save_twisty: bool) -> bool:
 
     # Start a list and add a ruler-line across page
     PrimeItems.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
-    text_line = "Named Tasks that are not called by any Profile..."
+    text_line = f"{NORMAL_TAB}Named Tasks that are not called by any Profile...<br>"
 
     # Add a twisty, if doing twisties, to hide the line
     if save_twisty:
@@ -153,15 +153,15 @@ def process_solo_task_with_no_profile(
         )
     if not unknown_task and project_name != NO_PROJECT:
         if PrimeItems.program_arguments["debug"]:
-            task_name += f" with Task ID: {task_id} ...in Project {project_name}&nbsp;&nbsp;> <em>No" " Profile</em>"
+            task_name += f" with Task ID: {task_id} ...in Project '{project_name}'&nbsp;&nbsp;> <em>No Profile</em>"
         else:
-            task_name += f" ...in Project {project_name}&nbsp;&nbsp;> <em>No Profile</em>"
+            task_name += f" ...in Project '{project_name}'&nbsp;&nbsp;> <em>No Profile</em>"
 
     # Output the Task's details
     if (not unknown_task) and (
         PrimeItems.program_arguments["display_detail_level"] > 2
-    ):  # Only list named Tasks or if details are wanted
-        task_output_lines = [task_name]
+    ):  # Only list named Tasks or if details are wanted.
+        task_output_lines = [task_name]  # Return as a list.
 
         # We have the Tasks.  Now let's output them.
         our_task = PrimeItems.tasker_root_elements["all_tasks"][task_id]

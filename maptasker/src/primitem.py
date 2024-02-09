@@ -35,7 +35,6 @@
 #  task_count_no_profile = number of Profiles in Project being processed.
 #  directory_items = if displaying a directory then this is a dictionary of items
 #    for the directory
-#  ordered_list_count = count of number of <ul> we currently have in output queue
 #  name_list = list of names of Projects/Profiles/Tasks/Scenes found thus far
 #  displaying_named_tasks_not_in_profile = True if we are displaying False if not
 #  mono_fonts = dictionary of monospace fonts from TkInter
@@ -62,7 +61,6 @@ class PrimeItems:
     output_lines = None
     file_to_get = ""
     task_count_for_profile = 0
-    unordered_list_count = 0
     displaying_named_tasks_not_in_profile = False
     mono_fonts: ClassVar = {}
     found_named_items: ClassVar = {
@@ -105,7 +103,7 @@ class PrimeItems:
 class PrimeItemsReset:
     """Re-initialize all values in PrimeItems class"""
 
-    def __init__(self) -> None:  # noqa: ANN101
+    def __init__(self) -> None:
         """
         Initialize the PrimeItems class
         Args:
@@ -152,7 +150,6 @@ class PrimeItemsReset:
         PrimeItems.output_lines = None
         PrimeItems.file_to_get = ""
         PrimeItems.task_count_for_profile = 0
-        PrimeItems.unordered_list_count = 0
         PrimeItems.displaying_named_tasks_not_in_profile = False
         PrimeItems.mono_fonts = {}
         PrimeItems.directories = []

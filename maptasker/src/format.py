@@ -16,9 +16,9 @@ import re
 
 from maptasker.src.sysconst import (
     pattern2,
-    pattern5,
-    pattern6,
-    pattern7,
+    # pattern5,
+    # pattern6,
+    # pattern7,
     pattern8,
     pattern9,
     pattern10,
@@ -40,8 +40,8 @@ def format_line(output_obj: object, num: int, item: str) -> str:
         :return: the reformatted text line for output
     """
 
-    output_lines = output_obj.output_lines
-    blank = " "
+    # output_lines = output_obj.output_lines
+    # blank = " "
 
     # If item is a list, then get the actual output line
     if isinstance(item, list):
@@ -50,46 +50,20 @@ def format_line(output_obj: object, num: int, item: str) -> str:
     # Get rid of trailing blanks
     item.rstrip()
 
-    # Ignore lines with "</ul></ul></ul><br>"
-    if (
-        num > THREE_LINES
-        and item[:5] == "</ul>"
-        and (
-            output_lines[num - 1][:5] == "</ul>"
-            and output_lines[num - 2][:5] == "</ul>"
-            and output_lines[num + 1][:4] == "<ul>"
-        )
-    ):
-        return ""
-
     # Change "Action: nn ..." to "Action nn: ..." (i.e. move the colon)
     action_position = item.find("Action: ")
     if action_position != -1:
         action_number_list = item[action_position + 8 :].split(" ")
         action_number = action_number_list[0]
-        temp = "".join(
-            [
-                item[:action_position],
-                action_number,
-                ":",
-                item[action_position + 8 + len(action_number) :],
-            ],
-        )
-        output_line = temp
+        action_number = action_number.split("<")
+        output_line = item.replace(f"Action: {action_number[0]}", f"{action_number[0]}:")
     # No changes needed
     else:
         output_line = item
 
-    # Format the html...add a number of blanks if some sort of list.
-    # Replace "<ul>" with "    <ul>\r"
-    # Use straight concatenation rather than f-strings for performance.
-    output_line = pattern5.sub(blank * 5 + "<ul>\r", output_line)
-    # replace("</ul>" with f"{blank*5}</ul>\r"
-    output_line = pattern6.sub(blank * 5 + "</ul>\r", output_line)
-    # replace("<li" with f"{blank*8}<li"
-    output_line = pattern7.sub(blank * 8 + "<li", output_line)
-    # Add a carriage return if this is a break
-    # replace("<br>" with "<br>\r"
+    # # Format the html...add a number of blanks if some sort of list.
+
+    # Add a carriage return if this is a break: replace("<br>" with "<br>\r"
     output_line = pattern8.sub("<br>\r", output_line)
     # Get rid of trailing blank
     output_line = pattern2.sub("", output_line)  # Get space-commas: " ,"

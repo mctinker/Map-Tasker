@@ -13,20 +13,19 @@
 # #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
 
-from maptasker.src.format import format_html
-from maptasker.src.sysconst import FormatLine
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.sysconst import FormatLine
 
 
 # ##################################################################################
 # Parse Property's variable and output it
 # ##################################################################################
-def parse_variable(variable_header: defusedxml.ElementTree, color_to_use: str) -> None:
+def parse_variable(property_tag: str, variable_header: defusedxml.ElementTree) -> None:
     """
     Parse Property's variable and output it
         Args:
+            property_tag (str): Either "Project:", "Profile:", or "Task:"
             variable_header (_type_): xml header of property's variable
-            color_to_use (_type_): the color to use in the output
     """
 
     # Get the various property
@@ -44,71 +43,61 @@ def parse_variable(variable_header: defusedxml.ElementTree, color_to_use: str) -
     else:
         exported_value = variable_header.find("exportval").text
 
+    # If doing Projeect properties, we need to add the tab since this is the first thing output for the Project.
+    if property_tag == "Project:":
+        tab = '<span class="project_color">'
+        endtab = "</span>"
+    else:
+        tab = ""
+        endtab = ""
+
     # Output the results
-    out_string = format_html(
-        color_to_use,
-        "",
-        f"<br>Properties.... Variable Title:{display_name}, Variable:{variable_name}, \
-        clear-out:{clearout}, \
-        Configure on Import:{configure_on_import}, Structured Variable (JSON, etc.):{structured_variable}, Immutable:{immutable}, Value:{value}, Display Name:{display_name}, Prompt:{prompt}, Exported Value:{exported_value}",
-        True,
-    )
-    PrimeItems.output_lines.add_line_to_output(5, out_string, FormatLine.dont_format_line)
+    out_string = f"<br>{tab}{property_tag} Properties.... Variable Title:{display_name}, Variable:{variable_name}, clear-out:{clearout}, Configure on Import:{configure_on_import}, Structured Variable (JSON, etc.):{structured_variable}, Immutable:{immutable}, Value:{value}, Display Name:{display_name}, Prompt:{prompt}, Exported Value:{exported_value}{endtab}<br>\n"
+    PrimeItems.output_lines.add_line_to_output(2, out_string, FormatLine.dont_format_line)
 
 
+# ##################################################################################
 # Given the xml header to the Project/Profile/Task, get the properties belonging
-# to this header and write them out
-def get_properties(header: defusedxml.ElementTree, color_to_use: str) -> None:
+# to this header and write them out.
+# ##################################################################################
+def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
     """
 
     Args:
-
+        property_tag (str): Either "Project:", "Profile:", or "Task:"
         header (defusedxml.ElementTree): xml header to Project/Profile/Task
-        color_to_use: the color to output the property with
 
     Returns:
         nothing
     """
     collision = ["Abort New Task", "Abort Existing Task", "Run Both Together"]
-
     have_property = False
+
     # Get the item comment, if any
     comment_xml = header.find("pc")
     if comment_xml is not None:
-        out_string = format_html(
-            color_to_use,
-            "",
-            f"<br>Properties comment: {comment_xml.text}",
-            True,
-        )
-        PrimeItems.output_lines.add_line_to_output(5, out_string, FormatLine.dont_format_line)
+        out_string = f"<br>{property_tag} Properties comment: {comment_xml.text}"
+        PrimeItems.output_lines.add_line_to_output(2, out_string, FormatLine.dont_format_line)
         have_property = True
+
     keep_alive = header.find("stayawake")
     if keep_alive is not None:
-        out_string = format_html(
-            color_to_use,
-            "",
-            f"<br>Properties Keep Device Awake: {keep_alive.text}",
-            True,
-        )
-        PrimeItems.output_lines.add_line_to_output(5, out_string, FormatLine.dont_format_line)
+        out_string = f"<br>{property_tag} Properties Keep Device Awake: {keep_alive.text}"
+        PrimeItems.output_lines.add_line_to_output(2, out_string, FormatLine.dont_format_line)
         have_property = True
+
     collision_handling = header.find("rty")
     if collision_handling is not None:
-        out_string = format_html(
-            color_to_use,
-            "",
-            f"<br>Properties Collision Handling: {collision[int(collision_handling.text)]}",
-            True,
-        )
-        PrimeItems.output_lines.add_line_to_output(5, out_string, FormatLine.dont_format_line)
+        out_string = f"<br>{property_tag} Properties Collision Handling: {collision[int(collision_handling.text)]}"
+        PrimeItems.output_lines.add_line_to_output(2, out_string, FormatLine.dont_format_line)
         have_property = True
 
-    # Look for variables
+    # Look for variables in the head XML object (Projectc/Profile/Task).
     for item in header:
         if item.tag == "ProfileVariable":
-            parse_variable(item, color_to_use)
+            parse_variable(property_tag, item)
             have_property = True
 
+    # Force a new line if we output any properties.
     if have_property:
-        PrimeItems.output_lines.add_line_to_output(5, "<br><br>", FormatLine.dont_format_line)
+        PrimeItems.output_lines.add_line_to_output(5, "<br>", FormatLine.dont_format_line)

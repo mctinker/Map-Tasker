@@ -20,9 +20,11 @@ import re
 from enum import Enum
 from typing import ClassVar
 
+import darkdetect
+
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 3.0.3"
+MY_VERSION = "MapTasker version 3.0.4"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -58,8 +60,6 @@ TYPES_OF_COLOR_NAMES = {
     "Background": "background_color",
     "Scenes": "scene_color",
     "Scene": "scene_color",
-    "Bullets": "bullet_color",
-    "Bullet": "bullet_color",
     "Action Labels": "action_label_color",
     "ActionLabel": "action_label_color",
     "Action Names": "action_name_color",
@@ -88,7 +88,6 @@ TYPES_OF_COLORS = {
     "LauncherTask": "Project's 'launcher' Task",
     "Background": "output background",
     "Scene": "Scenes",
-    "Bullet": "list bullets",
     "ActionLabel": "Task action 'labels'",
     "ActionName": "Task action 'names'",
     "TaskerNetInfo": "TaskerNet 'information'",
@@ -143,9 +142,6 @@ pattern2 = re.compile(" ,")
 pattern3 = re.compile("<")
 pattern4 = re.compile(">")
 
-pattern5 = re.compile("<ul>")
-pattern6 = re.compile("</ul>")
-pattern7 = re.compile("<li")
 pattern8 = re.compile("<br>")
 pattern9 = re.compile("</span></span>")
 pattern10 = re.compile("</p></p>")
@@ -187,3 +183,26 @@ DISPLAY_DETAIL_LEVEL_all_parameters: int = 3
 DISPLAY_DETAIL_LEVEL_everything: int = 4
 
 EDIT = False
+
+# Use the normal tab in output.
+NORMAL_TAB = '<span class="normtab"></span>'
+
+# Disabled Profile and Task indicator
+DISABLED = " [&#9940;&nbsp;DISABLED]"  # &#9940 = "⛔"
+
+# Set up background color and border for tables
+TABLE_BACKGROUND_COLOR = "LightSteelBlue" if darkdetect.isDark() else "DarkTurquoise"
+TABLE_BORDER = (
+    "\n"
+    "<style> \
+        table, \
+        td, \
+        th { \
+        padding: 5px; \
+        border: 2px solid #1c87c9; \
+        border-radius: 3px; \
+        background-color: #128198; \
+        text-align: center; \
+        } \
+    </style>"
+)

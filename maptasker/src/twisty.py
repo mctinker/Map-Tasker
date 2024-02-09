@@ -12,7 +12,7 @@
 #                                                                                      #
 # #################################################################################### #
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import logger, FormatLine
+from maptasker.src.sysconst import FormatLine
 
 
 def add_twisty(output_color_name: str, line_to_output: str) -> None:
@@ -26,10 +26,10 @@ def add_twisty(output_color_name: str, line_to_output: str) -> None:
     # Add the "twisty" to hide the Task details
     PrimeItems.output_lines.add_line_to_output(
         5,
-        f"\n<details><summary>{line_to_output}</summary>\r",
+        f"\n<span class='tasktab'><details><summary>{line_to_output}</summary>\r",
+        # f"\n<details><summary><span class='tasktab'>{line_to_output}</span></summary>\r",
         ["", output_color_name, FormatLine.add_end_span],
     )
-    return
 
 
 def remove_twisty() -> None:
@@ -38,19 +38,4 @@ def remove_twisty() -> None:
 
         :return: nothing.  The output line is modified to include "</details>"
     """
-    # Replace the last line (</ul>) with </ul></details> to end the twisty/hidden items
-    # If our unordered list counter is zero, then only insert the </details>
-    if PrimeItems.unordered_list_count == 0:
-        PrimeItems.output_lines.output_lines[-1] = "</details>\n"
-    elif PrimeItems.unordered_list_count > 0:
-        PrimeItems.unordered_list_count -= 1
-        PrimeItems.output_lines.output_lines[-1] = "</ul></details>\n"
-        logger.info(f"linout twisty counter deducted: {PrimeItems.unordered_list_count}")
-    else:
-        print("Rutroh!")
-        import traceback
-
-        traceback.print_tb()
-        exit()
-
-    return
+    PrimeItems.output_lines.output_lines[-1] = "</details></span><br>\n"

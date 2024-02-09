@@ -66,10 +66,7 @@ def format_task_or_scene(list_type: list, the_item: str) -> tuple[str, str]:
         tuple[str, str]: Our formatted output line and color to user
     """
     # Format the Task/Scene name as needed: spacing and HTML
-    if list_type in {"Task:", "Scene:"}:
-        the_item_altered = adjust_name(list_type, the_item)
-    else:
-        the_item_altered = the_item
+    the_item_altered = adjust_name(list_type, the_item) if list_type in {"Task:", "Scene:"} else the_item
 
     # Format the output line
     output_line = f"{list_type}&nbsp;{the_item_altered}"
@@ -192,10 +189,7 @@ def format_item(
         and PrimeItems.program_arguments["display_detail_level"] > 2
         and not PrimeItems.displaying_named_tasks_not_in_profile
     ):
-        get_properties(
-            the_task,
-            "task_color",
-        )
+        get_properties("Task:", the_task)
 
 
 # ##################################################################################
@@ -246,10 +240,6 @@ def process_item(
         # End the twisty hidden lines if not a Task in a Scene
         if PrimeItems.program_arguments["twisty"]:
             remove_twisty()
-        # If not a twisty but is a digit, then this is a Scene's Task...
-        # delete previous </ul>
-        elif the_item.isdigit():
-            PrimeItems.output_lines.delete_last_line()
 
     elif list_type == "Scene:" and PrimeItems.program_arguments["display_detail_level"] > 1:
         # We have a Scene: process its details

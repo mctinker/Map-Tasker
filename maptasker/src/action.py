@@ -26,7 +26,7 @@ from maptasker.src.error import error_handler
 from maptasker.src.format import format_html
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
-from maptasker.src.sysconst import FONT_FAMILY, RE_FONT, DISPLAY_DETAIL_LEVEL_all_tasks
+from maptasker.src.sysconst import DISABLED, FONT_FAMILY, RE_FONT, DISPLAY_DETAIL_LEVEL_all_tasks
 from maptasker.src.xmldata import remove_html_tags
 
 
@@ -283,7 +283,7 @@ def get_label_disabled_condition(child: defusedxml.ElementTree.XML) -> str:
         format_html(
             "disabled_action_color",
             "",
-            " [DISABLED]",
+            DISABLED,
             True,
         )
         if child.find("on") is not None

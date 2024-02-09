@@ -19,7 +19,7 @@ import math
 import darkdetect
 
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import NO_PROFILE, FormatLine
+from maptasker.src.sysconst import NO_PROFILE, NORMAL_TAB, TABLE_BACKGROUND_COLOR, TABLE_BORDER, FormatLine
 from maptasker.src.xmldata import find_task_by_name
 
 period = "."
@@ -148,37 +148,17 @@ def generate_html_table(data: list, rows: int, columns: int) -> str:
         ```python
         data = {
             "header": ["Name", "Age", "City"],
-            "rows": [
-                ["John Doe", 25, "New York"],
-                ["Jane Smith", 30, "Los Angeles"],
-                ["Mike Johnson", 35, "Chicago"]
-            ]
+            "rows": [["John Doe", 25, "New York"], ["Jane Smith", 30, "Los Angeles"], ["Mike Johnson", 35, "Chicago"]],
         }
 
         html_table = generate_html_table(data)
         print(html_table)
         ```
     """
-    # Set up background color
-    color_to_use = "LightSteelBlue" if darkdetect.isDark() else "DarkTurquoise"
-    border = (
-        "\n"
-        "<style> \
-            table, \
-            td, \
-            th { \
-            padding: 5px; \
-            border: 2px solid #1c87c9; \
-            border-radius: 3px; \
-            background-color: #128198; \
-            text-align: center; \
-            } \
-        </style>"
-    )
 
     # Set up the variables
-    html = f'{border}<table style="width:100%;text-align:left;background-color:\
-    {color_to_use};">\n'
+    html = f'{TABLE_BORDER}<table style="width:100%;margin-left: 20;text-align:left;background-color:\
+    {TABLE_BACKGROUND_COLOR};">\n'
     index = 0
     data.sort()  # Sort the directory by name
 
@@ -213,7 +193,7 @@ def do_trailing_matters() -> None:
     trailing_matter = []
     PrimeItems.output_lines.add_line_to_output(
         5,
-        f"<br><br>Trailing Information{period*50}<br><br>",
+        f"<br><br>{NORMAL_TAB}Trailing Information{period*50}<br><br>",
         ["", "project_color", FormatLine.add_end_span],
     )
 
@@ -268,7 +248,7 @@ def check_scene(item: str) -> bool:
         Args:
             item (str): directory hyperlink item we are processing
 
-        Returns:
+        Returns:20.
             bool: True if we should output this hperlink, False if it is to be ingored.
     """
     # Single Project?
@@ -453,7 +433,7 @@ def do_tasker_element(name: str) -> None:
             # Output the name title: Project, Profile, Task, Scene
             PrimeItems.output_lines.add_line_to_output(
                 5,
-                f"{name.capitalize()}{period*60}<br><br>",
+                f"{NORMAL_TAB}{name.capitalize()}{period*60}<br><br>",
                 ["<br><br>", "project_color", FormatLine.add_end_span],
             )
             # 6 columns for projects, 5 columns for tasks
@@ -478,7 +458,7 @@ def output_directory() -> None:
     # Add heading
     PrimeItems.output_lines.add_line_to_output(
         5,
-        "<h2>Directory</h2><br><br>",
+        f"<h2>{NORMAL_TAB}Directory</h2><br><br>",
         ["<br><br>", "profile_color", FormatLine.add_end_span],
     )
     # Ok, run through the Tasker key elements and output the directory for each

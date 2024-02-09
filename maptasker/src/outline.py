@@ -337,8 +337,7 @@ def outline_profiles_tasks_scenes(
     """
     all_profiles_tasks = []
 
-    # Delete the <ul> inserted by get_ids for Profile
-    PrimeItems.output_lines.delete_last_line()
+    # Go thru all Profiles
     no_name_counter = 1
     for item in profile_ids:
         # Get the Profile element
@@ -472,7 +471,7 @@ def do_the_outline(network: dict) -> None:
 
             # No Profiles for Project
             if not profile_ids:
-                # End ordered list since lineout.py added a <ul> for Project
+                # Add blank line since lineout.py added a completion for Project
                 PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 

@@ -14,6 +14,7 @@
 import atexit
 import contextlib
 import sys
+import webbrowser
 from datetime import datetime
 from json import dumps, loads  # For write and read counter
 from pathlib import Path

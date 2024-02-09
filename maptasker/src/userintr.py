@@ -148,7 +148,7 @@ class MyGui(customtkinter.CTk):
             customtkinter (_type_): GUI class from customtkinter library.
     """
 
-    def __init__(self) -> None:  # noqa: ANN101, PLR0915
+    def __init__(self) -> None:  # noqa: PLR0915
         """Initializes the GUI window for the MapTasker runtime options
 
         Args:
@@ -619,7 +619,6 @@ class MyGui(customtkinter.CTk):
                 "Action Names",
                 "Scenes",
                 "Background",
-                "Bullets",
                 "TaskerNet Information",
                 "Tasker Preferences",
                 "Highlight",
@@ -679,7 +678,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Establish all of the default values used
     # ##################################################################################
-    def set_defaults(self, first_time: bool) -> None:  # noqa: ANN101
+    def set_defaults(self, first_time: bool) -> None:
         # Item names must be the same as their value in
         #  PrimeItems.program_arguments
         """
@@ -732,7 +731,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Display the Backup button
     # ##################################################################################
-    def display_backup_button(self, the_text: str, color1: str, color2: str, routine: object) -> None:  # noqa: ANN101
+    def display_backup_button(self, the_text: str, color1: str, color2: str, routine: object) -> None:
         # 'Get Backup Settings' button definition
         """
         Displays a backup button on the GUI.
@@ -761,7 +760,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Display Message Box
     # ##################################################################################
-    def display_message_box(self, message: str, good: bool) -> None:  # noqa: ANN101
+    def display_message_box(self, message: str, good: bool) -> None:
         # If "good", display in green.  Otherwise, must be bad and display in red.
         r"""
         Displays a message box with the given message and color.
@@ -802,7 +801,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Validate name entered
     # ##################################################################################
-    def check_name(self, the_name: str, element_name: str) -> bool:  # noqa: ANN101
+    def check_name(self, the_name: str, element_name: str) -> bool:
         """
         Checks name validity
         Args:
@@ -865,7 +864,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Display single item status.
     # ##################################################################################
-    def single_name_status(self, status_message: str, color_to_use: str) -> None:  # noqa: ANN101
+    def single_name_status(self, status_message: str, color_to_use: str) -> None:
         # Display The selection
         """
         Display a status message with a given color.
@@ -889,7 +888,7 @@ class MyGui(customtkinter.CTk):
     # Process single name selection/event
     # ##################################################################################
     def process_name_event(
-        self,  # noqa: ANN101
+        self,
         my_name: str,
         checkbox1: customtkinter.CHECKBUTTON,
         checkbox2: customtkinter.CHECKBUTTON,
@@ -957,7 +956,7 @@ class MyGui(customtkinter.CTk):
     # Process single name restore
     # ##################################################################################
     def process_single_name_restore(
-        self,  # noqa: ANN101
+        self,
         my_name: str,
         name_entered: str,
     ) -> None:
@@ -990,7 +989,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the Project Name entry
     # ##################################################################################
-    def single_project_name_event(self) -> None:  # noqa: ANN101
+    def single_project_name_event(self) -> None:
         """Generates a single project name event from button inputs
         Args:
             self: The class instance
@@ -1010,7 +1009,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the Profile Name entry
     # ##################################################################################
-    def single_profile_name_event(self) -> None:  # noqa: ANN101
+    def single_profile_name_event(self) -> None:
         """Generates a single profile name event from button inputs
         Args:
             self: The class instance
@@ -1030,7 +1029,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the Task Name entry
     # ##################################################################################
-    def single_task_name_event(self) -> None:  # noqa: ANN101
+    def single_task_name_event(self) -> None:
         """Processes a single task name event.
         Args:
             self: The class instance.
@@ -1049,7 +1048,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the screen mode: dark, light, system
     # ##################################################################################
-    def change_appearance_mode_event(self, new_appearance_mode: str) -> None:  # noqa: ANN101
+    def change_appearance_mode_event(self, new_appearance_mode: str) -> None:
         """
         Change the appearance mode of the GUI
         Args:
@@ -1064,7 +1063,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the screen mode: dark, light, system
     # ##################################################################################
-    def font_event(self, font_selected: str) -> None:  # noqa: ANN101
+    def font_event(self, font_selected: str) -> None:
         """
         Sets the font for the GUI
         Args:
@@ -1093,7 +1092,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the Display Detail Level selection
     # ##################################################################################
-    def detail_selected_event(self, display_detail: str) -> None:  # noqa: ANN101
+    def detail_selected_event(self, display_detail: str) -> None:
         """
         Set display detail level and update UI
         Args:
@@ -1121,7 +1120,7 @@ class MyGui(customtkinter.CTk):
     # ################################################################################
     # Select or deselect a checkbox based on the value passed in
     # ################################################################################
-    def get_input_and_put_message(self, checkbox: customtkinter.CHECKBUTTON, title: str) -> bool:  # noqa: ANN101
+    def get_input_and_put_message(self, checkbox: customtkinter.CHECKBUTTON, title: str) -> bool:
         """
         Get checkbox value and display message
         Args:
@@ -1139,7 +1138,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the Identation Amount selection
     # ##################################################################################
-    def indent_selected_event(self, ident_amount: str) -> None:  # noqa: ANN101
+    def indent_selected_event(self, ident_amount: str) -> None:
         """Indent selected text or code block
         Args:
             ident_amount: The amount of indentation to apply as a string
@@ -1155,7 +1154,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Edit selection
     # ##################################################################################
-    def edit_event(self, edit_type: str) -> None:  # noqa: ANN101
+    def edit_event(self, edit_type: str) -> None:
         """
         Edit an event by setting the edit type.
 
@@ -1168,7 +1167,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process color selection
     # ##################################################################################
-    def colors_event(self, color_selected_item: str) -> None:  # noqa: ANN101
+    def colors_event(self, color_selected_item: str) -> None:
         """
         Changes the color for a selected item
         Args:
@@ -1231,7 +1230,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Color selected...process it.
     # ##################################################################################
-    def extract_color_from_event(self, color: str, color_selected_item: str) -> None:  # noqa: ANN101
+    def extract_color_from_event(self, color: str, color_selected_item: str) -> None:
         """Maps a color name to a selected item
         Args:
             color: str - The color name
@@ -1249,7 +1248,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'conditions' checkbox
     # ##################################################################################
-    def condition_event(self) -> None:  # noqa: ANN101
+    def condition_event(self) -> None:
         """
         Get input and put message for condition checkbox
         Args:
@@ -1269,7 +1268,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'conditions' checkbox
     # ##################################################################################
-    def outline_event(self) -> None:  # noqa: ANN101
+    def outline_event(self) -> None:
         """
         Display Configuration Outline
         Args:
@@ -1285,7 +1284,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'everything' checkbox
     # ##################################################################################
-    def everything_event(self) -> None:  # noqa: ANN101
+    def everything_event(self) -> None:
         # Dictionary of program arguments and function to run for each upon restoration.
         """
         Handles toggling all options in the Everything event
@@ -1352,7 +1351,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Tasker Preferences' checkbox
     # ##################################################################################
-    def preferences_event(self) -> None:  # noqa: ANN101
+    def preferences_event(self) -> None:
         """
         Get user input on whether to display tasker preferences
         Args:
@@ -1367,7 +1366,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Twisty' checkbox
     # ##################################################################################
-    def twisty_event(self) -> None:  # noqa: ANN101
+    def twisty_event(self) -> None:
         """
         Toggle display of task details under a twisty
         Args:
@@ -1390,7 +1389,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Display Directory' checkbox
     # ##################################################################################
-    def directory_event(self) -> None:  # noqa: ANN101
+    def directory_event(self) -> None:
         """
         Get input and put message for directory checkbox
         Args:
@@ -1407,7 +1406,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Bold Names' checkbox
     # ##################################################################################
-    def names_bold_event(self) -> None:  # noqa: ANN101
+    def names_bold_event(self) -> None:
         """
         Get input to display names in bold and put message
         Args:
@@ -1422,7 +1421,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Highlight Names' checkbox
     # ##################################################################################
-    def names_highlight_event(self) -> None:  # noqa: ANN101
+    def names_highlight_event(self) -> None:
         """
         Get input and put message for names highlight checkbox
         Args:
@@ -1440,7 +1439,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Italicize Names' checkbox
     # ##################################################################################
-    def names_italicize_event(self) -> None:  # noqa: ANN101
+    def names_italicize_event(self) -> None:
         """
         Italicize names based on checkbox input
         Args:
@@ -1456,7 +1455,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Underline Names' checkbox
     # ##################################################################################
-    def names_underline_event(self) -> None:  # noqa: ANN101
+    def names_underline_event(self) -> None:
         """
                 Gets user input to display names underlined or not
                 Args:
@@ -1472,7 +1471,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Taskernet' checkbox
     # ##################################################################################
-    def taskernet_event(self) -> None:  # noqa: ANN101
+    def taskernet_event(self) -> None:
         """
         Display TaskerNet Information
         Args:
@@ -1488,7 +1487,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Runtime' checkbox
     # ##################################################################################
-    def runtime_checkbox_event(self) -> None:  # noqa: ANN101
+    def runtime_checkbox_event(self) -> None:
         """
         Get input and put message for runtime checkbox
         Args:
@@ -1503,7 +1502,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Rebuilld message box with new text.
     # ##################################################################################
-    def new_message_box(self, message: str) -> None:  # noqa: ANN101
+    def new_message_box(self, message: str) -> None:
         # Clear any prior error message
         """
         Displays a message in a textbox widget.
@@ -1541,7 +1540,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Display Help' checkbox
     # ##################################################################################
-    def help_event(self) -> None:  # noqa: ANN101
+    def help_event(self) -> None:
         """Displays help information in a message box.
         Args:
             self: The class instance.
@@ -1555,7 +1554,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Display Help' checkbox
     # ##################################################################################
-    def backup_help_event(self) -> None:  # noqa: ANN101
+    def backup_help_event(self) -> None:
         """Backs up help text and displays it in a message box
         Args:
             self: The class instance
@@ -1570,7 +1569,7 @@ class MyGui(customtkinter.CTk):
     # ################################################################################
     # Inform user of toggle selection
     # ################################################################################
-    def inform_message(self, toggle_name: str, toggle_value: str, number_value: str) -> None:  # noqa: ANN101
+    def inform_message(self, toggle_name: str, toggle_value: str, number_value: str) -> None:
         """
         Set a toggle and display a message box
         Args:
@@ -1597,7 +1596,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Save Settings' checkbox
     # ##################################################################################
-    def save_settings_event(self) -> None:  # noqa: ANN101
+    def save_settings_event(self) -> None:
         # Get program arguments from GUI and store in a temporary dictionary
         """
         Saves program settings from GUI to file.
@@ -1628,7 +1627,7 @@ class MyGui(customtkinter.CTk):
     # Select or deselect a checkbox based on the value passed in
     # ################################################################################
     def select_deselect_checkbox(
-        self,  # noqa: ANN101
+        self,
         checkbox: customtkinter.CHECKBUTTON,
         checked: bool,
         argument_name: str,
@@ -1649,7 +1648,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Restore displays setting from restored value!
     # ##################################################################################
-    def restore_display(self, key: str, value: str) -> str:  # noqa: ANN101
+    def restore_display(self, key: str, value: str) -> str:
         # Dictionary of program arguments and function to run for each upon restoration.
         """
         Restores display settings
@@ -1741,7 +1740,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Restore Settings' checkbox
     # ##################################################################################
-    def restore_settings_event(self) -> None:  # noqa: ANN101
+    def restore_settings_event(self) -> None:
         """
         Resets settings to defaults and restores from saved settings file
         Args:
@@ -1777,7 +1776,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # We have read colors and runtime args from backup file.  Now extract them for use.
     # ##################################################################################
-    def extract_settings(self, temp_args: dict) -> None:  # noqa: ANN101
+    def extract_settings(self, temp_args: dict) -> None:
         """
         Extract settings from arguments dictionary
         Args:
@@ -1804,7 +1803,8 @@ class MyGui(customtkinter.CTk):
                 if key == "msg":
                     inv_color_names[key] = ""
                 else:
-                    all_messages = f"{all_messages} {inv_color_names[key]} color set to {value}\n"
+                    with contextlib.suppress(KeyError):
+                        all_messages = f"{all_messages} {inv_color_names[key]} color set to {value}\n"
 
         # Display the queue of messages
         self.display_message_box(f"{all_messages}\nSettings restored.", True)
@@ -1813,7 +1813,7 @@ class MyGui(customtkinter.CTk):
     # Display an input field and a label for the user to input a value
     # ##################################################################################
     def display_label_and_input(
-        self,  # noqa: ANN101
+        self,
         label: str,
         default_value: str,
         starting_row: int,
@@ -1882,7 +1882,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Backup' IP Address
     # ##################################################################################
-    def get_backup_event(self) -> None:  # noqa: ANN101
+    def get_backup_event(self) -> None:
         # Set up default values
         """
         Gets backup event details from user.
@@ -1971,7 +1971,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Fetch Backup info error...process it.
     # ##################################################################################
-    def backup_error(self, error_message: str) -> None:  # noqa: ANN101
+    def backup_error(self, error_message: str) -> None:
         # Setup error message
         """
         Displays an error message and resets the UI.
@@ -1995,7 +1995,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Fetch the backup ip and file details, and validate.
     # ##################################################################################
-    def fetch_backup_event(self) -> None:  # noqa: ANN101
+    def fetch_backup_event(self) -> None:
         """Fetches backup event details from user input
 
         Args:
@@ -2066,7 +2066,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Fettching backup from Android.  Let the user know.
     # ##################################################################################
-    def display_backup_details(self) -> None:  # noqa: ANN101
+    def display_backup_details(self) -> None:
         """
         Displays backup details from Android device.
         Args:
@@ -2113,7 +2113,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Cancel the entry of backup parameters
     # ##################################################################################
-    def backup_cancel_event(self) -> None:  # noqa: ANN101
+    def backup_cancel_event(self) -> None:
         """
         Closes the backup details window.
         Args:
@@ -2127,7 +2127,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process the 'Reset Settings' button
     # ##################################################################################
-    def reset_settings_event(self) -> None:  # noqa: ANN101
+    def reset_settings_event(self) -> None:
         """
         Resets all class settings to default values.
         Args:
@@ -2165,7 +2165,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # Process Debug Mode checkbox
     # ##################################################################################
-    def debug_checkbox_event(self) -> None:  # noqa: ANN101
+    def debug_checkbox_event(self) -> None:
         """
         Handle debug checkbox event
         Args:
@@ -2197,7 +2197,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # The 'Run' program button has been pressed.  Set the run flag and close the GUI
     # ##################################################################################
-    def run_program(self) -> None:  # noqa: ANN101
+    def run_program(self) -> None:
         """
         Starts a program and displays a message box.
         Args:
@@ -2215,7 +2215,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # The 'ReRun' program button has been pressed.  Set the run flag and close the GUI
     # ##################################################################################
-    def rerun_the_program(self) -> None:  # noqa: ANN101
+    def rerun_the_program(self) -> None:
         """
         Resets the program state and exits.
         Args:
@@ -2233,7 +2233,7 @@ class MyGui(customtkinter.CTk):
     # ##################################################################################
     # The 'Exit' program button has been pressed.  Call it quits
     # ##################################################################################
-    def exit_program(self) -> None:  # noqa: ANN101
+    def exit_program(self) -> None:
         """
         Exits the program by setting exit flag and calling quit twice
         Args:

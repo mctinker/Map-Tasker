@@ -45,7 +45,7 @@ from maptasker.src.xmldata import remove_html_tags
 class LineOut:
     """Class definition for our output lines"""
 
-    def __init__(self) -> None:  # noqa: ANN101
+    def __init__(self) -> None:
         """
         Initialize an object
         Args:
@@ -57,7 +57,7 @@ class LineOut:
         self.output_lines = []
 
     def refresh_our_output(
-        self,  # noqa: ANN101
+        self,
         include_the_profile: bool,
         project_name: str,
         profile_name: str,
@@ -119,12 +119,10 @@ class LineOut:
     # ##################################################################################
     # Generate an updated output line with HTML style details
     # Input is a dictionary containing the requirements:
-    #  color1 - color to user
-    #  color2 - optional 2nd color to use
-    #  color3 - optional third color to tack onto end of string
-    #  is_list - boolean: True= is a list HTML element
-    #  span - boolean: True= requires a <span> element
-    #  font - font to use
+    #  color - color to user
+    #  tab - CSS tab to use
+    #  font - the m,onospace font to use
+    #  element - the actual output line
     # ##################################################################################
     def add_style(self, style_details: dict) -> str:
         """
@@ -134,79 +132,22 @@ class LineOut:
         """
 
         line_with_style = ""
-        if style_details["is_list"]:
-            line_with_style = f'<li "<span class="{style_details["color"]}">{style_details["element"]}</span></li>\n'
+        if style_details["tab"]:
+            # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
+            line_with_style = f'<div><span class="{style_details["color"]} {style_details["tab"]}">{style_details["element"]}</span></div>\n'
 
         elif style_details["is_taskernet"]:
-            line_with_style = f'<p class="{style_details["color"]}{style_details["element"]}</p>\n'
+            line_with_style = (
+                f'<p class="{style_details["tab"]} {style_details["color"]}>{style_details["element"]}</p><br>\n'
+            )
             line_with_style = line_with_style.replace("<span></span>", "")
 
         return line_with_style
 
     # ##################################################################################
-    # Given a text string to output, format it based on it's contents:
-    #   Project/Profile/Task/Actrion/Scene
-    # ##################################################################################
-    def format_line_list_item(self, element: str) -> str:  # noqa: ANN101
-        """
-        Generate the output list (<li>) string based on the input XML <code> passed in
-
-        :param element: text string to be added to output
-        :return: the formatted text to add to the output queue
-        """
-
-        font = PrimeItems.program_arguments["font"]
-        if "Project:" in element or "Project has no Profiles" in element:
-            return self.handle_project(element)
-
-        if "Profile:" in element:
-            return self.handle_profile(element)
-
-        if element.startswith("Task:") or "&#45;&#45;Task:" in element:
-            return self.handle_task(element, font)
-
-        if element.startswith("Scene:"):
-            return self.handle_scene(element, font)
-
-        if "Action:" in element:
-            return self.handle_action(element)
-
-        if "TaskerNet " in element:
-            return self.handle_taskernet(element)
-
-        # Must be additional item
-        return self.handle_additional(element)
-
-    # ##################################################################################
-    # Insert the hyperlink target if doing a the directory
-    # ##################################################################################
-    def handle_project(self, element: str) -> str:  # noqa: ANN101
-        """
-        Insert the hyperlink target if doing a the directory
-                Args:
-
-                    element (str): text to incorporate after the target
-
-                Returns:
-                    _type_: output text with hyperlink target embedded
-        """
-        return self.add_directory_link("<li ", element, "</li>\n")
-
-    def handle_profile(self, element: str) -> None:  # noqa: ANN101
-        """Handles profile element by adding directory link
-        Args:
-            element: Profile element to handle
-        Returns:
-            str: Formatted profile element with directory link
-        - Adds opening and closing tags for list item
-        - Calls method to add directory link
-        - Returns formatted string"""
-        return self.add_directory_link("<br><li ", element, "</span></li>\n")
-
-    # ##################################################################################
     #  Adds a directory link to the provided string.
     # ##################################################################################
-    def add_directory_link(self, arg1: str, element: str, arg3: str) -> str:  # noqa: ANN101
+    def add_directory_link(self, arg1: str, element: str, arg3: str) -> str:
         """
         Adds a directory link to the provided string.
         Args:
@@ -229,7 +170,108 @@ class LineOut:
             directory = f"<a id={directory_item}></a>\n"
         return f"{directory}{arg1}{element}{arg3}"
 
-    def handle_task(self, element: str, font: str) -> str:  # noqa: ANN101
+    # ##################################################################################
+    # Find the color attribute/class and add the tab attribute to it.
+    # ##################################################################################
+    def add_tab(self, tab: str, element: str) -> str:
+        r"""
+
+        This function adds a tab before the substring "_color" in a given element string.
+
+        Parameters:
+        - tab (str): The tab to be added before the "_color" substring.
+        - element (str): The element string in which the tab should be added before "_color".
+
+        Returns:
+        - str: The modified element string with the tab added before "_color".
+
+        Processing Logic:
+        - Find the position of the "_color" substring in the element string.
+        - Insert a tab before the "_color" substring using string slicing and concatenation.
+        - Return the modified element string.
+
+        Examples:
+        - Example usage of the function:
+
+            # Calling the function with tab = "\t" and element = 'background_color:"red"'
+            add_tab("\t", 'background_color:"red"')
+            # Output: '\tbackground_color "red"'
+
+        """
+        color_pos = element.find('_color"')
+        return f'{element[0:color_pos]}_color {tab}"{element[(color_pos+7):]}'
+
+    # ##################################################################################
+    # Given a text string to output, format it based on it's contents:
+    #   Project/Profile/Task/Actrion/Scene
+    # ##################################################################################
+    def format_line_list_item(self, element: str) -> str:
+        """
+        Generate the output list (<li>) string based on the input XML <code> passed in
+
+        :param element: text string to be added to output
+        :return: the formatted text to add to the output queue
+        """
+
+        font = PrimeItems.program_arguments["font"]
+        if "Project:" in element or "Project has no Profiles" in element:
+            return self.handle_project(element)
+
+        if "Profile:" in element:
+            return self.handle_profile(element)
+
+        if element.startswith("Task:") or "&#45;&#45;Task:" in element or "Task: Properties" in element:
+            return self.handle_task(element, font)
+
+        if element.startswith("Scene:"):
+            return self.handle_scene(element, font)
+
+        if "Action:" in element:
+            return self.handle_action(element)
+
+        if "TaskerNet " in element:
+            return self.handle_taskernet(element)
+
+        # Must be additional item
+        return self.handle_additional(element)
+
+    # ##################################################################################
+    # Insert the hyperlink target if doing a the directory
+    # ##################################################################################
+    def handle_project(self, element: str) -> str:
+        """
+        Insert the hyperlink target if doing a the directory
+                Args:
+
+                    element (str): text to incorporate after the target
+
+                Returns:
+                    _type_: output text with hyperlink target embedded
+        """
+        element = self.add_tab("projtab", element)
+        return self.add_directory_link("<br>", element, "\n")
+
+    # ##################################################################################
+    # Handles profile element by adding directory link
+    # ##################################################################################
+    def handle_profile(self, element: str) -> None:
+        """Handles profile element by adding directory link
+        Args:
+            element: Profile element to handle
+        Returns:
+            str: Formatted profile element with directory link
+        - Adds opening and closing tags for list item
+        - Calls method to add directory link
+        - Returns formatted string"""
+        element = self.add_tab("proftab", element)
+        # Add the directory link to the Profile line.
+        # Add <div </div> to ensure line wrap breaks at proftab (Profile spacing)
+        return self.add_directory_link("<br><div ", element, "</div><br>\n")
+
+    # ##################################################################################
+    # Handle styling for a task element
+    # ##################################################################################
+    def handle_task(self, element: str, font: str) -> str:
         """Handle styling for a task element
         Args:
             element: Element name in one line
@@ -242,14 +284,41 @@ class LineOut:
             - Add font and element details to style
             - Return styled element from add_style method"""
         style_details = {
-            "is_list": True,
+            "tab": "tasktab",
             "font": font,
             "element": element,
             "color": ("unknown_task_color" if UNKNOWN_TASK_NAME in element else "task_color"),
         }
+
+        # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
         return self.add_style(style_details)
 
-    def handle_scene(self, element, font):
+    # ##################################################################################
+    # Handle Scene
+    # ##################################################################################
+    def handle_scene(self, element: str, font: str) -> str:
+        r"""
+        This function handles a scene element by generating a string with HTML tags and style details. The function takes two parameters: element and font.
+
+        Parameters:
+        - element (str): The scene element that needs to be processed.
+        - font (str): The font to use for the scene element.
+
+        Returns:
+        - str: The processed string with HTML tags and style details.
+
+        Processing Logic:
+        - If the program_arguments "directory" and the directory_items "current_item" are both true, the function extracts the scene name from the element and assigns it to the variable scene_name.
+        - It then checks if any of the program_arguments "bold", "italicize", "highlight", or "underline" are true. If any of them are true, it calls the remove_html_tags() function to remove any name attributions from the scene name.
+        - The function assigns an empty string to the variable directory if the program_arguments "directory" and the directory_items "current_item" are both false.
+        - The function then creates a dictionary called style_details with details about the style of the scene element.
+        - It finally returns a formatted string with the directory and the result of calling the add_style() function with the style_details dictionary.
+
+        Examples:
+        - Example usage of the function:
+            handle_scene('Scene:&nbsp;1', 'Arial')
+            # Returns: '<a id="scenes_1"></a>\n<style=color:scene_color;font:Arial;element:Scene:&nbsp;1;>'
+        """
         directory = ""
         if PrimeItems.program_arguments["directory"] and PrimeItems.directory_items["current_item"]:
             scene_name = f'scenes_{element.split("Scene:&nbsp;")[1]}'
@@ -261,15 +330,17 @@ class LineOut:
                 or PrimeItems.program_arguments["underline"]
             ):
                 scene_name = remove_html_tags(scene_name, "")
-                # scene_name = self.remove_attributes(scene_name)
+
             directory = f'<a id="{scene_name.replace(" ","_")}"></a>\n'
         style_details = {
-            "is_list": True,
+            "tab": "scenetab",
             "color": "scene_color",
             "font": font,
             "element": element,
         }
-        return f"{directory}{self.add_style(style_details)}"
+
+        # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
+        return f"{directory}<br><div>{self.add_style(style_details)}</div>"
 
     # def remove_attributes(self, scene_name):
     #     scene_name = scene_name.replace("<em>", "")
@@ -282,21 +353,40 @@ class LineOut:
     #     scene_name = scene_name.replace("</u>", "")
     #     return scene_name
 
-    def handle_action(self, element) -> str:
-        r"""
-        Handles the action element.
+    # ##################################################################################
+    # Handles the action element.
+    # ##################################################################################
+    def handle_action(self, element: str) -> str:
+        """
+        This function handles an action element by processing its contents and formatting it into HTML code.
 
-        Args:
-            element: The action element to be handled.
+        Parameters:
+        - self: The object reference to the class instance.
+        - element (str): The action element that needs to be processed.
 
         Returns:
-            The formatted HTML list item element.
+        - str: The formatted HTML code for the action element.
+
+        Processing Logic:
+        - First, the function generates the necessary number of whitespace characters for indentation.
+        - If the action element starts with "Action: ...", it checks for a continuation line.
+        - If there is a continuation line, it splits the element into the indentation level and the remaining part of the line.
+        - If the indentation level is 0, it sets an indentation of 5 spaces.
+        - Otherwise, it sets the indentation based on the specified level.
+        - It then replaces the "Action: ..." part of the line with the indentation and the continuation indicator.
+        - Finally, it formats the element into HTML code by adding a class and line break.
 
         Examples:
-            >>> handle_action(self, "Action: ...indent=2item=Attribute")
-            '<li ...">continued >>> Attribute</span></li>\n'
-        """
+        - Usage of the function:
 
+            handler = ActionHandler()
+            element = "Action: ...indent=2item=Attribute"
+            formatted_element = handler.handle_action(element)
+            print(formatted_element)
+
+            Output:
+            <span class="actiontab"></span><span class="indentation">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continued >>> Attribute</span><br>
+        """
         blanks = f'{"&nbsp;"*PrimeItems.program_arguments["indent"]}&nbsp;&nbsp;&nbsp;'
         if "Action: ..." in element:
             if element[11:] == "":
@@ -316,26 +406,54 @@ class LineOut:
 
             element = tmp
 
-        return f"<li {element}</span></li>\n"
+        # Add action tab to existing class.
+        element = self.add_tab("actiontab", element)
 
-    def handle_taskernet(self, element):
+        # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
+        return f"<div {element}</span></div><br>\n"
+
+    # ##################################################################################
+    # Handle taskernet
+    # ##################################################################################
+    def handle_taskernet(self, element: str) -> str:
+        r"""
+        This function handles a taskernet by appending a given element to a new line.
+
+        Parameters:
+        - element (str): The element to be added to the taskernet.
+
+        Returns:
+        - str: The taskernet with the given element appended to a new line.
+
+        Processing Logic:
+        - The function takes in a string representing an element.
+        - It appends the element to a new line using the '\n' character.
+        - The modified taskernet is then returned.
+
+        Examples:
+        - Example usage of the function:
+
+            handle_taskernet("Task 1")
+            Output: "Task 1\n"
+            Explanation: The function appends the element "Task 1" to a new line and returns it as a taskernet.
+        """
         return f"{element}\n"
 
-    def handle_additional(self, element):
-        return f"<li {element}" + "</span></li>\n"
+    # ##################################################################################
+    # Handle additional elements and return a formatted list item string.
+    # ##################################################################################
+    def handle_additional(self, element: str) -> str:
+        """
+        Handle additional elements and return a formatted list item string.
 
-    def end_unordered_list(self):
-        if PrimeItems.unordered_list_count > 0:
-            PrimeItems.unordered_list_count -= 1
-        return "</ul>" if PrimeItems.unordered_list_count >= 0 else ""
+        Parameters:
+            self: The instance of the class.
+            element: The element to be added to the list item string.
 
-    def delete_last_line(self):
-        if PrimeItems.unordered_list_count > 0:
-            if self.output_lines[-1] == "</ul>":
-                PrimeItems.unordered_list_count += 1
-            else:
-                PrimeItems.unordered_list_count -= 1
-        self.output_lines[-1] = ""
+        Returns:
+            A formatted list item string with the provided element.
+        """
+        return element
 
     # ##################################################################################
     # Generate the output string based on the input XML <code> passed in
@@ -350,28 +468,28 @@ class LineOut:
                 :return: modified output line
 
         """
-
         if lvl == 0:
             # Heading / break
-            return f"{element}<br>"
+            return f'<span class="normtab"></span>{element}<br>'
 
         if lvl == 1:
             # Start list
-            return f"<ul>{element}\n"
+            return f"{element}\n"
 
         if lvl == 2:
             # List item
             if PrimeItems.program_arguments["twisty"] and "Scene:" in element:
-                return f"<ul>{self.format_line_list_item(element)}"
+                return f"{self.format_line_list_item(element)}"
             return self.format_line_list_item(element)
 
         if lvl == 3:
             # End list
-            return PrimeItems.output_lines.end_unordered_list()
+            return ""
 
         if lvl == 5:
             # Plain text
             return f"{element}\n"
+        return element
 
     # ##################################################################################
     # Write line of output
@@ -395,14 +513,13 @@ class LineOut:
                     should be added if formatting the line.
             :return: none
         """
-
         # Format the output line by adding appropriate HTML.
         if format_line != FormatLine.dont_format_line:
             out_string = format_html(
-                format_line[1],
-                format_line[0],
-                out_string,
-                format_line[2],
+                format_line[1],  # Color code
+                format_line[0],  # Text before.
+                out_string,  # Text after.
+                format_line[2],  # End span True or False
             )
 
         # Drop ID: nnn since we don't need it anymore
@@ -416,10 +533,9 @@ class LineOut:
             self.format_line_out(
                 out_string,
                 list_level,
-            )
+            ),
         )
         # Log the generated output if in special debug mode
         if debug_out:
             debug_msg = f"out_string: {self.output_lines[-1]}"
             logger.debug(debug_msg)
-        return

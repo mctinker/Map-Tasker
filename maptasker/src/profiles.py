@@ -11,7 +11,9 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-import defusedxml.ElementTree  # Need for type hints
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from maptasker.src import condition, tasks
 from maptasker.src.dirout import add_directory_item
@@ -22,7 +24,10 @@ from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
 from maptasker.src.share import share
-from maptasker.src.sysconst import NO_PROFILE, FormatLine
+from maptasker.src.sysconst import DISABLED, NO_PROFILE, FormatLine
+
+if TYPE_CHECKING:
+    import defusedxml.ElementTree
 
 
 # ##################################################################################
@@ -145,7 +150,7 @@ def build_profile_line(
     disabled_profile_html = format_html(
         "disabled_profile_color",
         "",
-        "[DISABLED]",
+        DISABLED,
         True,
     )
     launcher_task_html = format_html(
@@ -172,7 +177,7 @@ def build_profile_line(
     # Display flags for debug mode
     if PrimeItems.program_arguments["debug"]:
         flags = profile.find("flags")
-        flags = format_html("GreenYellow", "", f" flags: {flags.text}", True) if flags is not None else ""
+        flags = format_html("launcher_task_color", "", f" flags: {flags.text}", True) if flags is not None else ""
 
     # Get the Profile name
     profile_name_with_html, profile_name = get_profile_name(profile)
@@ -208,6 +213,93 @@ def build_profile_line(
 
 
 # ##################################################################################
+# Process the Profile passed in.
+# ##################################################################################
+def do_profile(item: defusedxml.ElementTree.XML, project: defusedxml.ElementTree.XML, project_name: str, profile: defusedxml.ElementTree.XML, profile_ids: list, list_of_found_tasks: list) -> bool:
+    """Function:
+        This function searches for a specific Profile and outputs its Tasks.
+    Parameters:
+        - item (defusedxml.ElementTree.XML): The current item being processed.
+        - project (defusedxml.ElementTree.XML): The current project being processed.
+        - project_name (str): The name of the current project.
+        - profile (defusedxml.ElementTree.XML): The current profile being processed.
+        - profile_ids (list): A list of all profile IDs.
+        - list_of_found_tasks (list): A list of all found tasks.
+    Returns:
+        - bool: True if a specific Task is being searched for, False otherwise.
+    Processing Logic:
+        - Checks if a specific Profile is being searched for.
+        - Checks if the current item's name matches the specified Profile name.
+        - If a match is found, sets the appropriate flags and clears the output list.
+        - Gets the list of Tasks for the current Profile.
+        - Outputs the Profile line and its properties.
+        - Processes any <Share> information from TaskerNet.
+        - Outputs the Tasks for the current Profile.
+        - Returns True if a specific Task is being searched for, False otherwise."""
+    # Are we searching for a specific Profile?
+    if PrimeItems.program_arguments["single_profile_name"]:
+
+        # Make sure this item's name is in our list of profiles.
+        if not (profile_name := PrimeItems.tasker_root_elements["all_profiles"][item]["name"]):
+            return False  # Not our Profile...go to next Profile ID
+
+        if PrimeItems.program_arguments["single_profile_name"] != profile_name:
+            return False # Not our Profile...go to next Profile ID
+
+        # BINGO! We found the Profile we were looking for!
+        # Identify items found.
+        PrimeItems.found_named_items["single_profile_found"] = True
+        PrimeItems.program_arguments["single_project_name"] = project_name
+        PrimeItems.found_named_items["single_project_found"] = True
+
+        # Clear the output list to prepare for single Profile only
+        PrimeItems.output_lines.refresh_our_output(
+            False,
+            project_name,
+            "",
+        )
+
+        # Start Profile list
+        PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
+    # Get Task xml element and name
+    task_output_lines = []  # Profile's Tasks will be filled in here
+    list_of_tasks = get_profile_tasks(
+        profile,
+        list_of_found_tasks,
+        task_output_lines,
+    )
+
+    # Examine Profile attributes and output Profile line
+    profile_name = build_profile_line(
+        project,
+        profile,
+    )
+
+    # Process Profile Properties
+    if PrimeItems.program_arguments["display_detail_level"] > 2:
+        get_properties("Profile:", profile)
+
+    # Process any <Share> information from TaskerNet
+    if PrimeItems.program_arguments["taskernet"]:
+        share(profile, "proftab")
+        # Add a spacer if detail is 0
+        if PrimeItems.program_arguments["display_detail_level"] == 0:
+            PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
+
+    # We have the Tasks for this Profile.  Now let's output them.
+    # Return True = we're looking for a specific Task
+    # Return False = this is a normal Task
+    return tasks.output_task_list(
+        list_of_tasks,
+        project_name,
+        profile_name,
+        task_output_lines,
+        list_of_found_tasks,
+        True,
+    )
+
+
+# ##################################################################################
 # Go through all Projects Profiles...and output them
 # ##################################################################################
 def process_profiles(
@@ -228,73 +320,12 @@ def process_profiles(
 
     # Go through the Profiles found in the Project
     for item in profile_ids:
+
         profile = PrimeItems.tasker_root_elements["all_profiles"][item]["xml"]
         if profile is None:  # If Project has no profiles, skip
             return None
+        specific_task = do_profile(item, project, project_name, profile, profile_ids, list_of_found_tasks)
 
-        # Are we searching for a specific Profile?
-        if PrimeItems.program_arguments["single_profile_name"]:
-            # Make sure this item's name is in our list of profiles.
-            if not (profile_name := PrimeItems.tasker_root_elements["all_profiles"][item]["name"]):
-                continue
-
-            if PrimeItems.program_arguments["single_profile_name"] != profile_name:
-                continue  # Not our Profile...go to next Profile ID
-
-            # BINGO! We found the Profile we were looking for!
-            # Identify items found.
-            PrimeItems.found_named_items["single_profile_found"] = True
-            PrimeItems.program_arguments["single_project_name"] = project_name
-            PrimeItems.found_named_items["single_project_found"] = True
-
-            # Clear the output list to prepare for single Profile only
-            PrimeItems.output_lines.refresh_our_output(
-                False,
-                project_name,
-                "",
-            )
-
-            # Start Profile list
-            PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
-        # Get Task xml element and name
-        task_output_lines = []  # Profile's Tasks will be filled in here
-        list_of_tasks = get_profile_tasks(
-            profile,
-            list_of_found_tasks,
-            task_output_lines,
-        )
-
-        # Examine Profile attributes and output Profile line
-        profile_name = build_profile_line(
-            project,
-            profile,
-        )
-
-        # Process Profile Properties
-        if PrimeItems.program_arguments["display_detail_level"] > 2:
-            get_properties(
-                profile,
-                "profile_color",
-            )
-
-        # Process any <Share> information from TaskerNet
-        if PrimeItems.program_arguments["taskernet"]:
-            share(profile)
-            # Add a spacer if detail is 0
-            if PrimeItems.program_arguments["display_detail_level"] == 0:
-                PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
-
-        # We have the Tasks for this Profile.  Now let's output them.
-        # True = we're looking for a specific Task
-        # False = this is a normal Task
-        specific_task = tasks.output_task_list(
-            list_of_tasks,
-            project_name,
-            profile_name,
-            task_output_lines,
-            list_of_found_tasks,
-            True,
-        )
 
         # Get out if doing a specific Task, and it was found, or not specific task but
         # found speficic Profile.  No need to process any more Profiles.

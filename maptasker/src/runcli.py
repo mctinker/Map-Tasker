@@ -347,7 +347,6 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):  # n
         cActionLabel=None,
         cActionName=None,
         cBackground=None,
-        cBullet=None,
         cDisabledAction=None,
         cDisabledProfile=None,
         ch=False,
@@ -460,12 +459,14 @@ def process_cli() -> None:
     # If doing thew GUI, then the arguments are restored by userintr.py
     PrimeItems.program_arguments["reset"] = getattr(args, reset_flag)
     PrimeItems.program_arguments["gui"] = getattr(args, gui_flag)
+    save_gui = PrimeItems.program_arguments["gui"]
     if (
         not PrimeItems.program_arguments["reset"]
         and not PrimeItems.program_arguments["gui"]
         and os.path.isfile(ARGUMENTS_FILE)
     ):
         restore_arguments()
+        PrimeItems.program_arguments["gui"]  = save_gui  # Restore GUI flag from runtime options,
         PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.
 
     # If using the GUI, them process the GUI.

@@ -67,7 +67,7 @@ def output_list_of_actions(
                 and UNKNOWN_TASK_NAME in the_item
             ):  # Just show first Task if unknown Task
                 break
-            elif PrimeItems.program_arguments["display_detail_level"] == 1 and UNKNOWN_TASK_NAME not in the_item:
+            if PrimeItems.program_arguments["display_detail_level"] == 1 and UNKNOWN_TASK_NAME not in the_item:
                 break
 
     # Close Action list if doing straight print, no twisties
@@ -128,12 +128,9 @@ def get_task_actions_and_output(
                 # End list if Scene Task
                 if "&#45;&#45;Task:" in list_type:
                     PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
-                    # Add an extra </ul> if doing twisties
                     if PrimeItems.program_arguments["twisty"]:
                         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
                 # End the list of Actions
                 PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
         else:
             error_handler("No Task found!!!", 0)
-
-    return

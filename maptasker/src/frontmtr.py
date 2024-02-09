@@ -16,7 +16,7 @@ from maptasker.src.debug import display_debug_info
 from maptasker.src.format import format_html
 from maptasker.src.prefers import get_preferences
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import MY_VERSION, FormatLine
+from maptasker.src.sysconst import MY_VERSION, NORMAL_TAB, FormatLine
 
 
 # ##################################################################################
@@ -26,6 +26,16 @@ def output_the_heading() -> None:
     """
     Display the heading and source file details
     """
+    window_dimensions = """
+<p id="mywin"></p>
+
+<script>
+var w = window.innerWidth;
+var h = window.innerHeight;
+
+var x = document.getElementById("mywin");
+x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
+</script>"""
 
     # Start out by outputting our colors and font CSS
     add_css()
@@ -58,13 +68,13 @@ def output_the_heading() -> None:
     # Format the output heading
     heading_color = "heading_color"
     PrimeItems.heading = (
-        f"<!doctype html>\n<html lang=”en”>\n<head>\n{background_color_html}<title>MapTasker</title>\n<body"
+        f'<!doctype html>\n<html lang=”en”>\n<head>\n<meta charset="UTF-8">{background_color_html}<title>MapTasker</title>\n<body'
         f" style=\"background-color:{PrimeItems.colors_to_use['background_color']}\">\n"
         + format_html(
             heading_color,
             "",
             (
-                f"<h2>MapTasker</h2><br> {tasker_mapping}"
+                f"<h2>{NORMAL_TAB}MapTasker</h2><br>{NORMAL_TAB}{tasker_mapping}"
                 f" {PrimeItems.xml_root.attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;"
                 f"{MY_VERSION}{screen_size}&nbsp;&nbsp;&nbsp;&nbsp;{now_for_output}"
             ),
@@ -72,6 +82,14 @@ def output_the_heading() -> None:
         )
     )
 
+    # Add script to get window dimensions
+    PrimeItems.output_lines.add_line_to_output(
+        0,
+        window_dimensions,
+        FormatLine.dont_format_line,
+    )
+
+    # Add a blank line
     PrimeItems.output_lines.add_line_to_output(
         0,
         PrimeItems.heading,
@@ -116,10 +134,6 @@ def output_the_front_matter() -> None:
     # If we are debugging, output the runtime arguments and colors
     if PrimeItems.program_arguments["debug"] or PrimeItems.program_arguments["runtime"]:
         display_debug_info()
-
-    # Start a list (<ul>) to force everything to tab over
-    # PrimeItems.unordered_list_count"] = 0
-    PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
     # Output a flag to indicate this is where the directory goes
     PrimeItems.output_lines.add_line_to_output(5, "maptasker_directory", FormatLine.dont_format_line)
