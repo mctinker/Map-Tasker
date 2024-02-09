@@ -194,10 +194,9 @@ Example fetching backup file directly from your Android device:
 
 <sup>2</sup> For the "Get backup" (retrieve backup.xml directly from your Android device) option to work, you must have the following prerequisites:
 
-    - Both the MAC and Android devices must be on the same network
+- Both the MAC and Android devices must be on the same network
 
-    - The [sample Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").
-
+- The [sample Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").
 
 - Once the backup has been retrieved from your Android device, it is not necessary to keep retrieving it unless it has changed since it is automatically saved on your Mac.
 
