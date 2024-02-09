@@ -84,7 +84,7 @@ The Tasker backup XML can either be manually uploaded to your Mac/Google Drive, 
 
      `python main.py (runtime options...se below)`   ...to run Map-Tasker
 
-Program output: 
+Program output:
 - The file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.
 - If the "-outline" runtime option is used, then a textual diagram of the configuration is also written as "MapTasker_Map.txt" and will be displayed in your default text editor.  Ensure that text-wrap is off and a monospace font is used when viewing this map in the text editor.
 - The runtime settings are saved in the file" MapTasker_Settings.toml".  You can modify this file but care should be taken not to change the field formats (e.g. change an integer to a text string).  Incorrect values will be ignored.
@@ -101,7 +101,7 @@ Runtime: `maptasker -option1 -option2` ...
     `-android_port` the port number of the Android device from which to fetch the backup file.
     Example: 1821
 
-    `-android_file` the location of the backup xml file on the Android device.
+    `-android_file` the location of the backup XML file on the Android device.
     Example: /Tasker/configs/user/backup.xml
 
     The above three 'android' options are mutually inclusive.
@@ -212,8 +212,8 @@ If still having Tkinter version problems, [refer to this StackOverflow post.](ht
 <sup>4</sup>
 If you are unable to upgrade to Python version 3.11 or higher, an older version of MapTasker is still available for Python version 3.10, via the command:
 
-	'pip install maptasker==3.6.3'
-	 
+	'pip install maptasker==2.6.3'
+
 With this older version, you will not get the benefits offered by the newer version.  Refer to Changelog for details.
 
 ### To-Do List (in no particular order)
@@ -222,7 +222,7 @@ With this older version, you will not get the benefits offered by the newer vers
 
 [] Support additional plugins
 
-[] If getting the backup xml file from Android, prompt user with a directory/file search and prompt.
+[] If getting the backup XML file from Android, prompt the user with a directory/file search and prompt.
 
 ### Contributions
 
