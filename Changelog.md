@@ -2,23 +2,37 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.0.3] 02-February-2024
+## [3.0.4] 09-February-2024
 
 ### Fixed
 
-- Eliminated redundant and unused code.
-- A program error occurs with the use of a unique runtime combination of options.
-- The program gets an error if debug is on and the file "backup.xml" is not found.
-- Setting the runtime option of "-detail 0" via the command line is ignored.
+- The table colors for Global Variables are wrong if not also displaying the Directory.
+- The absence of the runtime option "-GUI" was overridden by the restored savings and required the "-reset" option to stop the GUI from starting. Now, the presence or absence of this "GUI" setting in the runtime options overrides the saved settings.
+- Tasker grand totals at the end now reflect the number of Projects/Profiles/Tasks/Scenes displayed and not the total in the Tasker configuration.
+
+### Changed
+
+- Eliminated list style in output to ensure proper alignment of Projects/Profiles/Tasks/Scenes.
+- Eliminated bullet color runtime option (-cBullet color_name) since there are no longer any bullets.
+- Changed Task entry and exit indicator from "<<<" to "⬅".
+- When identifying a Project in the output, such as "Project project_name, put a single quote around the name (e.g. Project 'project_name') for clarity.
 
 ### Added
 
-- Added support for Tasker 3.6.1 with the following new Task actions: Device Admin, Array Compare, List File/Folder Properties.
-- Added support for Tasker 3.6.1 with "Used Memory" as a Test Tasker task action option.
-- Recognize a few additional Tasker preferences.
-- The runtime argument "-font help" will print the list of valid monospace fonts on your system.
+- Disabled Profiles and Tasks now display as [⛔ DISABLED]
 
 ## Older History Logs
+
+## [3.0.3]
+
+- Fixed: Eliminated redundant and unused code.
+- Fixed: A program error occurs with the use of a unique runtime combination of options.
+- Fixed: The program gets an error if debug is on and the file "backup.xml" is not found.
+- Fixed: Setting the runtime option of "-detail 0" via the command line is ignored.
+- Added: Support for Tasker 3.6.1 with the following new Task actions: Device Admin, Array Compare, List File/Folder Properties.
+- Added: Support for Tasker 3.6.1 with "Used Memory" as a Test Tasker task action option.
+- Added: Recognize a few additional Tasker preferences.
+- Added: The runtime argument "-font help" will print the list of valid monospace fonts on your system.
 
 ## [3.0.2]
 
