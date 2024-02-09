@@ -215,15 +215,15 @@ If you are unable to upgrade to Python version 3.11 or higher, an older version 
 
 With this older version, you will not get the benefits offered by the newer version.  Refer to Changelog for details.
 
-### To-Do List (in no particular order)
+## To-Do List (in no particular order)
 
 [] Include/map remaining Tasker preferences
 
 [] Support additional plugins
 
-[] If getting the backup XML file from Android, prompt the user with a directory/file search and prompt.
+[] Offer automatic update if a new version is available (GUI only).
 
-### Contributions
+## Contributions
 
 [Taskometer](https://github.com/Taskomater/Tasker-XML-Info)
 
