@@ -44,11 +44,14 @@
 #  variables = Tasker variables.
 #  current_project = current Project being processed
 #  tkroot = root for Tkinter (can only get it once)
+#  last_run = date of last run (set by restore_settings)
+#  slash = backslash for Windows or forward slash for OS X and Linux.
 #
 #   return
 from __future__ import annotations
 
 from typing import ClassVar
+from maptasker.src.sysconst import NOW_TIME
 
 
 class PrimeItems:
@@ -95,6 +98,8 @@ class PrimeItems:
     error_code = 0
     error_msg = ""
     tkroot = None
+    last_run = NOW_TIME
+    slash = "/"
 
 
 # ##################################################################################

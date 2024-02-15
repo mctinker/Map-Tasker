@@ -12,30 +12,22 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-import re
 
 from maptasker.src.sysconst import (
     pattern2,
-    # pattern5,
-    # pattern6,
-    # pattern7,
     pattern8,
     pattern9,
     pattern10,
 )
 
-THREE_LINES = 3
-
 
 # ##################################################################################
 # Given a line in the output queue, reformat it before writing to file
 # ##################################################################################
-def format_line(output_obj: object, num: int, item: str) -> str:
+def format_line(item: str) -> str:
     """
     Given a line in our list of output lines, do some additional formatting
     to clean it up
-        :param output_obj:  Output lines method object.
-        :param num: the numeric line number from the list of output lines
         :param item: the specific text to reformat from the list of output lines
         :return: the reformatted text line for output
     """

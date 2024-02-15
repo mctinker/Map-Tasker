@@ -470,7 +470,7 @@ class LineOut:
         """
         if lvl == 0:
             # Heading / break
-            return f'<span class="normtab"></span>{element}<br>'
+            return f'<div <span class="normtab"></span>{element}</div><br>'
 
         if lvl == 1:
             # Start list

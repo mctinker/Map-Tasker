@@ -215,7 +215,14 @@ def build_profile_line(
 # ##################################################################################
 # Process the Profile passed in.
 # ##################################################################################
-def do_profile(item: defusedxml.ElementTree.XML, project: defusedxml.ElementTree.XML, project_name: str, profile: defusedxml.ElementTree.XML, profile_ids: list, list_of_found_tasks: list) -> bool:
+def do_profile(
+    item: defusedxml.ElementTree.XML,
+    project: defusedxml.ElementTree.XML,
+    project_name: str,
+    profile: defusedxml.ElementTree.XML,
+    profile_ids: list,
+    list_of_found_tasks: list,
+) -> bool:
     """Function:
         This function searches for a specific Profile and outputs its Tasks.
     Parameters:
@@ -244,7 +251,7 @@ def do_profile(item: defusedxml.ElementTree.XML, project: defusedxml.ElementTree
             return False  # Not our Profile...go to next Profile ID
 
         if PrimeItems.program_arguments["single_profile_name"] != profile_name:
-            return False # Not our Profile...go to next Profile ID
+            return False  # Not our Profile...go to next Profile ID
 
         # BINGO! We found the Profile we were looking for!
         # Identify items found.
@@ -325,7 +332,6 @@ def process_profiles(
         if profile is None:  # If Project has no profiles, skip
             return None
         specific_task = do_profile(item, project, project_name, profile, profile_ids, list_of_found_tasks)
-
 
         # Get out if doing a specific Task, and it was found, or not specific task but
         # found speficic Profile.  No need to process any more Profiles.

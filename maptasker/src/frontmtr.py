@@ -9,14 +9,13 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-from datetime import datetime
 
 from maptasker.src.addcss import add_css
 from maptasker.src.debug import display_debug_info
 from maptasker.src.format import format_html
 from maptasker.src.prefers import get_preferences
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import MY_VERSION, NORMAL_TAB, FormatLine
+from maptasker.src.sysconst import MY_VERSION, NORMAL_TAB, NOW_TIME, FormatLine
 
 
 # ##################################################################################
@@ -34,7 +33,7 @@ var w = window.innerWidth;
 var h = window.innerHeight;
 
 var x = document.getElementById("mywin");
-x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
+# x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
 </script>"""
 
     # Start out by outputting our colors and font CSS
@@ -60,8 +59,7 @@ x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
 
     # Output date and time if in debug mode
     if PrimeItems.program_arguments["debug"]:
-        now = datetime.now()
-        now_for_output = now.strftime("%m/%d/%y %H:%M:%S")
+        now_for_output = NOW_TIME.strftime("%m/%d/%y %H:%M:%S")
     else:
         now_for_output = ""
 

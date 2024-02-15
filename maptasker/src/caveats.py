@@ -13,8 +13,8 @@
 # #################################################################################### #
 
 from maptasker.src.format import format_html
-from maptasker.src.sysconst import FormatLine
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.sysconst import FormatLine
 
 
 def display_caveats() -> None:
@@ -81,4 +81,8 @@ def display_caveats() -> None:
 
     # Output all caveats
     for caveat in caveats:
-        PrimeItems.output_lines.add_line_to_output(0, caveat, FormatLine.dont_format_line)
+        PrimeItems.output_lines.add_line_to_output(
+            0,
+            caveat,
+            ["", "trailing_comments_color", FormatLine.add_end_span],
+        )

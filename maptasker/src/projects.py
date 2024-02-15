@@ -1,4 +1,5 @@
 """Do the Projects"""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -100,16 +101,16 @@ def task_not_in_profile_heading(project_name: str) -> None:
 
     # Format the output line
     """Returns a formatted output line for the tasks that are not in any profile.
-            Parameters:
-                - project_name (str): The name of the project.
-            Returns:
-                - None: This function does not return anything, it only formats the output line.
-            Processing Logic:
-                - Formats the output line with the project name.
-                - Adds a line break before the header.
-                - Adds a "twisty" if specified in the program arguments.
-                - If not doing a twisty, adds the output line with a line break.
-                - Starts an unordered list."""
+    Parameters:
+        - project_name (str): The name of the project.
+    Returns:
+        - None: This function does not return anything, it only formats the output line.
+    Processing Logic:
+        - Formats the output line with the project name.
+        - Adds a line break before the header.
+        - Adds a "twisty" if specified in the program arguments.
+        - If not doing a twisty, adds the output line with a line break.
+        - Starts an unordered list."""
 
     output_line = f"&nbsp;&nbsp;&nbsp;The following Tasks in Project '{project_name}' are not in any Profile..."
 

@@ -1,4 +1,5 @@
 """Display global variables in output HTML"""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #

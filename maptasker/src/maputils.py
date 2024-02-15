@@ -14,7 +14,12 @@
 #                                                                                      #
 # #################################################################################### #
 import ipaddress
+import json
 import socket
+import subprocess
+import sys
+
+import requests
 
 # from maptasker.src.primitem import PrimeItems
 
@@ -66,3 +71,26 @@ def validate_port(address: str, port_number: int) -> bool:
         sock.close()
         return result
     return 0
+
+
+# ##################################################################################
+# Auto Update our code
+# ##################################################################################
+def update() -> None:
+    """Update this package."""
+    version = get_pypi_version()
+    packageversion = "maptasker" + version
+    subprocess.call([sys.executable, "-m", "pip", "install", "--upgrade", packageversion])  # noqa: S603
+
+
+# ##################################################################################
+# Get the version of our code out on Pypi
+# ##################################################################################
+def get_pypi_version() -> str:
+    """Get the PyPi version of this package."""
+    url = "https://pypi.org/pypi/maptasker/json"
+    try:
+        version = "==" + requests.get(url).json()["info"]["version"]  # noqa: S113
+    except (json.decoder.JSONDecodeError, ConnectionError, Exception):
+        version = ""
+    return version

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import logging
 import re
+from datetime import datetime
 from enum import Enum
 from typing import ClassVar
 
@@ -24,7 +25,8 @@ import darkdetect
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-MY_VERSION = "MapTasker version 3.0.4"
+VERSION = "3.0.5"
+MY_VERSION = f"MapTasker version {VERSION}"
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -206,3 +208,5 @@ TABLE_BORDER = (
         } \
     </style>"
 )
+
+NOW_TIME = datetime.now()

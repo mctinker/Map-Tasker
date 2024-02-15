@@ -18,13 +18,18 @@ from __future__ import annotations
 import contextlib
 import os
 from tkinter import font
+from typing import TYPE_CHECKING
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.lineout import LineOut
-from maptasker.src.maputils import validate_ip_address, validate_port
+from maptasker.src.maputils import get_pypi_version, validate_ip_address, validate_port
 from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proginit import get_data_and_output_intro
+from maptasker.src.sysconst import NOW_TIME, VERSION
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 # ##################################################################################
@@ -220,3 +225,71 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
         self.cancel_entry_button.destroy()
 
     self.display_backup_button("Get Backup from Android Device", "#246FB6", "#6563ff", self.get_backup_event)
+
+
+# ##################################################################################
+# Compare two versions and return True if version2 is greater than version1.
+# ##################################################################################
+def is_version_greater(version1: str, version2: str) -> bool:
+    """
+    This function checks if version2 is greater than version1.
+
+    Args:
+        version1: A string representing the first version in the format "major.minor.patch".
+        version2: A string representing the second version in the format "major.minor.patch".
+
+    Returns:
+        True if version2 is greater than version1, False otherwise.
+    """
+
+    # Split the versions by "."
+    v1_parts = [int(x) for x in version1.split(".")]
+    v2_parts = [int(x) for x in version2.split(".")]
+
+    # Iterate through each part of the version
+    for i in range(min(len(v1_parts), len(v2_parts))):
+        if v1_parts[i] < v2_parts[i]:
+            return True
+        if v1_parts[i] > v2_parts[i]:
+            return False
+
+    # If all parts are equal, check length
+    return len(v2_parts) > len(v1_parts)
+
+
+# ##################################################################################
+# Checks if 24 hours have passed since the given previous date.
+# ##################################################################################
+def is_more_than_24hrs(input_datetime: datetime) -> bool:
+    """Checks if the input datetime is more than 24 hours ago.
+    Parameters:
+        - input_datetime (datetime): The datetime to be checked.
+    Returns:
+        - bool: True if input datetime is more than 24 hours ago, False otherwise.
+    Processing Logic:
+        - Calculate seconds in 24 hours.
+        - Get current datetime.
+        - Check if difference between current datetime and input datetime is greater than 24 hours.
+        - Return result as boolean."""
+    twenty_four_hours = 86400  # seconds in 24 hours
+    return (NOW_TIME - input_datetime).total_seconds() > twenty_four_hours
+
+
+# ##################################################################################
+# Get Pypi version and return True if it is newer than our current version.
+# ##################################################################################
+def is_new_version() -> bool:
+    """
+    Check if the new version is available
+    Args:
+        self: The class instance
+    Returns:
+        bool: True if new version is available, False if not"""
+    # Check if newer version of our code is available on Pypi.
+    if is_more_than_24hrs(PrimeItems.last_run):  # Only check every 24 hours.
+        pypi_version_code = get_pypi_version()
+        if pypi_version_code:
+            pypi_version = pypi_version_code.split("==")[1]
+            PrimeItems.last_run = NOW_TIME  # Update last run to now since we are doing the check.
+            return is_version_greater(VERSION, pypi_version)
+    return False

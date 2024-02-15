@@ -46,9 +46,7 @@ from maptasker.src.sysconst import (
 # ################################################################################
 # Determine if the argument is a list or string, and return the value as appropriate
 # ################################################################################
-def get_arg_if_in_list(
-    args: namedtuple("ArgNamespace", ["some_arg", "another_arg"]), the_argument: str
-) -> int:
+def get_arg_if_in_list(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"]), the_argument: str) -> int:
     """
     Determine if the argument is a list or string, and return the value as appropriate
         Args:
@@ -136,7 +134,7 @@ def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "anoth
     # Get display detail level, if provided.
     detail = getattr(args, "detail")
     if detail is not None:
-        if  isinstance(detail, int):
+        if isinstance(detail, int):
             PrimeItems.program_arguments["display_detail_level"] = detail
         elif isinstance(detail, list):
             PrimeItems.program_arguments["display_detail_level"] = detail[0]
@@ -466,7 +464,7 @@ def process_cli() -> None:
         and os.path.isfile(ARGUMENTS_FILE)
     ):
         restore_arguments()
-        PrimeItems.program_arguments["gui"]  = save_gui  # Restore GUI flag from runtime options,
+        PrimeItems.program_arguments["gui"] = save_gui  # Restore GUI flag from runtime options,
         PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.
 
     # If using the GUI, them process the GUI.

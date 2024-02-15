@@ -628,7 +628,15 @@ def process_callers_and_called_tasks(output_lines: list, call_table: dict, calle
         # Make sure the called Task exists.
         found_called_task = False
         for called_line_num, check_line in enumerate(output_lines):
+            # See if the task name is in the line
             if search_name in check_line:
+                # Make certain that this is the exact string we want and not a substr match.
+                # If search_name as a substr of the task name we are looking for, then erroneously gets a match and we
+                # must continue the search!
+                str_pos = check_line.find(search_name)
+                bracket = check_line[str_pos + len(search_name) + 1]
+                if bracket != "[":  # If not a bracket, then it is a substring of a larger task name.
+                    continue
                 found_called_task = True
                 # Find the position of the "Calls -->" task name on the called line
                 caller_task_position = output_lines[called_line_num].index(called_task_name) + (

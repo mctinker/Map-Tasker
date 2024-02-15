@@ -18,15 +18,22 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+from datetime import timedelta
 from pathlib import Path
 
 import tomli_w
 import tomllib
 
 from maptasker.src.error import error_handler
-from maptasker.src.sysconst import ARGUMENTS_FILE, OLD_ARGUMENTS_FILE
+from maptasker.src.primitem import PrimeItems
+from maptasker.src.sysconst import ARGUMENTS_FILE, NOW_TIME, OLD_ARGUMENTS_FILE
+
+twenty_four_hours_ago = NOW_TIME - timedelta(hours=25)
 
 
+# ##################################################################################
+# Settings file is corrupt.  Let user know and reset colors to use and program arguments
+# ##################################################################################
 def corrupted_file(program_arguments: dict, colors_to_use: dict) -> None:
     """
     Checks for corrupted settings file and handles error
@@ -42,9 +49,8 @@ def corrupted_file(program_arguments: dict, colors_to_use: dict) -> None:
         4. Does not restore corrupted settings, asks user to re-save"""
     error_handler(
         (
-            f"'-restore' option... The settings file,  {ARGUMENTS_FILE} is"
-            " corrupt!  The old settings can not be restored.  Re-save your"
-            " settings."
+            f"The settings file,  {ARGUMENTS_FILE} is"
+            " corrupt!  The old settings can not be restored.  A new settings file will be saved upon exit."
         ),
         0,
     )
@@ -76,7 +82,7 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
         None
     """
     guidance = {
-        "Guidance": "Modify this file as needed.  All but one of the entries under [program_arguments] equates to a runtime argument.  [colors_to_use] items refer to colors to use for the output.  Run 'maptasker -h' for details."
+        "Guidance": "Modify this file as needed below the entries [program_arguments] and [colors_to_use].  Run 'maptasker -h' for details.",
     }
     # Force file object into a dictionary for json encoding
     try:
@@ -85,8 +91,9 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     except AttributeError:
         program_arguments["file"] = ""
     # Save dictionaries
-    settings = {"program_arguments": program_arguments, "colors_to_use": colors_to_use}
+    settings = {"program_arguments": program_arguments, "colors_to_use": colors_to_use, "last_run": PrimeItems.last_run}
 
+    # Write out the guidance for the file.
     with open(new_file, "wb") as settings_file:
         tomli_w.dump(guidance, settings_file)
         settings_file.close()
@@ -151,11 +158,17 @@ def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, 
 
     # Read the TOML file
     elif os.path.isfile(new_file):
+        # Setup old date if date last used is not in TROML settings file
         with open(new_file, "rb") as f:
             try:
                 settings = tomllib.load(f)
-                colors_to_use = settings["colors_to_use"]
-                program_arguments = settings["program_arguments"]
+                colors_to_use = settings["colors_to_use"]  # Get the colors to use
+                program_arguments = settings["program_arguments"]  # Get the program arguments
+                try:
+                    PrimeItems.last_run = settings["last_run"]  # Get the last run date
+                except KeyError:
+                    # If this hadn't been previously saved, set it to yesterday (25 hours+).
+                    PrimeItems.last_run = twenty_four_hours_ago
                 f.close()
             except tomllib.TOMLDecodeError:  # no saved file
                 corrupted_file(program_arguments, colors_to_use)

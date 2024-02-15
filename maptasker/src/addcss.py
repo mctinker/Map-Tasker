@@ -1,4 +1,5 @@
 """Add required formatting CSS to HTML output"""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #

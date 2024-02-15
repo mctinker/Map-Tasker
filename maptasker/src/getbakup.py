@@ -113,13 +113,12 @@ def request_file(ip_addr: str, port_number: str, file_location: str) -> tuple[in
     if response.status_code == 200:
         # Return the contents of the file.
         return 0, response.content
-    elif response.status_code == 404:
+    if response.status_code == 404:
         return 6, f"File '{file_location}' not found."
-    else:
-        return (
-            8,
-            f"Request failed for url: {url} ...with status code {response.status_code}",
-        )
+    return (
+        8,
+        f"Request failed for url: {url} ...with status code {response.status_code}",
+    )
 
 
 # ##################################################################################

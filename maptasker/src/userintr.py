@@ -15,6 +15,8 @@
 # #################################################################################### #
 import contextlib
 import os
+import subprocess
+import sys
 from pathlib import Path
 
 import customtkinter
@@ -24,7 +26,15 @@ from PIL import Image
 from maptasker.src.config import OUTPUT_FONT
 from maptasker.src.getbakup import request_file
 from maptasker.src.getputer import save_restore_args
-from maptasker.src.guiutils import clear_android_buttons, get_monospace_fonts, ping_android_device, valid_item
+from maptasker.src.guiutils import (
+    clear_android_buttons,
+    get_monospace_fonts,
+    is_new_version,
+    ping_android_device,
+    valid_item,
+)
+from maptasker.src.mapit import do_rerun
+from maptasker.src.maputils import update
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
@@ -203,6 +213,7 @@ class MyGui(customtkinter.CTk):
         self.twisty = None
         self.underline = None
         self.outline = False
+        self.toplevel_window = None
         PrimeItems.program_arguments["gui"] = True
 
         self.title("MapTasker Runtime Options")
@@ -641,6 +652,9 @@ class MyGui(customtkinter.CTk):
 
         # Edit Section Prompts
         if EDIT:
+            # TODO Clean up the geometry
+            self.edit_label = customtkinter.CTkLabel(self.tabview.tab("Edit"), text="New or existing?")
+            self.edit_label.grid(row=10, column=2, padx=(20, 20), pady=(20, 20), sticky="e")
             self.edit_optionemenu = customtkinter.CTkOptionMenu(
                 self.tabview.tab("Edit"),
                 values=[
@@ -650,7 +664,7 @@ class MyGui(customtkinter.CTk):
                 fg_color="#246FB6",
                 command=self.edit_event,
             )
-            self.edit_optionemenu.grid(row=10, column=2, padx=(20, 20), pady=(20, 20), sticky="e")
+            self.edit_optionemenu.grid(row=11, column=2, padx=(20, 20), pady=(20, 20), sticky="e")
 
         # Runtime
         self.runtime_checkbox = customtkinter.CTkCheckBox(
@@ -669,11 +683,30 @@ class MyGui(customtkinter.CTk):
         # Now restore the settings and update the fields if not resetting.
         if not PrimeItems.program_arguments["reset"]:
             self.restore_settings_event()
-            self.display_message_box("Settings restored.", True)
+            self.message = "Settings restored."  # self.message set to "" in set_defaults, above.
 
             if self.android_ipaddr:
                 # Display backup details as a label
                 self.display_backup_details()
+
+        # Check if newer version of our code is available on Pypi (only check every 24 hours).
+        if is_new_version():
+            self.new_version = True
+            # We have a new version.  Let user upgrade.
+            self.upgrade_button = customtkinter.CTkButton(
+                master=self,
+                border_color="#6563ff",
+                border_width=2,
+                text="Upgrade to Latest Version",
+                command=self.upgrade_event,
+            )
+            self.upgrade_button.grid(row=10, column=1, padx=20, pady=10, sticky="nw")
+            self.message = self.message + "\n\nA new version of MapTasker is available."
+        else:
+            self.new_version = False
+
+        if self.message:
+            self.display_message_box(self.message, True)
 
     # ##################################################################################
     # Establish all of the default values used
@@ -724,6 +757,7 @@ class MyGui(customtkinter.CTk):
         self.color_row = 4
         self.edit = False
         self.edit_type = ""
+        self.message = ""
 
         # Display current Items setting.
         self.single_name_status("Display all Projects, Profiles, and Tasks.", "#3f99ff")
@@ -1161,8 +1195,13 @@ class MyGui(customtkinter.CTk):
         :param edit_type: A string representing the type of edit.
         :return: None
         """
+        from edittasker.src.edtnewui import ToplevelWindow
         self.edit_type = edit_type
         self.edit = True
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = ToplevelWindow(self)  # create window if its None or destroyed
+        else:
+            self.toplevel_window.focus()  # if window exists focus it
 
     # ##################################################################################
     # Process color selection
@@ -1500,7 +1539,7 @@ class MyGui(customtkinter.CTk):
         self.runtime = self.get_input_and_put_message(self.runtime_checkbox, "Display Runtime Settings")
 
     # ##################################################################################
-    # Rebuilld message box with new text.
+    # Rebuilld message box with new text (e.g. for Help).
     # ##################################################################################
     def new_message_box(self, message: str) -> None:
         # Clear any prior error message
@@ -2229,6 +2268,22 @@ class MyGui(customtkinter.CTk):
         self.withdraw()
         self.quit()
         self.quit()
+
+    # ##################################################################################
+    # The Upgrade Version button has been pressed.
+    # ##################################################################################
+    def upgrade_event(self) -> None:
+        """ "Runs an update and reruns the program."
+        Parameters:
+            - self (object): Instance of the class.
+        Returns:
+            - None: No return value.
+        Processing Logic:
+            - Calls the update function.
+            - Reruns the program to pick up the update."""
+        update()
+        self.display_message_box("Program updated.  Restarting...", True)
+        do_rerun()
 
     # ##################################################################################
     # The 'Exit' program button has been pressed.  Call it quits

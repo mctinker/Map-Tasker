@@ -69,7 +69,7 @@ def get_action_code(
 
     # We have a code that is not yet in the dictionary?
     if the_action_code_plus not in action_codes or not action_codes[the_action_code_plus].display:
-        the_result = f"Code {the_action_code_plus} not yet" f" mapped{get_extra_stuff(code_action, action_type)}"
+        the_result = f"Code {the_action_code_plus} not yet mapped{get_extra_stuff(code_action, action_type)}"
         not_in_dictionary(
             "Action/Condition",
             f"'display' for code {the_action_code_plus}",

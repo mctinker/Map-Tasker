@@ -353,7 +353,6 @@ def outline_profiles_tasks_scenes(
             or PrimeItems.program_arguments["single_profile_name"] == profile_name
         ):
             # Add Profile to our network
-            # network[project_name][profile_name] = []
             profile_line = f"{blank*5}{arrow}{blank*2}Profile: {profile_name}"
             PrimeItems.output_lines.add_line_to_output(
                 0,
@@ -417,7 +416,6 @@ def assign_names_to_anonymous_tasks() -> None:
         # From this point on, we only need to find Tasks by Name.  So create a dict of all Tasks by name.
         # PrimeItems.tasks_by_name[value["name"]] = {"id": key, "name": value["name"], "xml": value["xml"]}
         PrimeItems.tasks_by_name[value["name"]] = value
-        ...
 
 
 # ##################################################################################

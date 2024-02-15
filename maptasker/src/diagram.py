@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import contextlib
 import os
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 from maptasker.src.diagutil import (
@@ -37,7 +36,7 @@ from maptasker.src.diagutil import (
 )
 from maptasker.src.getids import get_ids
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import MY_VERSION, FormatLine
+from maptasker.src.sysconst import MY_VERSION, NOW_TIME, FormatLine
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -458,6 +457,8 @@ def draw_arrows_to_called_task(
     # Get the position of the line below/above based on the caller and called Task's index.
     # We want the position of the called Task in the caller Task line, and the
     # position of the caller Task in the called Task line.
+    if caller_task_name == "Anonymous#37":
+            print(caller_task_name, " ", called_task_name)
     caller_line_index, called_line_index = get_indices_of_line(
         caller_task_name,
         caller_line_num,
@@ -469,6 +470,9 @@ def draw_arrows_to_called_task(
     # If indice coming back is blank, then it wasn't found since it is named "Anonymous"
     if caller_line_index == "":
         return
+    # If called_line_index comes back as not found, we have a problem.
+    if called_line_index == "":
+        called_line_index = 1
 
     # Add up and down arrows to the connection points.
     add_down_and_up_arrows(
@@ -793,11 +797,9 @@ def network_map(network: dict) -> None:
     PrimeItems.netmap_output = []
 
     # Print a heading
-    # datetime object containing current date and time
-    now = datetime.now()  # noqa: DTZ005
 
     # dd/mm/YY H:M:S
-    dt_string = now.strftime("%B %d, %Y  %H:%M:%S")
+    dt_string = NOW_TIME.strftime("%B %d, %Y  %H:%M:%S")
     add_output_line(
         f"{MY_VERSION}{blank*5}Configuration Map{blank*5}{dt_string}",
     )
@@ -813,7 +815,7 @@ def network_map(network: dict) -> None:
 
     # Print it all out.
     # Redirect print to a file
-    output_dir = f"{os.getcwd()}/MapTasker_Map.txt"  # Get the directory from which we are running.
+    output_dir = f"{os.getcwd()}{PrimeItems.slash}MapTasker_Map.txt"  # Get the directory from which we are running.
     with open(str(output_dir), "w", encoding="utf-8") as mapfile:
         # PrimeItems.printfile = mapfile
         for line in PrimeItems.netmap_output:

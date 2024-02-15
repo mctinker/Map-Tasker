@@ -1,4 +1,5 @@
 """Handle TaskerNet "Share" information"""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -66,10 +67,10 @@ def share(
         for num, item in reversed(list(enumerate(PrimeItems.output_lines.output_lines))):
             if "TaskerNet description:" in item:
                 break
-            if item == "<br>" and PrimeItems.output_lines.output_lines[num-1] == "<br>":
+            if item == "<br>" and PrimeItems.output_lines.output_lines[num - 1] == "<br>":
                 PrimeItems.output_lines.output_lines.remove(num)
                 break
-            if  tab != "proftab" and item.endswith("<br><br>"):
+            if tab != "proftab" and item.endswith("<br><br>"):
                 PrimeItems.output_lines.output_lines[-1] = item.replace("<br><br>", "<br>")
                 break
 

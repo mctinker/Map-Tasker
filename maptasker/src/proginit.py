@@ -13,9 +13,8 @@
 # #################################################################################### #
 import atexit
 import contextlib
+import platform
 import sys
-import webbrowser
-from datetime import datetime
 from json import dumps, loads  # For write and read counter
 from pathlib import Path
 from tkinter import TkVersion, messagebox
@@ -35,6 +34,7 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     COUNTER_FILE,
     MY_VERSION,
+    NOW_TIME,
     TYPES_OF_COLOR_NAMES,
     logger,
     logging,
@@ -150,7 +150,7 @@ def open_and_get_backup_xml_file() -> dict:
     if PrimeItems.program_arguments["debug"] and PrimeItems.program_arguments["fetched_backup_from_android"] is False:
         PrimeItems.program_arguments["file"] = ""
         try:
-            PrimeItems.file_to_get = open(f"{dir_path}/backup.xml")
+            PrimeItems.file_to_get = open(f"{dir_path}{PrimeItems.slash}backup.xml")
         except OSError:
             error_handler(
                 (f"Error: Debug is on and the backup.xml file was not found in {dir_path}."),
@@ -237,7 +237,7 @@ def log_startup_values() -> None:
     Log the runtime arguments and color mappings
     """
     setup_logging()  # Get logging going
-    logger.info(f"{MY_VERSION} {str(datetime.now())}")  # noqa: RUF010, DTZ005
+    logger.info(f"{MY_VERSION} {str(NOW_TIME)}")  # noqa: RUF010, DTZ005
     logger.info(f"sys.argv:{str(sys.argv)}")  # noqa: RUF010
     for key, value in PrimeItems.program_arguments.items():
         logger.info(f"{key}: {value}")
@@ -359,6 +359,13 @@ def start_up() -> dict:
     # get_data_and_output_intro program key elements
     # PrimeItems.program_arguments["gui"] = False  # Turn off...we don't want this on anymore.
     _ = get_data_and_output_intro()
+
+    # Get the OS so we know which directory slash to use (/ or \)
+    our_platform = platform.system()
+    if our_platform == "Windows":
+        PrimeItems.slash = "\\"
+    else:
+        PrimeItems.slash = "/"
 
     # If debug mode, log the arguments
     if PrimeItems.program_arguments["debug"]:

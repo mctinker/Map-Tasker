@@ -180,7 +180,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
     output_file = f"{my_output_dir}{my_file_name}"
     with open(output_file, "w") as out_file:
         # Output the rest that is in our output queue
-        for num, item in enumerate(PrimeItems.output_lines.output_lines):
+        for item in PrimeItems.output_lines.output_lines:
             # Check to see if this is where the directory is to go in the
             # Output directory. if so, output_directory will create it's own list of
             # output lines.
@@ -201,7 +201,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
 
             # Format the output line
             # logger.info(item)
-            output_line = format_line(PrimeItems.output_lines, num, item)
+            output_line = format_line(item)
             # Continue if we are to ignore this output line.
             if not output_line:
                 continue
@@ -417,7 +417,7 @@ def process_outline() -> None:
     # Do the configuration outline and generate the map
     outline_the_configuration()
 
-    # Display the map in the first available text editor
+    # Display the diagram in the default text editor.
     with contextlib.suppress(FileNotFoundError):
         run(["open", "MapTasker_map.txt"], check=False)  # noqa: S607, S603
 
@@ -530,7 +530,7 @@ def display_back_matter(
         sys.exit(2)
 
     # Finally, write out all of the output that is queued up.
-    my_file_name = "/MapTasker.html"
+    my_file_name = f"{PrimeItems.slash}MapTasker.html"
     write_out_the_file(my_output_dir, my_file_name)
 
     # Display the final results in the default web browser
@@ -665,6 +665,7 @@ def mapit_all(file_to_get: str) -> int:
         int: 0
 
     Processes Projects and their Profiles:
+        - Initialize everything
         - Gets all Project and Profile variables
         - Processes each Project and its associated Profiles
         - Stores details of single selected Project, Profile or Task
