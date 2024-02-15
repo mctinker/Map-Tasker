@@ -2,26 +2,36 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.0.4] 09-February-2024
+## [3.0.5] 16-February-2024
 
 ### Fixed
 
-- The table colors for Global Variables are wrong if not also displaying the Directory.
-- The absence of the runtime option "-GUI" was overridden by the restored savings and required the "-reset" option to stop the GUI from starting. Now, the presence or absence of this "GUI" setting in the runtime options overrides the saved settings.
-- Tasker grand totals at the end now reflect the number of Projects/Profiles/Tasks/Scenes displayed and not the total in the Tasker configuration.
+- Caveats not showing up in the proper font and color.
+- The outline runtime option (-outline) would get a program error in diagram.py if a task name is also a substring of another named task.
 
 ### Changed
 
-- Eliminated list style in output to ensure proper alignment of Projects/Profiles/Tasks/Scenes.
-- Eliminated bullet color runtime option (-cBullet color_name) since there are no longer any bullets.
-- Changed Task entry and exit indicator from "<<<" to "⬅".
-- When identifying a Project in the output, such as "Project project_name, put a single quote around the name (e.g. Project 'project_name') for clarity.
+- Switched from GNU license to MIT license.
+- Minor code optimizations.
 
 ### Added
 
-- Disabled Profiles and Tasks now display as [⛔ DISABLED]
+- Automatic Notification of new release of MapTasker in GUI, with the option to update it.  Check occurs once every 24 hours.
+- Added Privacy Statement to the README file.
 
 ## Older History Logs
+
+## [3.0.4]
+
+- Fixed: The table colors for Global Variables are wrong if not also displaying the Directory.
+- Fixed: The absence of the runtime option "-GUI" was overridden by the restored savings and required the "-reset" option to stop the GUI from starting. Now, the presence or absence of this "GUI" setting in the runtime options overrides the saved settings.
+- Fixed: Tasker grand totals at the end now reflect the number of Projects/Profiles/Tasks/Scenes displayed and not the total in the Tasker configuration.
+- Fixed: Corrected README file to reference the older MapTasker as version 2.6.3 rather than 3.6.3 .
+- Changed: Eliminated list style in output to ensure proper alignment of Projects/Profiles/Tasks/Scenes.
+- Changed: Eliminated bullet color runtime option (-cBullet color_name) since there are no longer any bullets.
+- Changed: The Task entry and exit indicator from "<<<" to "⬅".
+- Changed: When identifying a Project in the output, such as "Project project_name, put a single quote around the name (e.g. Project 'project_name') for clarity.
+- Added: Disabled Profiles and Tasks now display as [⛔ DISABLED]
 
 ## [3.0.3]
 

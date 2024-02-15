@@ -191,6 +191,7 @@ Example fetching backup file directly from your Android device:
 ## Notes
 
 <sup>1</sup> While this app has been extensively tested on OS X, there is no reason it should not also run on a Windows PC or a machine running Linux.  Unfortunately, I do not have a Windows or Linux PC to test this on.
+One thing that could prevent this is the file system, such that Windows references directories with a backslash (\) and OS X with a forward slash (/).  Every effort has been made to make this transparent and operating system independent.
 
 <sup>2</sup> For the "Get backup" (retrieve backup.xml directly from your Android device) option to work, you must have the following prerequisites:
 
@@ -217,11 +218,21 @@ With this older version, you will not get the benefits offered by the newer vers
 
 ## To-Do List (in no particular order)
 
-[] Include/map remaining Tasker preferences
+- [x] Auto Update Feature
 
-[] Support additional plugins
+- [x] Fix output column alignment
 
-[] Offer automatic update if a new version is available (GUI only).
+- [ ] Include/map remaining Tasker preferences
+
+- [ ] Support additional plugins
+
+## Privacy Statement
+
+No information whatsoever is captured and sent via the network to myself or any other third party.
+
+ When reporting an error, you will most likely be asked to provide the output log file from the error and your backup XML file, both of which will be solely used to debug the program and then immediately deleted.
+
+The only network traffic that occurs is if and when you retrieve the backup file directly from your Android device on the same network, and during the GUI startup to check the pypi.org server for updates to the program.
 
 ## Contributions
 
