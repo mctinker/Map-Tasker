@@ -22,10 +22,9 @@
 
 # MapTasker
 
-## Display the Tasker Project/Profile/Task/Scene hierarchy on a MAC/PC based on Tasker's backup.xml
+## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX machine based on Tasker's backup.xml
 
-This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a MAC<sup>1</sup>.  While not tested, this should also work on a Windows PC or Linux machine.
-
+This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, MOS X or Linux <sup>1</sup>.
 I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, so I wrote a Python program for my MAC to provide an indented list of my entire configuration based on my Tasker backup XML file that I saved to my Google Drive.
 
 A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
@@ -34,7 +33,7 @@ The Tasker backup XML can either be manually uploaded to your Mac/Google Drive, 
 
 ### Program Dependencies
 
-#### - Python version v3.11 or higher<sup>4</sup> and Tkinter 8.6 or higher, using one of these methods...
+#### - Python version v3.11 or higher <sup>4</sup> and Tkinter 8.6 or higher, using one of these methods...
 
 ##### Install Python directly from python.org (includes Tkinter).
 
@@ -46,11 +45,11 @@ The Tasker backup XML can either be manually uploaded to your Mac/Google Drive, 
 ##### Install Python via Homebrew on macOS:
 
     python 3.11: `brew install python3.11`
-    Tkinter 8.6: `brew install tcl-tk`<sup>3</sup>
+    Tkinter 8.6: `brew install tcl-tk` <sup>3</sup>
 
 #### - Tasker full or partial backup.xml
 
-(anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6.  Optionally<sup>2</sup>, this can be fetched directly from your Android device.
+(anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6.  Optionally <sup>2</sup>, this can be fetched directly from your Android device.
 
 
 ### Installation
@@ -190,10 +189,12 @@ Example fetching backup file directly from your Android device:
 
 ## Notes
 
-<sup>1</sup> While this app has been extensively tested on OS X, there is no reason it should not also run on a Windows PC or a machine running Linux.  Unfortunately, I do not have a Windows or Linux PC to test this on.
-One thing that could prevent this is the file system, such that Windows references directories with a backslash (\) and OS X with a forward slash (/).  Every effort has been made to make this transparent and operating system independent.
+<sup>1</sup> Windows 11 has been tested and verified to work.  Limitations:
+- The Edge web browser, though, closes as soon as it opens when invoked from this program.  Therefore, it is recommended to use any browser other than Edge.
+- Notepad does not treat spacing correctly for the configuration diagram (MapTasker_Map.txt).  Install an app such as "Typepad" and set it as your default app for opening txt files.
 
 <sup>2</sup> For the "Get backup" (retrieve backup.xml directly from your Android device) option to work, you must have the following prerequisites:
+
 
 - Both the MAC and Android devices must be on the same network
 
@@ -222,6 +223,8 @@ With this older version, you will not get the benefits offered by the newer vers
 
 - [x] Fix output column alignment
 
+- [x] Support Windows
+
 - [ ] Include/map remaining Tasker preferences
 
 - [ ] Support additional plugins
@@ -234,6 +237,7 @@ No information whatsoever is captured and sent via the network to myself or any 
 
 The only network traffic that occurs is if and when you retrieve the backup file directly from your Android device on the same network, and during the GUI startup to check the pypi.org server for updates to the program.
 
+
 ## Contributions
 
 [Taskometer](https://github.com/Taskomater/Tasker-XML-Info)
@@ -242,7 +246,7 @@ The only network traffic that occurs is if and when you retrieve the backup file
 
 [Tom Schimansky for CustomTkinter](https://github.com/TomSchimansky/CustomTkinter)
 
- [Akash Bora for CTkColorPicker](https://github.com/Akascape/CTkColorPicker)
+[Akash Bora for CTkColorPicker](https://github.com/Akascape/CTkColorPicker)
 
 
 
