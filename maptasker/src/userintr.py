@@ -2179,6 +2179,10 @@ class MyGui(customtkinter.CTk):
             None
         """
         clear_android_buttons(self)
+        self.fetched_backup_from_android = False
+        self.android_file = ""
+        self.android_ipaddr = ""
+        self.android_port = ""
         self.display_message_box("Get Backup Details Cancelled.", True)
 
     # ##################################################################################

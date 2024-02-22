@@ -192,7 +192,9 @@ def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> N
             if PrimeItems.variables[key]["project"]:
                 for variable_project in PrimeItems.variables[key]["project"]:
                     if variable_project["xml"] == project:
-                        variable_output_lines.append(f"<tr>{table_definition}{key}</td>{table_definition}{value['value']}</td></tr>")
+                        variable_output_lines.append(
+                            f"<tr>{table_definition}{key}</td>{table_definition}{value['value']}</td></tr>"
+                        )
                 # variable_output_lines.extend(
                 #     f'<tr>{table_definition}{key}</td>{table_definition}{value["value"]}</td></tr>'
                 #     for variable_project in PrimeItems.variables[key]["project"]
