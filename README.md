@@ -24,7 +24,7 @@
 
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX machine based on Tasker's backup.xml
 
-This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, MOS X or Linux <sup>1</sup>.
+This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux <sup>1</sup>.
 I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, so I wrote a Python program for my MAC to provide an indented list of my entire configuration based on my Tasker backup XML file that I saved to my Google Drive.
 
 A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
