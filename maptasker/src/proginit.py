@@ -102,7 +102,7 @@ def prompt_for_backup_file(dir_path: str) -> None:
             filetypes=[("XML Files", "*.xml")],
         )
         PrimeItems.error_code = 0  # No error.  Clear the code if there is one.
-    except Exception:
+    except Exception:  # noqa: BLE001
         file_error = True
     if PrimeItems.file_to_get is None:
         file_error = True
@@ -237,7 +237,7 @@ def log_startup_values() -> None:
     Log the runtime arguments and color mappings
     """
     setup_logging()  # Get logging going
-    logger.info(f"{MY_VERSION} {str(NOW_TIME)}")  # noqa: RUF010, DTZ005
+    logger.info(f"{MY_VERSION} {str(NOW_TIME)}")  # noqa: RUF010
     logger.info(f"sys.argv:{str(sys.argv)}")  # noqa: RUF010
     for key, value in PrimeItems.program_arguments.items():
         logger.info(f"{key}: {value}")
@@ -344,6 +344,13 @@ def start_up() -> dict:
     """
     logger.info(f"sys.argv{sys.argv!s}")
 
+    # Get the OS so we know which directory slash to use (/ or \)
+    our_platform = platform.system()
+    if our_platform == "Windows":
+        PrimeItems.slash = "\\"
+    else:
+        PrimeItems.slash = "/"
+
     # Validate runtime versions
     check_versions()
 
@@ -359,13 +366,6 @@ def start_up() -> dict:
     # get_data_and_output_intro program key elements
     # PrimeItems.program_arguments["gui"] = False  # Turn off...we don't want this on anymore.
     _ = get_data_and_output_intro()
-
-    # Get the OS so we know which directory slash to use (/ or \)
-    our_platform = platform.system()
-    if our_platform == "Windows":
-        PrimeItems.slash = "\\"
-    else:
-        PrimeItems.slash = "/"
 
     # If debug mode, log the arguments
     if PrimeItems.program_arguments["debug"]:

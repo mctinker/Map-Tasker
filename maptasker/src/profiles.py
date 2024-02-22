@@ -251,6 +251,9 @@ def do_profile(
             return False  # Not our Profile...go to next Profile ID
 
         if PrimeItems.program_arguments["single_profile_name"] != profile_name:
+
+            return False  # Not our Profile...go to next Profile ID
+
             return False  # Not our Profile...go to next Profile ID
 
         # BINGO! We found the Profile we were looking for!

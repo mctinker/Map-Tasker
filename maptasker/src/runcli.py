@@ -134,6 +134,7 @@ def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "anoth
     # Get display detail level, if provided.
     detail = getattr(args, "detail")
     if detail is not None:
+
         if isinstance(detail, int):
             PrimeItems.program_arguments["display_detail_level"] = detail
         elif isinstance(detail, list):
@@ -464,7 +465,11 @@ def process_cli() -> None:
         and os.path.isfile(ARGUMENTS_FILE)
     ):
         restore_arguments()
+
         PrimeItems.program_arguments["gui"] = save_gui  # Restore GUI flag from runtime options,
+
+        PrimeItems.program_arguments["gui"] = save_gui  # Restore GUI flag from runtime options,
+
         PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.
 
     # If using the GUI, them process the GUI.

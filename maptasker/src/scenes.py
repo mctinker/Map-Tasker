@@ -95,7 +95,7 @@ def get_scene_elements(
     )
 
     # Check to see if this Scene has a layout Scene, and deal with it if so.
-    if sub_scene := child.find("Scene"):
+    if (sub_scene := child.find("Scene")) is not None:
         sub_scene_element = sub_scene.find("Scene")
         width, height = get_geometry(sub_scene_element)
         PrimeItems.output_lines.add_line_to_output(

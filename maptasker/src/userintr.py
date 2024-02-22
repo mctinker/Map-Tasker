@@ -15,8 +15,6 @@
 # #################################################################################### #
 import contextlib
 import os
-import subprocess
-import sys
 from pathlib import Path
 
 import customtkinter
@@ -655,6 +653,7 @@ class MyGui(customtkinter.CTk):
             # TODO Clean up the geometry
             self.edit_label = customtkinter.CTkLabel(self.tabview.tab("Edit"), text="New or existing?")
             self.edit_label.grid(row=10, column=2, padx=(20, 20), pady=(20, 20), sticky="e")
+
             self.edit_optionemenu = customtkinter.CTkOptionMenu(
                 self.tabview.tab("Edit"),
                 values=[
@@ -664,7 +663,7 @@ class MyGui(customtkinter.CTk):
                 fg_color="#246FB6",
                 command=self.edit_event,
             )
-            self.edit_optionemenu.grid(row=11, column=2, padx=(20, 20), pady=(20, 20), sticky="e")
+            self.edit_optionemenu.grid(row=10, column=2, padx=(20, 20), pady=(20, 20), sticky="e")
 
         # Runtime
         self.runtime_checkbox = customtkinter.CTkCheckBox(
@@ -683,11 +682,22 @@ class MyGui(customtkinter.CTk):
         # Now restore the settings and update the fields if not resetting.
         if not PrimeItems.program_arguments["reset"]:
             self.restore_settings_event()
+
+            self.display_message_box("Settings restored.", True)
+
             self.message = "Settings restored."  # self.message set to "" in set_defaults, above.
 
             if self.android_ipaddr:
                 # Display backup details as a label
                 self.display_backup_details()
+
+            # Check for single item only to be displayed
+            if self.single_project_name:
+                self.single_name_status(f"Display only Project '{self.single_project_name}'.", "#3f99ff")
+            if self.single_profile_name:
+                self.single_name_status(f"Display only Profile '{self.single_profile_name}'.", "#3f99ff")
+            if self.single_task_name:
+                self.single_name_status(f"Display only Task '{self.single_task_name}'.", "#3f99ff")
 
         # Check if newer version of our code is available on Pypi (only check every 24 hours).
         if is_new_version():
@@ -757,6 +767,7 @@ class MyGui(customtkinter.CTk):
         self.color_row = 4
         self.edit = False
         self.edit_type = ""
+
         self.message = ""
 
         # Display current Items setting.
@@ -994,7 +1005,6 @@ class MyGui(customtkinter.CTk):
         my_name: str,
         name_entered: str,
     ) -> None:
-        # Name sure it is a valid name
         """
         Restores a single name based on the provided name type.
         Args:
@@ -1007,6 +1017,7 @@ class MyGui(customtkinter.CTk):
             - Clear existing single name values
             - Match the name type and assign the entered name to the correct single name attribute
             - Do nothing if an invalid name type is provided"""
+        # Make sure it is a valid name
         if name_entered and self.check_name(name_entered, my_name):
             self.single_project_name = self.single_profile_name = self.single_task_name = ""
 
@@ -1195,7 +1206,12 @@ class MyGui(customtkinter.CTk):
         :param edit_type: A string representing the type of edit.
         :return: None
         """
+
+        self.edit_type = edit_type
+        self.edit = True
+
         from edittasker.src.edtnewui import ToplevelWindow
+
         self.edit_type = edit_type
         self.edit = True
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
@@ -1377,6 +1393,8 @@ class MyGui(customtkinter.CTk):
         for key in message_map:
             if message_func := message_map.get(key):
                 new_message = f"{message_func()}"
+                if key == "display_detail_level":
+                    new_message = f"Display Detail Level: {self.display_detail_level}"
                 all_messages = f"{all_messages}{new_message}"
             # Check if key is an attribute on self before setting
             if hasattr(self, key) and key != "display_detail_level":
@@ -1970,7 +1988,7 @@ class MyGui(customtkinter.CTk):
 
         ###  File Location ###
         if self.android_file == "" or self.android_file is None:
-            self.android_file = "/Tasker/configs/user/backup.xml"
+            self.android_file = "/Tasker/configs/user/backup.xml".replace("/", PrimeItems.slash)
         self.file_entry = self.file_label = None
         self.file_entry, self.file_label = self.display_label_and_input(
             "File Location:",

@@ -44,7 +44,7 @@ def write_out_backup_file(file_contents: bin) -> None:
 
     # We are going to save the file as...
     # Get position of the last "/" in path/file
-    name_location = PrimeItems.program_arguments["android_file"].rfind("/") + 1
+    name_location = PrimeItems.program_arguments["android_file"].rfind(PrimeItems.slash) + 1
     # Get the name of the file
     my_file_name = PrimeItems.program_arguments["android_file"][name_location:]
 
@@ -113,6 +113,15 @@ def request_file(ip_addr: str, port_number: str, file_location: str) -> tuple[in
     if response.status_code == 200:
         # Return the contents of the file.
         return 0, response.content
+
+    elif response.status_code == 404:
+        return 6, f"File '{file_location}' not found."
+    else:
+        return (
+            8,
+            f"Request failed for url: {url} ...with status code {response.status_code}",
+        )
+
     if response.status_code == 404:
         return 6, f"File '{file_location}' not found."
     return (

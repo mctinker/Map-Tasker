@@ -117,7 +117,7 @@ def get_task_actions_and_output(
             )
 
         # Get Task actions
-        if the_task:
+        if the_task is not None:
             # If we have Task Actions, then output them.  The action list is a list of the Action output lines already
             # formatted.
             if alist := tasks.get_actions(the_task):

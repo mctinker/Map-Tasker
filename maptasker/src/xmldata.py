@@ -13,6 +13,8 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+import os
+import shutil
 
 import defusedxml.ElementTree
 
@@ -199,3 +201,48 @@ def find_task_by_name(task_name: str) -> defusedxml.ElementTree.XML:
         if PrimeItems.tasker_root_elements["all_tasks"][task]["name"] == task_name:
             return task
     return None
+
+
+# ##################################################################################
+# Append file1 to file2
+# ##################################################################################
+def append_files(file1_path: str, file2_path: str) -> None:
+    """Appends the contents of file1 to file2.
+    Parameters:
+        - file1_path (str): Path to file1.
+        - file2_path (str): Path to file2.
+    Returns:
+        - None: No return value.
+    Processing Logic:
+        - Open file1 in read mode.
+        - Open file2 in append mode.
+        - Copy contents of file1 to file2."""
+    with open(file1_path, "r") as file1, open(file2_path, "a") as file2:
+        shutil.copyfileobj(file1, file2)
+
+
+# ##################################################################################
+# The XML file hs incorrect encoding.  Let's read it in and rewrite it correctly.
+# ##################################################################################
+def rewrite_xml(file_to_parse: str) -> None:
+    """Rewrite XML file with UTF-8 encoding.
+    Parameters:
+        - file_to_parse (str): Name of the file to be parsed.
+    Returns:
+        - None: No return value.
+    Processing Logic:
+        - Create new file with UTF-8 encoding.
+        - Append, rename, and remove files.
+        - Remove temporary file."""
+    utf_xml = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
+
+    # Create the XML file with the encoding we want
+    with open(".maptasker_tmp.xml", "w") as new_file:
+        new_file.write(utf_xml)
+        new_file.close()
+
+    # Append, rename and remove.
+    append_files(file_to_parse, ".maptasker_tmp.xml")
+    os.remove(file_to_parse)
+    os.rename(".maptasker_tmp.xml", file_to_parse)
+    os.remove(".maptasker_tmp.xml")

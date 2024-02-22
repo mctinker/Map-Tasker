@@ -1,3 +1,5 @@
+"""Evaluate Task actions."""
+
 #! /usr/bin/env python3
 
 # ####################################################################################
@@ -147,7 +149,7 @@ def build_action(
 ) -> list:
     """
     Construct Task Action output line
-        :param alist: list of actions (all <Actions> for task
+        :param alist: list of actions (all <Actions> formatted for output
         :param task_code_line: output text of Task
         :param code_element: xml element of <code> under <Action>
         :param indent: the number of spaces to indent the output line
@@ -175,7 +177,7 @@ def build_action(
                 "",
                 f"Action {code_element.text}: not yet mapped",
                 True,
-            )
+            ),
         )
         # Handle this
         not_in_dictionary("Action", code_element.text)
@@ -209,7 +211,7 @@ def build_action(
                         "Red",
                         "",
                         (
-                            f" ... continue limit of {str(CONTINUE_LIMIT)} "
+                            f" ... continue limit of {CONTINUE_LIMIT!s} "
                             'reached.  See "CONTINUE_LIMIT =" in config.py for '
                             "details"
                         ),

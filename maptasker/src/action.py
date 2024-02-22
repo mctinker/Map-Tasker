@@ -447,12 +447,6 @@ def get_extra_stuff(
             else extra_stuff
         )
         extra_stuff = (
-            RE_FONT.sub("", extra_stuff)
-            # extra_stuff.replace("</font>", "")
-            if "&lt;font" in extra_stuff and "&lt;/font&gt;" not in extra_stuff
-            else extra_stuff
-        )
-        extra_stuff = (
             extra_stuff.replace("</b>", "") if "<b>" in extra_stuff and "</b>" not in extra_stuff else extra_stuff
         )
 

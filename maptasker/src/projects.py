@@ -101,6 +101,7 @@ def task_not_in_profile_heading(project_name: str) -> None:
 
     # Format the output line
     """Returns a formatted output line for the tasks that are not in any profile.
+
     Parameters:
         - project_name (str): The name of the project.
     Returns:

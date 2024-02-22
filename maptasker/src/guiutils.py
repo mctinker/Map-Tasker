@@ -22,7 +22,11 @@ from typing import TYPE_CHECKING
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.lineout import LineOut
+
+from maptasker.src.maputils import validate_ip_address, validate_port
+
 from maptasker.src.maputils import get_pypi_version, validate_ip_address, validate_port
+
 from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proginit import get_data_and_output_intro

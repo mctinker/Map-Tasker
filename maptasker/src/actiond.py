@@ -1,3 +1,5 @@
+"""Action dictionary functions."""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -12,14 +14,16 @@
 #                                                                                      #
 # #################################################################################### #
 from __future__ import annotations
-import contextlib
-from typing import Any
 
-import defusedxml.ElementTree  # Need for type hints
+import contextlib
+from typing import TYPE_CHECKING, Any
 
 import maptasker.src.action as get_action
 from maptasker.src.actionc import action_codes
 from maptasker.src.sysconst import logger
+
+if TYPE_CHECKING:
+    import defusedxml.ElementTree
 
 IGNORE_ITEMS = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
 
@@ -65,7 +69,7 @@ def update_action_codes(
 
         logger.debug(
             "update_action_codes:"
-            f" {the_action_code_plus} {str(action_codes[the_action_code_plus])} numargs of {action_codes[the_action_code_plus].numargs} update to {arg_count}:  needs to be updated in actionc.py!",
+            f" {the_action_code_plus} {action_codes[the_action_code_plus]!s} numargs of {action_codes[the_action_code_plus].numargs} update to {arg_count}:  needs to be updated in actionc.py!",
         )
     return
 

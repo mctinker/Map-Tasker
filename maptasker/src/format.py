@@ -15,10 +15,15 @@
 
 from maptasker.src.sysconst import (
     pattern2,
+    # pattern5,
+    # pattern6,
+    # pattern7,
     pattern8,
     pattern9,
     pattern10,
 )
+
+THREE_LINES = 3
 
 
 # ##################################################################################

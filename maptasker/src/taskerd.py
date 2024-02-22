@@ -13,11 +13,12 @@
 # #################################################################################### #
 import sys
 
-import defusedxml.cElementTree as ET
+import defusedxml.ElementTree as ET
 
 from maptasker.src.error import error_handler
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
+from maptasker.src.xmldata import rewrite_xml
 
 
 # ##################################################################################
@@ -55,14 +56,30 @@ def get_the_xml_data() -> dict:
     Load all the Projects, Profiles and Tasks into a format we can easily navigate through
     """
 
-    # Import xml
-    file_to_parse = PrimeItems.program_arguments["file"]
-    try:
-        PrimeItems.xml_tree = ET.parse(PrimeItems.file_to_get)
-    except ET.ParseError:  # Parsing error
-        error_handler(f"Error in taskerd parsing {file_to_parse}", 1)  # Error out and exit
-    except Exception:  # any other error
-        error_handler(f"Parsing error in taskerd {file_to_parse}", 1)
+    # Put this code into a while loop in the event we have to re-calll itt again.add
+    process_file = True
+
+    while process_file:
+
+        # Import xml...
+        # Define the XML parser with ISO encoding since that is what Joao outputs his XML with.
+        # # If we still get an encoding error then rewrite the XML with proper ISO encoding and try again.
+        file_to_parse = PrimeItems.file_to_get.name
+        try:
+            # PrimeItems.xml_tree = ET.parse(PrimeItems.file_to_get)
+            xmlp = ET.XMLParser(encoding=" iso8859_9")
+            PrimeItems.xml_tree = ET.parse(file_to_parse, parser=xmlp)
+            process_file = False  # Get out of while/loop
+        except ET.ParseError:  # Parsing error
+            error_handler(f"Error in taskerd parsing {file_to_parse}", 1)  # Error out and exit
+            process_file = False  # Get out of while/loop
+        except UnicodeDecodeError:  # Unicode error
+            print("taskerd XML unicode error in taskerd...reformating file.")
+            PrimeItems.file_to_get.close()
+            rewrite_xml(file_to_parse)
+        except Exception as e:  # any other error
+            error_handler(f"Parsing error {e} in taskerd {file_to_parse}", 1)
+            process_file = False  # Get out of while/loop
 
     # Get the xml root
     PrimeItems.xml_root = PrimeItems.xml_tree.getroot()

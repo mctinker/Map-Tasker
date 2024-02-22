@@ -163,13 +163,20 @@ def get_variables() -> None:
 # Print the variables (Project's or Unreferenced)
 # ##################################################################################
 def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> None:
-    """
-    Print the variables (Project's or Unreferenced)
-        Args:
-            color_to_use (str): Colot to use in the output.
-            project (xml element): xml element of the Project.
-        Return: list of output lines to be added to output queue.
-    """
+    """Parameters:
+        - color_to_use (str): The color to use for the table definition.
+        - project (defusedxml.ElementTree): The project to use, if applicable.
+    Returns:
+        - None: This function does not return anything.
+    Processing Logic:
+        - Create table definition.
+        - Create empty list for variable output lines.
+        - Sort the Tasker global variables.
+        - If the key is a Tasker global variable, change the value to "global".
+        - If project is not None or an empty string, find the Project.
+        - If the variable has a list of Projects, extend the variable output lines with the key and value.
+        - If the variable is a verified "tasker variable" and not a Project global variable, append the key and value to the variable output lines.
+        - Return the variable output lines."""
     table_definition = f'<td style="height:16px; color:{color_to_use}; text-align:left">'
     variable_output_lines = []
 
@@ -180,16 +187,20 @@ def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> N
             value["value"] = "<em>Tasker Global</em>"
 
         # If doing the Project variables, first find the Project
-        if project:
+        if project is not None and project != "":
             # Does this variable have a list of Projects?
             if PrimeItems.variables[key]["project"]:
-                variable_output_lines.extend(
-                    f'<tr>{table_definition}{key}</td>{table_definition}{value["value"]}</td></tr>'
-                    for variable_project in PrimeItems.variables[key]["project"]
-                    if variable_project["xml"] == project
-                )
+                for variable_project in PrimeItems.variables[key]["project"]:
+                    if variable_project["xml"] == project:
+                        variable_output_lines.append(f"<tr>{table_definition}{key}</td>{table_definition}{value['value']}</td></tr>")
+                # variable_output_lines.extend(
+                #     f'<tr>{table_definition}{key}</td>{table_definition}{value["value"]}</td></tr>'
+                #     for variable_project in PrimeItems.variables[key]["project"]
+                #     if variable_project["xml"] == project
+                # )
         # If this is a verified "tasker variable", and not a Project global var?
         elif PrimeItems.variables[key]["verified"] and not PrimeItems.variables[key]["project"]:
+            # It is an unrefereenced variable.
             variable_output_lines.append(f"<tr>{table_definition}{key}</td>{table_definition}{value}</td></tr>")
 
     return variable_output_lines
@@ -209,15 +220,16 @@ def output_variables(heading: str, project: defusedxml.ElementTree) -> None:
     if not PrimeItems.variables:
         return
     # Add a directory entry for variables.
-    if not project and PrimeItems.program_arguments["directory"]:
+    if (project is None or project == "") and PrimeItems.program_arguments["directory"]:
         PrimeItems.output_lines.add_line_to_output(
             5,
             '<a id="unreferenced_variables"></a>',
             FormatLine.dont_format_line,
         )
 
+    # Output unreferenced global variables.  The Project will be "".
     # Force an indentation and set color to use in output.
-    if not project:
+    if project is None or project == "":
         color_to_use = PrimeItems.colors_to_use["trailing_comments_color"]
         color_name = "trailing_comments_color"
         PrimeItems.output_lines.add_line_to_output(
@@ -267,7 +279,7 @@ def output_variables(heading: str, project: defusedxml.ElementTree) -> None:
             FormatLine.dont_format_line,
         )
         # Un-indent the output only if doing unreferenced variables.
-        if not project:
+        if project is None or project == "":
             PrimeItems.output_lines.add_line_to_output(
                 3,
                 "",

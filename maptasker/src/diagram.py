@@ -20,6 +20,10 @@ from __future__ import annotations
 
 import contextlib
 import os
+
+from datetime import datetime
+
+
 from typing import TYPE_CHECKING
 
 from maptasker.src.diagutil import (
@@ -458,7 +462,7 @@ def draw_arrows_to_called_task(
     # We want the position of the called Task in the caller Task line, and the
     # position of the caller Task in the called Task line.
     if caller_task_name == "Anonymous#37":
-            print(caller_task_name, " ", called_task_name)
+        print(caller_task_name, " ", called_task_name)
     caller_line_index, called_line_index = get_indices_of_line(
         caller_task_name,
         caller_line_num,
@@ -798,8 +802,15 @@ def network_map(network: dict) -> None:
 
     # Print a heading
 
+    # datetime object containing current date and time
+    now = datetime.now()  # noqa: DTZ005
+
+    # dd/mm/YY H:M:S
+    dt_string = now.strftime("%B %d, %Y  %H:%M:%S")
+
     # dd/mm/YY H:M:S
     dt_string = NOW_TIME.strftime("%B %d, %Y  %H:%M:%S")
+
     add_output_line(
         f"{MY_VERSION}{blank*5}Configuration Map{blank*5}{dt_string}",
     )

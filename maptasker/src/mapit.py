@@ -43,6 +43,8 @@
 import contextlib
 import gc
 import os
+import platform
+import subprocess
 import sys
 import webbrowser
 from subprocess import run
@@ -178,7 +180,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
     """
     logger.info(f"Function Entry: write_out_the_file dir:{my_output_dir}")
     output_file = f"{my_output_dir}{my_file_name}"
-    with open(output_file, "w") as out_file:
+    with open(output_file, "w", encoding="utf-8") as out_file:
         # Output the rest that is in our output queue
         for item in PrimeItems.output_lines.output_lines:
             # Check to see if this is where the directory is to go in the
@@ -379,7 +381,7 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
     """
     logger.debug("MapTasker program ended normally")
     try:
-        webbrowser.open(f"file://{my_output_dir}{my_file_name}", new=2)
+        webbrowser.open(f"file:{PrimeItems.slash*2}{my_output_dir}{my_file_name}", new=2)
     except webbrowser.Error:
         error_handler("Error: Failed to open output in browser: your browser is not supported.", 1)
     print("")
@@ -419,7 +421,12 @@ def process_outline() -> None:
 
     # Display the diagram in the default text editor.
     with contextlib.suppress(FileNotFoundError):
-        run(["open", "MapTasker_map.txt"], check=False)  # noqa: S607, S603
+        # Asterisk before sys.argv breaks it into separate arguments
+        if platform.system() == "Windows":
+            directory = os.getcwd()
+            os.startfile(f"{directory}{PrimeItems.slash}MapTasker_map.txt")
+        else:
+            run(["open", "MapTasker_map.txt"], check=False)  # noqa: S607, S603
 
 
 # ##################################################################################
@@ -541,14 +548,28 @@ def display_back_matter(
 # Re-launch our program via the "rerun" feature.
 # ##################################################################################
 def restart_program() -> None:
-    """Restarts the current program, with file objects and descriptors"""
-    # Get the path of the python interpreter and use it to execute ourselves again.
-    python = sys.executable
-
-    # Restart our program (sys.argv[0])
+    # Restart our program
+    # sys.executable = the path of the python interpreter and use it to execute ourselves again.
+    """Restarts the program.
+    Parameters:
+        - None
+    Returns:
+        - None
+    Processing Logic:
+        - Use sys.executable to execute ourselves again.
+        - Use contextlib.suppress to ignore OSError.
+        - Use platform.system to check the system: Windows or Linux/UNix base.
+        - Use subprocess.run to run the program if Windows.
+        - Use os.execl to execute the program if not Windows.
+        - Use sys.exit to exit the program."""
+    # NOTE: execl is the preferred method to launch a new program, but it doesn't work on Windows.
+    #       So for Windows, we use subprocess.run.
     with contextlib.suppress(OSError):
         # Asterisk before sys.argv breaks it into separate arguments
-        os.execl(python, python, *sys.argv)
+        if platform.system() == "Windows":
+            subprocess.run([sys.executable, *sys.argv], check=False)  # noqa: S603
+        else:
+            os.execl(sys.executable, "python", *sys.argv)
     sys.exit(0)
 
 
@@ -665,7 +686,10 @@ def mapit_all(file_to_get: str) -> int:
         int: 0
 
     Processes Projects and their Profiles:
+
+
         - Initialize everything
+
         - Gets all Project and Profile variables
         - Processes each Project and its associated Profiles
         - Stores details of single selected Project, Profile or Task

@@ -25,8 +25,10 @@ import darkdetect
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
-VERSION = "3.0.5"
+
+VERSION = "3.1.0"
 MY_VERSION = f"MapTasker version {VERSION}"
+
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
@@ -208,5 +210,6 @@ TABLE_BORDER = (
         } \
     </style>"
 )
+
 
 NOW_TIME = datetime.now()

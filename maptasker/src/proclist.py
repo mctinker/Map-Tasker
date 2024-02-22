@@ -184,7 +184,7 @@ def format_item(
     # Process Task Properties if this is a Task, display level is 3 and
     # we are not at the end dispaying Tasks that are not in any Profile
     if (
-        the_task
+        the_task is not None
         and "Task:" in list_type
         and PrimeItems.program_arguments["display_detail_level"] > 2
         and not PrimeItems.displaying_named_tasks_not_in_profile
@@ -228,7 +228,7 @@ def process_item(
     #   and not part of output for Tasks with no Profile(s)
     # Do we get the Task's Actions?
     if (
-        (the_task and "Task:" in list_type and UNKNOWN_TASK_NAME in the_item) or ("Task:" in list_type)
+        (the_task is not None and "Task:" in list_type and UNKNOWN_TASK_NAME in the_item) or ("Task:" in list_type)
     ) and "<em>No Profile" not in the_item:
         get_task_actions_and_output(
             the_task,

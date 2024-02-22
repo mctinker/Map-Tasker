@@ -324,6 +324,7 @@ lookup_values = {
     ],
     "349": ["Android ID", "User ID"],
     "351": ["OAuth 2.0", "Username and Password"],
+    "352": ["Mobile", "Wifi", "Bluetooth", "Ethernet", "VPN", "MMS"],
     "358": ["Single Device", "Paired Devices", "Scan Devices"],
     "363": [
         "Auto",

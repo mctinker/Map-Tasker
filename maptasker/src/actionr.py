@@ -190,6 +190,7 @@ def get_action_results(
         result = pattern1.sub(",", result)  # Replace ",  ," with ","
         result = pattern2.sub(",", result)  # Replace " ," with ","
         result = pattern2.sub(",", result)  # Do it again to catch any missed
+        result = pattern2.sub(",", result)  # Do it again to catch any missed
         result = pattern0.sub(",", result)  # Catch ",,"
         result = f"&nbsp;&nbsp{result}"
 
