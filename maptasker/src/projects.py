@@ -26,6 +26,7 @@ from maptasker.src.globalvr import output_variables
 from maptasker.src.kidapp import get_kid_app
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.proclist import process_list
 from maptasker.src.profiles import process_profiles
 from maptasker.src.property import get_properties
 from maptasker.src.scenes import process_project_scenes
@@ -45,20 +46,77 @@ def process_projects_and_their_profiles(
     found_tasks: list,
     projects_without_profiles: list,
 ) -> list:
-    """
-    Go through all Projects, process them and their Profiles and Tasks
-    (and add to our output list)
-        :param found_tasks: list of Tasks found thus far
-        :param projects_without_profiles: list of Projects that don't have any Profiles
-        :return: list of Tasks found thus far, with duplicates removed
-    """
+    """Parameters:
+        - found_tasks (list): A list of tasks that have been found.
+        - projects_without_profiles (list): A list of projects that do not have profiles.
+    Returns:
+        - list: A list of tasks found with duplicates removed.
+    Processing Logic:
+        - Process projects if there are any.
+        - If no Projects then process profiles if there are any.
+        - If no Projects and no Scenes the process tasks if there are any.
+        - If no Projects then process scenes if there are any."""
     our_task_element = ""
 
-    process_projects(
-        projects_without_profiles,
-        found_tasks,
-        our_task_element,
-    )
+    # Process Projects only if there are Projects
+    if PrimeItems.tasker_root_elements["all_projects"]:
+        process_projects(
+            projects_without_profiles,
+            found_tasks,
+            our_task_element,
+        )
+
+    # Only Profiles...?
+    elif PrimeItems.tasker_root_elements["all_profiles"]:
+        PrimeItems.task_count_unnamed = 0
+        process_profiles(
+            "",
+            "None",
+            PrimeItems.tasker_root_elements["all_profiles"],
+            found_tasks,
+        )
+        PrimeItems.grand_totals["profiles"] += 1
+
+    # Only Tasks...(and not Scenes too) e.g. only Tasks?
+    elif PrimeItems.tasker_root_elements["all_tasks"] and not PrimeItems.tasker_root_elements["all_scenes"]:
+        # Build a "list" of Tasks consisting of the Tasks off our troot Task list,
+        task_list = []
+        task_output_lines = []
+        for task in PrimeItems.tasker_root_elements["all_tasks"]:
+            task_list.append(
+                {
+                    "xml": PrimeItems.tasker_root_elements["all_tasks"][task]["xml"],
+                    "name": PrimeItems.tasker_root_elements["all_tasks"][task]["name"],
+                }
+            )
+            task_output_lines.append(" ")
+            if PrimeItems.tasker_root_elements["all_tasks"][task]["name"]:
+                PrimeItems.grand_totals["named_tasks"] += 1
+            else:
+                PrimeItems.grand_totals["unnamed_tasks"] += 1
+        tasks.output_task_list(
+            task_list,
+            "Unknown",
+            "None",
+            task_output_lines,
+            [],
+            True,
+        )
+
+    # Only Scene...?
+    elif PrimeItems.tasker_root_elements["all_scenes"]:
+        scene_list = []
+        found_tasks = []
+        for scene in PrimeItems.tasker_root_elements["all_scenes"]:
+            scene_list.append(PrimeItems.tasker_root_elements["all_scenes"][scene]["name"])
+            PrimeItems.grand_totals["scenes"] += 1
+        process_list(
+            "Scene:",
+            scene_list,
+            "",
+            found_tasks,
+        )
+
     PrimeItems.output_lines.add_line_to_output(
         3,
         "",

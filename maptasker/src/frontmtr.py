@@ -46,7 +46,7 @@ x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
     # Start out by outputting our colors and font CSS
     add_css()
 
-    tasker_mapping = "Tasker Mapping................ Tasker version:"
+    tasker_mapping = "Tasker Mapping................ Tasker XML version:"
 
     # Get the screen dimensions from <dmetric> xml
     screen_element = PrimeItems.xml_root.find("dmetric")

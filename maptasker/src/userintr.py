@@ -18,21 +18,22 @@ import os
 from pathlib import Path
 
 import customtkinter
+import defusedxml.ElementTree as ET
 from CTkColorPicker.ctk_color_picker import AskColor
 from PIL import Image
 
 from maptasker.src.config import OUTPUT_FONT
-from maptasker.src.getbakup import request_file
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutils import (
     clear_android_buttons,
+    get_list_of_files,
     get_monospace_fonts,
     is_new_version,
     ping_android_device,
     valid_item,
 )
 from maptasker.src.mapit import do_rerun
-from maptasker.src.maputils import update
+from maptasker.src.maputils import http_request, update, validate_xml_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
@@ -94,7 +95,7 @@ INFO_TEXT = (
     "* Font To Use: Change the monospace font used for the output.\n\n"
     "* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n"
     "* Get Backup from Android Device: fetch the backup "
-    "xml file from device.  You will be asked for the IP address and port number for your"
+    "XML file from Androiddevice.  You will be asked for the IP address and port number for your"
     " Android device, as well as the file location on the device.\n\n"
     "* Run: Run the program with the settings "
     "provided and then exit.\n"
@@ -127,10 +128,15 @@ BACKUP_HELP_TEXT = (
     "2- The Tasker Project 'HTTP Server Example' or identical function must be"
     " installed and active on the Android device (the server must be running):\n\n"
     "    https://shorturl.at/bwCD4\n\n"
+    "3- If you want to use the 'List XML Files' option, then you must also import the following profile "
+    "into the 'HTTP Server Example' project and make sure the profile imported is enabled:\n\n"
+    "    https://shorturl.at/buvK6\n\n"
     "You will be asked for the IP address, the port number for your Android device,"
     " as well as the file location on the Android device.  Default values are supplied, where...\n\n"
     "'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP"
-    " Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.\n\n"
+    " Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  "
+    "If you don't know the file location and have already entered your IP address and port, then you can select "
+    "the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\n"
     "Usage Notes:\n\n"
     "The IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL "
     "on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\n"
@@ -138,11 +144,23 @@ BACKUP_HELP_TEXT = (
     'Server info updated {"device name":"http://192.168.0.49:1821"}\n\n'
     "- To fetch the backup file, click on the button\n\n 'Get Backup from Android Device'\n\n"
     "Then modify the default values presented in the input fields below this button, and then"
-    " click on the button\n\n'Finally, enter and Click Here to Set Baclup Details'.\n\n"
-    "- the Fetch backup settings are only used once the 'Run' button is pressed, but"
-    " this program will try to ping your Android device to see if it is available"
-    " once your enter the TCP IP Address, Port Number and File Location values.  The ping will timeout after"
+    " click on the button 'Enter and Click Here to Set Backup Details' or 'List XML Files'.\n\n"
+    "- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after"
     " 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\n"
+    "Click on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+)
+LISTFILES_HELP_TEXT = (
+    "Clicking this button will result in the following actions:\n\n"
+    "- The IP Address will be used to ping the Android device.\n\n"
+    "- The IP Address and port number will be used to query the Android device and get a list of available XML files "
+    "found in the Tasker folder.\n\n"
+    "- The list of found XML files will be presented in a pulldown menu from which you can select the one you want "
+    "to use.\n\n"
+    "- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as "
+    "input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\n"
+    "In order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running "
+    "on your Android device.  This profile can be found at the following URL:\n\n"
+    "    https://shorturl.at/buvK6\n\n"
 )
 
 
@@ -213,6 +231,7 @@ class MyGui(customtkinter.CTk):
         self.outline = False
         self.toplevel_window = None
         PrimeItems.program_arguments["gui"] = True
+        self.list_files = False
 
         self.title("MapTasker Runtime Options")
         # Overall window dimensions
@@ -745,7 +764,7 @@ class MyGui(customtkinter.CTk):
             self.reset
         ) = self.restore = self.exit = self.bold = self.highlight = self.italicize = self.underline = (
             self.go_program
-        ) = self.outline = self.rerun = self.runtime = self.save = self.twisty = self.directory = (
+        ) = self.outline = self.rerun = self.list_files = self.runtime = self.save = self.twisty = self.directory = (
             self.fetched_backup_from_android
         ) = False
         self.single_project_name = self.single_profile_name = self.single_task_name = self.file = ""
@@ -1595,7 +1614,7 @@ class MyGui(customtkinter.CTk):
         self.all_messages = ""
 
     # ##################################################################################
-    # Process the 'Display Help' checkbox
+    # Process the 'Display Help' button
     # ##################################################################################
     def help_event(self) -> None:
         """Displays help information in a message box.
@@ -1609,7 +1628,7 @@ class MyGui(customtkinter.CTk):
         self.new_message_box("MapTasker Help\n\n" + INFO_TEXT)
 
     # ##################################################################################
-    # Process the 'Display Help' checkbox
+    # Process the 'Get Backup Help' button
     # ##################################################################################
     def backup_help_event(self) -> None:
         """Backs up help text and displays it in a message box
@@ -1622,6 +1641,21 @@ class MyGui(customtkinter.CTk):
             - Creates a new message box window
             - Displays the backup help text in the message box"""
         self.new_message_box("Fetch Backup Help\n\n" + BACKUP_HELP_TEXT)
+
+    # ##################################################################################
+    # Process the '?' List XML Files query button
+    # ##################################################################################
+    def listfile_query_event(self) -> None:
+        """Function to display help text for the listfile_query_event method.
+        Parameters:
+            - self (object): The object that the method is being called on.
+        Returns:
+            - None: This method does not return anything.
+        Processing Logic:
+            - Displays help text for listfile_query_event method.
+            - Uses new_message_box method.
+            - Help text is stored in LISTFILES_HELP_TEXT variable."""
+        self.new_message_box("List XML Files Help\n\n" + LISTFILES_HELP_TEXT)
 
     # ################################################################################
     # Inform user of toggle selection
@@ -1937,7 +1971,7 @@ class MyGui(customtkinter.CTk):
         return input_name, label_name
 
     # ##################################################################################
-    # Process the 'Backup' IP Address
+    # Process the 'Backup' IP Address/port/file location
     # ##################################################################################
     def get_backup_event(self) -> None:
         # Set up default values
@@ -1961,7 +1995,7 @@ class MyGui(customtkinter.CTk):
             self.android_ipaddr = "192.168.0.210"
         self.ip_entry = self.ip_label = None
         self.ip_entry, self.ip_label = self.display_label_and_input(
-            "TCP/IP Address:",
+            "1-TCP/IP Address:",
             self.android_ipaddr,
             7,
             140,
@@ -1976,7 +2010,7 @@ class MyGui(customtkinter.CTk):
             self.android_port = "1821"
         self.port_entry = self.port_label = None
         self.port_entry, self.port_label = self.display_label_and_input(
-            "Port Number:",
+            "2-Port Number:",
             self.android_port,
             8,
             157,
@@ -1991,7 +2025,7 @@ class MyGui(customtkinter.CTk):
             self.android_file = "/Tasker/configs/user/backup.xml".replace("/", PrimeItems.slash)
         self.file_entry = self.file_label = None
         self.file_entry, self.file_label = self.display_label_and_input(
-            "File Location:",
+            "3-File Location:",
             self.android_file,
             9,
             159,
@@ -2000,6 +2034,53 @@ class MyGui(customtkinter.CTk):
             self.file_label,
             True,
         )
+
+        # Add ...or... label.
+        self.label_or = customtkinter.CTkLabel(
+            master=self,
+            text="...or...",
+            anchor="sw",
+        )
+        self.label_or.grid(
+            row=10,
+            column=1,
+            columnspan=1,
+            padx=(0, 53),
+            pady=(0, 0),
+            sticky="ne",
+        )
+
+        # Add List Files button
+        self.list_files_button = customtkinter.CTkButton(
+            self,
+            fg_color="#246FB6",
+            border_width=2,
+            text="List XML Files",
+            command=self.list_files_event,
+        )
+        self.list_files_button.configure(
+            # width=320,
+            fg_color="#246FB6",
+            border_color="#1bc9ff",
+            text_color=("#0BF075", "#1AD63D"),
+        )
+        self.list_files_button.grid(row=10, column=1, columnspan=2, padx=(0, 220), pady=(0, 0), sticky="ne")
+        #  Query button
+        self.list_files_query_button = customtkinter.CTkButton(
+            self,
+            fg_color="#246FB6",
+            border_width=1,
+            text="?",
+            width=20,
+            command=self.listfile_query_event,
+        )
+        self.list_files_query_button.configure(
+            # width=320,
+            fg_color="#246FB6",
+            border_color="#1bc9ff",
+            text_color=("#0BF075", "#ffd941"),
+        )
+        self.list_files_query_button.grid(row=10, column=1, columnspan=2, padx=(0, 190), pady=(0, 0), sticky="ne")
 
         # Add Cancel button
         self.cancel_entry_button = customtkinter.CTkButton(
@@ -2015,7 +2096,7 @@ class MyGui(customtkinter.CTk):
             border_color="#1bc9ff",
             # text_color=("#0BF075", "#1AD63D"),
         )
-        self.cancel_entry_button.grid(row=10, column=1, columnspan=1, padx=(370, 0), pady=(0, 0), sticky="ne")
+        self.cancel_entry_button.grid(row=8, column=1, columnspan=2, padx=(80, 240), pady=(0, 0), sticky="ne")
 
         # Replace backup button.
         self.display_backup_button(
@@ -2051,6 +2132,9 @@ class MyGui(customtkinter.CTk):
 
     # ##################################################################################
     # Fetch the backup ip and file details, and validate.
+    # This function can be entered through two paths:
+    # 1- User clicked on the 'Get Backup Settings' button
+    # 2- User clicked on the 'List XML Files' button
     # ##################################################################################
     def fetch_backup_event(self) -> None:
         """Fetches backup event details from user input
@@ -2068,10 +2152,12 @@ class MyGui(customtkinter.CTk):
         - Sets backup IP and file location attributes if valid
         - Displays message with backup details
         """
+
         # Get the input entered by the user.
         android_ipaddr = self.ip_entry.get()
         android_port = self.port_entry.get()
-        android_file = self.file_entry.get()
+        # Only get the file if we are not doing a file list.
+        android_file = "" if self.list_files else self.file_entry.get()
 
         # Make sure something was entered into each field.
         error_msg = ""
@@ -2079,8 +2165,6 @@ class MyGui(customtkinter.CTk):
             error_msg = "Please enter an IP address."
         if android_port == "" or android_port is None:
             error_msg = "Please enter a port number."
-        if android_file == "" or android_file is None:
-            error_msg = "Please enter a file location."
         if error_msg:
             self.display_message_box(error_msg, False)
             return
@@ -2090,22 +2174,59 @@ class MyGui(customtkinter.CTk):
             self,
             android_ipaddr,
             android_port,
-            android_file,
         )
         if failure:
             return
 
-        # Get the contents of the file to confirm it is really there.
-        return_code, file_contents = request_file(android_ipaddr, android_port, android_file)
+        # If we don't have the file location yet and we don't yet have a list of files, then get the XML file
+        # to validate that it exists.
+        if len(android_file) != 0 and android_file != "" and self.list_files == False:
+            return_code, file_contents = http_request(android_ipaddr, android_port, android_file, "file", "?download=1")
 
+            # Validate XML file.
+            if return_code == 0:
+                return_code, error_message = validate_xml_file(android_ipaddr, android_port, android_file)
+                if return_code != 0:
+                    self.display_message_box(error_message, False)
+                    return
+
+        # File location not provided.  Get the list of all XML files from the Android device and present it to the user.
+        else:
+            clear_android_buttons(self)
+            # Get list from Tasker directory (/Tasker) or system directory (/storage/emulated/0)
+            return_code, filelist = get_list_of_files(android_ipaddr, android_port, "/storage/emulated/0/Tasker")
+            if return_code != 0:
+                # Error getting list of files.
+                self.display_message_box(filelist, False)
+                return
+
+            # Display File List for file selection
+            self.filelist_label = customtkinter.CTkLabel(
+                self,
+                text="Select XML File From Android Device:",
+                anchor="w",
+            )
+            self.filelist_label.grid(row=9, column=1, columnspan=2, padx=(200, 10), pady=(0, 10), sticky="sw")
+            self.filelist_option = customtkinter.CTkOptionMenu(
+                self,
+                values=filelist,
+                command=self.file_selected_event,
+            )
+            self.filelist_option.grid(row=10, column=1, columnspan=2, padx=(200, 10), pady=(0, 10), sticky="nw")
+            self.android_ipaddr = android_ipaddr
+            self.android_port = android_port
+            return
+
+        # Drop here if a file location was provided.
         if return_code != 0:
             self.backup_error("File not found.  Return code: " + str(return_code))
             return
 
-        # All is well.  Dave the info, restore the button and get rid of the input fields.
+        # All is well.  Save the info, restore the button and get rid of the input fields.
         self.android_ipaddr = android_ipaddr
         self.android_port = android_port
-        self.android_file = android_file
+        if not self.list_files:
+            self.android_file = android_file
         clear_android_buttons(self)
         self.display_message_box(
             (
@@ -2117,11 +2238,11 @@ class MyGui(customtkinter.CTk):
             True,
         )
 
-        # Display backup details as a label
+        # Display backup details as a label again.
         self.display_backup_details()
 
     # ##################################################################################
-    # Fettching backup from Android.  Let the user know.
+    # Fetching backup from Android.  Let the user know the specific details.
     # ##################################################################################
     def display_backup_details(self) -> None:
         """
@@ -2159,8 +2280,8 @@ class MyGui(customtkinter.CTk):
         self.file_entry, self.file_label = self.display_label_and_input(
             f"Location: {self.android_file}",
             None,
-            9,
-            20,
+            10,
+            0,
             0,
             None,
             self.file_label,
@@ -2184,6 +2305,50 @@ class MyGui(customtkinter.CTk):
         self.android_ipaddr = ""
         self.android_port = ""
         self.display_message_box("Get Backup Details Cancelled.", True)
+
+    # ##################################################################################
+    # List files event
+    # ##################################################################################
+    def list_files_event(self) -> None:
+        """
+        Closes the backup details window.
+        Args:
+            self: The class instance
+        Returns:
+            None
+        """
+        self.list_files = True
+        self.list_files_button.configure(text="List Files Selected")
+        self.fetch_backup_event()
+
+    # ##################################################################################
+    # User has selected a specific XML file from pulldown menu.
+    # ##################################################################################
+    def file_selected_event(self, android_file: str) -> None:
+        """User has selected a specific XML file from pulldown menu.
+        Returns:
+            - None: Adds android_file to file_list."""
+        self.android_file = android_file
+        clear_android_buttons(self)
+        self.display_message_box(
+            (
+                f"\n\nGet Backup IP Address set to: {self.android_ipaddr}\n\nPort"
+                f" Number set to: {self.android_port}\n\nGet"
+                f" Location set to: {self.android_file}"
+                f"\n\nBackup file will be fetched when 'Run' is selected."
+            ),
+            True,
+        )
+
+        # Validate XML file.add
+        return_code, error_message = validate_xml_file(self.android_ipaddr, self.android_port, android_file)
+
+        if return_code > 0:
+            self.display_message_box(error_message, False)  # Error out and exit
+            return
+
+        # Display backup details as a label again.
+        self.display_backup_details()
 
     # ##################################################################################
     # Process the 'Reset Settings' button

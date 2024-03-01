@@ -22,11 +22,7 @@ from typing import TYPE_CHECKING
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.lineout import LineOut
-
-from maptasker.src.maputils import validate_ip_address, validate_port
-
-from maptasker.src.maputils import get_pypi_version, validate_ip_address, validate_port
-
+from maptasker.src.maputils import get_pypi_version, http_request, validate_ip_address, validate_port
 from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proginit import get_data_and_output_intro
@@ -138,14 +134,13 @@ def get_monospace_fonts() -> dict:
 # ##################################################################################
 # Ping the Android evice to make sure it is reachable.
 # ##################################################################################
-def ping_android_device(self, ip_address: str, port_number: str, file_location: str) -> bool:  # noqa: ANN001
+def ping_android_device(self, ip_address: str, port_number: str) -> bool:  # noqa: ANN001
     # The following should return a list: [ip_address:port_number, file_location]
     """
     Pings an Android device
     Args:
         ip_address: str - TCP IP address of the Android device
         port_number: str - TCP port number of the Android device
-        file_location: str - File location on the Android device
     Return:
         Error: True if error, false if all is good.
     Processing Logic:
@@ -156,7 +151,6 @@ def ping_android_device(self, ip_address: str, port_number: str, file_location: 
     """
     # Validate IP Address
     if validate_ip_address(ip_address):
-
         # Verify that the host IP is reachable:
         self.display_message_box(
             f"Pinging address {ip_address}.  Please wait...",
@@ -188,13 +182,6 @@ def ping_android_device(self, ip_address: str, port_number: str, file_location: 
         )
         return True
 
-    # Validate file location
-    if len(file_location) < 2 or file_location == "":
-        self.backup_error("File location is missing.  Try again.")
-        return True
-
-    # Empty message = good to go...no error.
-    self.backup_error("")
     return False
 
 
@@ -227,6 +214,14 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
         self.get_backup_button.destroy()
     with contextlib.suppress(AttributeError):
         self.cancel_entry_button.destroy()
+    with contextlib.suppress(AttributeError):
+        self.list_files_button.destroy()
+    with contextlib.suppress(AttributeError):
+        self.label_or.destroy()
+    with contextlib.suppress(AttributeError):
+        self.filelist_label.destroy()
+    with contextlib.suppress(AttributeError):
+        self.filelist_option.destroy()
 
     self.display_backup_button("Get Backup from Android Device", "#246FB6", "#6563ff", self.get_backup_event)
 
@@ -297,3 +292,37 @@ def is_new_version() -> bool:
             PrimeItems.last_run = NOW_TIME  # Update last run to now since we are doing the check.
             return is_version_greater(VERSION, pypi_version)
     return False
+
+
+# ##################################################################################
+# List the XML files on the Android device
+# ##################################################################################
+def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tuple:
+    """Get list of files from given IP address.
+    Parameters:
+        - ip_address (str): IP address to connect to.
+        - ip_port (str): Port number to connect to.
+        - file_location (str): Location of the file to retrieve.
+    Returns:
+        - tuple: Return code and list of file locations.
+    Processing Logic:
+        - Retrieve file contents using http_request.
+        - If return code is 0, split the decoded string into a list and return.
+        - Otherwise, return error with empty string."""
+
+    # Get the contents of the file.
+    return_code, file_contents = http_request(ip_address, ip_port, file_location, "maplist", "?xml")
+
+    # If good return code, get the list of XML file locations into a list and return.
+    if return_code == 0:
+        decoded_string = (file_contents.decode("utf-8")).split(",")
+        # Strip off the count field
+        for num, item in enumerate(decoded_string):
+            temp_item = item[:-3]  # Drop last 3 characters
+            decoded_string[num] = temp_item.replace("/storage/emulated/0", "")
+        # Remove items that are in the trash
+        final_list = [item for item in decoded_string if ".Trash" not in item]
+        return 0, final_list
+
+    # Otherwise, return error
+    return return_code, file_contents

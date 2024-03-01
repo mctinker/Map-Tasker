@@ -148,9 +148,7 @@ def process_solo_task_with_no_profile(
     # or it doesn't belong to any Profile
     if not have_heading and PrimeItems.program_arguments["display_detail_level"] > 2:
         # Add the heading to the output
-        have_heading = add_heading(
-            save_twisty,
-        )
+        have_heading = add_heading(save_twisty)
     if not unknown_task and project_name != NO_PROJECT:
         if PrimeItems.program_arguments["debug"]:
             task_name += f" with Task ID: {task_id} ...in Project '{project_name}'&nbsp;&nbsp;> <em>No Profile</em>"

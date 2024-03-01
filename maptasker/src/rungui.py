@@ -17,15 +17,14 @@
 #                                                                                      #
 # #################################################################################### #
 import contextlib
-import tkinter
+import sys
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
+from maptasker.src.getputer import save_restore_args
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.getputer import save_restore_args
 from maptasker.src.sysconst import ARGUMENT_NAMES, logger
-import sys
 
 
 # ################################################################################
@@ -82,7 +81,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         error_handler("Program exited. Goodbye.", 0)
         sys.exit(0)
 
-    # User has either closed the window.
+    # Has the user closed the window?
     if not user_input.go_program and not user_input.rerun:
         error_handler("Program cancelled by user (killed GUI)", 99)
 

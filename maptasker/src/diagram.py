@@ -461,8 +461,6 @@ def draw_arrows_to_called_task(
     # Get the position of the line below/above based on the caller and called Task's index.
     # We want the position of the called Task in the caller Task line, and the
     # position of the caller Task in the called Task line.
-    if caller_task_name == "Anonymous#37":
-        print(caller_task_name, " ", called_task_name)
     caller_line_index, called_line_index = get_indices_of_line(
         caller_task_name,
         caller_line_num,

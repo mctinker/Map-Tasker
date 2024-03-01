@@ -51,35 +51,42 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
 # Load all of the Projects, Profiles and Tasks into a format we can easily
 # navigate through.
 # ##################################################################################
-def get_the_xml_data() -> dict:
+def get_the_xml_data() -> None:
     """
     Load all the Projects, Profiles and Tasks into a format we can easily navigate through
     """
 
-    # Put this code into a while loop in the event we have to re-calll itt again.add
+    # Put this code into a while loop in the event we have to re-call it again.
     process_file = True
+    counter = 0
 
     while process_file:
-
         # Import xml...
         # Define the XML parser with ISO encoding since that is what Joao outputs his XML with.
         # # If we still get an encoding error then rewrite the XML with proper ISO encoding and try again.
         file_to_parse = PrimeItems.file_to_get.name
         try:
-            # PrimeItems.xml_tree = ET.parse(PrimeItems.file_to_get)
-            xmlp = ET.XMLParser(encoding=" iso8859_9")
+            xmlp = ET.XMLParser(encoding=" iso8859_1")
             PrimeItems.xml_tree = ET.parse(file_to_parse, parser=xmlp)
             process_file = False  # Get out of while/loop
         except ET.ParseError:  # Parsing error
-            error_handler(f"Error in taskerd parsing {file_to_parse}", 1)  # Error out and exit
+            error_handler(f"Improperly formatted XML in {file_to_parse}", 1)  # Error out and exit
             process_file = False  # Get out of while/loop
         except UnicodeDecodeError:  # Unicode error
-            print("taskerd XML unicode error in taskerd...reformating file.")
             PrimeItems.file_to_get.close()
+            counter += 1
+            if counter > 2:
+                error_handler(f"Unicode error in {file_to_parse}", 1)  # Error out and exit
+                break  # Get out of while/loop
             rewrite_xml(file_to_parse)
+            process_file = True
         except Exception as e:  # any other error
             error_handler(f"Parsing error {e} in taskerd {file_to_parse}", 1)
             process_file = False  # Get out of while/loop
+
+    # If bad XML, justb return.
+    if PrimeItems.xml_tree is None:
+        sys.exit(1)
 
     # Get the xml root
     PrimeItems.xml_root = PrimeItems.xml_tree.getroot()
@@ -111,5 +118,3 @@ def get_the_xml_data() -> dict:
         "all_tasks": all_tasks,
         "all_services": all_services,
     }
-
-    return

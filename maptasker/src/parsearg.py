@@ -320,9 +320,20 @@ def runtime_parser() -> None:
         action="store_true",
         default=False,
     )
+    # File to use for the input (e.g. ~/Downloads/backup.xml)
+    parser.add_argument(
+        "-file",
+        help=textwrap.dedent(
+            """ \
+                        Directory and file name of Tasker XML file to analyze.
+                        Example: -file ~/Downloads/backup.xml
+                            """,
+        ),
+        required=False,
+        nargs=1,
+    )
     # Font to use in output
     parser.add_argument(
-        "-f",
         "-font",
         help=textwrap.dedent(
             """ \

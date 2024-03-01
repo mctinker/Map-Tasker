@@ -106,7 +106,6 @@ def get_scene_elements(
             ),
             ["", "scene_color", FormatLine.add_end_span],
         )
-    return
 
 
 # ##################################################################################

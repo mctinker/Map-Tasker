@@ -16,10 +16,8 @@ from __future__ import annotations
 import os.path
 from os import getcwd
 
-import requests
-from requests.exceptions import ConnectionError, ConnectTimeout, InvalidSchema
-
 from maptasker.src.error import error_handler
+from maptasker.src.maputils import http_request
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
@@ -42,7 +40,8 @@ def write_out_backup_file(file_contents: bin) -> None:
             2,
         )
 
-    # We are going to save the file as...
+    # We must get just the file name and type since we will be using this to save it to our local path.
+    # This is the file we will do all of our processing against...the local file fetched from the Android device.
     # Get position of the last "/" in path/file
     name_location = PrimeItems.program_arguments["android_file"].rfind(PrimeItems.slash) + 1
     # Get the name of the file
@@ -69,57 +68,6 @@ def write_out_backup_file(file_contents: bin) -> None:
 
     # Set flag to identify that backup file was fetched from Android device
     PrimeItems.program_arguments["fetched_backup_from_android"] = True
-
-
-# ##################################################################################
-# Issue HTTP Request to get the backup xml file from the Android device.
-# ##################################################################################
-def request_file(ip_addr: str, port_number: str, file_location: str) -> tuple[int, object]:
-    """
-    Issue HTTP Request to get the backup xml file from the Android device.
-    Tasker's HTTP Server Example must be installed for this to work:
-    https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example
-        :param backup_file_http: the port to use for the Android device's Tasker server
-        :param backup_file_location: location of
-        :return: return code, response: eitherr text string with error message or the
-        contents of the backup file
-    """
-    # Create the URL to request the backup xml file from the Android device running the
-    # Tasker server.
-    # Something like: 192.168.0.210:1821/file/path/to/backup.xml?download=1
-    http = "http://" if "http://" not in ip_addr else ""
-    url = f"{http}{ip_addr}:{port_number}/file{file_location}?download=1"
-
-    # Make the request.
-    try:
-        response = requests.get(url, timeout=10)
-    except InvalidSchema:
-        return (
-            8,
-            f"Request failed for url: {url} .  Invalid url!",
-        )
-    except ConnectionError:
-        return (
-            8,
-            f"Request failed for url: {url} .  Connection error!",
-        )
-    except ConnectTimeout:
-        return (
-            8,
-            f"Request failed for url: {url} .  Timeout error!",
-        )
-
-    # Check the response status code.
-    if response.status_code == 200:
-        # Return the contents of the file.
-        return 0, response.content
-
-    if response.status_code == 404:
-        return 6, f"File '{file_location}' not found."
-    return (
-        8,
-        f"Request failed for url: {url} ...with status code {response.status_code}",
-    )
 
 
 # ##################################################################################
@@ -150,10 +98,12 @@ def get_backup_file() -> str:
         :return: The name of the backup file (e.g. backup.xml)
     """
     # Get the contents of the file.
-    return_code, file_contents = request_file(
+    return_code, file_contents = http_request(
         PrimeItems.program_arguments["android_ipaddr"],
         PrimeItems.program_arguments["android_port"],
         PrimeItems.program_arguments["android_file"],
+        "file",
+        "?download=1",
     )
 
     if return_code != 0:

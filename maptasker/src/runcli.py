@@ -144,11 +144,9 @@ def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "anoth
 # ##################################################################################
 # Get our parsed program arguments and save them to PrimeItems.program_args"]
 # ##################################################################################
-def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:  # noqa: C901, PYI024
-    """
-    Get our parsed program arguments and save them to PrimeItems.program_args"]
-        Args:
-            args (list): runtime arguments namespace"""
+def get_runtime_arguments(
+    args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])
+) -> None:  # noqa: C901, PYI024 , PGH003# type: ignore
 
     # Color help?
     if getattr(args, "ch"):
@@ -208,11 +206,18 @@ def get_runtime_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another
         program_arguments["indent"] = indent
 
     # Font
-    if font := getattr(args, "f"):
+    if font := getattr(args, "font"):
         if isinstance(font, list):
             program_arguments["font"] = font[0]
         else:
             program_arguments["font"] = font
+
+    # File
+    if file := getattr(args, "file"):
+        if isinstance(file, list):
+            program_arguments["file"] = file[0]
+        else:
+            program_arguments["file"] = file
 
 
 # ##################################################################################
@@ -366,7 +371,8 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):  # n
         detail=3,
         directory=False,
         e=False,
-        f="Courier",
+        file="",
+        font="Courier",
         g=False,
         i=4,
         names=False,

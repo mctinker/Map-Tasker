@@ -140,14 +140,18 @@ def open_and_get_backup_xml_file() -> dict:
     # Reset the file name
     PrimeItems.file_to_get = None
 
-    # dir_path = path.dirname(path.realpath(__file__))  # Get current directory
+    # Get current directory
     dir_path = Path.cwd()
     logger.info(f"dir_path: {dir_path}")
 
     # If debug and we didn't fetch the backup file from Android device, default to
     # "backup.xml" file as backup to restore
 
-    if PrimeItems.program_arguments["debug"] and PrimeItems.program_arguments["fetched_backup_from_android"] is False:
+    if (
+        PrimeItems.program_arguments["debug"]
+        and PrimeItems.program_arguments["fetched_backup_from_android"] is False
+        and not PrimeItems.program_arguments["file"]
+    ):
         PrimeItems.program_arguments["file"] = ""
         try:
             PrimeItems.file_to_get = open(f"{dir_path}{PrimeItems.slash}backup.xml")
@@ -263,7 +267,8 @@ def get_data_and_output_intro() -> int:
     - Closes the file after reading
     - Outputs initial information like header and source to the user
     """
-    PrimeItems.program_arguments["file"] = PrimeItems.file_to_get
+    if not PrimeItems.program_arguments["file"]:
+        PrimeItems.program_arguments["file"] = PrimeItems.file_to_get
 
     # Only display message box if we don't yet have the file name
     if not PrimeItems.file_to_get and run_counter < 1 and not GUI:
