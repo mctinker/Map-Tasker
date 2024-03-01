@@ -20,6 +20,17 @@ from maptasker.src import mapit
 
 
 def test_it():
+    """
+    Test the function 'test_it' by running it.
+
+    This function is used to test the functionality of the 'test_it' function. It executes the following steps:
+
+    1. Prints the value of 'sys.argv'.
+    2. Calls the 'mapit.mapit_all' function with an empty string as the argument.
+    3. Pauses the execution for 1 second.
+
+    This function does not take any parameters and does not return any values.
+    """
     # print('run_test sys.argv:', sys.argv)
     mapit.mapit_all("")
     # Take a breath between each run to avoid collision issues with browser
@@ -28,71 +39,102 @@ def test_it():
 
 # Run these in small chunks, depending on the size of the backup file being used.
 def test_main():
+    """
+    Test main function to test various scenarios using patch to simulate different sys.argv inputs.
+    """
+    ip = "58"
     # # Test name attributes
-    # with patch("sys.argv", ["-test=yes", "restore", "debug", "outline" ]):
+    # with patch("sys.argv", ["-test=yes", "reset", "restore", "debug", "outline" ]):
     #     test_it()
     # # Test name attributes
-    # with patch("sys.argv", ["-test=yes", "detail=2", "debug", "names=bold highlight", "cHighlight LightBlue"]):
+    # with patch("sys.argv", ["-test=yes", "reset", "detail=2", "debug", "names=bold highlight", "cHighlight LightBlue"]):
     #     test_it()
     # with patch(
-    #     "sys.argv", ["-test=yes", "detail=2", "debug", "names=underline italicize", "f='Menlo'"]
+    #     "sys.argv", ["-test=yes", "reset", "detail=1", "debug", "names=underline italicize", "f='Menlo'"],
     # ):
     #     test_it()
     # # Test light mode
-    # with patch("sys.argv", ["-test=yes", "detail=2", "debug", "a=light"]):
+    # with patch("sys.argv", ["-test=yes", "reset", "detail=2", "debug", "appearance=light"]):
     #     test_it()
-    # # Test bold highlight ands directory
-    # with patch("sys.argv", ["-test=yes", "detail=2", "debug", "names=bold highlight", "directory"]):
+    # # Test max detail
+    # with patch("sys.argv", ["-test=yes", "reset", "detail=4", "debug", "i=10"]):
     #     test_it()
     # # Test full detail
-    # with patch("sys.argv", ["-test=yes", "detail=3", "debug", "i=10"]):
+    # with patch("sys.argv", ["-test=yes", "reset", "detail=3", "debug"]):
     #     test_it()
     # # Test limited detail
-    # with patch("sys.argv", ["-test=yes", "detail=2", "debug"]):
+    # with patch("sys.argv", ["-test=yes", "reset", "detail=2", "debug"]):
     #     test_it()
     # # Test limited detail 1
-    # with patch("sys.argv", ["-test=yes", "detail=1", "debug"]):
+    # with patch("sys.argv", ["-test=yes", "reset", "detail=1", "debug"]):
     #     test_it()
     # # Test no detail
-    # with patch("sys.argv", ["-test=yes", "detail=0", "debug"]):
+    # with patch("sys.argv", ["-test=yes", "reset", "detail=0", "debug"]):
     #     test_it()
     # # Test by Project name
     # with patch(
-    #     "sys.argv", ["-test=yes", "project=Base", "debug", "conditions", "taskernet"]
+    #     "sys.argv", ["-test=yes", "reset", "project=Base", "debug", "conditions", "taskernet"],
     # ):
     #     test_it()
     # # Test by Profile name
     # with patch(
     #     "sys.argv",
-    #     ["-test=yes", "profile=View File", "detail=3", "debug"],
+    #     ["-test=yes", "reset", "profile=Check Heat", "detail=3", "debug"],
     # ):
-    #      test_it()
+    #     test_it()
     # # Test by Task name
-    # with patch("sys.argv", ["-test=yes", "task=Check Batteries", "debug", "detail=4"]):
+    # with patch("sys.argv", ["-test=yes", "reset", "task=Check Batteries", "debug", "detail=4"]):
     #     test_it()
     # # Test -pref
-    # with patch("sys.argv", ["-test=yes", "preferences", "debug", "taskernet", "detail=2"]):
+    # with patch("sys.argv", ["-test=yes", "reset", "preferences", "debug", "taskernet", "detail=2"]):
     #     test_it()
     # # Test -dir
-    # with patch("sys.argv", ["-test=yes", "directory", "debug", "taskernet", "detail=4"]):
+    # with patch("sys.argv", ["-test=yes", "reset", "directory", "debug", "taskernet", "detail=4"]):
     #     test_it()
     # # Test new -everything with twisty and outline
-    # with patch("sys.argv", ["-test=yes", "e", "twisty", "o"]):
+    # with patch("sys.argv", ["-test=yes", "reset", "e", "twisty"]):
     #     test_it()
-    # # Test -b fetch backup xml file
+    # # Test fetch backup xml file
     # with patch(
     #     "sys.argv",
     #     [
-    #         "-test=yes",
-    #         "b=http://192.168.0.210:1821+/Tasker/configs/user/backup.xml",
+    #         "-test=yes", "reset",
+    #         f"android_ipaddr=192.168.0.{ip}", "android_port=1821", "android_file=/Tasker/configs/user/backup.xml",
     #     ],
     # ):
     #     test_it()
-    # Test colors
+    # # Test just a Profile
     # with patch(
     #     "sys.argv",
     #     [
-    #         "-test=yes",
+    #         "-test=yes", "reset",
+    #         f"android_ipaddr=192.168.0.{ip}", "android_port=1821", "android_file=/Tasker/profiles/File_List.prf.xml",
+    #     ],
+    # ):
+    #     test_it()
+    # # Test just a Task
+    # with patch(
+    #     "sys.argv",
+    #     [
+    #         "-test=yes", "reset",
+    #         f"android_ipaddr=192.168.0.{ip}", "android_port=1821", "android_file=/Tasker/tasks/Setup_ADB_Permissions.tsk.xml",
+    #     ],
+    # ):
+    #     test_it()
+    # # Test just a Scene
+    # with patch(
+    #     "sys.argv",
+    #     [
+    #         "-test=yes", "reset",
+    #         f"android_ipaddr=192.168.0.{ip}", "android_port=1821", "android_file=/Tasker/scenes/Electric_Blanket.scn.xml",
+    #     ],
+    # ):
+    #     test_it()
+    # # Test colors
+    # with patch(
+    #     "sys.argv",
+    #     [
+    #         "-test=yes", "reset",
     #         "cBackground=Black",
     #         "cActionCondition=Yellow",
     #         "cProfileCondition=Red",
@@ -117,6 +159,17 @@ def test_main():
     # ):
     #     test_it()
 
+    # # Test invalid runtime parameters
+
+    # # Test bad IP address/port/file
+    # with patch(
+    #     "sys.argv",
+    #     [
+    #         "-test=yes", "reset",
+    #         "android_ipaddr192.168.0.6x", "android_port=1821", "android_file=/Tasker/configs/user/backup.xml",
+    #     ],
+    # ):
+    #     test_it()
 
 
 if __name__ == "__main__":
