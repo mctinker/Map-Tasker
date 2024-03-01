@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "maptasker"
 
-version = "3.1.0"
+version = "3.1.1"
 
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
@@ -46,6 +46,7 @@ priority = "primary"
 [tool.ruff]
 line-length = 120
 respect-gitignore = true
+# editor.formatOnSaveMode = "modificationsIfAvailable"
 select = [
     'A',    # Builtins
     'ANN',  # Annotations
@@ -164,6 +165,7 @@ docstring-code-format = true
 
 [tool.black]
 --line-length = 120
+line-length = 120
 
 [build-system]
 requires = ["poetry-core"]

@@ -2,9 +2,26 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.1.0] 22-February-2024
+## [3.1.1] 01-March-2024
 
 ### Fixed
+
+- Fixed: The GUI "Cancel" backup button overlaps the input field for the Android file location.
+- Fixed: In the GUI, the display of the Android file location is sitting on top of the "Restore" button if the file location is long.
+- Fixed: Removed a leftover debug print statement in the diagram code.
+- Fixed: If the XML contains only a single Task, Profile or Scene and no Project, then nothing would be output.
+- Fixed: Properly handle invalid XML files that don't parse.
+- Fixed: Possible loop processing XML code with bad encoding.
+
+### Added
+
+- Added: New runtime argument "-file" is used to point to a specific XML file to use (e.g. -file ~/Downloads/backup.xml) instead of being prompted to select the file.
+- Added: New ability in GUI to list the Android XML files for selection and select the XML file from the list, rather than manually enter the file location.  See README for details.
+- Added: The XML file is validated in the GUI before the 'Run' button is selected.
+
+## Older History Logs
+
+## [3.1.0] 22-February-2024
 
 - Fixed: Program error in runcli.py
 - Fixed: The GUI was not displaying the fact that a single object (Project/Profile/Task) is being displayed on entry based on the settings restored.
@@ -13,13 +30,9 @@ All notable changes to this project will be documented in this file!
 - Fixed: GUI displayed "None" for the "Display Detail Level" setting when selecting "Just Display Everything!" rather than the actual set level.
 - Fixed: Removed a duplicate Task action code.
 - Fixed: Unreferenced global variables were not being displayed.
-
-### Added
-
+- Fixed: Cancel the "Get backup from Android device" didn't cancel the process.
 - Added: MapTasker has now been tested and verified to run on Microsoft Windows 11.
 - Added: Support for Tasker 6.3.3-beta's "Get Network Data Usage" and the rename of "List File/Folder Properties" to "Get File/Folder Properties".
-
-## Older History Logs
 
 ## [3.0.5]
 
@@ -32,18 +45,6 @@ All notable changes to this project will be documented in this file!
 - Changed:  Task entry and exit indicator from "<<<" to "⬅".
 - Changed: When identifying a Project in the output, such as "Project project_name, put a single quote around the name (e.g. Project 'project_name') for clarity.
 - Added: Disabled Profiles and Tasks now display as [⛔ DISABLED
-
-## [3.0.4]
-
-- Fixed: The table colors for Global Variables are wrong if not also displaying the Directory.
-- Fixed: The absence of the runtime option "-GUI" was overridden by the restored savings and required the "-reset" option to stop the GUI from starting. Now, the presence or absence of this "GUI" setting in the runtime options overrides the saved settings.
-- Fixed: Tasker grand totals at the end now reflect the number of Projects/Profiles/Tasks/Scenes displayed and not the total in the Tasker configuration.
-- Fixed: Corrected README file to reference the older MapTasker as version 2.6.3 rather than 3.6.3 .
-- Changed: Eliminated list style in output to ensure proper alignment of Projects/Profiles/Tasks/Scenes.
-- Changed: Eliminated bullet color runtime option (-cBullet color_name) since there are no longer any bullets.
-- Changed: The Task entry and exit indicator from "<<<" to "⬅".
-- Changed: When identifying a Project in the output, such as "Project project_name, put a single quote around the name (e.g. Project 'project_name') for clarity.
-- Added: Disabled Profiles and Tasks now display as [⛔ DISABLED]
 
 ## [3.0.3]
 
