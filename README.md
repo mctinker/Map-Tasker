@@ -24,7 +24,7 @@
 
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX machine based on Tasker's backup.xml
 
-This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux <sup>1</sup>.
+This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see Note 1).
 I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, so I wrote a Python program for my MAC to provide an indented list of my entire configuration based on my Tasker backup XML file that I saved to my Google Drive.
 
 A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
@@ -33,23 +33,11 @@ The Tasker backup XML can either be manually uploaded to your Mac/Google Drive, 
 
 ### Program Dependencies
 
-#### - Python version v3.11 or higher <sup>4</sup> and Tkinter 8.6 or higher, using one of these methods...
+#### - Python version v3.11 (see Note 4) or higher and Tkinter 8.6 or higher.
 
-##### Install Python directly from python.org (includes Tkinter).
+#### - Tasker full or partial backup or exported XML file.
 
-##### Install Python using "pyenv" on macOS:
-
-    `pyenv install 3.11`  (includes Tkinter)
-    `pyenv local 3.11`
-
-##### Install Python via Homebrew on macOS:
-
-    python 3.11: `brew install python3.11`
-    Tkinter 8.6: `brew install tcl-tk` <sup>3</sup>
-
-#### - Tasker full or partial backup.xml
-
-(anyname.xml…you will be prompted to locate and identify your Tasker backup xml file) on your MAC, created by Tasker version 5 or version 6.  Optionally <sup>2</sup>, this can be fetched directly from your Android device.
+(anyname.xml…you will be prompted to locate and identify your Tasker backup/exported XML file) on your MAC, created by Tasker version 5 or version 6.  Optionally, this can be fetched directly from your Android device (see Note 2).
 
 
 ### Installation
@@ -94,8 +82,7 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-h` for help.
 
-    `-android_ipaddr` TCP/IP address of the Android device from which to fetch the backup file.<sup>2</sup>
-    Example: 192.168.0.210
+    `-android_ipaddr` TCP/IP address of the Android device from which to fetch the backup file (see Note 2).
 
     `-android_port` the port number of the Android device from which to fetch the backup file.
     Example: 1821
@@ -146,9 +133,8 @@ Runtime: `maptasker -option1 -option2` ...
     `-profile 'profile name'` to display a single Profile and its Tasks only,
     `-task 'task name'` to display a single Task only,
 
-    Get the backup file directly from the Android device<sup>2</sup>:
 
-
+### Examples
 
 The MapTasker GUI:
 
@@ -190,22 +176,27 @@ Example fetching backup file directly from your Android device:
 
 ## Notes
 
-<sup>1</sup> Windows 11 has been tested and verified to work.  Limitations:
+### 1
+
+Windows 11 has been tested and verified to work.  Limitations:
 - The Edge web browser, though, closes as soon as it opens when invoked from this program.  Therefore, it is recommended to use any browser other than Edge.
 - Notepad does not treat spacing correctly for the configuration diagram (MapTasker_Map.txt).  Install an app such as "Typepad" and set it as your default app for opening txt files.
 
-<sup>2</sup> For the "Get backup" (retrieve the Tasker XML file directly from your Android device) option to work, you must have the following prerequisites:
+### 2
 
+For the "Get backup" (retrieve the Tasker XML file directly from your Android device) option to work, you must have the following prerequisites:
 
 - Both the MAC and Android devices must be on the same network
 
 - The [sample Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").  Make suree to run the "launch" Task and enter your Google Drive ID.
 
-- The TaskerNet profile, [MapTasker List](https://shorturl.at/buvK6), must be imported into the above HTTP Server Example project in order for the 'List XML Files' button to work. 
+- The TaskerNet profile, [MapTasker List](https://shorturl.at/buvK6), must be imported into Tasker in order for the 'List XML Files' button to work. 
 
-- Once the backup has been retrieved from your Android device, it is not necessary to keep retrieving it unless it has changed since it is automatically saved on your Mac.
+- Once the XML has been retrieved from your Android device, it is not necessary to keep retrieving it unless it has changed since it is automatically saved on your Mac.
 
-<sup>3</sup> If having problems getting Tkinter to version 8.6, try the following:
+### 3
+
+If having problems getting Tkinter to version 8.6, try the following:
 
 - uninstall python
 - brew install tcl-tk
@@ -213,7 +204,8 @@ Example fetching backup file directly from your Android device:
 
 If still having Tkinter version problems, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
 
-<sup>4</sup>
+### 4
+
 If you are unable to upgrade to Python version 3.11 or higher, an older version of MapTasker is still available for Python version 3.10, via the command:
 
 	'pip install maptasker==2.6.3'
