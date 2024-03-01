@@ -22,14 +22,14 @@
 
 # MapTasker
 
-## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX machine based on Tasker's backup.xml
+## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX machine based on Tasker's backup or exported XML file.
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see Note 1).
 I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, so I wrote a Python program for my MAC to provide an indented list of my entire configuration based on my Tasker backup XML file that I saved to my Google Drive.
 
 A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
 
-The Tasker backup XML can either be manually uploaded to your Mac/Google Drive, or this program can fetch it directly from your Android device.
+The Tasker backup or exported XML can either be manually uploaded to your PC/Mac/Linux/cloud-drive, or this program can fetch it directly from your Android device.
 
 ### Program Dependencies
 
@@ -82,12 +82,12 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-h` for help.
 
-    `-android_ipaddr` TCP/IP address of the Android device from which to fetch the backup file (see Note 2).
+    `-android_ipaddr` TCP/IP address of the Android device from which to fetch the backup/exported XML file (see Note 2).
 
-    `-android_port` the port number of the Android device from which to fetch the backup file.
+    `-android_port` the port number of the Android device from which to fetch the  backup/exported XML file.
     Example: 1821
 
-    `-android_file` the location of the backup XML file on the Android device.
+    `-android_file` the location of the  backup/exported XML file on the Android device.
     Example: /Tasker/configs/user/backup.xml
 
     The above three 'android' options are mutually inclusive.
@@ -186,7 +186,7 @@ Windows 11 has been tested and verified to work.  Limitations:
 
 For the "Get backup" (retrieve the Tasker XML file directly from your Android device) option to work, you must have the following prerequisites:
 
-- Both the MAC and Android devices must be on the same network
+- Both the MAC and Android devices must be on the same network.
 
 - The [sample Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").  Make suree to run the "launch" Task and enter your Google Drive ID.
 
@@ -228,9 +228,9 @@ With this older version, you will not get the benefits offered by the newer vers
 
 No information whatsoever is captured and sent via the network to myself or any other third party.
 
- When reporting an error, you will most likely be asked to provide the output log file from the error and your backup XML file, both of which will be solely used to debug the program and then immediately deleted.
+ When reporting an error, you will most likely be asked to provide the output log file from the error and your XML file, both of which will be solely used to debug the program and then immediately deleted.
 
-The only network traffic that occurs is if and when you retrieve the backup file directly from your Android device on the same network, and during the GUI startup to check the pypi.org server for updates to the program.
+The only network traffic that occurs is if and when you retrieve the  backup/exported XML file directly from your Android device on the same network, and during the GUI startup to check the pypi.org server for updates to the program.
 
 
 ## Contributions
