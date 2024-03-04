@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "maptasker"
 
-version = "3.1.1"
+version = "3.1.2"
 
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README_PyPl.md"
-license = "GPL-3.0-or-later"
+license = "MIT License (MIT)"
 repository = "https://github.com/mctinker/Map-Tasker"
 keywords = ["tasker", "Tasker", "map tasker"]
 packages = [

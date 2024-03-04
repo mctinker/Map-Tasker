@@ -2,9 +2,21 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.1.1] 01-March-2024
+## [3.1.2] 04-March-2024
 
 ### Fixed
+
+- Fixed: Icons in Profile and Task names are invalid due to bad encoding.
+- Fixed: GUI "?" left in the window after "Get Backup from Android Device" completed.
+- Fixed: The automatic check for updates was not working due to a problem with the 24-hour check.
+
+### Changed
+
+- Changed: All references to "Backup" in the GUI have been changed to "XML".
+
+## Older History Logs
+
+## [3.1.1] 01-March-2024
 
 - Fixed: The GUI "Cancel" backup button overlaps the input field for the Android file location.
 - Fixed: In the GUI, the display of the Android file location is sitting on top of the "Restore" button if the file location is long.
@@ -12,14 +24,9 @@ All notable changes to this project will be documented in this file!
 - Fixed: If the XML contains only a single Task, Profile or Scene and no Project, then nothing would be output.
 - Fixed: Properly handle invalid XML files that don't parse.
 - Fixed: Possible loop processing XML code with bad encoding.
-
-### Added
-
 - Added: New runtime argument "-file" is used to point to a specific XML file to use (e.g. -file ~/Downloads/backup.xml) instead of being prompted to select the file.
 - Added: New ability in GUI to list the Android XML files for selection and select the XML file from the list, rather than manually enter the file location.  See README for details.
 - Added: The XML file is validated in the GUI before the 'Run' button is selected.
-
-## Older History Logs
 
 ## [3.1.0] 22-February-2024
 
@@ -39,7 +46,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: The table colors for Global Variables are wrong if not also displaying the Directory.
 - Fixed: The absence of the runtime option "-GUI" was overridden by the restored savings and required the "-reset" option to stop the GUI from starting. Now, the presence or absence of this "GUI" setting in the runtime options overrides the saved settings.
 - Fixed: Tasker grand totals at the end now reflect the number of Projects/Profiles/Tasks/Scenes displayed and not the total in the Tasker configuration.
-- Fixed: Corrected README file to reference the older MapTasker as version 2.6.3 rather than 3.6.3 .
+- Fixed: Corrected README file to reference the older MapTasker as version 2.6.3 rather than 3.6.3.
 - Changed: Eliminated list style in output to ensure proper alignment of Projects/Profiles/Tasks/Scenes.
 - Changed: Eliminated bullet color runtime option (-cBullet color_name) since there are no longer any bullets.
 - Changed:  Task entry and exit indicator from "<<<" to "⬅".
@@ -192,7 +199,7 @@ All notable changes to this project will be documented in this file!
 
 ## [2.4.3] 2023-10-13
 
-- Added: When changing a color in the GUI, a sample of the new color will be displayed.
+- Added: When changing a specific color in the GUI, a sample of the new color will be displayed.
 - Added: Configuration "map" now includes Tasks not associated with any Profile, entry/exit Task flags.
 - Added: New display level of "4" to include the display of a Project's and all unreferenced global variables.
 - Changed: Restructured code for performance.
@@ -585,7 +592,7 @@ All notable changes to this project will be documented in this file!
 
        Actions complete: Google, Image, Input, Location
        Added: Start providing explicit detail for Actions
-       Changed: Moved this change log to "Changelog.md"
+       Changed: Moved this change log to "Changelog.md".
 
 ## 6.2 Added: Additional Task actions and Profile configurations recognized
 
