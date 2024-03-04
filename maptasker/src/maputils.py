@@ -200,7 +200,7 @@ def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
             try:
                 filename_location = android_file.rfind(PrimeItems.slash) + 1
                 file_to_validate = PrimeItems.program_arguments["android_file"][filename_location:]
-                xmlp = ET.XMLParser(encoding=" iso8859_1")
+                xmlp = ET.XMLParser(encoding=" iso8859_9")
                 xml_tree = ET.parse(file_to_validate, parser=xmlp)
                 process_file = False  # Get out of while/loop
             except ET.ParseError:  # Parsing error

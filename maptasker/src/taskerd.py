@@ -66,7 +66,7 @@ def get_the_xml_data() -> None:
         # # If we still get an encoding error then rewrite the XML with proper ISO encoding and try again.
         file_to_parse = PrimeItems.file_to_get.name
         try:
-            xmlp = ET.XMLParser(encoding=" iso8859_1")
+            xmlp = ET.XMLParser(encoding="utf-8")
             PrimeItems.xml_tree = ET.parse(file_to_parse, parser=xmlp)
             process_file = False  # Get out of while/loop
         except ET.ParseError:  # Parsing error

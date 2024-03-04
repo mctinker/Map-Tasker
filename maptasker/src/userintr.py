@@ -18,14 +18,15 @@ import os
 from pathlib import Path
 
 import customtkinter
-import defusedxml.ElementTree as ET
 from CTkColorPicker.ctk_color_picker import AskColor
 from PIL import Image
 
 from maptasker.src.config import OUTPUT_FONT
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutils import (
+    check_for_changelog,
     clear_android_buttons,
+    create_changelog,
     get_list_of_files,
     get_monospace_fonts,
     is_new_version,
@@ -50,7 +51,7 @@ customtkinter.set_default_color_theme("blue")
 # Help Text
 INFO_TEXT = (
     "MapTasker displays your Android Tasker "
-    "configuration based on your uploaded Tasker backup "
+    "configuration based on your uploaded Tasker XML "
     "file (e.g. 'backup.xml'). The display will "
     "optionally include all Projects, Profiles, Tasks "
     "and their actions, Profile/Task conditions and "
@@ -94,7 +95,7 @@ INFO_TEXT = (
     "anew.\n\n"
     "* Font To Use: Change the monospace font used for the output.\n\n"
     "* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n"
-    "* Get Backup from Android Device: fetch the backup "
+    "* Get XML from Android Device: fetch the backup/exported "
     "XML file from Androiddevice.  You will be asked for the IP address and port number for your"
     " Android device, as well as the file location on the device.\n\n"
     "* Run: Run the program with the settings "
@@ -119,10 +120,10 @@ INFO_TEXT = (
     "turn on Debug mode.\n\n"
     "* Exit: Exit the program (quit).\n\n"
     "Note: You will be prompted to identify your Tasker "
-    "backup file once you hit the 'Run' button."
+    "XML file once you hit the 'Run' button."
 )
 BACKUP_HELP_TEXT = (
-    "The following steps are required in order to fetch a Tasker backup file directly"
+    "The following steps are required in order to fetch a Tasker XML file directly"
     " from your Android device.\n\n"
     "1- Both this device and the Android device must be on the same named network.\n\n"
     "2- The Tasker Project 'HTTP Server Example' or identical function must be"
@@ -142,9 +143,9 @@ BACKUP_HELP_TEXT = (
     "on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\n"
     "HTTP Server Info\n"
     'Server info updated {"device name":"http://192.168.0.49:1821"}\n\n'
-    "- To fetch the backup file, click on the button\n\n 'Get Backup from Android Device'\n\n"
+    "- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\n"
     "Then modify the default values presented in the input fields below this button, and then"
-    " click on the button 'Enter and Click Here to Set Backup Details' or 'List XML Files'.\n\n"
+    " click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n"
     "- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after"
     " 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\n"
     "Click on the 'Cancel Entry' button to back out of this fetch process.\n\n"
@@ -520,7 +521,7 @@ class MyGui(customtkinter.CTk):
         self.restore_settings_button.grid(row=9, column=1, padx=20, pady=10, sticky="nw")
 
         # 'Get Backup Settings' button definition
-        self.display_backup_button("Get Backup from Android Device", "#246FB6", "#6563ff", self.get_backup_event)
+        self.display_backup_button("Get XML from Android Device", "#246FB6", "#6563ff", self.get_backup_event)
 
         # 'Display Help' button definition
         self.help_button = customtkinter.CTkButton(
@@ -538,7 +539,7 @@ class MyGui(customtkinter.CTk):
             master=self,
             fg_color="#246FB6",
             border_width=2,
-            text="Get Backup Help",
+            text="Get XML Help",
             command=self.backup_help_event,
             text_color=("#0BF075", "#ffd941"),
         )
@@ -734,6 +735,9 @@ class MyGui(customtkinter.CTk):
         else:
             self.new_version = False
 
+        # See if we have a changelog, and get it if we do.
+        check_for_changelog(self)
+
         if self.message:
             self.display_message_box(self.message, True)
 
@@ -796,7 +800,6 @@ class MyGui(customtkinter.CTk):
     # Display the Backup button
     # ##################################################################################
     def display_backup_button(self, the_text: str, color1: str, color2: str, routine: object) -> None:
-        # 'Get Backup Settings' button definition
         """
         Displays a backup button on the GUI.
         Args:
@@ -810,6 +813,7 @@ class MyGui(customtkinter.CTk):
             - Places the button on row 7, column 1 spanning 2 columns with padding
             - Configures the button to be stuck to the northwest side of its cell
         """
+        # 'Get Backup Settings' button definition
         self.get_backup_button = customtkinter.CTkButton(
             master=self,
             fg_color=color1,
@@ -1756,9 +1760,9 @@ class MyGui(customtkinter.CTk):
         """
         message = ""
         message_map = {
-            "android_ipaddrt": lambda: f"Get Backup TCP IP Address set to {value}\n",
-            "android_port": lambda: f"Get Backup Port Number set to {value}\n",
-            "android_file": lambda: f"Get Backup File Location set to {value}\n",
+            "android_ipaddrt": lambda: f"Get XML TCP IP Address set to {value}\n",
+            "android_port": lambda: f"Get XML Port Number set to {value}\n",
+            "android_file": lambda: f"Get XML File Location set to {value}\n",
             "appearance_mode": lambda: f"Appearance mode set to {value}.\n",
             "bold": lambda: self.select_deselect_checkbox(self.bold_checkbox, value, "Display Names in Bold"),
             "conditions": lambda: self.select_deselect_checkbox(
@@ -1769,8 +1773,8 @@ class MyGui(customtkinter.CTk):
             "debug": lambda: self.select_deselect_checkbox(self.debug_checkbox, value, "Debug Mode"),
             "directory": lambda: self.select_deselect_checkbox(self.directory_checkbox, value, "Display Directory"),
             "display_detail_level": lambda: self.detail_selected_event(value),
-            "fetched_backup_from_android": lambda: f"Fetched Backup From Android:{value}.\n",
-            "file": lambda: f"Get backup file named '{value}'.\n",
+            "fetched_backup_from_android": lambda: f"Fetched XML From Android:{value}.\n",
+            "file": lambda: f"Get XML file named '{value}'.\n",
             "font": lambda: f"Font set to {value}.\n",
             "highlight": lambda: self.select_deselect_checkbox(
                 self.highlight_checkbox,
@@ -2065,7 +2069,7 @@ class MyGui(customtkinter.CTk):
             text_color=("#0BF075", "#1AD63D"),
         )
         self.list_files_button.grid(row=10, column=1, columnspan=2, padx=(0, 220), pady=(0, 0), sticky="ne")
-        #  Query button
+        #  Query ? button
         self.list_files_query_button = customtkinter.CTkButton(
             self,
             fg_color="#246FB6",
@@ -2100,7 +2104,7 @@ class MyGui(customtkinter.CTk):
 
         # Replace backup button.
         self.display_backup_button(
-            "Enter and Click Here to Set Backup Details",
+            "Enter and Click Here to Set XML Details",
             "#D62CFF",
             "#6563ff",
             self.fetch_backup_event,
@@ -2170,12 +2174,11 @@ class MyGui(customtkinter.CTk):
             return
 
         # Validate each field entered and ping the Android device to make sure it is reachible.
-        failure = ping_android_device(
+        if not ping_android_device(
             self,
             android_ipaddr,
             android_port,
-        )
-        if failure:
+        ):
             return
 
         # If we don't have the file location yet and we don't yet have a list of files, then get the XML file
@@ -2230,16 +2233,17 @@ class MyGui(customtkinter.CTk):
         clear_android_buttons(self)
         self.display_message_box(
             (
-                f"\n\nGet Backup IP Address set to: {self.android_ipaddr}\n\nPort"
+                f"\n\nGet XML IP Address set to: {self.android_ipaddr}\n\nPort"
                 f" Number set to: {self.android_port}\n\nGet"
                 f" Location set to: {self.android_file}"
-                f"\n\nBackup file will be fetched when 'Run' is selected."
+                f"\n\nXML file will be fetched when 'Run' is selected."
             ),
             True,
         )
 
         # Display backup details as a label again.
         self.display_backup_details()
+
 
     # ##################################################################################
     # Fetching backup from Android.  Let the user know the specific details.
@@ -2258,7 +2262,7 @@ class MyGui(customtkinter.CTk):
         """
         self.ip_label = self.port_label = self.file_label = None
         self.file_entry, self.ip_label = self.display_label_and_input(
-            "Getting backup.xml file from Android device:",
+            "Getting XML file from Android device:",
             None,
             7,
             10,
@@ -2304,7 +2308,7 @@ class MyGui(customtkinter.CTk):
         self.android_file = ""
         self.android_ipaddr = ""
         self.android_port = ""
-        self.display_message_box("Get Backup Details Cancelled.", True)
+        self.display_message_box("Get XML Details Cancelled.", True)
 
     # ##################################################################################
     # List files event
@@ -2332,10 +2336,10 @@ class MyGui(customtkinter.CTk):
         clear_android_buttons(self)
         self.display_message_box(
             (
-                f"\n\nGet Backup IP Address set to: {self.android_ipaddr}\n\nPort"
+                f"\n\nGet XML IP Address set to: {self.android_ipaddr}\n\nPort"
                 f" Number set to: {self.android_port}\n\nGet"
                 f" Location set to: {self.android_file}"
-                f"\n\nBackup file will be fetched when 'Run' is selected."
+                f"\n\nXML file will be fetched when 'Run' is selected."
             ),
             True,
         )
@@ -2413,7 +2417,7 @@ class MyGui(customtkinter.CTk):
                 self.display_message_box("Debug mode enabled.", True)
             else:
                 self.display_message_box(
-                    ("Debug mode requires Tasker backup file to be named: 'backup.xml', which is missing!"),
+                    ("Debug mode requires Tasker XML file to be named: 'backup.xml', which is missing!"),
                     False,
                 )
                 self.debug = False
@@ -2470,6 +2474,8 @@ class MyGui(customtkinter.CTk):
             - Reruns the program to pick up the update."""
         update()
         self.display_message_box("Program updated.  Restarting...", True)
+        # Create the Change Log file to be read and displayed after a program update.
+        create_changelog()
         do_rerun()
 
     # ##################################################################################

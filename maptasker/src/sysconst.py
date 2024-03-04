@@ -26,7 +26,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "3.1.1"
+VERSION = "3.1.2"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
@@ -36,6 +36,7 @@ OLD_ARGUMENTS_FILE = ".MapTasker_arguments.json"
 ARGUMENTS_FILE = "MapTasker_Settings.toml"
 FONT_FAMILY = ";font-family:"
 NO_PROFILE = "None or unnamed!"
+CHANGELOG_FILE = ".maptasker_changelog.txt"
 
 #  List of color arguments and their names
 #  Two different key/value structures in one:
@@ -212,4 +213,4 @@ TABLE_BORDER = (
 )
 
 
-NOW_TIME = datetime.now()
+NOW_TIME = datetime.now()  # noqa: DTZ005

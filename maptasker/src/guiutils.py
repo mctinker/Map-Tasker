@@ -26,7 +26,7 @@ from maptasker.src.maputils import get_pypi_version, http_request, validate_ip_a
 from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proginit import get_data_and_output_intro
-from maptasker.src.sysconst import NOW_TIME, VERSION
+from maptasker.src.sysconst import CHANGELOG_FILE, NOW_TIME, VERSION
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -164,7 +164,7 @@ def ping_android_device(self, ip_address: str, port_number: str) -> bool:  # noq
             self.backup_error(
                 f"{ip_address} is not reachable (error {response}).  Try again.",
             )
-            return True
+            return False
         self.display_message_box(
             "Ping successful.",
             True,
@@ -173,16 +173,17 @@ def ping_android_device(self, ip_address: str, port_number: str) -> bool:  # noq
         self.backup_error(
             f"Invalid IP address: {ip_address}.  Try again.",
         )
-        return True
+        return False
 
     # Validate port number
     if validate_port(ip_address, port_number) != 0:
         self.backup_error(
             f"Invalid Port number: {port_number}.  Try again.",
         )
-        return True
+        return False
 
-    return False
+    # Valid IP Address...good ping.
+    return True
 
 
 # ##################################################################################
@@ -198,6 +199,9 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
     - Destroys IP, port, file entry and label widgets
     - Destroys get backup button
     - Displays new backup button with callback to get_backup_event method"""
+
+    # Each element to be destoryed needs a suppression since any one suppression will be triggered if any one of
+    # the elements is not defined.
     with contextlib.suppress(AttributeError):
         self.ip_entry.destroy()
     with contextlib.suppress(AttributeError):
@@ -222,8 +226,10 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
         self.filelist_label.destroy()
     with contextlib.suppress(AttributeError):
         self.filelist_option.destroy()
+    with contextlib.suppress(AttributeError):
+        self.list_files_query_button.destroy()
 
-    self.display_backup_button("Get Backup from Android Device", "#246FB6", "#6563ff", self.get_backup_event)
+    self.display_backup_button("Get XML from Android Device", "#246FB6", "#6563ff", self.get_backup_event)
 
 
 # ##################################################################################
@@ -285,12 +291,12 @@ def is_new_version() -> bool:
     Returns:
         bool: True if new version is available, False if not"""
     # Check if newer version of our code is available on Pypi.
-    if is_more_than_24hrs(PrimeItems.last_run):  # Only check every 24 hours.
-        pypi_version_code = get_pypi_version()
-        if pypi_version_code:
-            pypi_version = pypi_version_code.split("==")[1]
-            PrimeItems.last_run = NOW_TIME  # Update last run to now since we are doing the check.
-            return is_version_greater(VERSION, pypi_version)
+    # if is_more_than_24hrs(PrimeItems.last_run):  # Only check every 24 hours.
+    pypi_version_code = get_pypi_version()
+    if pypi_version_code:
+        pypi_version = pypi_version_code.split("==")[1]
+        PrimeItems.last_run = NOW_TIME  # Update last run to now since we are doing the check.
+        return is_version_greater(VERSION, pypi_version)
     return False
 
 
@@ -326,3 +332,42 @@ def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tupl
 
     # Otherwise, return error
     return return_code, file_contents
+
+
+# ##################################################################################
+# Write out the changelog
+# ##################################################################################
+def create_changelog() -> None:
+    """Create changelog file."""
+    # TODO Change this 'changelog' with each release!
+    changelog = '''
+Version 3.1.2 Change Log
+- Added: Display this Changelog in the GUI.
+- Fixed: Icons in Profile and Task names are invalid due to bad encoding.
+- Fixed: GUI "?" left in the window after "Get Backup from Android Device" completed.
+- Fixed: Check for Update now working in the GUI.
+- Changed: All references to "Backup" in the GUI have been changed to "XML".
+'''  # noqa: Q001
+    with open(CHANGELOG_FILE, "w") as changelog_file:
+        changelog_file.write(changelog)
+
+# ##################################################################################
+# Read the change log file, add it to the messages to be displayed and then remove it.
+# ##################################################################################
+def check_for_changelog(self) -> None:  # noqa: ANN001
+    """Function to check for a changelog file, read its contents, and remove the file if it exists.
+    Parameters:
+        - self (object): The object calling the function.
+    Returns:
+        - None: The function does not return anything.
+    Processing Logic:
+        - Check if changelog file exists.
+        - Read the contents of the file.
+        - Append each line to the message variable.
+        - Remove the changelog file."""
+    if os.path.isfile(CHANGELOG_FILE):
+        with open(CHANGELOG_FILE) as changelog_file:
+            lines = changelog_file.readlines()
+            for line in lines:
+                self.message = self.message + line + "\n"
+        os.remove(CHANGELOG_FILE)
