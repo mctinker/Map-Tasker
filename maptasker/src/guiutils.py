@@ -1,5 +1,4 @@
-"""Utilities used by GUI
-"""
+"""Utilities used by GUI"""
 
 #! /usr/bin/env python3
 
@@ -20,13 +19,16 @@ import os
 from tkinter import font
 from typing import TYPE_CHECKING
 
+import customtkinter
+from PIL import Image
+
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.lineout import LineOut
-from maptasker.src.maputils import get_pypi_version, http_request, validate_ip_address, validate_port
+from maptasker.src.maputils import get_pypi_version, http_request, validate_ip_address, validate_port, validate_xml_file
 from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proginit import get_data_and_output_intro
-from maptasker.src.sysconst import CHANGELOG_FILE, NOW_TIME, VERSION
+from maptasker.src.sysconst import CHANGELOG_FILE, EDIT, NOW_TIME, VERSION
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -178,7 +180,7 @@ def ping_android_device(self, ip_address: str, port_number: str) -> bool:  # noq
     # Validate port number
     if validate_port(ip_address, port_number) != 0:
         self.backup_error(
-            f"Invalid Port number: {port_number}.  Try again.",
+            f"Invalid Port number: {port_number} or the given IP address does not permit access to this port.  Try again.",
         )
         return False
 
@@ -340,16 +342,21 @@ def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tupl
 def create_changelog() -> None:
     """Create changelog file."""
     # TODO Change this 'changelog' with each release!
-    changelog = '''
-Version 3.1.2 Change Log
-- Added: Display this Changelog in the GUI.
-- Fixed: Icons in Profile and Task names are invalid due to bad encoding.
-- Fixed: GUI "?" left in the window after "Get Backup from Android Device" completed.
-- Fixed: Check for Update now working in the GUI.
-- Changed: All references to "Backup" in the GUI have been changed to "XML".
-'''  # noqa: Q001
+    changelog = """
+Version 3.1.3 Change Log (includes 3.1.2 changes)
+- Fixed: File error displayed after getting the list of Android files in the GUI.
+- Fixed: The Task name does not appear if the XML consists solely of a single Task.
+- Fixed: If the 'Get XML File' IP address is a valid address on the local network but not accepting access via the port given, specify this in the error message.
+
+- Changed: Don't reread the Android XML file if "Run" has been selected since we've already read the file to validate the XML.
+- Changed: Improved the GUI help information for using the 'List XML File' button/feature.
+
+- Added: The GUI has a new button to 'Report Issue', which can be used for bugs and new feature requests.
+- Added: The GUI 'Color" tab now has a button to reset all Tasker objects to their default colors.
+"""
     with open(CHANGELOG_FILE, "w") as changelog_file:
         changelog_file.write(changelog)
+
 
 # ##################################################################################
 # Read the change log file, add it to the messages to be displayed and then remove it.
@@ -371,3 +378,640 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
             for line in lines:
                 self.message = self.message + line + "\n"
         os.remove(CHANGELOG_FILE)
+
+
+# ##################################################################################
+# Initialize the GUI (_init_ method)
+# ##################################################################################
+def initialize_gui(self) -> None:  # noqa: ANN001
+    """Initializes the GUI by initializing variables and adding a logo.
+    Parameters:
+        - self (class): The class object.
+    Returns:
+        - None: Does not return anything.
+    Processing Logic:
+        - Calls initialize_variables function.
+        - Calls add_logo function."""
+    initialize_variables(self)
+    add_logo(self)
+
+
+# ##################################################################################
+# Initialize the GUI varliables (e..g _init_ method)
+# ##################################################################################
+def initialize_variables(self) -> None:  # noqa: ANN001
+    """
+    Initialize variables for the MapTasker Runtime Options window.
+    """
+    self.android_ipaddr = ""
+    self.android_port = ""
+    self.android_file = ""
+    self.appearance_mode = None
+    self.bold = None
+    self.color_labels = None
+    self.color_lookup = None
+    self.color_text_row = None
+    self.debug = None
+    self.display_detail_level = None
+    self.edit = False
+    self.edit_type = ""
+    self.preferences = None
+    self.conditions = None
+    self.everything = None
+    self.taskernet = None
+    self.exit = None
+    self.fetched_backup_from_android = False
+    self.file = None
+    self.font = None
+    self.go_program = None
+    self.gui = True
+    self.highlight = None
+    self.indent = None
+    self.italicize = None
+    self.named_item = None
+    self.rerun = None
+    self.reset = None
+    self.restore = False
+    self.runtime = False
+    self.save = False
+    self.single_profile_name = None
+    self.single_project_name = None
+    self.single_task_name = None
+    self.twisty = None
+    self.underline = None
+    self.outline = False
+    self.toplevel_window = None
+    PrimeItems.program_arguments["gui"] = True
+    self.list_files = False
+
+    self.title("MapTasker Runtime Options")
+    # Overall window dimensions
+    self.geometry("1100x800")
+    self.width = 1100
+    self.height = 800
+
+    # configure grid layout (4x4)
+    self.grid_columnconfigure(1, weight=1)
+    self.grid_columnconfigure((2, 3), weight=0)
+    self.grid_rowconfigure(0, weight=1)
+
+    # load and create background image
+
+    # create sidebar frame with widgets on the left side of the window.
+    self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
+    # self.sidebar_frame.configure(height=self._apply_window_scaling(800))
+    self.sidebar_frame.configure(bg_color="black")
+    self.sidebar_frame.grid(row=0, column=0, rowspan=13, sticky="nsew")
+    # Define sidebar background frame with 14 rows
+    self.sidebar_frame.grid_rowconfigure(14, weight=1)
+
+
+# ##################################################################################
+# Add the MapTasker icon to the screen
+# ##################################################################################
+def add_logo(self) -> None:  # noqa: ANN001
+    """Function:
+        add_logo
+    Parameters:
+        - self (object): The object that the function is being called on.
+    Returns:
+        - None: The function does not return anything.
+    Processing Logic:
+        - Get the path to our logos.
+        - Switch to our temp directory (assets).
+        - Create a CTkImage object to display the logo.
+        - Try to display the logo with a CTkLabel.
+        - Switch back to proper directory."""
+    # Add our logo
+    # Get the path to our logos:
+    # current_dir = directory from which we are running.
+    # abspath = path of this source code (userintr.py).
+    # cwd = directory from which the main program is (main.py)
+    # dname = directory of src
+    current_dir = os.getcwd()
+    abspath = os.path.abspath(__file__)
+    # cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
+    dname = os.path.dirname(abspath)
+    temp_dir = dname.replace("src", "assets")
+    # Switch to our temp directory (assets)
+    os.chdir(temp_dir)
+
+    # Create a CTkImage object to display the logo
+    my_image = customtkinter.CTkImage(
+        light_image=Image.open("maptasker_logo_light.png"),
+        dark_image=Image.open("maptasker_logo_dark.png"),
+        size=(190, 50),
+    )
+    try:
+        self.logo_label = customtkinter.CTkLabel(
+            self.sidebar_frame,
+            image=my_image,
+            text="",
+            compound="left",
+            font=customtkinter.CTkFont(size=1, weight="bold"),
+        )  # display image with a CTkLabel
+        self.logo_label.grid(row=0, column=0, padx=0, pady=0, sticky="n")
+    except:  # noqa: S110
+        pass
+    # del my_image  # Done with image...get rid of it.
+
+    # # Add the background image.
+    # bg_image = customtkinter.CTkImage(
+    #     Image.open("bg_gradient.jpg"),
+    #     size=(self.width, self.height),
+    # )
+    # self.bg_image_label = customtkinter.CTkLabel(self, image=bg_image)
+    # self.bg_image_label.grid(row=0, column=0)
+
+    # Switch back to proper directory
+    os.chdir(current_dir)
+
+
+# ##################################################################################
+# Define all of the menu elements
+# ##################################################################################
+def initialize_screen(self) -> None:  # noqa: ANN001
+    # Add grid title
+    """Initializes the screen with various display options and settings.
+    Parameters:
+        - self (object): The object to which the function belongs.
+    Returns:
+        - None: This function does not return any value.
+    Processing Logic:
+        - Creates a grid title and adds it to the sidebar frame.
+        - Defines the first grid / column for display detail level.
+        - Defines the second grid / column for checkboxes related to display options.
+        - Defines the third grid / column for buttons related to program settings.
+        - Creates a textbox for displaying help information.
+        - Creates a tabview for setting specific names, colors, and debug options.
+        - Defines the fourth grid / column for checkboxes related to debug options.
+        - If the program is in edit mode, creates a fifth grid / column for selecting new or existing projects.
+        - Defines the sixth grid / column for checkboxes related to runtime settings."""
+    self.logo_label = customtkinter.CTkLabel(
+        self.sidebar_frame,
+        text="Display Options",
+        font=customtkinter.CTkFont(size=20, weight="bold"),
+    )
+    self.logo_label.grid(row=0, column=0, padx=20, pady=(60, 10), sticky="s")
+
+    # Start first grid / column definitions
+
+    # Display Detail Level
+    self.detail_label = customtkinter.CTkLabel(self.sidebar_frame, text="Display Detail Level:", anchor="w")
+    self.detail_label.grid(row=1, column=0, padx=20, pady=(10, 0))
+    self.sidebar_detail_option = customtkinter.CTkOptionMenu(
+        self.sidebar_frame,
+        values=["0", "1", "2", "3", "4"],
+        command=self.detail_selected_event,
+    )
+    self.sidebar_detail_option.grid(row=2, column=0, padx=20, pady=(10, 10))
+
+    # Display 'Condition' checkbox
+    self.condition_checkbox = customtkinter.CTkCheckBox(
+        self.sidebar_frame,
+        command=self.condition_event,
+        text="Display Profile and Task Action Conditions",
+        onvalue=True,
+        offvalue=False,
+    )
+    self.condition_checkbox.grid(row=4, column=0, padx=20, pady=10, sticky="w")
+
+    # Display 'TaskerNet' checkbox
+    self.taskernet_checkbox = customtkinter.CTkCheckBox(
+        self.sidebar_frame,
+        command=self.taskernet_event,
+        text="Display TaskerNet Info",
+        onvalue=True,
+        offvalue=False,
+    )
+    self.taskernet_checkbox.grid(row=5, column=0, padx=20, pady=10, sticky="w")
+
+    # Display 'Tasker Preferences' checkbox
+    self.preferences_checkbox = customtkinter.CTkCheckBox(
+        self.sidebar_frame,
+        command=self.preferences_event,
+        text="Display Tasker Preferences",
+        onvalue=True,
+        offvalue=False,
+    )
+    self.preferences_checkbox.grid(row=6, column=0, padx=20, pady=10, sticky="w")
+
+    # Display 'Twisty' checkbox
+    self.twisty_checkbox = customtkinter.CTkCheckBox(
+        self.sidebar_frame,
+        command=self.twisty_event,
+        text="Hide Task Details Under Twisty",
+        onvalue=True,
+        offvalue=False,
+    )
+    self.twisty_checkbox.grid(row=7, column=0, padx=20, pady=10, sticky="w")
+
+    # Display 'directory' checkbox
+    self.directory_checkbox = customtkinter.CTkCheckBox(
+        self.sidebar_frame,
+        command=self.directory_event,
+        text="Display Directory",
+        onvalue=True,
+        offvalue=False,
+    )
+    self.directory_checkbox.grid(row=8, column=0, padx=20, pady=10, sticky="w")
+
+    # Outline
+    self.outline_checkbox = customtkinter.CTkCheckBox(
+        self.sidebar_frame,
+        command=self.outline_event,
+        text="Display Configuration Outline",
+        onvalue=True,
+        offvalue=False,
+    )
+    self.outline_checkbox.grid(row=9, column=0, padx=20, pady=10, sticky="w")
+
+    # Names: Bold / Highlight / Italicise
+    self.display_names_label = customtkinter.CTkLabel(
+        self.sidebar_frame,
+        text="Project/Profile/Task/Scene Names:",
+        anchor="s",
+    )
+    self.display_names_label.grid(row=10, column=0, padx=20, pady=10)
+    # Bold
+    self.bold_checkbox = customtkinter.CTkCheckBox(
+        self.sidebar_frame,
+        command=self.names_bold_event,
+        text="Bold",
+        onvalue=True,
+        offvalue=False,
+    )
+    self.bold_checkbox.grid(row=11, column=0, padx=20, pady=0, sticky="ne")
+    # Italicize
+    self.italicize_checkbox = customtkinter.CTkCheckBox(
+        self.sidebar_frame,
+        command=self.names_italicize_event,
+        text="Italicize",
+        onvalue=True,
+        offvalue=False,
+    )
+    self.italicize_checkbox.grid(row=11, column=0, padx=20, pady=0, sticky="nw")
+    # Highlight
+    self.highlight_checkbox = customtkinter.CTkCheckBox(
+        self.sidebar_frame,
+        command=self.names_highlight_event,
+        text="Highlight",
+        onvalue=True,
+        offvalue=False,
+    )
+    self.highlight_checkbox.grid(row=12, column=0, padx=20, pady=5, sticky="ne")
+    # Underline
+    self.underline_checkbox = customtkinter.CTkCheckBox(
+        self.sidebar_frame,
+        command=self.names_underline_event,
+        text="Underline",
+        onvalue=True,
+        offvalue=False,
+    )
+    self.underline_checkbox.grid(row=12, column=0, padx=20, pady=5, sticky="nw")
+
+    # Indentation
+    self.indent_label = customtkinter.CTkLabel(
+        self.sidebar_frame,
+        text="If/Then/Else Indentation Amount:",
+        anchor="s",
+    )
+    self.indent_label.grid(row=13, column=0, padx=20, pady=(10, 0))
+    # Indentation Amount
+    self.indent_option = customtkinter.CTkOptionMenu(
+        self.sidebar_frame,
+        values=[
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+        ],
+        command=self.indent_selected_event,
+    )
+    self.indent_option.grid(row=14, column=0, padx=20, pady=(10, 10))
+
+    # Screen Appearance: Light / Dark / System
+    self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="sw")
+    self.appearance_mode_label.grid(row=15, column=0, padx=20, pady=10)
+    self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(
+        self.sidebar_frame,
+        values=["Light", "Dark", "System"],
+        command=self.change_appearance_mode_event,
+    )
+    self.appearance_mode_optionemenu.grid(row=16, column=0, padx=0, sticky="n")
+
+    # 'Reset Settings' button definition
+    self.reset_button = customtkinter.CTkButton(
+        # master=self,
+        self.sidebar_frame,
+        fg_color="#246FB6",
+        border_width=2,
+        text="Reset Options",
+        command=self.reset_settings_event,
+    )
+    self.reset_button.grid(row=17, column=0, padx=20, pady=20, sticky="")
+
+    # Start second grid / column definitions
+
+    # Font to use
+    self.font_label = customtkinter.CTkLabel(master=self, text="Font To Use In Output:", anchor="sw")
+    self.font_label.grid(row=6, column=1, padx=20, pady=10, sticky="sw")
+    # Get fonts from TkInter
+    font_items, res = get_monospace_fonts()
+    # Delete the tkroot obtained by get_monospace_fonts
+    if PrimeItems.tkroot is not None:
+        del PrimeItems.tkroot
+        PrimeItems.tkroot = None
+    self.font_optionemenu = customtkinter.CTkOptionMenu(
+        master=self,
+        values=font_items,
+        command=self.font_event,
+    )
+    self.font_optionemenu.set(res[0])
+    self.font_optionemenu.grid(row=7, column=1, padx=20, sticky="nw")
+
+    # Save settings button
+    self.save_settings_button = customtkinter.CTkButton(
+        master=self,
+        border_color="#6563ff",
+        border_width=2,
+        text="Save Settings",
+        command=self.save_settings_event,
+    )
+    self.save_settings_button.grid(row=8, column=1, padx=20, sticky="sw")
+
+    # Restore settings button
+    self.restore_settings_button = customtkinter.CTkButton(
+        master=self,
+        border_color="#6563ff",
+        border_width=2,
+        text="Restore Settings",
+        command=self.restore_settings_event,
+    )
+    self.restore_settings_button.grid(row=9, column=1, padx=20, pady=10, sticky="nw")
+
+    # Report Issue
+    self.report_issue_button = customtkinter.CTkButton(
+        master=self,
+        border_color="#6563ff",
+        border_width=2,
+        text="Report Issue",
+        command=self.report_issue_event,
+    )
+    self.report_issue_button.grid(row=10, column=1, padx=20, pady=10, sticky="nw")
+    # 'Get Backup Settings' button definition
+    self.display_backup_button("Get XML from Android Device", "#246FB6", "#6563ff", self.get_backup_event)
+
+    # 'Display Help' button definition
+    self.help_button = customtkinter.CTkButton(
+        master=self,
+        fg_color="#246FB6",
+        border_width=2,
+        text="Display Help",
+        command=self.help_event,
+        text_color=("#0BF075", "#ffd941"),
+    )
+    self.help_button.grid(row=6, column=2, padx=(20, 20), pady=(20, 20), sticky="ne")
+
+    # 'Backup Help' button definition
+    self.backup_help_button = customtkinter.CTkButton(
+        master=self,
+        fg_color="#246FB6",
+        border_width=2,
+        text="Get XML Help",
+        command=self.backup_help_event,
+        text_color=("#0BF075", "#ffd941"),
+    )
+    self.backup_help_button.grid(row=7, column=2, padx=(20, 20), pady=(20, 20), sticky="ne")
+
+    # 'Run' button definition
+    self.run_button = customtkinter.CTkButton(
+        master=self,
+        fg_color="#246FB6",
+        border_width=2,
+        text="Run",
+        command=self.run_program,
+        text_color=("#0BF075", "#1AD63D"),
+    )
+    self.run_button.grid(row=8, column=2, padx=(20, 20), pady=(20, 20), sticky="e")
+
+    # 'ReRun' button definition
+    self.rerun_button = customtkinter.CTkButton(
+        master=self,
+        fg_color="#246FB6",
+        border_width=2,
+        text="ReRun",
+        command=self.rerun_the_program,
+        text_color=("#0BF075", "#1AD63D"),
+    )
+    self.rerun_button.grid(row=9, column=2, padx=(20, 20), pady=(20, 20), sticky="e")
+
+    # 'Exit' button definition
+    self.exit_button = customtkinter.CTkButton(
+        master=self,
+        fg_color="#246FB6",
+        border_width=2,
+        text="Exit",
+        command=self.exit_program,
+        text_color="Red",
+    )
+    self.exit_button.grid(row=10, column=2, padx=(20, 20), pady=(20, 20), sticky="e")
+
+    # Create textbox for Help information
+    self.textbox = customtkinter.CTkTextbox(self, height=600, width=250)
+    self.textbox.configure(scrollbar_button_color="#6563ff", wrap="word")
+    self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
+
+    # Start third grid / column definitions
+    # create tabview for Name, Color, and Debug
+    self.tabview = customtkinter.CTkTabview(self, width=250, segmented_button_fg_color="#6563ff")
+    self.tabview.grid(row=0, column=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
+    self.tabview.add("Specific Name")
+    self.tabview.add("Colors")
+    self.tabview.add("Debug")
+    if EDIT:
+        self.tabview.add("Edit")
+
+    self.tabview.tab("Specific Name").grid_columnconfigure(0, weight=1)  # configure grid of individual tabs
+    self.tabview.tab("Colors").grid_columnconfigure(0, weight=1)
+
+    # Project Name
+    self.string_input_button1 = customtkinter.CTkRadioButton(
+        self.tabview.tab("Specific Name"),
+        text="Project Name",
+        command=self.single_project_name_event,
+        fg_color="#6563ff",
+        border_color="#1bc9ff",
+    )
+    self.string_input_button1.grid(row=1, column=0, padx=20, pady=(10, 10), sticky="nsew")
+
+    # Profile Name
+    self.string_input_button2 = customtkinter.CTkRadioButton(
+        self.tabview.tab("Specific Name"),
+        text="Profile Name",
+        command=self.single_profile_name_event,
+        fg_color="#6563ff",
+        border_color="#1bc9ff",
+    )
+    self.string_input_button2.grid(row=2, column=0, padx=20, pady=(10, 10), sticky="nsew")
+
+    # Task Name
+    self.string_input_button3 = customtkinter.CTkRadioButton(
+        self.tabview.tab("Specific Name"),
+        text="Task Name",
+        command=self.single_task_name_event,
+        fg_color="#6563ff",
+        border_color="#1bc9ff",
+    )
+    self.string_input_button3.grid(row=3, column=0, padx=20, pady=(10, 10), sticky="nsew")
+
+    # Prompt for the name
+    self.name_label = customtkinter.CTkLabel(self.tabview.tab("Specific Name"), text="(Pick ONLY One)", anchor="w")
+    self.name_label.grid(row=4, column=0, padx=20, pady=(10, 10))
+
+    # Setup to get various display colors
+    self.label_tab_2 = customtkinter.CTkLabel(self.tabview.tab("Colors"), text="Set Various Display Colors Here")
+    self.label_tab_2.grid(row=0, column=0, padx=0, pady=0)
+    self.colors_optionemenu = customtkinter.CTkOptionMenu(
+        self.tabview.tab("Colors"),
+        values=[
+            "Projects",
+            "Profiles",
+            "Disabled Profiles",
+            "Launcher Task",
+            "Profile Conditions",
+            "Tasks",
+            "(Task) Actions",
+            "Action Conditions",
+            "Action Labels",
+            "Action Names",
+            "Scenes",
+            "Background",
+            "TaskerNet Information",
+            "Tasker Preferences",
+            "Highlight",
+            "Heading",
+        ],
+        command=self.colors_event,
+    )
+    self.colors_optionemenu.grid(row=1, column=0, padx=20, pady=(10, 10))
+
+    # Reset to Default Colors button
+    self.color_reset_button = customtkinter.CTkButton(
+        master=self.tabview.tab("Colors"),
+        border_width=2,
+        text="Reset to Default Colors",
+        command=self.color_reset_event,
+        # text_color=("#0BF075", "#1AD63D"),
+    )
+    self.color_reset_button.grid(row=3, column=0, padx=20, pady=(10, 10))
+
+    # Debug Mode checkbox
+    self.debug_checkbox = customtkinter.CTkCheckBox(
+        self.tabview.tab("Debug"),
+        text="Debug Mode",
+        command=self.debug_checkbox_event,
+        onvalue=True,
+        offvalue=False,
+    )
+    self.debug_checkbox.configure(border_color="#6563ff")
+    self.debug_checkbox.grid(row=4, column=3, padx=20, pady=10, sticky="w")
+
+    # Edit Section Prompts
+    if EDIT:
+        # TODO Clean up the geometry
+        self.edit_label = customtkinter.CTkLabel(self.tabview.tab("Edit"), text="New or existing?")
+        self.edit_label.grid(row=10, column=2, padx=(20, 20), pady=(20, 20), sticky="e")
+
+        self.edit_optionemenu = customtkinter.CTkOptionMenu(
+            self.tabview.tab("Edit"),
+            values=[
+                "Create New",
+                "Edit Existing",
+            ],
+            fg_color="#246FB6",
+            command=self.edit_event,
+        )
+        self.edit_optionemenu.grid(row=10, column=2, padx=(20, 20), pady=(20, 20), sticky="e")
+
+    # Runtime
+    self.runtime_checkbox = customtkinter.CTkCheckBox(
+        self.tabview.tab("Debug"),
+        text="Display Runtime Settings",
+        command=self.runtime_checkbox_event,
+        onvalue=True,
+        offvalue=False,
+    )
+    self.runtime_checkbox.configure(border_color="#6563ff")
+    self.runtime_checkbox.grid(row=3, column=3, padx=20, pady=10, sticky="w")
+
+
+# ##################################################################################
+# Either validate the file location provided or provide a filelist of XML files
+# ##################################################################################
+def validate_or_filelist_xml(
+    self, android_ipaddr: str, android_port: str, android_file: str
+) -> tuple[int, str]:  # noqa: ANN001
+    # If we don't have the file location yet and we don't yet have a list of files, then get the XML file
+    # to validate that it exists.
+    """Function to validate an XML file on an Android device and return the file's contents if it exists.
+    Parameters:
+        - android_ipaddr (str): IP address of the Android device.
+        - android_port (str): Port number of the Android device.
+        - android_file (str): File name of the XML file to validate.
+    Returns:
+        - Tuple[int, str]: A tuple containing the return code and the file's contents if it exists.
+    Processing Logic:
+        - Get the XML file from the Android device if no file location is provided.
+        - Validate the XML file.
+        - If the file does not exist, display an error message.
+        - If the file location is not provided, get a list of all XML files from the Android device and present it to the user.
+    """
+    if len(android_file) != 0 and android_file != "" and self.list_files == False:
+        return_code, file_contents = http_request(android_ipaddr, android_port, android_file, "file", "?download=1")
+
+        # Validate XML file.
+        if return_code == 0:
+            return_code, error_message = validate_xml_file(android_ipaddr, android_port, android_file)
+            if return_code != 0:
+                self.display_message_box(error_message, False)
+                return 1, android_ipaddr, android_port, android_file
+        else:
+            return 1, android_ipaddr, android_port, android_file
+
+    # File location not provided.  Get the list of all XML files from the Android device and present it to the user.
+    else:
+        clear_android_buttons(self)
+        # Get list from Tasker directory (/Tasker) or system directory (/storage/emulated/0)
+        return_code, filelist = get_list_of_files(android_ipaddr, android_port, "/storage/emulated/0/Tasker")
+        if return_code != 0:
+            # Error getting list of files.
+            self.display_message_box(filelist, False)
+            return 1, android_ipaddr, android_port, android_file
+
+        # Display File List for file selection
+        self.filelist_label = customtkinter.CTkLabel(
+            self,
+            text="Select XML File From Android Device:",
+            anchor="w",
+        )
+        self.filelist_label.grid(row=9, column=1, columnspan=2, padx=(200, 10), pady=(0, 10), sticky="sw")
+        self.filelist_option = customtkinter.CTkOptionMenu(
+            self,
+            values=filelist,
+            command=self.file_selected_event,
+        )
+        self.filelist_option.grid(row=10, column=1, columnspan=2, padx=(200, 10), pady=(0, 10), sticky="nw")
+        self.android_ipaddr = android_ipaddr
+        self.android_port = android_port
+        return 2, "", "", ""  # Just return with error so the prompt comes up to select file.
+
+    # All is okay
+    return 0, android_ipaddr, android_port, android_file

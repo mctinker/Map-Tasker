@@ -452,6 +452,12 @@ def output_task_list(
         Returns:
             bool: True if we found a Task"""
     for count, task_item in enumerate(list_of_tasks):
+
+        # If we are coming in without a Task name, then we are only doing a single Task and we need to plug in
+        # the Task name.
+        if task_output_lines[count] == " ":
+            task_output_lines[count] = f'{task_item["name"]}&nbsp;&nbsp;'
+
         # Doing extra details?
         if do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
             # Get the extra details for this Task
@@ -465,7 +471,7 @@ def output_task_list(
                 task_item["xml"],
                 [task_output_lines[count]],
             )
-            # Tack on the extra info since [task_output_lines[count]] is immutable
+            # Tack on the extra info since [task_output_lines[count]] it is immutable
             task_output_lines[count] = (
                 f"{task_output_lines[count]} {kid_app_info}{priority}{collision}{stay_awake}{blank*2}{icon_info}"
             )

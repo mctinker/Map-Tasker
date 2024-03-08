@@ -21,10 +21,7 @@ def set_color_mode(appearance_mode: str) -> dict:
        :return new colormap of colors to use in the output
     """
     # Deal with "System" color mode
-    if appearance_mode == "system":
-        mode = "dark" if darkdetect.isDark() else "light"
-    else:
-        mode = appearance_mode
+    mode = ("dark" if darkdetect.isDark() else "light") if appearance_mode == "system" else appearance_mode
 
     # Now set the colors to use based on the appearance mode
     if mode == "dark":
