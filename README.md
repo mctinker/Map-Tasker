@@ -218,7 +218,7 @@ With this older version, you will not get the benefits offered by the newer vers
 
 - [x] Fix output column alignment
 
-- [x] Support Windows
+- [x] Support Windows 11
 
 - [ ] Include/map remaining Tasker preferences
 

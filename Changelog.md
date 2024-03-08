@@ -2,19 +2,32 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.1.2] 04-March-2024
+## [3.1.4] 08-March-2024 (includes 3.1.3 changes)
 
 ### Fixed
+
+- Fixed: File error displayed after getting the list of Android files in the GUI.
+- Fixed: The Task name does not appear if the XML consists solely of a single Task.
+- Fixed: If the 'Get XML File' IP address is a valid address on the local network but not accepting access via the port given, specify this in the error message.
+
+### Changed
+
+- Changed: Don't reread the Android XML file if "Run" has been selected since we've already read the file to validate the XML.
+- Changed: Improved the GUI help information for using the 'List XML File' button/feature.
+
+### Added
+
+- Added: The GUI has a new button to 'Report Issue', which can be used for issues and new feature requests.
+- Added: The GUI 'Color" tab now has a button to reset all Tasker objects to their default colors.
+
+## Older History Logs
+
+## [3.1.2] 04-March-2024
 
 - Fixed: Icons in Profile and Task names are invalid due to bad encoding.
 - Fixed: GUI "?" left in the window after "Get Backup from Android Device" completed.
 - Fixed: The automatic check for updates was not working due to a problem with the 24-hour check.
-
-### Changed
-
 - Changed: All references to "Backup" in the GUI have been changed to "XML".
-
-## Older History Logs
 
 ## [3.1.1] 01-March-2024
 
