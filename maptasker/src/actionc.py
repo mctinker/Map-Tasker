@@ -1,14 +1,14 @@
 #! /usr/bin/env python3
 # #################################################################################### #
 #                                                                                      #
-# actionc: Task "Action" and Profile "condition" dictionary                            #
+# actionc: Task "Action" and Profile "condition" dictionary                             #
 #                                                                                      #
 #  Provide the master lookup for a given <code>nnn</code> xml statement                #
 #  level 1 key = the code (nnn, above)                                                 #
 #   numargs subkey = the maximum number of argn xml lines in the action                #
-#      if it = 99, then this is a referral to another entry, which is identified       #
+#      if it = 99, then this is a referral to another entry, which is identified        #
 #      in 'args'                                                                       #
-#   args subkey = the specific arg number  keys with a 's' or 'e' are Profile          #
+#   args subkey = the specific arg number  keys with a 's' or 'e' are Profile            #
 #    conditions                                                                        #
 #        ...'e'=event, 's'=state, 't'=task                                             #
 #   display subkey = the name to output - required                                     #
@@ -17,12 +17,12 @@
 #      'some_string:' for str or int xml values                                        #
 #      ['', 'e', 'some_string'] for boolean: 1 = display string, 0 = no display - optl #
 #                                                                                      #
-#      ['some_string:', 'l', 'lookup-code] for actiont dictionary lookup for specific  #
+#      ['some_string:', 'l', 'lookup-code] for actiont dictionary lookup for specific   #
 #       code.                                                                          #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
+# complete source code of licensed works and modifications, which include larger works  #
 # using a licensed work, under the same license. Copyright and license notices must be #
 # preserved. Contributors provide an express grant of patent rights.                   #
 # #################################################################################### #
@@ -30,7 +30,7 @@ from collections import namedtuple
 
 # from typing import List
 
-ActionCode = namedtuple(
+ActionCode = namedtuple(  # noqa: PYI024
     "ActionCode",
     ["numargs", "redirect", "args", "types", "display", "reqargs", "evalargs"],
 )

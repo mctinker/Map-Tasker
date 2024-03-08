@@ -106,7 +106,11 @@ def get_pypi_version() -> str:
 # Issue HTTP Request to get something from the Android device.
 # ##################################################################################
 def http_request(
-    ip_address: str, ip_port: str, file_location: str, request_name: str, request_parm: str,
+    ip_address: str,
+    ip_port: str,
+    file_location: str,
+    request_name: str,
+    request_parm: str,
 ) -> tuple[int, object]:
     """
     Issue HTTP Request to get the backup xml file from the Android device.

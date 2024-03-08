@@ -97,7 +97,11 @@ def get_backup_file() -> str:
 
         :return: The name of the backup file (e.g. backup.xml)
     """
-    # Get the contents of the file.
+    # If ruinning from the GUI, then we have already gotten the file. Just return the name on the local drive.add
+    if PrimeItems.program_arguments["gui"]:
+        return substring_after_last(PrimeItems.program_arguments["android_file"], "/")
+
+    # Get the contents of the file from the Android device.
     return_code, file_contents = http_request(
         PrimeItems.program_arguments["android_ipaddr"],
         PrimeItems.program_arguments["android_port"],
