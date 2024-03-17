@@ -1784,7 +1784,7 @@ class MyGui(customtkinter.CTk):
             self,
             f"Location: {self.android_file}",
             "",
-            12,
+            13,
             "normal",
             8,
             1,
