@@ -1,26 +1,35 @@
-# MapTasker Change log
+# MapTasker Change log  # ruff: noqa
 
 All notable changes to this project will be documented in this file!
 
-## [3.1.4] 08-March-2024 (includes 3.1.3 changes)
+## [3.1.5] 17-March-2024
 
 ### Fixed
+
+- Fixed: The wrong changelog information is being displayed with a new version update in the GUI.
+- Fixed: The GUI 'Upgrade to Latest Version' button is sitting on top of the 'Report Issue' button.
+- Fixed: The GUI 'Just Display Everything' button is missing.
+- Fixed: The alignment of the Android XML fields in the GUI is off.
+
+## Changed
+
+- Changed: The 'Get XML Help' button in the GUI is now called 'Get Android Help' for clarity.
+
+## Added
+
+- Added: The GUI message window now displays the message history.
+
+## Older History Logs
+
+## [3.1.4] 08-March-2024 (includes 3.1.3 changes)
 
 - Fixed: File error displayed after getting the list of Android files in the GUI.
 - Fixed: The Task name does not appear if the XML consists solely of a single Task.
 - Fixed: If the 'Get XML File' IP address is a valid address on the local network but not accepting access via the port given, specify this in the error message.
-
-### Changed
-
 - Changed: Don't reread the Android XML file if "Run" has been selected since we've already read the file to validate the XML.
 - Changed: Improved the GUI help information for using the 'List XML File' button/feature.
-
-### Added
-
 - Added: The GUI has a new button to 'Report Issue', which can be used for issues and new feature requests.
 - Added: The GUI 'Color" tab now has a button to reset all Tasker objects to their default colors.
-
-## Older History Logs
 
 ## [3.1.2] 04-March-2024
 

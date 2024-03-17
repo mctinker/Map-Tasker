@@ -1,13 +1,14 @@
 [tool.poetry]
 name = "maptasker"
 
-version = "3.1.4"
+version = "3.1.5"
 
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README_PyPl.md"
 license = "MIT License (MIT)"
 repository = "https://github.com/mctinker/Map-Tasker"
+# changelog = "https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md"
 keywords = ["tasker", "Tasker", "map tasker"]
 packages = [
     { include = "maptasker"}
@@ -179,3 +180,9 @@ pythonpath = [
 [tool.poetry.group.test.dependencies]
 pytest = "^7.3.2"
 pytest-mock = "*"
+
+# Bump version identifiers.  Repeat this chunk for each file.
+[[tool.poetry_bumpversion.replacements]]
+files = ["maptasker/src/sysconst.py"]
+search = 'VERSION = "{current_version}"'
+replace = 'VERSION = "{new_version}"'
