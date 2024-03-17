@@ -86,7 +86,7 @@ def update() -> None:
     """Update this package."""
     version = get_pypi_version()
     packageversion = "maptasker" + version
-    subprocess.call([sys.executable, "-m", "pip", "install", "--upgrade", packageversion])  # noqa: S603
+    subprocess.call([sys.executable, "-m", "pip", "install", packageversion, "--upgrade"])  # noqa: S603
 
 
 # ##################################################################################
@@ -113,7 +113,7 @@ def http_request(
     request_parm: str,
 ) -> tuple[int, object]:
     """
-    Issue HTTP Request to get the backup xml file from the Android device.
+    Issue HTTP Request to get the backup XML file from the Android device.
     Tasker's HTTP Server Example must be installed for this to work:
     https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example
         :param backup_file_http: the port to use for the Android device's Tasker server

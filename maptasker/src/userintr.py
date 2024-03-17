@@ -20,9 +20,12 @@ from pathlib import Path
 import customtkinter
 from CTkColorPicker.ctk_color_picker import AskColor
 
+from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import OUTPUT_FONT
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutils import (
+    add_button,
+    add_label,
     check_for_changelog,
     clear_android_buttons,
     create_changelog,
@@ -36,7 +39,6 @@ from maptasker.src.guiutils import (
 from maptasker.src.mapit import do_rerun
 from maptasker.src.maputils import update, validate_xml_file
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.colrmode import set_color_mode
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     TYPES_OF_COLOR_NAMES,
@@ -51,79 +53,48 @@ customtkinter.set_default_color_theme("blue")
 
 # Help Text
 INFO_TEXT = (
-    "MapTasker displays your Android Tasker "
-    "configuration based on your uploaded Tasker XML "
-    "file (e.g. 'backup.xml'). The display will "
-    "optionally include all Projects, Profiles, Tasks "
-    "and their actions, Profile/Task conditions and "
-    "other Profile/Task related information.\n\n"
+    "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML "
+    "file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks "
+    "and their actions, Profile/Task conditions and other Profile/Task related information.\n\n"
     "* Display options are:\n"
-    "    Level 0: display first Task action only, for "
-    "unnamed Tasks only (silent).\n"
-    "    Level 1 = display all Task action details for "
-    "unknown Tasks only (default).\n"
-    "    Level 2 = display full Task action name on "
-    "every Task.\n"
-    "    Level 3 = display full Task action details on "
-    "every Task with action details.\n"
+    "    Level 0: display first Task action only, for unnamed Tasks only (silent).\n"
+    "    Level 1 = display all Task action details for unknown Tasks only (default).\n"
+    "    Level 2 = display full Task action name on every Task.\n"
+    "    Level 3 = display full Task action details on every Task with action details.\n"
     "    Level 4 = display level of 3 plus Project's global variables.\n\n"
     "* Just Display Everything: Turns on the display of "
-    "conditions, TaskerNet information, preferences, twisties, directory, "
-    "and configuration outline.\n\n"
-    "* Display Conditions: Turn on the display of "
-    "Profile and Task conditions.\n\n"
-    "* Display TaskerNet Info - If available, display "
-    "TaskerNet publishing information.\n\n"
-    "* Display Tasker Preferences - display Tasker's "
-    "system Preferences.\n\n"
-    "* Hide Task Details under Twisty: hide Task "
-    "information within ► and click to display.\n\n"
-    "* Display Directory of hyperlinks at beginning."
-    "\n\n"
-    "* Display Configuration Outline and Map of your Projects/Profiles/Tasks/Scenes."
-    "\n\n"
-    "* Project/Profile/Task/Scene Names options to "
-    "italicize, bold, underline and/or highlight their "
-    "names.\n\n"
+    "conditions, TaskerNet information, preferences, twisties, directory, and configuration outline.\n\n"
+    "* Display Conditions: Turn on the display of Profile and Task conditions.\n\n"
+    "* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n"
+    "* Display Tasker Preferences - display Tasker's system Preferences.\n\n"
+    "* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n"
+    "* Display Directory of hyperlinks at beginning.\n\n"
+    "* Display Configuration Outline and Map of your Projects/Profiles/Tasks/Scenes.\n\n"
+    "* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n"
     "* Indentation amount for If/Then/Else Task Actions.\n\n"
-    "* Save Settings - Save these settings for later "
-    "use.\n\n"
-    "* Restore Settings - Restore the settings from a "
-    "previously saved session.\n\n"
+    "* Save Settings - Save these settings for later use.\n\n"
+    "* Restore Settings - Restore the settings from a previously saved session.\n\n"
     "* Report Issue - This will bring up your browser to the issue reporting site, and you can use this to "
     "either report a bug or request a new feature ( [Feature Request] )\n\n"
-    "* Appearance Mode: Dark, Light, or System "
-    "default.\n\n"
-    "* Reset Options: Clear everything and start "
-    "anew.\n\n"
+    "* Appearance Mode: Dark, Light, or System default.\n\n"
+    "* Reset Options: Clear everything and start anew.\n\n"
     "* Font To Use: Change the monospace font used for the output.\n\n"
     "* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n"
     "* Get XML from Android Device: fetch the backup/exported "
     "XML file from Androiddevice.  You will be asked for the IP address and port number for your"
     " Android device, as well as the file location on the device.\n\n"
-    "* Run: Run the program with the settings "
-    "provided and then exit.\n"
-    "* ReRun: Run multiple times (each time with "
-    "new settings) without exiting.\n\n"
-    "* Specific Name tab: enter a single, specific "
-    "named item to display...\n"
-    "   - Project Name: enter a specific Project to "
-    "display.\n"
-    "   - Profile Name: enter a specific Profile to "
-    "display.\n"
-    "   - Task Name: enter a specific Task to "
-    "display.\n"
-    "   (These three are exclusive: enter one "
-    "only)\n\n"
-    "* Colors tab: select colors for various elements "
-    "of the display.\n"
-    "              (e.g. color for Projects, Profiles, "
-    "Tasks, etc.).\n\n"
-    "* Debug tab: Display Runtime Settings option and "
-    "turn on Debug mode.\n\n"
+    "* Run: Run the program with the settings provided and then exit.\n"
+    "* ReRun: Run multiple times (each time with new settings) without exiting.\n\n"
+    "* Specific Name tab: enter a single, specific named item to display...\n"
+    "   - Project Name: enter a specific Project to display.\n"
+    "   - Profile Name: enter a specific Profile to display.\n"
+    "   - Task Name: enter a specific Task to display.\n"
+    "   (These three are exclusive: enter one only)\n\n"
+    "* Colors tab: select colors for various elements of the display.\n"
+    "              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n"
+    "* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n"
     "* Exit: Exit the program (quit).\n\n"
-    "Note: You will be prompted to identify your Tasker "
-    "XML file once you hit the 'Run' button."
+    "Note: You will be prompted to identify your Tasker XML file once you hit the 'Run' button if you have not yet done so.\n\n"
 )
 BACKUP_HELP_TEXT = (
     "The following steps are required in order to fetch a Tasker XML file directly"
@@ -222,14 +193,22 @@ class MyGui(customtkinter.CTk):
         if is_new_version():
             self.new_version = True
             # We have a new version.  Let user upgrade.
-            self.upgrade_button = customtkinter.CTkButton(
-                master=self,
-                border_color="#6563ff",
-                border_width=2,
-                text="Upgrade to Latest Version",
-                command=self.upgrade_event,
+            self.upgrade_button = add_button(
+                self,
+                self,
+                "",
+                "#79ff94",
+                "#6563ff",
+                self.upgrade_event,
+                1,
+                "Upgrade to Latest Version",
+                7,
+                2,
+                (0, 170),
+                (0, 20),
+                "sw",
             )
-            self.upgrade_button.grid(row=10, column=1, padx=20, pady=10, sticky="nw")
+
             self.message = self.message + "\n\nA new version of MapTasker is available."
         else:
             self.new_version = False
@@ -306,23 +285,41 @@ class MyGui(customtkinter.CTk):
             color1: The foreground color of the button in one line
             color2: The border color of the button in one line
         Returns:
-            None: Does not return anything
+            self.get_backup_button: the button object
         Processing Logic:
             - Creates a CTkButton object with the given text, colors and command
             - Places the button on row 7, column 1 spanning 2 columns with padding
             - Configures the button to be stuck to the northwest side of its cell
         """
         # 'Get Backup Settings' button definition
+        # self.get_backup_button = add_button(
+        #    self,
+        #    self,
+        #    color1,
+        #    ("#0BF075", "#1AD63D"),
+        #    color2,
+        #    routine,
+        #    2,
+        #    the_text,
+        #    7,
+        #    1,
+        #    (200, 10),
+        #    (0, 10),
+        #    "nw",
+        # )
+        width = len(the_text) + 4
         self.get_backup_button = customtkinter.CTkButton(
             master=self,
             fg_color=color1,
             border_color=color2,
             border_width=2,
+            width=width,
             text=the_text,
             command=routine,
             text_color=("#0BF075", "#1AD63D"),
         )
-        self.get_backup_button.grid(row=7, column=1, columnspan=2, padx=(200, 10), pady=(0, 10), sticky="nw")
+        self.get_backup_button.grid(row=7, column=1, columnspan=2, padx=(200, 200), pady=(0, 10), sticky="nw")
+        return self.get_backup_button
 
     # ##################################################################################
     # Display Message Box
@@ -357,8 +354,8 @@ class MyGui(customtkinter.CTk):
         # self.textbox.tag_add('color', '1.5', '1.11')  # '1.5' means first line, 5th character; '1.11' means first line, 11th character
         # self.textbox.tag_config('color', foreground='red')
 
-        # self.all_messages = f"{self.all_messages}{message}\n"
-        self.all_messages = f"{message}\n"
+        self.all_messages = f"{self.all_messages}{message}\n"
+        # self.all_messages = f"{message}\n"
         # insert at line 0 character 0
         self.textbox.insert("0.0", self.all_messages)
         # Set read-only, color, wrap around and font
@@ -443,13 +440,26 @@ class MyGui(customtkinter.CTk):
         - The status message and color are passed to a CTkLabel widget.
         - The label is placed in a grid layout on the "Specific Name" tab.
         - Text color is set using the passed color."""
-        self.single_label = customtkinter.CTkLabel(
+        self.single_label = add_label(
+            self,
             self.tabview.tab("Specific Name"),
-            text=status_message,
-            anchor="w",
-            text_color=("#0BF075", color_to_use),
+            status_message,
+            ("#0BF075", f"{color_to_use}"),
+            0,
+            "normal",
+            5,
+            0,
+            20,
+            (10, 10),
+            "w",
         )
-        self.single_label.grid(row=5, column=0, padx=20, pady=(10, 10), sticky="nsew")
+        # self.single_label = customtkinter.CTkLabel(
+        #    self.tabview.tab("Specific Name"),
+        #    text=status_message,
+        #    anchor="w",
+        #    text_color=("#0BF075", color_to_use),
+        # )
+        # self.single_label.grid(row=5, column=0, padx=20, pady=(10, 10), sticky="nsew")
 
     # ##################################################################################
     # Process single name selection/event
@@ -1424,7 +1434,7 @@ class MyGui(customtkinter.CTk):
             default_value: The default value to display
             starting_row: The grid row that the label starts on
             indentation_x_label: the x indentation amount for the label
-            indentation_y_label: the x indentation amount for the label
+            indentation_y_label: the y indentation amount for the label
             input_name: the name of the input field
             do_input: whether to display the input field (True) or not (False)
         Returns:
@@ -1446,7 +1456,7 @@ class MyGui(customtkinter.CTk):
             column=1,
             columnspan=1,
             padx=(0, indentation_x_label),
-            pady=(indentation_y_label, 0),
+            pady=(indentation_y_label, 5),
             sticky="ne",
         )
 
@@ -1463,13 +1473,20 @@ class MyGui(customtkinter.CTk):
                 text_color=("#0BF075", "#1AD63D"),
             )
             input_name.insert(0, default_value)
+            next_row = starting_row + 1
+            # If file location, we have to push line up by 1 for some reason.
+            if next_row == 10:
+                next_row = 9
+                sticky = "se"
+            else:
+                sticky = "ne"
             input_name.grid(
-                row=starting_row + 1,
+                row=next_row,
                 column=1,
                 columnspan=1,
-                padx=(0, 100),
+                padx=(0, 80),
                 pady=(0, 0),
-                sticky="ne",
+                sticky=sticky,
             )
         return input_name, label_name
 
@@ -1501,7 +1518,7 @@ class MyGui(customtkinter.CTk):
             "1-TCP/IP Address:",
             self.android_ipaddr,
             7,
-            140,
+            100,
             30,
             self.ip_entry,
             self.ip_label,
@@ -1516,7 +1533,7 @@ class MyGui(customtkinter.CTk):
             "2-Port Number:",
             self.android_port,
             8,
-            157,
+            117,
             30,
             self.port_entry,
             self.port_label,
@@ -1531,59 +1548,12 @@ class MyGui(customtkinter.CTk):
             "3-File Location:",
             self.android_file,
             9,
-            159,
-            30,
+            119,
+            40,
             self.file_entry,
             self.file_label,
             True,
         )
-
-        # Add ...or... label.
-        self.label_or = customtkinter.CTkLabel(
-            master=self,
-            text="...or...",
-            anchor="sw",
-        )
-        self.label_or.grid(
-            row=10,
-            column=1,
-            columnspan=1,
-            padx=(0, 53),
-            pady=(0, 0),
-            sticky="ne",
-        )
-
-        # Add List Files button
-        self.list_files_button = customtkinter.CTkButton(
-            self,
-            fg_color="#246FB6",
-            border_width=2,
-            text="List XML Files",
-            command=self.list_files_event,
-        )
-        self.list_files_button.configure(
-            # width=320,
-            fg_color="#246FB6",
-            border_color="#1bc9ff",
-            text_color=("#0BF075", "#1AD63D"),
-        )
-        self.list_files_button.grid(row=10, column=1, columnspan=2, padx=(0, 220), pady=(0, 0), sticky="ne")
-        #  Query ? button
-        self.list_files_query_button = customtkinter.CTkButton(
-            self,
-            fg_color="#246FB6",
-            border_width=1,
-            text="?",
-            width=20,
-            command=self.listfile_query_event,
-        )
-        self.list_files_query_button.configure(
-            # width=320,
-            fg_color="#246FB6",
-            border_color="#1bc9ff",
-            text_color=("#0BF075", "#ffd941"),
-        )
-        self.list_files_query_button.grid(row=10, column=1, columnspan=2, padx=(0, 190), pady=(0, 0), sticky="ne")
 
         # Add Cancel button
         self.cancel_entry_button = customtkinter.CTkButton(
@@ -1597,17 +1567,64 @@ class MyGui(customtkinter.CTk):
             # width=320,
             fg_color="#246FB6",
             border_color="#1bc9ff",
-            # text_color=("#0BF075", "#1AD63D"),
         )
-        self.cancel_entry_button.grid(row=8, column=1, columnspan=2, padx=(80, 240), pady=(0, 0), sticky="ne")
+        self.cancel_entry_button.grid(row=8, column=1, columnspan=2, padx=(80, 220), pady=(0, 0), sticky="ne")
+
+        # Add 'List XML Files' button
+        self.list_files_button = customtkinter.CTkButton(
+            self,
+            fg_color="#246FB6",
+            border_width=2,
+            text="List XML Files",
+            command=self.list_files_event,
+        )
+        self.list_files_button.configure(
+            # width=320,
+            fg_color="#246FB6",
+            border_color="#1bc9ff",
+            text_color=("#0BF075", "#1AD63D"),
+        )
+        self.list_files_button.grid(row=9, column=1, columnspan=2, padx=(0, 220), pady=(0, 0), sticky="se")
+
+        # Add ...or... label.
+        self.label_or = customtkinter.CTkLabel(
+            master=self,
+            text="...or...",
+            anchor="sw",
+        )
+        self.label_or.grid(
+            row=9,
+            column=1,
+            columnspan=1,
+            padx=(0, 38),
+            pady=(0, 0),
+            sticky="se",
+        )
+
+        #  Query ? button
+        self.list_files_query_button = customtkinter.CTkButton(
+            self,
+            fg_color="#246FB6",
+            border_width=1,
+            text="?",
+            width=20,
+            command=self.listfile_query_event,
+        )
+        self.list_files_query_button.configure(
+            fg_color="#246FB6",
+            border_color="#1bc9ff",
+            text_color=("#0BF075", "#ffd941"),
+        )
+        self.list_files_query_button.grid(row=9, column=1, columnspan=2, padx=(0, 180), pady=(0, 0), sticky="se")
 
         # Replace backup button.
-        self.display_backup_button(
-            "Enter and Click Here to Set XML Details",
+        self.get_backup_button = self.display_backup_button(
+            "Enter 1-3 and Click Here to Set XML Details",
             "#D62CFF",
             "#6563ff",
             self.fetch_backup_event,
         )
+        self.get_backup_button.configure(anchor="center", width=600)
 
     # ##################################################################################
     # Fetch Backup info error...process it.
@@ -1732,35 +1749,48 @@ class MyGui(customtkinter.CTk):
             - Displays label and input for location of backup file on Android device
         """
         self.ip_label = self.port_label = self.file_label = None
-        self.file_entry, self.ip_label = self.display_label_and_input(
+        self.ip_label = add_label(
+            self,
+            self,
             "Getting XML file from Android device:",
-            None,
+            "",
+            12,
+            "normal",
             7,
-            10,
-            50,
-            None,
-            self.ip_label,
-            False,
+            1,
+            (30, 0),
+            (50, 0),
+            "ne",
         )
-        self.file_entry, self.port_label = self.display_label_and_input(
-            f"TCP/IP Address: {self.android_ipaddr}          Port: {self.android_port}",
-            None,
+
+        # IP address and port
+        self.port_label = add_label(
+            self,
+            self,
+            f"TCP/IP Address: {self.android_ipaddr}   Port: {self.android_port}",
+            "",
+            12,
+            "normal",
             8,
-            0,
-            10,
-            None,
-            self.port_label,
-            False,
+            1,
+            (60, 0),
+            (0, 50),
+            "ne",
         )
-        self.file_entry, self.file_label = self.display_label_and_input(
+
+        # Location of backup file on Android device...on same row as IP address and port.
+        self.file_label = add_label(
+            self,
+            self,
             f"Location: {self.android_file}",
-            None,
-            10,
-            0,
-            0,
-            None,
-            self.file_label,
-            False,
+            "",
+            12,
+            "normal",
+            8,
+            1,
+            (60, 0),
+            (0, 50),
+            "ne",
         )
 
     # ##################################################################################

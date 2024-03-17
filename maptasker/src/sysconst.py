@@ -26,10 +26,10 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "3.1.4"
+VERSION = "3.1.5"
 MY_VERSION = f"MapTasker version {VERSION}"
 
-MY_LICENSE = "GNU GENERAL PUBLIC LICENSE (Version 3, 29 June 2007)"
+MY_LICENSE = "MIT License"
 NO_PROJECT = "-none found."
 COUNTER_FILE = ".MapTasker_RunCount.txt"
 OLD_ARGUMENTS_FILE = ".MapTasker_arguments.json"
@@ -186,8 +186,6 @@ DISPLAY_DETAIL_LEVEL_anon_tasks_only: int = 1
 DISPLAY_DETAIL_LEVEL_all_tasks: int = 2
 DISPLAY_DETAIL_LEVEL_all_parameters: int = 3
 DISPLAY_DETAIL_LEVEL_everything: int = 4
-
-EDIT = False
 
 # Use the normal tab in output.
 NORMAL_TAB = '<span class="normtab"></span>'

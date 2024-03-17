@@ -51,6 +51,7 @@
 from __future__ import annotations
 
 from typing import ClassVar
+
 from maptasker.src.sysconst import NOW_TIME
 
 
