@@ -2,24 +2,32 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.1.5] 17-March-2024
+## [3.1.6] 17-March-2024
 
 ### Fixed
+
+- Fixed: When selecting a single item to display in the GUI, the display of that name has additional invalid information.
+- Fixed: Selecting bad XML from the GUI causes immediate exit instead of returning to the GUI.
+
+## Added
+
+- Added: Display a Tree View of the XML from within the GUI, via the new 'Tree View' button.
+
+### Changed
+
+- Changed: Gui 'Run' command has been renamed 'Run and Exit'.
+- Changed: Clear message history in GUI when an error occurs.
+
+## Older History Logs
+
+## [3.1.5] 17-March-2024
 
 - Fixed: The wrong changelog information is being displayed with a new version update in the GUI.
 - Fixed: The GUI 'Upgrade to Latest Version' button is sitting on top of the 'Report Issue' button.
 - Fixed: The GUI 'Just Display Everything' button is missing.
 - Fixed: The alignment of the Android XML fields in the GUI is off.
-
-## Changed
-
 - Changed: The 'Get XML Help' button in the GUI is now called 'Get Android Help' for clarity.
-
-## Added
-
 - Added: The GUI message window now displays the message history.
-
-## Older History Logs
 
 ## [3.1.4] 08-March-2024 (includes 3.1.3 changes)
 

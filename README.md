@@ -116,7 +116,7 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-directory` to display a directory of all Projects/Profiles/Tasks/Scenes,
     `-e` to display 'everything': Runtime settings, Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details with Project variables,
-    `-file` to specify a specific XML file to read from your local PC/MAC/Linux drive. 
+    `-file` to specify a specific XML file to read from your local PC/MAC/Linux drive.
     `-font` font to use (preferably a monospace font),  If "-f help" is entered, then the list of installed monospace fonts on your system will be printed out on the runtime console.
     `-g` to get arguments from the GUI rather than via the command line,
     `-i` the amount of indentation for If/Then/Else Task actions (default=4),
@@ -191,7 +191,7 @@ For the "Get backup" (retrieve the Tasker XML file directly from your Android de
 
 - The [sample Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").  Make suree to run the "launch" Task and enter your Google Drive ID.
 
-- The TaskerNet profile, [MapTasker List](https://shorturl.at/buvK6), must be imported into Tasker in order for the 'List XML Files' button to work. 
+- The TaskerNet profile, [MapTasker List](https://shorturl.at/buvK6), must be imported into Tasker in order for the 'List XML Files' button to work.
 
 - Once the XML has been retrieved from your Android device, it is not necessary to keep retrieving it unless it has changed since it is automatically saved on your Mac.
 
@@ -231,7 +231,7 @@ No information whatsoever is captured and sent via the network to myself or any 
 
  When reporting an error, you will most likely be asked to provide the output log file from the error and your XML file, both of which will be solely used to debug the program and then immediately deleted.
 
-The only network traffic that occurs is if and when you retrieve the  backup/exported XML file directly from your Android device on the same network, and during the GUI startup to check the pypi.org server for updates to the program.
+The only network traffic that occurs is if and when you retrieve the backup/exported XML file directly from your Android device on the same network, and during the GUI startup to check the pypi.org server for updates to the program.
 
 
 ## Contributions
