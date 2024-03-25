@@ -20,10 +20,7 @@ from __future__ import annotations
 
 import contextlib
 import os
-
 from datetime import datetime
-
-
 from typing import TYPE_CHECKING
 
 from maptasker.src.diagutil import (

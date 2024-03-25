@@ -51,7 +51,6 @@ def convert_to_integer(value_to_convert: str, default_value: int) -> int:
 def process_gui(use_gui: bool) -> tuple[dict, dict]:
     """
     Present the GUI and get the runtime details
-        :param pi: Primary Items instance
         :param use_gui: flag if usijng the GUI, make sure we import it
         :return: program runtime arguments and colors to use in the output
     """

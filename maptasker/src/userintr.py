@@ -22,13 +22,17 @@ from CTkColorPicker.ctk_color_picker import AskColor
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import OUTPUT_FONT
+from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutils import (
+    CTkTreeview,
+    TreeviewWindow,
     add_button,
     add_label,
     check_for_changelog,
     clear_android_buttons,
     create_changelog,
+    get_xml,
     initialize_gui,
     initialize_screen,
     is_new_version,
@@ -36,15 +40,19 @@ from maptasker.src.guiutils import (
     valid_item,
     validate_or_filelist_xml,
 )
-from maptasker.src.mapit import do_rerun
+from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.lineout import LineOut
+from maptasker.src.mapit import clean_up_memory, do_rerun
 from maptasker.src.maputils import update, validate_xml_file
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     TYPES_OF_COLOR_NAMES,
     VERSION,
     DISPLAY_DETAIL_LEVEL_all_parameters,
 )
+from maptasker.src.taskerd import get_the_xml_data
 
 # Color Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_appearance_mode("System")
@@ -77,13 +85,14 @@ INFO_TEXT = (
     "* Report Issue - This will bring up your browser to the issue reporting site, and you can use this to "
     "either report a bug or request a new feature ( [Feature Request] )\n\n"
     "* Appearance Mode: Dark, Light, or System default.\n\n"
+    "* Tree View: Display a tree of your Projects/Profiles/Tasks.\n\n"
     "* Reset Options: Clear everything and start anew.\n\n"
     "* Font To Use: Change the monospace font used for the output.\n\n"
     "* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n"
     "* Get XML from Android Device: fetch the backup/exported "
     "XML file from Androiddevice.  You will be asked for the IP address and port number for your"
     " Android device, as well as the file location on the device.\n\n"
-    "* Run: Run the program with the settings provided and then exit.\n"
+    "* Run and Exit: Run the program with the settings provided and then exit.\n"
     "* ReRun: Run multiple times (each time with new settings) without exiting.\n\n"
     "* Specific Name tab: enter a single, specific named item to display...\n"
     "   - Project Name: enter a specific Project to display.\n"
@@ -94,7 +103,10 @@ INFO_TEXT = (
     "              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n"
     "* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n"
     "* Exit: Exit the program (quit).\n\n"
-    "Note: You will be prompted to identify your Tasker XML file once you hit the 'Run' button if you have not yet done so.\n\n"
+    "Notes:\n\n"
+    "- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n"
+    "- If running on OS X Ventura, you may receive the runtime error: +[CATransaction synchronize] called within transaction. This can be ignored and the program will still run correctly.\n\n"
+    "- The 'Rerun' button will spit out the message 'Task policy set failed: 4 ((os/kern) invalid argument)' which can be ignored.\n\n"
 )
 BACKUP_HELP_TEXT = (
     "The following steps are required in order to fetch a Tasker XML file directly"
@@ -136,6 +148,15 @@ LISTFILES_HELP_TEXT = (
     "In order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running "
     "on your Android device.  This profile can be found at the following URL:\n\n"
     "    https://shorturl.at/buvK6\n\n"
+)
+
+TREEVIEW_HELP_TEXT = (
+    "The Treeview is experimental and has the following limitations/behavior:\n\n"
+    "- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n"
+    "- Only Projects can be displayed. XML consisting of only a single Profile or Task will notbe displayed.\n\n"
+    "- If the XML has already been fetched, it will be used as input to the treeview.  Hitting the 'Reset' button will clear the treeview data."
+    " In otherwords, the treeview will remian the same until either the 'Reset' button is hit, or a new XML file is fetched from the"
+    " Android device or the program is run with the '-reset' option."
 )
 
 HELP = f"MapTasker {VERSION} Help\n\n{INFO_TEXT}"
@@ -202,6 +223,7 @@ class MyGui(customtkinter.CTk):
                 self.upgrade_event,
                 1,
                 "Upgrade to Latest Version",
+                "1",
                 7,
                 2,
                 (0, 170),
@@ -292,33 +314,22 @@ class MyGui(customtkinter.CTk):
             - Configures the button to be stuck to the northwest side of its cell
         """
         # 'Get Backup Settings' button definition
-        # self.get_backup_button = add_button(
-        #    self,
-        #    self,
-        #    color1,
-        #    ("#0BF075", "#1AD63D"),
-        #    color2,
-        #    routine,
-        #    2,
-        #    the_text,
-        #    7,
-        #    1,
-        #    (200, 10),
-        #    (0, 10),
-        #    "nw",
-        # )
-        width = len(the_text) + 4
-        self.get_backup_button = customtkinter.CTkButton(
-            master=self,
-            fg_color=color1,
-            border_color=color2,
-            border_width=2,
-            width=width,
-            text=the_text,
-            command=routine,
-            text_color=("#0BF075", "#1AD63D"),
+        self.get_backup_button = add_button(
+            self,
+            self,
+            color1,
+            ("#0BF075", "#1AD63D"),
+            color2,
+            routine,
+            1,
+            the_text,
+            2,
+            7,
+            1,
+            (200, 200),
+            (0, 10),
+            "nw",
         )
-        self.get_backup_button.grid(row=7, column=1, columnspan=2, padx=(200, 200), pady=(0, 10), sticky="nw")
         return self.get_backup_button
 
     # ##################################################################################
@@ -344,6 +355,10 @@ class MyGui(customtkinter.CTk):
         color = "Green" if good else "Red"
         # Delete prior contents
         self.textbox.destroy()
+
+        # Delete message history if this is foran error
+        if not good:
+            self.all_messages = ""
 
         # Recreate text box
         self.textbox = customtkinter.CTkTextbox(self, height=500, width=600)
@@ -440,6 +455,10 @@ class MyGui(customtkinter.CTk):
         - The status message and color are passed to a CTkLabel widget.
         - The label is placed in a grid layout on the "Specific Name" tab.
         - Text color is set using the passed color."""
+        # Clear out any previous label
+        with contextlib.suppress(AttributeError):
+            self.single_label.destroy()
+        # Display the label.
         self.single_label = add_label(
             self,
             self.tabview.tab("Specific Name"),
@@ -453,13 +472,6 @@ class MyGui(customtkinter.CTk):
             (10, 10),
             "w",
         )
-        # self.single_label = customtkinter.CTkLabel(
-        #    self.tabview.tab("Specific Name"),
-        #    text=status_message,
-        #    anchor="w",
-        #    text_color=("#0BF075", color_to_use),
-        # )
-        # self.single_label.grid(row=5, column=0, padx=20, pady=(10, 10), sticky="nsew")
 
     # ##################################################################################
     # Process single name selection/event
@@ -1170,6 +1182,21 @@ class MyGui(customtkinter.CTk):
             - Help text is stored in LISTFILES_HELP_TEXT variable."""
         self.new_message_box("List XML Files Help\n\n" + LISTFILES_HELP_TEXT)
 
+    # ##################################################################################
+    # Process the '?' Tree View query button
+    # ##################################################################################
+    def treeview_query_event(self) -> None:
+        """Function to display help text for the listfile_query_event method.
+        Parameters:
+            - self (object): The object that the method is being called on.
+        Returns:
+            - None: This method does not return anything.
+        Processing Logic:
+            - Displays help text for treeview_query_event method.
+            - Uses new_message_box method.
+            - Help text is stored in LISTFILES_HELP_TEXT variable."""
+        self.new_message_box("Tree View Help\n\n" + TREEVIEW_HELP_TEXT)
+
     # ################################################################################
     # Inform user of toggle selection
     # ################################################################################
@@ -1556,35 +1583,40 @@ class MyGui(customtkinter.CTk):
         )
 
         # Add Cancel button
-        self.cancel_entry_button = customtkinter.CTkButton(
+        self.cancel_entry_button = add_button(
             self,
-            fg_color="#246FB6",
-            border_width=2,
-            text="Cancel Entry",
-            command=self.backup_cancel_event,
+            self,
+            "#246FB6",
+            "",
+            "#1bc9ff",
+            self.backup_cancel_event,
+            2,
+            "Cancel Entry",
+            2,
+            8,
+            1,
+            (80, 220),
+            (0, 0),
+            "ne",
         )
-        self.cancel_entry_button.configure(
-            # width=320,
-            fg_color="#246FB6",
-            border_color="#1bc9ff",
-        )
-        self.cancel_entry_button.grid(row=8, column=1, columnspan=2, padx=(80, 220), pady=(0, 0), sticky="ne")
 
         # Add 'List XML Files' button
-        self.list_files_button = customtkinter.CTkButton(
+        self.list_files_button = add_button(
             self,
-            fg_color="#246FB6",
-            border_width=2,
-            text="List XML Files",
-            command=self.list_files_event,
+            self,
+            "#246FB6",
+            ("#0BF075", "#1AD63D"),
+            "#1bc9ff",
+            self.list_files_event,
+            2,
+            "List XML Files",
+            2,
+            9,
+            1,
+            (80, 220),
+            (0, 0),
+            "se",
         )
-        self.list_files_button.configure(
-            # width=320,
-            fg_color="#246FB6",
-            border_color="#1bc9ff",
-            text_color=("#0BF075", "#1AD63D"),
-        )
-        self.list_files_button.grid(row=9, column=1, columnspan=2, padx=(0, 220), pady=(0, 0), sticky="se")
 
         # Add ...or... label.
         self.label_or = customtkinter.CTkLabel(
@@ -1602,20 +1634,23 @@ class MyGui(customtkinter.CTk):
         )
 
         #  Query ? button
-        self.list_files_query_button = customtkinter.CTkButton(
+        self.list_files_query_button = add_button(
             self,
-            fg_color="#246FB6",
-            border_width=1,
-            text="?",
-            width=20,
-            command=self.listfile_query_event,
+            self,
+            "#246FB6",
+            ("#0BF075", "#ffd941"),
+            "#1bc9ff",
+            self.listfile_query_event,
+            1,
+            "?",
+            2,
+            9,
+            1,
+            (0, 180),
+            (0, 0),
+            "se",
         )
-        self.list_files_query_button.configure(
-            fg_color="#246FB6",
-            border_color="#1bc9ff",
-            text_color=("#0BF075", "#ffd941"),
-        )
-        self.list_files_query_button.grid(row=9, column=1, columnspan=2, padx=(0, 180), pady=(0, 0), sticky="se")
+        self.list_files_query_button.configure(width=20)
 
         # Replace backup button.
         self.get_backup_button = self.display_backup_button(
@@ -1846,6 +1881,7 @@ class MyGui(customtkinter.CTk):
         )
 
         # Validate XML file.add
+        PrimeItems.program_arguments["gui"] = True
         return_code, error_message = validate_xml_file(self.android_ipaddr, self.android_port, android_file)
 
         if return_code > 0:
@@ -1893,6 +1929,15 @@ class MyGui(customtkinter.CTk):
                 label.configure(text="")
         self.set_defaults(False)  # Reset all defaults
 
+        # Cleanup the inline data.
+        clean_up_memory()
+
+        # Setup a temporary PrimeItems since the clean_up_memory cleared it all out.
+        PrimeItems.colors_to_use = set_color_mode(self.appearance_mode)
+        PrimeItems.output_lines = LineOut()
+        PrimeItems.program_arguments = initialize_runtime_arguments()
+        PrimeItems.program_arguments["debug"] = self.debug
+
     # ##################################################################################
     # Process Debug Mode checkbox
     # ##################################################################################
@@ -1931,19 +1976,71 @@ class MyGui(customtkinter.CTk):
     def color_reset_event(self) -> None:
         """Resets the color mode for Tasker items.
         Parameters:
-            - self (object): The current instance of the class.
+            self (object): The current instance of the class.
         Returns:
-            - None: This function does not return anything.
+            None: This function does not return anything.
         Processing Logic:
             - Resets color mode for Tasker items.
             - Sets color mode to default.
             - Displays message box to confirm reset.
             - Destroys color change window."""
+
         PrimeItems.colors_to_use = set_color_mode(self.appearance_mode)
         self.color_lookup = {}
         self.display_message_box("Tasker items set back to their default colors.", True)
         with contextlib.suppress(Exception):
             self.color_change.destroy()
+
+    # ##################################################################################
+    # Close the GUI.
+    # ##################################################################################
+    def cleanup(self, run_only: bool) -> None:
+        """Function:
+        Closes the application.
+        Parameters:
+            run_only (bool): If True, only closes the application. If False, closes the application and withdraws the funds.
+        Returns:
+            None: Does not return anything.
+        Processing Logic:
+            - Closes the application.
+            - If run_only is True, only closes the application.
+            - If run_only is False, withdraws the funds before closing the application."""
+        if run_only:
+            self.quit()
+        else:
+            self.withdraw()
+            self.quit()
+            self.quit()
+
+    # ##################################################################################
+    # Validate XML and close the GUI.
+    # ##################################################################################
+    def cleanup_and_run(self, run_only: bool) -> None:
+        """Function: cleanup_and_run
+        Parameters:
+            run_only (bool): Flag to determine if program should only run and not display GUI.
+        Returns:
+            None: Does not return any value.
+        Processing Logic:
+            - Display "Program running..." message.
+            - If XML is not valid, return to GUI.
+            - If XML is valid, exit and return to process_gui.
+            - If XML is not valid, return to GUI."""
+        self.display_message_box("Program running...", True)
+
+        # If XML is not valid, simply return to GUI.  Otherwise, exit and return to process_gui.
+        if PrimeItems.xml_tree is None:
+            PrimeItems.program_arguments["gui"] = True
+            # Get and validate the XML.
+            if self.load_xml():  # If true, the XML is valid.  Signal exit.
+                self.cleanup(run_only)
+
+            # XML error.  Just return to the GUI.
+            else:
+                return
+
+        # We already have the XML.  Just exit.
+        self.cleanup(run_only)
 
     # ##################################################################################
     # The 'Run' program button has been pressed.  Set the run flag and close the GUI
@@ -1960,8 +2057,9 @@ class MyGui(customtkinter.CTk):
         - Calls the quit() method to exit the program"""
         self.go_program = True
         self.rerun = False
-        self.display_message_box("Program running...", True)
-        self.quit()
+
+        # Validate the XML and cleanup
+        self.cleanup_and_run(run_only=True)
 
     # ##################################################################################
     # The 'ReRun' program button has been pressed.  Set the run flag and close the GUI
@@ -1977,9 +2075,7 @@ class MyGui(customtkinter.CTk):
         - Calls withdraw() to reset the program state
         - Calls quit() twice to ensure program exits"""
         self.rerun = True
-        self.withdraw()
-        self.quit()
-        self.quit()
+        self.cleanup_and_run(run_only=False)
 
     # ##################################################################################
     # The Upgrade Version button has been pressed.
@@ -2041,3 +2137,214 @@ class MyGui(customtkinter.CTk):
         self.exit = True
         self.quit()
         self.quit()
+
+    # ##################################################################################
+    # Load the XML if not already loaded.
+    # ##################################################################################
+    def load_xml(self) -> bool:
+        """Load XML from a file or URL.
+        Parameters:
+            self (Tasker): Instance of Tasker class.
+        Returns:
+            - bool: True if successful, False otherwise.
+        Processing Logic:
+            - Check if file is specified.
+            - If file is specified, read it.
+            - If file is not specified, get from URL.
+            - If file is not found, display error.
+            - If error reading file, display error.
+            - If successful, return True."""
+        if (
+            not PrimeItems.tasker_root_elements["all_projects"]
+            and not PrimeItems.tasker_root_elements["all_profiles"]
+            and not PrimeItems.tasker_root_elements["all_tasks"]
+            or self.android_ipaddr
+        ):
+            if self.android_ipaddr == "":
+                return_code = get_xml(self.debug, self.appearance_mode)
+                # Did we get an error reading the backup file?
+                if return_code > 0:
+                    if return_code == 6:
+                        self.display_message_box("Cancel button pressed.", False)
+                    else:
+                        self.display_message_box(
+                            f"{PrimeItems.error_msg}\n\nClick 'Reset Options' to try a different XML file.", False
+                        )
+                    return False
+
+            # We have a file identified.  We now have to read it in.
+            else:
+                filename_location = self.android_file.rfind(PrimeItems.slash) + 1
+                file_to_use = PrimeItems.program_arguments["android_file"][filename_location:]
+                try:
+                    PrimeItems.file_to_get = open(file_to_use)
+                except FileNotFoundError:
+                    self.display_message_box(f"Backup file {file_to_use} not found.", False)
+                    return False
+
+                # Get the XML
+                PrimeItems.program_arguments["gui"] = True
+                return_code = get_the_xml_data()
+                if return_code != 0:
+                    return False
+
+        return True
+
+    # ##################################################################################
+    # Display a treeview of the XML.
+    # ##################################################################################
+    def treeview_event(self) -> None:
+        """Handles the event of clicking on the treeview.
+        Parameters:
+            - self (object): The object calling the function.
+        Returns:
+            - None: This function does not return anything.
+        Processing Logic:
+            - Checks if the XML file has already been retrieved.
+            - If not, calls the get_xml function.
+            - If there is an error reading the backup file, displays an error message.
+            - If the file has been identified, attempts to open it.
+            - If the file is not found, displays an error message.
+            - Calls the build_the_tree function to build the tree.
+            - Calls the display_tree function to display the tree."""
+        PrimeItems.error_code = 0  # Clear any previous error.
+
+        # Do we already have the XML?
+        # If we don't have any data, get it.
+        if self.load_xml():
+
+            # Ok, we have our root Tasker elements.  Build the tree
+            self.toplevel_window = None
+
+            # Build our tree from XML data
+            tree_data = self.build_the_tree()
+
+            # Display the tree
+            self.display_tree(tree_data)
+
+    # ##################################################################################
+    # Build a hierarchical list of all of the Tasker elements.
+    # ##################################################################################
+    def build_the_tree(self) -> list:
+        """Builds the hierarchical list of all of the Tasker elements.
+        Parameters:
+            self (object): The object calling the function.
+        Returns:
+            tree_data (list): The hierarchical list of all of the Tasker elements.
+        Processing Logic:
+            - Checks if the XML file has already been retrieved.
+            - If not, calls the get_xml function.
+            - If there is an error reading the backup file, displays an error message.
+            - If the file has been identified, attempts to open it.
+            - If the file is not found, displays an error message.
+            - Gets all of the Tasker elements.
+        """
+
+        tree_data = []
+        root = PrimeItems.tasker_root_elements
+        # Start with Projects
+        projects = root["all_projects"]
+        if projects:
+            for project in projects:
+                project_name = projects[project]["name"]
+
+                # Retrieves profile IDs for a given project and project name, excluding projects without profiles.
+                if profile_ids := get_ids(True, projects[project]["xml"], project_name, []):
+
+                    # Build our list of Profiles in this Project.
+                    profile_list = build_profiles(root, profile_ids)
+
+                # Project has no Profiles
+                else:
+                    profile_list = ["No Profiles Found"]
+
+                # Process Scenes
+                scene_names = None
+                with contextlib.suppress(Exception):
+                    scene_names = projects[project]["xml"].find("scenes").text
+                if scene_names is not None:
+                    scene_list = scene_names.split(",")
+                    for scene in scene_list:
+                        profile_list.append(f"Scene: {scene}")
+
+                # Put it all together: Project, Profiles, and Tasks
+                tree_data.append({"name": f"Project: {project_name}", "children": profile_list})
+
+        # Return our data tree
+        return tree_data
+
+    # ##################################################################################
+    # Display the tree view.
+    # ##################################################################################
+    def display_tree(self, tree_data: list) -> None:
+        """Displays a treeview window with given data.
+        Parameters:
+            tree_data (list): List of data to be displayed in the treeview.
+        Returns:
+            None: This function does not return anything.
+        Processing Logic:
+            - Creates a new window if one does not exist.
+            - Focuses on the window if it already exists.
+            - Displays the given data in a treeview format.
+            - Packs the treeview in the window with specified padding and filling."""
+        if tree_data:
+            if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+                self.toplevel_window = TreeviewWindow(self)  # create window if its None or destroyed
+            else:
+                self.toplevel_window.focus()  # if window exists focus it
+
+            # Display the tree in the toplevel window.
+            tree_view = CTkTreeview(master=self.toplevel_window, items=tree_data)
+            tree_view.pack(padx=10, pady=10, fill="both", expand=True)
+        else:
+            self.display_message_box("No Project(s) Found in XML!", False)
+
+
+# ##################################################################################
+# Build a list of Profiles that are under the given project
+# ##################################################################################
+def build_profiles(root: dict, profile_ids: list) -> list:
+    """Parameters:
+        - root (dict): Dictionary containing all profiles and their tasks.
+        - profile_ids (list): List of profile IDs to be processed.
+    Returns:
+        - list: List of dictionaries containing profile names and their corresponding tasks.
+    Processing Logic:
+        - Get all profiles from root dictionary.
+        - Create an empty list to store profile names and tasks.
+        - Loop through each profile ID in the provided list.
+        - Get the tasks for the current profile.
+        - If tasks are found, create a list to store task names.
+        - Loop through each task and add its name to the task list.
+        - If no tasks are found, add a default message to the task list.
+        - Get the name of the current profile.
+        - If no name is found, add a default message to the profile name.
+        - Combine the profile name and task list into a dictionary and add it to the profile list.
+        - Return the profile list."""
+    profiles = root["all_profiles"]
+    profile_list = []
+    for profile in profile_ids:
+
+        # Get the Profile's Tasks
+        PrimeItems.task_count_unnamed = 0  # Avoid an error in get_profile_tasks
+        if the_tasks := get_profile_tasks(profiles[profile]["xml"], [], []):
+            task_list = []
+            # Process each Task.  Tasks are simply a flat list of names.
+            for task in the_tasks:
+                if task["name"] == "":
+                    task_list.append("Task: Unnamed Task")
+                else:
+                    task_list.append(f'Task: {task["name"]}')
+        else:
+            task_list = ["No Profile Tasks Found"]
+
+        # Get the Profile name.
+        if profiles[profile]["name"] == "":
+            profile_name = "Profile: Unnamed/Anonymous"
+        else:
+            profile_name = f'Profile: {profiles[profile]["name"]}'
+
+        # Combine the Profile with it's Tasks
+        profile_list.append({"name": profile_name, "children": task_list})
+
+    return profile_list

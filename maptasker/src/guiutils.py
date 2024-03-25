@@ -16,11 +16,11 @@ from __future__ import annotations
 
 import contextlib
 import os
-from tkinter import font
+from tkinter import TclError, font, ttk
 from typing import TYPE_CHECKING
 
-import customtkinter
-from PIL import Image
+import customtkinter as ctk
+from PIL import Image, ImageTk
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.lineout import LineOut
@@ -35,15 +35,34 @@ if TYPE_CHECKING:
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 3.1.5 Change Log\n\n
-- Added: The GUI message window now displays the message history.\n\n
-- Changed: The 'Get XML Help' button in the GUI is now called 'Get Android Help' for clarity.\n\n
-- Fixed: The wrong changelog information is being displayed with a new version update in the GUI.\n\n
-- Fixed: The GUI 'Upgrade to Latest Version' button is sitting on top of the 'Report Issue' button.\n\n
-- Fixed: The GUI 'Just Display Everything' button is missing.\n\n
-- Fixed: The alignment of the Android XML fields in the GUI is off.\n\n
+Version 3.1.6 Change Log\n\n
+- Added: Display a Tree View of the XML from within the GUI, via the new 'Tree View' button.\n\n
+- Changed: Gui 'Run' command has been renamed 'Run and Exit'.\n\n
+- Changed: Clear message history in GUI when an error occurs.\n\n
+- Fixed: When selecting a single item to display in the GUI, the display of that name has additional invalid information.\n\n
+- Fixed: Selecting bad XML from the GUI causes immediate exit instead of returning to the GUI.
 """
 default_font_size = 14
+
+# Set up for access to icons
+CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
+ICON_DIR = os.path.join(CURRENT_PATH, "../assets", "icons")
+ICON_PATH = {
+    "close": (os.path.join(ICON_DIR, "close_black.png"), os.path.join(ICON_DIR, "close_white.png")),
+    # "images": list(os.path.join(ICON_DIR, f"image{i}.jpg") for i in range(1, 4)),
+    "eye1": (os.path.join(ICON_DIR, "eye1_black.png"), os.path.join(ICON_DIR, "eye1_white.png")),
+    "eye2": (os.path.join(ICON_DIR, "eye2_black.png"), os.path.join(ICON_DIR, "eye2_white.png")),
+    "info": os.path.join(ICON_DIR, "info.png"),
+    "warning": os.path.join(ICON_DIR, "warning.png"),
+    "error": os.path.join(ICON_DIR, "error.png"),
+    "left": os.path.join(ICON_DIR, "left.png"),
+    "right": os.path.join(ICON_DIR, "right.png"),
+    "warning2": os.path.join(ICON_DIR, "warning2.png"),
+    "loader": os.path.join(ICON_DIR, "loader.gif"),
+    "icon": os.path.join(ICON_DIR, "icon.png"),
+    "arrow": os.path.join(ICON_DIR, "arrow.png"),
+    "image": os.path.join(ICON_DIR, "image.png"),
+}
 
 
 # ##################################################################################
@@ -65,17 +84,7 @@ def valid_item(the_name: str, element_name: str, debug: bool, appearance_mode: s
     - Match element type and get corresponding root element
     - Check if item name exists by going through all names in root element
     """
-
-    # We need to get all tasker root xml items from the backup xml file.
-    # To do so, we need to go through initializing a temporary PrimaryItems object
-    # Set up just enough PrimeItems variables to validate name.
-    if not PrimeItems.file_to_get:
-        PrimeItems.file_to_get = "backup.xml" if debug else ""
-    PrimeItems.program_arguments["debug"] = debug
-    PrimeItems.colors_to_use = set_color_mode(appearance_mode)
-    PrimeItems.output_lines = LineOut()
-
-    return_code = get_data_and_output_intro()
+    return_code = get_xml(debug, appearance_mode)
 
     # Did we get an error reading the backup file?
     if return_code > 0:
@@ -95,6 +104,33 @@ def valid_item(the_name: str, element_name: str, debug: bool, appearance_mode: s
 
     # See if the item exists by going through all names
     return any(root_element[item]["name"] == the_name for item in root_element)
+
+
+# ##################################################################################
+# Get the XML data and setup Primeitems
+# ##################################################################################
+def get_xml(debug: bool, appearance_mode: str) -> int:
+    """ "Returns the tasker root xml items from the backup xml file based on the given debug and appearance mode parameters."
+    Parameters:
+        debug (bool): Indicates whether the program is in debug mode or not.
+        appearance_mode (str): Specifies the color mode to be used.
+    Returns:
+        int: The return code from getting the xml file.
+    Processing Logic:
+        - Initialize temporary PrimaryItems object.
+        - Set file_to_get variable based on debug mode.
+        - Set program_arguments variable for debug mode.
+        - Set colors_to_use variable based on appearance mode.
+        - Initialize output_lines variable.
+        - Return data and output intro."""
+    if not PrimeItems.file_to_get:
+        PrimeItems.file_to_get = "backup.xml" if debug else ""
+    PrimeItems.program_arguments["debug"] = debug
+    PrimeItems.program_arguments["gui"] = True
+    PrimeItems.colors_to_use = set_color_mode(appearance_mode)
+    PrimeItems.output_lines = LineOut()
+
+    return get_data_and_output_intro()
 
 
 # ##################################################################################
@@ -173,7 +209,7 @@ def ping_android_device(self, ip_address: str, port_number: str) -> bool:  # noq
         self.update()  # Force a window refresh.
 
         # Ping IP address.
-        response = os.system("ping -c 1 -t50 > /dev/null " + ip_address)  # noqa: S605
+        response = os.system(f"ping -c 1 -t50 > /dev/null {ip_address}")  # noqa: S605
         if response != 0:
             self.backup_error(
                 f"{ip_address} is not reachable (error {response}).  Try again.",
@@ -246,7 +282,10 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
         self.upgrade_button.destroy()
 
     self.get_backup_button = self.display_backup_button(
-        "Get XML from Android Device", "#246FB6", "#6563ff", self.get_backup_event
+        "Get XML from Android Device",
+        "#246FB6",
+        "#6563ff",
+        self.get_backup_event,
     )
 
 
@@ -285,10 +324,10 @@ def is_version_greater(version1: str, version2: str) -> bool:
 # ##################################################################################
 def is_more_than_24hrs(input_datetime: datetime) -> bool:
     """Checks if the input datetime is more than 24 hours ago.
-    Parameters:
-        - input_datetime (datetime): The datetime to be checked.
+    Arguments:
+        input_datetime (datetime): The datetime to be checked.
     Returns:
-        - bool: True if input datetime is more than 24 hours ago, False otherwise.
+        bool: True if input datetime is more than 24 hours ago, False otherwise.
     Processing Logic:
         - Calculate seconds in 24 hours.
         - Get current datetime.
@@ -445,8 +484,6 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.title("MapTasker Runtime Options")
     # Overall window dimensions
     self.geometry("1100x900")
-    # self.width = 1100
-    # self.height = 800
 
     # configure grid layout (4x4)
     self.grid_columnconfigure(1, weight=1)
@@ -456,7 +493,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     # load and create background image
 
     # create sidebar frame with widgets on the left side of the window.
-    self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
+    self.sidebar_frame = ctk.CTkFrame(self, width=140, corner_radius=0)
     self.sidebar_frame.configure(bg_color="black")
     self.sidebar_frame.grid(row=0, column=0, rowspan=12, sticky="nsew")
     # Define sidebar background frame with 14 rows
@@ -494,18 +531,18 @@ def add_logo(self) -> None:  # noqa: ANN001
     os.chdir(temp_dir)
 
     # Create a CTkImage object to display the logo
-    my_image = customtkinter.CTkImage(
+    my_image = ctk.CTkImage(
         light_image=Image.open("maptasker_logo_light.png"),
         dark_image=Image.open("maptasker_logo_dark.png"),
         size=(190, 50),
     )
     try:
-        self.logo_label = customtkinter.CTkLabel(
+        self.logo_label = ctk.CTkLabel(
             self.sidebar_frame,
             image=my_image,
             text="",
             compound="left",
-            font=customtkinter.CTkFont(size=1, weight="bold"),
+            font=ctk.CTkFont(size=1, weight="bold"),
         )  # display image with a CTkLabel
         self.logo_label.grid(row=0, column=0, padx=0, pady=0, sticky="n")
     except:  # noqa: S110
@@ -521,7 +558,7 @@ def add_logo(self) -> None:  # noqa: ANN001
 # ##################################################################################
 def add_label(
     self,  # noqa: ANN001, ARG001
-    frame: customtkinter.CTkFrame,
+    frame: ctk.CTkFrame,
     text: str,
     text_color: str,
     font_size: int,
@@ -534,8 +571,8 @@ def add_label(
 ) -> None:
     """Adds a custom label to a custom tkinter frame.
     Parameters:
-        - frame (customtkinter.CTkFrame): The frame to add the label to.
-        - name (customtkinter.CTkLabel): The label to be added.
+        - frame (ctk.CTkFrame): The frame to add the label to.
+        - name (ctk.CTkLabel): The label to be added.
         - text (str): The text to be displayed on the label.
         - text_color (str): color for the text
         - font_size (int): The font size of the label.
@@ -556,11 +593,11 @@ def add_label(
         font_size = default_font_size
     if not text_color:
         text_color = "#FFFFFF"
-    label_name = customtkinter.CTkLabel(
+    label_name = ctk.CTkLabel(
         frame,
         text=text,
         text_color=text_color,
-        font=customtkinter.CTkFont(size=font_size, weight=font_weight),
+        font=ctk.CTkFont(size=font_size, weight=font_weight),
     )
     label_name.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
     return label_name
@@ -571,7 +608,7 @@ def add_label(
 # ##################################################################################
 def add_checkbox(
     self,  # noqa: ANN001, ARG001
-    frame: customtkinter.CTkFrame,
+    frame: ctk.CTkFrame,
     command: object,
     text: str,
     row: int,
@@ -583,7 +620,7 @@ def add_checkbox(
 ) -> None:
     """Add a checkbox to a custom tkinter frame.
     Parameters:
-        - frame (customtkinter.CTkFrame): The custom tkinter frame to add the checkbox to.
+        - frame (ctk.CTkFrame): The custom tkinter frame to add the checkbox to.
         - command (object): The command to be executed when the checkbox is clicked.
         - text (str): The text to be displayed next to the checkbox.
         - row (int): The row to place the checkbox in.
@@ -600,11 +637,11 @@ def add_checkbox(
         - Place the checkbox in the specified row and column.
         - Apply the specified padding to the checkbox.
         - Align the checkbox within its grid cell."""
-    checkbox_name = customtkinter.CTkCheckBox(
+    checkbox_name = ctk.CTkCheckBox(
         frame,
         command=command,
         text=text,
-        font=customtkinter.CTkFont(size=default_font_size, weight="normal"),
+        font=ctk.CTkFont(size=default_font_size, weight="normal"),
         onvalue=True,
         offvalue=False,
     )
@@ -619,13 +656,14 @@ def add_checkbox(
 # ##################################################################################
 def add_button(
     self,  # noqa: ANN001, ARG001
-    frame: customtkinter.CTkFrame,
+    frame: ctk.CTkFrame,
     fg_color: str,
     text_color: str,
     border_color: str,
     command: object,
     border_width: int,
     text: str,
+    columnspan: int,
     row: int,
     column: int,
     padx: tuple,
@@ -634,12 +672,13 @@ def add_button(
 ) -> None:
     """Add a button to a custom tkinter frame.
     Parameters:
-        - frame (customtkinter.CTkFrame): The frame to add the button to.
+        - frame (ctk.CTkFrame): The frame to add the button to.
         - fg_color (str): The color of the button's text.
         - text_color (str) The color of the button's text.
         - command (object): The function to be executed when the button is clicked.
         - border_width (int): The width of the button's border.
         - text (str): The text to be displayed on the button.
+        - columnspan (int): The number of columns to span the button across.
         - row (int): The row to place the button in.
         - column (int): The column to place the button in.
         - padx (tuple): The amount of padding on the x-axis.
@@ -657,17 +696,19 @@ def add_button(
         text_color = "#FFFFFF"
     if not border_color:
         border_color = "Gray"
-    button_name = customtkinter.CTkButton(
+    if not columnspan:
+        columnspan = 1
+    button_name = ctk.CTkButton(
         frame,
         fg_color=fg_color,
         text_color=text_color,
-        font=customtkinter.CTkFont(size=default_font_size, weight="normal"),
+        font=ctk.CTkFont(size=default_font_size, weight="normal"),
         border_color=border_color,
         command=command,
         border_width=border_width,
         text=text,
     )
-    button_name.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
+    button_name.grid(row=row, column=column, columnspan=columnspan, padx=padx, pady=pady, sticky=sticky)
     return button_name
 
 
@@ -676,7 +717,7 @@ def add_button(
 # ##################################################################################
 def add_option_menu(
     self,  # noqa: ANN001, ARG001
-    frame: customtkinter.CTkFrame,
+    frame: ctk.CTkFrame,
     command: object,
     values: str | list,
     row: int,
@@ -687,7 +728,7 @@ def add_option_menu(
 ) -> None:
     """Adds an option menu to a given frame with specified parameters.
     Parameters:
-        - frame (customtkinter.CTkFrame): The frame to add the option menu to.
+        - frame (ctk.CTkFrame): The frame to add the option menu to.
         - command (object): The function to be called when an option is selected.
         - values (str | list): The options to be displayed in the menu.
         - row (int): The row in which the option menu should be placed.
@@ -704,7 +745,7 @@ def add_option_menu(
         - Places the option menu in the specified row and column.
         - Adds padding to the option menu.
         - Sets the direction in which the option menu should stick to the frame."""
-    option_menu_name = customtkinter.CTkOptionMenu(
+    option_menu_name = ctk.CTkOptionMenu(
         frame,
         values=values,
         command=command,
@@ -751,7 +792,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         0,
         20,
         (10, 0),
-        "w",
+        "",
     )
     self.sidebar_detail_option = add_option_menu(
         self,
@@ -947,7 +988,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         14,
         0,
         0,
-        (0, 40),
+        (0, 30),
         "n",
     )
 
@@ -974,9 +1015,45 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         16,
         0,
         0,
-        (0, 50),
+        (0, 45),
+        "",
+    )
+
+    # 'Tree View' button definition
+    self.treeview_button = add_button(
+        self,
+        self.sidebar_frame,
+        "#246FB6",
+        "",
+        "",
+        self.treeview_event,
+        2,
+        "Tree View",
+        1,
+        17,
+        0,
+        0,
+        0,
         "n",
     )
+    #  Query ? button
+    self.treeview_query_button = add_button(
+        self,
+        self.sidebar_frame,
+        "#246FB6",
+        ("#0BF075", "#ffd941"),
+        "#1bc9ff",
+        self.treeview_query_event,
+        1,
+        "?",
+        1,
+        17,
+        0,
+        (200, 0),
+        (0, 0),
+        "s",
+    )
+    self.treeview_query_button.configure(width=20)
 
     # 'Reset Settings' button definition
     self.reset_button = add_button(
@@ -988,11 +1065,12 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.reset_settings_event,
         2,
         "Reset Options",
-        17,
+        1,
+        18,
         0,
         20,
         20,
-        "",
+        "s",
     )
 
     # Start second grid / column definitions
@@ -1029,6 +1107,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.save_settings_event,
         2,
         "Save Settings",
+        1,
         8,
         1,
         20,
@@ -1046,6 +1125,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.restore_settings_event,
         2,
         "Restore Settings",
+        1,
         9,
         1,
         20,
@@ -1063,6 +1143,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.report_issue_event,
         2,
         "Report Issue",
+        1,
         9,
         1,
         20,
@@ -1072,7 +1153,10 @@ def initialize_screen(self) -> None:  # noqa: ANN001
 
     # 'Get Backup Settings' button definition
     self.get_backup_button = self.display_backup_button(
-        "Get XML from Android Device", "#246FB6", "#6563ff", self.get_backup_event
+        "Get XML from Android Device",
+        "#246FB6",
+        "#6563ff",
+        self.get_backup_event,
     )
 
     # 'Display Help' button definition
@@ -1085,6 +1169,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.help_event,
         2,
         "Display Help",
+        1,
         6,
         2,
         (20, 20),
@@ -1102,6 +1187,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.backup_help_event,
         2,
         "Get Android Help",
+        1,
         7,
         2,
         (20, 20),
@@ -1118,7 +1204,8 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "",
         self.run_program,
         2,
-        "Run",
+        "Run and Exit",
+        1,
         8,
         2,
         (20, 20),
@@ -1136,6 +1223,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.rerun_the_program,
         2,
         "ReRun",
+        1,
         9,
         2,
         (20, 20),
@@ -1153,6 +1241,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.exit_program,
         2,
         "Exit",
+        1,
         10,
         2,
         (20, 20),
@@ -1161,28 +1250,28 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     )
 
     # Create textbox for Help information
-    self.textbox = customtkinter.CTkTextbox(self, height=600, width=250)
+    self.textbox = ctk.CTkTextbox(self, height=600, width=250)
     self.textbox.configure(scrollbar_button_color="#6563ff", wrap="word")
     self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
 
     # Start third grid / column definitions
     # create tabview for Name, Color, and Debug
-    self.tabview = customtkinter.CTkTabview(self, width=250, segmented_button_fg_color="#6563ff")
+    self.tabview = ctk.CTkTabview(self, width=250, segmented_button_fg_color="#6563ff")
     self.tabview.grid(row=0, column=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
     self.tabview.add("Specific Name")
     self.tabview.add("Colors")
     self.tabview.add("Debug")
-    #if EDIT:
+    # if EDIT:
     #    self.tabview.add("Edit")
 
     self.tabview.tab("Specific Name").grid_columnconfigure(0, weight=1)  # configure grid of individual tabs
     self.tabview.tab("Colors").grid_columnconfigure(0, weight=1)
 
     # Project Name
-    self.string_input_button1 = customtkinter.CTkRadioButton(
+    self.string_input_button1 = ctk.CTkRadioButton(
         self.tabview.tab("Specific Name"),
         text="Project Name",
-        font=customtkinter.CTkFont(size=default_font_size, weight="normal"),
+        font=ctk.CTkFont(size=default_font_size, weight="normal"),
         command=self.single_project_name_event,
         fg_color="#6563ff",
         border_color="#1bc9ff",
@@ -1190,10 +1279,10 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.string_input_button1.grid(row=1, column=0, padx=20, pady=(10, 10), sticky="nsew")
 
     # Profile Name
-    self.string_input_button2 = customtkinter.CTkRadioButton(
+    self.string_input_button2 = ctk.CTkRadioButton(
         self.tabview.tab("Specific Name"),
         text="Profile Name",
-        font=customtkinter.CTkFont(size=default_font_size, weight="normal"),
+        font=ctk.CTkFont(size=default_font_size, weight="normal"),
         command=self.single_profile_name_event,
         fg_color="#6563ff",
         border_color="#1bc9ff",
@@ -1201,10 +1290,10 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.string_input_button2.grid(row=2, column=0, padx=20, pady=(10, 10), sticky="nsew")
 
     # Task Name
-    self.string_input_button3 = customtkinter.CTkRadioButton(
+    self.string_input_button3 = ctk.CTkRadioButton(
         self.tabview.tab("Specific Name"),
         text="Task Name",
-        font=customtkinter.CTkFont(size=default_font_size, weight="normal"),
+        font=ctk.CTkFont(size=default_font_size, weight="normal"),
         command=self.single_task_name_event,
         fg_color="#6563ff",
         border_color="#1bc9ff",
@@ -1279,6 +1368,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.color_reset_event,
         2,
         "Reset to Default Colors",
+        1,
         3,
         0,
         20,
@@ -1301,7 +1391,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     )
 
     ## Edit Section Prompts
-    #if EDIT:
+    # if EDIT:
     #    # TODO Clean up the geometry
     #    self.edit_label = add_label(
     #        self,
@@ -1370,11 +1460,13 @@ def validate_or_filelist_xml(
         - If the file does not exist, display an error message.
         - If the file location is not provided, get a list of all XML files from the Android device and present it to the user.
     """
+    # If we don't yet have the file, then get it from the Android device.
     if len(android_file) != 0 and android_file != "" and self.list_files == False:
         return_code, file_contents = http_request(android_ipaddr, android_port, android_file, "file", "?download=1")
 
         # Validate XML file.
         if return_code == 0:
+            PrimeItems.program_arguments["gui"] = True
             return_code, error_message = validate_xml_file(android_ipaddr, android_port, android_file)
             if return_code != 0:
                 self.display_message_box(error_message, False)
@@ -1425,3 +1517,192 @@ def validate_or_filelist_xml(
 
     # All is okay
     return 0, android_ipaddr, android_port, android_file
+
+
+# ##################################################################################
+# Display a tree structure
+# ##################################################################################
+class CTkTreeview(ctk.CTkFrame):
+    """Class to handle the Treeview
+
+    Args:
+        ctk (ctk): Our GUI framework
+    """
+
+    def __init__(self, master: any, items: list) -> None:
+        """Function:
+        def __init__(self, master: any, items: list):
+            Initializes a Treeview widget with a given master and list of items.
+            Parameters:
+                master (any): The parent widget for the Treeview.
+                items (list): A list of items to be inserted into the Treeview.
+            Returns:
+                None.
+            Processing Logic:
+                - Sets up the Treeview widget with appropriate styles and bindings.
+                - Inserts the given items into the Treeview.
+
+        tkinter treeview configurable items:
+            ttk::style configure Treeview -background color
+            ttk::style configure Treeview -foreground color
+            ttk::style configure Treeview -font namedfont
+            ttk::style configure Treeview -fieldbackground color
+            ttk::style map Treeview -background \
+                [list selected color]
+            ttk::style map Treeview -foreground \
+                [list selected color]
+            ttk::style configure Treeview -rowheight [expr {[font metrics namedfont -linespace] + 2}]
+            ttk::style configure Heading -font namedfont
+            ttk::style configure Heading -background color
+            ttk::style configure Heading -foreground color
+            ttk::style configure Heading -padding padding
+            ttk::style configure Item -foreground color
+            ttk::style configure Item -focuscolor color
+        """
+        self.root = master
+        self.items = items
+        super().__init__(self.root)
+
+        self.grid_columnconfigure(0, weight=1)
+
+        # Label widget
+        our_label = """
+Drag the bottom of the window to expand as needed.\n
+Click item and scroll mouse-wheel/trackpad\nas needed to go up or down.
+        """
+        self.label = ctk.CTkLabel(master=self, text=our_label, font=("", 12))
+        self.label.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+
+        # Basic appearance for text, foreground and background.
+        self.bg_color = self.root._apply_appearance_mode(ctk.ThemeManager.theme["CTkFrame"]["fg_color"])  # noqa: SLF001
+        self.text_color = self.root._apply_appearance_mode(  # noqa: SLF001
+            ctk.ThemeManager.theme["CTkLabel"]["text_color"],
+        )
+        self.selected_color = self.root._apply_appearance_mode(  # noqa: SLF001
+            ctk.ThemeManager.theme["CTkButton"]["fg_color"],
+        )
+
+        # Set up the style/theme
+        self.tree_style = ttk.Style(self)
+        self.tree_style.theme_use("default")
+
+        self.im_open = Image.open(ICON_PATH["arrow"])
+        self.im_close = self.im_open.rotate(90)
+        self.im_empty = Image.new("RGBA", (15, 15), "#00000000")
+
+        self.img_open = ImageTk.PhotoImage(self.im_open, name="img_open", size=(15, 15))
+        self.img_close = ImageTk.PhotoImage(self.im_close, name="img_close", size=(15, 15))
+        self.img_empty = ImageTk.PhotoImage(self.im_empty, name="img_empty", size=(15, 15))
+
+        # Arrow element configuration
+        with contextlib.suppress(TclError):  # Don't throw error if the element already exists.  Just reuse it.
+            self.tree_style.element_create(
+                "Treeitem.myindicator",
+                "image",
+                "img_close",
+                ("user1", "!user2", "img_open"),
+                ("user2", "img_empty"),
+                sticky="w",
+                width=15,
+                height=15,
+            )
+
+        # Treeview configuration of the treeview
+        self.tree_style.layout(
+            "Treeview.Item",
+            [
+                (
+                    "Treeitem.padding",
+                    {
+                        "sticky": "nsew",
+                        "children": [
+                            ("Treeitem.myindicator", {"side": "left", "sticky": "nsew"}),
+                            ("Treeitem.image", {"side": "left", "sticky": "nsew"}),
+                            (
+                                "Treeitem.focus",
+                                {
+                                    "side": "left",
+                                    "sticky": "nsew",
+                                    "children": [("Treeitem.text", {"side": "left", "sticky": "nsew"})],
+                                },
+                            ),
+                        ],
+                    },
+                ),
+            ],
+        )
+
+        self.tree_style.configure(
+            "Treeview",
+            background=self.bg_color,
+            foreground=self.text_color,
+            fieldbackground=self.bg_color,
+            borderwidth=10,  # Define a border around tree of 10 pixels.
+            font=("", 12),
+        )
+
+        self.tree_style.map(
+            "Treeview",
+            background=[("selected", self.bg_color)],
+            foreground=[("selected", self.selected_color)],
+        )
+        self.root.bind("<<TreeviewSelect>>", lambda event: self.root.focus_set())  # noqa: ARG005
+
+        # Define the frame for the treeview
+        self.treeview = ttk.Treeview(self, show="tree", height=50, selectmode="browse")
+
+        # Define the width of the column into which the tree will be placed.
+        self.treeview["columns"] = [0]
+        # self.treeview.column(0, stretch=0, anchor="w", width=150, minwidth=150)
+        # To configure the tree column, call this with column = “#0”
+        self.treeview.column("#0", stretch=0, anchor="w", width=300, minwidth=200)
+
+        self.treeview.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+
+        # Add items to the tree
+        self.insert_items(self.items)
+
+    # ##################################################################################
+    # Inset items into the treeview.
+    # ##################################################################################
+    def insert_items(self, items: list, parent="") -> None:  # noqa: ANN001
+        """Inserts items into a treeview.
+        Parameters:
+            items (list): List of items to be inserted.
+            parent (str): Optional parent item for the inserted items.
+        Returns:
+            None: Does not return anything.
+        Processing Logic:
+            - Inserts items into treeview.
+            - If item is a dictionary, insert with id.
+            - If item is not a dictionary, insert without id."""
+        for item in items:
+            if isinstance(item, dict):
+                the_id = self.treeview.insert(parent, "end", text=item["name"].ljust(50))
+                with contextlib.suppress(KeyError):
+                    self.insert_items(item["children"], the_id)
+            else:
+                self.treeview.insert(parent, "end", text=item)
+
+
+# ##################################################################################
+# Define the Treeview window
+# ##################################################################################
+class TreeviewWindow(ctk.CTkToplevel):
+    """Define our top level window for the tree view."""
+
+    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
+        """Creates a label widget for a tree view.
+        Parameters:
+            self (object): The object being passed.
+            *args (any): Additional arguments.
+            **kwargs (any): Additional keyword arguments.
+        Returns:
+            None: This function does not return anything.
+        Processing Logic:
+            - Initialize label widget.
+            - Pack label widget with padding.
+            - Set label widget text."""
+        super().__init__(*args, **kwargs)
+        self.geometry("600x600")
+        self.title("MapTasker Configuration Treeview")

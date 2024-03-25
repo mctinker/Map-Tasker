@@ -35,8 +35,12 @@ def error_handler(error_message: str, exit_code: int) -> None:
 
     # Process an error?
     if exit_code > 0:
-        logger.critical(final_error_message)
-        if PrimeItems.program_arguments and PrimeItems.program_arguments["debug"]:
+        logger.debug(final_error_message)
+        if (
+            PrimeItems.program_arguments
+            and PrimeItems.program_arguments["debug"]
+            and not PrimeItems.program_arguments["gui"]
+        ):
             print(final_error_message)
 
         # If coming from GUI, set error info. and return to GUI.

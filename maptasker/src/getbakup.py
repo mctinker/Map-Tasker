@@ -17,7 +17,7 @@ import os.path
 from os import getcwd
 
 from maptasker.src.error import error_handler
-from maptasker.src.maputils import http_request
+
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
@@ -97,6 +97,8 @@ def get_backup_file() -> str:
 
         :return: The name of the backup file (e.g. backup.xml)
     """
+    from maptasker.src.maputils import http_request
+
     # If ruinning from the GUI, then we have already gotten the file. Just return the name on the local drive.add
     if PrimeItems.program_arguments["gui"]:
         return substring_after_last(PrimeItems.program_arguments["android_file"], "/")

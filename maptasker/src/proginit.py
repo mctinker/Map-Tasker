@@ -270,7 +270,8 @@ def get_data_and_output_intro() -> int:
     if not PrimeItems.program_arguments["file"]:
         PrimeItems.program_arguments["file"] = PrimeItems.file_to_get
 
-    # Only display message box if we don't yet have the file name
+    # Only display message box if we don't yet have the file name,if this is not the first time ever that we have run,
+    # and not running from the GUI.
     if not PrimeItems.file_to_get and run_counter < 1 and not GUI:
         msg = "Locate the Tasker backup xml file to use to map your Tasker environment"
         messagebox.showinfo("MapTasker", msg)
@@ -281,15 +282,17 @@ def get_data_and_output_intro() -> int:
         return PrimeItems.error_code
 
     # Go get all the xml data
-    get_the_xml_data()
+    return_code = get_the_xml_data()
 
     # Close the file
     PrimeItems.file_to_get.close()
 
     # Output the inital info: head, source, etc.
-    output_the_front_matter()
+    if return_code == 0:
+        output_the_front_matter()
+        return 0
 
-    return 0
+    return return_code
 
 
 # ##################################################################################

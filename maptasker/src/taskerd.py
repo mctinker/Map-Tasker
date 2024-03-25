@@ -1,3 +1,5 @@
+"""Read in XML"""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -11,9 +13,7 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-import sys
-
-import defusedxml.ElementTree as ET
+import defusedxml.ElementTree as ET  # noqa: N817
 
 from maptasker.src.error import error_handler
 from maptasker.src.primitem import PrimeItems
@@ -51,14 +51,28 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
 # Load all of the Projects, Profiles and Tasks into a format we can easily
 # navigate through.
 # ##################################################################################
-def get_the_xml_data() -> None:
-    """
-    Load all the Projects, Profiles and Tasks into a format we can easily navigate through
-    """
+def get_the_xml_data() -> bool:
 
     # Put this code into a while loop in the event we have to re-call it again.
+    """Gets the XML data from a Tasker backup file and returns it in a dictionary.
+    Parameters:
+        - None
+    Returns:
+        - int: 0 if successful, 1 if bad XML, 2 if not a Tasker backup file, 3 if not a valid Tasker backup file.
+    Processing Logic:
+        - Put code into a while loop in case it needs to be re-called.
+        - Defines XML parser with ISO encoding.
+        - If encoding error, rewrites XML with proper encoding and tries again.
+        - If any other error, logs and exits.
+        - Returns 1 if bad XML and not in GUI mode.
+        - Returns 1 if bad XML and in GUI mode.
+        - Gets XML root.
+        - Checks for valid Tasker backup file.
+        - Moves all data into dictionaries.
+        - Returns all data in a dictionary."""
     process_file = True
     counter = 0
+    error_message = ""
 
     while process_file:
         # Import xml...
@@ -70,33 +84,44 @@ def get_the_xml_data() -> None:
             PrimeItems.xml_tree = ET.parse(file_to_parse, parser=xmlp)
             process_file = False  # Get out of while/loop
         except ET.ParseError:  # Parsing error
-            error_handler(f"Improperly formatted XML in {file_to_parse}", 1)  # Error out and exit
+            error_message = f"Improperly formatted XML in {file_to_parse}"
+            error_handler(error_message, 1)  # Error out and exit
             process_file = False  # Get out of while/loop
         except UnicodeDecodeError:  # Unicode error
             PrimeItems.file_to_get.close()
             counter += 1
             if counter > 2:
-                error_handler(f"Unicode error in {file_to_parse}", 1)  # Error out and exit
+                error_message = f"Unicode error in {file_to_parse}"
+                error_handler(error_message, 1)  # Error out and exit
                 break  # Get out of while/loop
-            rewrite_xml(file_to_parse)
+            rewrite_xml(file_to_parse)  # Rewrite with proper encoding
             process_file = True
-        except Exception as e:  # any other error
-            error_handler(f"Parsing error {e} in taskerd {file_to_parse}", 1)
+        except Exception as e:  # any other error  # noqa: BLE001
+            error_message = f"Parsing error {e} in taskerd {file_to_parse}"
+            error_handler(error_message, 1)
             process_file = False  # Get out of while/loop
 
-    # If bad XML, justb return.
-    if PrimeItems.xml_tree is None:
-        sys.exit(1)
+    # If bad XML, just return.
+    if PrimeItems.xml_tree is None and not PrimeItems.program_arguments["gui"]:
+        return 1
+
+    # Return to GUI if came from there.
+    if PrimeItems.xml_tree is None and PrimeItems.program_arguments["gui"]:
+        logger.debug(f"taskerd bad xml: {error_message}")
+        PrimeItems.error_msg = error_message
+        return 1
 
     # Get the xml root
     PrimeItems.xml_root = PrimeItems.xml_tree.getroot()
 
     # Check for valid Tasker backup.xml file
     if PrimeItems.xml_root.tag != "TaskerData":
-        error_msg = "You did not select a Tasker backup XML file...exit 2"
-        PrimeItems.output_lines.add_line_to_output(0, error_msg, FormatLine.dont_format_line)
-        logger.debug(f"{error_msg}exit 3")
-        sys.exit(3)
+        error_message = "You did not select a Tasker backup XML file...exit 2"
+        PrimeItems.output_lines.add_line_to_output(0, error_message, FormatLine.dont_format_line)
+        logger.debug(f"{error_message} exit 3")
+        if PrimeItems.program_arguments["gui"]:
+            PrimeItems.error_msg = error_message
+        return 3
 
     all_services = PrimeItems.xml_root.findall("Setting")
     all_projects_list = PrimeItems.xml_root.findall("Project")
@@ -118,3 +143,4 @@ def get_the_xml_data() -> None:
         "all_tasks": all_tasks,
         "all_services": all_services,
     }
+    return 0

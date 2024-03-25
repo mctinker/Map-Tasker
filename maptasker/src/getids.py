@@ -13,6 +13,7 @@
 # #################################################################################### #
 
 import defusedxml.ElementTree  # Need for type hints
+
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
 

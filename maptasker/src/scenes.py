@@ -1,3 +1,5 @@
+"""ProcessProject's scenes"""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -10,16 +12,20 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+from __future__ import annotations
+
 import contextlib
+from typing import TYPE_CHECKING
 
-import defusedxml.ElementTree  # Need for type hints
-
-import maptasker.src.tasks as tasks
+from maptasker.src import tasks
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proclist import process_list
 from maptasker.src.sysconst import FormatLine
 from maptasker.src.xmldata import tag_in_type
+
+if TYPE_CHECKING:
+    import defusedxml.ElementTree
 
 SCENE_TASK_TYPES = {
     "checkchangeTask": "Check Change",
@@ -159,7 +165,7 @@ def get_width_and_height(
                     # reset to task name since get_task_name changes its value
                     temp_task_list = [sub_child.text]
                     extra = "&nbsp;&nbsp;ID:"
-                    task_type = "&nbsp;&#45;&#45;Task:" f" {SCENE_TASK_TYPES[sub_child.tag]}{extra}"
+                    task_type = f"&nbsp;&#45;&#45;Task: {SCENE_TASK_TYPES[sub_child.tag]}{extra}"
                     # process the Scene's Task
                     process_list(
                         task_type,

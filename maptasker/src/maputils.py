@@ -21,12 +21,14 @@ import socket
 import subprocess
 import sys
 
-import defusedxml.ElementTree as ET
+import defusedxml.ElementTree as et
 import requests
 from requests.exceptions import ConnectionError, InvalidSchema, Timeout
 
+from maptasker.src.getbakup import write_out_backup_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
+from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.xmldata import rewrite_xml
 
 
@@ -139,7 +141,7 @@ def http_request(
     except Timeout:
         error_message = f"Request failed for url: {url} .  Timeout error.\n\nOr perhaps the profile 'MapTasker List' has not been imported into Tasker!"
     except Exception as e:
-        error_message = f"Request failed for url: {url} .  Invalid url!"
+        error_message = f"Request failed for url: {url}, error: {e} ."
 
     # If we have an error message, return as error.
     if error_message:
@@ -161,53 +163,57 @@ def http_request(
 
 
 # ##################################################################################
-# Read XML file and validate the XML.
+# Validate XML
 # ##################################################################################
-def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
-    """Validate XML file.
-    Parameters:
-        - ip_address (str): IP address of the server.
-        - port (str): Port number of the server.
-        - android_file (str): File name of the Android file.
-    Returns:
-        - bool: True if the file is valid, False otherwise.
-    Processing Logic:
-        - Read the file using HTTP request.
-        - Run a loop to validate the file.
-        - If there is a parsing error, return 1 and an error message.
-        - If there is a Unicode error, rewrite the file and exit the loop.
-        - If there is any other error, return 1 and an error message.
-        - Check if the file is Tasker XML.
-        - Return 0 and an empty string if the file is valid."""
-    from maptasker.src.getbakup import write_out_backup_file
-
-    # Read the file
-    if ip_address:
-        return_code, file_contents = http_request(ip_address, port, android_file, "file", "?download=1")
-        if return_code != 0:
-            return 1, file_contents
-    else:
-        return_code = 0
-
+def validate_xml(ip_address: str, android_file: str, return_code: int, file_contents: str) -> tuple:
     # Run loop since we may have to rerun validation if unicode error
+    """Validates an XML file and returns an error message and the parsed XML tree.
+    Parameters:
+        android_file (str): The path to the XML file to be validated.
+        return_code (int): The return code from the validation process.
+        file_contents (str): The contents of the XML file.
+        ip_address (str): The TCP/IP address of the Android device or blank.
+    Returns:
+        error_message (str): A message describing any errors encountered during validation.
+        xml_tree (ElementTree): The parsed XML tree if validation was successful.
+    Processing Logic:
+        - Runs a loop to allow for revalidation in case of a unicode error.
+        - Sets the process_file flag to False to exit the loop if validation is successful or an error is encountered.
+        - If validation is successful, sets the xml_tree variable to the parsed XML tree.
+        - If an error is encountered, sets the error_message variable to a descriptive message and exits the loop.
+        - If a unicode error is encountered, rewrites the XML file and loops one more time.
+        - If any other error is encountered, sets the error_message variable to a descriptive message and exits the loop.
+        - Returns the error_message and xml_tree variables."""
     process_file = True
     error_message = ""
     counter = 0
+    xml_tree = None
+
+    # Loop until we get a valid XML file or invalid XML
     while process_file:
         # Validate the file
         if return_code == 0:
             # Process the XML file
             PrimeItems.program_arguments["android_file"] = android_file
-            write_out_backup_file(file_contents)
+
+            # If getting file from Android device, write out the backup file first.
+            if ip_address:
+                write_out_backup_file(file_contents)
+
+            # We don't have the file yet.  Lets get it.
+            else:
+                return_code = get_the_xml_data()
+                if return_code != 0:
+                    return PrimeItems.error_msg, None
 
             # Run the XML file through the XML parser to validate it.
             try:
                 filename_location = android_file.rfind(PrimeItems.slash) + 1
                 file_to_validate = PrimeItems.program_arguments["android_file"][filename_location:]
-                xmlp = ET.XMLParser(encoding=" iso8859_9")
-                xml_tree = ET.parse(file_to_validate, parser=xmlp)
+                xmlp = et.XMLParser(encoding=" iso8859_9")
+                xml_tree = et.parse(file_to_validate, parser=xmlp)
                 process_file = False  # Get out of while/loop
-            except ET.ParseError:  # Parsing error
+            except et.ParseError:  # Parsing error
                 error_message = f"Improperly formatted XML in {android_file}.\n\nTry again."
                 process_file = False  # Get out of while/loop
             except UnicodeDecodeError:  # Unicode error
@@ -217,9 +223,40 @@ def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
                     error_message = f"Unicode error in {android_file}.\n\nTry again."
                     break
                 process_file = True  # Loop one more time.
-            except Exception as e:  # any other errorError out and exit
+            except Exception as e:  # any other errorError out and exit  # noqa: BLE001
                 error_message = f"XML parsing error {e} in file {android_file}.\n\nTry again."
                 process_file = False  # Get out of while/loop
+
+    return error_message, xml_tree
+
+
+# ##################################################################################
+# Read XML file and validate the XML.
+# ##################################################################################
+def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
+
+    # Read the file
+    """Validates an XML file from an Android device.
+    Parameters:
+        - ip_address (str): IP address of the Android device.
+        - port (str): Port number of the Android device.
+        - android_file (str): Name of the XML file to be validated.
+    Returns:
+        - bool: True if the file is valid, False if not.
+    Processing Logic:
+        - Reads the file from the Android device.
+        - Validates the XML file.
+        - Checks if the file is Tasker XML.
+        - Returns True if the file is valid, False if not."""
+    if ip_address:
+        return_code, file_contents = http_request(ip_address, port, android_file, "file", "?download=1")
+        if return_code != 0:
+            return 1, file_contents
+    else:
+        return_code = 0
+
+    # Validate the xml
+    error_message, xml_tree = validate_xml(ip_address, android_file, return_code, file_contents)
 
     # If there was an error, bail out.
     if error_message:
