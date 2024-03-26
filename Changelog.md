@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.1.6] 17-March-2024
+## [3.1.6] 25-March-2024
 
 ### Fixed
 
