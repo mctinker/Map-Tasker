@@ -2,23 +2,22 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.1.6] 25-March-2024
+## [3.1.7] 28-March-2024
 
 ### Fixed
 
-- Fixed: When selecting a single item to display in the GUI, the display of that name has additional invalid information.
-- Fixed: Selecting bad XML from the GUI causes immediate exit instead of returning to the GUI.
-
-## Added
-
-- Added: Display a Tree View of the XML from within the GUI, via the new 'Tree View' button.
-
-### Changed
-
-- Changed: Gui 'Run' command has been renamed 'Run and Exit'.
-- Changed: Clear message history in GUI when an error occurs.
+- Fixed: Eliminate reading the XML file twice when running from the GUI.
+- Fixed: The GUI gets a 'Backup File not found' error message if displaying the treeview after having restored the settings.
 
 ## Older History Logs
+
+## [3.1.6] 25-March-2024
+
+- Fixed: When selecting a single item to display in the GUI, the display of that name has additional invalid information.
+- Fixed: Selecting bad XML from the GUI causes immediate exit instead of returning to the GUI.
+- Added: Display a Tree View of the XML from within the GUI, via the new 'Tree View' button.
+- Changed: Gui 'Run' command has been renamed 'Run and Exit'.
+- Changed: Clear message history in GUI when an error occurs.
 
 ## [3.1.5] 17-March-2024
 
