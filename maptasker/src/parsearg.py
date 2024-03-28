@@ -427,6 +427,8 @@ def runtime_parser() -> None:
         default=False,
         help="Reset previously saved arguments...start fresh.",
     )
+    # Rerun indicator (hidden)
+    # parser.add_argument("-rerun", default=False, action="store_true", help=argparse.SUPPRESS)
     # Display runtime arguments/settings
     parser.add_argument(
         "-runtime",

@@ -35,12 +35,9 @@ if TYPE_CHECKING:
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 3.1.6 Change Log\n\n
-- Added: Display a Tree View of the XML from within the GUI, via the new 'Tree View' button.\n\n
-- Changed: Gui 'Run' command has been renamed 'Run and Exit'.\n\n
-- Changed: Clear message history in GUI when an error occurs.\n\n
-- Fixed: When selecting a single item to display in the GUI, the display of that name has additional invalid information.\n\n
-- Fixed: Selecting bad XML from the GUI causes immediate exit instead of returning to the GUI.
+Version 3.1.7 Change Log\n\n
+- Fixed: Eliminate reading the XML file twice when running from the GUI.\n\n
+- Fixed: The GUI gets a 'Backup File not found' error message if displaying the treeview after having restored the settings.
 """
 default_font_size = 14
 

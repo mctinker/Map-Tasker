@@ -153,9 +153,9 @@ LISTFILES_HELP_TEXT = (
 TREEVIEW_HELP_TEXT = (
     "The Treeview is experimental and has the following limitations/behavior:\n\n"
     "- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n"
-    "- Only Projects can be displayed. XML consisting of only a single Profile or Task will notbe displayed.\n\n"
+    "- Only Projects can be displayed. XML consisting of only a single Profile or Task will not be displayed.\n\n"
     "- If the XML has already been fetched, it will be used as input to the treeview.  Hitting the 'Reset' button will clear the treeview data."
-    " In otherwords, the treeview will remian the same until either the 'Reset' button is hit, or a new XML file is fetched from the"
+    " In otherwords, the treeview will remain the same until either the 'Reset' button is hit, or a new XML file is fetched from the"
     " Android device or the program is run with the '-reset' option."
 )
 
@@ -2011,6 +2011,7 @@ class MyGui(customtkinter.CTk):
             self.withdraw()
             self.quit()
             self.quit()
+            self.sidebar_frame.destroy()
 
     # ##################################################################################
     # Validate XML and close the GUI.
@@ -2168,7 +2169,7 @@ class MyGui(customtkinter.CTk):
                         self.display_message_box("Cancel button pressed.", False)
                     else:
                         self.display_message_box(
-                            f"{PrimeItems.error_msg}\n\nClick 'Reset Options' to try a different XML file.", False
+                            f"{PrimeItems.error_msg}\n\nClick 'Reset Options' to try a different XML file.", False,
                         )
                     return False
 
@@ -2176,10 +2177,12 @@ class MyGui(customtkinter.CTk):
             else:
                 filename_location = self.android_file.rfind(PrimeItems.slash) + 1
                 file_to_use = PrimeItems.program_arguments["android_file"][filename_location:]
+                if not file_to_use:
+                    file_to_use = self.android_file[filename_location:]
                 try:
                     PrimeItems.file_to_get = open(file_to_use)
                 except FileNotFoundError:
-                    self.display_message_box(f"Backup file {file_to_use} not found.", False)
+                    self.display_message_box(f"XML file {file_to_use} not found.", False)
                     return False
 
                 # Get the XML

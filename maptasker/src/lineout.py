@@ -62,6 +62,25 @@ class LineOut:
         project_name: str,
         profile_name: str,
     ) -> None:
+        """        self.add_line_to_output(
+                    2,
+                    f"Project: {project_name}",
+                    ["", "project_color", FormatLine.add_end_span],
+                )
+            Refreshes the output by clearing existing output and starting anew.
+            Parameters:
+                include_the_profile (bool): Flag to indicate whether this is a Profile to be included.
+                project_name (str): Name of the Project, if any.
+                profile_name (str): Name of the Profile, if any.
+            Returns:
+                - None: No return value.
+            Processing Logic:
+                - Clears existing output and starts anew.
+                - Adds directory item.
+                - Starts Project list.
+                - Checks if Profile is to be included.
+                - Starts Profile list.
+                - Starts Project list."""
         """
         For whatever reason, we need to clear out the existing output and start anew.
 

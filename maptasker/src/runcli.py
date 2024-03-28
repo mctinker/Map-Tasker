@@ -458,6 +458,7 @@ def process_cli() -> None:
 
     # Process unit tests if "-test" in arguments, else get normal runtime arguments via Parsearg.
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
+
     logger.debug(f"Program arguments: {args}")
 
     # Restore runtime arguments if we are not doing a reset and not doing the GUI and there is a settings file to restore.
@@ -472,8 +473,7 @@ def process_cli() -> None:
     ):
         restore_arguments()
 
-        PrimeItems.program_arguments["gui"] = save_gui  # Restore GUI flag from runtime options,
-
+        # Restore the GUI flag.
         PrimeItems.program_arguments["gui"] = save_gui  # Restore GUI flag from runtime options,
 
         PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.

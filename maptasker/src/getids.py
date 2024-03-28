@@ -14,9 +14,6 @@
 
 import defusedxml.ElementTree  # Need for type hints
 
-from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import FormatLine
-
 
 def get_ids(
     doing_head_xml_element: bool,
@@ -34,14 +31,10 @@ def get_ids(
     """
 
     found_ids = ""
-    # Get Profiles by searching for <pids> element
-    if doing_head_xml_element:
-        ids_to_find = "pids"
-        # Start Profile list
-        PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
-    else:
-        # If not Profile IDs, just get Task IDs via <tids> xml element.
-        ids_to_find = "tids"
+    # Get Profiles by searching for <pids> element.  If not Profile IDs, just get Task IDs via <tids> xml element.
+    ids_to_find = "pids" if doing_head_xml_element else "tids"
+
+    # Get the IDs.
     try:
         # Get a list of the Profiles for this head_xml_element
         found_ids = head_xml_element.find(ids_to_find).text

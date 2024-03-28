@@ -14,8 +14,8 @@
 #                         \__|
 
 """
-    This is the main coordinator module that imports all the other components and
-    executes the key steps to take the Tasker backup and produce the visual map output.
+This is the main coordinator module that imports all the other components and
+executes the key steps to take the Tasker backup and produce the visual map output.
 """
 
 # #################################################################################### #
@@ -222,6 +222,8 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
             if debug_out:
                 logger.debug(f"mapit output line:{output_line}")
                 logger.info("Function Exit: write_out_the_file")
+
+        os.fsync(out_file)  # Force write to disk
 
 
 # ##################################################################################
@@ -564,13 +566,18 @@ def restart_program() -> None:
         - Use sys.exit to exit the program."""
     # NOTE: execl is the preferred method to launch a new program, but it doesn't work on Windows.
     #       So for Windows, we use subprocess.run.
+    #       'subprocess' does not immediately return from the call whereas 'execl' does return immediate control.
+    #
+    # sys.executable points to location of python: ../../python runtime
+    # Asterisk before sys.argv breaks it into separate arguments
     with contextlib.suppress(OSError):
-        # Asterisk before sys.argv breaks it into separate arguments
         if platform.system() == "Windows":
             subprocess.run([sys.executable, *sys.argv], check=False)  # noqa: S603
         else:
+            # Start a new process which replaces our current process (it does not return).
             os.execl(sys.executable, "python", *sys.argv)
-    sys.exit(0)
+
+    sys.exit(0)  # This should never be called.
 
 
 # ##################################################################################

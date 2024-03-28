@@ -128,7 +128,7 @@ def open_and_get_backup_xml_file() -> dict:
     ):
         backup_file_name = get_backup_file()
 
-        # If no backup file and we're coming from the GUI, then rerturn to GUI.
+        # If no backup file and we're coming from the GUI, then return to GUI.
         if backup_file_name is None and PrimeItems.program_arguments["gui"]:
             return None
 
@@ -267,28 +267,34 @@ def get_data_and_output_intro() -> int:
     - Closes the file after reading
     - Outputs initial information like header and source to the user
     """
-    if not PrimeItems.program_arguments["file"]:
-        PrimeItems.program_arguments["file"] = PrimeItems.file_to_get
+    # Only get the XML if we don't already have it.
+    tasker_root_elements = PrimeItems.tasker_root_elements
+    return_code = 0
+    if not tasker_root_elements["all_projects"] and not tasker_root_elements["all_profiles"] and not tasker_root_elements["all_tasks"] and not tasker_root_elements["all_scenes"]:
 
-    # Only display message box if we don't yet have the file name,if this is not the first time ever that we have run,
-    # and not running from the GUI.
-    if not PrimeItems.file_to_get and run_counter < 1 and not GUI:
-        msg = "Locate the Tasker backup xml file to use to map your Tasker environment"
-        messagebox.showinfo("MapTasker", msg)
+        # We don't yet have the data.  Let's get it.
+        if not PrimeItems.program_arguments["file"]:
+            PrimeItems.program_arguments["file"] = PrimeItems.file_to_get
 
-    # Open and read the file...
-    open_and_get_backup_xml_file()
-    if PrimeItems.error_code > 0:
-        return PrimeItems.error_code
+        # Only display message box if we don't yet have the file name,if this is not the first time ever that we have run,
+        # and not running from the GUI.
+        if not PrimeItems.file_to_get and run_counter < 1 and not GUI:
+            msg = "Locate the Tasker backup xml file to use to map your Tasker environment"
+            messagebox.showinfo("MapTasker", msg)
 
-    # Go get all the xml data
-    return_code = get_the_xml_data()
+        # Open and read the file...
+        open_and_get_backup_xml_file()
+        if PrimeItems.error_code > 0:
+            return PrimeItems.error_code
 
-    # Close the file
-    PrimeItems.file_to_get.close()
+        # Go get all the xml data
+        return_code = get_the_xml_data()
 
-    # Output the inital info: head, source, etc.
-    if return_code == 0:
+        # Close the file
+        PrimeItems.file_to_get.close()
+
+    # Output the inital info: head, source, etc. ...if it hasn't already been output.
+    if return_code == 0 and not PrimeItems.output_lines.output_lines:
         output_the_front_matter()
         return 0
 
