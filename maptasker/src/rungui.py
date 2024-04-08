@@ -16,6 +16,8 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+from __future__ import annotations
+
 import contextlib
 import sys
 
@@ -46,15 +48,54 @@ def convert_to_integer(value_to_convert: str, default_value: int) -> int:
 
 
 # ##################################################################################
+# Get the colors to use.
+# ##################################################################################
+def do_colors(user_input: dict) -> dict:
+    """Sets color mode and processes colors.
+    Parameters:
+        - user_input (dict): User input dictionary containing appearance mode and color lookup.
+    Returns:
+        - colormap (dict): Dictionary of colors after processing.
+    Processing Logic:
+        - Set color mode based on user input.
+        - Process color lookup if provided.
+        - Set flag for GUI usage."""
+
+    # Appearance change: Dark or Light mode?
+    colormap = set_color_mode(user_input.appearance_mode)
+
+    # Process the colors
+    if user_input.color_lookup:
+        for key, value in user_input.color_lookup.items():
+            colormap[key] = value
+
+    PrimeItems.program_arguments["gui"] = True  # Set flag to indicate we are using GUI
+
+    return colormap
+
+
+# ##################################################################################
 # Get the program arguments from GUI
 # ##################################################################################
 def process_gui(use_gui: bool) -> tuple[dict, dict]:
-    """
-    Present the GUI and get the runtime details
-        :param use_gui: flag if usijng the GUI, make sure we import it
-        :return: program runtime arguments and colors to use in the output
-    """
     # global MyGui
+    """Parameters:
+        - use_gui (bool): Flag to indicate whether to use GUI or not.
+    Returns:
+        - tuple[dict, dict]: Tuple containing program arguments and colors to use.
+    Processing Logic:
+        - Import MyGui if use_gui is True.
+        - Set flag to indicate GUI usage.
+        - Delete previous Tkinter window if it exists.
+        - Display GUI and get user input.
+        - Initialize runtime arguments if not already set.
+        - If user clicks "Exit" button, save settings and exit program.
+        - If user closes window, cancel program.
+        - If user clicks "Run" button, get input from GUI variables.
+        - Set program arguments in dictionary.
+        - Convert display_detail_level and indent to integers.
+        - Get font from GUI.
+        - Return program arguments and colors to use."""
     if use_gui:
         from maptasker.src.userintr import MyGui
 
@@ -107,17 +148,5 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     if the_font := user_input.font:
         PrimeItems.program_arguments["font"] = the_font
 
-    # Appearance change: Dark or Light mode?
-    colormap = set_color_mode(user_input.appearance_mode)
-
-    # Process the colors
-    if user_input.color_lookup:
-        for key, value in user_input.color_lookup.items():
-            colormap[key] = value
-
-    PrimeItems.program_arguments["gui"] = True  # Set flag to indicate we are using GUI
-
-    return (
-        PrimeItems.program_arguments,
-        colormap,
-    )
+    # Return the program arguments and colors to use.
+    return (PrimeItems.program_arguments, do_colors(user_input))

@@ -87,7 +87,7 @@ def process_projects_and_their_profiles(
                 {
                     "xml": PrimeItems.tasker_root_elements["all_tasks"][task]["xml"],
                     "name": PrimeItems.tasker_root_elements["all_tasks"][task]["name"],
-                }
+                },
             )
             task_output_lines.append(" ")
             if PrimeItems.tasker_root_elements["all_tasks"][task]["name"]:
@@ -117,11 +117,11 @@ def process_projects_and_their_profiles(
             found_tasks,
         )
 
-    PrimeItems.output_lines.add_line_to_output(
-        3,
-        "",
-        FormatLine.dont_format_line,
-    )  # Close Project list
+    # PrimeItems.output_lines.add_line_to_output(
+    #    3,
+    #    "",
+    #    FormatLine.dont_format_line,
+    # )  # Close Project list
 
     # Return a list of Tasks found thus far with duplicates remove
     # Reference: https://www.pythonmorsels.com/deduplicate-lists/
@@ -441,6 +441,13 @@ def summary_counts(project_name: str, profile_count: int) -> None:
             f" and {scene_count} Scenes</DIV><br><br>"
         ),
         ["", "project_color", FormatLine.add_end_span],
+    )
+
+    # Print a ruler
+    PrimeItems.output_lines.add_line_to_output(
+        5,
+        "<hr>",
+        FormatLine.dont_format_line,
     )
 
 

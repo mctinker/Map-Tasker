@@ -26,7 +26,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "3.1.7"
+VERSION = "3.1.8"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -130,8 +130,6 @@ ARGUMENT_NAMES = {
     "single_task_name": "Single Task Name",
     "twisty": "Hide Task Details under Twisty",
     "underline": "Underline Names",
-    "edit": "Edit",
-    "edit_type": "Edit Type",
 }
 
 # Debug stuff
@@ -151,7 +149,7 @@ pattern8 = re.compile("<br>")
 pattern9 = re.compile("</span></span>")
 pattern10 = re.compile("</p></p>")
 pattern11 = re.compile(".*[A-Z].*")
-pattern12 = re.compile("[%]\w+")  # matches any word-constituent character.   # noqa: W605
+pattern12 = re.compile(r"[%]\w+")  # matches any word-constituent character.
 RE_FONT = re.compile(r"</font>")
 
 clean = re.compile("<.*?>")

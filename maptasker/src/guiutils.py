@@ -35,9 +35,19 @@ if TYPE_CHECKING:
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 3.1.7 Change Log\n\n
-- Fixed: Eliminate reading the XML file twice when running from the GUI.\n\n
-- Fixed: The GUI gets a 'Backup File not found' error message if displaying the treeview after having restored the settings.
+Version 3.1.8 Change Log\n
+### Added\n
+- Added: A ruler line has been added to the output as a break to indicate the end of a Project.\n
+- Added: A new button, 'Clear Messages', has been added to the GUI to empty the text message box.\n
+- Added: Display all of the settings that are initially restored with the start of the GUI.\n
+- Added: If the GUI is started along with the '-reset' option then display this in the message box.\n
+### Fixed\n
+- Fixed: The GUI is displaying 'Settings Restored' twice upon entry.\n
+- Fixed: 'SyntaxWarning: invalid escape sequence' error messages if running with Python 3.12 or greater.\n
+- Fixed: The GUI 'Restore Settings' now also includes the display of the colors restored.\n
+## Changed\n
+- Changed: GUI messages were revamped to provide better details.\n
+- Changed: Keep message history in GUI and retain each message's color.\n
 """
 default_font_size = 14
 
@@ -212,10 +222,7 @@ def ping_android_device(self, ip_address: str, port_number: str) -> bool:  # noq
                 f"{ip_address} is not reachable (error {response}).  Try again.",
             )
             return False
-        self.display_message_box(
-            "Ping successful.",
-            True,
-        )
+        self.display_message_box("Ping successful.", True)
     else:
         self.backup_error(
             f"Invalid IP address: {ip_address}.  Try again.",
@@ -409,6 +416,9 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
     Processing Logic:
         - Check if the changelog file exists.
         - If it exists, prepare to display changes and remove the file so we only display the changes once."""
+    # Test changelog before posting to PyPi
+    #self.message = CHANGELOG
+    
     if os.path.isfile(CHANGELOG_FILE):
         self.message = CHANGELOG
         os.remove(CHANGELOG_FILE)
@@ -447,8 +457,6 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.color_text_row = None
     self.debug = None
     self.display_detail_level = None
-    self.edit = False
-    self.edit_type = ""
     self.preferences = None
     self.conditions = None
     self.everything = None
@@ -769,7 +777,6 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         - Creates a textbox for displaying help information.
         - Creates a tabview for setting specific names, colors, and debug options.
         - Defines the fourth grid / column for checkboxes related to debug options.
-        - If the program is in edit mode, creates a fifth grid / column for selecting new or existing projects.
         - Defines the sixth grid / column for checkboxes related to runtime settings."""
 
     # Display the frame title
@@ -1148,6 +1155,23 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "sw",
     )
 
+    # 'Clear Messages' button definition
+    self.reset_button = add_button(
+        self,
+        self,
+        "#246FB6",
+        "",
+        "",
+        self.clear_messages_event,
+        2,
+        "Clear Messages",
+        1,
+        5,
+        1,
+        0,
+        0,
+        "s",
+    )
     # 'Get Backup Settings' button definition
     self.get_backup_button = self.display_backup_button(
         "Get XML from Android Device",
@@ -1258,8 +1282,6 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.tabview.add("Specific Name")
     self.tabview.add("Colors")
     self.tabview.add("Debug")
-    # if EDIT:
-    #    self.tabview.add("Edit")
 
     self.tabview.tab("Specific Name").grid_columnconfigure(0, weight=1)  # configure grid of individual tabs
     self.tabview.tab("Colors").grid_columnconfigure(0, weight=1)
@@ -1386,38 +1408,6 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "w",
         "#6563ff",
     )
-
-    ## Edit Section Prompts
-    # if EDIT:
-    #    # TODO Clean up the geometry
-    #    self.edit_label = add_label(
-    #        self,
-    #        self.tabview.tab("Edit"),
-    #        "New or existing?",
-    #        0,
-    #        "",
-    #        "normal",
-    #        10,
-    #        2,
-    #        (20, 20),
-    #        (20, 20),
-    #        "e",
-    #    )
-    #    self.edit_optionemenu = add_option_menu(
-    #        self,
-    #        self.tabview.tab("Edit"),
-    #        self.edit_event,
-    #        [
-    #            "Create New",
-    #            "Edit Existing",
-    #        ],
-    #        3,
-    #        3,
-    #        (20, 20),
-    #        (20, 20),
-    #        "e",
-    #    )
-
     # Runtime
     self.runtime_checkbox = add_checkbox(
         self,

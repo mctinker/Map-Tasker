@@ -59,6 +59,8 @@ customtkinter.set_appearance_mode("System")
 # Themes: "blue" (standard), "green", "dark-blue"
 customtkinter.set_default_color_theme("blue")
 
+# NOTE: The textbox is used for help information via new_message_box, normal one-liner messages via display_message_box
+#       and multi-line messages via display_multiple_message.
 # Help Text
 INFO_TEXT = (
     "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML "
@@ -87,6 +89,7 @@ INFO_TEXT = (
     "* Appearance Mode: Dark, Light, or System default.\n\n"
     "* Tree View: Display a tree of your Projects/Profiles/Tasks.\n\n"
     "* Reset Options: Clear everything and start anew.\n\n"
+    "* Clear Messages: Clear any messages in the textbox.\n\n"
     "* Font To Use: Change the monospace font used for the output.\n\n"
     "* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n"
     "* Get XML from Android Device: fetch the backup/exported "
@@ -151,7 +154,7 @@ LISTFILES_HELP_TEXT = (
 )
 
 TREEVIEW_HELP_TEXT = (
-    "The Treeview is experimental and has the following limitations/behavior:\n\n"
+    "The Treeview has the following limitations/behavior:\n\n"
     "- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n"
     "- Only Projects can be displayed. XML consisting of only a single Profile or Task will not be displayed.\n\n"
     "- If the XML has already been fetched, it will be used as input to the treeview.  Hitting the 'Reset' button will clear the treeview data."
@@ -193,10 +196,8 @@ class MyGui(customtkinter.CTk):
         # Now restore the settings and update the fields if not resetting.
         if not PrimeItems.program_arguments["reset"]:
             self.restore_settings_event()
-
-            self.display_message_box("Settings restored.", True)
-
-            self.message = "Settings restored."  # self.message set to "" in set_defaults, above.
+        else:
+            self.display_message_box("GUI started with the '-reset' option.\n", True)
 
             if self.android_ipaddr:
                 # Display backup details as a label
@@ -211,6 +212,7 @@ class MyGui(customtkinter.CTk):
                 self.single_name_status(f"Display only Task '{self.single_task_name}'.", "#3f99ff")
 
         # Check if newer version of our code is available on Pypi (only check every 24 hours).
+        # If so, add a button to enable user to update.
         if is_new_version():
             self.new_version = True
             # We have a new version.  Let user upgrade.
@@ -283,14 +285,11 @@ class MyGui(customtkinter.CTk):
         self.android_file = ""
         if first_time:
             # self.textbox.insert("0.0", HELP)
-            self.all_messages = ""
+            self.all_messages = {}
         self.color_lookup = {}  # Setup default dictionary as empty list
         self.font = OUTPUT_FONT
         self.gui = True
         self.color_row = 4
-        self.edit = False
-        self.edit_type = ""
-
         self.message = ""
 
         # Display current Items setting.
@@ -336,45 +335,48 @@ class MyGui(customtkinter.CTk):
     # Display Message Box
     # ##################################################################################
     def display_message_box(self, message: str, good: bool) -> None:
-        # If "good", display in green.  Otherwise, must be bad and display in red.
-        r"""
-        Displays a message box with the given message and color.
-
+        """Display Message Box
         Args:
-            message: The message to display in one line.
-            good: Whether the message is good or bad in one line.
-        Returns:
-            None: No return value in one line.
-
-        - Deletes prior textbox contents
-        - Recreates the textbox
-        - Sets the color based on good/bad
-        - Inserts the accumulated messages
-        - Configures textbox properties
+            message (str): The text to display in the textbox.
+            good (bool): True = No Problem = Green, False = Error = Red
         """
-        color = "Green" if good else "Red"
+
+        # If "good", display in green.  Otherwise, must be bad and display in red.
+        # color = "Green" if good else "Red"
+        bad_color = "red"
+        good_color = "green"
         # Delete prior contents
         self.textbox.destroy()
-
-        # Delete message history if this is foran error
-        if not good:
-            self.all_messages = ""
 
         # Recreate text box
         self.textbox = customtkinter.CTkTextbox(self, height=500, width=600)
         self.textbox.grid(row=0, column=1, padx=20, pady=40, sticky="nsew")
 
-        # Display some colored text
-        # self.textbox.insert('end', 'This is some colored text.\n')
-        # self.textbox.tag_add('color', '1.5', '1.11')  # '1.5' means first line, 5th character; '1.11' means first line, 11th character
-        # self.textbox.tag_config('color', foreground='red')
+        line_num = 0
 
-        self.all_messages = f"{self.all_messages}{message}\n"
-        # self.all_messages = f"{message}\n"
-        # insert at line 0 character 0
-        self.textbox.insert("0.0", self.all_messages)
-        # Set read-only, color, wrap around and font
-        self.textbox.configure(state="disabled", text_color=color, wrap="word", font=(self.font, 14))
+        # Go through our messages and add each to the text box.
+        for num, key in enumerate(self.all_messages):
+            line_num = num + 1
+            line_num_str = str(line_num)
+            line_detail = self.all_messages[key]
+            # fmt: off
+            self.textbox.insert(f"{line_num_str}.0", line_detail["text"], (line_num_str))
+            self.textbox.tag_add(line_num_str, f"{line_num_str}.0", f"{line_num_str}.{len(line_detail["text"])!s}") # fmt: skip
+            # fmt: on
+            self.textbox.tag_config(line_num_str, foreground=line_detail["color"])
+
+        # Insert the text with our new message into the text box.
+        line_num += 1
+        line_num_str = str(line_num)
+        # Add this message to our dictionary of messages.
+        self.all_messages[line_num] = {"text": f"{message}\n", "color": good_color if good else bad_color}
+        # Add the test and color to the text box.
+        # fmt: off
+        self.textbox.insert(f"{line_num_str}.0", f"{message}\n", (line_num_str))
+        self.textbox.tag_add(line_num_str, f"{line_num_str}.0", f"{line_num_str}.{len(message)!s}")
+        # fmt: on
+        self.textbox.tag_config(line_num_str, foreground=self.all_messages[line_num]["color"])
+
         self.textbox.focus_set()
 
     # ##################################################################################
@@ -398,35 +400,33 @@ class MyGui(customtkinter.CTk):
         error_message = ""
         # Check for missing name
         if not the_name:
-            error_message = (
-                f"\n\nEither the name entered for the {element_name} is blank or the"
-                f" 'Cancel' button was clicked.\n\nAll {element_name}s will be"
-                " displayed."
-            )
+            error_message = [
+                f"Either the name entered for the {element_name} is blank or the"
+                f" 'Cancel' button was clicked.\n",
+                "All Projects, Profiles, and Tasks will be displayed.\n",
+                ]
+
             self.named_item = False
         # Check to make sure only one named item has been entered
         elif self.single_project_name and self.single_profile_name:
-            error_message = (
-                "Error:\n\nYou have entered both a Project and a Profile name!\n\nTry again and only select one."
-            )
+            error_message = [
+                "Error:\n\n", "You have entered both a Project and a Profile name!\n", "Try again and only select one.",
+            ]
         elif self.single_project_name and self.single_task_name:
-            error_message = (
-                "Error:\n\nYou have entered both a Project and a Task name!\n\nTry again and only select one."
-            )
+            error_message = [
+                "Error:\n\n", "You have entered both a Project and a Task name!\n", "Try again and only select one.",
+            ]
         elif self.single_profile_name and self.single_task_name:
-            error_message = (
-                "Error:\n\nYou have entered both a Profile and a Task name!\n\nTry again and only select one."
-            )
+            error_message = [
+                "Error:\n\n", "You have entered both a Profile and a Task name!\n", "Try again and only select one.",
+            ]
         # Make sure the named item exists
         elif not valid_item(the_name, element_name, self.debug, self.appearance_mode):
-            error_message = f'Error: "{the_name}" {element_name} not found!!  Try again.\n{PrimeItems.error_msg}'
+            error_message = [f'Error: "{the_name}" {element_name} not found!  Try again.\n']
 
         # If we have an error, display it and blank out the various individual names
         if error_message:
-            # Delete prior contents
-            self.all_messages = ""
-
-            self.display_message_box(error_message, False)
+            self.display_multiple_messages(error_message, False)
             (
                 self.single_project_name,
                 self.single_profile_name,
@@ -434,6 +434,7 @@ class MyGui(customtkinter.CTk):
             ) = ("", "", "")
             return False
 
+        # No error.
         self.display_message_box(
             f"Display only the '{the_name}' {element_name} (overrides any previous set name).",
             True,
@@ -679,6 +680,22 @@ class MyGui(customtkinter.CTk):
         self.display_message_box(f"Font To Use set to {font_selected}", True)
 
     # ##################################################################################
+    # Clear the message text box.
+    # ##################################################################################
+    def clear_messages_event(self) -> None:
+        """
+        Clears the message box
+        Args:
+            None
+        Returns:
+            None
+        Processing Logic:
+            - Destroys the message box
+        """
+        self.all_messages = {}
+        self.textbox.destroy()
+
+    # ##################################################################################
     # Process the Display Detail Level selection
     # ##################################################################################
     def detail_selected_event(self, display_detail: str) -> None:
@@ -739,29 +756,6 @@ class MyGui(customtkinter.CTk):
         self.indent = ident_amount
         self.indent_option.set(ident_amount)
         self.inform_message("Indentation Amount", True, ident_amount)
-
-    # ##################################################################################
-    # Edit selection
-    # ##################################################################################
-    def edit_event(self, edit_type: str) -> None:
-        """
-        Edit an event by setting the edit type.
-
-        :param edit_type: A string representing the type of edit.
-        :return: None
-        """
-
-        self.edit_type = edit_type
-        self.edit = True
-
-        from edittasker.src.edtnewui import ToplevelWindow
-
-        self.edit_type = edit_type
-        self.edit = True
-        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = ToplevelWindow(self)  # create window if its None or destroyed
-        else:
-            self.toplevel_window.focus()  # if window exists focus it
 
     # ##################################################################################
     # Process color selection
@@ -933,21 +927,22 @@ class MyGui(customtkinter.CTk):
         self.everything = self.everything_checkbox.get()
         value = self.everything
 
-        new_message = all_messages = ""
+        #new_message = all_messages = ""
         for key in message_map:
             if message_func := message_map.get(key):
-                new_message = f"{message_func()}"
+                # Display detail level requires special handling.
                 if key == "display_detail_level":
-                    new_message = f"Display Detail Level: {self.display_detail_level}"
-                all_messages = f"{all_messages}{new_message}"
+                    self.display_message_box(f"Display Detail Level: {self.display_detail_level}", True)
+                else:
+                    # Handle toggle: select/deselect checkbox and set/unset setting.
+                    self.display_message_box(f"{message_func()}", True)
+
             # Check if key is an attribute on self before setting
             if hasattr(self, key) and key != "display_detail_level":
                 setattr(self, key, value)
 
         # Handle Display Detail Level
         self.display_detail_level = 4
-
-        self.display_message_box(all_messages, True)
 
     # ##################################################################################
     # Process the 'Tasker Preferences' checkbox
@@ -1128,7 +1123,7 @@ class MyGui(customtkinter.CTk):
         self.textbox.insert("0.0", message)
         # Set read-only, color, wrap around and font
         self.textbox.configure(state="disabled", font=(self.font, 14), wrap="word")
-        # Display some colored text
+        # Display some colored text: the heading
         # self.textbox.insert('end', 'This is some colored text.\n')
         self.textbox.tag_add(
             "color",
@@ -1136,7 +1131,7 @@ class MyGui(customtkinter.CTk):
             f"1.{len(message)}",
         )  # '1.5' means first line, 5th character; '1.11' means first line, 11th character
         self.textbox.tag_config("color", foreground="green")
-        self.all_messages = ""
+        self.all_messages = {}
 
     # ##################################################################################
     # Process the 'Display Help' button
@@ -1366,6 +1361,18 @@ class MyGui(customtkinter.CTk):
             if message_func:
                 message = message_func()
 
+        # Cleanup the end of the message if it is not set.
+        the_empty_ending = "set to \n"
+        the_empty_ending_length = len(the_empty_ending)
+        named_ending = "named ''.\n"
+        named_ending_length = len(named_ending)
+        if message is None or message == "":
+            return ""
+        if message.endswith(the_empty_ending):
+            message = f"{message[:-the_empty_ending_length]} is not set.\n"
+        elif message.endswith(named_ending):
+            message = f"{message[:-named_ending_length]} is not named.\n"
+
         return message
 
     # ##################################################################################
@@ -1395,14 +1402,17 @@ class MyGui(customtkinter.CTk):
                 self.display_message_box(temp_args["msg"], False)
                 temp_args["msg"] = ""
                 return
+
+        # If no colors restored, let user know.
+        if not self.color_lookup:
+            self.display_message_box("Colors set to defaults.", True)
         # Restore progargs values
         if temp_args or self.color_lookup:
             self.extract_settings(temp_args)
             self.restore = True
+
         else:  # Empty?
             self.display_message_box("No settings file found.", False)
-        # Empty message queue so we don't fill it up (causes as display text problem)
-        self.all_messages = ""
 
     # ##################################################################################
     # We have read colors and runtime args from backup file.  Now extract them for use.
@@ -1419,13 +1429,11 @@ class MyGui(customtkinter.CTk):
         - Loops through color lookup and builds message of color changes
         - Displays message box with all setting changes
         """
-        all_messages, new_message = "", ""
-        self.all_messages = ""
         for key, value in temp_args.items():
             if key is not None:
                 setattr(self, key, value)
                 if new_message := self.restore_display(key, value):
-                    all_messages = f"{all_messages}{new_message}"
+                    self.display_message_box(f"{new_message}\n", True)
         # Display the restored color changes, using the reverse dictionary of
         #   TYPES_OF_COLOR_NAMES (found in sysconst.py)
         inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
@@ -1435,10 +1443,10 @@ class MyGui(customtkinter.CTk):
                     inv_color_names[key] = ""
                 else:
                     with contextlib.suppress(KeyError):
-                        all_messages = f"{all_messages} {inv_color_names[key]} color set to {value}\n"
+                        self.display_message_box(f"{inv_color_names[key]} color set to {value}\n", True)
 
         # Display the queue of messages
-        self.display_message_box(f"{all_messages}\nSettings restored.", True)
+        self.display_message_box("Settings restored.\n", True)
 
     # ##################################################################################
     # Display an input field and a label for the user to input a value
@@ -1686,6 +1694,21 @@ class MyGui(customtkinter.CTk):
             )
 
     # ##################################################################################
+    # Get list of lines and output them.
+    # ##################################################################################
+    def display_multiple_messages(self, details: list, good_or_bad: bool) -> None:
+        """
+        Display Android settings based on the given details list.
+
+        :param self: The instance of the class.
+        :param details: A list containing the details to be displayed.
+        :param good_or_bad: True = good (green), False = bad (red).
+        :return: None
+        """
+        for line in details:
+            self.display_message_box(line, good_or_bad)
+
+    # ##################################################################################
     # Fetch the backup ip and file details, and validate.
     # This function can be entered through two paths:
     # 1- User clicked on the 'Get Backup Settings' button
@@ -1755,14 +1778,13 @@ class MyGui(customtkinter.CTk):
         if not self.list_files:
             self.android_file = android_file
         clear_android_buttons(self)
-        self.display_message_box(
-            (
-                f"\n\nGet XML IP Address set to: {self.android_ipaddr}\n\nPort"
-                f" Number set to: {self.android_port}\n\nGet"
-                f" Location set to: {self.android_file}"
-                f"\n\nXML file will be fetched when 'Run' is selected."
-            ),
-            True,
+        self.display_multiple_messages(
+            [
+                f"Get XML IP Address set to: {self.android_ipaddr}\n",
+                f"Port Number set to: {self.android_port}\n",
+                f"Get Location set to: {self.android_file}\n",
+                "XML file acquired.\n",
+            ], True,
         )
 
         # Display backup details as a label again.
@@ -1783,7 +1805,6 @@ class MyGui(customtkinter.CTk):
             - Displays label and input for TCP/IP Address and Port of Android device
             - Displays label and input for location of backup file on Android device
         """
-        self.ip_label = self.port_label = self.file_label = None
         self.ip_label = add_label(
             self,
             self,
@@ -1844,7 +1865,7 @@ class MyGui(customtkinter.CTk):
         self.android_file = ""
         self.android_ipaddr = ""
         self.android_port = ""
-        self.display_message_box("Get XML Details Cancelled.", True)
+        self.display_message_box("Get XML Details Cancelled.", False)
 
     # ##################################################################################
     # List files event
@@ -1870,20 +1891,18 @@ class MyGui(customtkinter.CTk):
             - None: Adds android_file to file_list."""
         self.android_file = android_file
         clear_android_buttons(self)
-        self.display_message_box(
-            (
-                f"\n\nGet XML IP Address set to: {self.android_ipaddr}\n\nPort"
-                f" Number set to: {self.android_port}\n\nGet"
-                f" Location set to: {self.android_file}"
-                f"\n\nXML file will be fetched when 'Run' is selected."
-            ),
-            True,
+        self.display_multiple_messages(
+            [
+                f"Get XML IP Address set to: {self.android_ipaddr}\n",
+                f"Port Number set to: {self.android_port}\n",
+                f"Get Location set to: {self.android_file}\n",
+                "XML file acquired.\n",
+            ], True,
         )
 
-        # Validate XML file.add
+        # Validate XML file.
         PrimeItems.program_arguments["gui"] = True
         return_code, error_message = validate_xml_file(self.android_ipaddr, self.android_port, android_file)
-
         if return_code > 0:
             self.display_message_box(error_message, False)  # Error out and exit
             return
@@ -1963,7 +1982,7 @@ class MyGui(customtkinter.CTk):
                 self.display_message_box("Debug mode enabled.", True)
             else:
                 self.display_message_box(
-                    ("Debug mode requires Tasker XML file to be named: 'backup.xml', which is missing!"),
+                    ("Debug mode requires Tasker XML file to be named: 'backup.xml', which is missing.  No change."),
                     False,
                 )
                 self.debug = False
@@ -2166,10 +2185,11 @@ class MyGui(customtkinter.CTk):
                 # Did we get an error reading the backup file?
                 if return_code > 0:
                     if return_code == 6:
-                        self.display_message_box("Cancel button pressed.", False)
+                        self.display_message_box("Cancel button pressed.\n", False)
                     else:
-                        self.display_message_box(
-                            f"{PrimeItems.error_msg}\n\nClick 'Reset Options' to try a different XML file.", False,
+                        self.display_multiple_messages(
+                            [f"{PrimeItems.error_msg}\n", "Click 'Reset Options' to try a different XML file."],
+                            False,
                         )
                     return False
 
@@ -2215,7 +2235,6 @@ class MyGui(customtkinter.CTk):
         # Do we already have the XML?
         # If we don't have any data, get it.
         if self.load_xml():
-
             # Ok, we have our root Tasker elements.  Build the tree
             self.toplevel_window = None
 
@@ -2253,7 +2272,6 @@ class MyGui(customtkinter.CTk):
 
                 # Retrieves profile IDs for a given project and project name, excluding projects without profiles.
                 if profile_ids := get_ids(True, projects[project]["xml"], project_name, []):
-
                     # Build our list of Profiles in this Project.
                     profile_list = build_profiles(root, profile_ids)
 
@@ -2327,7 +2345,6 @@ def build_profiles(root: dict, profile_ids: list) -> list:
     profiles = root["all_profiles"]
     profile_list = []
     for profile in profile_ids:
-
         # Get the Profile's Tasks
         PrimeItems.task_count_unnamed = 0  # Avoid an error in get_profile_tasks
         if the_tasks := get_profile_tasks(profiles[profile]["xml"], [], []):

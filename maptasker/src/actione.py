@@ -211,7 +211,7 @@ def build_action(
                         "Red",
                         "",
                         (
-                            f" ... continue limit of {CONTINUE_LIMIT!s} "
+                            f"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;... continue limit of {CONTINUE_LIMIT!s} "
                             'reached.  See "CONTINUE_LIMIT =" in config.py for '
                             "details"
                         ),

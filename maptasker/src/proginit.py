@@ -270,7 +270,12 @@ def get_data_and_output_intro() -> int:
     # Only get the XML if we don't already have it.
     tasker_root_elements = PrimeItems.tasker_root_elements
     return_code = 0
-    if not tasker_root_elements["all_projects"] and not tasker_root_elements["all_profiles"] and not tasker_root_elements["all_tasks"] and not tasker_root_elements["all_scenes"]:
+    if (
+        not tasker_root_elements["all_projects"]
+        and not tasker_root_elements["all_profiles"]
+        and not tasker_root_elements["all_tasks"]
+        and not tasker_root_elements["all_scenes"]
+    ):
 
         # We don't yet have the data.  Let's get it.
         if not PrimeItems.program_arguments["file"]:
