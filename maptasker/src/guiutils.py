@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 3.1.8 Change Log\n
+Version 3.1.8/3.1.9 Change Log\n
 ### Added\n
 - Added: A ruler line has been added to the output as a break to indicate the end of a Project.\n
 - Added: A new button, 'Clear Messages', has been added to the GUI to empty the text message box.\n
@@ -418,7 +418,7 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
         - If it exists, prepare to display changes and remove the file so we only display the changes once."""
     # Test changelog before posting to PyPi
     #self.message = CHANGELOG
-    
+
     if os.path.isfile(CHANGELOG_FILE):
         self.message = CHANGELOG
         os.remove(CHANGELOG_FILE)

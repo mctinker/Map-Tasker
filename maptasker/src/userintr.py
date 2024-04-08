@@ -361,7 +361,7 @@ class MyGui(customtkinter.CTk):
             line_detail = self.all_messages[key]
             # fmt: off
             self.textbox.insert(f"{line_num_str}.0", line_detail["text"], (line_num_str))
-            self.textbox.tag_add(line_num_str, f"{line_num_str}.0", f"{line_num_str}.{len(line_detail["text"])!s}") # fmt: skip
+            self.textbox.tag_add(line_num_str, f"{line_num_str}.0", f"{line_num_str}.{len(line_detail['text'])!s}") # fmt: skip
             # fmt: on
             self.textbox.tag_config(line_num_str, foreground=line_detail["color"])
 
