@@ -2,14 +2,32 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.1.7] 28-March-2024
+## [3.1.8] 08-April-2024
+
+### Added
+
+- Added: A ruler line has been added to the output as a break to indicate the end of a Project.
+- Added: A new button, 'Clear Messages', has been added to the GUI to empty the text message box.
+- Added: Display all of the settings that are initially restored with the start of the GUI.
+- Added: If the GUI is started along with the '-reset' option then display this in the message box.
 
 ### Fixed
 
-- Fixed: Eliminate reading the XML file twice when running from the GUI.
-- Fixed: The GUI gets a 'Backup File not found' error message if displaying the treeview after having restored the settings.
+- Fixed: The GUI is displaying 'Settings Restored' twice upon entry.
+- Fixed: 'SyntaxWarning: invalid escape sequence' error messages if running with Python 3.12 or greater.
+- Fixed: The GUI 'Restore Settings' now also includes the display of the colors restored.
+
+## Changed
+
+- Changed: GUI messages were revamped to provide better details.
+- Changed: Keep message history in GUI and retain each message's color.
 
 ## Older History Logs
+
+## [3.1.7] 28-March-2024
+
+- Fixed: Eliminate reading the XML file twice when running from the GUI.
+- Fixed: The GUI gets a 'Backup File not found' error message if displaying the treeview after having restored the settings.
 
 ## [3.1.6] 25-March-2024
 
