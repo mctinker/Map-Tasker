@@ -108,14 +108,15 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-ch` color help: display all valid colors",
 
-    `-detail 0` for silent mode: simple Project/Profile/Task/Scene names with no details,
+    `-detail 0` for minimal mode: simple Project/Profile/Task/Scene names with no details,
     `-detail 1` to display the Action list only if the Task is unnamed or anonymous,
     `-detail 2` to display Action list names for *all* Tasks,
     `-detail 3` to display Action list names with *all* parameters for all Tasks,
     `-detail 4` to display detail at level 3 plus all Project and unreferenced global variables (default),
+    `-detail 5` to display level 4 detail plus Scene element UI details.
 
     `-directory` to display a directory of all Projects/Profiles/Tasks/Scenes,
-    `-e` to display 'everything': Runtime settings, Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details with Project variables,
+    `-e` to display 'everything': Runtime settings, Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details with Project variables, etc.
     `-file` to specify a specific XML file to read from your local PC/MAC/Linux drive.
     `-font` font to use (preferably a monospace font),  If "-f help" is entered, then the list of installed monospace fonts on your system will be printed out on the runtime console.
     `-g` to get arguments from the GUI rather than via the command line,
@@ -123,9 +124,10 @@ Runtime: `maptasker -option1 -option2` ...
     `-n {bold highlight italicize}` to add formatting options to Project/Profile/Task/Scene names,
     `-o` to display the Configuration outline and output a map as MapTasker_map.txt
     `-preferences` to display Tasker's preference settings,
+    `-pretty` to make the output pretty by breaking the lines at commas and open parenthesis,
     `-reset` to ignore and reset the previously stored runtime arguments to default values,
     `-runtime` to display the runtime arguments and their settings at the top of the output,
-    `-twisty` to display Task details hidden by a twisty "▶︎".  Click on twisty to reveal.
+    `-twisty` to display Task details hidden by a twisty "▶︎".  Click on twisty to reveal.  (Mutually exclusive with '-everything')
     `-taskernet` to display any TaskerNet share details,
 
     The following three arguments are mutually exclusive.  Use one only:
@@ -220,6 +222,8 @@ With this older version, you will not get the benefits offered by the newer vers
 - [x] Fix output column alignment
 
 - [x] Support Windows 11
+
+- [x] Add a runtime option for more pretty output
 
 - [ ] Include/map remaining Tasker preferences
 

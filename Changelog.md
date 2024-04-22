@@ -2,9 +2,30 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.1.9] 08-April-2024
+## [3.2.0] ??-April-2024 # FIX
 
-- Fixed: Runtime error in userintr.py
+## ADDED
+
+- Added: A new 'display detail level' of 5 (the new default) has been added to include Scene element UI and properties details.
+- Added: Display the change log for the current release at the end of the Help information in the GUI.
+- Added: A new runtime option '-pretty' will format the output such that each Project/Profile details, Task action's parameters, Scene element details, etc. are aligned on a separate line.
+
+## FIXED
+
+- Fixed: If a Scene has a sub-scene layout, output the details of the sub-scene.
+- Fixed: Task action 'Stop' with Task name has an extra comma in the output.
+- Fixed: When displaying a single Project, the Project line details are not displayed (e.g. Launcher Task).
+- Fixed: If the XML file has been obtained from the Android device, don't prompt for the file again if doing a specific Project/Profile/Task.
+- Fixed: On startup of the GUI, the information about the Android device and single Project/Profile/Task name are not displayed if restored from backup settings.
+- Fixed: Scene sub-elements (e.g. Layout)are missing from the output.
+- Fixed: If only doing a single Project with the '-directory' runtime option, some scene hotlinks in the directory do not work.
+- Fixed: Twisty setting is not being restored on a rerun.
+
+## CHANGED
+
+- Changed: Scene elements are now displayed as 'Element of type xxxx' to more clearly identify the element type (e.g. type: Text, Rect, Button, Image, etc.).
+- Changed: Output Task action fields and values changed from 'field:value' to 'field=value' for ease of reading.  Plugin details will still use a colon.
+- Changed: The runtime options '-everything' and '-twisty' are now mutually exclusive.
 
 ## Older History Logs
 
