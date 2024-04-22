@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 3.2.0 Change Log\n
+Version 3.2.0/3.2.1 Change Log\n
 ## Added\n
 - Added: A new 'display detail level' of 5 (the new default) has been added to include Scene element UI and properties details.\n
 - Added: Display the change log for the current release at the end of the Help information in the GUI.\n
