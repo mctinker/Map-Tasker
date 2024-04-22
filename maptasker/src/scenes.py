@@ -263,7 +263,7 @@ def format_and_output_arguments(child: defusedxml.ElementTree, element_type: str
     PrimeItems.output_lines.add_line_to_output(
         2,
         f"{blank*(6+indentation)}{title}{element_name}...{line_out}<br>",
-        FormatLine.dont_format_line,
+        ["", "scene_color", FormatLine.add_end_span],
     )
 
     # If the element is a ListElementItem, get it's Task Action (in Properties) and output it.
