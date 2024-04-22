@@ -54,10 +54,12 @@ def output_list_of_actions(
                     ["", "action_color", FormatLine.dont_add_end_span],
                 )
             else:
+                # First remove one blank if line number is > 99 and < 1000
+                temp_action = taction.replace("&nbsp;", "", 1) if action_count > 99 and action_count < 1000 else taction
                 #  Output the Action count = line number of action (fill to 2 leading zeros)
                 PrimeItems.output_lines.add_line_to_output(
                     2,
-                    f"Action: {str(action_count).zfill(2)}</span> {taction}",
+                    f"Action: {str(action_count).zfill(2)}</span> {temp_action}",
                     ["", "action_color", FormatLine.dont_add_end_span],
                 )
                 action_count += 1

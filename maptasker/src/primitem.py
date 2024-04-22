@@ -64,6 +64,7 @@ class PrimeItems:
     colors_to_use: ClassVar = {}
     output_lines = None
     file_to_get = ""
+    file_to_use = ""
     task_count_for_profile = 0
     displaying_named_tasks_not_in_profile = False
     mono_fonts: ClassVar = {}

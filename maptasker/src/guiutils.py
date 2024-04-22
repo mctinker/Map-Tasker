@@ -35,19 +35,24 @@ if TYPE_CHECKING:
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 3.1.8/3.1.9 Change Log\n
-### Added\n
-- Added: A ruler line has been added to the output as a break to indicate the end of a Project.\n
-- Added: A new button, 'Clear Messages', has been added to the GUI to empty the text message box.\n
-- Added: Display all of the settings that are initially restored with the start of the GUI.\n
-- Added: If the GUI is started along with the '-reset' option then display this in the message box.\n
-### Fixed\n
-- Fixed: The GUI is displaying 'Settings Restored' twice upon entry.\n
-- Fixed: 'SyntaxWarning: invalid escape sequence' error messages if running with Python 3.12 or greater.\n
-- Fixed: The GUI 'Restore Settings' now also includes the display of the colors restored.\n
-## Changed\n
-- Changed: GUI messages were revamped to provide better details.\n
-- Changed: Keep message history in GUI and retain each message's color.\n
+Version 3.2.0 Change Log\n
+## Added\n
+- Added: A new 'display detail level' of 5 (the new default) has been added to include Scene element UI and properties details.\n
+- Added: Display the change log for the current release at the end of the Help information in the GUI.\n
+- Added: A new runtime option '-pretty' will format the output such that each Project/Profile details, Task action's parameters, Scene element details, etc. are aligned on a separate line.\n
+## FIXED\n
+- Fixed: If a Scene has a sub-scene layout, output the details of the sub-scene.\n
+- Fixed: Task action 'Stop' with Task name has an extra comma in the output.\n
+- Fixed: When displaying a single Project, the Project line details are not displayed (e.g. Launcher Task).\n
+- Fixed: If the XML file has been obtained from the Android device, don't prompt for the file again if doing a specific Project/Profile/Task.\n
+- Fixed: On startup of the GUI, the information about the Android device and single Project/Profile/Task name are not displayed if restored from backup settings.\n
+- Fixed: Scene sub-elements (e.g. Layout)are missing from the output.\n
+- Fixed: If only doing a single Project with the '-directory' runtime option, some scene hotlinks in the directory do not work.\n
+- Fixed: Twisty setting is not being restored on a rerun.\n
+## CHANGED\n
+- Changed: Scene elements are now displayed as 'Element of type xxxx' to more clearly identify the element type (e.g. type: Text, Rect, Button, Image, etc.).\n
+- Changed: Output Task action fields and values changed from 'field:value' to 'field=value' for ease of reading.  Plugin details will still use a colon.\n
+- Changed: The runtime options '-everything' and '-twisty' are now mutually exclusive.\n
 """
 default_font_size = 14
 
@@ -137,7 +142,7 @@ def get_xml(debug: bool, appearance_mode: str) -> int:
     PrimeItems.colors_to_use = set_color_mode(appearance_mode)
     PrimeItems.output_lines = LineOut()
 
-    return get_data_and_output_intro()
+    return get_data_and_output_intro(False)
 
 
 # ##################################################################################
@@ -416,7 +421,7 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
     Processing Logic:
         - Check if the changelog file exists.
         - If it exists, prepare to display changes and remove the file so we only display the changes once."""
-    # Test changelog before posting to PyPi
+    # TODO Test changelog before posting to PyPi.  Comment it out after testing.
     #self.message = CHANGELOG
 
     if os.path.isfile(CHANGELOG_FILE):
@@ -482,6 +487,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.twisty = None
     self.underline = None
     self.outline = False
+    self.pretty = False
     self.toplevel_window = None
     PrimeItems.program_arguments["gui"] = True
     self.list_files = False
@@ -500,9 +506,9 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     # create sidebar frame with widgets on the left side of the window.
     self.sidebar_frame = ctk.CTkFrame(self, width=140, corner_radius=0)
     self.sidebar_frame.configure(bg_color="black")
-    self.sidebar_frame.grid(row=0, column=0, rowspan=12, sticky="nsew")
-    # Define sidebar background frame with 14 rows
-    self.sidebar_frame.grid_rowconfigure(13, weight=1)
+    self.sidebar_frame.grid(row=0, column=0, rowspan=16, sticky="nsew")
+    # Define sidebar background frame with 17 rows
+    self.sidebar_frame.grid_rowconfigure(17, weight=1)
 
 
 # ##################################################################################
@@ -908,7 +914,21 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "",
     )
 
-    # Names: Bold / Highlight / Italicise
+    # Pretty Output
+    self.pretty_checkbox = add_checkbox(
+        self,
+        self.sidebar_frame,
+        self.pretty_event,
+        "Display Prettier Output",
+        10,
+        0,
+        20,
+        10,
+        "w",
+        "",
+    )
+
+    # Names: Bold / Highlight / Italicise / Underline
     self.display_names_label = add_label(
         self,
         self.sidebar_frame,
@@ -916,7 +936,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "",
         0,
         "normal",
-        10,
+        11,
         0,
         20,
         10,
@@ -924,7 +944,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     )
 
     # Bold
-    self.bold_checkbox = add_checkbox(self, self.sidebar_frame, self.names_bold_event, "Bold", 11, 0, 20, 0, "ne", "")
+    self.bold_checkbox = add_checkbox(self, self.sidebar_frame, self.names_bold_event, "Bold", 12, 0, 20, 0, "ne", "")
 
     # Italicize
     self.italicize_checkbox = add_checkbox(
@@ -932,7 +952,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.sidebar_frame,
         self.names_italicize_event,
         "italicize",
-        11,
+        12,
         0,
         20,
         0,
@@ -946,7 +966,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.sidebar_frame,
         self.names_highlight_event,
         "Highlight",
-        12,
+        13,
         0,
         20,
         5,
@@ -960,7 +980,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.sidebar_frame,
         self.names_underline_event,
         "Underline",
-        12,
+        13,
         0,
         20,
         5,
@@ -976,7 +996,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "",
         0,
         "normal",
-        13,
+        14,
         0,
         20,
         10,
@@ -989,7 +1009,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.sidebar_frame,
         self.indent_selected_event,
         ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
-        14,
+        15,
         0,
         0,
         (0, 30),
@@ -1004,7 +1024,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "",
         0,
         "normal",
-        15,
+        16,
         0,
         0,
         (0, 10),
@@ -1016,7 +1036,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         self.sidebar_frame,
         self.change_appearance_mode_event,
         ["Light", "Dark", "System"],
-        16,
+        17,
         0,
         0,
         (0, 45),

@@ -214,9 +214,10 @@ def process_tasks_not_called_by_profile(
             if specific_task:
                 break
 
-    # End the twisty hidden Task list
+    # End the twisty hidden Task list.  Remove it and restore the setting.
     if save_twisty:
         remove_twisty()
+        PrimeItems.program_arguments["twisty"] = save_twisty
 
     # Provide spacing and end list if we have Tasks
     if task_count > 0:

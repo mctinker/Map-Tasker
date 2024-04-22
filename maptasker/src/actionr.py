@@ -24,7 +24,7 @@ from maptasker.src.format import format_html
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DISPLAY_DETAIL_LEVEL_all_tasks,
-    DISPLAY_DETAIL_LEVEL_everything,
+    DISPLAY_DETAIL_LEVEL_all_variables,
     pattern0,
     pattern1,
     pattern2,
@@ -101,14 +101,19 @@ def find_capitalized_percent_substrings(string: str) -> list:
 # Get the variables from this result and save them in the dictionary.
 # ##################################################################################
 def get_variables(result: str) -> None:
-    """
-    Get the variables from this result and save them in the dictionary.
-        Args:
-
-            result (str): The text string containing the Task variable(s)
-    """
 
     # Fid all variables with at least one capitalized letter.
+    """Get all variables with at least one capitalized letter.
+    Parameters:
+        - result (str): The string to search for variables.
+    Returns:
+        - None: This function does not return anything.
+    Processing Logic:
+        - Find all variables with at least one capitalized letter.
+        - Check if the variable is in the variable dictionary.
+        - If it is, add the current project name to the list of projects associated with the variable.
+        - If it is not, add the variable to the variable dictionary with a default value and the current project name.
+        - If the variable is not found in the dictionary, it is considered inactive."""
     if variable_list := find_capitalized_percent_substrings(result):
         # Go thru list of capitalized percent substrings and see if they are
         # in our variable dictionary.  If so, then add the project name to the list.
@@ -192,10 +197,10 @@ def get_action_results(
         result = pattern2.sub(",", result)  # Do it again to catch any missed
         result = pattern2.sub(",", result)  # Do it again to catch any missed
         result = pattern0.sub(",", result)  # Catch ",,"
-        result = f"&nbsp;&nbsp{result}"
+        result = f"&nbsp;&nbsp;{result}"
 
         # Process variables if display_detail_level is 4
-        if program_arguments["display_detail_level"] == DISPLAY_DETAIL_LEVEL_everything:
+        if program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
             get_variables(result)
 
     # Return the properly formatted HTML (if Task) with the Action name and extra stuff

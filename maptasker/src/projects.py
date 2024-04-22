@@ -117,12 +117,6 @@ def process_projects_and_their_profiles(
             found_tasks,
         )
 
-    # PrimeItems.output_lines.add_line_to_output(
-    #    3,
-    #    "",
-    #    FormatLine.dont_format_line,
-    # )  # Close Project list
-
     # Return a list of Tasks found thus far with duplicates remove
     # Reference: https://www.pythonmorsels.com/deduplicate-lists/
     # return list(dict.fromkeys(found_tasks).keys())
@@ -364,6 +358,14 @@ def get_extra_and_output_project(
     else:
         final_project_line = f"{final_project_line}{blank * 5}<a href='#'>Go to top</a><br>"
 
+    # Pretty it up?
+    if PrimeItems.program_arguments["pretty"]:
+        indent_amt = len(project_name) + 5
+        # Break at comma
+        final_project_line = final_project_line.replace(", ", f", <br>{blank*indent_amt}")
+        # Break at bracket
+        final_project_line = final_project_line.replace(" [", f"<br>{blank*indent_amt} [")
+
     # Are we looking for a specific Project?
     if PrimeItems.program_arguments["single_project_name"]:
         if project_name != PrimeItems.program_arguments["single_project_name"]:
@@ -376,15 +378,15 @@ def get_extra_and_output_project(
             project_name,
             "",
         )
+        # Okay, we've output the Project name.  Get rid of just the Project name (and then add the full Project line).
+        _ = PrimeItems.output_lines.output_lines.pop()
 
-    # Not looking for single Project.  Go ahead and output it.
-    else:
-        # Output the final Project text
-        PrimeItems.output_lines.add_line_to_output(
-            2,
-            final_project_line,
-            FormatLine.dont_format_line,
-        )
+    PrimeItems.output_lines.add_line_to_output(
+        2,
+        final_project_line,
+        FormatLine.dont_format_line,
+    )
+
     return False
 
 
@@ -433,7 +435,7 @@ def summary_counts(project_name: str, profile_count: int) -> None:
     PrimeItems.output_lines.add_line_to_output(
         5,
         (
-            f"<DIV {NORMAL_TAB}Project {project_name} has a total of {profile_count} Profiles,"
+            f"<DIV {NORMAL_TAB}<br>Project {project_name} has a total of {profile_count} Profiles,"
             f" {task_count_for_profile}  Tasks called by Profiles,"
             f" {task_count_unnamed} unnamed Tasks, {task_count_no_profile} Tasks"
             f" not in any Profile, {named_task_count_total} named Tasks out of"

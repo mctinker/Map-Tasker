@@ -291,10 +291,11 @@ def runtime_parser() -> None:
                             2 = display full Task action name on every Task
                             3 = display full Task action details on every Task with action details (default)
                             4 = detail level 3 plus global variables
+                            5 = detail level 4 plus Scene element UI details.
                             Example: '-detail 2' for Task action names only
                             """,
         ),
-        choices=[0, 1, 2, 3, 4],
+        choices=[0, 1, 2, 3, 4, 5],
         required=False,
         type=int,
         nargs=1,
@@ -307,8 +308,10 @@ def runtime_parser() -> None:
         action="store_true",
         default=False,
     )
+    # Group everrything and twisty
+    everything_group = parser.add_mutually_exclusive_group()
     # Display everything
-    parser.add_argument(
+    everything_group.add_argument(
         "-e",
         "-everything",
         help=textwrap.dedent(
@@ -404,22 +407,38 @@ def runtime_parser() -> None:
         default=False,
     )
 
+    # Make the output pretty
+    parser.add_argument(
+        "-pretty",
+        help="Make output prettier (one argument/parameter per line)",
+        action="store_true",
+        default=False,
+    )
+
     # Group project, profile and task = name ... together as exclusive arguments
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
+    single_group = parser.add_mutually_exclusive_group()
+    single_group.add_argument(
         "-project",
         nargs=1,
         required=False,
         type=str,
         help="Display the details for a specific Project only.",
     )
-    group.add_argument(
+    single_group.add_argument(
         "-profile",
         nargs=1,
         required=False,
         type=str,
         help="Display the details for a specific Profile only.",
     )
+    single_group.add_argument(
+        "-task",
+        nargs=1,
+        required=False,
+        type=str,
+        help='Display the details for a single Task only (forces minimum of "-detail 3").',
+    )
+
     # Reset arguments
     parser.add_argument(
         "-reset",
@@ -443,17 +462,8 @@ def runtime_parser() -> None:
         action="store_true",
         default=False,
     )
-
-    group.add_argument(
-        "-task",
-        nargs=1,
-        required=False,
-        type=str,
-        help='Display the details for a single Task only (forces option "-detail 3").',
-    )
-
     # Display Task details under "hide/twisty"
-    parser.add_argument(
+    everything_group.add_argument(
         "-twisty",
         help=("Hide Task's details under 'twisty' ➤. Click on twisty to display details."),
         action="store_true",

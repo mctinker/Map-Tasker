@@ -406,20 +406,18 @@ class LineOut:
             Output:
             <span class="actiontab"></span><span class="indentation">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continued >>> Attribute</span><br>
         """
-        blanks = f'{"&nbsp;"*PrimeItems.program_arguments["indent"]}&nbsp;&nbsp;&nbsp;'
+        blank = "&nbsp;"
+        # Is this a continuation line?
         if "Action: ..." in element:
-            if element[11:] == "":
+            if element[11:] == "":  # This catches valid lines that have "Action: ..." in them
                 return ""
             # We have a continuation line: Action: ...indent=nitem=remaindertheline
             # Example:
             # '<span ...">Action: ...indent=2item=Attribute</span><span ...</span>>'
             start1 = element.split("indent=")
-            start2 = start1[1].split("item=")
+            start2 = start1[1].split("item=")  # Indentation amount
             # Force an indent of at least 1
-            if start2[0] == "0":
-                indentation = f'{"&nbsp;"*5}'
-            else:
-                indentation = f'{blanks*int(start2[0])}{"&nbsp;"*int(start2[0])}&nbsp;'
+            indentation = f"{'&nbsp;' * 5}" if start2[0] == "0" else f"{blank * (int(start2[0]) + 8)}"
             # Add indentation for contination line
             tmp = start1[0].replace("Action: ...", f"{indentation}continued >>> {start2[1]}")
 
@@ -487,12 +485,13 @@ class LineOut:
                 :return: modified output line
 
         """
+
         if lvl == 0:
             # Heading / break
 
             return f'<span class="normtab"></span>{element}<br>'
 
-            return f'<div <span class="normtab"></span>{element}</div><br>'
+            #return f'<div <span class="normtab"></span>{element}</div><br>'
 
         if lvl == 1:
             # Start list

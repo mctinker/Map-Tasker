@@ -38,7 +38,7 @@ def convert_to_integer(value_to_convert: str, default_value: int) -> int:
         Args:
             value_to_convert (str): The string value to convert to an integer
             where_to_put_it (int): Where to place the converted integer
-            default_value (int):The default to plug in if the value to convert
+            default_value (int): The default to plug in if the value to convert
                 is not an integer
             :return: converted value as integer"""
     try:

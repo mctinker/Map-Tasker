@@ -221,7 +221,15 @@ def process_xml_list(
         if this_element in ["e", "if"]:
             idx = (idx + 1) % len_of_list
             next_element = the_list[idx]  # Second element in pair
-            evaluated_value = evaluate_action_setting([False, the_int_value, next_element])
+            # Determine whether we are to include the negative value.
+            # This will equate to True or False, depending on 1 or 0.
+            # The next line equates to the followinbg commented-out lines.
+            include_negative = the_list[0] == "1" if this_element == "e" else False
+            #if this_element == "e":
+            #    include_negative = the_list[0] == "1"  # This will equate to True or False, depending on 1 or 0.
+            #else:
+            #    include_negative = False  # The default
+            evaluated_value = evaluate_action_setting([include_negative, the_int_value, next_element])
             evaluated_value = f"{evaluated_value[0]}, "
             match_results.append(evaluated_value)
             break
@@ -272,7 +280,13 @@ def get_label_disabled_condition(child: defusedxml.ElementTree.XML) -> str:
     """
     task_label = ""
     task_conditions = ""
-    the_action_code = child.find("code").text
+
+    # If no code found, bail.
+    if child.find("code") is not None:
+        the_action_code = child.find("code").text
+    else:
+        return ""
+
     # Get the label, if any
     if child.find("label") is not None:
         lbl = child.find("label").text
@@ -430,6 +444,10 @@ def get_extra_stuff(
         :param action_type: True if this is a Task Action, otherwise False
         :return: formatted line of extra details about Task Action
     """
+
+    # If no code, just bail out.add
+    if code_action.find("code") is None:
+        return ""
 
     program_arguments = PrimeItems.program_arguments
     colors_to_use = PrimeItems.colors_to_use

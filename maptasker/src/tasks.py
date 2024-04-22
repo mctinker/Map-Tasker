@@ -22,7 +22,6 @@ from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.kidapp import get_kid_app
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.proclist import process_list
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME, DISPLAY_DETAIL_LEVEL_all_tasks, FormatLine, logger
 from maptasker.src.xmldata import tag_in_type
@@ -75,7 +74,7 @@ def get_actions(
         # Now go through each Action to start processing it.  They are in "argn" "n" order.
         for action in task_actions:
             child = action.find("code")  # Get the <code> element
-            # Get the Action code ( <code> )
+            # Get the Action code ( <code> ).  task_code will be returned with the formatted task action output line.
             task_code = action_evaluate.get_action_code(
                 child,
                 action,
@@ -94,6 +93,15 @@ def get_actions(
                 # Total indentation = 6 characters (&nbsp;) times the indent argument
                 total_indentation = int(f'{PrimeItems.program_arguments["indent"]*6}')
                 indentation_amount = indentation_amount[total_indentation:length_indent]
+
+            # Make it pretty
+            if "Configuration Parameter(s):" in task_code and PrimeItems.program_arguments["pretty"]:
+                number_of_blanks = task_code.find("Configuration Parameter(s):") // 2 + 2
+                task_code = task_code.replace(",", f",<br>{blank*number_of_blanks}")
+                if "Configuration Parameter(s):\n," in task_code:
+                    task_code = task_code.replace("Configuration Parameter(s):\n,", "Configuration Parameter(s):\n")
+
+            # Build the output line.
             tasklist = action_evaluate.build_action(
                 tasklist,
                 task_code,
@@ -224,7 +232,7 @@ def get_project_for_solo_task(
     :param projects_with_no_tasks: list of Projects that do not have any Tasks
     :return: name of the Project that belongs to this task and the Project xml element
     """
-    NO_PROJECT = "No Project"
+    NO_PROJECT = "No Project"  # noqa: N806
     project_name = NO_PROJECT
     project_element = None
 
@@ -281,6 +289,34 @@ def do_single_task(
     list_of_found_tasks: list,
 ) -> None:
     """
+    Process a single Task only.
+
+    Args:
+        our_task_name (str): The name of the Task to be processed.
+        project_name (str): The name of the Project the Task belongs to.
+        profile_name (str): The name of the Profile the Task belongs to.
+        task_list (list): A list of Tasks.
+        our_task_element (defusedxml.ElementTree.XML): The XML element for this Task.
+        list_of_found_tasks (list): A list of all Tasks processed so far.
+
+    Returns:
+        None
+
+    This function processes a single Task only. It first checks if the Task name matches
+    the single Task name specified in the program arguments. If it does, it sets the
+    "single_task_found", "single_project_found", and "single_profile_found" flags to True,
+    and updates the program arguments with the project and profile names. It then clears
+    the output list. If a Task list is provided, it filters the list to include only the
+    Tasks that start with the same name as the single Task. If the Task list is empty, it
+    sets the temporary task list to an empty list. It then processes the Task/Task list by
+    calling the process_list function. If multiple Tasks are present in the Profile, it
+    adds a line to the output, filters the Task list to include only the single Task, and
+    processes the Task by calling the process_list function.
+    """
+    # This import must reside here to avoid circular error.
+    from maptasker.src.proclist import process_list
+
+    """
     Process a single Task only
 
         :param our_task_name: name of Task we are to process
@@ -325,6 +361,11 @@ def do_single_task(
             temporary_task_list = [item for item in task_list if our_task_name == item[:the_task_name_length]]
         else:
             temporary_task_list = task_list
+
+        # Make the line pretty
+        if PrimeItems.program_arguments["pretty"]:
+            temporary_task_list[0] = temporary_task_list[0].replace("[", "<br>[")
+
         # Go process the Task/Task list
         process_list(
             "Task:",
@@ -336,6 +377,12 @@ def do_single_task(
     # If multiple Tasks in this Profile, just get the one we want
     else:
         PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
+
+        # Make the line pretty
+        if PrimeItems.program_arguments["pretty"]:
+            blanks = f'{"&nbsp;" * len(our_task_name)}'
+            task_list[0] = task_list[0].replace("[", f"<br>{blanks}[")
+
         # Process the task(s)
         process_list(
             "Task:",
@@ -350,7 +397,19 @@ def do_single_task(
 # ##################################################################################
 # Search image xml element for key and return title=value
 # ##################################################################################
-def get_image(image, title, key):
+def get_image(image: defusedxml.ElementTree, title: str, key: str) -> str:
+    """Returns:
+        - str: Returns a string.
+    Parameters:
+        - image (defusedxml.ElementTree): An XML element tree.
+        - title (str): The title of the image.
+        - key (str): The key to search for in the XML element tree.
+    Processing Logic:
+        - Finds the element with the given key.
+        - If the element is not found, returns an empty string.
+        - If the element's text contains a period, splits the text at the last period and returns the second part.
+        - If the text is empty, returns an empty string.
+        - Otherwise, returns a string containing the title and text."""
     element = image.find(key)
     if element is None:
         return ""

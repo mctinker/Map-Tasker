@@ -17,7 +17,6 @@ import os.path
 from os import getcwd
 
 from maptasker.src.error import error_handler
-
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 

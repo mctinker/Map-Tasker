@@ -65,7 +65,7 @@ from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
     NORMAL_TAB,
     Colors,
-    DISPLAY_DETAIL_LEVEL_everything,
+    DISPLAY_DETAIL_LEVEL_all_variables,
     FormatLine,
     debug_file,
     debug_out,
@@ -500,7 +500,7 @@ def display_back_matter(
         - Clean up memory
         - Display output file in browser
     """
-    if program_arguments["display_detail_level"] == DISPLAY_DETAIL_LEVEL_everything:
+    if program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
         output_variables("Unreferenced Global Variables", "")
 
     # Get the output directory/folder path
@@ -717,7 +717,7 @@ def mapit_all(file_to_get: str) -> int:
         PrimeItems.file_to_get = file_to_get
 
     # Get all Tasker variables
-    if PrimeItems.program_arguments["display_detail_level"] == DISPLAY_DETAIL_LEVEL_everything:
+    if PrimeItems.program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
         get_variables()
 
     # Process all Projects and their Profiles

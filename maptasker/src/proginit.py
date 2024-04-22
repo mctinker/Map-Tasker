@@ -252,12 +252,12 @@ def log_startup_values() -> None:
 # ##################################################################################
 # POpen and read xml and output the introduction/heading matter
 # ##################################################################################
-def get_data_and_output_intro() -> int:
+def get_data_and_output_intro(do_front_matter: bool) -> int:
     """
     Gets data from Tasker backup file and outputs introductory information.
 
     Args:
-        None: None
+        do_front_matter (bool): True = output the front matter, False = don't bother
     Returns:
         int: 0 if okay, non-zero if error (error code)
 
@@ -279,7 +279,7 @@ def get_data_and_output_intro() -> int:
 
         # We don't yet have the data.  Let's get it.
         if not PrimeItems.program_arguments["file"]:
-            PrimeItems.program_arguments["file"] = PrimeItems.file_to_get
+            PrimeItems.program_arguments["file"] = PrimeItems.file_to_get if PrimeItems.file_to_use == "" else PrimeItems.file_to_use
 
         # Only display message box if we don't yet have the file name,if this is not the first time ever that we have run,
         # and not running from the GUI.
@@ -299,7 +299,7 @@ def get_data_and_output_intro() -> int:
         PrimeItems.file_to_get.close()
 
     # Output the inital info: head, source, etc. ...if it hasn't already been output.
-    if return_code == 0 and not PrimeItems.output_lines.output_lines:
+    if return_code == 0 and do_front_matter and not PrimeItems.output_lines.output_lines:
         output_the_front_matter()
         return 0
 
@@ -382,9 +382,8 @@ def start_up() -> dict:
     # Get our map of colors
     PrimeItems.colors_to_use = setup_colors()
 
-    # get_data_and_output_intro program key elements
-    # PrimeItems.program_arguments["gui"] = False  # Turn off...we don't want this on anymore.
-    _ = get_data_and_output_intro()
+    # Get the XML data and output the front matter
+    _ = get_data_and_output_intro(True)
 
     # If debug mode, log the arguments
     if PrimeItems.program_arguments["debug"]:

@@ -26,7 +26,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "3.1.8"
+VERSION = "3.2.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -123,6 +123,7 @@ ARGUMENT_NAMES = {
     "indent": "Indentation Amount",
     "italicize": "Italicize Names",
     "outline": "Display Configuration Outline",
+    "pretty": "Display Prettier Output",
     "rerun": "ReRun Program",
     "runtime": "Display Runtime Arguments/Settings",
     "single_profile_name": "Single Profile Name",
@@ -183,7 +184,8 @@ DISPLAY_DETAIL_LEVEL_summary: int = 0
 DISPLAY_DETAIL_LEVEL_anon_tasks_only: int = 1
 DISPLAY_DETAIL_LEVEL_all_tasks: int = 2
 DISPLAY_DETAIL_LEVEL_all_parameters: int = 3
-DISPLAY_DETAIL_LEVEL_everything: int = 4
+DISPLAY_DETAIL_LEVEL_all_variables: int = 4
+DISPLAY_DETAIL_LEVEL_everything: int = 5
 
 # Use the normal tab in output.
 NORMAL_TAB = '<span class="normtab"></span>'

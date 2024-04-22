@@ -2,7 +2,7 @@
 
 # #################################################################################### #
 #                                                                                      #
-# taskflag: Get Profile/Task fags: priority, collision, stay awake                           #
+# taskflag: Get Profile/Task fags: priority, collision, stay awake                     #
 #                                                                                      #
 # GNU General Public License v3.0                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
@@ -25,10 +25,9 @@ def get_priority(element: defusedxml.ElementTree.XML, event: bool) -> str:
     priority_element = element.find("pri")
     if priority_element is None:
         return ""
-    elif event:
+    if event:
         return f" Priority:{priority_element.text}"
-    else:
-        return f"&nbsp;&nbsp;[Priority: {priority_element.text}]"
+    return f"&nbsp;&nbsp;[Priority: {priority_element.text}]"
 
 
 def get_collision(element: defusedxml.ElementTree.XML) -> str:

@@ -137,7 +137,7 @@ def http_request(
     except InvalidSchema:
         error_message = f"Request failed for url: {url} .  Invalid url!"
     except ConnectionError:
-        error_message = f"Request failed for url: {url} .  Connection error!"
+        error_message = f"Request failed for url: {url} .  Connection error! Unable to get XML from Android device."
     except Timeout:
         error_message = f"Request failed for url: {url} .  Timeout error.\n\nOr perhaps the profile 'MapTasker List' has not been imported into Tasker!"
     except Exception as e:

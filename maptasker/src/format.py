@@ -54,6 +54,7 @@ def format_line(item: str) -> str:
         action_number = action_number_list[0]
         action_number = action_number.split("<")
         output_line = item.replace(f"Action: {action_number[0]}", f"{action_number[0]}:")
+
     # No changes needed
     else:
         output_line = item

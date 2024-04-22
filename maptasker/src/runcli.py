@@ -98,6 +98,7 @@ def get_and_set_booleans(args: namedtuple("ArgNamespace", ["some_arg", "another_
         "directory": "",
         "everything": "e",
         "outline": "o",
+        "pretty": "",
         "preferences": "",
         "reset": "",
         "runtime": "",
@@ -123,7 +124,7 @@ def get_and_set_booleans(args: namedtuple("ArgNamespace", ["some_arg", "another_
 # ##################################################################################
 # Get the the other arguments
 # ##################################################################################
-def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:  # noqa:PYI024
+def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:  # type: ignore # noqa:PYI024
     """
     Get the remainder of the arguments
         Args:
@@ -146,7 +147,7 @@ def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "anoth
 # ##################################################################################
 def get_runtime_arguments(
     args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])
-) -> None:  # noqa: C901, PYI024 , PGH003# type: ignore
+) -> None:  # noqa:PGH003# type: ignore
 
     # Color help?
     if getattr(args, "ch"):
@@ -162,13 +163,14 @@ def get_runtime_arguments(
 
     # Everything? Display full detail and set various display options to true.
     if getattr(args, "e"):
-        program_arguments["display_detail_level"] = 4
+        program_arguments["display_detail_level"] = 5
         program_arguments["conditions"] = True
         program_arguments["preferences"] = True
         program_arguments["directory"] = True
         program_arguments["taskernet"] = True
         program_arguments["outline"] = True
         program_arguments["runtime"] = True
+        program_arguments["pretty"] = True
 
     the_name = getattr(args, "project")  # Display single Project
     if the_name is not None:
@@ -378,6 +380,7 @@ def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):  # n
         names=False,
         o=False,
         p=False,
+        pretty=False,
         profile=None,
         project=None,
         reset=False,

@@ -25,6 +25,7 @@ from maptasker.src.config import OUTPUT_FONT
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutils import (
+    CHANGELOG,
     CTkTreeview,
     TreeviewWindow,
     add_button,
@@ -73,7 +74,7 @@ INFO_TEXT = (
     "    Level 3 = display full Task action details on every Task with action details.\n"
     "    Level 4 = display level of 3 plus Project's global variables.\n\n"
     "* Just Display Everything: Turns on the display of "
-    "conditions, TaskerNet information, preferences, twisties, directory, and configuration outline.\n\n"
+    "conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n"
     "* Display Conditions: Turn on the display of Profile and Task conditions.\n\n"
     "* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n"
     "* Display Tasker Preferences - display Tasker's system Preferences.\n\n"
@@ -162,7 +163,7 @@ TREEVIEW_HELP_TEXT = (
     " Android device or the program is run with the '-reset' option."
 )
 
-HELP = f"MapTasker {VERSION} Help\n\n{INFO_TEXT}"
+HELP = f"MapTasker {VERSION} Help\n\n{INFO_TEXT}{CHANGELOG}"
 
 
 # ##################################################################################
@@ -199,17 +200,17 @@ class MyGui(customtkinter.CTk):
         else:
             self.display_message_box("GUI started with the '-reset' option.\n", True)
 
-            if self.android_ipaddr:
-                # Display backup details as a label
-                self.display_backup_details()
+        if self.android_ipaddr:
+            # Display backup details as a label
+            self.display_backup_details()
 
-            # Check for single item only to be displayed
-            if self.single_project_name:
-                self.single_name_status(f"Display only Project '{self.single_project_name}'.", "#3f99ff")
-            if self.single_profile_name:
-                self.single_name_status(f"Display only Profile '{self.single_profile_name}'.", "#3f99ff")
-            if self.single_task_name:
-                self.single_name_status(f"Display only Task '{self.single_task_name}'.", "#3f99ff")
+        # Check for single item only to be displayed
+        if self.single_project_name:
+            self.single_name_status(f"Display only Project '{self.single_project_name}'.", "#3f99ff")
+        if self.single_profile_name:
+            self.single_name_status(f"Display only Profile '{self.single_profile_name}'.", "#3f99ff")
+        if self.single_task_name:
+            self.single_name_status(f"Display only Task '{self.single_task_name}'.", "#3f99ff")
 
         # Check if newer version of our code is available on Pypi (only check every 24 hours).
         # If so, add a button to enable user to update.
@@ -263,21 +264,21 @@ class MyGui(customtkinter.CTk):
         - Handles initialization of backup file attributes if not already defined
         - Displays single name status message
         }"""
-        self.sidebar_detail_option.configure(values=["0", "1", "2", "3", "4"])
-        self.sidebar_detail_option.set("4")
-        self.display_detail_level = 4
+        self.sidebar_detail_option.configure(values=["0", "1", "2", "3", "4", "5"])
+        self.sidebar_detail_option.set("5")
+        self.display_detail_level = 5
         self.conditions = self.preferences = self.taskernet = self.debug = self.everything = self.clear_settings = (
             self.reset
         ) = self.restore = self.exit = self.bold = self.highlight = self.italicize = self.underline = (
             self.go_program
         ) = self.outline = self.rerun = self.list_files = self.runtime = self.save = self.twisty = self.directory = (
-            self.fetched_backup_from_android
-        ) = False
+            self.pretty
+        ) = self.fetched_backup_from_android = False
         self.single_project_name = self.single_profile_name = self.single_task_name = self.file = ""
         self.color_text_row = 2
         self.appearance_mode_optionemenu.set("System")
         self.appearance_mode = "system"
-        self.indent_option.set("4")
+        self.indent_option.set("5")
         self.indent = 4
         self.color_labels = []
         self.android_ipaddr = ""
@@ -529,9 +530,6 @@ class MyGui(customtkinter.CTk):
 
                 case "Task":
                     self.single_task_name = name_entered
-
-                case _:
-                    pass
 
             # Let the user know...
             self.single_name_status(f"Display only {my_name} '{name_entered}'.", "#3f99ff")
@@ -859,7 +857,7 @@ class MyGui(customtkinter.CTk):
         )
 
     # ##################################################################################
-    # Process the 'conditions' checkbox
+    # Process the 'Outline' checkbox
     # ##################################################################################
     def outline_event(self) -> None:
         """
@@ -873,6 +871,23 @@ class MyGui(customtkinter.CTk):
         - Assign the return value to the outline attribute
         """
         self.outline = self.get_input_and_put_message(self.outline_checkbox, "Display Configuration Outline")
+
+    # ##################################################################################
+    # Process the 'Prettier' checkbox
+    # ##################################################################################
+    def pretty_event(self) -> None:
+        """
+        Display Configuration Outline
+        Args:
+            self: The class instance
+        Returns:
+            None: Does not return anything
+        - Get the input value of the outline_checkbox attribute
+        - Call the get_input_and_put_message method to get user input and display a message
+        - Assign the return value to the outline attribute
+        """
+        self.pretty = self.get_input_and_put_message(self.pretty_checkbox, "Display Pretty Output")
+        ...
 
     # ##################################################################################
     # Process the 'everything' checkbox
@@ -910,18 +925,23 @@ class MyGui(customtkinter.CTk):
                 value,
                 "Display Tasker Preferences",
             ),
+            "pretty": lambda: self.select_deselect_checkbox(
+                self.pretty_checkbox,
+                value,
+                "Display Prettier Output",
+            ),
             "runtime": lambda: self.select_deselect_checkbox(self.runtime_checkbox, value, "Display Runtime Settings"),
             "taskernet": lambda: self.select_deselect_checkbox(
                 self.taskernet_checkbox,
                 value,
                 "Display TaskerNet Information",
             ),
-            "twisty": lambda: self.select_deselect_checkbox(
-                self.twisty_checkbox,
-                value,
-                "Hide Task Details Under Twisty",
-            ),
-            "display_detail_level": lambda: self.detail_selected_event("4"),
+            #"twisty": lambda: self.select_deselect_checkbox(
+            #    self.twisty_checkbox,
+            #    value,
+            #    "Hide Task Details Under Twisty",
+            #),
+            "display_detail_level": lambda: self.detail_selected_event("5"),
         }
 
         self.everything = self.everything_checkbox.get()
@@ -942,7 +962,7 @@ class MyGui(customtkinter.CTk):
                 setattr(self, key, value)
 
         # Handle Display Detail Level
-        self.display_detail_level = 4
+        self.display_detail_level = 5
 
     # ##################################################################################
     # Process the 'Tasker Preferences' checkbox
@@ -981,6 +1001,12 @@ class MyGui(customtkinter.CTk):
             )
             self.sidebar_detail_option.set("3")  # display detail level
             self.display_detail_level = "3"
+
+        # Check to see if we are doing everything (they are mutually exclusive)
+        if self.twisty and self.everything:
+            self.display_message_box("Twisty and Everything are mutually exclusive. Unchecking Twisty.", False)
+            self.twisty = False
+            self.twisty_checkbox.deselect()
 
     # ##################################################################################
     # Process the 'Display Directory' checkbox
@@ -1327,6 +1353,11 @@ class MyGui(customtkinter.CTk):
                 self.preferences_checkbox,
                 value,
                 "Display Tasker Preferences",
+            ),
+            "pretty": lambda: self.select_deselect_checkbox(
+                self.pretty_checkbox,
+                value,
+                "Display Prettier",
             ),
             "runtime": lambda: self.select_deselect_checkbox(self.runtime_checkbox, value, "Display Runtime Settings"),
             "single_profile_name": lambda: self.process_single_name_restore("Profile", value),
@@ -1778,6 +1809,11 @@ class MyGui(customtkinter.CTk):
         if not self.list_files:
             self.android_file = android_file
         clear_android_buttons(self)
+
+        # Set our file to get
+        filename_location = self.android_file.rfind(PrimeItems.slash) + 1
+        PrimeItems.file_to_use = self.android_file[filename_location:]
+
         self.display_multiple_messages(
             [
                 f"Get XML IP Address set to: {self.android_ipaddr}\n",
@@ -1925,10 +1961,11 @@ class MyGui(customtkinter.CTk):
         self.android_ipaddr = ""
         self.android_port = ""
         self.android_file = ""
-        self.sidebar_detail_option.set("3")  # display detail level
+        self.sidebar_detail_option.set("5")  # display detail level
         self.indent_option.set("4")  # Indentation amount
         self.condition_checkbox.deselect()  # Conditions
         self.preferences_checkbox.deselect()  # Tasker Preferences
+        self.pretty_checkbox.deselect()  # Pretty output
         self.taskernet_checkbox.deselect()  # TaskerNet
         self.appearance_mode_optionemenu.set("System")  # Appearance
         customtkinter.set_appearance_mode("System")  # Enforce appearance

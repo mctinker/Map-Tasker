@@ -145,6 +145,7 @@ def build_profile_line(
     """
 
     flags = condition_text = ""
+    blank = "&nbsp;"
 
     # Set up HTML to use
     disabled_profile_html = format_html(
@@ -202,6 +203,16 @@ def build_profile_line(
 
     # Okay, string it all together
     profile_info = f"{profile_name_with_html} {condition_text} {launcher}{disabled} {flags}"
+
+    # Break it up into separate lines if we are doing pretty output
+    if PrimeItems.program_arguments["pretty"]:
+        indentation = len(profile_name) + 4
+        # Break at comma
+        profile_info = profile_info.replace(", ", f", <br>{blank*indentation}")
+        # Break at paren
+        profile_info = profile_info.replace(" (", f"<br>{blank*indentation}  (")
+        # Break at bracket
+        profile_info = profile_info.replace(" [", f"<br>{blank*indentation}  [")
 
     # Output the Profile line
     PrimeItems.output_lines.add_line_to_output(

@@ -15,9 +15,6 @@ from maptasker.src.debug import display_debug_info
 from maptasker.src.format import format_html
 from maptasker.src.prefers import get_preferences
 from maptasker.src.primitem import PrimeItems
-
-from maptasker.src.sysconst import MY_VERSION, NORMAL_TAB, FormatLine
-
 from maptasker.src.sysconst import MY_VERSION, NORMAL_TAB, NOW_TIME, FormatLine
 
 
@@ -30,17 +27,11 @@ def output_the_heading() -> None:
     """
     window_dimensions = """
 <p id="mywin"></p>
-
 <script>
 var w = window.innerWidth;
 var h = window.innerHeight;
-
 var x = document.getElementById("mywin");
-
 x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
-
-# x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
-
 </script>"""
 
     # Start out by outputting our colors and font CSS

@@ -43,12 +43,18 @@ def get_bundle(code_action: defusedxml.ElementTree.XML, evaluated_results: dict,
     - If either is found, gets the text and stores in the results dict
     - Else, sets a flag and empty string in results
     """
+
     child1 = code_action.find("Bundle")
     child2 = child1.find("Vals")
     child3 = child2.find("com.twofortyfouram.locale.intent.extra.BLURB")
     child4 = child2.find("Configcommand")
     if (child3 is not None or child4 is not None) or (child4 is not None and child4.text is not None):
         clean_string = child3.text if child3 is not None else child4.text
+
+        # Make pretty
+        if PrimeItems.program_arguments["pretty"] and clean_string is not None:
+            clean_string = clean_string.replace("\n\n", "\n")
+            clean_string = clean_string.replace("\n", ",")
         evaluated_results[f"arg{arg}"]["value"] = f"Configuration Parameter(s):\n{clean_string}\n"
     else:
         evaluated_results["returning_something"] = False
@@ -91,7 +97,7 @@ def get_action_arguments(
     match argtype:
         case "Int":
             evaluated_results[the_arg]["value"] = extract_integer(code_action, the_arg, argeval)
-            ...
+
         case "Str":
             if argeval == "Label":
                 for child in code_action:
@@ -100,7 +106,7 @@ def get_action_arguments(
                         break
             else:
                 evaluated_results[the_arg]["value"] = extract_string(code_action, the_arg, argeval)
-            ...
+
         case "App":
             extract_argument(evaluated_results, arg, argeval)
             app_class, app_pkg, app = get_action.get_app_details(code_action)
@@ -154,7 +160,7 @@ def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str
 
     else:
         evaluated_results[f"arg{arg}"]["value"] = " "
-        evaluated_results["returning_something"] = False
+        #evaluated_results["returning_something"] = False  # NOTE: This caused errors with Scene ButtonElement
 
 
 # ##################################################################################
@@ -296,7 +302,6 @@ def action_args(
         # Get the Action arguments
         evaluated_results[f"arg{arg}"] = {}
         evaluated_results[f"arg{arg}"]["type"] = argtype
-
         evaluated_results = get_action_arguments(
             evaluated_results,
             arg,

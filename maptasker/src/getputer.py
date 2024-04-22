@@ -92,14 +92,11 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
             program_arguments["file"] = program_arguments["file"].name
     except AttributeError:
         program_arguments["file"] = ""
+
     # Save dictionaries
-
-    settings = {"program_arguments": program_arguments, "colors_to_use": colors_to_use}
-
     settings = {"program_arguments": program_arguments, "colors_to_use": colors_to_use, "last_run": PrimeItems.last_run}
 
     # Write out the guidance for the file.
-
     with open(new_file, "wb") as settings_file:
         tomli_w.dump(guidance, settings_file)
         settings_file.close()

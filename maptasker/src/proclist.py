@@ -99,6 +99,7 @@ def add_dictionary_and_twisty(
         Returns:
             tuple[str, str]: Our temporary item and temporary list item
     """
+
     temp_item = temp_list = ""
     if "&#45;&#45;Task:" in list_type:
         temp_item = the_item
@@ -117,6 +118,10 @@ def add_dictionary_and_twisty(
         if task_name != "":
             # Handle directory hyperlink
             add_directory_item("tasks", task_name)
+
+    # Insert directory for Scene
+    elif PrimeItems.program_arguments["directory"] and list_type == "Scene:":
+        add_directory_item("scenes", the_item)
 
     # Insert a hyperlink if this is a Task...it has to go before a twisty
     if (
@@ -246,6 +251,8 @@ def process_item(
         process_scene(
             the_item,
             tasks_found,
+            None,
+            0,
         )
 
     # Remove twisty if not displaying level 0

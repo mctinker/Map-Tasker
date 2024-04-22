@@ -25,6 +25,7 @@ from maptasker.src.config import CONTINUE_LIMIT
 from maptasker.src.debug import not_in_dictionary
 from maptasker.src.deprecate import depricated
 from maptasker.src.format import format_html
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
 
@@ -156,9 +157,14 @@ def build_action(
         :param indent_amt: the indent number of spaces as "&nbsp;" for each space
         :return: finalized output string
     """
+    blank = "&nbsp;"
+
+    # Clean up the action line by removing any leading ermpty field
+    task_code_line = task_code_line.replace(f"{blank*2},", f"{blank*2}")  # Drop the leading comma if present.
 
     # Calculate total indentation to put in front of action
     count = indent
+
     if count != 0:
         # Add the indent amount to the front of the Action output line
         front_matter = '<span class="action_name_color">'
@@ -167,7 +173,24 @@ def build_action(
     if count < 0:
         indent_amt += task_code_line
         task_code_line = indent_amt
-        # task_code_line = f"{indent_amt}{task_code_line}"
+
+    # Make the output align/pretty?
+    # If so, add our leading spaces (indent_amt) and extra spaces for the Task action name.
+    if PrimeItems.program_arguments["pretty"]:
+        temp_line = task_code_line.replace(blank, "")  # Strip blanks from line to figure out Task action name length.
+        close_bracket = temp_line.find(">")
+        open_bracket = temp_line.find("<", close_bracket)
+        extra_blanks = open_bracket - close_bracket + 5
+        # Break at comma
+        task_code_line = task_code_line.replace(", ", f", <br>{indent_amt}{blank*extra_blanks}")
+        # Break at bracket
+        task_code_line = task_code_line.replace("[", f"<br>{indent_amt}{blank*extra_blanks}[")
+        # Break at (If condition
+        task_code_line = task_code_line.replace("(<em>IF", f"<br>{indent_amt}{blank*extra_blanks} (<em>IF")
+        # Break at label
+        task_code_line = task_code_line.replace("...with label:", f"<br>{indent_amt}{blank*extra_blanks} ...with label:")
+    else:
+        extra_blanks = 0
 
     # Flag Action if not yet known to us
     if not task_code_line:  # If no Action details
@@ -187,10 +210,10 @@ def build_action(
         newline = task_code_line.find("\n")  # Break-up new line breaks
         task_code_line_len = len(task_code_line)
 
-        # If no new line break or line break less than width set for browser,
+        # If no new line break or line break less than width set for browser...or doing pretty output,
         # just put it as is.
         # Otherwise, make it a continuation line using '...' has the continuation flag.
-        if newline == -1 and task_code_line_len > 80:
+        if (newline == -1 and task_code_line_len > 80) or (PrimeItems.program_arguments["pretty"]):
             alist.append(task_code_line)
         else:
             # Break into individual lines at line break (\n)
@@ -201,12 +224,12 @@ def build_action(
                 if count == 0:
                     alist.append(item)
                 else:
-                    alist.append(f"...indent={indent}item={item}")
+                    alist.append(f"...indent={indent+extra_blanks}item={item}")
                 count += 1
 
                 # Only display up to so many continued lines
                 if count == CONTINUE_LIMIT:
-                    # Add comment that we have reached the limit for continued details
+                    # Add comment that we have reached the limit for continued details.
                     alist[-1] = f"{alist[-1]}</span>" + format_html(
                         "Red",
                         "",
