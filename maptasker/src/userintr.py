@@ -959,12 +959,9 @@ class MyGui(customtkinter.CTk):
         # new_message = all_messages = ""
         for key in message_map:
             if message_func := message_map.get(key):
-                # Display detail level requires special handling.
-                if key == "display_detail_level":
-                    self.display_message_box(f"Display Detail Level: {self.display_detail_level}", True)
-                else:
-                    # Handle toggle: select/deselect checkbox and set/unset setting.
-                    self.display_message_box(f"{message_func()}", True)
+
+                # Handle toggle: select/deselect checkbox and set/unset setting.
+                self.display_message_box(f"{message_func()}", True)
 
             # Check if key is an attribute on self before setting
             if hasattr(self, key) and key != "display_detail_level":
