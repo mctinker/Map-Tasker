@@ -45,7 +45,7 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
 - Install MapTasker by entering the following command into the Terminal:
 
-     `pip3 install maptasker`
+     `pip install maptasker`
 
 - To install it into a virtual environment, enter the following command into Terminal:
 
@@ -86,10 +86,10 @@ Runtime: `maptasker -option1 -option2` ...
     `-android_ipaddr` TCP/IP address of the Android device from which to fetch the backup/exported XML file (see Note 2).
 
     `-android_port` the port number of the Android device from which to fetch the  backup/exported XML file.
-    Example: 1821
+      Example: 1821
 
     `-android_file` the location of the  backup/exported XML file on the Android device.
-    Example: /Tasker/configs/user/backup.xml
+      Example: /Tasker/configs/user/backup.xml
 
     The above three 'android' options are mutually inclusive.
 
@@ -176,6 +176,9 @@ Example fetching backup file directly from your Android device:
 
     'maptasker -android_ipaddr=192.168.0.60 -android_port=1821 -android_file=/Tasker/configs/user/backup.xml'
 
+Example using a specific local XML file (File_List.prf.xml) from Google Drive:
+
+    'maptasker -file "/Users/mikrubin/Library/CloudStorage/GoogleDrive-mikrubin@gmail.com/My Drive/Python/maptasker/File_List.prf.xml"'
 
 ## Notes
 
@@ -224,6 +227,8 @@ With this older version, you will not get the benefits offered by the newer vers
 - [x] Support Windows 11
 
 - [x] Add a runtime option for more pretty output
+
+- [ ] Add Ai support to analyze Profiles and Tasks
 
 - [ ] Include/map remaining Tasker preferences
 

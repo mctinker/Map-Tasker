@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "maptasker"
 
-version = "3.2.1"
+version = "3.2.2"
 
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
@@ -22,7 +22,7 @@ exclude = ["run_test.py", "**/maptasker/**/backup.xml", "**/maptasker/maptasker.
 python = "<=3.13,>=3.11"
 customtkinter = "^5.2.2"  # GUI
 ctkcolorpicker = "^0.9.0"  # Color picker in GUI
-pillow = "^10.2.0"  # Image support in GUI
+pillow = "^10.3.0"  # Image support in GUI
 darkdetect = "^0.8.0"  # Appearance mode detection
 defusedxml = "^0.7.1"  # More secure xml parser
 requests = "^2.31.0"  # HTTP Server function request

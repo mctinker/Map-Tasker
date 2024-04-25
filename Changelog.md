@@ -2,16 +2,34 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.2.0] and [3.2.1] 22-April-2024
+## [3.2.2] 25-April-2024
 
-## ADDED
+## Added
+
+- Added: Add date and time to the output heading.
+- Added: Add 'Display Prettier Output' to the GUI Help text.
+
+## Changed
+
+- Changed: Scene elements with no geometry will no longer display 'n/a' for geometry values.
+- Changed: If using the '-pretty' runtime option, trailing commas are removed since the arguments are already separated.
+- Changed: Scene element names placed before element type for clarity.
+- Changed: Moved the location of the 'Upgrade To Next Version' button in the GUI so that it doesn't overlap with another button.
+
+## Fixed
+
+- Fixed: Using the '-pretty' runtime option causes the string "Structure Output (JSON, etc)" to be incorrectly broken at the comma.
+- Fixed: The '-pretty' option is not properly formatting Task action values or Profile conditions in the output.
+- Fixed: Scene 'Properties" elements are being displayed with an invalid name.
+- Fixed: The user is still prompted to input the file in GUI even if the file to use is identified in the saved settings.
+
+## Older History Logs
+
+## [3.2.0] and [3.2.1]
 
 - Added: A new 'display detail level' of 5 (the new default) has been added to include Scene element UI and properties details.
 - Added: Display the change log for the current release at the end of the Help information in the GUI.
 - Added: A new runtime option '-pretty' will format the output such that each Project/Profile details, Task action's parameters, Scene element details, etc. are aligned on a separate line.
-
-## FIXED
-
 - Fixed: If a Scene has a sub-scene layout, output the details of the sub-scene.
 - Fixed: Task action 'Stop' with Task name has an extra comma in the output.
 - Fixed: When displaying a single Project, the Project line details are not displayed (e.g. Launcher Task).
@@ -20,14 +38,8 @@ All notable changes to this project will be documented in this file!
 - Fixed: Scene sub-elements (e.g. Layout)are missing from the output.
 - Fixed: If only doing a single Project with the '-directory' runtime option, some scene hotlinks in the directory do not work.
 - Fixed: Twisty setting is not being restored on a rerun.
-
-## CHANGED
-
 - Changed: Scene elements are now displayed as 'Element of type xxxx' to more clearly identify the element type (e.g. type: Text, Rect, Button, Image, etc.).
-- Changed: Output Task action fields and values changed from 'field:value' to 'field=value' for ease of reading.  Plugin details will still use a colon.
-- Changed: The runtime options '-everything' and '-twisty' are now mutually exclusive.
-
-## Older History Logs
+- Changed: Output Task action fields and values changed from 'field:value' to 'field=value' fo
 
 ## [3.1.8] 08-April-2024
 
