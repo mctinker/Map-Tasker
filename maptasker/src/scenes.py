@@ -103,16 +103,16 @@ def get_scene_elements(
     if geom is not None:
         geometry_xml_element = child.find("geom").text
         geometry = geometry_xml_element.split(",")
+        geometry_text = f" ...with geometry {geometry[0]}x{geometry[1]} {geometry[2]}x{geometry[3]}"
     else:
-        geometry = ["n/a ", " n/a ", "n/a ", " n/a"]
-    element_name = name_xml_element.text
+        geometry_text = ""
+
+    # Get the element name
+    element_name = "" if element_type[0] == "Properties" else f"'{name_xml_element.text}' "
+
     PrimeItems.output_lines.add_line_to_output(
         0,
-        (
-            f"{blank*(3+indentation)}Element of type {element_type[0]}, named"
-            f" {element_name} ...with geometry"
-            f" {geometry[0]}x{geometry[1]} {geometry[2]}x{geometry[3]}"
-        ),
+        (f"{blank*(3+indentation)}{element_name}Element of type {element_type[0]}{geometry_text}"),
         ["", "scene_color", FormatLine.add_end_span],
     )
 
@@ -257,7 +257,7 @@ def format_and_output_arguments(child: defusedxml.ElementTree, element_type: str
 
     # Make pretty
     if PrimeItems.program_arguments["pretty"]:
-        line_out = line_out.replace(", ", f", <br>{line_indentation}")
+        line_out = line_out.replace(", ", f"<br>{line_indentation}")
 
     # Output the element line details.
     PrimeItems.output_lines.add_line_to_output(
@@ -433,8 +433,8 @@ def get_details(
             # Process any Tasks as part of this Scene
             process_tasks(child, tasks_found)
 
-    # Add a break if end of Scene elements
-    if PrimeItems.program_arguments["display_detail_level"] != 2:
+    # Add a break if end of Scene elements (but not doing a Properties element)
+    if PrimeItems.program_arguments["display_detail_level"] != 2 and element_type != "PropertiesElement":
         PrimeItems.output_lines.output_lines.append("<br>")
 
 

@@ -21,7 +21,7 @@ import customtkinter
 from CTkColorPicker.ctk_color_picker import AskColor
 
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.config import OUTPUT_FONT
+from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutils import (
@@ -81,6 +81,7 @@ INFO_TEXT = (
     "* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n"
     "* Display Directory of hyperlinks at beginning.\n\n"
     "* Display Configuration Outline and Map of your Projects/Profiles/Tasks/Scenes.\n\n"
+    "* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n"
     "* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n"
     "* Indentation amount for If/Then/Else Task Actions.\n\n"
     "* Save Settings - Save these settings for later use.\n\n"
@@ -214,7 +215,9 @@ class MyGui(customtkinter.CTk):
 
         # Check if newer version of our code is available on Pypi (only check every 24 hours).
         # If so, add a button to enable user to update.
-        if is_new_version():
+        # TODO For testing only = True.  False for production
+        test_button = False
+        if is_new_version() or test_button:
             self.new_version = True
             # We have a new version.  Let user upgrade.
             self.upgrade_button = add_button(
@@ -227,7 +230,7 @@ class MyGui(customtkinter.CTk):
                 1,
                 "Upgrade to Latest Version",
                 "1",
-                7,
+                6,
                 2,
                 (0, 170),
                 (0, 20),
@@ -265,8 +268,8 @@ class MyGui(customtkinter.CTk):
         - Displays single name status message
         }"""
         self.sidebar_detail_option.configure(values=["0", "1", "2", "3", "4", "5"])
-        self.sidebar_detail_option.set("5")
-        self.display_detail_level = 5
+        self.sidebar_detail_option.set(str(DEFAULT_DISPLAY_DETAIL_LEVEL))
+        self.display_detail_level = DEFAULT_DISPLAY_DETAIL_LEVEL
         self.conditions = self.preferences = self.taskernet = self.debug = self.everything = self.clear_settings = (
             self.reset
         ) = self.restore = self.exit = self.bold = self.highlight = self.italicize = self.underline = (
@@ -278,7 +281,7 @@ class MyGui(customtkinter.CTk):
         self.color_text_row = 2
         self.appearance_mode_optionemenu.set("System")
         self.appearance_mode = "system"
-        self.indent_option.set("5")
+        self.indent_option.set(DEFAULT_DISPLAY_DETAIL_LEVEL)
         self.indent = 4
         self.color_labels = []
         self.android_ipaddr = ""
@@ -402,24 +405,29 @@ class MyGui(customtkinter.CTk):
         # Check for missing name
         if not the_name:
             error_message = [
-                f"Either the name entered for the {element_name} is blank or the"
-                f" 'Cancel' button was clicked.\n",
+                f"Either the name entered for the {element_name} is blank or the 'Cancel' button was clicked.\n",
                 "All Projects, Profiles, and Tasks will be displayed.\n",
-                ]
+            ]
 
             self.named_item = False
         # Check to make sure only one named item has been entered
         elif self.single_project_name and self.single_profile_name:
             error_message = [
-                "Error:\n\n", "You have entered both a Project and a Profile name!\n", "Try again and only select one.",
+                "Error:\n\n",
+                "You have entered both a Project and a Profile name!\n",
+                "Try again and only select one.",
             ]
         elif self.single_project_name and self.single_task_name:
             error_message = [
-                "Error:\n\n", "You have entered both a Project and a Task name!\n", "Try again and only select one.",
+                "Error:\n\n",
+                "You have entered both a Project and a Task name!\n",
+                "Try again and only select one.",
             ]
         elif self.single_profile_name and self.single_task_name:
             error_message = [
-                "Error:\n\n", "You have entered both a Profile and a Task name!\n", "Try again and only select one.",
+                "Error:\n\n",
+                "You have entered both a Profile and a Task name!\n",
+                "Try again and only select one.",
             ]
         # Make sure the named item exists
         elif not valid_item(the_name, element_name, self.debug, self.appearance_mode):
@@ -561,6 +569,8 @@ class MyGui(customtkinter.CTk):
             - Match the name type and assign the entered name to the correct single name attribute
             - Do nothing if an invalid name type is provided"""
         # Make sure it is a valid name
+        if self.file:
+            PrimeItems.file_to_get = self.file  # Load file for def get_xml
         if name_entered and self.check_name(name_entered, my_name):
             self.single_project_name = self.single_profile_name = self.single_task_name = ""
 
@@ -887,7 +897,6 @@ class MyGui(customtkinter.CTk):
         - Assign the return value to the outline attribute
         """
         self.pretty = self.get_input_and_put_message(self.pretty_checkbox, "Display Pretty Output")
-        ...
 
     # ##################################################################################
     # Process the 'everything' checkbox
@@ -936,18 +945,18 @@ class MyGui(customtkinter.CTk):
                 value,
                 "Display TaskerNet Information",
             ),
-            #"twisty": lambda: self.select_deselect_checkbox(
+            # "twisty": lambda: self.select_deselect_checkbox(
             #    self.twisty_checkbox,
             #    value,
             #    "Hide Task Details Under Twisty",
-            #),
-            "display_detail_level": lambda: self.detail_selected_event("5"),
+            # ),
+            "display_detail_level": lambda: self.detail_selected_event(DEFAULT_DISPLAY_DETAIL_LEVEL),
         }
 
         self.everything = self.everything_checkbox.get()
         value = self.everything
 
-        #new_message = all_messages = ""
+        # new_message = all_messages = ""
         for key in message_map:
             if message_func := message_map.get(key):
                 # Display detail level requires special handling.
@@ -962,7 +971,7 @@ class MyGui(customtkinter.CTk):
                 setattr(self, key, value)
 
         # Handle Display Detail Level
-        self.display_detail_level = 5
+        self.display_detail_level = DEFAULT_DISPLAY_DETAIL_LEVEL
 
     # ##################################################################################
     # Process the 'Tasker Preferences' checkbox
@@ -1317,7 +1326,7 @@ class MyGui(customtkinter.CTk):
         """
         message = ""
         message_map = {
-            "android_ipaddrt": lambda: f"Get XML TCP IP Address set to {value}\n",
+            "android_ipaddr": lambda: f"Get XML TCP IP Address set to {value}\n",
             "android_port": lambda: f"Get XML Port Number set to {value}\n",
             "android_file": lambda: f"Get XML File Location set to {value}\n",
             "appearance_mode": lambda: f"Appearance mode set to {value}.\n",
@@ -1381,13 +1390,13 @@ class MyGui(customtkinter.CTk):
         }
 
         # Processs specific items that have no effect on the GUI
-        if key in {"gui", "save", "restore", "rerun"}:
+        if key in {"gui", "save", "restore", "rerun", "reset"}:
             message = ""
             # Check if key is an attribute on self before setting
             if hasattr(self, key):
                 setattr(self, key, value)
         else:
-            # Use dictionary lookup anmd lambda funtion to process key/value
+            # Use dictionary lookup and lambda funtion to process key/value
             message_func = message_map.get(key)
             if message_func:
                 message = message_func()
@@ -1820,7 +1829,8 @@ class MyGui(customtkinter.CTk):
                 f"Port Number set to: {self.android_port}\n",
                 f"Get Location set to: {self.android_file}\n",
                 "XML file acquired.\n",
-            ], True,
+            ],
+            True,
         )
 
         # Display backup details as a label again.
@@ -1933,7 +1943,8 @@ class MyGui(customtkinter.CTk):
                 f"Port Number set to: {self.android_port}\n",
                 f"Get Location set to: {self.android_file}\n",
                 "XML file acquired.\n",
-            ], True,
+            ],
+            True,
         )
 
         # Validate XML file.
@@ -1961,7 +1972,7 @@ class MyGui(customtkinter.CTk):
         self.android_ipaddr = ""
         self.android_port = ""
         self.android_file = ""
-        self.sidebar_detail_option.set("5")  # display detail level
+        self.sidebar_detail_option.set(DEFAULT_DISPLAY_DETAIL_LEVEL)  # display detail level
         self.indent_option.set("4")  # Indentation amount
         self.condition_checkbox.deselect()  # Conditions
         self.preferences_checkbox.deselect()  # Tasker Preferences

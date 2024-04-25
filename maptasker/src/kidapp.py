@@ -13,6 +13,8 @@
 # #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
 
+from maptasker.src.primitem import PrimeItems
+
 
 def get_kid_app(element: defusedxml.ElementTree) -> str:
     """
@@ -20,6 +22,7 @@ def get_kid_app(element: defusedxml.ElementTree) -> str:
         :param element: root element to search for <Kid>
         :return: the Kid App info
     """
+    blank = "&nbsp;"
     kid_features = kid_plugins = ""
     four_spaces = "&nbsp;&nbsp;&nbsp;&nbsp;"
     kid_element = element.find("Kid")
@@ -43,8 +46,14 @@ def get_kid_app(element: defusedxml.ElementTree) -> str:
     if kid_plugins:
         kid_plugins = f"<br>{four_spaces}Plugins:{kid_plugins[:len(kid_plugins)-2]}"
 
-    return (
+    kid_app_info = (
         f"<br>&nbsp;&nbsp;&nbsp;[Kid App Package:{kid_package}, Version"
         f" Name:{kid_version}, Target Android"
         f" Version:{kid_target} {kid_features} {kid_plugins}]"
     )
+
+    if PrimeItems.program_arguments["pretty"]:
+        number_of_blanks = kid_app_info.find("Package:") - 4
+        kid_app_info = kid_app_info.replace(",", f"<br>{blank*number_of_blanks}")
+
+    return kid_app_info

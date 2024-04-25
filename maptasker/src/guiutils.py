@@ -35,24 +35,20 @@ if TYPE_CHECKING:
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 3.2.0/3.2.1 Change Log\n
+Version 3.2.2 Change Log\n
 ## Added\n
-- Added: A new 'display detail level' of 5 (the new default) has been added to include Scene element UI and properties details.\n
-- Added: Display the change log for the current release at the end of the Help information in the GUI.\n
-- Added: A new runtime option '-pretty' will format the output such that each Project/Profile details, Task action's parameters, Scene element details, etc. are aligned on a separate line.\n
-## FIXED\n
-- Fixed: If a Scene has a sub-scene layout, output the details of the sub-scene.\n
-- Fixed: Task action 'Stop' with Task name has an extra comma in the output.\n
-- Fixed: When displaying a single Project, the Project line details are not displayed (e.g. Launcher Task).\n
-- Fixed: If the XML file has been obtained from the Android device, don't prompt for the file again if doing a specific Project/Profile/Task.\n
-- Fixed: On startup of the GUI, the information about the Android device and single Project/Profile/Task name are not displayed if restored from backup settings.\n
-- Fixed: Scene sub-elements (e.g. Layout)are missing from the output.\n
-- Fixed: If only doing a single Project with the '-directory' runtime option, some scene hotlinks in the directory do not work.\n
-- Fixed: Twisty setting is not being restored on a rerun.\n
-## CHANGED\n
-- Changed: Scene elements are now displayed as 'Element of type xxxx' to more clearly identify the element type (e.g. type: Text, Rect, Button, Image, etc.).\n
-- Changed: Output Task action fields and values changed from 'field:value' to 'field=value' for ease of reading.  Plugin details will still use a colon.\n
-- Changed: The runtime options '-everything' and '-twisty' are now mutually exclusive.\n
+- Added: Add date and time to the output heading.\n
+- Added: Add 'Display Prettier Output' to the GUI Help text.\n
+## Fixed\n
+- Fixed: Using the '-pretty' runtime option causes the string "Structure Output (JSON, etc)" to be incorrectly broken at the comma.\n
+- Fixed: The '-pretty' option is not properly formatting Task action values or Profile conditions in the output.\n
+- Fixed: Scene 'Properties" elements are being displayed with an invalid name.\n
+- Fixed: The user is still prompted to input the file in GUI even if the file to use is identified in the saved settings.\n
+## Changed\n
+- Changed: Scene elements with no geometry will no longer display 'n/a' for geometry values.\n
+- Changed: If using the '-pretty' runtime option, trailing commas are removed since the arguments are already separated.\n
+- Changed: Scene element names placed before element type for clarity.\n
+- Changed: Moved the location of the 'Upgrade To Next Version' button in the GUI so that it doesn't overlap with another button.\n
 """
 default_font_size = 14
 

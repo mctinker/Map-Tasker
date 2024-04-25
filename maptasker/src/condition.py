@@ -256,7 +256,7 @@ def condition_loc(item: defusedxml.ElementTree.XMLParse, condition: str) -> str:
     lon = item.find("long").text
     rad = item.find("rad").text
     if lat:
-        return f"{condition}Location with latitude {lat} longitude" f" {lon} radius {rad}"
+        return f"{condition}Location with latitude {lat} longitude {lon} radius {rad}"
     return ""
 
 
@@ -280,6 +280,8 @@ def parse_profile_condition(the_profile: defusedxml.ElementTree) -> str:
     }
     ignore_items = ["cdate", "edate", "flags", "id", "ProfileVariable"]
     condition = ""  # Assume no condition
+
+    # Go through Profile'x sub-XML looking for conditions
     for item in the_profile:
         if item.tag in ignore_items or "mid" in item.tag:  # Bypass junk we don't care about
             continue

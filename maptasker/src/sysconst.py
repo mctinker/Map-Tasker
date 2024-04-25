@@ -26,7 +26,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "3.2.1"
+VERSION = "3.2.2"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -151,6 +151,7 @@ pattern9 = re.compile("</span></span>")
 pattern10 = re.compile("</p></p>")
 pattern11 = re.compile(".*[A-Z].*")
 pattern12 = re.compile(r"[%]\w+")  # matches any word-constituent character.
+pattern13 = r",(?=\S)"  # matches any comma folowed by a nonblank charatcer.  e.g. now is,the time, for (catches is,the)
 RE_FONT = re.compile(r"</font>")
 
 clean = re.compile("<.*?>")

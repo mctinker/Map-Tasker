@@ -1,3 +1,4 @@
+"""Handle Object Properties"""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -13,6 +14,7 @@
 # #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
 
+from maptasker.src.actione import fix_json
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
 
@@ -54,7 +56,10 @@ def parse_variable(property_tag: str, css_attribute: str, variable_header: defus
     blank = "&nbsp;"
     if PrimeItems.program_arguments["pretty"]:
         number_of_blanks = 20 if out_string.startswith("<br>Task") else 23
-        out_string = out_string.replace(",", f",<br>{blank*number_of_blanks}")
+        out_string = out_string.replace(",", f"<br>{blank*number_of_blanks}")
+
+    # Put the line '"Structure Output (JSON, etc)' back together.
+    out_string = fix_json(out_string, " Structured Variable")
 
     # Ok, output the line.
     PrimeItems.output_lines.add_line_to_output(2, out_string, ["", css_attribute, FormatLine.add_end_span])

@@ -1,3 +1,4 @@
+"""Process Unique Task Situations"""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -11,13 +12,10 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
-from typing import List, Union
 
-import defusedxml.ElementTree
-
-import maptasker.src.tasks as tasks
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import NO_PROJECT, NORMAL_TAB, UNKNOWN_TASK_NAME, FormatLine
+from maptasker.src.tasks import get_project_for_solo_task, get_task_name, output_task_list, task_in_scene
 from maptasker.src.twisty import add_twisty, remove_twisty
 
 
@@ -25,8 +23,8 @@ from maptasker.src.twisty import add_twisty, remove_twisty
 # Output Projects Without Tasks and Projects Without Profiles
 # ##################################################################################
 def process_missing_tasks_and_profiles(
-    projects_with_no_tasks: Union[List[str], List],
-    projects_without_profiles: List[str],
+    projects_with_no_tasks: list,
+    projects_without_profiles: list,
 ) -> None:
     """
     Output Projects Without Tasks and Projects Without Profiles
@@ -112,7 +110,7 @@ def process_solo_task_with_no_profile(
     have_heading: bool,
     projects_with_no_tasks: list,
     save_twisty: bool,
-) -> tuple[int, defusedxml.ElementTree.XML, int]:
+) -> tuple:
     """
     Process a single Task that does not belong to any Profile
 
@@ -127,17 +125,17 @@ def process_solo_task_with_no_profile(
     unknown_task, specific_task = False, False
 
     # Get the Project this Task is under.
-    project_name, the_project = tasks.get_project_for_solo_task(
+    project_name, the_project = get_project_for_solo_task(
         task_id,
         projects_with_no_tasks,
     )
 
     # Get the Task's name
-    task_element, task_name = tasks.get_task_name(task_id, found_tasks, [], "")
+    task_element, task_name = get_task_name(task_id, found_tasks, [], "")
     if task_name == UNKNOWN_TASK_NAME:
         task_name = f"{UNKNOWN_TASK_NAME}&nbsp;&nbsp;Task ID: {task_id}"
         # Ignore it if it is in a Scene
-        if tasks.task_in_scene(task_id, PrimeItems.tasker_root_elements["all_scenes"]):
+        if task_in_scene(task_id, PrimeItems.tasker_root_elements["all_scenes"]):
             return have_heading, specific_task, task_count
         unknown_task = True
     # else:
@@ -163,7 +161,7 @@ def process_solo_task_with_no_profile(
 
         # We have the Tasks.  Now let's output them.
         our_task = PrimeItems.tasker_root_elements["all_tasks"][task_id]
-        specific_task = tasks.output_task_list(
+        specific_task = output_task_list(
             [our_task],
             project_name,
             "",
@@ -179,8 +177,8 @@ def process_solo_task_with_no_profile(
 # process_tasks: go through all tasks and output them
 # ##################################################################################
 def process_tasks_not_called_by_profile(
-    projects_with_no_tasks: List,
-    found_tasks_list: List[str],
+    projects_with_no_tasks: list,
+    found_tasks_list: list,
 ) -> None:
     """
     Go through all tasks and output them

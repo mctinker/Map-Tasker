@@ -225,9 +225,9 @@ def process_xml_list(
             # This will equate to True or False, depending on 1 or 0.
             # The next line equates to the followinbg commented-out lines.
             include_negative = the_list[0] == "1" if this_element == "e" else False
-            #if this_element == "e":
+            # if this_element == "e":
             #    include_negative = the_list[0] == "1"  # This will equate to True or False, depending on 1 or 0.
-            #else:
+            # else:
             #    include_negative = False  # The default
             evaluated_value = evaluate_action_setting([include_negative, the_int_value, next_element])
             evaluated_value = f"{evaluated_value[0]}, "

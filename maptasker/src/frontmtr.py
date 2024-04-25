@@ -25,14 +25,14 @@ def output_the_heading() -> None:
     """
     Display the heading and source file details
     """
-    window_dimensions = """
-<p id="mywin"></p>
-<script>
-var w = window.innerWidth;
-var h = window.innerHeight;
-var x = document.getElementById("mywin");
-x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
-</script>"""
+#    window_dimensions = """
+#<p id="mywin"></p>
+#<script>
+#var w = window.innerWidth;
+#var h = window.innerHeight;
+#var x = document.getElementById("mywin");
+#x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
+#</script>"""
 
     # Start out by outputting our colors and font CSS
     add_css()
@@ -56,10 +56,7 @@ x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
         background_color_html = ""
 
     # Output date and time if in debug mode
-    if PrimeItems.program_arguments["debug"]:
-        now_for_output = NOW_TIME.strftime("%m/%d/%y %H:%M:%S")
-    else:
-        now_for_output = ""
+    now_for_output = NOW_TIME.strftime("%d-%B-%Y %H:%M:%S")
 
     # Format the output heading
     heading_color = "heading_color"
@@ -79,11 +76,11 @@ x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
     )
 
     # Add script to get window dimensions
-    PrimeItems.output_lines.add_line_to_output(
-        0,
-        window_dimensions,
-        FormatLine.dont_format_line,
-    )
+    #PrimeItems.output_lines.add_line_to_output(
+    #    0,
+    #    window_dimensions,
+    #    FormatLine.dont_format_line,
+    #)
 
     # Add a blank line
     PrimeItems.output_lines.add_line_to_output(
@@ -110,7 +107,7 @@ x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
     # Add source to output
     PrimeItems.output_lines.add_line_to_output(
         0,
-        f"<br><br>Source backup file: {source_file}",
+        f"<br><br>{NORMAL_TAB}Source backup file: {source_file}",
         ["", "heading_color", FormatLine.add_end_span],
     )
 

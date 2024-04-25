@@ -1,3 +1,4 @@
+"""User Modifiable Configutration File"""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -51,6 +52,10 @@ ANDROID_PORT = ""
 # Example: ANDROID_FILE = "/Tasker/configs/user/backup.xml"
 
 ANDROID_FILE = ""
+
+# This is used as the default display detail level.  It does not override the runtime option.
+# This value is used if the runtime option is not set.
+DEFAULT_DISPLAY_DETAIL_LEVEL = 5
 
 # ##################################################################################
 #  END User-modifiable global constants

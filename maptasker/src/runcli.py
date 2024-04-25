@@ -27,6 +27,7 @@ import darkdetect
 
 from maptasker.src.clip import clip_figure
 from maptasker.src.colors import get_and_set_the_color, validate_color
+from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.error import error_handler
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.initparg import initialize_runtime_arguments
@@ -46,7 +47,7 @@ from maptasker.src.sysconst import (
 # ################################################################################
 # Determine if the argument is a list or string, and return the value as appropriate
 # ################################################################################
-def get_arg_if_in_list(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"]), the_argument: str) -> int:
+def get_arg_if_in_list(args: list, the_argument: str) -> int:
     """
     Determine if the argument is a list or string, and return the value as appropriate
         Args:
@@ -85,7 +86,7 @@ def get_name_attributes(value: str) -> None:
 # ##################################################################################
 # Go through all boolean settings, get each and if have it then set value to True
 # ##################################################################################
-def get_and_set_booleans(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:  # noqa: PYI024
+def get_and_set_booleans(args: list) -> None:
     """
     Go through all boolean settings, get each and if have it then set value to True
         Args:
@@ -124,7 +125,7 @@ def get_and_set_booleans(args: namedtuple("ArgNamespace", ["some_arg", "another_
 # ##################################################################################
 # Get the the other arguments
 # ##################################################################################
-def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])) -> None:  # type: ignore # noqa:PYI024
+def get_the_other_arguments(args: list) -> None:
     """
     Get the remainder of the arguments
         Args:
@@ -142,36 +143,33 @@ def get_the_other_arguments(args: namedtuple("ArgNamespace", ["some_arg", "anoth
             PrimeItems.program_arguments["display_detail_level"] = detail[0]
 
 
-# ##################################################################################
-# Get our parsed program arguments and save them to PrimeItems.program_args"]
-# ##################################################################################
-def get_runtime_arguments(
-    args: namedtuple("ArgNamespace", ["some_arg", "another_arg"])
-) -> None:  # noqa:PGH003# type: ignore
+def set_everything(program_arguments: dict) -> None:
+    """
+    Establish all of the settings that covers "everything" selection.
+        program_arguments (dict): The program arguments.
 
-    # Color help?
-    if getattr(args, "ch"):
-        validate_color("h")
+    Returns:
+        None
+    """
+    program_arguments["display_detail_level"] = DEFAULT_DISPLAY_DETAIL_LEVEL
+    program_arguments["conditions"] = True
+    program_arguments["preferences"] = True
+    program_arguments["directory"] = True
+    program_arguments["taskernet"] = True
+    program_arguments["outline"] = True
+    program_arguments["runtime"] = True
+    program_arguments["pretty"] = True
 
-    # Not GUI.  Get input from command line arguments
 
-    # Get input from command line arguments or unit test defaults.
-    # All booleans and display detail level.
-    get_the_other_arguments(args)
-
-    program_arguments = PrimeItems.program_arguments
-
-    # Everything? Display full detail and set various display options to true.
-    if getattr(args, "e"):
-        program_arguments["display_detail_level"] = 5
-        program_arguments["conditions"] = True
-        program_arguments["preferences"] = True
-        program_arguments["directory"] = True
-        program_arguments["taskernet"] = True
-        program_arguments["outline"] = True
-        program_arguments["runtime"] = True
-        program_arguments["pretty"] = True
-
+def get_single_name(program_arguments: dict, args: list) -> None:
+    """
+    A function that extracts single names from the provided arguments and updates the program arguments accordingly.
+    Args:
+        program_arguments (dict): Dictionary to store extracted names.
+        args (list): List of arguments to extract names from.
+    Returns:
+        None
+    """
     the_name = getattr(args, "project")  # Display single Project
     if the_name is not None:
         program_arguments["single_project_name"] = the_name[0]
@@ -181,14 +179,17 @@ def get_runtime_arguments(
     the_name = getattr(args, "task")  # Display single task
     if the_name is not None:
         program_arguments["single_task_name"] = the_name[0]
-    if getattr(args, "v"):  # Display version info
-        display_version()
 
-    # Get names (bold, highlight, underline and/or highlight)
-    if value := getattr(args, "names"):
-        get_name_attributes(value)
 
-    # Get Android device info for fetching the backup xml file
+def get_android_settings(program_arguments: dict, args: list) -> None:
+    """
+    A function to get Android settings based on the provided arguments.
+    Args:
+        program_arguments (dict): Dictionary to store the extracted Android settings.
+        args (list): List of arguments to extract Android settings from.
+    Returns:
+        None
+    """
     if value := getattr(args, "android_ipaddr"):
         if isinstance(value, list):
             program_arguments["android_ipaddr"] = value[0]
@@ -198,6 +199,53 @@ def get_runtime_arguments(
             program_arguments["android_ipaddr"] = value
             program_arguments["android_port"] = getattr(args, "android_port")
             program_arguments["android_file"] = getattr(args, "android_file")
+
+
+def process_extended_arguments(args: list) -> None:
+    """
+    Process extended arguments from the command line.
+
+    Args:
+        args (list): A list of command line arguments.
+
+    Returns:
+        None: This function does not return anything.
+
+    This function processes extended arguments from the command line and updates the program arguments accordingly.
+    It handles special cases and non-binary settings.
+
+    - If the 'e' argument is present, it sets the program arguments to display full detail and sets various display options to true.
+    - If there is a single name (Project/Profile/Task) present in the command line arguments, it gets it.
+    - If the 'v' argument is present, it displays version info.
+    - If the 'names' argument is present, it gets the name attributes.
+    - If the 'appearance' argument is present, it sets the appearance mode in the program arguments.
+    - If the 'i' argument is present, it sets the indentation amount in the program arguments.
+    - If the 'font' argument is present, it sets the font in the program arguments.
+    - If the 'file' argument is present, it sets the file in the program arguments.
+
+    Note:
+        The function assumes that the 'program_arguments' attribute is present in the 'PrimeItems' class.
+    """
+    program_arguments = PrimeItems.program_arguments
+
+    # The rest of this function is to handle special cases and non-binary settings.
+
+    # Everything? Display full detail and set various display options to true.
+    if getattr(args, "e"):
+        set_everything(program_arguments)
+
+    # If there is a single name (Project/Profile/Task), then get it.
+    get_single_name(program_arguments, args)
+
+    if getattr(args, "v"):  # Display version info
+        display_version()
+
+    # Get names (bold, highlight, underline and/or highlight)
+    if value := getattr(args, "names"):
+        get_name_attributes(value)
+
+    # Get Android device info for fetching the backup xml file
+    get_android_settings(program_arguments, args)
 
     # Appearance
     if appearance := getattr(args, "appearance"):
@@ -220,6 +268,36 @@ def get_runtime_arguments(
             program_arguments["file"] = file[0]
         else:
             program_arguments["file"] = file
+
+
+# ##################################################################################
+# Get our parsed program arguments and save them to PrimeItems.program_args"]
+# ##################################################################################
+def get_runtime_arguments(args: list) -> None:
+    """
+    Function to get runtime arguments from the command line.
+
+    Parameters:
+        args (list): A list of command line arguments.
+
+    Returns:
+        None: This function does not return anything.
+
+    The code defines a function get_runtime_arguments to retrieve runtime arguments from the command line,
+    process boolean values, display detail level, and non-binary arguments from a list of command line arguments.
+    It does not return any value.
+    """
+    # Color help?
+    if getattr(args, "ch"):
+        validate_color("h")
+
+    # Not GUI.  Get input from command line arguments or unit test defaults.
+
+    # All booleans and display detail level.
+    get_the_other_arguments(args)
+
+    # Get non-binary arguments
+    process_extended_arguments(args)
 
 
 # ##################################################################################
@@ -325,7 +403,7 @@ def restore_arguments() -> dict:
 # We do this so that 1) we can run a unit test without command line arguments, and
 # 2) we can rerun over and over as many times as needed.
 # ##################################################################################
-def unit_test() -> namedtuple("ArgNamespace", ["some_arg", "another_arg"]):  # noqa: PYI024
+def unit_test() -> namedtuple:  # noqa: PYI024
     """
     We're running a unit test. Get the unit test arguments and create the arg namespace
             :return: args Namespace with arguments from run_test.py

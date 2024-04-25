@@ -160,7 +160,7 @@ def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str
 
     else:
         evaluated_results[f"arg{arg}"]["value"] = " "
-        #evaluated_results["returning_something"] = False  # NOTE: This caused errors with Scene ButtonElement
+        # evaluated_results["returning_something"] = False  # NOTE: This caused errors with Scene ButtonElement
 
 
 # ##################################################################################

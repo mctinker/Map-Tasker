@@ -1,3 +1,4 @@
+"""Process Tasks"""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -96,8 +97,8 @@ def get_actions(
 
             # Make it pretty
             if "Configuration Parameter(s):" in task_code and PrimeItems.program_arguments["pretty"]:
-                number_of_blanks = task_code.find("Configuration Parameter(s):") // 2 + 2
-                task_code = task_code.replace(",", f",<br>{blank*number_of_blanks}")
+                number_of_blanks = task_code.find(":")
+                task_code = task_code.replace(",", f"<br>{blank*(number_of_blanks-70)}")  # Back out the "<span..."
                 if "Configuration Parameter(s):\n," in task_code:
                     task_code = task_code.replace("Configuration Parameter(s):\n,", "Configuration Parameter(s):\n")
 
@@ -109,6 +110,7 @@ def get_actions(
                 indentation,
                 indentation_amount,
             )
+
             #  Indent the line if this is a condition
             if ">If" in task_code or ">Else" in task_code or ">For<" in task_code:  # Do we indent?
                 indentation += 1
@@ -330,7 +332,7 @@ def do_single_task(
     logger.debug(
         "tasks single task"
         f' name:{PrimeItems.program_arguments["single_task_name"]} our Task'
-        f" name:{our_task_name}"
+        f" name:{our_task_name}",
     )
 
     # Doing a specific Task...
@@ -511,7 +513,6 @@ def output_task_list(
         Returns:
             bool: True if we found a Task"""
     for count, task_item in enumerate(list_of_tasks):
-
         # If we are coming in without a Task name, then we are only doing a single Task and we need to plug in
         # the Task name.
         if task_output_lines[count] == " ":

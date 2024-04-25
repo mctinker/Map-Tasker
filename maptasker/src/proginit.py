@@ -279,7 +279,9 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
 
         # We don't yet have the data.  Let's get it.
         if not PrimeItems.program_arguments["file"]:
-            PrimeItems.program_arguments["file"] = PrimeItems.file_to_get if PrimeItems.file_to_use == "" else PrimeItems.file_to_use
+            PrimeItems.program_arguments["file"] = (
+                PrimeItems.file_to_get if PrimeItems.file_to_use == "" else PrimeItems.file_to_use
+            )
 
         # Only display message box if we don't yet have the file name,if this is not the first time ever that we have run,
         # and not running from the GUI.

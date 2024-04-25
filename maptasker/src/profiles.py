@@ -1,3 +1,4 @@
+"""Handle Profile"""
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -194,6 +195,16 @@ def build_profile_line(
             # may be same as Actions.
             # And the Actions would have plugged in the action_color HTML.
             # profile_conditions = remove_html_tags(profile_conditions, "")
+
+            # Make the conditions pretty
+            if PrimeItems.program_arguments["pretty"]:
+                condition_length = profile_conditions.find(":")
+                # Add spacing for profile name, condition name and "Profile:"
+                profile_conditions = profile_conditions.replace(
+                    ",", f"<br>{blank*(len(profile_name)+condition_length+7)}",
+                )
+
+            # Add the HTML
             condition_text = format_html(
                 "profile_condition_color",
                 "",
@@ -208,7 +219,7 @@ def build_profile_line(
     if PrimeItems.program_arguments["pretty"]:
         indentation = len(profile_name) + 4
         # Break at comma
-        profile_info = profile_info.replace(", ", f", <br>{blank*indentation}")
+        profile_info = profile_info.replace(", ", f"<br>{blank*indentation}")
         # Break at paren
         profile_info = profile_info.replace(" (", f"<br>{blank*indentation}  (")
         # Break at bracket
@@ -231,7 +242,6 @@ def do_profile(
     project: defusedxml.ElementTree.XML,
     project_name: str,
     profile: defusedxml.ElementTree.XML,
-    profile_ids: list,
     list_of_found_tasks: list,
 ) -> bool:
     """Function:
@@ -241,7 +251,6 @@ def do_profile(
         - project (defusedxml.ElementTree.XML): The current project being processed.
         - project_name (str): The name of the current project.
         - profile (defusedxml.ElementTree.XML): The current profile being processed.
-        - profile_ids (list): A list of all profile IDs.
         - list_of_found_tasks (list): A list of all found tasks.
     Returns:
         - bool: True if a specific Task is being searched for, False otherwise.
@@ -256,13 +265,11 @@ def do_profile(
         - Returns True if a specific Task is being searched for, False otherwise."""
     # Are we searching for a specific Profile?
     if PrimeItems.program_arguments["single_profile_name"]:
-
         # Make sure this item's name is in our list of profiles.
         if not (profile_name := PrimeItems.tasker_root_elements["all_profiles"][item]["name"]):
             return False  # Not our Profile...go to next Profile ID
 
         if PrimeItems.program_arguments["single_profile_name"] != profile_name:
-
             return False  # Not our Profile...go to next Profile ID
 
             return False  # Not our Profile...go to next Profile ID
@@ -341,11 +348,10 @@ def process_profiles(
 
     # Go through the Profiles found in the Project
     for item in profile_ids:
-
         profile = PrimeItems.tasker_root_elements["all_profiles"][item]["xml"]
         if profile is None:  # If Project has no profiles, skip
             return None
-        specific_task = do_profile(item, project, project_name, profile, profile_ids, list_of_found_tasks)
+        specific_task = do_profile(item, project, project_name, profile, list_of_found_tasks)
 
         # Get out if doing a specific Task, and it was found, or not specific task but
         # found speficic Profile.  No need to process any more Profiles.
@@ -357,7 +363,7 @@ def process_profiles(
             not specific_task and PrimeItems.found_named_items["single_profile_found"]
         ):  # Get out if we've got the Task we're looking for
             break
-        elif not specific_task:
+        if not specific_task:
             continue
 
     return ""

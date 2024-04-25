@@ -53,7 +53,7 @@ def tag_in_type(tag: str, flag: bool) -> bool:
         "SwitchElement",
         "ToggleElement",
         "VideoElement",
-         "PropertiesElement",  # this element doesn't contain anything of value/import
+        "PropertiesElement",  # this element doesn't contain anything of value/import
     ]
     scene_task_click_types = [
         "checkchangeTask",
@@ -158,6 +158,7 @@ def extract_string(action: defusedxml.ElementTree.XML, arg: str, argeval: str) -
     - Returns first item after processing or empty string
     """
     from maptasker.src.action import drop_trailing_comma
+
     # TODO Optimize this code to find the argn match
     match_results = []
     for child in action:
