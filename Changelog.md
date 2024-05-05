@@ -2,30 +2,43 @@
 
 All notable changes to this project will be documented in this file!
 
-## [3.2.2] 25-April-2024
+## [4.0] 06-May-2024
 
 ## Added
 
-- Added: Add date and time to the output heading.
-- Added: Add 'Display Prettier Output' to the GUI Help text.
+- Added: Ai analysis support for Profiles and Tasks: both ChatGPT (server-based) and (O)llama (local-based).
+- Added: Display the current file in GUI.
+- Added: A new 'Get Local XML' button has been added to enable the GUI to get the local XML file and validate it for analysis.
 
 ## Changed
 
+- Changed: GUI color settings are now displayed in their colors on the startup of the GUI.
+- Changed: GUI warning messages are now displayed in orange rather than red.
+
+## Fixed
+
+- Fixed: The program gets runtime errors if the settings saved file is corrupted.
+- Fixed: The settings are not properly saved upon exit from the GUI.
+- Fixed: Removed error message 'Program canceled by user (killed GUI)' if the 'Exit' button is selected.
+- Fixed: If the Android file location is specified on startup and the file is found on the local drive from the previous run, then use it and don't prompt again for it.
+- Fixed: The GUI message window was not fully expanded.
+
+## Older History Logs
+
+## [3.2.2]
+
+- Added: Add date and time to the output heading.
+- Added: Add 'Display Prettier Output' to the GUI Help text.
 - Changed: Scene elements with no geometry will no longer display 'n/a' for geometry values.
 - Changed: If using the '-pretty' runtime option, trailing commas are removed since the arguments are already separated.
 - Changed: Scene element names placed before element type for clarity.
 - Changed: Moved the location of the 'Upgrade To Next Version' button in the GUI so that it doesn't overlap with another button.
-
-## Fixed
-
 - Fixed: Using the '-pretty' runtime option causes the string "Structure Output (JSON, etc)" to be incorrectly broken at the comma.
 - Fixed: The '-pretty' option is not properly formatting Task action values or Profile conditions in the output.
 - Fixed: Scene 'Properties" elements are being displayed with an invalid name.
-- Fixed: The user is still prompted to input the file in GUI even if the file to use is identified in the saved settings.
+- Fixed
 
-## Older History Logs
-
-## [3.2.0] and [3.2.1]
+## [3.2.1]
 
 - Added: A new 'display detail level' of 5 (the new default) has been added to include Scene element UI and properties details.
 - Added: Display the change log for the current release at the end of the Help information in the GUI.

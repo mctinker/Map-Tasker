@@ -85,10 +85,10 @@ Runtime: `maptasker -option1 -option2` ...
 
     `-android_ipaddr` TCP/IP address of the Android device from which to fetch the backup/exported XML file (see Note 2).
 
-    `-android_port` the port number of the Android device from which to fetch the  backup/exported XML file.
+    `-android_port` the port number of the Android device from which to fetch the backup/exported XML file.
       Example: 1821
 
-    `-android_file` the location of the  backup/exported XML file on the Android device.
+    `-android_file` the location of the backup/exported XML file on the Android device.
       Example: /Tasker/configs/user/backup.xml
 
     The above three 'android' options are mutually inclusive.
@@ -136,6 +136,8 @@ Runtime: `maptasker -option1 -option2` ...
     `-profile 'profile name'` to display a single Profile and its Tasks only,
     `-task 'task name'` to display a single Task only,
 
+
+  Ai analysis support via OpenAi and Llama is currently only offered through the GUI.  (See Note 5).
 
 ### Examples
 
@@ -194,7 +196,7 @@ For the "Get backup" (retrieve the Tasker XML file directly from your Android de
 
 - Both the MAC and Android devices must be on the same network.
 
-- The [sample Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").  Make suree to run the "launch" Task and enter your Google Drive ID.
+- The [sample Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").  Make sure to run the "launch" Task and enter your Google Drive ID.
 
 - The TaskerNet profile, [MapTasker List](https://shorturl.at/buvK6), must be imported into Tasker in order for the 'List XML Files' button to work.
 
@@ -218,6 +220,12 @@ If you are unable to upgrade to Python version 3.11 or higher, an older version 
 
 With this older version, you will not get the benefits offered by the newer version.  Refer to Changelog for details.
 
+### 5
+
+Ai analysis is available through the GUI only.  You can run an analysis using a single Profile or Task only.  Support is available for server-based OpenAi (chat-gpt) and local-based Llama.
+
+The usage of llama models also requires that you manually install Ollama from [here](https://ollama.com/download) and you must run the application once to do the initial setup.  Then you can run an analysis via the GUI (see the "Analyze" tab).
+
 ## To-Do List (in no particular order)
 
 - [x] Auto Update Feature
@@ -228,7 +236,7 @@ With this older version, you will not get the benefits offered by the newer vers
 
 - [x] Add a runtime option for more pretty output
 
-- [ ] Add Ai support to analyze Profiles and Tasks
+- [x] Add Ai support to analyze Profiles and Tasks
 
 - [ ] Include/map remaining Tasker preferences
 
