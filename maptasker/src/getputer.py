@@ -24,7 +24,9 @@ from pathlib import Path
 import tomli_w
 import tomllib
 
+from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
+from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ARGUMENTS_FILE, NOW_TIME, OLD_ARGUMENTS_FILE
 
@@ -86,6 +88,10 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     guidance = {
         "Guidance": "Modify this file as needed below the entries [program_arguments] and [colors_to_use].  Run 'maptasker -h' for details.",
     }
+
+    # Make sure apikey is hidden
+    program_arguments["ai_apikey"] = "Hidden"
+
     # Force file object into a dictionary for json encoding
     try:
         if not isinstance(program_arguments["file"], str):
@@ -101,8 +107,9 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
         tomli_w.dump(guidance, settings_file)
         settings_file.close()
 
-    # Write out the program arguments in TOML format
+    # Write out the program arguments in TOML format.  Open in binary append format (ab).
     with open(new_file, "ab") as settings_file:
+        settings["program_arguments"] = dict(sorted(program_arguments.items()))  # Sort the program args first.
         tomli_w.dump(settings, settings_file)
         settings_file.close()
 
@@ -164,11 +171,20 @@ def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, 
 
         with open(new_file, "rb") as f:
 
-            # Setup old date if date last used is not in TROML settings file
+            # Setup old date if date last used is not in TROML settings file.  Catch all possible errors with TOML file.
             try:
+                # Colors to use
                 settings = tomllib.load(f)
-                colors_to_use = settings["colors_to_use"]  # Get the colors to use
-                program_arguments = settings["program_arguments"]  # Get the program arguments
+                try:
+                    colors_to_use = settings["colors_to_use"]  # Get the colors to use
+                except KeyError:
+                    colors_to_use = set_color_mode("")  # If this hadn't been previously saved, set it to blank
+
+                # Program arguments
+                try:
+                    program_arguments = settings["program_arguments"]  # Get the program arguments
+                except KeyError:
+                    program_arguments = initialize_runtime_arguments()
                 try:
                     PrimeItems.last_run = settings["last_run"]  # Get the last run date
                 except KeyError:
@@ -199,6 +215,8 @@ def save_restore_args(
     """
     new_file = f"{Path.cwd()}{PrimeItems.slash}{ARGUMENTS_FILE}"
     old_file = f"{Path.cwd()}{PrimeItems.slash}{OLD_ARGUMENTS_FILE}"
+
+    # Saving?
     if to_save:
         save_arguments(program_arguments, colors_to_use, new_file)
 

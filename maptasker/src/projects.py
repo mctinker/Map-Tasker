@@ -58,6 +58,9 @@ def process_projects_and_their_profiles(
         - If no Projects then process scenes if there are any."""
     our_task_element = ""
 
+    # Temporarily save single Project name since process_profiles may override it
+    single_project_name = PrimeItems.program_arguments["single_project_name"]
+
     # Process Projects only if there are Projects
     if PrimeItems.tasker_root_elements["all_projects"]:
         process_projects(
@@ -97,7 +100,7 @@ def process_projects_and_their_profiles(
         tasks.output_task_list(
             task_list,
             "Unknown",
-            "None",
+            "",
             task_output_lines,
             [],
             True,
@@ -116,6 +119,9 @@ def process_projects_and_their_profiles(
             "",
             found_tasks,
         )
+
+    # Restore the single Project name saved at beginning
+    PrimeItems.program_arguments["single_project_name"] = single_project_name
 
     # Return a list of Tasks found thus far with duplicates remove
     # Reference: https://www.pythonmorsels.com/deduplicate-lists/
@@ -573,6 +579,9 @@ def add_no_profiles_line_to_output() -> None:
     )
 
 
+# ##################################################################################
+# Determine if we are doing a single Project or Profile or Task
+# ##################################################################################
 def is_single_project_or_profile_or_task_found() -> bool:
     """
     Check if a single project, profile, or task is found and return a boolean.
@@ -584,6 +593,9 @@ def is_single_project_or_profile_or_task_found() -> bool:
     )
 
 
+# ##################################################################################
+# Add a closing Project list
+# ##################################################################################
 def add_close_project_list_line_to_output() -> None:
     """
     Add a close project list line to the output.

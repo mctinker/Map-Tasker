@@ -26,7 +26,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "3.2.2"
+VERSION = "4.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -37,6 +37,9 @@ ARGUMENTS_FILE = "MapTasker_Settings.toml"
 FONT_FAMILY = ";font-family:"
 NO_PROFILE = "None or unnamed!"
 CHANGELOG_FILE = ".maptasker_changelog.txt"
+KEYFILE = ".maptasker.key"
+ERROR_FILE = ".maptasker_error.txt"
+ANALYSIS_FILE = "MapTasker_Analysis.txt"
 
 #  List of color arguments and their names
 #  Two different key/value structures in one:
@@ -104,6 +107,9 @@ TYPES_OF_COLORS = {
 
 # Runtime argument names/keywords that are used throughout the program
 ARGUMENT_NAMES = {
+    "ai_analyze": "Analyze AI",
+    "ai_model": "AI Model",
+    "ai_apikey": "AI Api Key",
     "android_ipaddr": "Android IP Address",
     "android_file": "Android Backup File location on Android device",
     "android_port": "Android Port Number",
@@ -213,3 +219,6 @@ TABLE_BORDER = (
 
 
 NOW_TIME = datetime.now()  # noqa: DTZ005
+
+OPENAI_MODELS = ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"]
+LLAMA_MODELS = ["llama2", "llama3"]

@@ -58,6 +58,14 @@ from maptasker.src.sysconst import NOW_TIME
 class PrimeItems:
     """PrimeItems class contains global variables used throughout MapTasker"""
 
+    ai_analyze = False
+    ai: ClassVar = {
+        "do_ai": False,
+        "model": "",
+        "output_lines": [],
+        "response": [],
+        "api_key": "",
+    }
     xml_tree = None
     xml_root = None
     program_arguments: ClassVar = {}
@@ -67,6 +75,8 @@ class PrimeItems:
     file_to_use = ""
     task_count_for_profile = 0
     displaying_named_tasks_not_in_profile = False
+    error_code = 0
+    error_msg = ""
     mono_fonts: ClassVar = {}
     found_named_items: ClassVar = {
         "single_project_found": False,
@@ -97,8 +107,6 @@ class PrimeItems:
     directories: ClassVar = []
     variables: ClassVar = {}
     current_project = ""
-    error_code = 0
-    error_msg = ""
     tkroot = None
     last_run = NOW_TIME
     slash = "/"
@@ -165,3 +173,10 @@ class PrimeItemsReset:
         PrimeItems.error_code = 0
         PrimeItems.error_msg = ""
         PrimeItems.tkroot = None
+        PrimeItems.ai_analyze = False
+        PrimeItems.ai = {
+            "do_ai": False,
+            "output_lines": [],
+            "response": [],
+            "api_key": "",
+        }

@@ -26,7 +26,11 @@ def initialize_runtime_arguments() -> dict:
     The key must be the same name as the key in PrimeItems.program_arguments.
         :return: runtime arguments in dictionary
     """
+
     return {
+        "ai_analyze": False,  # Do local AI processing
+        "ai_apikey": "",  # AI API key
+        "ai_model": "",  # AI model
         "android_ipaddr": ANDROID_IPADDR,  # IP address of Android device
         "android_port": ANDROID_PORT,  # Port of Android device
         "android_file": ANDROID_FILE,

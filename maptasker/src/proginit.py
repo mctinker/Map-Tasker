@@ -146,7 +146,6 @@ def open_and_get_backup_xml_file() -> dict:
 
     # If debug and we didn't fetch the backup file from Android device, default to
     # "backup.xml" file as backup to restore
-
     if (
         PrimeItems.program_arguments["debug"]
         and PrimeItems.program_arguments["fetched_backup_from_android"] is False
@@ -283,10 +282,11 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
                 PrimeItems.file_to_get if PrimeItems.file_to_use == "" else PrimeItems.file_to_use
             )
 
-        # Only display message box if we don't yet have the file name,if this is not the first time ever that we have run,
+        # Only display message box if we don't yet have the file name,
+        # if this is not the first time ever that we have run (run_counter < 1),
         # and not running from the GUI.
         if not PrimeItems.file_to_get and run_counter < 1 and not GUI:
-            msg = "Locate the Tasker backup xml file to use to map your Tasker environment"
+            msg = "Locate the Tasker XML file to use to map your Tasker environment"
             messagebox.showinfo("MapTasker", msg)
 
         # Open and read the file...

@@ -37,7 +37,10 @@ def output_the_heading() -> None:
     # Start out by outputting our colors and font CSS
     add_css()
 
-    tasker_mapping = "Tasker Mapping................ Tasker XML version:"
+    # Check if Ai analysis running.
+    ai_message = " Ai Analysis Run" if PrimeItems.program_arguments["ai_analyze"] else ""
+
+    tasker_mapping = f"Tasker Mapping{ai_message}................ Tasker XML version:"
 
     # Get the screen dimensions from <dmetric> xml
     screen_element = PrimeItems.xml_root.find("dmetric")

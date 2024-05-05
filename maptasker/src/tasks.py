@@ -345,7 +345,9 @@ def do_single_task(
         PrimeItems.found_named_items["single_task_found"] = True
         PrimeItems.found_named_items["single_project_found"] = True
         PrimeItems.found_named_items["single_profile_found"] = True
+        save_project = PrimeItems.program_arguments["single_project_name"]
         PrimeItems.program_arguments["single_project_name"] = project_name
+        save_profile = PrimeItems.program_arguments["single_profile_name"]
         PrimeItems.program_arguments["single_profile_name"] = profile_name
 
         # Clear output list
@@ -375,6 +377,10 @@ def do_single_task(
             our_task_element,
             list_of_found_tasks,
         )
+
+        # Restore our saved project and profile
+        PrimeItems.program_arguments["single_project_name"] = save_project
+        PrimeItems.program_arguments["single_profile_name"] = save_profile
 
     # If multiple Tasks in this Profile, just get the one we want
     else:

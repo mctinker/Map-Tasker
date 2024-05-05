@@ -60,6 +60,7 @@ from maptasker.src.getputer import save_restore_args
 from maptasker.src.globalvr import get_variables, output_variables
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
+from maptasker.src.mapai import map_ai
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
@@ -457,6 +458,7 @@ def check_single_item(
 
     # If only doing a single named Profile and didn't find it, clean up and exit
     if single_profile_name and not single_profile_found:
+        print(f"The Profile '{single_profile_name}' was not found.")
         clean_up_and_exit("Profile", single_profile_name)
 
 
@@ -728,6 +730,10 @@ def mapit_all(file_to_get: str) -> int:
 
     # Do special handling
     special_handling(found_tasks, projects_without_profiles, projects_with_no_tasks)
+
+    # Handle Ai Analysis
+    if PrimeItems.program_arguments["ai_analyze"]:
+        map_ai()
 
     # Save our runtime settings for next time.
     _, _ = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)

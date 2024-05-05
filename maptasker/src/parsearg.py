@@ -22,7 +22,7 @@ from tkinter import font
 from maptasker.src.error import error_handler
 from maptasker.src.maputils import validate_ip_address, validate_port
 from maptasker.src.nameattr import get_tk
-from maptasker.src.sysconst import TYPES_OF_COLORS, logger
+from maptasker.src.sysconst import LLAMA_MODELS, OPENAI_MODELS, TYPES_OF_COLORS, logger
 
 
 # ##################################################################################
@@ -202,6 +202,16 @@ def runtime_parser() -> None:
                                 """,
         ),
         formatter_class=argparse.RawTextHelpFormatter,
+    )
+
+    # Ai arguments
+    models = OPENAI_MODELS + LLAMA_MODELS
+    parser.add_argument(
+        "-ai_model",
+        help="The model to use for Profiles and Tasks Ai analysis.",
+        choices=models,
+        required=False,
+        nargs=1,
     )
 
     # Android mutually inclusive group

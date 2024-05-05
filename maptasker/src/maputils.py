@@ -214,13 +214,13 @@ def validate_xml(ip_address: str, android_file: str, return_code: int, file_cont
                 xml_tree = et.parse(file_to_validate, parser=xmlp)
                 process_file = False  # Get out of while/loop
             except et.ParseError:  # Parsing error
-                error_message = f"Improperly formatted XML in {android_file}.\n\nTry again."
+                error_message = f"Improperly formatted XML in {android_file}. Try again."
                 process_file = False  # Get out of while/loop
             except UnicodeDecodeError:  # Unicode error
                 rewrite_xml(file_to_validate)
                 counter += 1
                 if counter > 2:
-                    error_message = f"Unicode error in {android_file}.\n\nTry again."
+                    error_message = f"Unicode error in {android_file}.  Try again."
                     break
                 process_file = True  # Loop one more time.
             except Exception as e:  # any other errorError out and exit  # noqa: BLE001

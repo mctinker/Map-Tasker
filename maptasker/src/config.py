@@ -57,6 +57,9 @@ ANDROID_FILE = ""
 # This value is used if the runtime option is not set.
 DEFAULT_DISPLAY_DETAIL_LEVEL = 5
 
+# Ai Analysis prompt...This will be proceeded by 'Given the following (Project/Profile/Task) in Tasker, '
+AI_PROMPT = "how could it be improved:"
+
 # ##################################################################################
 #  END User-modifiable global constants
 # ##################################################################################

@@ -113,23 +113,20 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     if not PrimeItems.colors_to_use:
         PrimeItems.program_arguments = initialize_runtime_arguments()
 
-    # If user selected the "Exit" button, call it quits.
-    if user_input.exit:
-        # Save our runtime settings for next time.
-        _, _ = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)
-        # Spit out the message and log it.
-        error_handler("Program exited. Goodbye.", 0)
-        sys.exit(0)
-
     # Has the user closed the window?
-    if not user_input.go_program and not user_input.rerun:
-        error_handler("Program cancelled by user (killed GUI)", 99)
+    if not user_input.go_program and not user_input.rerun and not user_input.exit:
+        error_handler("Program canceled by user (killed GUI)", 0)
 
     # 'Run' button hit.  Get all the input from GUI variables
     PrimeItems.program_arguments["gui"] = True
     # Do we already have the file object?
     if value := user_input.file:
         PrimeItems.file_to_get = value if isinstance(value, str) else value.name
+
+    # Hide the Ai key so when settings are saved, it isn't written to toml file.
+    if user_input.ai_apikey is not None and user_input.ai_apikey:
+        PrimeItems.ai["api_key"] = user_input.ai_apikey
+        PrimeItems.program_arguments["ai_apikey"] = "HIDDEN"
 
     # Get the program arguments and save them in our dictionary
     for value in ARGUMENT_NAMES:
@@ -147,6 +144,14 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # Get the font
     if the_font := user_input.font:
         PrimeItems.program_arguments["font"] = the_font
+
+    # If user selected the "Exit" button, call it quits.
+    if user_input.exit:
+        # Save our runtime settings for next time.
+        _, _ = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)
+        # Spit out the message and log it.
+        error_handler("Program exited. Goodbye.", 0)
+        sys.exit(0)
 
     # Return the program arguments and colors to use.
     return (PrimeItems.program_arguments, do_colors(user_input))

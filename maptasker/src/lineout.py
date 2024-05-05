@@ -92,7 +92,11 @@ class LineOut:
         """
 
         # Clear whatever is already in the output queue
+        if PrimeItems.program_arguments["ai_analyze"]:
+            PrimeItems.ai["output_lines"].clear()
         self.output_lines.clear()
+
+        # Clear the directory
         PrimeItems.directory_items = {
             "current_item": "",
             "projects": [],
@@ -548,6 +552,12 @@ class LineOut:
             temp_element = out_string.split("Task ID:")
             out_string = temp_element[0]
 
+        # Add to Ai prompt if we are doing an Ai run.  Maker sure to remove all HTML tags first.
+        if PrimeItems.program_arguments["ai_analyze"]:
+            # Format thew output line.
+            #out_string = self.format_line_out(out_string, list_level)
+            PrimeItems.ai["output_lines"].append(remove_html_tags(out_string, ""))
+
         # Go configure the output based on the contents of the element and the
         #   list level. Call format_line before appending it.
         self.output_lines.append(
@@ -556,6 +566,7 @@ class LineOut:
                 list_level,
             ),
         )
+
         # Log the generated output if in special debug mode
         if debug_out:
             debug_msg = f"out_string: {self.output_lines[-1]}"
