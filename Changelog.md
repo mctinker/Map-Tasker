@@ -2,28 +2,24 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0] 06-May-2024
+## [4.0.1] 06-May-2024
 
-## Added
+- Fixed: Program abends on startup in mapai.py.
+
+## Older History Logs
+
+## [4.0]
 
 - Added: Ai analysis support for Profiles and Tasks: both ChatGPT (server-based) and (O)llama (local-based).
 - Added: Display the current file in GUI.
 - Added: A new 'Get Local XML' button has been added to enable the GUI to get the local XML file and validate it for analysis.
-
-## Changed
-
 - Changed: GUI color settings are now displayed in their colors on the startup of the GUI.
 - Changed: GUI warning messages are now displayed in orange rather than red.
-
-## Fixed
-
 - Fixed: The program gets runtime errors if the settings saved file is corrupted.
 - Fixed: The settings are not properly saved upon exit from the GUI.
 - Fixed: Removed error message 'Program canceled by user (killed GUI)' if the 'Exit' button is selected.
 - Fixed: If the Android file location is specified on startup and the file is found on the local drive from the previous run, then use it and don't prompt again for it.
 - Fixed: The GUI message window was not fully expanded.
-
-## Older History Logs
 
 ## [3.2.2]
 
