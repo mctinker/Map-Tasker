@@ -51,7 +51,7 @@ if TYPE_CHECKING:
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.0 - (Major) Change Log\n
+Version 4.0/4.0.1 - (Major) Change Log\n
 This version introduces Ai Analysis.\n
 ## Added\n
 - Added: Ai analysis support for Profiles and Tasks: both ChatGPT (server-based) and (O)llama (local-based).  See 'Analyze' tab.\n

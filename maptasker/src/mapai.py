@@ -121,10 +121,7 @@ def local_ai(query: str, ai_object: str) -> None:
         ai.close()  # Not required, but best practice.
 
     except (FileNotFoundError, ValueError):
-        error_handler(
-            f"Model {PrimeItems.program_arguments["ai_model"]} not found.  Make sure 'Ollama' is installed and run once for the initial setup.  Then try again.",
-            12,
-        )
+        error_handler(f"Model {PrimeItems.program_arguments['ai_model']} not found.  Make sure 'Ollama' is installed and run once for the initial setup.  Then try again.",12)
 
 
 # ##################################################################################
@@ -198,7 +195,7 @@ def server_openai(query: str, ai_object: str) -> None:
     except:
         # Open error file, since we're going to queue up the response in this file for display back to the GUI.
         with open(ERROR_FILE, "w") as response_file:
-            response_file.write(f"OpenAi failed, most likely due to an invalid api key:\n{PrimeItems.ai["api_key"]}")
+            response_file.write(f"OpenAi failed, most likely due to an invalid api key:\n{PrimeItems.ai['api_key']}")
 
 
 # ##################################################################################
