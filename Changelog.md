@@ -2,13 +2,23 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0.1] 06-May-2024
+## [4.0.2] 07-May-2024
 
-- Fixed: Program abends on startup in mapai.py.
+### Added
+
+- Added: Center the GUI window on the screen.
+- Added: A popup window will display when analysis is running in the background.
+
+### Fixed
+
+- Fixed: The XML obtained via the 'Get Local XML' button is not saved in the settings.
+- Fixed: A restored XML file name based on saved settings is not being displayed in the GUI.
+- Fixed: Properly terminate the program if the GUI window is closed.
+- Fixed: The GUI's 'Appearance Mode', 'Tree View' and 'Reset' buttons disappeared.
 
 ## Older History Logs
 
-## [4.0]
+## [4.0/4.0.1]
 
 - Added: Ai analysis support for Profiles and Tasks: both ChatGPT (server-based) and (O)llama (local-based).
 - Added: Display the current file in GUI.
@@ -32,7 +42,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Using the '-pretty' runtime option causes the string "Structure Output (JSON, etc)" to be incorrectly broken at the comma.
 - Fixed: The '-pretty' option is not properly formatting Task action values or Profile conditions in the output.
 - Fixed: Scene 'Properties" elements are being displayed with an invalid name.
-- Fixed
 
 ## [3.2.1]
 
