@@ -28,13 +28,13 @@ def error_handler(error_message: str, exit_code: int) -> None:
     if exit_code in {0, 99}:
         final_error_message = f"{Colors.Green}{error_message}"
     # Warning?
-    elif exit_code > 100:
+    elif exit_code == 100:
         final_error_message = f"{Colors.Yellow}{error_message}"
     else:
         final_error_message = f"{Colors.Red}MapTasker error: {error_message}"
 
     # Process an error?
-    if exit_code > 0:
+    if exit_code > 0 and exit_code < 100:
         logger.debug(final_error_message)
         if (
             PrimeItems.program_arguments
@@ -57,6 +57,12 @@ def error_handler(error_message: str, exit_code: int) -> None:
         # Not coming from GUI...just print error.
         print(final_error_message)
         sys.exit(exit_code)
+
+    # If exit code is 100, then the user closed the window
+    elif exit_code == 100:
+        print(final_error_message)
+        logger.info(final_error_message)
+        sys.exit(0)
 
     # return code 0
     else:

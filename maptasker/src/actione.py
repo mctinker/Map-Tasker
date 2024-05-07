@@ -31,6 +31,7 @@ from maptasker.src.sysconst import logger, pattern13
 
 blank = "&nbsp;"
 
+
 # ##################################################################################
 # See if this Task or Profile code is deprecated.
 # ##################################################################################
@@ -199,7 +200,8 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     task_code_line = task_code_line.replace("(<em>IF", f"<br>{indent_amt}{blank*extra_blanks}(<em>IF")
     # Break at label
     task_code_line = task_code_line.replace(
-        "...with label:", f"<br>{indent_amt}{blank*extra_blanks} ...with label:",
+        "...with label:",
+        f"<br>{indent_amt}{blank*extra_blanks} ...with label:",
     )
 
     # Fix up "Structure Output (JSON, etc)", which got separated by the comma
@@ -263,7 +265,7 @@ def finalize_action_details(task_code_line: str, alist: list, indent: int, extra
                 alist.append(item)
             else:
                 alist.append(f"...indent={indent+extra_blanks}item={item}")
-            #count += 1
+            # count += 1
 
             # Only display up to so many continued lines
             if count == CONTINUE_LIMIT:

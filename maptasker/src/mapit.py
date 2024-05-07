@@ -735,8 +735,11 @@ def mapit_all(file_to_get: str) -> int:
     if PrimeItems.program_arguments["ai_analyze"]:
         map_ai()
 
-    # Save our runtime settings for next time.
+    # Save our runtime settings for next time.  Make sure we don't save the rerun state as True
+    save_rerun_state = PrimeItems.program_arguments["rerun"]
+    PrimeItems.program_arguments["rerun"] = False
     _, _ = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)
+    PrimeItems.program_arguments["rerun"] = save_rerun_state
 
     # Rerun this program if "Rerun" was selected from GUI
     # First get the filename as a string.

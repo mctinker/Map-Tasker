@@ -115,7 +115,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # Has the user closed the window?
     if not user_input.go_program and not user_input.rerun and not user_input.exit:
-        error_handler("Program canceled by user (killed GUI)", 0)
+        error_handler("Program canceled by user (killed GUI)", 100)
 
     # 'Run' button hit.  Get all the input from GUI variables
     PrimeItems.program_arguments["gui"] = True

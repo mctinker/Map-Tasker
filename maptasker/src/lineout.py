@@ -555,7 +555,7 @@ class LineOut:
         # Add to Ai prompt if we are doing an Ai run.  Maker sure to remove all HTML tags first.
         if PrimeItems.program_arguments["ai_analyze"]:
             # Format thew output line.
-            #out_string = self.format_line_out(out_string, list_level)
+            # out_string = self.format_line_out(out_string, list_level)
             PrimeItems.ai["output_lines"].append(remove_html_tags(out_string, ""))
 
         # Go configure the output based on the contents of the element and the

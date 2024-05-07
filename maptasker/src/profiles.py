@@ -1,4 +1,5 @@
 """Handle Profile"""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -201,7 +202,8 @@ def build_profile_line(
                 condition_length = profile_conditions.find(":")
                 # Add spacing for profile name, condition name and "Profile:"
                 profile_conditions = profile_conditions.replace(
-                    ",", f"<br>{blank*(len(profile_name)+condition_length+7)}",
+                    ",",
+                    f"<br>{blank*(len(profile_name)+condition_length+7)}",
                 )
 
             # Add the HTML

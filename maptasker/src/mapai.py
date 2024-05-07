@@ -1,4 +1,5 @@
 """Ai Analysis Support"""
+
 #! /usr/bin/env python3
 
 # #################################################################################### #
@@ -20,6 +21,7 @@ from openai import OpenAI, OpenAIError
 
 from maptasker.src.config import AI_PROMPT
 from maptasker.src.error import error_handler
+from maptasker.src.guiutils import PopupWindow
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ANALYSIS_FILE, ERROR_FILE, OPENAI_MODELS
 
@@ -115,13 +117,16 @@ def local_ai(query: str, ai_object: str) -> None:
         # Open error file, since we're going to queue up the response in this file for display back to the GUI.
         record_response(response, ai_object)
 
-        #for chunk in response:
+        # for chunk in response:
         #    print(chunk, end="")
 
         ai.close()  # Not required, but best practice.
 
     except (FileNotFoundError, ValueError):
-        error_handler(f"Model {PrimeItems.program_arguments['ai_model']} not found.  Make sure 'Ollama' is installed and run once for the initial setup.  Then try again.",12)
+        error_handler(
+            f"Model {PrimeItems.program_arguments['ai_model']} not found.  Make sure 'Ollama' is installed and run once for the initial setup.  Then try again.",
+            12,
+        )
 
 
 # ##################################################################################
@@ -184,7 +189,7 @@ def server_openai(query: str, ai_object: str) -> None:
         response = ""
         for chunk in stream_feed:
             response += chunk.choices[0].delta.content or ""
-            #print(chunk.choices[0].delta.content or "", end="")
+            # print(chunk.choices[0].delta.content or "", end="")
         # Open error file, since we're going to queue up the response in this file for display back to the GUI.
         record_response(response, ai_object)
 
@@ -237,6 +242,9 @@ def map_ai() -> None:
 
     Does the setup for the query by concatenating the lines in PrimeItems.ai["output_lines"].
     """
+    # Display a popup telling user we are analyzing
+    popup = PopupWindow()
+    popup.mainloop()
 
     # Clean up the output list since it has all the front matter and we only need the object (Project/Profile/Task)
     temp_output = cleanup_output()
@@ -245,7 +253,6 @@ def map_ai() -> None:
     if PrimeItems.program_arguments["single_project_name"]:
         ai_object = "Project"
         item = PrimeItems.program_arguments["single_project_name"]
-    # FIX PrimeItems.program_arguments["single_profile_name"] = "None or unamed!"
     elif PrimeItems.program_arguments["single_profile_name"]:
         ai_object = "Profile"
         item = PrimeItems.program_arguments["single_profile_name"]

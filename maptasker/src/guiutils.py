@@ -51,12 +51,14 @@ if TYPE_CHECKING:
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.0/4.0.1 - (Major) Change Log\n
+Version 4.0/4.0.1/4.0.2 - (Major) Change Log\n
 This version introduces Ai Analysis.\n
 ## Added\n
 - Added: Ai analysis support for Profiles and Tasks: both ChatGPT (server-based) and (O)llama (local-based).  See 'Analyze' tab.\n
 - Added: Display the current file in GUI.\n
 - Added: A new 'Get Local XML' button has been added to enable the GUI to get the local XML file and validate it for analysis.\n
+- Added: Center the GUI window on the screen.\n
+- Added: A popup window will display when analysis is running in the background.\n
 ## Changed\n
 - Changed: GUI color settings are now displayed in their colors on the startup of the GUI.\n
 - Changed: GUI warning messages are now displayed in orange rather than red.\n
@@ -65,6 +67,10 @@ This version introduces Ai Analysis.\n
 - Fixed: The settings are not properly saved upon exit from the GUI.\n
 - Fixed: Removed error message 'Program canceled by user (killed GUI)' if the 'Exit' button is selected.\n
 - Fixed: If the Android file location is specified on startup and the file is found on the local drive from the previous run, then use it and don't prompt again for it.\n
+- Fixed: The XML obtained via the 'Get Local XML' button is not saved in the settings.\n
+- Fixed: A restored XML file name based on saved settings is not being displayed in the GUI.\n
+- Fixed: Properly terminate the program if the GUI window is closed.\n
+- Fixed: The GUI's 'Appearance Mode', 'Tree View' and 'Reset' buttons disappeared.\n
 """
 default_font_size = 14
 
@@ -517,8 +523,13 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.ai_missing_module = None
 
     self.title("MapTasker Runtime Options")
+
+    # Get the screen size
+    screen_width = self.winfo_screenwidth()
+    screen_height = self.winfo_screenheight()
+
     # Overall window dimensions
-    self.geometry("1100x900")
+    self.geometry(f"1100x900+{screen_width//4}+{screen_height//6}")
 
     # configure grid layout (4x4)
     self.grid_columnconfigure(1, weight=1)
@@ -1036,7 +1047,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         15,
         0,
         0,
-        (0, 30),
+        (0, 10),
         "n",
     )
 
@@ -1051,7 +1062,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         16,
         0,
         0,
-        (0, 10),
+        (10, 0),
         "s",
     )
 
@@ -1063,8 +1074,8 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         17,
         0,
         0,
-        (0, 45),
-        "",
+        (0, 10),
+        "n",
     )
 
     # 'Tree View' button definition
@@ -1078,11 +1089,11 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         2,
         "Tree View",
         1,
-        17,
+        18,
         0,
         0,
         0,
-        "n",
+        "",
     )
     #  Query ? button
     self.treeview_query_button = add_button(
@@ -1095,11 +1106,11 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         1,
         "?",
         1,
-        17,
+        18,
         0,
         (200, 0),
         (0, 0),
-        "n",
+        "",
     )
     self.treeview_query_button.configure(width=20)
 
@@ -1114,7 +1125,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         2,
         "Reset Options",
         1,
-        18,
+        19,
         0,
         20,
         20,
@@ -1510,19 +1521,32 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.ai_help_button = add_button(
         self,
         self.tabview.tab("Analyze"),
-        "",  # fg_color: str,
-        "",  # text_color: str,
-        "",  # border_color: str,
+        "#246FB6",
+        ("#0BF075", "#ffd941"),
+        "#1bc9ff",  # border_color: str,
         self.ai_help_event,  # command
-        2,  # border_width: int,
-        "Help",  # text: str,
+        1,  # border_width: int,
+        "?",  # text: str,
         1,  # columnspan: int,
-        11,  # row: int,
+        10,  # row: int,
         0,  # column: int,
-        center,  # padx: tuple,
-        (10, 10),  # pady: tuple,
+        (190, 0),  # padx: tuple,
+        (0, 0),  # pady: tuple,
         "",
     )
+    self.ai_help_button.configure(width=20)
+
+    # The commented code tests out the ctkentry field
+    # entry_answer = ""
+    # entry = ctk.CTkEntry(self.tabview.tab("Analyze"), placeholder_text="CTkEntry", textvariable=entry_answer)
+    # entry.grid(
+    #    row=11,
+    #    column=0,
+    #    columnspan=1,
+    #    padx=(0, 0),
+    #    pady=(0, 0),
+    #    sticky="n",
+    # )
 
     # Debug Mode checkbox
     self.debug_checkbox = add_checkbox(
@@ -1835,7 +1859,10 @@ def list_profiles_and_tasks(self) -> bool:  # noqa: ANN001
         tasks_to_display = ["No tasks found"]
         have_tasks = False
     if not have_profiles and not have_tasks:
-        self.display_message_box("No profiles or tasks found in XML file.  Using the 'Get Local Xml button, load another XML file and try again.", "Red")
+        self.display_message_box(
+            "No profiles or tasks found in XML file.  Using the 'Get Local Xml button, load another XML file and try again.",
+            "Red",
+        )
         return False
 
     # Make alphabetical
@@ -2032,6 +2059,9 @@ def display_current_file(self, file_name: str) -> None:  # noqa: ANN001
         gui_instance.display_current_file("example.txt")
         ```
     """
+    # Clear previous if filled.
+    with contextlib.suppress(AttributeError):
+        self.report_issue_button.destroy()
     # Check for slashes and remove if nessesary
     filename_location = file_name.rfind(PrimeItems.slash) + 1
     if filename_location != -1:
@@ -2275,7 +2305,9 @@ class CTkAnalysisview(ctk.CTkFrame):
         # self.analysis_label.grid(row=0, column=1, padx=10, pady=10, sticky="n")
 
         # Basic appearance for text, foreground and background.
-        self.analysis_bg_color = self.root._apply_appearance_mode(ctk.ThemeManager.theme["CTkFrame"]["fg_color"])  # noqa: SLF001
+        self.analysis_bg_color = self.root._apply_appearance_mode(
+            ctk.ThemeManager.theme["CTkFrame"]["fg_color"]
+        )  # noqa: SLF001
         self.analysis_text_color = self.root._apply_appearance_mode(  # noqa: SLF001
             ctk.ThemeManager.theme["CTkLabel"]["text_color"],
         )
@@ -2319,69 +2351,78 @@ class AnalysisWindow(ctk.CTkToplevel):
             - Pack label widget with padding.
             - Set label widget text."""
         super().__init__(*args, **kwargs)
-        self.geometry("600x800")
+        self.geometry("600x800+600+0")
         self.title("MapTasker Analysis Response")
 
 
 # ##################################################################################
 # Define the Ai Popup window
 # ##################################################################################
-# class PopupWindow(ctk.CTk):
-#    """Define our top level window for the Popup view."""
+class PopupWindow(ctk.CTk):
+    """Define our top level window for the Popup view."""
 
-#    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
-#        """Creates a label widget for a tree view.
-#        Parameters:
-#            self (object): The object being passed.
-#            *args (any): Additional arguments.
-#            **kwargs (any): Additional keyword arguments.
-#        Returns:
-#            None: This function does not return anything.
-#        Processing Logic:
-#            - Initialize label widget.
-#            - Pack label widget with padding.
-#            - Set label widget text."""
-#        super().__init__(*args, **kwargs)
-#        self.geometry("600x800")
-#        self.title("MapTasker Analysis Popup Response")
+    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
+        """Creates a label widget for a tree view.
+        Parameters:
+            self (object): The object being passed.
+            *args (any): Additional arguments.
+            **kwargs (any): Additional keyword arguments.
+        Returns:
+            None: This function does not return anything.
+        Processing Logic:
+            - Initialize label widget.
+            - Pack label widget with padding.
+            - Set label widget text."""
+        super().__init__(*args, **kwargs)
+        # Get the screen size
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
 
-#        self.grid_columnconfigure(0, weight=1)
+        # Center the widget
+        self.geometry(f"500x50+{screen_width//3}+{screen_height//10}")
+        self.title("MapTasker Analysis")
 
-#        # Label widget
-#        our_label = "Analysis is running.  Please stand by..."
-#        self.Popup_label = ctk.CTkLabel(master=self, text=our_label, font=("", 12))
-#        self.Popup_label.grid(row=0, column=1, padx=10, pady=10, sticky="n")
+        self.grid_columnconfigure(0, weight=1)
 
-#        # Basic appearance for text, foreground and background.
-#        self.Popup_bg_color = self._apply_appearance_mode(ctk.ThemeManager.theme["CTkFrame"]["fg_color"])
-#        self.Popup_text_color = self._apply_appearance_mode(
-#            ctk.ThemeManager.theme["CTkLabel"]["text_color"],
-#        )
-#        self.selected_color = self._apply_appearance_mode(
-#            ctk.ThemeManager.theme["CTkButton"]["fg_color"],
-#        )
+        # Issue command aftr 5 seconds
+        self.after(5000, self.popup_button_event)
 
-#        # Set up the style/theme
-#        self.Popup_style = ttk.Style(self)
-#        self.Popup_style.theme_use("default")
+        # Label widget
+        our_label = "Analysis is running in the background.  Please stand by..."
+        self.Popup_label = ctk.CTkLabel(master=self, text=our_label, font=("", 12))
+        self.Popup_label.grid(row=0, column=0, padx=0, pady=10, sticky="n")
 
-#        # Recreate text box
-#        self.popup_button = ctk.CTkButton(master=self,
-#                                width=120,
-#                                height=32,
-#                                border_width=0,
-#                                corner_radius=8,
-#                                text="Click to close this window",
-#                                command=self.popup_button_event)
-#        self.popup_button.place(relx=0.5, rely=0.5)
-#        self.popup_button.focus_set()
+        # Basic appearance for text, foreground and background.
+        self.Popup_bg_color = self._apply_appearance_mode(ctk.ThemeManager.theme["CTkFrame"]["fg_color"])
+        self.Popup_text_color = self._apply_appearance_mode(
+            ctk.ThemeManager.theme["CTkLabel"]["text_color"],
+        )
+        self.selected_color = self._apply_appearance_mode(
+            ctk.ThemeManager.theme["CTkButton"]["fg_color"],
+        )
 
+        # Set up the style/theme
+        self.Popup_style = ttk.Style(self)
+        self.Popup_style.theme_use("default")
 
-#    def popup_button_event(self) -> None:
-#        """
-#        Define the behavior of the popup button event function.  Close the window and exit.
-#        """
-#        PrimeItems.loop_active = False
-#        self.exit = True
-#        self.quit()
-#        self.quit()
+        ## Recreate text box
+        # self.popup_button = ctk.CTkButton(
+        #    master=self,
+        #    width=120,
+        #    height=32,
+        #    border_width=0,
+        #    corner_radius=8,
+        #    text="Click to close this window",
+        #    command=self.popup_button_event,
+        # )
+        # self.popup_button.place(relx=0.5, rely=0.5)
+        # self.popup_button.focus_set()
+
+    def popup_button_event(self) -> None:
+        """
+        Define the behavior of the popup button event function.  Close the window and exit.
+        """
+        PrimeItems.loop_active = False
+        self.exit = True
+        self.quit()
+        self.quit()

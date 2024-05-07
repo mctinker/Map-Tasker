@@ -58,6 +58,7 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     KEYFILE,
+    OPENAI_MODELS,
     TYPES_OF_COLOR_NAMES,
     VERSION,
     DISPLAY_DETAIL_LEVEL_all_parameters,
@@ -182,11 +183,11 @@ AI_HELP_TEXT = (
     "   If you select a model that has not yet been loaded, it will be loaded in the background once the analysis begins.\n\n"
     "2- Select the model you want to use.  The default is None (llama3):\n\n"
     "3- Click the 'Run Analysis' button.\n\n"
-    "   If you have not yet selected a Profile or Task from the 'Specify Name' tab, then you will be prompted to do so.\n"
-    "   Once the Profile or Task has been selected, it will check to see if you have the supporting program to run against the model (e.g. openai) you selected.\n"
-    "The process may take some time and wruns in the background.  The results will appear in a separate window.\n\n"
-    "Your designated api-key (if any), model, and selected profile will be saved across sessions.\n\n"
-    "The 'Rerun' feature will be used to display the results of the analysis in this text window.\n\n"
+    "   If you have not yet selected a Profile or Task from the 'Specify Name' tab, then you will be prompted to do so.\n\n"
+    "   Once the Profile or Task has been selected, it will check to see if you have the supporting program to run against the model (e.g. openai) you selected.\n\n"
+    "The process may take some time and runs in the background.  The results will appear in a separate window.\n\n"
+    "Your designated api-key (if any), model, and selected profile or task will be saved across sessions.\n\n"
+    "The 'Rerun' feature will be used to display the results of the analysis in a new window.\n\n"
 )
 
 HELP = f"MapTasker {VERSION} Help\n\n{INFO_TEXT}{CHANGELOG}"
@@ -274,7 +275,7 @@ class MyGui(customtkinter.CTk):
                 6,
                 2,
                 (0, 170),
-                (0, 20),
+                (0, 10),
                 "sw",
             )
 
@@ -289,6 +290,12 @@ class MyGui(customtkinter.CTk):
         if self.message:
             self.display_message_box(self.message, "Green")
             self.message = ""
+
+        # Now that we have loaded our settings, reconfigure the ai analyze button
+        if ((self.ai_model in OPENAI_MODELS and self.ai_apikey) or self.ai_model) and (
+            self.single_task_name or self.single_profile_name
+        ):
+            self.ai_analyze_button.configure(fg_color="#f55dff", text_color="#5554ff")
 
     # ##################################################################################
     # Establish all of the default values used
@@ -331,7 +338,6 @@ class MyGui(customtkinter.CTk):
         self.android_port = ""
         self.android_file = ""
         if first_time:
-            # self.textbox.insert("0.0", HELP)
             self.all_messages = {}
         self.color_lookup = {}  # Setup default dictionary as empty list
         self.font = OUTPUT_FONT
@@ -503,7 +509,9 @@ class MyGui(customtkinter.CTk):
                     f'{front_error}, but the "Cancel" was selected!\n',
                 ]
             else:
-                error_message = [f"{front_error} but it was not found in {PrimeItems.file_to_get.name}!  All Projects, Profiles and Tasks will be displayed.\n"]
+                error_message = [
+                    f"{front_error} but it was not found in {PrimeItems.file_to_get.name}!  All Projects, Profiles and Tasks will be displayed.\n"
+                ]
 
         # If we have an error, display it and blank out the various individual names
         if error_message:
@@ -1424,7 +1432,8 @@ class MyGui(customtkinter.CTk):
             "directory": lambda: self.select_deselect_checkbox(self.directory_checkbox, value, "Display Directory"),
             "display_detail_level": lambda: self.detail_selected_event(value),
             "fetched_backup_from_android": lambda: f"Fetched XML From Android:{value}.\n",
-            "file": lambda: f"Get XML file named '{value}'.\n",
+            # "file": lambda: f"Get XML file named '{value}'.\n",
+            "file": lambda: self.display_and_set_file(value),
             "font": lambda: f"Font set to {value}.\n",
             "highlight": lambda: self.select_deselect_checkbox(
                 self.highlight_checkbox,
@@ -1647,16 +1656,17 @@ class MyGui(customtkinter.CTk):
             input_name.insert(0, default_value)
             next_row = starting_row + 1
             # If file location, we have to push line up by 1 for some reason.
-            if next_row == 10:
-                next_row = 9
-                sticky = "se"
-            else:
-                sticky = "ne"
+            # if next_row == 10:
+            #    next_row = 9
+            #    sticky = "se"
+            # else:
+            #    sticky = "ne"
+            sticky = "ne"
             input_name.grid(
                 row=next_row,
                 column=1,
                 columnspan=1,
-                padx=(0, 80),
+                padx=(0, 90),
                 pady=(0, 0),
                 sticky=sticky,
             )
@@ -1690,7 +1700,7 @@ class MyGui(customtkinter.CTk):
             "1-TCP/IP Address:",
             self.android_ipaddr,
             7,
-            100,
+            110,
             30,
             self.ip_entry,
             self.ip_label,
@@ -1705,7 +1715,7 @@ class MyGui(customtkinter.CTk):
             "2-Port Number:",
             self.android_port,
             8,
-            117,
+            127,
             30,
             self.port_entry,
             self.port_label,
@@ -1719,9 +1729,9 @@ class MyGui(customtkinter.CTk):
         self.file_entry, self.file_label = self.display_label_and_input(
             "3-File Location:",
             self.android_file,
-            9,
-            119,
-            40,
+            9,  # Start row
+            129,  # Indentation x
+            30,  # Indentation y
             self.file_entry,
             self.file_label,
             True,
@@ -1756,10 +1766,10 @@ class MyGui(customtkinter.CTk):
             2,
             "List XML Files",
             2,
-            9,
+            10,
             1,
             (80, 220),
-            (0, 0),
+            (0, 45),
             "se",
         )
 
@@ -1770,11 +1780,11 @@ class MyGui(customtkinter.CTk):
             anchor="sw",
         )
         self.label_or.grid(
-            row=9,
+            row=10,
             column=1,
             columnspan=1,
-            padx=(0, 45),
-            pady=(0, 5),
+            padx=(0, 62),
+            pady=(0, 45),
             sticky="se",
         )
 
@@ -1789,10 +1799,10 @@ class MyGui(customtkinter.CTk):
             1,
             "?",
             2,
-            9,
+            10,
             1,
             (0, 190),
-            (0, 0),
+            (0, 45),
             "se",
         )
         self.list_files_query_button.configure(width=20)
@@ -2012,7 +2022,7 @@ class MyGui(customtkinter.CTk):
         self.android_file = ""
         self.android_ipaddr = ""
         self.android_port = ""
-        self.display_message_box("Get XML Details Cancelled.", "Orange")
+        self.display_message_box("'Get XML From Android' Cancelled.", "Orange")
 
     # ##################################################################################
     # List files event
@@ -2118,6 +2128,9 @@ class MyGui(customtkinter.CTk):
             self.profile_optionemenu.set("None")
             self.task_optionemenu.set("None")
         display_ai_settings(self)
+
+        # Reset current file
+        display_current_file(self, "None")
 
     # ##################################################################################
     # Process Debug Mode checkbox
@@ -2351,7 +2364,6 @@ class MyGui(customtkinter.CTk):
             return False
         return True
 
-
     # ##################################################################################
     # Load the XML if not already loaded.
     # ##################################################################################
@@ -2532,6 +2544,34 @@ class MyGui(customtkinter.CTk):
         analysis_view.after(10, self.toplevel_window.lift)
 
     # ##################################################################################
+    # Set and display the file name.
+    # ##################################################################################
+    def display_and_set_file(self, filename: str) -> None:
+        """
+        Display the current file name in a button on the GUI and set it as the current file.
+
+        Args:
+            filename (str): The name of the current file.
+
+        Returns:
+            None: This function does not return anything.
+
+        This function creates a label on the GUI that displays the current file name. The label is created using the `display_current_file` function and is placed in the second row and tenth column of the GUI. The label's text is set to "Current File: {filename}". The `display_message_box` function is called to display a message box indicating that the current file has been set to the specified filename. Finally, the `self.file` attribute is set to the name of the current file obtained from `PrimeItems.file_to_get.name`.
+
+        Note:
+            - The `display_current_file` function is assumed to be defined elsewhere in the codebase.
+            - The `display_message_box` function is assumed to be defined elsewhere in the codebase.
+
+        Example:
+            ```python
+            gui_instance.display_and_set_file("example.txt")
+            ```
+        """
+        display_current_file(self, filename)
+        self.display_message_box(f"Current file set to {filename}", "Green")
+        self.file = filename  # Set this so it is saved in settings.
+
+    # ##################################################################################
     # Get XML button clicked.  Prompt usere for XML and load it.
     # ##################################################################################
     def getxml_event(self) -> None:
@@ -2554,8 +2594,8 @@ class MyGui(customtkinter.CTk):
 
         # Get the new XML file
         if self.prompt_and_get_file(False, self.appearance_mode):
-            display_current_file(self, PrimeItems.file_to_get.name)
-            self.display_message_box(f"Current file set to {PrimeItems.file_to_get.name}", "Green")
+            # Set the name and display it
+            self.display_and_set_file(PrimeItems.file_to_get.name)
 
     # ##################################################################################
     # Show for edit the AI API Key
@@ -2615,6 +2655,9 @@ class MyGui(customtkinter.CTk):
             model = "llama3"
         self.ai_model = model
         self.display_message_box("Model set to " + model + ".", "Green")
+
+        # Redisplay the Analyze button.
+        display_analyze_button(self, 10)
 
         # Get the Profile or Task to analyize if we don't already have it.
         if self.single_profile_name or self.single_task_name:
