@@ -53,7 +53,7 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.0.3 - Change Log\n
+Version 4.0.3/4.0.4 - Change Log\n
 ### Added\n
 - Added: Restore the GUI window to the last-used position and size.\n
 - Added: The ability to change the prompt used for the Profile/Task analysis has been added.\n
@@ -68,6 +68,7 @@ Version 4.0.3 - Change Log\n
 - Fixed: If 'Get Local XML' is selected in the GUI, the analyze Profile and Task list is not updated.\n
 - Fixed: The 'Specific Name' tab has the label for the 'Colors' tab in the GUI.\n
 - Fixed: Under certain situations, the GUI will use the old data even after getting a new XML file.\n
+- Fixed: Occasion program abnormal termination when selecting a specific Project or Profile that has a Scene.\n
 """
 CHANGELOG_JSON = {
     "version": "4.0.3",
@@ -2299,11 +2300,13 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
     default_project = "None"
     default_profile = "None"
     default_task = "None"
+    default_display_only = "Display only "
 
     # Determine values based on conditions
     # Update the Project/Profile/Task pulldown option menus.
     if self.single_project_name:
-        project_to_display = self.single_project_name
+        project_to_display = f"{default_display_only}Project '{self.single_project_name}'"
+        self.specific_name_msg = project_to_display
         self.specific_project_optionmenu.set(project_to_display)
         self.specific_profile_optionmenu.set(default_profile)
         self.ai_profile_optionmenu.set(default_profile)
@@ -2311,6 +2314,7 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
         self.ai_task_optionmenu.set(default_task)
     elif self.single_profile_name:
         profile_to_display = self.single_profile_name
+        self.specific_name_msg = f"{default_display_only}Profile '{profile_to_display}'"
         self.specific_profile_optionmenu.set(profile_to_display)
         self.ai_profile_optionmenu.set(profile_to_display)
         self.specific_project_optionmenu.set(default_project)
@@ -2318,6 +2322,7 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
         self.ai_task_optionmenu.set(default_task)
     elif self.single_task_name:
         task_to_display = self.single_task_name
+        self.specific_name_msg = f"{default_display_only}Task '{task_to_display}'"
         self.specific_task_optionmenu.set(task_to_display)
         self.ai_task_optionmenu.set(task_to_display)
         self.specific_project_optionmenu.set(default_project)
@@ -2325,6 +2330,7 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
         self.ai_profile_optionmenu.set(default_profile)
     else:
         # Set defaults for all option menus
+        self.specific_name_msg = ""
         self.specific_project_optionmenu.set(default_project)
         self.specific_profile_optionmenu.set(default_profile)
         self.ai_profile_optionmenu.set(default_profile)

@@ -265,7 +265,7 @@ def check_scene(item: str) -> bool:
                 found, project = find_task_in_project("", profile_id, "pids")
                 if found:
                     scenes = project.find("scenes")
-                    if scenes is not None and item["name"] in scenes.text.split(","):
+                    if scenes is not None and item[1] in scenes.text.split(","):
                         return True
 
         return False
@@ -278,7 +278,7 @@ def check_scene(item: str) -> bool:
         if found:
             # Found Project with Profile, now check If Scenes in Project
             scenes = project.find("scenes")
-            if scenes is not None and item["name"] in scenes.text.split(","):
+            if scenes is not None and item[1] in scenes.text.split(","):
                 return True
         return False
 
@@ -420,6 +420,8 @@ def do_tasker_element(name: str) -> None:
         # Go through each item and accumulate the names to be used for
         # the directory hyperlinks
         directory_hyperlinks = []
+        if name == "scenes":
+            print("dirout bingo")
         for item in PrimeItems.directory_items[name]:
             if check_item(name, item):
                 # Directory item is valid for this name.
