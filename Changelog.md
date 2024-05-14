@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0.3] 14-May-2024
+## [4.0.3/4.0.4] 14-May-2024
 
 ### Added
 
@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: If 'Get Local XML' is selected in the GUI, the analyze Profile and Task list is not updated.
 - Fixed: The 'Specific Name' tab has the label for the 'Colors' tab in the GUI.
 - Fixed: Under certain situations, the GUI will use the old data even after getting a new XML file.
+- Fixed: Occasion program abnormal termination when selecting a specific Project or Profile that has a Scene.
 
 ## Older History Logs
 
