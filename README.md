@@ -38,7 +38,7 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
 #### - Tasker full or partial backup or exported XML file.
 
-(anyname.xml…you will be prompted to locate and identify your Tasker backup/exported XML file) on your MAC, created by Tasker version 5 or version 6.  Optionally, this can be fetched directly from your Android device (see Note 2).
+(anyname.xml…you will be prompted to locate and identify your Tasker backup/exported XML file) on your desktop, created by Tasker version 5 or version 6.  Optionally, this can be fetched directly from your Android device (see Note 2).
 
 
 ### Installation
@@ -194,13 +194,13 @@ Windows 11 has been tested and verified to work.  Limitations:
 
 For the "Get backup" (retrieve the Tasker XML file directly from your Android device) option to work, you must have the following prerequisites:
 
-- Both the MAC and Android devices must be on the same network.
+- Both the desktop and Android devices must be on the same network.
 
 - The [sample Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").  Make sure to run the "launch" Task and enter your Google Drive ID.
 
 - The TaskerNet profile, [MapTasker List](https://shorturl.at/buvK6), must be imported into Tasker in order for the 'List XML Files' button to work.
 
-- Once the XML has been retrieved from your Android device, it is not necessary to keep retrieving it unless it has changed since it is automatically saved on your Mac.
+- Once the XML has been retrieved from your Android device, it is not necessary to keep retrieving it unless it has changed since it is automatically saved on your desktop.
 
 ### 3
 
@@ -237,6 +237,8 @@ The usage of llama models also requires that you manually install Ollama from [h
 - [x] Add a runtime option for more pretty output
 
 - [x] Add Ai support to analyze Profiles and Tasks
+
+- [ ] Save and restore the Ai Analysis and popup window locations
 
 - [ ] Include/map remaining Tasker preferences
 

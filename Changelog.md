@@ -2,21 +2,38 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0.2] 07-May-2024
+## [4.0.3] 14-May-2024
 
 ### Added
 
-- Added: Center the GUI window on the screen.
-- Added: A popup window will display when analysis is running in the background.
+- Added: Restore the GUI window to the last-used position and size.
+- Added: The ability to change the prompt used for the Profile/Task analysis has been added.
+- Added: Going forward, if a new release is available, the GUI will provide a "What's New" button.  You will be able to see what is changing before applying the changes.
+- Added: Ai Analysis now supports the new OpenAI 'gpt-4o' model.
+- Added: Support for Tasker 6.3.8 Beta code.
+
+### Changed
+
+- Changed: Widened the GUI window slightly for better readability.
+- Changed: 'Specific Name' items are now available via a pulldown menu.  It is no longer necessary to enter the names through a text input box.
 
 ### Fixed
 
+- Fixed: The 'Reset' button in the GUI is not resetting the analysis model.
+- Fixed: If 'Get Local XML' is selected in the GUI, the analyze Profile and Task list is not updated.
+- Fixed: The 'Specific Name' tab has the label for the 'Colors' tab in the GUI.
+- Fixed: Under certain situations, the GUI will use the old data even after getting a new XML file.
+
+## Older History Logs
+
+## [4.0.2]
+
+- Added: Center the GUI window on the screen.
+- Added: A popup window will display when analysis is running in the background.
 - Fixed: The XML obtained via the 'Get Local XML' button is not saved in the settings.
 - Fixed: A restored XML file name based on saved settings is not being displayed in the GUI.
 - Fixed: Properly terminate the program if the GUI window is closed.
 - Fixed: The GUI's 'Appearance Mode', 'Tree View' and 'Reset' buttons disappeared.
-
-## Older History Logs
 
 ## [4.0/4.0.1]
 
