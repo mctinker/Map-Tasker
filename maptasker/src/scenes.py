@@ -180,7 +180,7 @@ def process_list_element(child: defusedxml.ElementTree, indentation: int, elemen
     """
     # Get the task Action associated with this listitem
     action = child.find("Action")
-    if action is not None and action:
+    if action is not None:
         label = child.find("label").text
         action_line = get_actions(child)
 

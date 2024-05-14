@@ -31,6 +31,7 @@ def initialize_runtime_arguments() -> dict:
         "ai_analyze": False,  # Do local AI processing
         "ai_apikey": "",  # AI API key
         "ai_model": "",  # AI model
+        "ai_prompt": "",  # AI prompt
         "android_ipaddr": ANDROID_IPADDR,  # IP address of Android device
         "android_port": ANDROID_PORT,  # Port of Android device
         "android_file": ANDROID_FILE,
@@ -59,4 +60,6 @@ def initialize_runtime_arguments() -> dict:
         "twisty": False,  # Add Task twisty "▶︎" clickable icons for Task details
         "underline": False,  # Underline Project/Profile?Task/Scene names
         "pretty": False,  # Pretty up the output (takes many more output lines)
+        "window_position": "",  # Last-used window position
+        "ai_popup_window_position": "",  # Last-used ai popup window position
     }

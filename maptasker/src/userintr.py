@@ -2,7 +2,6 @@
 
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # userintr: provide GUI and process input for program arguments                        #
 #                                                                                      #
@@ -12,16 +11,18 @@
 # using a licensed work, under the same license. Copyright and license notices must be #
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
-# #################################################################################### #
 import contextlib
+import json
 import webbrowser
 from pathlib import Path
+from typing import Callable
 
 import customtkinter
+import requests
 from CTkColorPicker.ctk_color_picker import AskColor
 
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
+from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutils import (
@@ -35,18 +36,22 @@ from maptasker.src.guiutils import (
     build_profiles,
     check_for_changelog,
     clear_android_buttons,
+    clear_tasker_data,
     create_changelog,
-    display_ai_settings,
     display_analyze_button,
     display_current_file,
     display_messages_from_last_run,
+    display_selected_object_labels,
     get_api_key,
     get_xml,
     initialize_gui,
     initialize_screen,
     is_new_version,
-    list_profiles_and_tasks,
+    list_tasker_objects,
     ping_android_device,
+    set_tasker_object_names,
+    setup_name_error,
+    update_tasker_object_menus,
     valid_item,
     validate_or_filelist_xml,
 )
@@ -57,6 +62,7 @@ from maptasker.src.maputils import update, validate_xml_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
+    CHANGELOG_JSON_URL,
     KEYFILE,
     OPENAI_MODELS,
     TYPES_OF_COLOR_NAMES,
@@ -179,23 +185,22 @@ AI_HELP_TEXT = (
     "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open Ai model.\n\n"
     "The following steps are required in order to run Ai against your Profile.\n\n"
     "1- If using Open Ai, you must have a valid Open Ai api key.  You can use the 'Show/Edit Open AI key' button to enter your key.\n\n"
-    "2- If using the local model, you must manually download and install Ollama via 'https://ollama.com/download'.  Then, run it once to load the model and then 'Run Analysis' Again.\n\n"
+    "2- The default prompt is:'how could it be improved:', and is automatically preceded by the 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'how could it be improved:' portion.\n\n"
+    "3- If using the local model, you must manually download and install Ollama via 'https://ollama.com/download'.  Then, run it once to load the model and then 'Run Analysis' Again.\n\n"
     "   If you select a model that has not yet been loaded, it will be loaded in the background once the analysis begins.\n\n"
-    "2- Select the model you want to use.  The default is None (llama3):\n\n"
-    "3- Click the 'Run Analysis' button.\n\n"
+    "4- Select the model you want to use.  The default is None (llama3):\n\n"
+    "5- Click the 'Run Analysis' button.\n\n"
     "   If you have not yet selected a Profile or Task from the 'Specify Name' tab, then you will be prompted to do so.\n\n"
-    "   Once the Profile or Task has been selected, it will check to see if you have the supporting program to run against the model (e.g. openai) you selected.\n\n"
     "The process may take some time and runs in the background.  The results will appear in a separate window.\n\n"
-    "Your designated api-key (if any), model, and selected profile or task will be saved across sessions.\n\n"
+    "Your designated api-key (if any), model, selected profile or task and prompt will all be saved across sessions.\n\n"
     "The 'Rerun' feature will be used to display the results of the analysis in a new window.\n\n"
 )
 
 HELP = f"MapTasker {VERSION} Help\n\n{INFO_TEXT}{CHANGELOG}"
+all_objects = "Display all Projects, Profiles, and Tasks."
 
 
-# ##################################################################################
 # Class to define the GUI configuration
-# ##################################################################################
 class MyGui(customtkinter.CTk):
     """
     Main class for GUI.
@@ -226,34 +231,20 @@ class MyGui(customtkinter.CTk):
 
         # Now restore the settings and update the fields if not resetting.
         if not PrimeItems.program_arguments["reset"]:
-            self.restore_settings_event()
+            self.restore_settings_event(first_time=True)
         else:
             self.display_message_box("GUI started with the '-reset' option.\n", "Green")
+
+        # Restore the last-used window position
+        if self.window_position:
+            self.geometry(self.window_position)
 
         if self.android_ipaddr:
             # Display backup details as a label
             self.display_backup_details()
 
-        # Display Ai settings
-        display_ai_settings(self)
-
-        # Check for single item only to be displayed. and let user know.
-        if self.single_project_name:
-            self.single_name_status(f"Display only Project '{self.single_project_name}'.", "#3f99ff")
-        if self.single_profile_name:
-            self.single_name_status(f"Display only Profile '{self.single_profile_name}'.", "#3f99ff")
-        if self.single_task_name:
-            self.single_name_status(f"Display only Task '{self.single_task_name}'.", "#3f99ff")
-
-        # Get the Profile or Task list in Analyze tab.  Only do this if we have the Profile name since it forces a read of XML.
-        if self.single_profile_name and list_profiles_and_tasks(self):
-            profile_to_display = self.single_profile_name if self.single_profile_name else "none"
-            self.profile_optionemenu.set(profile_to_display)
-            self.task_optionemenu.set("None")
-        elif self.single_task_name and list_profiles_and_tasks(self):
-            task_to_display = self.single_task_name if self.single_task_name else "none"
-            self.task_optionemenu.set(task_to_display)
-            self.profile_optionemenu.set("None")
+        # Update the Project/Profile/Task pulldown option menus and text labels.
+        update_tasker_object_menus(self, get_data=True)
 
         # Check if newer version of our code is available on Pypi (only check every 24 hours).
         # If so, add a button to enable user to update.
@@ -278,7 +269,26 @@ class MyGui(customtkinter.CTk):
                 (0, 10),
                 "sw",
             )
-
+            #  Query ? button
+            self.list_files_query_button = add_button(
+                self,
+                self,
+                "#246FB6",
+                "#79ff94",
+                "#6563ff",
+                # ("#0BF075", "#ffd941"),
+                # "#1bc9ff",
+                self.whatsnew_event,
+                1,
+                "What's New?",
+                2,
+                7,
+                2,
+                (0, 180),
+                (0, 10),
+                "",
+            )
+            # self.list_files_query_button.configure(width=20)
             self.message = self.message + "\n\nA new version of MapTasker is available."
         else:
             self.new_version = False
@@ -291,15 +301,19 @@ class MyGui(customtkinter.CTk):
             self.display_message_box(self.message, "Green")
             self.message = ""
 
+        if self.ai_prompt:
+            prompt = self.ai_prompt
+        else:
+            prompt = AI_PROMPT
+            self.ai_prompt = prompt
+
         # Now that we have loaded our settings, reconfigure the ai analyze button
         if ((self.ai_model in OPENAI_MODELS and self.ai_apikey) or self.ai_model) and (
             self.single_task_name or self.single_profile_name
         ):
             self.ai_analyze_button.configure(fg_color="#f55dff", text_color="#5554ff")
 
-    # ##################################################################################
     # Establish all of the default values used
-    # ##################################################################################
     def set_defaults(self, first_time: bool) -> None:
         # Item names must be the same as their value in
         #  PrimeItems.program_arguments
@@ -327,9 +341,12 @@ class MyGui(customtkinter.CTk):
         ) = self.outline = self.rerun = self.list_files = self.runtime = self.save = self.twisty = self.directory = (
             self.pretty
         ) = self.fetched_backup_from_android = False
-        self.single_project_name = self.single_profile_name = self.single_task_name = self.file = ""
+        self.single_project_name = ""
+        self.single_profile_name = ""
+        self.single_task_name = ""
+        self.file = ""
         self.color_text_row = 2
-        self.appearance_mode_optionemenu.set("System")
+        self.appearance_mode_optionmenu.set("System")
         self.appearance_mode = "system"
         self.indent_option.set(DEFAULT_DISPLAY_DETAIL_LEVEL)
         self.indent = 4
@@ -347,14 +364,15 @@ class MyGui(customtkinter.CTk):
         self.ai_model = ""
         self.ai_analyze = False
         self.ai_model = ""
+        self.ai_prompt = AI_PROMPT
+        self.specific_name_msg = ""
 
         # Display current Items setting.
-        self.single_name_status("Display all Projects, Profiles, and Tasks.", "#3f99ff")
+        with contextlib.suppress(AttributeError):  # single_name_status may not be defined yet.
+            self.single_name_status(all_objects, "#3f99ff")
 
-    # ##################################################################################
     # Display the Backup button
-    # ##################################################################################
-    def display_backup_button(self, the_text: str, color1: str, color2: str, routine: object) -> None:
+    def display_backup_button(self, the_text: str, color1: str, color2: str, routine: Callable) -> None:
         """
         Displays a backup button on the GUI.
         Args:
@@ -387,9 +405,7 @@ class MyGui(customtkinter.CTk):
         )
         return self.get_backup_button
 
-    # ##################################################################################
     # Display Message Box
-    # ##################################################################################
     def display_message_box(self, message: str, color: str) -> None:
         """
         Display Message Box
@@ -452,9 +468,7 @@ class MyGui(customtkinter.CTk):
 
         self.textbox.focus_set()
 
-    # ##################################################################################
     # Validate name entered
-    # ##################################################################################
     def check_name(self, the_name: str, element_name: str) -> bool:
         """
         Checks name validity
@@ -481,26 +495,12 @@ class MyGui(customtkinter.CTk):
             self.named_item = False
         # Check to make sure only one named item has been entered
         elif self.single_project_name and self.single_profile_name:
-            error_message = [
-                "Error:\n\n",
-                "You have entered both a Project and a Profile name!\n",
-                f"(Project {self.single_project_name} and Profile {self.single_profile_name})\n",
-                "Try again and only select one.\n",
-            ]
+            error_message = setup_name_error("Project", "Profile", self.single_project_name, self.single_profile_name)
         elif self.single_project_name and self.single_task_name:
-            error_message = [
-                "Error:\n\n",
-                "You have entered both a Project and a Task name!\n",
-                f"(Project {self.single_project_name} and Task {self.single_task_name})\n",
-                "Try again and only select one.\n",
-            ]
+            error_message = setup_name_error("Project", "Task", self.single_project_name, self.single_task_name)
         elif self.single_profile_name and self.single_task_name:
-            error_message = [
-                "Error:\n\n",
-                "You have entered both a Profile and a Task name!\n",
-                f"(Profile {self.single_profile_name} and Task {self.single_task_name})\n",
-                "Try again and only select one.\n",
-            ]
+            error_message = setup_name_error("Profile", "Task", self.single_profile_name, self.single_task_name)
+
         # Make sure the named item exists
         elif not valid_item(self, the_name, element_name, self.debug, self.appearance_mode):
             front_error = f'Error: Trying to validate "{the_name}" {element_name}'
@@ -508,9 +508,14 @@ class MyGui(customtkinter.CTk):
                 error_message = [
                     f'{front_error}, but the "Cancel" was selected!\n',
                 ]
+                set_tasker_object_names(self)  # Update pulldown menus
             else:
+                try:
+                    file_name = PrimeItems.file_to_get.name
+                except AttributeError:
+                    file_name = PrimeItems.file_to_get
                 error_message = [
-                    f"{front_error} but it was not found in {PrimeItems.file_to_get.name}!  All Projects, Profiles and Tasks will be displayed.\n"
+                    f"{front_error} but it was not found in {file_name}!  All Projects, Profiles and Tasks will be displayed.\n",
                 ]
 
         # If we have an error, display it and blank out the various individual names
@@ -530,58 +535,18 @@ class MyGui(customtkinter.CTk):
         )
         return True
 
-    # ##################################################################################
-    # Display single item status.
-    # ##################################################################################
-    def single_name_status(self, status_message: str, color_to_use: str) -> None:
-        # Display The selection
-        """
-        Display a status message with a given color.
-        Args:
-            status_message: The status message to display in one line.
-            color_to_use: The color to use for the text in one line.
-        Returns:
-            None: No value is returned.
-        - The status message and color are passed to a CTkLabel widget.
-        - The label is placed in a grid layout on the "Specific Name" tab.
-        - Text color is set using the passed color."""
-
-        # Clear out any previous label
-        with contextlib.suppress(AttributeError):
-            self.single_label.destroy()
-        # Display the label.
-        self.single_label = add_label(
-            self,
-            self.tabview.tab("Specific Name"),
-            status_message,
-            ("#0BF075", f"{color_to_use}"),
-            0,
-            "normal",
-            5,
-            0,
-            20,
-            (10, 10),
-            "w",
-        )
-
-    # ##################################################################################
     # Process single name selection/event
-    # ##################################################################################
     def process_name_event(
         self,
         my_name: str,
-        checkbox1: customtkinter.CHECKBUTTON,
-        checkbox2: customtkinter.CHECKBUTTON,
-        checkbox3: customtkinter.CHECKBUTTON,
+        name_entered: str,
     ) -> None:
         #  Clear any prior error message.
         """
         Processes name event from checkboxes.
         Args:
             my_name: Name of item to filter by
-            checkbox1: First checkbox
-            checkbox2: Second checkbox
-            checkbox3: Checkbox clicked
+            name_entered: Name entered
         Returns:
             None
         Processing Logic:
@@ -594,18 +559,15 @@ class MyGui(customtkinter.CTk):
             - Notify user of filter
             - Deselect checkbox clicked
         """
-        self.textbox.destroy()
-        # Deselect the other two check boxes.
-        checkbox1.deselect()
-        checkbox2.deselect()
-        # Display prompt for name
-        dialog = customtkinter.CTkInputDialog(
-            text=f"Enter {my_name} name (case sensitive):",
-            title=f"Display Specific {my_name}",
-        )
-        # Get the name entered
-        name_entered = dialog.get_input()
-        # Name sure it is a valid name and display message.
+        if name_entered == "None":
+            self.display_message_box("'None' selected.  No change.", "Orange")
+            # Update the pulldown menus since without this the 'None' would display for some reason.
+            update_tasker_object_menus(self, get_data=True)
+            return
+        if name_entered in ["No profiles found", "No tasks found"]:
+            self.display_message_box("Selection ignored.", "Orange")
+            return
+        # Make sure it is a valid name and display message.
         if self.check_name(name_entered, my_name):
             # Name is valid... deselect other buttons and set the name
             self.single_project_name = self.single_profile_name = self.single_task_name = ""
@@ -613,29 +575,28 @@ class MyGui(customtkinter.CTk):
             match my_name:
                 case "Project":
                     self.single_project_name = name_entered
+                    # Clear out all of the old data for this new Project.
+                    # They will get repopulated by call to...
+                    # update_tasker_object_menus() > list_tasker_objects() > load_xml()
+                    clear_tasker_data()
 
                 case "Profile":
                     self.single_profile_name = name_entered
-                    with contextlib.suppress(AttributeError):
-                        self.profile_optionemenu.set(name_entered)
 
                 case "Task":
                     self.single_task_name = name_entered
-                    with contextlib.suppress(AttributeError):
-                        self.task_optionemenu.set(name_entered)
 
             # Let the user know...
-            self.single_name_status(f"Display only {my_name} '{name_entered}'.", "#3f99ff")
+            self.specific_name_msg = f"Display only {my_name} '{name_entered}'."
 
         else:
-            self.single_name_status("Display all Projects, Profiles, and Tasks.", "#3f99ff")
+            self.single_name_msg = all_objects
 
-        # Deselect the check box just selected
-        checkbox3.deselect()
+        # Update the pulldown menus and text labels, and set the color for Analyze button
+        update_tasker_object_menus(self, get_data=True)
+        display_analyze_button(self, 13)
 
-    # ##################################################################################
     # Process single name restore
-    # ##################################################################################
     def process_single_name_restore(
         self,
         my_name: str,
@@ -678,68 +639,43 @@ class MyGui(customtkinter.CTk):
                 case _:
                     pass
 
-    # ##################################################################################
     # Process the Project Name entry
-    # ##################################################################################
-    def single_project_name_event(self) -> None:
+    def single_project_name_event(self, name_selected: str) -> None:
         """Generates a single project name event from button inputs
         Args:
             self: The class instance
+            name_selected: The name selected
         Returns:
             None: No value is returned
-        - Gets the project name from the second button
-        - Gets the event type from the third button
-        - Gets the timestamp from the first button
         - Calls process_name_event() to generate the event"""
-        self.process_name_event(
-            "Project",
-            self.string_input_button2,
-            self.string_input_button3,
-            self.string_input_button1,
-        )
+        name_selected = name_selected.replace("Project: ", "")
+        self.process_name_event("Project", name_selected)
 
-    # ##################################################################################
     # Process the Profile Name entry
-    # ##################################################################################
-    def single_profile_name_event(self) -> None:
+    def single_profile_name_event(self, name_selected: str) -> None:
         """Generates a single profile name event from button inputs
         Args:
             self: The class instance
+            name_selected: The name selected
         Returns:
             None: No value is returned
-        - Gets name from button1 input
-        - Gets category from button3 input
-        - Gets action from button2 input
         - Calls process_name_event to generate the event"""
-        self.process_name_event(
-            "Profile",
-            self.string_input_button1,
-            self.string_input_button3,
-            self.string_input_button2,
-        )
+        name_selected = name_selected.replace("Profile: ", "")
+        self.process_name_event("Profile", name_selected)
 
-    # ##################################################################################
     # Process the Task Name entry
-    # ##################################################################################
-    def single_task_name_event(self) -> None:
+    def single_task_name_event(self, name_selected: str) -> None:
         """Processes a single task name event.
         Args:
             self: The class instance.
+            name_selected: The name selected
         Returns:
             None: Does not return anything.
-        - Gets the task name from the first string input button
-        - Gets additional details from the other string input buttons
         - Calls process_name_event() to handle the full event"""
-        self.process_name_event(
-            "Task",
-            self.string_input_button1,
-            self.string_input_button2,
-            self.string_input_button3,
-        )
+        name_selected = name_selected.replace("Task: ", "")
+        self.process_name_event("Task", name_selected)
 
-    # ##################################################################################
     # Process the screen mode: dark, light, system
-    # ##################################################################################
     def change_appearance_mode_event(self, new_appearance_mode: str) -> None:
         """
         Change the appearance mode of the GUI
@@ -752,9 +688,7 @@ class MyGui(customtkinter.CTk):
         customtkinter.set_appearance_mode(new_appearance_mode)
         self.appearance_mode = new_appearance_mode.lower()
 
-    # ##################################################################################
     # Process the screen mode: dark, light, system
-    # ##################################################################################
     def font_event(self, font_selected: str) -> None:
         """
         Sets the font for the GUI
@@ -781,9 +715,7 @@ class MyGui(customtkinter.CTk):
         self.font_out_label.grid(row=6, column=1, padx=10, pady=10, sticky="sw")
         self.display_message_box(f"Font To Use set to {font_selected}", "Green")
 
-    # ##################################################################################
     # Clear the message text box.
-    # ##################################################################################
     def clear_messages_event(self) -> None:
         """
         Clears the message box
@@ -797,9 +729,7 @@ class MyGui(customtkinter.CTk):
         self.all_messages = {}
         self.textbox.destroy()
 
-    # ##################################################################################
     # Process the Display Detail Level selection
-    # ##################################################################################
     def detail_selected_event(self, display_detail: str) -> None:
         """
         Set display detail level and update UI
@@ -843,9 +773,7 @@ class MyGui(customtkinter.CTk):
         self.inform_message(title, checkbox_value, "")
         return checkbox_value
 
-    # ##################################################################################
     # Process the Identation Amount selection
-    # ##################################################################################
     def indent_selected_event(self, ident_amount: str) -> None:
         """Indent selected text or code block
         Args:
@@ -859,9 +787,7 @@ class MyGui(customtkinter.CTk):
         self.indent_option.set(ident_amount)
         self.inform_message("Indentation Amount", True, ident_amount)
 
-    # ##################################################################################
     # Process color selection
-    # ##################################################################################
     def colors_event(self, color_selected_item: str) -> None:
         """
         Changes the color for a selected item
@@ -922,9 +848,7 @@ class MyGui(customtkinter.CTk):
             if self.color_row > max_row:
                 self.color_row = 4
 
-    # ##################################################################################
     # Color selected...process it.
-    # ##################################################################################
     def extract_color_from_event(self, color: str, color_selected_item: str) -> None:
         """Maps a color name to a selected item
         Args:
@@ -940,9 +864,7 @@ class MyGui(customtkinter.CTk):
             color  # Add color for the selected item to our dictionary
         )
 
-    # ##################################################################################
     # Process the 'conditions' checkbox
-    # ##################################################################################
     def condition_event(self) -> None:
         """
         Get input and put message for condition checkbox
@@ -960,9 +882,7 @@ class MyGui(customtkinter.CTk):
             "Display Profile and Task Action Conditions",
         )
 
-    # ##################################################################################
     # Process the 'Outline' checkbox
-    # ##################################################################################
     def outline_event(self) -> None:
         """
         Display Configuration Outline
@@ -976,9 +896,7 @@ class MyGui(customtkinter.CTk):
         """
         self.outline = self.get_input_and_put_message(self.outline_checkbox, "Display Configuration Outline")
 
-    # ##################################################################################
     # Process the 'Prettier' checkbox
-    # ##################################################################################
     def pretty_event(self) -> None:
         """
         Display Configuration Outline
@@ -992,9 +910,7 @@ class MyGui(customtkinter.CTk):
         """
         self.pretty = self.get_input_and_put_message(self.pretty_checkbox, "Display Pretty Output")
 
-    # ##################################################################################
     # Process the 'everything' checkbox
-    # ##################################################################################
     def everything_event(self) -> None:
         # Dictionary of program arguments and function to run for each upon restoration.
         """
@@ -1063,9 +979,7 @@ class MyGui(customtkinter.CTk):
         # Handle Display Detail Level
         self.display_detail_level = DEFAULT_DISPLAY_DETAIL_LEVEL
 
-    # ##################################################################################
     # Process the 'Tasker Preferences' checkbox
-    # ##################################################################################
     def preferences_event(self) -> None:
         """
         Get user input on whether to display tasker preferences
@@ -1078,9 +992,7 @@ class MyGui(customtkinter.CTk):
         - Display message based on input to confirm action"""
         self.preferences = self.get_input_and_put_message(self.preferences_checkbox, "Display Tasker Preferences")
 
-    # ##################################################################################
     # Process the 'Twisty' checkbox
-    # ##################################################################################
     def twisty_event(self) -> None:
         """
         Toggle display of task details under a twisty
@@ -1109,9 +1021,7 @@ class MyGui(customtkinter.CTk):
             self.twisty = False
             self.twisty_checkbox.deselect()
 
-    # ##################################################################################
     # Process the 'Display Directory' checkbox
-    # ##################################################################################
     def directory_event(self) -> None:
         """
         Get input and put message for directory checkbox
@@ -1126,9 +1036,7 @@ class MyGui(customtkinter.CTk):
         - Does not return anything, just updates class attribute"""
         self.directory = self.get_input_and_put_message(self.directory_checkbox, "Display Directory")
 
-    # ##################################################################################
     # Process the 'Bold Names' checkbox
-    # ##################################################################################
     def names_bold_event(self) -> None:
         """
         Get input to display names in bold and put message
@@ -1141,9 +1049,7 @@ class MyGui(customtkinter.CTk):
         - No return value, function updates attribute on class instance"""
         self.bold = self.get_input_and_put_message(self.bold_checkbox, "Display Names in Bold")
 
-    # ##################################################################################
     # Process the 'Highlight Names' checkbox
-    # ##################################################################################
     def names_highlight_event(self) -> None:
         """
         Get input and put message for names highlight checkbox
@@ -1159,9 +1065,7 @@ class MyGui(customtkinter.CTk):
         """
         self.highlight = self.get_input_and_put_message(self.highlight_checkbox, "Display Names Highlighted")
 
-    # ##################################################################################
     # Process the 'Italicize Names' checkbox
-    # ##################################################################################
     def names_italicize_event(self) -> None:
         """
         Italicize names based on checkbox input
@@ -1175,9 +1079,7 @@ class MyGui(customtkinter.CTk):
         """
         self.italicize = self.get_input_and_put_message(self.italicize_checkbox, "Display Names Italicized")
 
-    # ##################################################################################
     # Process the 'Underline Names' checkbox
-    # ##################################################################################
     def names_underline_event(self) -> None:
         """
                 Gets user input to display names underlined or not
@@ -1191,9 +1093,7 @@ class MyGui(customtkinter.CTk):
         """
         self.underline = self.get_input_and_put_message(self.underline_checkbox, "Display Names Underlined")
 
-    # ##################################################################################
     # Process the 'Taskernet' checkbox
-    # ##################################################################################
     def taskernet_event(self) -> None:
         """
         Display TaskerNet Information
@@ -1207,9 +1107,7 @@ class MyGui(customtkinter.CTk):
         """
         self.taskernet = self.get_input_and_put_message(self.taskernet_checkbox, "Display TaskerNet Information")
 
-    # ##################################################################################
     # Process the 'Runtime' checkbox
-    # ##################################################################################
     def runtime_checkbox_event(self) -> None:
         """
         Get input and put message for runtime checkbox
@@ -1222,9 +1120,7 @@ class MyGui(customtkinter.CTk):
         - No return value, function modifies instance attributes"""
         self.runtime = self.get_input_and_put_message(self.runtime_checkbox, "Display Runtime Settings")
 
-    # ##################################################################################
     # Rebuilld message box with new text (e.g. for Help).
-    # ##################################################################################
     def new_message_box(self, message: str) -> None:
         # Clear any prior error message
         """
@@ -1260,9 +1156,7 @@ class MyGui(customtkinter.CTk):
         self.textbox.tag_config("color", foreground="green")
         self.all_messages = {}
 
-    # ##################################################################################
     # Process the 'Display Help' button
-    # ##################################################################################
     def help_event(self) -> None:
         """Displays help information in a message box.
         Args:
@@ -1274,9 +1168,7 @@ class MyGui(customtkinter.CTk):
         - Displays the help message text in the message box"""
         self.new_message_box(HELP)
 
-    # ##################################################################################
     # Process the 'Get Backup Help' button
-    # ##################################################################################
     def backup_help_event(self) -> None:
         """Backs up help text and displays it in a message box
         Args:
@@ -1289,9 +1181,7 @@ class MyGui(customtkinter.CTk):
             - Displays the backup help text in the message box"""
         self.new_message_box("Fetch Backup Help\n\n" + BACKUP_HELP_TEXT)
 
-    # ##################################################################################
     # Process the '?' List XML Files query button
-    # ##################################################################################
     def listfile_query_event(self) -> None:
         """Function to display help text for the listfile_query_event method.
         Parameters:
@@ -1304,9 +1194,7 @@ class MyGui(customtkinter.CTk):
             - Help text is stored in LISTFILES_HELP_TEXT variable."""
         self.new_message_box("List XML Files Help\n\n" + LISTFILES_HELP_TEXT)
 
-    # ##################################################################################
     # Process the '?' Tree View query button
-    # ##################################################################################
     def treeview_query_event(self) -> None:
         """Function to display help text for the listfile_query_event method.
         Parameters:
@@ -1346,9 +1234,7 @@ class MyGui(customtkinter.CTk):
             response = "Off"
         self.display_message_box(f"{toggle_name} set{extra}{response}", "Green")
 
-    # ##################################################################################
     # Process the 'Save Settings' checkbox
-    # ##################################################################################
     def save_settings_event(self) -> None:
         # Get program arguments from GUI and store in a temporary dictionary
         """
@@ -1398,9 +1284,7 @@ class MyGui(customtkinter.CTk):
         checkbox.select() if checked else checkbox.deselect()
         return f"{argument_name} set to {checked}.\n"
 
-    # ##################################################################################
     # Restore displays setting from restored value!
-    # ##################################################################################
     def restore_display(self, key: str, value: str) -> str:
         # Dictionary of program arguments and function to run for each upon restoration.
         """
@@ -1508,14 +1392,13 @@ class MyGui(customtkinter.CTk):
 
         return message
 
-    # ##################################################################################
     # Process the 'Restore Settings' checkbox
-    # ##################################################################################
-    def restore_settings_event(self) -> None:
+    def restore_settings_event(self, first_time: bool) -> None:
         """
         Resets settings to defaults and restores from saved settings file
         Args:
             self: The class instance
+            first_time: bool - True if this is the first time the checkbox is clicked
         Returns:
             None: No value is returned
         Processing Logic:
@@ -1525,7 +1408,7 @@ class MyGui(customtkinter.CTk):
             - Extract restored settings into class attributes
             - Empty message queue after restoring
         """
-        self.set_defaults(False)  # Reset all values
+        self.set_defaults(first_time)  # Reset all values
         temp_args = self.color_lookup = {}
         # Restore all changes that have been saved
         temp_args, self.color_lookup = save_restore_args(temp_args, self.color_lookup, False)
@@ -1555,9 +1438,7 @@ class MyGui(customtkinter.CTk):
         else:  # Empty?
             self.display_message_box("No settings file found.", "Orange")
 
-    # ##################################################################################
     # We have read colors and runtime args from backup file.  Now extract them for use.
-    # ##################################################################################
     def extract_settings(self, temp_args: dict) -> None:
         """
         Extract settings from arguments dictionary
@@ -1594,9 +1475,7 @@ class MyGui(customtkinter.CTk):
         # Display completion
         self.display_message_box("Settings restored.\n", "Green")
 
-    # ##################################################################################
     # Display an input field and a label for the user to input a value
-    # ##################################################################################
     def display_label_and_input(
         self,
         label: str,
@@ -1672,9 +1551,7 @@ class MyGui(customtkinter.CTk):
             )
         return input_name, label_name
 
-    # ##################################################################################
     # Process the 'Backup' IP Address/port/file location
-    # ##################################################################################
     def get_backup_event(self) -> None:
         # Set up default values
         """
@@ -1816,9 +1693,7 @@ class MyGui(customtkinter.CTk):
         )
         self.get_backup_button.configure(anchor="center", width=600)
 
-    # ##################################################################################
     # Fetch Backup info error...process it.
-    # ##################################################################################
     def backup_error(self, error_message: str) -> None:
         # Setup error message
         """
@@ -1837,9 +1712,7 @@ class MyGui(customtkinter.CTk):
         if error_message:
             self.display_message_box(error_message, "Red")
 
-    # ##################################################################################
     # Get list of lines and output them.
-    # ##################################################################################
     def display_multiple_messages(self, details: list, good_or_bad: bool) -> None:
         """
         Display Android settings based on the given details list.
@@ -1853,12 +1726,10 @@ class MyGui(customtkinter.CTk):
         for line in details:
             self.display_message_box(line, color)
 
-    # ##################################################################################
     # Fetch the backup ip and file details, and validate.
     # This function can be entered through two paths:
     # 1- User clicked on the 'Get Backup Settings' button
     # 2- User clicked on the 'List XML Files' button
-    # ##################################################################################
     def fetch_backup_event(self) -> None:
         """Fetches backup event details from user input
 
@@ -1941,12 +1812,10 @@ class MyGui(customtkinter.CTk):
         # Display backup details as a label again.
         self.display_backup_details()
 
-        # Display the profile or task names
-        self.display_ai_profile_task_names()
+        # Update the Project/Profile/Task pulldown option menus and labels.
+        update_tasker_object_menus(self, get_data=False)
 
-    # ##################################################################################
     # Fetching backup from Android.  Let the user know the specific details.
-    # ##################################################################################
     def display_backup_details(self) -> None:
         """
         Displays backup details from Android device.
@@ -2006,9 +1875,7 @@ class MyGui(customtkinter.CTk):
         # Display the current file in sidebar
         display_current_file(self, self.android_file)
 
-    # ##################################################################################
     # Cancel the entry of backup parameters
-    # ##################################################################################
     def backup_cancel_event(self) -> None:
         """
         Closes the backup details window.
@@ -2024,9 +1891,7 @@ class MyGui(customtkinter.CTk):
         self.android_port = ""
         self.display_message_box("'Get XML From Android' Cancelled.", "Orange")
 
-    # ##################################################################################
-    # List files event
-    # ##################################################################################
+    # List (Android) XML files event
     def list_files_event(self) -> None:
         """
         Closes the backup details window.
@@ -2039,9 +1904,7 @@ class MyGui(customtkinter.CTk):
         self.list_files_button.configure(text="List Files Selected")
         self.fetch_backup_event()
 
-    # ##################################################################################
-    # User has selected a specific XML file from pulldown menu.
-    # ##################################################################################
+    # User has selected a specific XML file to get from Android device from pulldown menu.
     def file_selected_event(self, android_file: str) -> None:
         """User has selected a specific XML file from pulldown menu.
         Returns:
@@ -2068,15 +1931,16 @@ class MyGui(customtkinter.CTk):
             self.android_file = ""
             return
 
-        # Display backup details as a label again.
+        # Get rid of any data we currently have
+        clear_tasker_data()
+
+        # Display backup details as a labels again.
         self.display_backup_details()
 
-        # Display the profile or task names
-        self.display_ai_profile_task_names()
+        # Refresh the Projects/Profiles/Tasks pulldown menus and labels
+        update_tasker_object_menus(self, get_data=False)
 
-    # ##################################################################################
     # Process the 'Reset Settings' button
-    # ##################################################################################
     def reset_settings_event(self) -> None:
         """
         Resets all class settings to default values.
@@ -2095,7 +1959,7 @@ class MyGui(customtkinter.CTk):
         self.preferences_checkbox.deselect()  # Tasker Preferences
         self.pretty_checkbox.deselect()  # Pretty output
         self.taskernet_checkbox.deselect()  # TaskerNet
-        self.appearance_mode_optionemenu.set("System")  # Appearance
+        self.appearance_mode_optionmenu.set("System")  # Appearance
         customtkinter.set_appearance_mode("System")  # Enforce appearance
         self.debug_checkbox.deselect()  # Debug
         self.display_message_box("Settings reset.", "Green")
@@ -2124,17 +1988,19 @@ class MyGui(customtkinter.CTk):
 
         # Reset/display our Ai settings.
         with contextlib.suppress(AttributeError):
-            self.ai_set_label2.destroy()
-            self.profile_optionemenu.set("None")
-            self.task_optionemenu.set("None")
-        display_ai_settings(self)
+            self.profile_optionmenu.set("None")
+        with contextlib.suppress(AttributeError):
+            self.task_optionmenu.set("None")
+        self.ai_prompt = AI_PROMPT
+        self.ai_model = "None (llama3)"
+
+        # Update the Tasker selected object pulldown names and labels
+        update_tasker_object_menus(self, get_data=False)
 
         # Reset current file
         display_current_file(self, "None")
 
-    # ##################################################################################
     # Process Debug Mode checkbox
-    # ##################################################################################
     def debug_checkbox_event(self) -> None:
         """
         Handle debug checkbox event
@@ -2164,9 +2030,7 @@ class MyGui(customtkinter.CTk):
         else:
             self.display_message_box("Debug mode disabled.", "Green")
 
-    # ##################################################################################
     # User has requested that the colors be result to their defaults.
-    # ##################################################################################
     def color_reset_event(self) -> None:
         """Resets the color mode for Tasker items.
         Parameters:
@@ -2185,9 +2049,7 @@ class MyGui(customtkinter.CTk):
         with contextlib.suppress(Exception):
             self.color_change.destroy()
 
-    # ##################################################################################
     # Close the GUI.
-    # ##################################################################################
     def cleanup(self, run_only: bool) -> None:
         """Function:
         Closes the application.
@@ -2207,9 +2069,7 @@ class MyGui(customtkinter.CTk):
             self.quit()
             self.sidebar_frame.destroy()
 
-    # ##################################################################################
     # Validate XML and close the GUI.
-    # ##################################################################################
     def cleanup_and_run(self, run_only: bool) -> None:
         """Function: cleanup_and_run
         Parameters:
@@ -2221,6 +2081,9 @@ class MyGui(customtkinter.CTk):
             - If XML is not valid, return to GUI.
             - If XML is valid, exit and return to process_gui.
             - If XML is not valid, return to GUI."""
+        # Save our last window position
+        self.window_position = self.winfo_geometry()
+
         self.display_message_box("Program running...", "Green")
 
         # If XML is not valid, simply return to GUI.  Otherwise, exit and return to process_gui.
@@ -2240,9 +2103,7 @@ class MyGui(customtkinter.CTk):
         else:
             self.quit()
 
-    # ##################################################################################
     # The 'Run' program button has been pressed.  Set the run flag and close the GUI
-    # ##################################################################################
     def run_program(self) -> None:
         """
         Starts a program and displays a message box.
@@ -2259,9 +2120,7 @@ class MyGui(customtkinter.CTk):
         # Validate the XML and cleanup
         self.cleanup_and_run(run_only=True)
 
-    # ##################################################################################
     # The 'ReRun' program button has been pressed.  Set the run flag and close the GUI
-    # ##################################################################################
     def rerun_the_program(self) -> None:
         """
         Resets the program state and exits.
@@ -2275,9 +2134,7 @@ class MyGui(customtkinter.CTk):
         self.rerun = True
         self.cleanup_and_run(run_only=False)
 
-    # ##################################################################################
     # The Upgrade Version button has been pressed.
-    # ##################################################################################
     def upgrade_event(self) -> None:
         """ "Runs an update and reruns the program."
         Parameters:
@@ -2293,9 +2150,7 @@ class MyGui(customtkinter.CTk):
         create_changelog()
         do_rerun()
 
-    # ##################################################################################
     # The Upgrade Version button has been pressed.
-    # ##################################################################################
     def report_issue_event(self) -> None:
         """Opens a web browser and directs the user to create a new issue on GitHub for the Map-Tasker project.
         Parameters:
@@ -2318,9 +2173,7 @@ class MyGui(customtkinter.CTk):
             return
         self.new_message_box("Report an Issue or Request a Feature\n\n" + issue_text)
 
-    # ##################################################################################
     # The 'Exit' program button has been pressed.  Call it quits
-    # ##################################################################################
     def exit_program(self) -> None:
         """
         Exits the program by setting exit flag and calling quit twice
@@ -2333,12 +2186,14 @@ class MyGui(customtkinter.CTk):
         - Calling quit() twice is done as a precaution in case one call fails to exit for some reason
         """
         self.exit = True
+
+        # Save our last window position
+        self.window_position = self.winfo_geometry()
+
         self.quit()
         self.quit()
 
-    # ##################################################################################
     # Prompt for and get the XML file from the local drive.
-    # ##################################################################################
     def prompt_and_get_file(self, debug: bool, appearance_mode: str) -> bool:
         """
         Prompt for and get the XML file from the local drive.
@@ -2362,11 +2217,13 @@ class MyGui(customtkinter.CTk):
                     "Red",
                 )
             return False
+
+        # Good return from getting the XML
+        if PrimeItems.file_to_get.name:
+            self.display_and_set_file(PrimeItems.file_to_get.name)
         return True
 
-    # ##################################################################################
     # Load the XML if not already loaded.
-    # ##################################################################################
     def load_xml(self) -> bool:
         """Load XML from a file or URL.
         Parameters:
@@ -2413,9 +2270,7 @@ class MyGui(customtkinter.CTk):
 
         return True
 
-    # ##################################################################################
     # Display a treeview of the XML.
-    # ##################################################################################
     def treeview_event(self) -> None:
         """Handles the event of clicking on the treeview.
         Parameters:
@@ -2444,9 +2299,7 @@ class MyGui(customtkinter.CTk):
             # Display the tree
             self.display_tree(tree_data)
 
-    # ##################################################################################
     # Build a hierarchical list of all of the Tasker elements.
-    # ##################################################################################
     def build_the_tree(self) -> list:
         """Builds the hierarchical list of all of the Tasker elements.
         Parameters:
@@ -2494,9 +2347,7 @@ class MyGui(customtkinter.CTk):
         # Return our data tree
         return tree_data
 
-    # ##################################################################################
     # Display the tree view.
-    # ##################################################################################
     def display_tree(self, tree_data: list) -> None:
         """Displays a treeview window with given data.
         Parameters:
@@ -2520,9 +2371,7 @@ class MyGui(customtkinter.CTk):
         else:
             self.display_message_box("No Project(s) Found in XML!", "Red")
 
-    # ##################################################################################
     # Displayh Ai Analysis response in a separate top level window.
-    # ##################################################################################
     def display_ai_response(self, error_msg: str) -> None:
         """
         Display AI response in a GUI window.
@@ -2543,9 +2392,7 @@ class MyGui(customtkinter.CTk):
         analysis_view.pack(padx=10, pady=10, fill="both", expand=True)
         analysis_view.after(10, self.toplevel_window.lift)
 
-    # ##################################################################################
     # Set and display the file name.
-    # ##################################################################################
     def display_and_set_file(self, filename: str) -> None:
         """
         Display the current file name in a button on the GUI and set it as the current file.
@@ -2571,9 +2418,7 @@ class MyGui(customtkinter.CTk):
         self.display_message_box(f"Current file set to {filename}", "Green")
         self.file = filename  # Set this so it is saved in settings.
 
-    # ##################################################################################
     # Get XML button clicked.  Prompt usere for XML and load it.
-    # ##################################################################################
     def getxml_event(self) -> None:
         """
         Get rid of any existing data, clear tasker root elements, and negate file indications.
@@ -2585,6 +2430,10 @@ class MyGui(customtkinter.CTk):
         PrimeItems.tasker_root_elements["all_profiles"].clear()
         PrimeItems.tasker_root_elements["all_tasks"].clear()
         PrimeItems.tasker_root_elements["all_scenes"].clear()
+        self.single_project_name = ""
+        self.single_profile_name = ""
+        self.single_task_name = ""
+        self.specific_name_msg = ""
         # Negate any indication that we have a file
         PrimeItems.file_to_get = ""
         PrimeItems.program_arguments["file"] = ""
@@ -2592,14 +2441,10 @@ class MyGui(customtkinter.CTk):
         self.android_port = ""
         self.android_file = ""
 
-        # Get the new XML file
-        if self.prompt_and_get_file(False, self.appearance_mode):
-            # Set the name and display it
-            self.display_and_set_file(PrimeItems.file_to_get.name)
+        # Redisplay the Projects/Profiles/Tasks pulldown menus for selection
+        update_tasker_object_menus(self, get_data=True)
 
-    # ##################################################################################
     # Show for edit the AI API Key
-    # ##################################################################################
     def ai_apikey_event(self) -> None:
         """
         Prompts the user to enter their API key, or leaves it as is if it already exists.
@@ -2631,16 +2476,13 @@ class MyGui(customtkinter.CTk):
                 self.ai_apikey = new_key
 
             # Redisplay ai settings with new key.
-            self.ai_set_label1.destroy()
-            display_ai_settings(self)
+            display_selected_object_labels(self)
 
         # Usaer hit 'Cancel' or didn't input anything
         else:
             self.display_message_box("No change to the API key!", "Orange")
 
-    # ##################################################################################
     # Show for edit the AI API Key
-    # ##################################################################################
     def ai_model_selected_event(self, model: str) -> None:
         """
         Set the AI model to the specified model.
@@ -2651,48 +2493,18 @@ class MyGui(customtkinter.CTk):
         Returns:
             None
         """
-        if model == "none (llama3)":
+        if model == "None (llama3)":
             model = "llama3"
         self.ai_model = model
         self.display_message_box("Model set to " + model + ".", "Green")
 
         # Redisplay the Analyze button.
-        display_analyze_button(self, 10)
-
-        # Get the Profile or Task to analyize if we don't already have it.
-        if self.single_profile_name or self.single_task_name:
-            return
-
-        # Get the Profile or Task to analyze
-        _ = list_profiles_and_tasks(self)
+        display_analyze_button(self, 13)
 
         # Redisplay the ai settings
-        with contextlib.suppress(AttributeError):
-            self.ai_set_label2.destroy()
-        display_ai_settings(self)
+        display_selected_object_labels(self)
 
-    # ##################################################################################
-    #  Displays the profile and task names in the "Analyze" tab of the tabview.
-    # ##################################################################################
-    def display_ai_profile_task_names(self) -> None:
-        """
-        Displays the profile and task names in the "Analyze" tab of the tabview.
-
-        Parameters:
-            None
-
-        Returns:
-            None
-        """
-        profile_to_display = self.single_profile_name if self.single_profile_name else "None"
-        task_to_display = self.single_task_name if self.single_task_name else "None"
-        with contextlib.suppress(AttributeError):
-            self.profile_optionemenu.set(profile_to_display)
-            self.task_optionemenu.set(task_to_display)
-
-    # ##################################################################################
     # Kickoff the AI analysis
-    # ##################################################################################
     def ai_analyze_event(self) -> None:
         """
         Analyzes a single item identified by the current instance.
@@ -2715,7 +2527,7 @@ class MyGui(customtkinter.CTk):
         # Do we have a single item identified?
         if self.single_project_name or self.single_profile_name or self.single_task_name:
             self.ai_analyze = True
-            self.all_messages = {}  # Clear out all displayed messages.
+            self.clear_messages_event()  # Clear out all displayed messages.
             self.display_message_box(f"Running analysis with model {self.ai_model}.", "Green")
             self.rerun_the_program()
         else:
@@ -2726,88 +2538,14 @@ class MyGui(customtkinter.CTk):
             # Get the Profile or Task to analyze
             self.ai_analyze_button.destroy()
             # If there are no Profiles or Tasks, redisplay the Analyze button
-            if not list_profiles_and_tasks(self):
+            if not list_tasker_objects(self):
                 # Drop here if we don't have any XML loaded yet.
-                display_analyze_button(self, 10)
+                display_analyze_button(self, 13)
 
-            # Display the profile or task names
-            self.display_ai_profile_task_names()
+            # Update the Project/Profile/Task pulldown option menus.
+            set_tasker_object_names(self)
 
-    # ##################################################################################
-    # The user has selected a Profile from the pulldown list
-    # ##################################################################################
-    def ai_profile_selected_event(self, profile_name: str) -> None:
-        """
-        Handles the event when a profile is selected.
-
-        Args:
-            profile_name (str): The name of the selected profile.
-
-        Returns:
-            None
-        """
-        if profile_name and profile_name != "None":
-            if profile_name == "No profiles found":
-                self.display_message_box("Profile selection ignored.", "Orange")
-                return
-            self.single_profile_name = profile_name.replace("Profile: ", "")
-            self.display_message_box(f"Single Profile: {self.single_profile_name} selected.", "Green")
-            if self.single_task_name:
-                self.display_message_box(f"Single Task '{self.single_task_name}' ignored.", "Orange")
-                self.single_task_name = ""
-                self.task_optionemenu.set("None")
-
-            # Cleanup the buttons
-            # self.ai_profile_label.destroy()
-            # self.profile_optionemenu.destroy()
-            self.ai_set_label3.destroy()
-            display_analyze_button(self, 10)
-
-            # Redisplay the ai settings
-            display_ai_settings(self)
-
-        # None was selected
-        else:
-            self.display_message_box("Profile selection of 'None' ignored.", "Orange")
-
-    # ##################################################################################
-    # The user has selected a Task from the pulldown list
-    # ##################################################################################
-    def ai_task_selected_event(self, task_name: str) -> None:
-        """
-        Handles the event when a profile is selected.
-
-        Args:
-            task_name (str): The name of the selected profile.
-
-        Returns:
-            None
-        """
-        if task_name and task_name != "None":
-            if task_name == "No tasks found":
-                self.display_message_box("Task selection ignored.  Try again.", "Orange")
-                return
-            self.single_task_name = task_name.replace("Task: ", "")
-            self.display_message_box(f"Single Task: {self.single_task_name} selected.", "Green")
-            if self.single_profile_name:
-                self.display_message_box(f"Single Profile '{self.single_profile_name}' ignored.", "Orange")
-                self.single_profile_name = ""
-                self.profile_optionemenu.set("None")
-
-            # Cleanup the buttons
-            self.ai_set_label3.destroy()
-            display_analyze_button(self, 10)
-
-            # Redisplay the ai settings
-            display_ai_settings(self)
-
-        # None was selected
-        else:
-            self.display_message_box("Task selection of 'None' ignored.  Try again.", "Orange")
-
-    # ##################################################################################
     # Process the '?' Tree View query button
-    # ##################################################################################
     def ai_help_event(self) -> None:
         """Function to display help text for the Analysis tab.
         Parameters:
@@ -2819,3 +2557,69 @@ class MyGui(customtkinter.CTk):
             - Uses new_message_box method.
             - Help text is stored in AI_HELP_TEXT variable."""
         self.new_message_box("Analyze Help\n\n" + AI_HELP_TEXT)
+
+    # Handle Ai Prompt change event.
+    def ai_prompt_event(self) -> None:
+        """
+        Handles the event when the AI prompt is changed.
+
+        Opens a dialog box for the user to enter a new AI prompt. Displays the current prompt and prompts the user to
+        enter a new prompt.
+
+        If the user cancels the prompt change, a message box is displayed indicating that the prompt change was cancelled.
+        If the user enters the same prompt as the current prompt, a message box is displayed indicating that the prompt did not change.
+        If the user enters a new prompt, the AI prompt is updated and a message box is displayed indicating the new prompt.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        dialog = customtkinter.CTkInputDialog(
+            text=f"Current prompt: '{self.ai_prompt}'\n\nEnter a new prompt for the AI to use:",
+            title="Change the Ai Prompt",
+        )
+        # Get the name entered
+        name_entered = dialog.get_input()
+        # Canceled?
+        if name_entered is None:
+            self.display_message_box("Prompt change cancelled.", "Orange")
+        # The same?
+        elif name_entered == self.ai_prompt:
+            self.display_message_box("Prompt did not change.", "Orange")
+        else:
+            # Valid response.
+            self.ai_prompt = name_entered
+            self.display_message_box(f"Prompt changed to '{self.ai_prompt}'.", "Green")
+            display_selected_object_labels(self)
+
+    # Display what is in the changelog for the new release.
+    def whatsnew_event(self) -> None:
+        """
+        Retrieves the latest changelog from the Map-Tasker GitHub repository and displays it in the user interface.
+
+        This function sends a GET request to the specified URL to retrieve the changelog in JSON format. It then iterates through the changelog dictionary and displays each line in the user interface using the `display_message_box` method. The changelog is displayed starting from the latest version until the "Older History" section is reached. The function also clears any previously displayed messages before displaying the changelog.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        try:
+            changelog = requests.get(CHANGELOG_JSON_URL).json()  # noqa: S113
+        except (json.decoder.JSONDecodeError, ConnectionError, Exception):
+            self.display_message_box("Failed to get changelog.", "Red")
+            return
+        self.clear_messages_event()  # Clear out all displayed messages.
+        # Go through loaded dictionary and display each line
+        for key, value in changelog.items():
+            if "Older History" in value:  # Get out if we hit then of the the new version changes.
+                break
+            if key == "version":
+                self.display_message_box(f"Changes in the new version {value}:", "Green")
+            else:
+                self.display_message_box(f"{value}", "Green")
+
+        self.display_message_box("End of changelog.", "Green")

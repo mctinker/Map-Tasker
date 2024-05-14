@@ -159,21 +159,20 @@ def extract_string(action: defusedxml.ElementTree.XML, arg: str, argeval: str) -
     """
     from maptasker.src.action import drop_trailing_comma
 
-    # TODO Optimize this code to find the argn match
     match_results = []
-    for child in action:
-        if child.tag == "Str":
-            the_arg = child.attrib.get("sr")
-            if arg == the_arg:
-                if child.text is not None:
-                    # Catch the situation in which a newline has been entered for the value (carriage return)
-                    if child.text == "\n":
-                        match_results.append(f"{argeval}(carriage return)")
-                    else:
-                        match_results.append(f"{argeval}{child.text}")
+    all_strings = action.findall("Str")
+    for child in all_strings:
+        the_arg = child.attrib.get("sr")
+        if arg == the_arg:
+            if child.text is not None:
+                # Catch the situation in which a newline has been entered for the value (carriage return)
+                if child.text == "\n":
+                    match_results.append(f"{argeval}(carriage return)")
                 else:
-                    match_results.append("")
-                break  # We have what we want.  Go to next child
+                    match_results.append(f"{argeval}{child.text}")
+            else:
+                match_results.append("")
+            break  # We have what we want.  Go to next child
     if match_results:
         return drop_trailing_comma(match_results)[0]
     return ""

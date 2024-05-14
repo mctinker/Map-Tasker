@@ -147,7 +147,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # If user selected the "Exit" button, call it quits.
     if user_input.exit:
-        # Save our runtime settings for next time.
+        # Save the runtijme settings first.
         _, _ = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)
         # Spit out the message and log it.
         error_handler("Program exited. Goodbye.", 0)

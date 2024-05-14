@@ -26,7 +26,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "4.0.2"
+VERSION = "4.0.3"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -37,6 +37,8 @@ ARGUMENTS_FILE = "MapTasker_Settings.toml"
 FONT_FAMILY = ";font-family:"
 NO_PROFILE = "None or unnamed!"
 CHANGELOG_FILE = ".maptasker_changelog.txt"
+CHANGELOG_JSON_FILE = "maptasker_changelog.json"
+CHANGELOG_JSON_URL = "https://raw.githubusercontent.com/mctinker/Map-Tasker/Master/maptasker_changelog.json"
 KEYFILE = ".maptasker.key"
 ERROR_FILE = ".maptasker_error.txt"
 ANALYSIS_FILE = "MapTasker_Analysis.txt"
@@ -110,6 +112,7 @@ ARGUMENT_NAMES = {
     "ai_analyze": "Analyze AI",
     "ai_model": "AI Model",
     "ai_apikey": "AI Api Key",
+    "ai_prompt": "AI Prompt",
     "android_ipaddr": "Android IP Address",
     "android_file": "Android Backup File location on Android device",
     "android_port": "Android Port Number",
@@ -137,6 +140,8 @@ ARGUMENT_NAMES = {
     "single_task_name": "Single Task Name",
     "twisty": "Hide Task Details under Twisty",
     "underline": "Underline Names",
+    "window_position": "Last Window Position",
+    "ai_popup_window_position": "Last Ai Popup Window Position",
 }
 
 # Debug stuff
@@ -184,9 +189,8 @@ class FormatLine(Enum):
     add_end_span = True
     dont_add_end_span = False
 
-    """Definitions for defining the output display level."""
 
-
+"""Definitions for defining the output display level."""
 DISPLAY_DETAIL_LEVEL_summary: int = 0
 DISPLAY_DETAIL_LEVEL_anon_tasks_only: int = 1
 DISPLAY_DETAIL_LEVEL_all_tasks: int = 2
@@ -220,5 +224,5 @@ TABLE_BORDER = (
 
 NOW_TIME = datetime.now()  # noqa: DTZ005
 
-OPENAI_MODELS = ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"]
+OPENAI_MODELS = ["gpt-3.5-turbo", "gpt-4o", "gpt-4", "gpt-4-turbo"]
 LLAMA_MODELS = ["llama2", "llama3"]

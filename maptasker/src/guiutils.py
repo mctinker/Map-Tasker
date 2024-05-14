@@ -2,7 +2,6 @@
 
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # guiutil: Utilities used by GUI                                                       #
 #                                                                                      #
@@ -11,13 +10,13 @@
 # complete source code of licensed works and modifications, which include larger works #
 # using a licensed work, under the same license. Copyright and license notices must be #
 # preserved. Contributors provide an express grant of patent rights.                   #
-# #################################################################################### #
 from __future__ import annotations
 
 import contextlib
+import json
 import os
 from tkinter import TclError, font, ttk
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 import customtkinter as ctk
 from PIL import Image, ImageTk
@@ -38,6 +37,7 @@ from maptasker.src.proginit import get_data_and_output_intro
 from maptasker.src.sysconst import (
     ANALYSIS_FILE,
     CHANGELOG_FILE,
+    CHANGELOG_JSON_FILE,
     ERROR_FILE,
     KEYFILE,
     LLAMA_MODELS,
@@ -49,29 +49,39 @@ from maptasker.src.sysconst import (
 if TYPE_CHECKING:
     from datetime import datetime
 
+all_objects = "Display all Projects, Profiles, and Tasks."
+
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.0/4.0.1/4.0.2 - (Major) Change Log\n
-This version introduces Ai Analysis.\n
-## Added\n
-- Added: Ai analysis support for Profiles and Tasks: both ChatGPT (server-based) and (O)llama (local-based).  See 'Analyze' tab.\n
-- Added: Display the current file in GUI.\n
-- Added: A new 'Get Local XML' button has been added to enable the GUI to get the local XML file and validate it for analysis.\n
-- Added: Center the GUI window on the screen.\n
-- Added: A popup window will display when analysis is running in the background.\n
-## Changed\n
-- Changed: GUI color settings are now displayed in their colors on the startup of the GUI.\n
-- Changed: GUI warning messages are now displayed in orange rather than red.\n
-## Fixed\n
-- Fixed: The program gets runtime errors if the settings saved file is corrupted.\n
-- Fixed: The settings are not properly saved upon exit from the GUI.\n
-- Fixed: Removed error message 'Program canceled by user (killed GUI)' if the 'Exit' button is selected.\n
-- Fixed: If the Android file location is specified on startup and the file is found on the local drive from the previous run, then use it and don't prompt again for it.\n
-- Fixed: The XML obtained via the 'Get Local XML' button is not saved in the settings.\n
-- Fixed: A restored XML file name based on saved settings is not being displayed in the GUI.\n
-- Fixed: Properly terminate the program if the GUI window is closed.\n
-- Fixed: The GUI's 'Appearance Mode', 'Tree View' and 'Reset' buttons disappeared.\n
+Version 4.0.3 - Change Log\n
+### Added\n
+- Added: Restore the GUI window to the last-used position and size.\n
+- Added: The ability to change the prompt used for the Profile/Task analysis has been added.\n
+- Added: Going forward, if a new release is available, the GUI will provide a "What's New" button.  You will be able to see what is changing before applying the changes.\n
+- Added: Ai Analysis now supports the new OpenAI 'gpt-4o' model.\n
+- Added: Support for Tasker 6.3.8 Beta code.\n
+### Changed\n
+- Changed: Widened the GUI window slightly for better readability.\n
+- Changed: 'Specific Name' items are now available via a pulldown menu.  It is no longer necessary to enter the names through a text input box.\n
+### Fixed\n
+- Fixed: The 'Reset' button in the GUI is not resetting the analysis model.\n
+- Fixed: If 'Get Local XML' is selected in the GUI, the analyze Profile and Task list is not updated.\n
+- Fixed: The 'Specific Name' tab has the label for the 'Colors' tab in the GUI.\n
+- Fixed: Under certain situations, the GUI will use the old data even after getting a new XML file.\n
 """
+CHANGELOG_JSON = {
+    "version": "4.0.3",
+    "changes": [
+        {
+            "change": "Fixed an issue where analysis results were not being properly cleared between analyses.",
+            "type": "fixed",
+        },
+        {
+            "change": "Improved error handling for analysis failures.",
+            "type": "changed",
+        },
+    ],
+}
 default_font_size = 14
 
 # Set up for access to icons
@@ -95,9 +105,7 @@ ICON_PATH = {
 }
 
 
-# ##################################################################################
 # Make sure the single named item exists...that it is a valid name
-# ##################################################################################
 def valid_item(self, the_name: str, element_name: str, debug: bool, appearance_mode: str) -> bool:  # noqa: ANN001
     """
     Checks if an item name is valid
@@ -147,9 +155,7 @@ def valid_item(self, the_name: str, element_name: str, debug: bool, appearance_m
     return any(root_element[item]["name"] == the_name for item in root_element)
 
 
-# ##################################################################################
 # Get the XML data and setup Primeitems
-# ##################################################################################
 def get_xml(debug: bool, appearance_mode: str) -> int:
     """ "Returns the tasker root xml items from the backup xml file based on the given debug and appearance mode parameters."
     Parameters:
@@ -174,9 +180,7 @@ def get_xml(debug: bool, appearance_mode: str) -> int:
     return get_data_and_output_intro(False)
 
 
-# ##################################################################################
 # Get all monospace fonts from TKInter
-# ##################################################################################
 def get_mono_fonts() -> None:
     """
     Returns a dictionary of fixed-width fonts
@@ -194,9 +198,7 @@ def get_mono_fonts() -> None:
     return {f.name: f.actual("family") for f in fonts if f.metrics("fixed")}
 
 
-# ##################################################################################
 # Build list of all available monospace fonts
-# ##################################################################################
 def get_monospace_fonts() -> dict:
     """
     Returns monospace fonts from system fonts.
@@ -222,9 +224,7 @@ def get_monospace_fonts() -> dict:
     return font_items, res
 
 
-# ##################################################################################
 # Ping the Android evice to make sure it is reachable.
-# ##################################################################################
 def ping_android_device(self, ip_address: str, port_number: str) -> bool:  # noqa: ANN001
     # The following should return a list: [ip_address:port_number, file_location]
     """
@@ -271,9 +271,7 @@ def ping_android_device(self, ip_address: str, port_number: str) -> bool:  # noq
     return True
 
 
-# ##################################################################################
 # Clear all buttons associated with fetching the backup file from Android device
-# ##################################################################################
 def clear_android_buttons(self) -> None:  # noqa: ANN001
     """
     Clears android device configuration buttons and displays backup button
@@ -324,9 +322,7 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
     )
 
 
-# ##################################################################################
 # Compare two versions and return True if version2 is greater than version1.
-# ##################################################################################
 def is_version_greater(version1: str, version2: str) -> bool:
     """
     This function checks if version2 is greater than version1.
@@ -354,9 +350,7 @@ def is_version_greater(version1: str, version2: str) -> bool:
     return len(v2_parts) > len(v1_parts)
 
 
-# ##################################################################################
 # Checks if 24 hours have passed since the given previous date.
-# ##################################################################################
 def is_more_than_24hrs(input_datetime: datetime) -> bool:
     """Checks if the input datetime is more than 24 hours ago.
     Arguments:
@@ -372,9 +366,7 @@ def is_more_than_24hrs(input_datetime: datetime) -> bool:
     return (NOW_TIME - input_datetime).total_seconds() > twenty_four_hours
 
 
-# ##################################################################################
 # Get Pypi version and return True if it is newer than our current version.
-# ##################################################################################
 def is_new_version() -> bool:
     """
     Check if the new version is available
@@ -392,9 +384,7 @@ def is_new_version() -> bool:
     return False
 
 
-# ##################################################################################
 # List the XML files on the Android device
-# ##################################################################################
 def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tuple:
     """Get list of files from given IP address.
     Parameters:
@@ -426,18 +416,50 @@ def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tupl
     return return_code, file_contents
 
 
-# ##################################################################################
 # Write out the changelog
-# ##################################################################################
 def create_changelog() -> None:
     """Create changelog file."""
     with open(CHANGELOG_FILE, "w") as changelog_file:
         changelog_file.write(CHANGELOG)
 
 
-# ##################################################################################
+# Parse the changelog and dump it as a json file.
+def save_changelog_as_json(self) -> None:  # noqa: ANN001
+    """
+    Save the changelog from a markdown file to a JSON file.
+
+    This function reads the contents of the "changelog.md" file and parses it to create a dictionary representing the changelog. The dictionary contains the version number as the key and the changes as the value. The function then writes the dictionary to a JSON file named "changelog.json".
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
+    if os.path.isfile("changelog.md"):
+        changelog_dict = {}
+        have_first_bracket = False
+        change_count = 0
+        with open("changelog.md") as changelog:
+            lines = changelog.readlines()
+            for line in lines:
+                if "[" in line:
+                    if have_first_bracket:  # If we already have the bracket and encounter another, stop reading
+                        break
+                    have_first_bracket = True
+                    bracket_start_pos = line.find("[")
+                    bracket_end_pos = line.find("]")
+                    changelog_dict["version"] = line[bracket_start_pos + 1 : bracket_end_pos]
+                elif line != "\n" and have_first_bracket:
+                    changelog_dict[f"change{change_count!s}"] = line
+                    change_count += 1
+        with open(CHANGELOG_JSON_FILE, "w") as changelog_file:
+            json.dump(changelog_dict, changelog_file)
+
+        self.display_message_box(f"{CHANGELOG_JSON_FILE} file saved.", "Turquoise")
+
+
 # Read the change log file, add it to the messages to be displayed and then remove it.
-# ##################################################################################
 def check_for_changelog(self) -> None:  # noqa: ANN001
     """Function to check for a changelog file and add its contents to a message if the current version is correct.
     Parameters:
@@ -454,10 +476,13 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
         self.message = CHANGELOG
         os.remove(CHANGELOG_FILE)
 
+    # Write changelog out as json file if in debug mode.
+    # TODO Set debug on and rerun to create the changelog.json file
+    if self.debug:
+        save_changelog_as_json(self)
 
-# ##################################################################################
+
 # Initialize the GUI (_init_ method)
-# ##################################################################################
 def initialize_gui(self) -> None:  # noqa: ANN001
     """Initializes the GUI by initializing variables and adding a logo.
     Parameters:
@@ -471,9 +496,7 @@ def initialize_gui(self) -> None:  # noqa: ANN001
     add_logo(self)
 
 
-# ##################################################################################
 # Initialize the GUI varliables (e..g _init_ method)
-# ##################################################################################
 def initialize_variables(self) -> None:  # noqa: ANN001
     """
     Initialize variables for the MapTasker Runtime Options window.
@@ -521,6 +544,10 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.ai_model = None
     self.ai_analysis = None
     self.ai_missing_module = None
+    self.ai_prompt = None
+    self.window_position = None
+    self.ai_popup_window_position = None
+    self.all_messages = {}
 
     self.title("MapTasker Runtime Options")
 
@@ -531,10 +558,11 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     # Overall window dimensions
     self.geometry(f"1100x900+{screen_width//4}+{screen_height//6}")
 
-    # configure grid layout (4x4)
+    # configure grid layout (4x4).  A non-zero weight causes a row or column to grow if there's extra space needed.
+    # The default is a weight of zero, which means the column will not grow if there's extra space.
     self.grid_columnconfigure(1, weight=1)
     self.grid_columnconfigure((2, 3), weight=0)
-    self.grid_rowconfigure((0, 3), weight=1)
+    self.grid_rowconfigure((0, 3), weight=4)  # Divvy up the extra space needed equally amonst the 4 rows.
 
     # load and create background image
 
@@ -546,9 +574,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.sidebar_frame.grid_rowconfigure(17, weight=1)
 
 
-# ##################################################################################
 # Add the MapTasker icon to the screen
-# ##################################################################################
 def add_logo(self) -> None:  # noqa: ANN001
     """Function:
         add_logo
@@ -599,9 +625,7 @@ def add_logo(self) -> None:  # noqa: ANN001
     os.chdir(current_dir)
 
 
-# ##################################################################################
 # Create a label general routine
-# ##################################################################################
 def add_label(
     self,  # noqa: ANN001, ARG001
     frame: ctk.CTkFrame,
@@ -649,13 +673,11 @@ def add_label(
     return label_name
 
 
-# ##################################################################################
 # Create a checkbox general routine
-# ##################################################################################
 def add_checkbox(
     self,  # noqa: ANN001, ARG001
     frame: ctk.CTkFrame,
-    command: object,
+    command: Callable,
     text: str,
     row: int,
     column: int,
@@ -697,16 +719,14 @@ def add_checkbox(
     return checkbox_name
 
 
-# ##################################################################################
 # Create a button general routine
-# ##################################################################################
 def add_button(
     self,  # noqa: ANN001, ARG001
     frame: ctk.CTkFrame,
     fg_color: str,
     text_color: str,
     border_color: str,
-    command: object,
+    command: Callable,
     border_width: int,
     text: str,
     columnspan: int,
@@ -758,13 +778,11 @@ def add_button(
     return button_name
 
 
-# ##################################################################################
 # Create a button general routine
-# ##################################################################################
 def add_option_menu(
     self,  # noqa: ANN001, ARG001
     frame: ctk.CTkFrame,
-    command: object,
+    command: Callable,
     values: str | list,
     row: int,
     column: int,
@@ -800,9 +818,7 @@ def add_option_menu(
     return option_menu_name
 
 
-# ##################################################################################
 # Define all of the menu elements
-# ###################################################################################
 def initialize_screen(self) -> None:  # noqa: ANN001
     # Add grid title
     """Initializes the screen with various display options and settings.
@@ -1066,7 +1082,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "s",
     )
 
-    self.appearance_mode_optionemenu = add_option_menu(
+    self.appearance_mode_optionmenu = add_option_menu(
         self,
         self.sidebar_frame,
         self.change_appearance_mode_event,
@@ -1143,7 +1159,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     if PrimeItems.tkroot is not None:
         del PrimeItems.tkroot
         PrimeItems.tkroot = None
-    self.font_optionemenu = add_option_menu(
+    self.font_optionmenu = add_option_menu(
         self,
         self,
         self.font_event,
@@ -1154,7 +1170,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         0,
         "nw",
     )
-    self.font_optionemenu.set(res[0])
+    self.font_optionmenu.set(res[0])
 
     # Save settings button
     self.save_settings_button = add_button(
@@ -1358,39 +1374,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
 
     self.tabview.tab("Specific Name").grid_columnconfigure(0, weight=1)  # configure grid of individual tabs
     self.tabview.tab("Colors").grid_columnconfigure(0, weight=1)
-
-    # Project Name
-    self.string_input_button1 = ctk.CTkRadioButton(
-        self.tabview.tab("Specific Name"),
-        text="Project Name",
-        font=ctk.CTkFont(size=default_font_size, weight="normal"),
-        command=self.single_project_name_event,
-        fg_color="#6563ff",
-        border_color="#1bc9ff",
-    )
-    self.string_input_button1.grid(row=1, column=0, padx=20, pady=(10, 10), sticky="nsew")
-
-    # Profile Name
-    self.string_input_button2 = ctk.CTkRadioButton(
-        self.tabview.tab("Specific Name"),
-        text="Profile Name",
-        font=ctk.CTkFont(size=default_font_size, weight="normal"),
-        command=self.single_profile_name_event,
-        fg_color="#6563ff",
-        border_color="#1bc9ff",
-    )
-    self.string_input_button2.grid(row=2, column=0, padx=20, pady=(10, 10), sticky="nsew")
-
-    # Task Name
-    self.string_input_button3 = ctk.CTkRadioButton(
-        self.tabview.tab("Specific Name"),
-        text="Task Name",
-        font=ctk.CTkFont(size=default_font_size, weight="normal"),
-        command=self.single_task_name_event,
-        fg_color="#6563ff",
-        border_color="#1bc9ff",
-    )
-    self.string_input_button3.grid(row=3, column=0, padx=20, pady=(10, 10), sticky="nsew")
+    self.tabview.tab("Analyze").grid_columnconfigure(0, weight=1)
 
     # Prompt for the name
     self.name_label = add_label(
@@ -1410,7 +1394,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     # Setup to get various display colors
     self.label_tab_2 = add_label(
         self,
-        self.tabview.tab("Specific Name"),
+        self.tabview.tab("Colors"),
         "Set Various Display Colors Here:",
         "",
         0,
@@ -1421,7 +1405,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         0,
         "",
     )
-    self.colors_optionemenu = add_option_menu(
+    self.colors_optionmenu = add_option_menu(
         self,
         self.tabview.tab("Colors"),
         self.colors_event,
@@ -1469,8 +1453,8 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     )
 
     # AI Tab fields
-    # API Key
     center = 50
+    # API Key
     self.ai_apikey_button = add_button(
         self,
         self.tabview.tab("Analyze"),
@@ -1487,6 +1471,23 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         (10, 10),  # pady: tuple,
         "",
     )
+    # Change Prompt
+    self.ai_apikey_button = add_button(
+        self,
+        self.tabview.tab("Analyze"),
+        "",  # fg_color: str,
+        "",  # text_color: str,
+        "",  # border_color: str,
+        self.ai_prompt_event,  # command
+        2,  # border_width: int,
+        "Change Prompt",  # text: str,
+        1,  # columnspan: int,
+        4,  # row: int,
+        0,  # column: int,
+        center,  # padx: tuple,
+        (10, 10),  # pady: tuple,
+        "",
+    )
     # Model selection
     self.ai_model_label = add_label(
         self,
@@ -1495,27 +1496,27 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "",
         0,
         "normal",
-        4,
+        6,
         0,
         center,
-        (20, 0),
-        "s",
+        (0, 0),
+        "n",
     )
-    display_models = ["none (llama3)", *OPENAI_MODELS, *LLAMA_MODELS]  # Combine lists
+    display_models = ["None (llama3)", *OPENAI_MODELS, *LLAMA_MODELS]  # Combine lists
     self.ai_model_option = add_option_menu(
         self,
         self.tabview.tab("Analyze"),
         self.ai_model_selected_event,
         display_models,
-        5,
+        6,
         0,
         center,
-        (0, 10),
-        "n",
+        (30, 0),
+        "s",
     )
 
     # Analyize button
-    display_analyze_button(self, 10)
+    display_analyze_button(self, 13)
 
     # Readme Help button
     self.ai_help_button = add_button(
@@ -1528,25 +1529,13 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         1,  # border_width: int,
         "?",  # text: str,
         1,  # columnspan: int,
-        10,  # row: int,
+        13,  # row: int,
         0,  # column: int,
-        (190, 0),  # padx: tuple,
-        (0, 0),  # pady: tuple,
-        "",
+        (190, 0),  # padx: tuple, don't change this.
+        (10, 10),  # pady: tuple,
+        "n",
     )
     self.ai_help_button.configure(width=20)
-
-    # The commented code tests out the ctkentry field
-    # entry_answer = ""
-    # entry = ctk.CTkEntry(self.tabview.tab("Analyze"), placeholder_text="CTkEntry", textvariable=entry_answer)
-    # entry.grid(
-    #    row=11,
-    #    column=0,
-    #    columnspan=1,
-    #    padx=(0, 0),
-    #    pady=(0, 0),
-    #    sticky="n",
-    # )
 
     # Debug Mode checkbox
     self.debug_checkbox = add_checkbox(
@@ -1576,9 +1565,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     )
 
 
-# ##################################################################################
 # Display Ai 'Analyze" button
-# ##################################################################################
 def display_analyze_button(self, row: int) -> None:  # noqa: ANN001
     """
     Display the 'Analyze' button for the AI API key.
@@ -1616,21 +1603,37 @@ def display_analyze_button(self, row: int) -> None:  # noqa: ANN001
         0,  # column: int,
         50,  # padx: tuple,
         (10, 10),  # pady: tuple,
-        "",
+        "n",
     )
 
 
-# ##################################################################################
+# $ Delete existing Ai labels
+def delete_ai_labels(self) -> None:  # noqa: ANN001
+    """
+    Deletes the AI labels if they exist.
+    """
+    with contextlib.suppress(AttributeError):
+        self.ai_set_label1.destroy()
+    with contextlib.suppress(AttributeError):
+        self.ai_set_label2.destroy()
+    with contextlib.suppress(AttributeError):
+        self.ai_set_label3.destroy()
+    with contextlib.suppress(AttributeError):
+        self.ai_set_label4.destroy()
+
+
 # Display the current settings for Ai
-# ##################################################################################
-def display_ai_settings(self) -> None:  # noqa: ANN001
+def display_selected_object_labels(self) -> None:  # noqa: ANN001
     """
     Display the current settings for Ai
     """
+    # Delete previous labels since they may be longer than new labels
+    delete_ai_labels(self)
+
     # Read the api key.
     self.ai_apikey = get_api_key()
     key_to_display = "Set" if self.ai_apikey else "Unset"
-    model_to_display = self.ai_model if self.ai_model else "none (llama3)"
+    model_to_display = self.ai_model if self.ai_model else "None (llama3)"
     self.ai_set_label1 = add_label(
         self,
         self.tabview.tab("Analyze"),
@@ -1638,39 +1641,25 @@ def display_ai_settings(self) -> None:  # noqa: ANN001
         "",
         0,
         "normal",
-        12,
+        14,
         0,
         10,
-        (20, 0),
-        "w",
+        (0, 20),
+        "nw",
     )
 
-    # Note: Nothing beyond this point will appear in the grid.  Row 12 is the max.
-    # self.ai_set_label2 = add_label(
-    #    self,
-    #    self.tabview.tab("Analyze"),
-    #    f"Model: {model_to_display}",
-    #    "",
-    #    0,
-    #    "normal",
-    #    13,
-    #    0,
-    #    10,
-    #    (20, 0),
-    #    "w",
-    # )
     profile_to_display = self.single_profile_name if self.single_profile_name else "Undefined"
     task_to_display = self.single_task_name if self.single_task_name else "Undefined"
     self.ai_model_option.set(model_to_display)  # Set the current model in the pulldown.
 
     # The label should have been destroyed, but isn't due to tk bug.  So we have to blank fill if necessary.
-    profile_length = len(profile_to_display)
-    fill = 16
-    if profile_length < fill:
-        profile_to_display = profile_to_display.ljust(fill - profile_length, " ")
+    # profile_length = len(profile_to_display)
+    # fill = 16
+    # if profile_length < fill:
+    #    profile_to_display = profile_to_display.ljust(fill - profile_length, " ")
 
     # Display the Profile to analyze
-    self.ai_set_label3 = add_label(
+    self.ai_set_label2 = add_label(
         self,
         self.tabview.tab("Analyze"),
         f"Profile to Analyze: {profile_to_display}",
@@ -1680,8 +1669,8 @@ def display_ai_settings(self) -> None:  # noqa: ANN001
         14,
         0,
         10,
-        (20, 0),
-        "w",
+        (30, 0),
+        "sw",
     )
     # Display the Task to analyze
     self.ai_set_label3 = add_label(
@@ -1694,14 +1683,79 @@ def display_ai_settings(self) -> None:  # noqa: ANN001
         15,
         0,
         10,
-        (20, 0),
+        (0, 25),
+        "nw",
+    )
+    # Display the Prompt..only first 25 chars.
+    maxlen = 25
+    display_prompt = self.ai_prompt[:maxlen] + "..." if len(self.ai_prompt) > maxlen else self.ai_prompt
+    self.ai_set_label4 = add_label(
+        self,
+        self.tabview.tab("Analyze"),
+        f"Prompt: '{display_prompt}'",
+        "",
+        0,
+        "normal",
+        15,
+        0,
+        10,
+        (10, 0),
+        "sw",
+    )
+
+    # Display the label on 'Specific Name' tab.
+    # First time through, self.specific_name_msg = ''
+    name_to_display = self.specific_name_msg if self.specific_name_msg else all_objects
+
+    self.single_label = add_label(
+        self,
+        self.tabview.tab("Specific Name"),
+        name_to_display,
+        ("#0BF075", "#3f99ff"),
+        0,
+        "normal",
+        10,
+        0,
+        20,
+        (10, 10),
         "w",
     )
 
 
-# ##################################################################################
+# Update the Project/Profile/Task pulldown option menus.
+def update_tasker_object_menus(self, get_data: bool) -> None:  # noqa: ANN001
+    """
+    args:
+        get_data: bool = True if we should get the xml data tree and build the pulldown menus.
+    Updates the tasker object menus based on the current conditions.
+
+    This function determines the values to be displayed in the option menus for the tasker objects. The values are determined based on the following conditions:
+
+    - If a single project name is available, the project option menu is set to the project name, and the profile and task option menus are set to their default values.
+    - If a single profile name is available, the profile option menu is set to the profile name, and the project and task option menus are set to their default values.
+    - If a single task name is available and the list of tasker objects is not empty, the task option menu is set to the task name, and the project and profile option menus are set to their default values.
+    - If none of the above conditions are met, all option menus are set to their default values.
+
+    Parameters:
+        self (object): The current instance of the class.
+
+    Returns:
+        None: This function does not return anything.
+    """
+    # Get data tree, list and set the Project/Profile/Task list in 'Specific Name' and 'Analyze' tab.
+    # Only do this if we have the object name since it forces a read of XML.
+    if get_data:
+        _ = list_tasker_objects(self)
+
+    # Determine values based on conditions
+    # Update the Project/Profile/Task pulldown option menus.
+    set_tasker_object_names(self)
+
+    # Update the text labels
+    display_selected_object_labels(self)
+
+
 # Get the Ai api key
-# ##################################################################################
 def get_api_key() -> str:
     """
     Retrieves the API key from the specified file.
@@ -1719,9 +1773,7 @@ def get_api_key() -> str:
         return "None"
 
 
-# ##################################################################################
 # Either validate the file location provided or provide a filelist of XML files
-# ##################################################################################
 def validate_or_filelist_xml(
     self,  # noqa: ANN001
     android_ipaddr: str,
@@ -1802,12 +1854,157 @@ def validate_or_filelist_xml(
     return 0, android_ipaddr, android_port, android_file
 
 
-# ##################################################################################
-# Provide a pulldown list for the selection of a Profile name
-# ##################################################################################
-def list_profiles_and_tasks(self) -> bool:  # noqa: ANN001
+# Add pulldown menus for the Projects/Profiles/Tasks for selection
+def display_object_pulldowns(
+    self,  # noqa: ANN001
+    frame: ctk.CTkFrame,
+    row: int,
+    projects_to_display: list,
+    profiles_to_display: list,
+    tasks_to_display: list,
+    project_name_event: Callable,
+    profile_name_event: Callable,
+    task_name_event: Callable,
+) -> None:
     """
-    Lists the profiles and tasks available in the XML file.  The list for each will appear in a pulldown option list.
+    Displays the pulldown menus for selecting profiles and tasks.
+
+    Parameters:
+        frame (ctk.CTkFrame): The frame to display the pulldown menus in.
+        row (int): The row number to start displaying the pulldown menus.
+        projects_to_display (list): The list of projects to display in the projects pulldown menu.
+        profiles_to_display (list): The list of profiles to display in the profiles pulldown menu.
+        tasks_to_display (list): The list of tasks to display in the tasks pulldown menu.
+        project_name_event (object): The event to trigger when a project is selected.
+        profile_name_event (object): The event to trigger when a profile is selected.
+        task_name_event (object): The event to trigger when a task is selected.
+
+    Returns:
+        None
+    """
+    # Display all of the Projects for selection.
+    if projects_to_display:
+        profile_row = row + 2
+        task_row = row + 4
+        self.project_label = add_label(
+            self,
+            frame,
+            "Select Project to process:",
+            "",
+            0,
+            "normal",
+            row,  # row + 3,
+            0,
+            20,
+            (20, 0),
+            "s",
+        )
+        # Get the profile desired
+        self.specific_project_optionmenu = add_option_menu(
+            self,
+            frame,
+            project_name_event,
+            projects_to_display,
+            row + 1,  # row + 4,
+            0,
+            20,
+            (0, 10),
+            "n",
+        )
+
+    # Just doing Profile and Task pulldown
+    else:
+        profile_row = row
+        task_row = row + 2
+
+    # Display all of the Profiles for selection.
+    self.profile_label = add_label(
+        self,
+        frame,
+        "Select Profile to process:",
+        "",
+        0,
+        "normal",
+        profile_row,
+        0,
+        20,
+        (20, 0),
+        "s",
+    )
+    # Get the profile desired
+    profile_option = add_option_menu(
+        self,
+        frame,
+        profile_name_event,
+        profiles_to_display,
+        profile_row + 1,
+        0,
+        20,
+        (0, 10),
+        "n",
+    )
+
+    # Display all of the Tasks for selection.
+    self.task_label = add_label(
+        self,
+        frame,
+        "Select Task to process:",
+        "",
+        0,
+        "normal",
+        task_row,
+        0,
+        20,
+        (0, 0),
+        "n",
+    )
+    # Get the project desired
+    task_option = add_option_menu(
+        self,
+        frame,
+        task_name_event,
+        tasks_to_display,
+        task_row,
+        0,
+        20,
+        (30, 0),
+        "s",
+    )
+    return profile_option, task_option
+
+
+# Delete old pulldown menus since the older selected items could be longer than the new,
+# and both will appear.
+def delete_old_pulldown_menus(self) -> None:  # noqa: ANN001
+    """
+    Deletes the old pulldown menus.
+
+    This function deletes the old pulldown menus that were created in the GUI. It checks if each menu exists and then destroys it.
+
+    Parameters:
+        self (object): The current instance of the class.
+
+    Returns:
+        None
+    """
+    with contextlib.suppress(AttributeError):
+        self.specific_project_optionmenu.destroy()
+    with contextlib.suppress(AttributeError):
+        self.specific_profile_optionmenu.destroy()
+    with contextlib.suppress(AttributeError):
+        self.specific_task_optionmenu.destroy()
+    with contextlib.suppress(AttributeError):
+        self.ai_profile_optionmenu.destroy()
+    with contextlib.suppress(AttributeError):
+        self.ai_task_optionmenu.destroy()
+    with contextlib.suppress(AttributeError):
+        self.single_label.destroy()
+
+
+# Provide a pulldown list for the selection of a Profile name
+def list_tasker_objects(self) -> bool:  # noqa: ANN001
+    """
+    Lists the projects, profiles and tasks available in the XML file.  The list for each will appear in a pulldown option list.
 
     This function checks if the XML file has already been loaded. If not, it loads the XML file and builds the tree data.
     Then, it goes through each project and retrieves all the profile names and tasks.
@@ -1819,13 +2016,20 @@ def list_profiles_and_tasks(self) -> bool:  # noqa: ANN001
     Returns:
         bool: True if the XML file has Profiles or Tasks, False otherwise.
     """
+
     # Do we already have the XML?
     # If we don't have any data, get it.
     if not self.load_xml():
         return False
-
+    # Intialize lists
+    projects = []
     profiles = []
     tasks = []
+
+    # Get rid of previous data
+    delete_old_pulldown_menus(self)
+    # with contextlib.suppress(AttributeError):
+    #    self.ai_profile_optionmenu.destroy()
 
     # Ok, we have our root Tasker elements.  Build the tree.
     tree_data = self.build_the_tree()
@@ -1836,13 +2040,11 @@ def list_profiles_and_tasks(self) -> bool:  # noqa: ANN001
         if PrimeItems.tasker_root_elements["all_tasks"]:
             tasks = [value["name"] for value in PrimeItems.tasker_root_elements["all_tasks"].values()]
 
-        # self.display_message_box("No Projects found in XML file.  Load another XML file with at least one Project and try again.", "Red")
-        # return False
-
     # We have a treeBuild our list of Profiles and Tasks in the Projects.
     else:
         # Go through the Projects and get all of the Profile names.
         for project in tree_data:
+            projects.append(project["name"])
             for profile in project["children"]:
                 with contextlib.suppress(TypeError):
                     profiles.append(profile["name"])
@@ -1854,10 +2056,17 @@ def list_profiles_and_tasks(self) -> bool:  # noqa: ANN001
     if not profiles_to_display:
         profiles_to_display = ["No profiles found"]
         have_profiles = False
-    tasks_to_display = [task for task in tasks if task != "Task: Unnamed/Anonymous."]
+    tasks_to_display = [task for task in tasks if task not in ["Task: Unnamed/Anonymous.", ""]]
+    # Cleanup Tasks
     if not tasks_to_display:
         tasks_to_display = ["No tasks found"]
         have_tasks = False
+    else:
+        # Remove dups from Tasks and sort them
+        tasks_to_display = list(set(tasks_to_display))
+        tasks_to_display = sorted(tasks_to_display)
+        # tasks_to_display.insert(0, "None")
+    # Cleanup Profiles
     if not have_profiles and not have_tasks:
         self.display_message_box(
             "No profiles or tasks found in XML file.  Using the 'Get Local Xml button, load another XML file and try again.",
@@ -1866,74 +2075,43 @@ def list_profiles_and_tasks(self) -> bool:  # noqa: ANN001
         return False
 
     # Make alphabetical
+    if projects:
+        projects = sorted(projects)
     profiles_to_display = sorted(profiles_to_display)
-    profiles_to_display.insert(0, "None")
+    # profiles_to_display.insert(0, "None")
 
-    # Remove dups from Tasks and sort them
-    tasks_to_display = list(set(tasks_to_display))
-    tasks_to_display = sorted(tasks_to_display)
-    tasks_to_display.insert(0, "None")
-
-    # Display all of the Profiles for selection.
-    self.ai_profile_label = add_label(
+    # Display the object pulldowns in 'Analyze' tab
+    self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
         self,
         self.tabview.tab("Analyze"),
-        "Select Profile to Analyze:",
-        "",
-        0,
-        "normal",
-        6,
-        0,
-        20,
-        (20, 0),
-        "s",
-    )
-    # Get the project desired
-    self.profile_optionemenu = add_option_menu(
-        self,
-        self.tabview.tab("Analyze"),
-        self.ai_profile_selected_event,
-        profiles_to_display,
-        7,
-        0,
-        20,
-        (0, 10),
-        "n",
-    )
-
-    # Display all of the Tasks for selection.
-    self.ai_task_label = add_label(
-        self,
-        self.tabview.tab("Analyze"),
-        "Select Task to Analyze:",
-        "",
-        0,
-        "normal",
         8,
-        0,
-        20,
-        (20, 0),
-        "s",
-    )
-    # Get the project desired
-    self.task_optionemenu = add_option_menu(
-        self,
-        self.tabview.tab("Analyze"),
-        self.ai_task_selected_event,
+        [],
+        profiles_to_display,
         tasks_to_display,
-        9,
-        0,
-        20,
-        (0, 10),
-        "n",
+        None,
+        self.single_profile_name_event,
+        self.single_task_name_event,
+    )
+
+    # Display the object pulldowns in 'Specific Name' tab
+    if not projects:  # If no Projects to display
+        projects = ["None"]
+    self.specific_profile_optionmenu, self.specific_task_optionmenu = display_object_pulldowns(
+        self,
+        self.tabview.tab("Specific Name"),
+        5,
+        projects,
+        profiles_to_display,
+        tasks_to_display,
+        self.single_project_name_event,
+        self.single_profile_name_event,
+        self.single_task_name_event,
     )
 
     return True
 
 
-# ##################################################################################
 # Build a list of Profiles that are under the given project
-# ##################################################################################
 def build_profiles(root: dict, profile_ids: list) -> list:
     """Parameters:
         - root (dict): Dictionary containing all profiles and their tasks.
@@ -1980,9 +2158,7 @@ def build_profiles(root: dict, profile_ids: list) -> list:
     return profile_list
 
 
-# ##################################################################################
 # Display startup messages which are a carryover from the last run.
-# ##################################################################################
 def display_messages_from_last_run(self) -> None:  # noqa: ANN001
     """
     Displays messages from the last run.
@@ -2035,9 +2211,7 @@ def display_messages_from_last_run(self) -> None:  # noqa: ANN001
         self.display_message_box(f"{PrimeItems.error_msg} with return code {PrimeItems.error_code}.", "Red")
 
 
-# ##################################################################################
 # Display the current file as a label
-# ##################################################################################
 def display_current_file(self, file_name: str) -> None:  # noqa: ANN001
     """
     Display the current file name in a button on the GUI.
@@ -2081,9 +2255,106 @@ def display_current_file(self, file_name: str) -> None:  # noqa: ANN001
     )
 
 
-# ##################################################################################
+# Set up error message for single Project/Profile/Task name that was entered.  Called by check_name in userintr.
+def setup_name_error(object1_name: str, object2_name: str, single_name1: str, single_name2: str) -> None:
+    """
+    Set up an error message for when both a Project and a Profile name are entered.
+
+    Args:
+        object1_name (str): The name of the first object (Project).
+        object2_name (str): The name of the second object (Profile).
+        single_name1 (str): The name of the Project.
+        single_name2 (str): The name of the Profile.
+
+    Returns:
+        None: This function does not return anything.
+    """
+    return [
+        "Error:\n\n",
+        f"You have entered both a {object1_name} and a {object2_name} name!\n",
+        f"(Project {single_name1} and Profile {single_name2})\n",
+        "Try again and only select one.\n",
+    ]
+
+
+# Set the current Project/Profile/Task names in the pulldown menus
+def set_tasker_object_names(self) -> None:  # noqa: ANN001
+    """
+    Sets the names to display in the pulldown menus based on the current tasker object names.
+
+    This function determines the values to be displayed in the option menus for the tasker objects. The values are determined based on the following conditions:
+
+    - If a single project name is available, the project option menu is set to the project name, and the profile and task option menus are set to their default values.
+    - If a single profile name is available, the profile option menu is set to the profile name, and the project and task option menus are set to their default values.
+    - If a single task name is available and the list of tasker objects is not empty, the task option menu is set to the task name, and the project and profile option menus are set to their default values.
+    - If none of the above conditions are met, all option menus are set to their default values.
+
+    Parameters:
+    - self (object): The current instance of the class.
+
+    Returns:
+    - None: This function does not return anything.
+    """
+    # Define defaults
+    default_project = "None"
+    default_profile = "None"
+    default_task = "None"
+
+    # Determine values based on conditions
+    # Update the Project/Profile/Task pulldown option menus.
+    if self.single_project_name:
+        project_to_display = self.single_project_name
+        self.specific_project_optionmenu.set(project_to_display)
+        self.specific_profile_optionmenu.set(default_profile)
+        self.ai_profile_optionmenu.set(default_profile)
+        self.specific_task_optionmenu.set(default_task)
+        self.ai_task_optionmenu.set(default_task)
+    elif self.single_profile_name:
+        profile_to_display = self.single_profile_name
+        self.specific_profile_optionmenu.set(profile_to_display)
+        self.ai_profile_optionmenu.set(profile_to_display)
+        self.specific_project_optionmenu.set(default_project)
+        self.specific_task_optionmenu.set(default_task)
+        self.ai_task_optionmenu.set(default_task)
+    elif self.single_task_name:
+        task_to_display = self.single_task_name
+        self.specific_task_optionmenu.set(task_to_display)
+        self.ai_task_optionmenu.set(task_to_display)
+        self.specific_project_optionmenu.set(default_project)
+        self.specific_profile_optionmenu.set(default_profile)
+        self.ai_profile_optionmenu.set(default_profile)
+    else:
+        # Set defaults for all option menus
+        self.specific_project_optionmenu.set(default_project)
+        self.specific_profile_optionmenu.set(default_profile)
+        self.ai_profile_optionmenu.set(default_profile)
+        self.specific_task_optionmenu.set(default_task)
+        self.ai_task_optionmenu.set(default_task)
+
+
+# Clear all Tasker XML data from memory so we start anew.
+def clear_tasker_data() -> None:
+    """
+    Clears all the tasker data stored in the PrimeItems class.
+
+    This function clears the tasker data by clearing the following lists:
+    - all_projects: a list of all the projects
+    - all_profiles: a list of all the profiles
+    - all_tasks: a list of all the tasks
+    - all_scenes: a list of all the scenes
+
+    This function does not take any parameters.
+
+    This function does not return anything.
+    """
+    # Get rid of any data we currently have
+    PrimeItems.tasker_root_elements["all_projects"].clear()
+    PrimeItems.tasker_root_elements["all_profiles"].clear()
+    PrimeItems.tasker_root_elements["all_tasks"].clear()
+    PrimeItems.tasker_root_elements["all_scenes"].clear()
+
+
 # Display a tree structure
-# ##################################################################################
 class CTkTreeview(ctk.CTkFrame):
     """Class to handle the Treeview
 
@@ -2225,9 +2496,7 @@ Click item and scroll mouse-wheel/trackpad\nas needed to go up or down.
         # Add items to the tree
         self.insert_items(self.items)
 
-    # ##################################################################################
     # Inset items into the treeview.
-    # ##################################################################################
     def insert_items(self, items: list, parent="") -> None:  # noqa: ANN001
         """Inserts items into a treeview.
         Parameters:
@@ -2248,9 +2517,7 @@ Click item and scroll mouse-wheel/trackpad\nas needed to go up or down.
                 self.treeview.insert(parent, "end", text=item)
 
 
-# ##################################################################################
 # Define the Treeview window
-# ##################################################################################
 class TreeviewWindow(ctk.CTkToplevel):
     """Define our top level window for the tree view."""
 
@@ -2271,9 +2538,7 @@ class TreeviewWindow(ctk.CTkToplevel):
         self.title("MapTasker Configuration Treeview")
 
 
-# ##################################################################################
 # Display a Analysis structure
-# ##################################################################################
 class CTkAnalysisview(ctk.CTkFrame):
     """Class to handle the Treeview
 
@@ -2332,9 +2597,7 @@ class CTkAnalysisview(ctk.CTkFrame):
         self.analysis_textbox.focus_set()
 
 
-# ##################################################################################
 # Define the Ai Analysis window
-# ##################################################################################
 class AnalysisWindow(ctk.CTkToplevel):
     """Define our top level window for the analysis view."""
 
@@ -2355,9 +2618,7 @@ class AnalysisWindow(ctk.CTkToplevel):
         self.title("MapTasker Analysis Response")
 
 
-# ##################################################################################
 # Define the Ai Popup window
-# ##################################################################################
 class PopupWindow(ctk.CTk):
     """Define our top level window for the Popup view."""
 
@@ -2379,17 +2640,21 @@ class PopupWindow(ctk.CTk):
         screen_height = self.winfo_screenheight()
 
         # Center the widget
-        self.geometry(f"500x50+{screen_width//3}+{screen_height//10}")
-        self.title("MapTasker Analysis")
+        try:
+            self.geometry(self.ai_popup_window_position)
+            print("guiutils window restored")
+        except AttributeError:
+            self.geometry(f"500x50+{screen_width//3}+{screen_height//10}")
+            self.title("MapTasker Analysis")
 
         self.grid_columnconfigure(0, weight=1)
 
-        # Issue command aftr 5 seconds
-        self.after(5000, self.popup_button_event)
+        # Set popup window wait time to .5 seconds, after which popup_button_event will be called.
+        self.after(500, self.popup_button_event)
 
         # Label widget
         our_label = "Analysis is running in the background.  Please stand by..."
-        self.Popup_label = ctk.CTkLabel(master=self, text=our_label, font=("", 12))
+        self.Popup_label = ctk.CTkLabel(master=self, text=our_label, font=("", 12), text_color="turquoise")
         self.Popup_label.grid(row=0, column=0, padx=0, pady=10, sticky="n")
 
         # Basic appearance for text, foreground and background.
@@ -2405,24 +2670,14 @@ class PopupWindow(ctk.CTk):
         self.Popup_style = ttk.Style(self)
         self.Popup_style.theme_use("default")
 
-        ## Recreate text box
-        # self.popup_button = ctk.CTkButton(
-        #    master=self,
-        #    width=120,
-        #    height=32,
-        #    border_width=0,
-        #    corner_radius=8,
-        #    text="Click to close this window",
-        #    command=self.popup_button_event,
-        # )
-        # self.popup_button.place(relx=0.5, rely=0.5)
-        # self.popup_button.focus_set()
-
+    # The "after" n second timer tripped from popup window.  Close the window.
+    # Note: rungui will have already completely run by this time.
     def popup_button_event(self) -> None:
         """
         Define the behavior of the popup button event function.  Close the window and exit.
         """
         PrimeItems.loop_active = False
+        self.ai_popup_window_position = self.winfo_geometry()
         self.exit = True
         self.quit()
         self.quit()

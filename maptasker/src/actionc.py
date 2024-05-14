@@ -2581,6 +2581,7 @@ action_codes = {
     "450t": ActionCode(0, "", [], [], "APN Droid", [], []),
     "451e": ActionCode(1, "", ["0"], ["Str"], "Package Removed", ["0"], ["Package="]),
     "451t": ActionCode(1, "", ["0"], ["Int"], "Music Skip", ["0"], ["Jump="]),
+    "452t": ActionCode(0, "", [], [], "Show Running Tasks", [], []),
     "453e": ActionCode(
         2,
         "",
@@ -2591,6 +2592,7 @@ action_codes = {
         ["Name=", ", Package="],
     ),
     "453t": ActionCode(1, "", ["0"], ["Int"], "Music Back", ["0"], ["Jump="]),
+    "454t": ActionCode(0, "", [], [], "Show Active Profiles", [], []),
     "455t": ActionCode(
         5,
         "",
@@ -2600,10 +2602,19 @@ action_codes = {
         ["0", "1", "2", "3"],
         ["File=", [", Source=", "l", "455"], ", MaxSize=", [", Format=", "l", "455a"]],
     ),
-    "456t": ActionCode(0, "", [], [], "JD APN", [], []),
+    "456t": ActionCode(0, "", ["0", "1", "2", "3", "4"], [], "JD APN", [], []),
     "457t": ActionCode(0, "", [], [], "Default Ringtone", [], []),
     "458t": ActionCode(0, "", [], [], "WidgetLocker", [], []),
     "459t": ActionCode(1, "", ["0"], ["Str"], "Scan Media", ["0"], ["File="]),
+    "460t": ActionCode(
+        4,
+        "",
+        ["0", "1", "2", "3"],
+        ["Bundle", "Int", "Int", "Int"],
+        "Set Device Effects",
+        ["1", "2", "3"],
+        [["", "e", ", 'Grayscale' On"], ["", "e", ", 'Wallpaper' On"], ["", "e", ", 'Disable Always On Display' On"]],
+    ),
     "460e": ActionCode(0, "", [], [], "Wallpaper Changed", [], []),
     "461e": ActionCode(
         8,

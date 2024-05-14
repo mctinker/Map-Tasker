@@ -13,7 +13,9 @@
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # #################################################################################### #
+import contextlib
 import importlib.util
+import os
 import sys
 
 import cria
@@ -21,9 +23,9 @@ from openai import OpenAI, OpenAIError
 
 from maptasker.src.config import AI_PROMPT
 from maptasker.src.error import error_handler
-from maptasker.src.guiutils import PopupWindow
+from maptasker.src.guiutils import PopupWindow, get_api_key
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import ANALYSIS_FILE, ERROR_FILE, OPENAI_MODELS
+from maptasker.src.sysconst import ANALYSIS_FILE, ERROR_FILE, KEYFILE, OPENAI_MODELS
 
 
 # ##################################################################################
@@ -106,7 +108,7 @@ def local_ai(query: str, ai_object: str) -> None:
         return
 
     # Fix the model name
-    if PrimeItems.program_arguments["ai_model"] == "none (llama3)":
+    if PrimeItems.program_arguments["ai_model"] == "None (llama3)":
         PrimeItems.program_arguments["ai_model"] = "llama3"
 
     # Open the model and get the response
@@ -173,11 +175,14 @@ def server_openai(query: str, ai_object: str) -> None:
         error_handler("Module 'cria' not found.  Please install the 'cria' module and Ollama.", 12)
         return
 
+    # Get the api key
+    if PrimeItems.program_arguments["ai_apikey"] == "Hidden" and os.path.isfile(KEYFILE):
+        apikey = get_api_key  # Get the key from the file
+    else:
+        apikey = PrimeItems.program_arguments["ai_apikey"]
+
     # Set up the OpenAI client and send the query
-    client = OpenAI(
-        # This is the default and can be omitted
-        api_key=PrimeItems.program_arguments["ai_apikey"],
-    )
+    client = OpenAI(api_key=apikey)
 
     try:
         stream_feed = client.chat.completions.create(
@@ -242,12 +247,16 @@ def map_ai() -> None:
 
     Does the setup for the query by concatenating the lines in PrimeItems.ai["output_lines"].
     """
-    # Display a popup telling user we are analyzing
+    # Display a popup window telling user we are analyzing
     popup = PopupWindow()
     popup.mainloop()
 
     # Clean up the output list since it has all the front matter and we only need the object (Project/Profile/Task)
     temp_output = cleanup_output()
+
+    # Save the ai popup window position
+    with contextlib.suppress(AttributeError):
+        PrimeItems.program_arguments["ai_popup_window_position"] = popup.ai_popup_window_position
 
     # Setup the query
     if PrimeItems.program_arguments["single_project_name"]:
@@ -261,7 +270,10 @@ def map_ai() -> None:
         item = PrimeItems.program_arguments["single_task_name"]
 
     # Put the query together
-    query = f"Given the following {ai_object} in Tasker, {AI_PROMPT}"
+    prompt = PrimeItems.program_arguments["ai_prompt"] if PrimeItems.program_arguments["ai_prompt"] else AI_PROMPT
+    if not prompt.endswith(":"):
+        prompt = f"{prompt}:"
+    query = f"Given the following {ai_object} in Tasker, {prompt}"
     for line in temp_output:
         query += f"{line}\n"
 
