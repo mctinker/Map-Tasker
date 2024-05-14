@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0.3/4.0.4] 14-May-2024
+## [4.0.3/4.0.4/4.0.5] 14-May-2024
 
 ### Added
 
@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file!
 
 - Changed: Widened the GUI window slightly for better readability.
 - Changed: 'Specific Name' items are now available via a pulldown menu.  It is no longer necessary to enter the names through a text input box.
+- Changed: The settings file now sorts the colors to use by name.
 
 ### Fixed
 
@@ -24,6 +25,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: The 'Specific Name' tab has the label for the 'Colors' tab in the GUI.
 - Fixed: Under certain situations, the GUI will use the old data even after getting a new XML file.
 - Fixed: Occasion program abnormal termination when selecting a specific Project or Profile that has a Scene.
+- Fixed: The program occasionally terminates abnormally when trying to save the settings file.
 
 ## Older History Logs
 
