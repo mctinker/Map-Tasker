@@ -53,7 +53,7 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.0.3/4.0.4 - Change Log\n
+Version 4.0.3/4.0.4/4.0.5 - Change Log\n
 ### Added\n
 - Added: Restore the GUI window to the last-used position and size.\n
 - Added: The ability to change the prompt used for the Profile/Task analysis has been added.\n
@@ -63,12 +63,15 @@ Version 4.0.3/4.0.4 - Change Log\n
 ### Changed\n
 - Changed: Widened the GUI window slightly for better readability.\n
 - Changed: 'Specific Name' items are now available via a pulldown menu.  It is no longer necessary to enter the names through a text input box.\n
+- Changed: The settings file now sorts the colors to use by name.\n
 ### Fixed\n
 - Fixed: The 'Reset' button in the GUI is not resetting the analysis model.\n
 - Fixed: If 'Get Local XML' is selected in the GUI, the analyze Profile and Task list is not updated.\n
 - Fixed: The 'Specific Name' tab has the label for the 'Colors' tab in the GUI.\n
 - Fixed: Under certain situations, the GUI will use the old data even after getting a new XML file.\n
 - Fixed: Occasion program abnormal termination when selecting a specific Project or Profile that has a Scene.\n
+that has a Scene.
+- Fixed: The program occasionally terminates abnormally when trying to save the settings file.\n
 """
 CHANGELOG_JSON = {
     "version": "4.0.3",

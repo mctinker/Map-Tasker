@@ -28,7 +28,7 @@ from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import ARGUMENTS_FILE, NOW_TIME, OLD_ARGUMENTS_FILE
+from maptasker.src.sysconst import ARGUMENTS_FILE, NOW_TIME, OLD_ARGUMENTS_FILE, logger
 
 twenty_four_hours_ago = NOW_TIME - timedelta(hours=25)
 
@@ -110,7 +110,11 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     # Write out the program arguments in TOML format.  Open in binary append format (ab).
     with open(new_file, "ab") as settings_file:
         settings["program_arguments"] = dict(sorted(program_arguments.items()))  # Sort the program args first.
-        tomli_w.dump(settings, settings_file)
+        settings["colors_to_use"] = dict(sorted(colors_to_use.items()))  # Sort the colors first.
+        try:
+            tomli_w.dump(settings, settings_file)
+        except TypeError as e:
+            logger.debug(f"getputer tomli failure: {e}")
         settings_file.close()
 
 
