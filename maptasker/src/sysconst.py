@@ -26,7 +26,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "4.0.5"
+VERSION = "4.0.6"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -142,6 +142,7 @@ ARGUMENT_NAMES = {
     "underline": "Underline Names",
     "window_position": "Last Window Position",
     "ai_popup_window_position": "Last Ai Popup Window Position",
+    "ai_analysis_window_position": "Last Ai Analysis Window Position",  # Last-used ai analysis window position
 }
 
 # Debug stuff

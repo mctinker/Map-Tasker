@@ -53,25 +53,17 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.0.3/4.0.4/4.0.5 - Change Log\n
+Version 4.0.6 - Change Log\n
 ### Added\n
-- Added: Restore the GUI window to the last-used position and size.\n
-- Added: The ability to change the prompt used for the Profile/Task analysis has been added.\n
-- Added: Going forward, if a new release is available, the GUI will provide a "What's New" button.  You will be able to see what is changing before applying the changes.\n
-- Added: Ai Analysis now supports the new OpenAI 'gpt-4o' model.\n
-- Added: Support for Tasker 6.3.8 Beta code.\n
+- Added: Save and restore the Analysis Response window.\n
+- Added: GUI messages with "True/False/On/Off" settings now display in appropriate colors.\n
 ### Changed\n
-- Changed: Widened the GUI window slightly for better readability.\n
-- Changed: 'Specific Name' items are now available via a pulldown menu.  It is no longer necessary to enter the names through a text input box.\n
-- Changed: The settings file now sorts the colors to use by name.\n
+- Changed: The 'List XML Files' button color is now the same as the 'Click Here to Set XML Details' button.\n
+- Changed: Position the 'Analysis is running...' message over the GUI window.\n
 ### Fixed\n
-- Fixed: The 'Reset' button in the GUI is not resetting the analysis model.\n
-- Fixed: If 'Get Local XML' is selected in the GUI, the analyze Profile and Task list is not updated.\n
-- Fixed: The 'Specific Name' tab has the label for the 'Colors' tab in the GUI.\n
-- Fixed: Under certain situations, the GUI will use the old data even after getting a new XML file.\n
-- Fixed: Occasion program abnormal termination when selecting a specific Project or Profile that has a Scene.\n
-that has a Scene.
-- Fixed: The program occasionally terminates abnormally when trying to save the settings file.\n
+- Fixed: Corrected the alignment of the GUI buttons for getting the XML from the Android device.\n
+- Fixed: The GUI startup time is improved slightly.\n
+- Fixed: The 'Report Issue' button is missing.\n
 """
 CHANGELOG_JSON = {
     "version": "4.0.3",
@@ -481,7 +473,7 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
         os.remove(CHANGELOG_FILE)
 
     # Write changelog out as json file if in debug mode.
-    # TODO Set debug on and rerun to create the changelog.json file
+    # TODO Set debug on and rerun to create the 'maptasker_changelog.json' file
     if self.debug:
         save_changelog_as_json(self)
 
@@ -554,13 +546,6 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.all_messages = {}
 
     self.title("MapTasker Runtime Options")
-
-    # Get the screen size
-    screen_width = self.winfo_screenwidth()
-    screen_height = self.winfo_screenheight()
-
-    # Overall window dimensions
-    self.geometry(f"1100x900+{screen_width//4}+{screen_height//6}")
 
     # configure grid layout (4x4).  A non-zero weight causes a row or column to grow if there's extra space needed.
     # The default is a weight of zero, which means the column will not grow if there's extra space.
@@ -870,7 +855,6 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         (10, 10),
         "",
     )
-
     # Display 'Everything' checkbox
     self.everything_checkbox = add_checkbox(
         self,
@@ -1362,10 +1346,8 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "ne",
     )
 
-    # Create textbox for Help information
-    self.textbox = ctk.CTkTextbox(self, height=600, width=250)
-    self.textbox.configure(scrollbar_button_color="#6563ff", wrap="word")
-    self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
+    # Create textbox for information/feedback
+    self.create_new_textbox()
 
     # Start third grid / column definitions
     # create tabview for Name, Color, and Debug
@@ -2025,15 +2007,63 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     # If we don't have any data, get it.
     if not self.load_xml():
         return False
+
+    # Get rid of previous data
+    delete_old_pulldown_menus(self)
+
+    # Get all of the Tasker objects: Projects/Profiles/Tasks/Scenes
+    return_code, projects_to_display, profiles_to_display, tasks_to_display = get_tasker_objects(self)
+    if not return_code:
+        return False
+
+    # Make alphabetical
+    if projects_to_display:
+        projects_to_display = sorted(projects_to_display)
+    profiles_to_display = sorted(profiles_to_display)
+    # profiles_to_display.insert(0, "None")
+
+    # Display the object pulldowns in 'Analyze' tab
+    self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
+        self,
+        self.tabview.tab("Analyze"),
+        8,
+        [],
+        profiles_to_display,
+        tasks_to_display,
+        None,
+        self.single_profile_name_event,
+        self.single_task_name_event,
+    )
+
+    # Display the object pulldowns in 'Specific Name' tab
+    if not projects_to_display:  # If no Projects to display
+        projects_to_display = ["None"]
+    self.specific_profile_optionmenu, self.specific_task_optionmenu = display_object_pulldowns(
+        self,
+        self.tabview.tab("Specific Name"),
+        5,
+        projects_to_display,
+        profiles_to_display,
+        tasks_to_display,
+        self.single_project_name_event,
+        self.single_profile_name_event,
+        self.single_task_name_event,
+    )
+
+    return True
+
+
+# Get all Projects, Profiles and Tasks to display
+def get_tasker_objects(self) -> tuple:  # noqa: ANN001
+    """Get all Projects, Profiles and Tasks to display
+
+    Returns:
+        tuple: tuple of return code (True=good), and lists of projects, profiles and tasks
+    """
     # Intialize lists
     projects = []
     profiles = []
     tasks = []
-
-    # Get rid of previous data
-    delete_old_pulldown_menus(self)
-    # with contextlib.suppress(AttributeError):
-    #    self.ai_profile_optionmenu.destroy()
 
     # Ok, we have our root Tasker elements.  Build the tree.
     tree_data = self.build_the_tree()
@@ -2076,43 +2106,8 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
             "No profiles or tasks found in XML file.  Using the 'Get Local Xml button, load another XML file and try again.",
             "Red",
         )
-        return False
-
-    # Make alphabetical
-    if projects:
-        projects = sorted(projects)
-    profiles_to_display = sorted(profiles_to_display)
-    # profiles_to_display.insert(0, "None")
-
-    # Display the object pulldowns in 'Analyze' tab
-    self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
-        self,
-        self.tabview.tab("Analyze"),
-        8,
-        [],
-        profiles_to_display,
-        tasks_to_display,
-        None,
-        self.single_profile_name_event,
-        self.single_task_name_event,
-    )
-
-    # Display the object pulldowns in 'Specific Name' tab
-    if not projects:  # If no Projects to display
-        projects = ["None"]
-    self.specific_profile_optionmenu, self.specific_task_optionmenu = display_object_pulldowns(
-        self,
-        self.tabview.tab("Specific Name"),
-        5,
-        projects,
-        profiles_to_display,
-        tasks_to_display,
-        self.single_project_name_event,
-        self.single_profile_name_event,
-        self.single_task_name_event,
-    )
-
-    return True
+        return False, [], [], []
+    return True, projects, profiles_to_display, tasks_to_display
 
 
 # Build a list of Profiles that are under the given project
@@ -2194,11 +2189,11 @@ def display_messages_from_last_run(self) -> None:  # noqa: ANN001
             elif "openai" in error_msg:
                 self.ai_missing_module = "openai"
 
-            # Handle Ai Response in new toplevel window
+            # Handle Ai Response and display it in a new toplevel window
             if "Ai Response" in error_msg:
                 self.display_ai_response(error_msg)
                 self.display_message_box(
-                    f"Analysis response is in a spearate Window and saved as {ANALYSIS_FILE}.",
+                    f"Analysis response is in a separate Window and saved as {ANALYSIS_FILE}.",
                     "Turquoise",
                 )
             # Some other message.  Just display it in the message box and break it up if needed.
@@ -2218,33 +2213,23 @@ def display_messages_from_last_run(self) -> None:  # noqa: ANN001
 # Display the current file as a label
 def display_current_file(self, file_name: str) -> None:  # noqa: ANN001
     """
-    Display the current file name in a button on the GUI.
+    A function to display the current file as a label in the GUI.
 
     Args:
-        file_name (str): The name of the current file.
+        self: The object instance.
+        file_name (str): The name of the file to be displayed.
 
     Returns:
         None: This function does not return anything.
-
-    This function creates a button on the GUI that displays the current file name. The button is created using the `add_button` function and is placed in the second row and tenth column of the GUI. The button's text is set to "Current File: {file_name}". The `self.report_issue_event` function is assigned as the button's click event handler.
-
-    Note:
-        - The `add_button` function is assumed to be defined elsewhere in the codebase.
-        - The `self.report_issue_event` function is assumed to be defined elsewhere in the codebase.
-
-    Example:
-        ```python
-        gui_instance.display_current_file("example.txt")
-        ```
     """
     # Clear previous if filled.
     with contextlib.suppress(AttributeError):
-        self.report_issue_button.destroy()
+        self.current_file_label.destroy()
     # Check for slashes and remove if nessesary
     filename_location = file_name.rfind(PrimeItems.slash) + 1
     if filename_location != -1:
         file_name = file_name[filename_location:]
-    self.report_issue_button = add_label(
+    self.current_file_label = add_label(
         self,
         self,
         f"Current File: {file_name}",
@@ -2361,6 +2346,23 @@ def clear_tasker_data() -> None:
     PrimeItems.tasker_root_elements["all_profiles"].clear()
     PrimeItems.tasker_root_elements["all_tasks"].clear()
     PrimeItems.tasker_root_elements["all_scenes"].clear()
+
+
+# Save the positition of a window
+def save_window_position(window: CTkAnalysisview) -> None:
+    """
+    Saves the window position by getting the geometry of the window.
+
+    Args:
+        window: The CTkAnalysisview window to save the position of.
+
+    Returns:
+        window position or "" if no window
+    """
+    with contextlib.suppress(Exception):
+        if window is not None:
+            return window.wm_geometry()
+    return ""
 
 
 # Display a tree structure
@@ -2573,15 +2575,10 @@ class CTkAnalysisview(ctk.CTkFrame):
 
         self.grid_columnconfigure(0, weight=1)
 
-        # Add a label to the top of window
-        # our_label = "Drag the bottom of the window to expand as needed."
-        # self.analysis_label = ctk.CTkLabel(master=self, text=our_label, font=("", 12))
-        # self.analysis_label.grid(row=0, column=1, padx=10, pady=10, sticky="n")
-
         # Basic appearance for text, foreground and background.
-        self.analysis_bg_color = self.root._apply_appearance_mode(
-            ctk.ThemeManager.theme["CTkFrame"]["fg_color"]
-        )  # noqa: SLF001
+        self.analysis_bg_color = self.root._apply_appearance_mode(  # noqa: SLF001
+            ctk.ThemeManager.theme["CTkFrame"]["fg_color"],
+        )
         self.analysis_text_color = self.root._apply_appearance_mode(  # noqa: SLF001
             ctk.ThemeManager.theme["CTkLabel"]["text_color"],
         )
@@ -2601,8 +2598,7 @@ class CTkAnalysisview(ctk.CTkFrame):
         # Add the test and color to the text box.
         # fmt: off
         self.analysis_textbox.insert("0.0", f"{message}\n")
-        self.analysis_textbox.configure(state="disabled")  # configure textbox to be read-only
-        self.analysis_textbox.configure(wrap="word")
+        self.analysis_textbox.configure(state="disabled", wrap="word")  # configure textbox to be read-only
         self.analysis_textbox.focus_set()
 
 
@@ -2623,8 +2619,23 @@ class AnalysisWindow(ctk.CTkToplevel):
             - Pack label widget with padding.
             - Set label widget text."""
         super().__init__(*args, **kwargs)
-        self.geometry("600x800+600+0")
+
+        # Position the widget
+        try:
+            self.geometry(self.master.ai_analysis_window_position)
+        except AttributeError:
+            self.geometry("600x800+600+0")
+
         self.title("MapTasker Analysis Response")
+
+        # Save the window position on closure
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    # Analysis window is getting closed
+    def on_closing(self) -> None:
+        """Save the window position and close the window."""
+        self.master.ai_analysis_window_position = self.wm_geometry()
+        self.destroy()
 
 
 # Define the Ai Popup window
@@ -2644,17 +2655,11 @@ class PopupWindow(ctk.CTk):
             - Pack label widget with padding.
             - Set label widget text."""
         super().__init__(*args, **kwargs)
-        # Get the screen size
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
 
-        # Center the widget
-        try:
-            self.geometry(self.ai_popup_window_position)
-            print("guiutils window restored")
-        except AttributeError:
-            self.geometry(f"500x50+{screen_width//3}+{screen_height//10}")
-            self.title("MapTasker Analysis")
+        # Position the widget over our main GUI
+        self.geometry(PrimeItems.program_arguments["window_position"])
+
+        self.title("MapTasker Analysis")
 
         self.grid_columnconfigure(0, weight=1)
 
@@ -2663,7 +2668,7 @@ class PopupWindow(ctk.CTk):
 
         # Label widget
         our_label = "Analysis is running in the background.  Please stand by..."
-        self.Popup_label = ctk.CTkLabel(master=self, text=our_label, font=("", 12), text_color="turquoise")
+        self.Popup_label = ctk.CTkLabel(master=self, text=our_label, font=("", 24), text_color="turquoise")
         self.Popup_label.grid(row=0, column=0, padx=0, pady=10, sticky="n")
 
         # Basic appearance for text, foreground and background.
@@ -2685,8 +2690,6 @@ class PopupWindow(ctk.CTk):
         """
         Define the behavior of the popup button event function.  Close the window and exit.
         """
-        PrimeItems.loop_active = False
-        self.ai_popup_window_position = self.winfo_geometry()
-        self.exit = True
+        #self.exit = True
         self.quit()
         self.quit()

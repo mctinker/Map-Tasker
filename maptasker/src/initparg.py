@@ -61,5 +61,6 @@ def initialize_runtime_arguments() -> dict:
         "underline": False,  # Underline Project/Profile?Task/Scene names
         "pretty": False,  # Pretty up the output (takes many more output lines)
         "window_position": "",  # Last-used window position
-        "ai_popup_window_position": "",  # Last-used ai popup window position
+        "ai_popup_window_position": "",  # Last-used ai popup window position (currently not used)
+        "ai_analysis_window_position": "",  # Last-used ai analysis window position
     }

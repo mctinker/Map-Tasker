@@ -49,6 +49,7 @@ from maptasker.src.guiutils import (
     is_new_version,
     list_tasker_objects,
     ping_android_device,
+    save_window_position,
     set_tasker_object_names,
     setup_name_error,
     update_tasker_object_menus,
@@ -220,14 +221,14 @@ class MyGui(customtkinter.CTk):
         # Initialize GUI
         initialize_gui(self)
 
+        # Hide the window since initialize_screen would otherwise display an incomplete window until the geometry is properly set.
+        self.withdraw()
+
         # Add menu elements
         initialize_screen(self)
 
         # set default values
         self.set_defaults(True)
-
-        # See if we have any carryover error messages from last run (rerun).
-        display_messages_from_last_run(self)
 
         # Now restore the settings and update the fields if not resetting.
         if not PrimeItems.program_arguments["reset"]:
@@ -235,10 +236,14 @@ class MyGui(customtkinter.CTk):
         else:
             self.display_message_box("GUI started with the '-reset' option.\n", "Green")
 
-        # Restore the last-used window position
-        if self.window_position:
-            self.geometry(self.window_position)
+        # Set the window's geometry
+        self.set_main_window_geometry()
 
+        # See if we have any carryover error messages from last run (rerun).
+        # Note: this must go after the settings restoration.
+        display_messages_from_last_run(self)
+
+        # If we are getting XML from Android device, display the details.
         if self.android_ipaddr:
             # Display backup details as a label
             self.display_backup_details()
@@ -246,72 +251,17 @@ class MyGui(customtkinter.CTk):
         # Update the Project/Profile/Task pulldown option menus and text labels.
         update_tasker_object_menus(self, get_data=True)
 
-        # Check if newer version of our code is available on Pypi (only check every 24 hours).
-        # If so, add a button to enable user to update.
-        # TODO For testing only = True.  False for production
-        test_button = False
-        if is_new_version() or test_button:
-            self.new_version = True
-            # We have a new version.  Let user upgrade.
-            self.upgrade_button = add_button(
-                self,
-                self,
-                "",
-                "#79ff94",
-                "#6563ff",
-                self.upgrade_event,
-                1,
-                "Upgrade to Latest Version",
-                "1",
-                6,
-                2,
-                (0, 170),
-                (0, 10),
-                "sw",
-            )
-            #  Query ? button
-            self.list_files_query_button = add_button(
-                self,
-                self,
-                "#246FB6",
-                "#79ff94",
-                "#6563ff",
-                # ("#0BF075", "#ffd941"),
-                # "#1bc9ff",
-                self.whatsnew_event,
-                1,
-                "What's New?",
-                2,
-                7,
-                2,
-                (0, 180),
-                (0, 10),
-                "",
-            )
-            # self.list_files_query_button.configure(width=20)
-            self.message = self.message + "\n\nA new version of MapTasker is available."
-        else:
-            self.new_version = False
+        # Check if newer version of our code is available on Pypi.
+        self.check_new_version()
 
         # See if we have a changelog, and get it if we do.
         check_for_changelog(self)
 
         # See if we have any current messages to display.
-        if self.message:
-            self.display_message_box(self.message, "Green")
-            self.message = ""
+        self.process_current_messages()
 
-        if self.ai_prompt:
-            prompt = self.ai_prompt
-        else:
-            prompt = AI_PROMPT
-            self.ai_prompt = prompt
-
-        # Now that we have loaded our settings, reconfigure the ai analyze button
-        if ((self.ai_model in OPENAI_MODELS and self.ai_apikey) or self.ai_model) and (
-            self.single_task_name or self.single_profile_name
-        ):
-            self.ai_analyze_button.configure(fg_color="#f55dff", text_color="#5554ff")
+        # Finally, show the window. It was hidden in initialize_screen.
+        self.deiconify()
 
     # Establish all of the default values used
     def set_defaults(self, first_time: bool) -> None:
@@ -396,9 +346,9 @@ class MyGui(customtkinter.CTk):
             routine,
             1,
             the_text,
-            2,
-            7,
-            1,
+            2,  # Column span
+            7,  # row
+            1,  # col
             (200, 200),
             (0, 10),
             "nw",
@@ -432,41 +382,135 @@ class MyGui(customtkinter.CTk):
         if color.isnumeric():
             color = f"#{color}"
 
-        # Delete prior contents
-        self.textbox.destroy()
+        ## Delete prior contents
+        # self.textbox.destroy()
 
-        # Recreate text box
-        self.textbox = customtkinter.CTkTextbox(self, height=650, width=250)
-        self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
+        ## Recreate text box
+        # self.textbox = customtkinter.CTkTextbox(self, height=650, width=250)
+        # self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
+        # self.textbox.configure(state="disabled", font=(self.font, 14), wrap="word")
 
-        line_num = 0
-
-        # Go through our messages and add each to the text box.
-        for num, key in enumerate(self.all_messages):
-            line_num = num + 1
-            line_num_str = str(line_num)
-            line_detail = self.all_messages[key]
-            # fmt: off
-            self.textbox.insert(f"{line_num_str}.0", line_detail["text"], (line_num_str))
-            self.textbox.tag_add(line_num_str, f"{line_num_str}.0", f"{line_num_str}.{len(line_detail['text'])!s}") # fmt: skip
-            # fmt: on
-            self.textbox.tag_config(line_num_str, foreground=line_detail["color"])
+        ## Display the pre-exising messages from our message dictionary.
+        # line_num = self.display_existing_messages()
+        line_num = len(self.all_messages)
 
         # Insert the text with our new message into the text box.
-        line_num += 1
+        line_num += 1  # Increment our line number to lthe line with the message
         line_num_str = str(line_num)
+        # message = f"{line_num_str}: {message}"  # For debug only
         # Add this message to our dictionary of messages.
-        self.all_messages[line_num] = {"text": f"{message}\n", "color": color}
+        self.all_messages[line_num] = {
+            "text": f"{message}\n",
+            "color": color,
+            "highlight_color": "",
+            "highlight_position": "",
+        }
         # Add the test and color to the text box.
         # fmt: off
         self.textbox.insert(f"{line_num_str}.0", f"{message}\n", (line_num_str))
-        #self.textbox.configure(wrap="word")
-        self.textbox.configure(state="disabled", font=(self.font, 14), wrap="word")
         self.textbox.tag_add(line_num_str, f"{line_num_str}.0", f"{line_num_str}.{len(message)!s}")
         # fmt: on
         self.textbox.tag_config(line_num_str, foreground=self.all_messages[line_num]["color"])
 
+        # If current message is a setting ("set On/Off/True/False"), then color it
+        self.check_message_for_special_highlighting(message, line_num_str)
+
         self.textbox.focus_set()
+
+    # Display pre-existing messages from our message dictionary.
+    # def display_existing_messages(self) -> int:
+    #    """
+    #    Display existing messages in the text box based on the messages stored in the dictionary.
+
+    #    Parameters:
+    #        self: The object instance.
+    #        line_num: An integer representing the line number in the text box.
+
+    #    Returns:
+    #        line_num (int): An integer representing the last line number in the text box.
+    #    """
+    #    line_num = 0
+    #    # Go through our messages in the dictionary and add each to the text box.
+    #    for num, key in enumerate(self.all_messages):
+    #        line_num = num + 1
+    #        line_num_str = str(line_num)
+    #        line_detail = self.all_messages[key]
+    #        # fmt: off
+    #        self.textbox.insert(f"{line_num_str}.0", line_detail["text"], (line_num_str))
+    #        self.textbox.tag_add(line_num_str, f"{line_num_str}.0", f"{line_num_str}.{len(line_detail['text'])!s}") # fmt: skip
+    #        # fmt: on
+    #        self.textbox.tag_config(line_num_str, foreground=line_detail["color"])
+    #        # See if we are to highlight a string within the message
+    #        if self.all_messages[int(line_num_str)]["highlight_color"]:
+    #            self.highlight_string(
+    #                line_detail["text"],
+    #                line_num_str,
+    #                line_detail["highlight_position"],
+    #                line_detail["highlight_color"],
+    #            )
+    #    return line_num
+
+    # Check the current messsage for additional highlighting
+    def check_message_for_special_highlighting(self, message: str, line_num_str: str) -> None:
+        """
+        Checks if the message is a setting and highlights it if so.
+
+        Args:
+            message (str): The message to check.
+            line_num_str (str): The line number of the message.
+
+        Returns:
+            None
+        """
+        keywords = {
+            "set Off": "Red",
+            "set On": "LimeGreen",
+            "set to False": "Red",
+            "set to True": "LimeGreen",
+        }
+
+        final_position = -1
+        highlight_color = ""
+
+        for keyword, color in keywords.items():
+            position = message.find(keyword)
+            if position != -1:
+                highlight_color = color
+                final_position = position
+                break
+
+        if final_position == -1:  # No specific keyword found
+            position = message.find("set to")
+            if position != -1 and "color" not in message:
+                highlight_color = "LimeGreen"
+                final_position = position
+
+        # Do we have a highlight color?  If so, highlight the string.
+        if highlight_color:
+            self.highlight_string(message, line_num_str, final_position, highlight_color)
+
+    # Highlight a string in the textbox.
+    def highlight_string(self, message: str, line_num_str: str, highlight_position: int, highlight_color: str) -> None:
+        """
+        Adds a tag to the text box highlighting a specific portion of text.
+
+        Args:
+            message (str): The text to highlight.
+            line_num_str (str): The line number of the text.
+            highlight_position (int): The position in the line to start highlighting.
+            highlight_color (str): The color for the highlighted text.
+
+        Returns:
+            None
+        """
+        self.textbox.tag_add(
+            f"{line_num_str}setto",
+            f"{line_num_str}.{highlight_position!s}",
+            f"{line_num_str}.{len(message)!s}",
+        )
+        self.textbox.tag_config(f"{line_num_str}setto", foreground=highlight_color)
+        self.all_messages[int(line_num_str)]["highlight_color"] = highlight_color
+        self.all_messages[int(line_num_str)]["highlight_position"] = highlight_position
 
     # Validate name entered
     def check_name(self, the_name: str, element_name: str) -> bool:
@@ -728,6 +772,31 @@ class MyGui(customtkinter.CTk):
         """
         self.all_messages = {}
         self.textbox.destroy()
+        self.create_new_textbox()
+
+    # Define the textbox for information/feedback
+    def create_new_textbox(self) -> None:
+        """
+        Creates a new text box widget with specified dimensions and configuration.
+
+        This function initializes a new `CTkTextbox` widget with the specified height and width.
+        The widget is then added to the grid layout of the parent widget (`self`) at row 0, column 1,
+        with a padding of 20 pixels on the left and right. The widget is also configured with the
+        following properties:
+        - `state` is set to "disabled" to make the text box read-only.
+        - `font` is set to `(self.font, 14)` to use the specified font with a size of 14 points.
+        - `wrap` is set to "word" to enable word wrapping.
+        - `scrollbar_button_color` is set to "#6563ff" to set the color of the scrollbar buttons.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
+        self.textbox = customtkinter.CTkTextbox(self, height=650, width=250)
+        self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
+        self.textbox.configure(font=(self.font, 14), wrap="word", scrollbar_button_color="#6563ff")
 
     # Process the Display Detail Level selection
     def detail_selected_event(self, display_detail: str) -> None:
@@ -830,7 +899,7 @@ class MyGui(customtkinter.CTk):
         pick_color = AskColor()  # Open the Color Picker
         color = pick_color.get()  # Get the color
         if color is not None:
-            self.display_message_box(f"{color_selected_item} color changed to {color}", "Green")
+            self.display_message_box(f"{color_selected_item} color changed to {color}", color)
 
             # Okay, plug in the selected color for the selected named item
             self.extract_color_from_event(color, color_selected_item)
@@ -1016,7 +1085,8 @@ class MyGui(customtkinter.CTk):
         # Check to see if we are doing everything (they are mutually exclusive)
         if self.twisty and self.everything:
             self.display_message_box(
-                "'Twisty' and 'Everything' are mutually exclusive.  Unchecking 'Twisty'.", "Orange"
+                "'Twisty' and 'Everything' are mutually exclusive.  Unchecking 'Twisty'.",
+                "Orange",
             )
             self.twisty = False
             self.twisty_checkbox.deselect()
@@ -1139,15 +1209,11 @@ class MyGui(customtkinter.CTk):
         self.textbox.destroy()
 
         # Recreate text box
-        self.textbox = customtkinter.CTkTextbox(self, height=600, width=250)
-        self.textbox.configure(scrollbar_button_color="#6563ff", wrap="word")
-        self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
+        self.create_new_textbox()
         # Insert the text.
         self.textbox.insert("0.0", message)
-        # Set read-only, color, wrap around and font
-        self.textbox.configure(state="disabled", font=(self.font, 14), wrap="word")
+
         # Display some colored text: the heading
-        # self.textbox.insert('end', 'This is some colored text.\n')
         self.textbox.tag_add(
             "color",
             "1.0",
@@ -1429,11 +1495,6 @@ class MyGui(customtkinter.CTk):
             self.extract_settings(temp_args)
             self.restore = True
 
-            ## Just display short message if not in debug mode
-            # if not self.debug:
-            #    self.all_messages = {}
-            #    self.display_message_box("Settings restored.", "Green")
-
         # No arguments mean no settings.
         else:  # Empty?
             self.display_message_box("No settings file found.", "Orange")
@@ -1515,9 +1576,9 @@ class MyGui(customtkinter.CTk):
             row=starting_row,
             column=1,
             columnspan=1,
-            padx=(0, indentation_x_label),
+            padx=(200, indentation_x_label),
             pady=(indentation_y_label, 5),
-            sticky="ne",
+            sticky="nw",
         )
 
         if do_input:
@@ -1540,12 +1601,12 @@ class MyGui(customtkinter.CTk):
             #    sticky = "se"
             # else:
             #    sticky = "ne"
-            sticky = "ne"
+            sticky = "nw"
             input_name.grid(
                 row=next_row,
                 column=1,
                 columnspan=1,
-                padx=(0, 90),
+                padx=(200, 90),
                 pady=(0, 0),
                 sticky=sticky,
             )
@@ -1627,7 +1688,7 @@ class MyGui(customtkinter.CTk):
             2,
             8,
             1,
-            (80, 220),
+            (80, 260),
             (0, 0),
             "ne",
         )
@@ -1636,16 +1697,16 @@ class MyGui(customtkinter.CTk):
         self.list_files_button = add_button(
             self,
             self,
-            "#246FB6",
+            "#D62CFF",
             ("#0BF075", "#1AD63D"),
-            "#1bc9ff",
+            "#6563ff",
             self.list_files_event,
             2,
             "List XML Files",
             2,
             10,
             1,
-            (80, 220),
+            (80, 240),
             (0, 45),
             "se",
         )
@@ -1660,7 +1721,7 @@ class MyGui(customtkinter.CTk):
             row=10,
             column=1,
             columnspan=1,
-            padx=(0, 62),
+            padx=(0, 83),
             pady=(0, 45),
             sticky="se",
         )
@@ -1678,7 +1739,7 @@ class MyGui(customtkinter.CTk):
             2,
             10,
             1,
-            (0, 190),
+            (0, 200),
             (0, 45),
             "se",
         )
@@ -1784,7 +1845,7 @@ class MyGui(customtkinter.CTk):
             self.backup_error("File not found.  Return code: " + str(return_code))
             return
 
-        # If we got a good return from getting ther XML filelist, then return to process it.
+        # If we got a good return from getting the XML filelist, then return to process it.
         if return_code == 2:
             return
 
@@ -1837,7 +1898,7 @@ class MyGui(customtkinter.CTk):
             "normal",
             7,
             1,
-            (30, 0),
+            (0, 40),
             (50, 0),
             "ne",
         )
@@ -2061,6 +2122,11 @@ class MyGui(customtkinter.CTk):
             - Closes the application.
             - If run_only is True, only closes the application.
             - If run_only is False, withdraws the funds before closing the application."""
+        # Save the position of the Analsysis window.
+        if window_pos := save_window_position(self.toplevel_window):
+            self.ai_analysis_window_position = window_pos
+
+        # If 'Run' only, then just quit.  Otherwise, destroy sidebar frame.
         if run_only:
             self.quit()
         else:
@@ -2185,6 +2251,11 @@ class MyGui(customtkinter.CTk):
         - Calls quit() twice to ensure program exits cleanly
         - Calling quit() twice is done as a precaution in case one call fails to exit for some reason
         """
+        # Save the position of the Analsysis window.
+        if window_pos := save_window_position(self.toplevel_window):
+            self.ai_analysis_window_position = window_pos
+
+        # Indicate that the user hit the 'Exit' button.
         self.exit = True
 
         # Save our last window position
@@ -2390,7 +2461,7 @@ class MyGui(customtkinter.CTk):
         # Display the analysis in the toplevel window.
         analysis_view = CTkAnalysisview(master=self.toplevel_window, message=error_msg)
         analysis_view.pack(padx=10, pady=10, fill="both", expand=True)
-        analysis_view.after(10, self.toplevel_window.lift)
+        analysis_view.after(10, self.toplevel_window.lift)  # Make window jump to the front
 
     # Set and display the file name.
     def display_and_set_file(self, filename: str) -> None:
@@ -2619,7 +2690,114 @@ class MyGui(customtkinter.CTk):
                 break
             if key == "version":
                 self.display_message_box(f"Changes in the new version {value}:", "Green")
+                self.display_message_box("", "Green")
+            elif "##" in value:
+                # Add spaces as needed to make it more readible
+                self.display_message_box("", "Green")
+                self.display_message_box(f"{value}", "Green")
+                self.display_message_box("", "Green")
             else:
                 self.display_message_box(f"{value}", "Green")
 
         self.display_message_box("End of changelog.", "Green")
+
+    # Check to see if a new version of our code is available.
+    # Add Update Version button if there is a new version.
+    def check_new_version(self) -> None:
+        """
+        Check if the new version is available
+        Args:
+            self: The class instance
+        Returns:
+            None"""
+        # If so, add a button to enable user to update.
+        # TODO For testing only = True.  False for production
+        test_button = False
+        if is_new_version() or test_button:
+            self.new_version = True
+            # We have a new version.  Let user upgrade.
+            self.upgrade_button = add_button(
+                self,
+                self,
+                "",
+                "#79ff94",
+                "#6563ff",
+                self.upgrade_event,
+                1,
+                "Upgrade to Latest Version",
+                "1",
+                6,
+                2,
+                (0, 170),
+                (0, 10),
+                "sw",
+            )
+            #  Query ? button
+            self.list_files_query_button = add_button(
+                self,
+                self,
+                "#246FB6",
+                "#79ff94",
+                "#6563ff",
+                # ("#0BF075", "#ffd941"),
+                # "#1bc9ff",
+                self.whatsnew_event,
+                1,
+                "What's New?",
+                2,
+                7,
+                2,
+                (0, 180),
+                (0, 10),
+                "",
+            )
+            # self.list_files_query_button.configure(width=20)
+            self.message = self.message + "\n\nA new version of MapTasker is available."
+        else:
+            self.new_version = False
+
+    # Display any meesaagaes we may currently have..
+    def process_current_messages(self) -> None:
+        """
+        Process any messages we may currently have.
+        Args:
+            self: The class instance
+        Returns:
+            None
+        """
+        # See if we have any current messages to display.
+        if self.message:
+            self.display_message_box(self.message, "Green")
+            self.message = ""
+
+        if self.ai_prompt:
+            prompt = self.ai_prompt
+        else:
+            prompt = AI_PROMPT
+            self.ai_prompt = prompt
+
+        # Now that we have loaded our settings, reconfigure the ai analyze button
+        if ((self.ai_model in OPENAI_MODELS and self.ai_apikey) or self.ai_model) and (
+            self.single_task_name or self.single_profile_name
+        ):
+            self.ai_analyze_button.configure(fg_color="#f55dff", text_color="#5554ff")
+
+    # Set up the main window's geometry
+    def set_main_window_geometry(self) -> None:
+        """
+        Set the main window geometry
+        Args:
+            self: The class instance
+        Returns:
+            None
+        """
+        # Set the window geometry.  Use saved coordinates if available.
+        if self.window_position:
+            self.geometry(self.window_position)
+        else:
+            # Get the screen size
+            screen_width = self.winfo_screenwidth()
+            screen_height = self.winfo_screenheight()
+
+            # Overall window dimensions
+            self.geometry(f"1100x900+{screen_width//4}+{screen_height//6}")
