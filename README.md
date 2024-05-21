@@ -238,7 +238,7 @@ The usage of llama models also requires that you manually install Ollama from [h
 
 - [x] Add Ai support to analyze Profiles and Tasks
 
-- [ ] Save and restore the Ai Analysis and popup window locations
+- [x] Save and restore the Ai Analysis window location
 
 - [ ] Include/map remaining Tasker preferences
 

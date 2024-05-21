@@ -2,32 +2,42 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0.3/4.0.4/4.0.5] 14-May-2024
+## [4.0.6] 21-May-2024
 
 ### Added
+
+- Added: Save and restore the Analysis Response window.
+- Added: GUI messages with "True/False/On/Off" settings now display in appropriate colors.
+
+### Changed
+
+- Changed: The 'List XML Files' button color is now the same as the 'Click Here to Set XML Details' button.
+- Changed: Position the 'Analysis is running...' message over the GUI window.
+
+### Fixed
+
+- Fixed: Corrected the alignment of the GUI buttons for getting the XML from the Android device.
+- Fixed: The GUI startup time is improved slightly.
+- Fixed: The 'Report Issue' button is missing.
+
+## Older History Logs
+
+## [4.0.3/4.0.4/4.0.5]
 
 - Added: Restore the GUI window to the last-used position and size.
 - Added: The ability to change the prompt used for the Profile/Task analysis has been added.
 - Added: Going forward, if a new release is available, the GUI will provide a "What's New" button.  You will be able to see what is changing before applying the changes.
 - Added: Ai Analysis now supports the new OpenAI 'gpt-4o' model.
 - Added: Support for Tasker 6.3.8 Beta code.
-
-### Changed
-
 - Changed: Widened the GUI window slightly for better readability.
 - Changed: 'Specific Name' items are now available via a pulldown menu.  It is no longer necessary to enter the names through a text input box.
 - Changed: The settings file now sorts the colors to use by name.
-
-### Fixed
-
 - Fixed: The 'Reset' button in the GUI is not resetting the analysis model.
 - Fixed: If 'Get Local XML' is selected in the GUI, the analyze Profile and Task list is not updated.
 - Fixed: The 'Specific Name' tab has the label for the 'Colors' tab in the GUI.
 - Fixed: Under certain situations, the GUI will use the old data even after getting a new XML file.
 - Fixed: Occasion program abnormal termination when selecting a specific Project or Profile that has a Scene.
 - Fixed: The program occasionally terminates abnormally when trying to save the settings file.
-
-## Older History Logs
 
 ## [4.0.2]
 
