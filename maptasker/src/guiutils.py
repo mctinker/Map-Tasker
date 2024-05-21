@@ -2623,7 +2623,7 @@ class AnalysisWindow(ctk.CTkToplevel):
         # Position the widget
         try:
             self.geometry(self.master.ai_analysis_window_position)
-        except AttributeError:
+        except (AttributeError, TypeError):
             self.geometry("600x800+600+0")
 
         self.title("MapTasker Analysis Response")
