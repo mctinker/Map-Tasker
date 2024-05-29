@@ -2,32 +2,42 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0.6] 21-May-2024
+## [4.0.7] 30-May-2024
 
 ### Added
 
-- Added: Save and restore the Analysis Response window.
-- Added: GUI messages with "True/False/On/Off" settings now display in appropriate colors.
+- Added: An entire project can now be analyzed via the 'Analyze' tab.
 
 ### Changed
 
-- Changed: The 'List XML Files' button color is now the same as the 'Click Here to Set XML Details' button.
-- Changed: Position the 'Analysis is running...' message over the GUI window.
+- Changed: Redefined the default window size for the GUI so that it is large enough for asll of the fields to show appropriately.
 
 ### Fixed
 
+- Fixed: Analysis API key is showing 'Set' when, in fact, it is unset.
+- Fixed: Realigned the GUI fields for getting the file from the Android device.
+- Fixed: Incorrectly defining Android device attributes when selecting "Get XML from Android Device" and then cancelling this option in the GUI.
+- Fixed: If displaying the outline and processing only a single Profile, then the outline is showing all Projects rather than just the Project this Profile is a part of.
+- Fixed: In certain circumstances, if doing a single Profile or Task, the containing Project/Profile would also be saved in the settings.
+
+## Older History Logs
+
+## [4.0.6]
+
+- Added: Save and restore the Analysis Response window.
+- Added: GUI messages with "True/False/On/Off" settings now display in appropriate colors.
+- Changed: The 'List XML Files' button color is now the same as the 'Click Here to Set XML Details' button.
+- Changed: Position the 'Analysis is running...' message over the GUI window.
 - Fixed: Corrected the alignment of the GUI buttons for getting the XML from the Android device.
 - Fixed: The GUI startup time is improved slightly.
 - Fixed: The 'Report Issue' button is missing.
-
-## Older History Logs
 
 ## [4.0.3/4.0.4/4.0.5]
 
 - Added: Restore the GUI window to the last-used position and size.
 - Added: The ability to change the prompt used for the Profile/Task analysis has been added.
 - Added: Going forward, if a new release is available, the GUI will provide a "What's New" button.  You will be able to see what is changing before applying the changes.
-- Added: Ai Analysis now supports the new OpenAI 'gpt-4o' model.
+- Added: Ai Analysis now supports the new OpenAI "gpt-4o" model.
 - Added: Support for Tasker 6.3.8 Beta code.
 - Changed: Widened the GUI window slightly for better readability.
 - Changed: 'Specific Name' items are now available via a pulldown menu.  It is no longer necessary to enter the names through a text input box.
@@ -57,7 +67,7 @@ All notable changes to this project will be documented in this file!
 - Changed: GUI warning messages are now displayed in orange rather than red.
 - Fixed: The program gets runtime errors if the settings saved file is corrupted.
 - Fixed: The settings are not properly saved upon exit from the GUI.
-- Fixed: Removed error message 'Program canceled by user (killed GUI)' if the 'Exit' button is selected.
+- Fixed: Removed error message 'Program canceled by the user (killed GUI)' if the 'Exit' button is selected.
 - Fixed: If the Android file location is specified on startup and the file is found on the local drive from the previous run, then use it and don't prompt again for it.
 - Fixed: The GUI message window was not fully expanded.
 
@@ -87,7 +97,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: If only doing a single Project with the '-directory' runtime option, some scene hotlinks in the directory do not work.
 - Fixed: Twisty setting is not being restored on a rerun.
 - Changed: Scene elements are now displayed as 'Element of type xxxx' to more clearly identify the element type (e.g. type: Text, Rect, Button, Image, etc.).
-- Changed: Output Task action fields and values changed from 'field:value' to 'field=value' fo
+- Changed: Output Task action fields and values changed from "field:value" to "field=value" fo
 
 ## [3.1.8] 08-April-2024
 
