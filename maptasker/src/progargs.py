@@ -2,17 +2,10 @@
 
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # progargs: process program runtime arguments for MapTasker                            #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
-# #################################################################################### #
+# MIT License   Refer to https://opensource.org/license/mit                            #
 
 from maptasker.src.config import GUI
 from maptasker.src.primitem import PrimeItems
@@ -45,6 +38,15 @@ def get_program_arguments() -> None:
     # Do GUI processing if GUI is being used
     if GUI:
         process_gui(True)
+
+    # Make sure we don't have too much
+    if (PrimeItems.program_arguments["single_project_name"] and PrimeItems.program_arguments["single_profile_name"]) or (
+        PrimeItems.program_arguments["single_project_name"] and PrimeItems.program_arguments["single_task_name"]
+    ) or (PrimeItems.program_arguments["single_profile_name"] and PrimeItems.program_arguments["single_task_name"]):
+        # More than one single item wasd specified in saved file.  Set all to blank
+        PrimeItems.program_arguments["single_task_name"] = ""
+        PrimeItems.program_arguments["single_project_name"] = ""
+        PrimeItems.program_arguments["single_profile_name"] = ""
 
     # Are we in development mode?  If so, override debug argument
     if DEBUG_PROGRAM:

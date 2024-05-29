@@ -1,19 +1,12 @@
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # dirout: Add the directory to the output queue                                        #
 #                                                                                      #
 #         This code is tricky.  We create the directory as we build the output queue,  #
 #         and then print it while processing/writing to file the output queue.         #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
-# #################################################################################### #
+# MIT License   Refer to https://opensource.org/license/mit                            #
 import math
 
 import darkdetect
@@ -420,8 +413,7 @@ def do_tasker_element(name: str) -> None:
         # Go through each item and accumulate the names to be used for
         # the directory hyperlinks
         directory_hyperlinks = []
-        if name == "scenes":
-            print("dirout bingo")
+
         for item in PrimeItems.directory_items[name]:
             if check_item(name, item):
                 # Directory item is valid for this name.

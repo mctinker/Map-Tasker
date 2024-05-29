@@ -18,23 +18,12 @@ This is the main coordinator module that imports all the other components and
 executes the key steps to take the Tasker backup and produce the visual map output.
 """
 
-# #################################################################################### #
 #                                                                                      #
 # mapit: Main Program                                                                  #
 #            Read the Tasker backup file to build a visual map of its configuration:   #
 #            Projects, Profiles, Tasks, Scenes                                         #
 #                                                                                      #
 # mapitall: Kick-off function                                                          #
-#                                                                                      #
-# Requirements                                                                         #
-#      1- Python version 3.10 or higher                                                #
-#      2- Your Tasker backup.xml file, uploaded to your MAC                            #
-#                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
 # Reference: https://github.com/Taskomater/Tasker-XML-Info                             #
 #                                                                                      #
@@ -394,7 +383,7 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
         "The Configuration Map was saved as MapTasker_Map.txt.  " if PrimeItems.program_arguments["outline"] else ""
     )
 
-    print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}Program end.")
+    print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}.")
     print("")
 
 

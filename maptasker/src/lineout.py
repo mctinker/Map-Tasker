@@ -1,16 +1,9 @@
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # lineout: format the output for a line and adding it to an output queue (List)        #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
-# #################################################################################### #
+# MIT License   Refer to https://opensource.org/license/mit                            #
 """_summary_
 The LineOut class is responsible for generating the output lines that will be displayed
 to the user.
@@ -31,6 +24,7 @@ So in summary, LineOut handles generating and formatting each line of output wit
 styling and structure based on the type of element being displayed. The output lines
 are accumulated and ultimately used to generate the final HTML output file.
 """
+
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import format_html
 from maptasker.src.frontmtr import output_the_front_matter

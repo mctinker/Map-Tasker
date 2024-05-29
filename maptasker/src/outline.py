@@ -2,15 +2,12 @@
 
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # outline: Output the Tasker configuration in outline format                           #
 #                                                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
+
+
 # #################################################################################### #
 
 # Our network dictionary looks like the following...
@@ -473,6 +470,53 @@ def do_the_outline(network: dict) -> None:
                 PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
+# Get the Project for the single named item (Profile or Task)
+def check_for_single_name(root: dict, single_name: str, do_pids: bool) -> bool:
+    """
+    Get the Project for the single named item (Profile or Task)
+
+    Args:
+        root (dict): The root of the tasker XML objects (e.g. PrimeItems.tasker_root_elements["all_tasks"])
+        single_name (str): The name of the object (Task or Profile) to get the Project for.
+        do_pids (bool): True if we are doing Profiles, False if we are doing Tasks
+
+    REturns:
+        bool: True if the Project was found, False if not.
+    """
+    item_id = ""
+    if single_name:
+        for key, value in root.items():
+            if value["name"] == single_name:
+                item_id = key
+                break
+        # We have the Profile/Task ID for the single name
+        if item_id:
+            for key, value in PrimeItems.tasker_root_elements["all_projects"].items():
+                item_ids = get_ids(do_pids, value["xml"], single_name, [])
+                # Is our single named object in this project?
+                if item_id in item_ids:
+                    PrimeItems.program_arguments["single_project_name"] = key
+                    return True
+    return False
+
+
+# If doing a single named item (Profile or Task), then get the Project associated with the named item.
+def fix_project_name_for_single_name() -> None:
+    """
+    Set the project name for a single profile/task name.
+
+    This function checks if the single profile name is valid by calling the `check_for_single_name` function with the `single_profile_name` parameter set to `PrimeItems.program_arguments["single_profile_name"]` and the `do_pids` parameter set to `True`. If the single profile name is not valid, it calls the `check_for_single_name` function again with the `single_task_name` parameter set to `PrimeItems.program_arguments["single_task_name"]` and the `do_pids` parameter set to `False`.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
+    if not check_for_single_name(PrimeItems.tasker_root_elements["all_profiles"], PrimeItems.program_arguments["single_profile_name"], do_pids=True):
+        _ = check_for_single_name(PrimeItems.tasker_root_elements["all_tasks"], PrimeItems.program_arguments["single_task_name"], do_pids=False)
+
+
 # ##################################################################################
 # Outline the Tasker Configuration
 # ##################################################################################
@@ -488,6 +532,9 @@ def outline_the_configuration() -> None:
 
     # Define our network.
     network = {}
+
+    # If doing a single profile or task, set single project to this profile/task's project
+    fix_project_name_for_single_name()
 
     # Output the directory link
     if PrimeItems.program_arguments["directory"]:

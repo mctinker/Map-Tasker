@@ -5,21 +5,18 @@
 #                                                                                      #
 # guiutil: Utilities used by GUI                                                       #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
+# MIT License   Refer to https://opensource.org/license/mit                            #
+
 from __future__ import annotations
 
 import contextlib
 import json
 import os
-from tkinter import TclError, font, ttk
+from tkinter import font
 from typing import TYPE_CHECKING, Callable
 
 import customtkinter as ctk
-from PIL import Image, ImageTk
+from PIL import Image
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.lineout import LineOut
@@ -40,7 +37,6 @@ from maptasker.src.sysconst import (
     CHANGELOG_JSON_FILE,
     ERROR_FILE,
     KEYFILE,
-    LLAMA_MODELS,
     NOW_TIME,
     OPENAI_MODELS,
     VERSION,
@@ -53,17 +49,17 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.0.6 - Change Log\n
+Version 4.0.7 - Change Log\n
 ### Added\n
-- Added: Save and restore the Analysis Response window.\n
-- Added: GUI messages with "True/False/On/Off" settings now display in appropriate colors.\n
+- Added: An entire project can now be analyzed via the 'Analyze' tab.\n
 ### Changed\n
-- Changed: The 'List XML Files' button color is now the same as the 'Click Here to Set XML Details' button.\n
-- Changed: Position the 'Analysis is running...' message over the GUI window.\n
+- Changed: Redefined the default window size for the GUI so that it is large enough for asll of the fields to show appropriately.\n
 ### Fixed\n
-- Fixed: Corrected the alignment of the GUI buttons for getting the XML from the Android device.\n
-- Fixed: The GUI startup time is improved slightly.\n
-- Fixed: The 'Report Issue' button is missing.\n
+- Fixed: Analysis API key is showing 'Set' when, in fact, it is unset.\n
+- Fixed: Realigned the GUI fields for getting the file from the Android device.\n
+- Fixed: Incorrectly defining Android device attributes when selecting "Get XML from Android Device" and then cancelling this option in the GUI.\n
+- Fixed: If displaying the outline and processing only a single Profile, then the outline is showing all Projects rather than just the Project this Profile is a part of.\n
+- Fixed: In certain circumstances, if doing a single Profile or Task, the containing Project/Profile would also be saved in the settings.\n
 """
 CHANGELOG_JSON = {
     "version": "4.0.3",
@@ -79,26 +75,6 @@ CHANGELOG_JSON = {
     ],
 }
 default_font_size = 14
-
-# Set up for access to icons
-CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
-ICON_DIR = os.path.join(CURRENT_PATH, "../assets", "icons")
-ICON_PATH = {
-    "close": (os.path.join(ICON_DIR, "close_black.png"), os.path.join(ICON_DIR, "close_white.png")),
-    # "images": list(os.path.join(ICON_DIR, f"image{i}.jpg") for i in range(1, 4)),
-    "eye1": (os.path.join(ICON_DIR, "eye1_black.png"), os.path.join(ICON_DIR, "eye1_white.png")),
-    "eye2": (os.path.join(ICON_DIR, "eye2_black.png"), os.path.join(ICON_DIR, "eye2_white.png")),
-    "info": os.path.join(ICON_DIR, "info.png"),
-    "warning": os.path.join(ICON_DIR, "warning.png"),
-    "error": os.path.join(ICON_DIR, "error.png"),
-    "left": os.path.join(ICON_DIR, "left.png"),
-    "right": os.path.join(ICON_DIR, "right.png"),
-    "warning2": os.path.join(ICON_DIR, "warning2.png"),
-    "loader": os.path.join(ICON_DIR, "loader.gif"),
-    "icon": os.path.join(ICON_DIR, "icon.png"),
-    "arrow": os.path.join(ICON_DIR, "arrow.png"),
-    "image": os.path.join(ICON_DIR, "image.png"),
-}
 
 
 # Make sure the single named item exists...that it is a valid name
@@ -478,91 +454,6 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
         save_changelog_as_json(self)
 
 
-# Initialize the GUI (_init_ method)
-def initialize_gui(self) -> None:  # noqa: ANN001
-    """Initializes the GUI by initializing variables and adding a logo.
-    Parameters:
-        - self (class): The class object.
-    Returns:
-        - None: Does not return anything.
-    Processing Logic:
-        - Calls initialize_variables function.
-        - Calls add_logo function."""
-    initialize_variables(self)
-    add_logo(self)
-
-
-# Initialize the GUI varliables (e..g _init_ method)
-def initialize_variables(self) -> None:  # noqa: ANN001
-    """
-    Initialize variables for the MapTasker Runtime Options window.
-    """
-    self.android_ipaddr = ""
-    self.android_port = ""
-    self.android_file = ""
-    self.appearance_mode = None
-    self.bold = None
-    self.color_labels = None
-    self.color_lookup = None
-    self.color_text_row = None
-    self.debug = None
-    self.display_detail_level = None
-    self.preferences = None
-    self.conditions = None
-    self.everything = None
-    self.taskernet = None
-    self.exit = None
-    self.fetched_backup_from_android = False
-    self.file = None
-    self.font = None
-    self.go_program = None
-    self.gui = True
-    self.highlight = None
-    self.indent = None
-    self.italicize = None
-    self.named_item = None
-    self.rerun = None
-    self.reset = None
-    self.restore = False
-    self.runtime = False
-    self.save = False
-    self.single_profile_name = None
-    self.single_project_name = None
-    self.single_task_name = None
-    self.twisty = None
-    self.underline = None
-    self.outline = False
-    self.pretty = False
-    self.toplevel_window = None
-    PrimeItems.program_arguments["gui"] = True
-    self.list_files = False
-    self.ai_apikey = None
-    self.ai_model = None
-    self.ai_analysis = None
-    self.ai_missing_module = None
-    self.ai_prompt = None
-    self.window_position = None
-    self.ai_popup_window_position = None
-    self.all_messages = {}
-
-    self.title("MapTasker Runtime Options")
-
-    # configure grid layout (4x4).  A non-zero weight causes a row or column to grow if there's extra space needed.
-    # The default is a weight of zero, which means the column will not grow if there's extra space.
-    self.grid_columnconfigure(1, weight=1)
-    self.grid_columnconfigure((2, 3), weight=0)
-    self.grid_rowconfigure((0, 3), weight=4)  # Divvy up the extra space needed equally amonst the 4 rows.
-
-    # load and create background image
-
-    # create sidebar frame with widgets on the left side of the window.
-    self.sidebar_frame = ctk.CTkFrame(self, width=140, corner_radius=0)
-    self.sidebar_frame.configure(bg_color="black")
-    self.sidebar_frame.grid(row=0, column=0, rowspan=17, sticky="nsew")
-    # Define sidebar background frame with 17 rows
-    self.sidebar_frame.grid_rowconfigure(17, weight=1)
-
-
 # Add the MapTasker icon to the screen
 def add_logo(self) -> None:  # noqa: ANN001
     """Function:
@@ -764,6 +655,7 @@ def add_button(
         text=text,
     )
     button_name.grid(row=row, column=column, columnspan=columnspan, padx=padx, pady=pady, sticky=sticky)
+    # print(button_name.cget("fg_color"), " ", button_name.cget("text_color"))
     return button_name
 
 
@@ -807,752 +699,8 @@ def add_option_menu(
     return option_menu_name
 
 
-# Define all of the menu elements
-def initialize_screen(self) -> None:  # noqa: ANN001
-    # Add grid title
-    """Initializes the screen with various display options and settings.
-    Parameters:
-        - self (object): The object to which the function belongs.
-    Returns:
-        - None: This function does not return any value.
-    Processing Logic:
-        - Creates a grid title and adds it to the sidebar frame.
-        - Defines the first grid / column for display detail level.
-        - Defines the second grid / column for checkboxes related to display options.
-        - Defines the third grid / column for buttons related to program settings.
-        - Creates a textbox for displaying help information.
-        - Creates a tabview for setting specific names, colors, and debug options.
-        - Defines the fourth grid / column for checkboxes related to debug options.
-        - Defines the sixth grid / column for checkboxes related to runtime settings."""
-
-    # Display the frame title
-    self.logo_label = add_label(self, self.sidebar_frame, "Display Options", "", 20, "bold", 0, 0, 20, (60, 10), "s")
-
-    # Start first grid / column definitions
-
-    # Display Detail Level
-    self.detail_label = add_label(
-        self,
-        self.sidebar_frame,
-        "Display Detail Level:",
-        "",
-        0,
-        "normal",
-        1,
-        0,
-        20,
-        (10, 0),
-        "",
-    )
-    self.sidebar_detail_option = add_option_menu(
-        self,
-        self.sidebar_frame,
-        self.detail_selected_event,
-        ["0", "1", "2", "3", "4"],
-        2,
-        0,
-        20,
-        (10, 10),
-        "",
-    )
-    # Display 'Everything' checkbox
-    self.everything_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.everything_event,
-        "Just Display Everything!",
-        3,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-
-    # Display 'Condition' checkbox
-    self.condition_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.condition_event,
-        "Display Profile and Task Action Conditions",
-        4,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-
-    # Display 'TaskerNet' checkbox
-    self.taskernet_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.taskernet_event,
-        "Display TaskerNet Info",
-        5,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-
-    # Display 'Tasker Preferences' checkbox
-    self.preferences_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.preferences_event,
-        "Display Tasker Preferences",
-        6,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-
-    # Display 'Twisty' checkbox
-    self.twisty_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.twisty_event,
-        "Hide Task Details Under Twisty",
-        7,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-
-    # Display 'directory' checkbox
-    self.directory_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.directory_event,
-        "Display Directory",
-        8,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-
-    # Outline
-    self.outline_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.outline_event,
-        "Display Configuration Outline",
-        9,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-
-    # Pretty Output
-    self.pretty_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.pretty_event,
-        "Display Prettier Output",
-        10,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-
-    # Names: Bold / Highlight / Italicise / Underline
-    self.display_names_label = add_label(
-        self,
-        self.sidebar_frame,
-        "Project/Profile/Task/Scene Names:",
-        "",
-        0,
-        "normal",
-        11,
-        0,
-        20,
-        10,
-        "s",
-    )
-
-    # Bold
-    self.bold_checkbox = add_checkbox(self, self.sidebar_frame, self.names_bold_event, "Bold", 12, 0, 20, 0, "ne", "")
-
-    # Italicize
-    self.italicize_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.names_italicize_event,
-        "italicize",
-        12,
-        0,
-        20,
-        0,
-        "nw",
-        "",
-    )
-
-    # Highlight
-    self.highlight_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.names_highlight_event,
-        "Highlight",
-        13,
-        0,
-        20,
-        5,
-        "ne",
-        "",
-    )
-
-    # Underline
-    self.underline_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.names_underline_event,
-        "Underline",
-        13,
-        0,
-        20,
-        5,
-        "nw",
-        "",
-    )
-
-    # Indentation
-    self.indent_label = add_label(
-        self,
-        self.sidebar_frame,
-        "If/Then/Else Indentation Amount:",
-        "",
-        0,
-        "normal",
-        14,
-        0,
-        20,
-        10,
-        "s",
-    )
-
-    # Indentation Amount
-    self.indent_option = add_option_menu(
-        self,
-        self.sidebar_frame,
-        self.indent_selected_event,
-        ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
-        15,
-        0,
-        0,
-        (0, 10),
-        "n",
-    )
-
-    # Screen Appearance: Light / Dark / System
-    self.appearance_mode_label = add_label(
-        self,
-        self.sidebar_frame,
-        "Appearance Mode:",
-        "",
-        0,
-        "normal",
-        16,
-        0,
-        0,
-        (10, 0),
-        "s",
-    )
-
-    self.appearance_mode_optionmenu = add_option_menu(
-        self,
-        self.sidebar_frame,
-        self.change_appearance_mode_event,
-        ["Light", "Dark", "System"],
-        17,
-        0,
-        0,
-        (0, 10),
-        "n",
-    )
-
-    # 'Tree View' button definition
-    self.treeview_button = add_button(
-        self,
-        self.sidebar_frame,
-        "#246FB6",
-        "",
-        "",
-        self.treeview_event,
-        2,
-        "Tree View",
-        1,
-        18,
-        0,
-        0,
-        0,
-        "",
-    )
-    #  Query ? button
-    self.treeview_query_button = add_button(
-        self,
-        self.sidebar_frame,
-        "#246FB6",
-        ("#0BF075", "#ffd941"),
-        "#1bc9ff",
-        self.treeview_query_event,
-        1,
-        "?",
-        1,
-        18,
-        0,
-        (200, 0),
-        (0, 0),
-        "",
-    )
-    self.treeview_query_button.configure(width=20)
-
-    # 'Reset Settings' button definition
-    self.reset_button = add_button(
-        self,
-        self.sidebar_frame,
-        "#246FB6",
-        "",
-        "",
-        self.reset_settings_event,
-        2,
-        "Reset Options",
-        1,
-        19,
-        0,
-        20,
-        20,
-        "s",
-    )
-
-    # Start second grid / column definitions
-
-    # Font to use
-    self.font_label = add_label(self, self, "Font To Use In Output:", "", 0, "normal", 6, 1, 20, 10, "sw")
-
-    # Get fonts from TkInter
-    font_items, res = get_monospace_fonts()
-    # Delete the tkroot obtained by get_monospace_fonts
-    if PrimeItems.tkroot is not None:
-        del PrimeItems.tkroot
-        PrimeItems.tkroot = None
-    self.font_optionmenu = add_option_menu(
-        self,
-        self,
-        self.font_event,
-        font_items,
-        7,
-        1,
-        20,
-        0,
-        "nw",
-    )
-    self.font_optionmenu.set(res[0])
-
-    # Save settings button
-    self.save_settings_button = add_button(
-        self,
-        self,
-        "#6563ff",
-        "",
-        "",
-        self.save_settings_event,
-        2,
-        "Save Settings",
-        1,
-        8,
-        1,
-        20,
-        0,
-        "sw",
-    )
-
-    # Restore settings button
-    self.restore_settings_button = add_button(
-        self,
-        self,
-        "#6563ff",
-        "",
-        "",
-        self.restore_settings_event,
-        2,
-        "Restore Settings",
-        1,
-        9,
-        1,
-        20,
-        10,
-        "nw",
-    )
-
-    # Report Issue
-    self.report_issue_button = add_button(
-        self,
-        self,
-        "",
-        "",
-        "",
-        self.report_issue_event,
-        2,
-        "Report Issue",
-        1,
-        10,
-        1,
-        20,
-        0,
-        "nw",
-    )
-
-    # 'Clear Messages' button definition
-    self.reset_button = add_button(
-        self,
-        self,
-        "#246FB6",
-        "",
-        "",
-        self.clear_messages_event,
-        2,
-        "Clear Messages",
-        1,
-        5,
-        1,
-        0,
-        0,
-        "s",
-    )
-    # 'Get Backup Settings' button definition
-    self.get_backup_button = self.display_backup_button(
-        "Get XML from Android Device",
-        "#246FB6",
-        "#6563ff",
-        self.get_backup_event,
-    )
-    # 'Get local XML' button
-    self.getxml_button = add_button(
-        self,
-        self,
-        "",
-        "",
-        "",
-        self.getxml_event,
-        2,
-        "Get Local XML",
-        1,
-        6,
-        2,
-        (20, 20),
-        (10, 10),
-        "e",
-    )
-
-    # 'Display Help' button definition
-    self.help_button = add_button(
-        self,
-        self,
-        "#246FB6",
-        ("#0BF075", "#ffd941"),
-        "",
-        self.help_event,
-        2,
-        "Display Help",
-        1,
-        7,
-        2,
-        (0, 20),
-        (10, 5),
-        "se",
-    )
-
-    # 'Backup Help' button definition
-    self.backup_help_button = add_button(
-        self,
-        self,
-        "#246FB6",
-        ("#0BF075", "#ffd941"),
-        "",
-        self.backup_help_event,
-        2,
-        "Get Android Help",
-        1,
-        8,
-        2,
-        (0, 20),
-        (5, 10),
-        "ne",
-    )
-
-    # 'Run' button definition
-    self.run_button = add_button(
-        self,
-        self,
-        "#246FB6",
-        ("#0BF075", "#1AD63D"),
-        "",
-        self.run_program,
-        2,
-        "Run and Exit",
-        1,
-        9,
-        2,
-        (0, 20),
-        (10, 5),
-        "se",
-    )
-
-    # 'ReRun' button definition
-    self.rerun_button = add_button(
-        self,
-        self,
-        "#246FB6",
-        ("#0BF075", "#1AD63D"),
-        "",
-        self.rerun_the_program,
-        2,
-        "ReRun",
-        1,
-        10,
-        2,
-        (0, 20),
-        (5, 10),
-        "ne",
-    )
-
-    # 'Exit' button definition
-    self.exit_button = add_button(
-        self,
-        self,
-        "#246FB6",
-        "Red",
-        "",
-        self.exit_program,
-        2,
-        "Exit",
-        1,
-        11,
-        2,
-        (20, 20),
-        (20, 20),
-        "ne",
-    )
-
-    # Create textbox for information/feedback
-    self.create_new_textbox()
-
-    # Start third grid / column definitions
-    # create tabview for Name, Color, and Debug
-    self.tabview = ctk.CTkTabview(self, width=250, segmented_button_fg_color="#6563ff")
-    self.tabview.grid(row=0, column=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
-    self.tabview.add("Specific Name")
-    self.tabview.add("Colors")
-    self.tabview.add("Analyze")
-    self.tabview.add("Debug")
-
-    self.tabview.tab("Specific Name").grid_columnconfigure(0, weight=1)  # configure grid of individual tabs
-    self.tabview.tab("Colors").grid_columnconfigure(0, weight=1)
-    self.tabview.tab("Analyze").grid_columnconfigure(0, weight=1)
-
-    # Prompt for the name
-    self.name_label = add_label(
-        self,
-        self.tabview.tab("Specific Name"),
-        "(Pick ONLY One)",
-        "",
-        0,
-        "normal",
-        4,
-        0,
-        20,
-        (10, 10),
-        "w",
-    )
-
-    # Setup to get various display colors
-    self.label_tab_2 = add_label(
-        self,
-        self.tabview.tab("Colors"),
-        "Set Various Display Colors Here:",
-        "",
-        0,
-        "normal",
-        0,
-        0,
-        0,
-        0,
-        "",
-    )
-    self.colors_optionmenu = add_option_menu(
-        self,
-        self.tabview.tab("Colors"),
-        self.colors_event,
-        [
-            "Projects",
-            "Profiles",
-            "Disabled Profiles",
-            "Launcher Task",
-            "Profile Conditions",
-            "Tasks",
-            "(Task) Actions",
-            "Action Conditions",
-            "Action Labels",
-            "Action Names",
-            "Scenes",
-            "Background",
-            "TaskerNet Information",
-            "Tasker Preferences",
-            "Highlight",
-            "Heading",
-        ],
-        1,
-        0,
-        20,
-        (10, 10),
-        "",
-    )
-
-    # Reset to Default Colors button
-    self.color_reset_button = add_button(
-        self,
-        self.tabview.tab("Colors"),
-        "",
-        "",
-        "",
-        self.color_reset_event,
-        2,
-        "Reset to Default Colors",
-        1,
-        3,
-        0,
-        20,
-        (10, 10),
-        "",
-    )
-
-    # AI Tab fields
-    center = 50
-    # API Key
-    self.ai_apikey_button = add_button(
-        self,
-        self.tabview.tab("Analyze"),
-        "",  # fg_color: str,
-        "",  # text_color: str,
-        "",  # border_color: str,
-        self.ai_apikey_event,  # command
-        2,  # border_width: int,
-        "Show/Edit OpenAI API Key",  # text: str,
-        1,  # columnspan: int,
-        3,  # row: int,
-        0,  # column: int,
-        center,  # padx: tuple,
-        (10, 10),  # pady: tuple,
-        "",
-    )
-    # Change Prompt
-    self.ai_apikey_button = add_button(
-        self,
-        self.tabview.tab("Analyze"),
-        "",  # fg_color: str,
-        "",  # text_color: str,
-        "",  # border_color: str,
-        self.ai_prompt_event,  # command
-        2,  # border_width: int,
-        "Change Prompt",  # text: str,
-        1,  # columnspan: int,
-        4,  # row: int,
-        0,  # column: int,
-        center,  # padx: tuple,
-        (10, 10),  # pady: tuple,
-        "",
-    )
-    # Model selection
-    self.ai_model_label = add_label(
-        self,
-        self.tabview.tab("Analyze"),
-        "Model to Use:",
-        "",
-        0,
-        "normal",
-        6,
-        0,
-        center,
-        (0, 0),
-        "n",
-    )
-    display_models = ["None (llama3)", *OPENAI_MODELS, *LLAMA_MODELS]  # Combine lists
-    self.ai_model_option = add_option_menu(
-        self,
-        self.tabview.tab("Analyze"),
-        self.ai_model_selected_event,
-        display_models,
-        6,
-        0,
-        center,
-        (30, 0),
-        "s",
-    )
-
-    # Analyize button
-    display_analyze_button(self, 13)
-
-    # Readme Help button
-    self.ai_help_button = add_button(
-        self,
-        self.tabview.tab("Analyze"),
-        "#246FB6",
-        ("#0BF075", "#ffd941"),
-        "#1bc9ff",  # border_color: str,
-        self.ai_help_event,  # command
-        1,  # border_width: int,
-        "?",  # text: str,
-        1,  # columnspan: int,
-        13,  # row: int,
-        0,  # column: int,
-        (190, 0),  # padx: tuple, don't change this.
-        (10, 10),  # pady: tuple,
-        "n",
-    )
-    self.ai_help_button.configure(width=20)
-
-    # Debug Mode checkbox
-    self.debug_checkbox = add_checkbox(
-        self,
-        self.tabview.tab("Debug"),
-        self.debug_checkbox_event,
-        "Debug Mode",
-        4,
-        3,
-        20,
-        10,
-        "w",
-        "#6563ff",
-    )
-    # Runtime
-    self.runtime_checkbox = add_checkbox(
-        self,
-        self.tabview.tab("Debug"),
-        self.runtime_checkbox_event,
-        "Display Runtime Settings",
-        3,
-        3,
-        20,
-        10,
-        "w",
-        "#6563ff",
-    )
-
-
 # Display Ai 'Analyze" button
-def display_analyze_button(self, row: int) -> None:  # noqa: ANN001
+def display_analyze_button(self, row: int, first_time: bool) -> None:  # noqa: ANN001
     """
     Display the 'Analyze' button for the AI API key.
 
@@ -1561,36 +709,41 @@ def display_analyze_button(self, row: int) -> None:  # noqa: ANN001
     Parameters:
         self (object): The instance of the class.
         row (int): The row number to display the button.
+        first_time (bool): True if this is the first time the button is to be displayed
 
     Returns:
         None: This function does not return anything.
     """
     # Highlight the button if we have everything to run the Analysis.
     if ((self.ai_model in OPENAI_MODELS and self.ai_apikey) or self.ai_model) and (
-        self.single_task_name or self.single_profile_name
+        self.single_task_name or self.single_profile_name or self.single_project_name
     ):
         fg_color = "#f55dff"
-        text_color = "#5554ff"
+        text_color = "#FFFFFF"
+    # Otherwise, use the default colors.
     else:
-        fg_color = ""
-        text_color = ""
-
-    self.ai_analyze_button = add_button(
-        self,
-        self.tabview.tab("Analyze"),
-        fg_color,  # fg_color: str,
-        text_color,  # text_color: str,
-        "",  # border_color: str,
-        self.ai_analyze_event,  # command
-        2,  # border_width: int,
-        "Run Analysis",  # text: str,
-        1,  # columnspan: int,
-        row,  # row: int,
-        0,  # column: int,
-        50,  # padx: tuple,
-        (10, 10),  # pady: tuple,
-        "n",
-    )
+        fg_color = "#246FB6"
+        text_color = "#FFFFFF"
+    # First time only, add the button
+    if first_time:
+        self.ai_analyze_button = add_button(
+            self,
+            self.tabview.tab("Analyze"),
+            fg_color,  # fg_color: str,
+            text_color,  # text_color: str,
+            "#6563ff",  # border_color: str,
+            self.ai_analyze_event,  # command
+            2,  # border_width: int,
+            "Run Analysis",  # text: str,
+            1,  # columnspan: int,
+            row,  # row: int,
+            0,  # column: int,
+            50,  # padx: tuple,
+            (10, 10),  # pady: tuple,
+            "n",
+        )
+    else:  # Not first time, just reconfigure the colors of the button.
+        self.ai_analyze_button.configure(fg_color=fg_color, text_color=text_color)
 
 
 # $ Delete existing Ai labels
@@ -1606,6 +759,8 @@ def delete_ai_labels(self) -> None:  # noqa: ANN001
         self.ai_set_label3.destroy()
     with contextlib.suppress(AttributeError):
         self.ai_set_label4.destroy()
+    with contextlib.suppress(AttributeError):
+        self.ai_set_label5.destroy()
 
 
 # Display the current settings for Ai
@@ -1618,7 +773,7 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
 
     # Read the api key.
     self.ai_apikey = get_api_key()
-    key_to_display = "Set" if self.ai_apikey else "Unset"
+    key_to_display = "Unset" if self.ai_apikey == "None" or not self.ai_apikey else "Set"
     model_to_display = self.ai_model if self.ai_model else "None (llama3)"
     self.ai_set_label1 = add_label(
         self,
@@ -1630,36 +785,45 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         14,
         0,
         10,
-        (0, 20),
+        (0, 30),
         "nw",
     )
-
+    # Set up name to display
+    project_to_display = self.single_project_name if self.single_project_name else "Undefined"
     profile_to_display = self.single_profile_name if self.single_profile_name else "Undefined"
     task_to_display = self.single_task_name if self.single_task_name else "Undefined"
     self.ai_model_option.set(model_to_display)  # Set the current model in the pulldown.
 
-    # The label should have been destroyed, but isn't due to tk bug.  So we have to blank fill if necessary.
-    # profile_length = len(profile_to_display)
-    # fill = 16
-    # if profile_length < fill:
-    #    profile_to_display = profile_to_display.ljust(fill - profile_length, " ")
-
-    # Display the Profile to analyze
+    # Display the Project to analyze
     self.ai_set_label2 = add_label(
         self,
         self.tabview.tab("Analyze"),
-        f"Profile to Analyze: {profile_to_display}",
+        f"Project to Analyze: {project_to_display}",
         "",
         0,
         "normal",
         14,
         0,
         10,
-        (30, 0),
+        (0, 0),
         "sw",
     )
-    # Display the Task to analyze
+    # Display the Profile to analyze
     self.ai_set_label3 = add_label(
+        self,
+        self.tabview.tab("Analyze"),
+        f"Profile to Analyze: {profile_to_display}",
+        "",
+        0,
+        "normal",
+        15,
+        0,
+        10,
+        (0, 30),
+        "nw",
+    )
+    # Display the Task to analyze
+    self.ai_set_label4 = add_label(
         self,
         self.tabview.tab("Analyze"),
         f"Task to Analyze: {task_to_display}",
@@ -1669,24 +833,24 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         15,
         0,
         10,
-        (0, 25),
-        "nw",
+        (0, 0),
+        "sw",
     )
     # Display the Prompt..only first 25 chars.
     maxlen = 25
     display_prompt = self.ai_prompt[:maxlen] + "..." if len(self.ai_prompt) > maxlen else self.ai_prompt
-    self.ai_set_label4 = add_label(
+    self.ai_set_label5 = add_label(
         self,
         self.tabview.tab("Analyze"),
         f"Prompt: '{display_prompt}'",
         "",
         0,
         "normal",
-        15,
+        16,
         0,
         10,
-        (10, 0),
-        "sw",
+        (0, 30),
+        "nw",
     )
 
     # Display the label on 'Specific Name' tab.
@@ -1813,22 +977,22 @@ def validate_or_filelist_xml(
             "",
             0,
             "normal",
-            8,
+            7,
             1,
-            (185, 0),
+            (200, 0),
             (0, 10),
-            "sw",
+            "w",
         )
         self.filelist_option = add_option_menu(
             self,
             self,
             self.file_selected_event,
             filelist,
-            9,
+            7,
             1,
-            (185, 10),
-            (0, 10),
-            "nw",
+            (200, 0),
+            (50, 10),
+            "w",
         )
 
         # Set backup IP and file location attributes if valid
@@ -1869,39 +1033,32 @@ def display_object_pulldowns(
         None
     """
     # Display all of the Projects for selection.
-    if projects_to_display:
-        profile_row = row + 2
-        task_row = row + 4
-        self.project_label = add_label(
-            self,
-            frame,
-            "Select Project to process:",
-            "",
-            0,
-            "normal",
-            row,  # row + 3,
-            0,
-            20,
-            (20, 0),
-            "s",
-        )
-        # Get the profile desired
-        self.specific_project_optionmenu = add_option_menu(
-            self,
-            frame,
-            project_name_event,
-            projects_to_display,
-            row + 1,  # row + 4,
-            0,
-            20,
-            (0, 10),
-            "n",
-        )
-
-    # Just doing Profile and Task pulldown
-    else:
-        profile_row = row
-        task_row = row + 2
+    profile_row = row + 2
+    task_row = row + 4
+    self.project_label = add_label(
+        self,
+        frame,
+        "Select Project to process:",
+        "",
+        0,
+        "normal",
+        row,
+        0,
+        20,
+        (10, 0),
+        "s",
+    )
+    project_option = add_option_menu(
+        self,
+        frame,
+        project_name_event,
+        projects_to_display,
+        row + 1,
+        0,
+        20,
+        (0, 10),
+        "n",
+    )
 
     # Display all of the Profiles for selection.
     self.profile_label = add_label(
@@ -1914,10 +1071,9 @@ def display_object_pulldowns(
         profile_row,
         0,
         20,
-        (20, 0),
+        (0, 0),
         "s",
     )
-    # Get the profile desired
     profile_option = add_option_menu(
         self,
         frame,
@@ -1944,7 +1100,6 @@ def display_object_pulldowns(
         (0, 0),
         "n",
     )
-    # Get the project desired
     task_option = add_option_menu(
         self,
         frame,
@@ -1956,7 +1111,7 @@ def display_object_pulldowns(
         (30, 0),
         "s",
     )
-    return profile_option, task_option
+    return project_option, profile_option, task_option
 
 
 # Delete old pulldown menus since the older selected items could be longer than the new,
@@ -1979,6 +1134,8 @@ def delete_old_pulldown_menus(self) -> None:  # noqa: ANN001
         self.specific_profile_optionmenu.destroy()
     with contextlib.suppress(AttributeError):
         self.specific_task_optionmenu.destroy()
+    with contextlib.suppress(AttributeError):
+        self.ai_project_optionmenu.destroy()
     with contextlib.suppress(AttributeError):
         self.ai_profile_optionmenu.destroy()
     with contextlib.suppress(AttributeError):
@@ -2020,28 +1177,12 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     if projects_to_display:
         projects_to_display = sorted(projects_to_display)
     profiles_to_display = sorted(profiles_to_display)
-    # profiles_to_display.insert(0, "None")
 
     # Display the object pulldowns in 'Analyze' tab
-    self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
+    self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
         self,
         self.tabview.tab("Analyze"),
         8,
-        [],
-        profiles_to_display,
-        tasks_to_display,
-        None,
-        self.single_profile_name_event,
-        self.single_task_name_event,
-    )
-
-    # Display the object pulldowns in 'Specific Name' tab
-    if not projects_to_display:  # If no Projects to display
-        projects_to_display = ["None"]
-    self.specific_profile_optionmenu, self.specific_task_optionmenu = display_object_pulldowns(
-        self,
-        self.tabview.tab("Specific Name"),
-        5,
         projects_to_display,
         profiles_to_display,
         tasks_to_display,
@@ -2050,64 +1191,83 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
         self.single_task_name_event,
     )
 
+    # Display the object pulldowns in 'Specific Name' tab
+    if not projects_to_display:  # If no Projects to display
+        projects_to_display = ["None"]
+    self.specific_project_optionmenu, self.specific_profile_optionmenu, self.specific_task_optionmenu = (
+        display_object_pulldowns(
+            self,
+            self.tabview.tab("Specific Name"),
+            5,
+            projects_to_display,
+            profiles_to_display,
+            tasks_to_display,
+            self.single_project_name_event,
+            self.single_profile_name_event,
+            self.single_task_name_event,
+        )
+    )
     return True
 
 
 # Get all Projects, Profiles and Tasks to display
 def get_tasker_objects(self) -> tuple:  # noqa: ANN001
-    """Get all Projects, Profiles and Tasks to display
+    """
+    Retrieves the projects, profiles, and tasks available in the XML file.
+
+    This function checks if the XML file has already been loaded. If not, it loads the XML file and builds the tree data.
+    Then, it goes through each project and retrieves all the profile names and tasks.
+    The profile names and tasks are cleaned up by removing the "Profile: Unnamed/Anonymous" and "Task: Unnamed/Anonymous." entries.
+    If there are no profiles or tasks found, a message box is displayed and the function returns False.
+    The profile names and tasks are then sorted alphabetically and duplicates are removed.
 
     Returns:
-        tuple: tuple of return code (True=good), and lists of projects, profiles and tasks
+        tuple: A tuple containing the following:
+            - bool: True if the XML file has Profiles or Tasks, False otherwise.
+            - list: A list of project names.
+            - list: A list of profile names to display.
+            - list: A list of task names to display.
     """
-    # Intialize lists
-    projects = []
+    projects_to_display = []
     profiles = []
     tasks = []
-
-    # Ok, we have our root Tasker elements.  Build the tree.
+    # Build the tree of Tasker objects
     tree_data = self.build_the_tree()
-    # If no tree, then there are no Projects in the XML.
+    # If no tree data, then we don't have any Projects.  Just get the Profiles and Tasks.
     if not tree_data:
-        if PrimeItems.tasker_root_elements["all_profiles"]:
-            profiles = [value["name"] for value in PrimeItems.tasker_root_elements["all_profiles"].values()]
-        if PrimeItems.tasker_root_elements["all_tasks"]:
-            tasks = [value["name"] for value in PrimeItems.tasker_root_elements["all_tasks"].values()]
-
-    # We have a treeBuild our list of Profiles and Tasks in the Projects.
+        profiles = [value["name"] for value in PrimeItems.tasker_root_elements["all_profiles"].values()]
+        tasks = [value["name"] for value in PrimeItems.tasker_root_elements["all_tasks"].values()]
+    # We have the Tasker objects.  Collect all Projects, Profiles and Tasks from the tree data.
     else:
-        # Go through the Projects and get all of the Profile names.
         for project in tree_data:
-            projects.append(project["name"])
+            projects_to_display.append(project["name"])
             for profile in project["children"]:
                 with contextlib.suppress(TypeError):
                     profiles.append(profile["name"])
                     tasks.extend(profile["children"])
-
-    # Cleanup the lists
-    have_profiles = have_tasks = True  # Assume we have Profiles and Tasks
+    # Clean up the object lists by removing anonymous or missing objects.
+    have_profiles = have_tasks = True
     profiles_to_display = [profile for profile in profiles if profile != "Profile: Unnamed/Anonymous"]
     if not profiles_to_display:
         profiles_to_display = ["No profiles found"]
         have_profiles = False
+
     tasks_to_display = [task for task in tasks if task not in ["Task: Unnamed/Anonymous.", ""]]
-    # Cleanup Tasks
     if not tasks_to_display:
         tasks_to_display = ["No tasks found"]
         have_tasks = False
     else:
-        # Remove dups from Tasks and sort them
         tasks_to_display = list(set(tasks_to_display))
-        tasks_to_display = sorted(tasks_to_display)
-        # tasks_to_display.insert(0, "None")
-    # Cleanup Profiles
+        tasks_to_display.sort()
+
     if not have_profiles and not have_tasks:
         self.display_message_box(
             "No profiles or tasks found in XML file.  Using the 'Get Local Xml button, load another XML file and try again.",
             "Red",
         )
         return False, [], [], []
-    return True, projects, profiles_to_display, tasks_to_display
+
+    return True, projects_to_display, profiles_to_display, tasks_to_display
 
 
 # Build a list of Profiles that are under the given project
@@ -2236,10 +1396,10 @@ def display_current_file(self, file_name: str) -> None:  # noqa: ANN001
         "",
         "",
         "normal",
-        11,
+        8,
         1,
         20,
-        0,
+        (20, 0),
         "w",
     )
 
@@ -2293,34 +1453,34 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
     # Determine values based on conditions
     # Update the Project/Profile/Task pulldown option menus.
     if self.single_project_name:
-        project_to_display = f"{default_display_only}Project '{self.single_project_name}'"
-        self.specific_name_msg = project_to_display
-        self.specific_project_optionmenu.set(project_to_display)
+        self.specific_name_msg = f"{default_display_only}Project '{self.single_project_name}'"
+        self.specific_project_optionmenu.set(self.single_project_name)
+        self.ai_project_optionmenu.set(self.single_project_name)
         self.specific_profile_optionmenu.set(default_profile)
         self.ai_profile_optionmenu.set(default_profile)
         self.specific_task_optionmenu.set(default_task)
         self.ai_task_optionmenu.set(default_task)
     elif self.single_profile_name:
-        profile_to_display = self.single_profile_name
-        self.specific_name_msg = f"{default_display_only}Profile '{profile_to_display}'"
-        self.specific_profile_optionmenu.set(profile_to_display)
-        self.ai_profile_optionmenu.set(profile_to_display)
+        self.specific_name_msg = f"{default_display_only}Profile '{self.single_profile_name}'"
+        self.specific_profile_optionmenu.set(self.single_profile_name)
+        self.ai_profile_optionmenu.set(self.single_profile_name)
+        self.ai_project_optionmenu.set(default_project)
         self.specific_project_optionmenu.set(default_project)
         self.specific_task_optionmenu.set(default_task)
         self.ai_task_optionmenu.set(default_task)
     elif self.single_task_name:
-        task_to_display = self.single_task_name
-        self.specific_name_msg = f"{default_display_only}Task '{task_to_display}'"
-        self.specific_task_optionmenu.set(task_to_display)
-        self.ai_task_optionmenu.set(task_to_display)
+        self.specific_name_msg = f"{default_display_only}Task '{self.single_task_name}'"
+        self.specific_task_optionmenu.set(self.single_task_name)
+        self.ai_task_optionmenu.set(self.single_task_name)
         self.specific_project_optionmenu.set(default_project)
         self.specific_profile_optionmenu.set(default_profile)
+        self.ai_project_optionmenu.set(default_project)
         self.ai_profile_optionmenu.set(default_profile)
     else:
-        # Set defaults for all option menus
         self.specific_name_msg = ""
         self.specific_project_optionmenu.set(default_project)
         self.specific_profile_optionmenu.set(default_profile)
+        self.ai_project_optionmenu.set(default_project)
         self.ai_profile_optionmenu.set(default_profile)
         self.specific_task_optionmenu.set(default_task)
         self.ai_task_optionmenu.set(default_task)
@@ -2346,350 +1506,3 @@ def clear_tasker_data() -> None:
     PrimeItems.tasker_root_elements["all_profiles"].clear()
     PrimeItems.tasker_root_elements["all_tasks"].clear()
     PrimeItems.tasker_root_elements["all_scenes"].clear()
-
-
-# Save the positition of a window
-def save_window_position(window: CTkAnalysisview) -> None:
-    """
-    Saves the window position by getting the geometry of the window.
-
-    Args:
-        window: The CTkAnalysisview window to save the position of.
-
-    Returns:
-        window position or "" if no window
-    """
-    with contextlib.suppress(Exception):
-        if window is not None:
-            return window.wm_geometry()
-    return ""
-
-
-# Display a tree structure
-class CTkTreeview(ctk.CTkFrame):
-    """Class to handle the Treeview
-
-    Args:
-        ctk (ctk): Our GUI framework
-    """
-
-    def __init__(self, master: any, items: list) -> None:
-        """Function:
-        def __init__(self, master: any, items: list):
-            Initializes a Treeview widget with a given master and list of items.
-            Parameters:
-                master (any): The parent widget for the Treeview.
-                items (list): A list of items to be inserted into the Treeview.
-            Returns:
-                None.
-            Processing Logic:
-                - Sets up the Treeview widget with appropriate styles and bindings.
-                - Inserts the given items into the Treeview.
-
-        tkinter treeview configurable items:
-            ttk::style configure Treeview -background color
-            ttk::style configure Treeview -foreground color
-            ttk::style configure Treeview -font namedfont
-            ttk::style configure Treeview -fieldbackground color
-            ttk::style map Treeview -background \
-                [list selected color]
-            ttk::style map Treeview -foreground \
-                [list selected color]
-            ttk::style configure Treeview -rowheight [expr {[font metrics namedfont -linespace] + 2}]
-            ttk::style configure Heading -font namedfont
-            ttk::style configure Heading -background color
-            ttk::style configure Heading -foreground color
-            ttk::style configure Heading -padding padding
-            ttk::style configure Item -foreground color
-            ttk::style configure Item -focuscolor color
-        """
-        self.root = master
-        self.items = items
-        super().__init__(self.root)
-
-        self.grid_columnconfigure(0, weight=1)
-
-        # Label widget
-        our_label = """
-Drag the bottom of the window to expand as needed.\n
-Click item and scroll mouse-wheel/trackpad\nas needed to go up or down.
-        """
-        self.label = ctk.CTkLabel(master=self, text=our_label, font=("", 12))
-        self.label.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
-
-        # Basic appearance for text, foreground and background.
-        self.bg_color = self.root._apply_appearance_mode(ctk.ThemeManager.theme["CTkFrame"]["fg_color"])  # noqa: SLF001
-        self.text_color = self.root._apply_appearance_mode(  # noqa: SLF001
-            ctk.ThemeManager.theme["CTkLabel"]["text_color"],
-        )
-        self.selected_color = self.root._apply_appearance_mode(  # noqa: SLF001
-            ctk.ThemeManager.theme["CTkButton"]["fg_color"],
-        )
-
-        # Set up the style/theme
-        self.tree_style = ttk.Style(self)
-        self.tree_style.theme_use("default")
-
-        # Gteth the icons to be used in the Tree view.
-        self.im_open = Image.open(ICON_PATH["arrow"])
-        self.im_close = self.im_open.rotate(90)
-        self.im_empty = Image.new("RGBA", (15, 15), "#00000000")
-
-        self.img_open = ImageTk.PhotoImage(self.im_open, name="img_open", size=(15, 15))
-        self.img_close = ImageTk.PhotoImage(self.im_close, name="img_close", size=(15, 15))
-        self.img_empty = ImageTk.PhotoImage(self.im_empty, name="img_empty", size=(15, 15))
-
-        # Arrow element configuration
-        with contextlib.suppress(TclError):  # Don't throw error if the element already exists.  Just reuse it.
-            self.tree_style.element_create(
-                "Treeitem.myindicator",
-                "image",
-                "img_close",
-                ("user1", "!user2", "img_open"),
-                ("user2", "img_empty"),
-                sticky="w",
-                width=15,
-                height=15,
-            )
-
-        # Treeview configuration of the treeview
-        self.tree_style.layout(
-            "Treeview.Item",
-            [
-                (
-                    "Treeitem.padding",
-                    {
-                        "sticky": "nsew",
-                        "children": [
-                            ("Treeitem.myindicator", {"side": "left", "sticky": "nsew"}),
-                            ("Treeitem.image", {"side": "left", "sticky": "nsew"}),
-                            (
-                                "Treeitem.focus",
-                                {
-                                    "side": "left",
-                                    "sticky": "nsew",
-                                    "children": [("Treeitem.text", {"side": "left", "sticky": "nsew"})],
-                                },
-                            ),
-                        ],
-                    },
-                ),
-            ],
-        )
-
-        self.tree_style.configure(
-            "Treeview",
-            background=self.bg_color,
-            foreground=self.text_color,
-            fieldbackground=self.bg_color,
-            borderwidth=10,  # Define a border around tree of 10 pixels.
-            font=("", 12),
-        )
-
-        self.tree_style.map(
-            "Treeview",
-            background=[("selected", self.bg_color)],
-            foreground=[("selected", self.selected_color)],
-        )
-        self.root.bind("<<TreeviewSelect>>", lambda event: self.root.focus_set())  # noqa: ARG005
-
-        # Define the frame for the treeview
-        self.treeview = ttk.Treeview(self, show="tree", height=50, selectmode="browse")
-
-        # Define the width of the column into which the tree will be placed.
-        self.treeview["columns"] = [0]
-        # self.treeview.column(0, stretch=0, anchor="w", width=150, minwidth=150)
-        # To configure the tree column, call this with column = “#0”
-        self.treeview.column("#0", stretch=0, anchor="w", width=300, minwidth=200)
-
-        self.treeview.grid(row=1, column=0, padx=10, pady=10, sticky="w")
-
-        # Add items to the tree
-        self.insert_items(self.items)
-
-    # Inset items into the treeview.
-    def insert_items(self, items: list, parent="") -> None:  # noqa: ANN001
-        """Inserts items into a treeview.
-        Parameters:
-            items (list): List of items to be inserted.
-            parent (str): Optional parent item for the inserted items.
-        Returns:
-            None: Does not return anything.
-        Processing Logic:
-            - Inserts items into treeview.
-            - If item is a dictionary, insert with id.
-            - If item is not a dictionary, insert without id."""
-        for item in items:
-            if isinstance(item, dict):
-                the_id = self.treeview.insert(parent, "end", text=item["name"].ljust(50))
-                with contextlib.suppress(KeyError):
-                    self.insert_items(item["children"], the_id)
-            else:
-                self.treeview.insert(parent, "end", text=item)
-
-
-# Define the Treeview window
-class TreeviewWindow(ctk.CTkToplevel):
-    """Define our top level window for the tree view."""
-
-    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
-        """Creates a label widget for a tree view.
-        Parameters:
-            self (object): The object being passed.
-            *args (any): Additional arguments.
-            **kwargs (any): Additional keyword arguments.
-        Returns:
-            None: This function does not return anything.
-        Processing Logic:
-            - Initialize label widget.
-            - Pack label widget with padding.
-            - Set label widget text."""
-        super().__init__(*args, **kwargs)
-        self.geometry("600x600")
-        self.title("MapTasker Configuration Treeview")
-
-
-# Display a Analysis structure
-class CTkAnalysisview(ctk.CTkFrame):
-    """Class to handle the Treeview
-
-    Args:
-        ctk (ctk): Our GUI framework
-    """
-
-    def __init__(self, master: any, message: str) -> None:
-        """Function:
-        def __init__(self, master: any, items: list):
-            Initializes a Analysisview widget with a given master and list of items.
-            Parameters:
-                master (any): The parent widget for the Analysisview.
-                items (list): A list of items to be inserted into the Analysisview.
-            Returns:
-                None.
-            Processing Logic:
-                - Sets up the Analysisview widget with appropriate styles and bindings.
-                - Inserts the given items into the Treeview.
-        """
-        self.root = master
-        super().__init__(self.root)
-
-        self.grid_columnconfigure(0, weight=1)
-
-        # Basic appearance for text, foreground and background.
-        self.analysis_bg_color = self.root._apply_appearance_mode(  # noqa: SLF001
-            ctk.ThemeManager.theme["CTkFrame"]["fg_color"],
-        )
-        self.analysis_text_color = self.root._apply_appearance_mode(  # noqa: SLF001
-            ctk.ThemeManager.theme["CTkLabel"]["text_color"],
-        )
-        self.selected_color = self.root._apply_appearance_mode(  # noqa: SLF001
-            ctk.ThemeManager.theme["CTkButton"]["fg_color"],
-        )
-
-        # Set up the style/theme
-        self.analysis_style = ttk.Style(self)
-        self.analysis_style.theme_use("default")
-
-        # Recreate text box
-        self.analysis_textbox = ctk.CTkTextbox(self, height=700, width=550)
-        self.analysis_textbox.grid(row=1, column=1, padx=20, pady=40, sticky="nsew")
-
-        # Insert the text with our new message into the text box.
-        # Add the test and color to the text box.
-        # fmt: off
-        self.analysis_textbox.insert("0.0", f"{message}\n")
-        self.analysis_textbox.configure(state="disabled", wrap="word")  # configure textbox to be read-only
-        self.analysis_textbox.focus_set()
-
-
-# Define the Ai Analysis window
-class AnalysisWindow(ctk.CTkToplevel):
-    """Define our top level window for the analysis view."""
-
-    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
-        """Creates a label widget for a tree view.
-        Parameters:
-            self (object): The object being passed.
-            *args (any): Additional arguments.
-            **kwargs (any): Additional keyword arguments.
-        Returns:
-            None: This function does not return anything.
-        Processing Logic:
-            - Initialize label widget.
-            - Pack label widget with padding.
-            - Set label widget text."""
-        super().__init__(*args, **kwargs)
-
-        # Position the widget
-        try:
-            self.geometry(self.master.ai_analysis_window_position)
-        except (AttributeError, TypeError):
-            self.geometry("600x800+600+0")
-
-        self.title("MapTasker Analysis Response")
-
-        # Save the window position on closure
-        self.protocol("WM_DELETE_WINDOW", self.on_closing)
-
-    # Analysis window is getting closed
-    def on_closing(self) -> None:
-        """Save the window position and close the window."""
-        self.master.ai_analysis_window_position = self.wm_geometry()
-        self.destroy()
-
-
-# Define the Ai Popup window
-class PopupWindow(ctk.CTk):
-    """Define our top level window for the Popup view."""
-
-    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
-        """Creates a label widget for a tree view.
-        Parameters:
-            self (object): The object being passed.
-            *args (any): Additional arguments.
-            **kwargs (any): Additional keyword arguments.
-        Returns:
-            None: This function does not return anything.
-        Processing Logic:
-            - Initialize label widget.
-            - Pack label widget with padding.
-            - Set label widget text."""
-        super().__init__(*args, **kwargs)
-
-        # Position the widget over our main GUI
-        self.geometry(PrimeItems.program_arguments["window_position"])
-
-        self.title("MapTasker Analysis")
-
-        self.grid_columnconfigure(0, weight=1)
-
-        # Set popup window wait time to .5 seconds, after which popup_button_event will be called.
-        self.after(500, self.popup_button_event)
-
-        # Label widget
-        our_label = "Analysis is running in the background.  Please stand by..."
-        self.Popup_label = ctk.CTkLabel(master=self, text=our_label, font=("", 24), text_color="turquoise")
-        self.Popup_label.grid(row=0, column=0, padx=0, pady=10, sticky="n")
-
-        # Basic appearance for text, foreground and background.
-        self.Popup_bg_color = self._apply_appearance_mode(ctk.ThemeManager.theme["CTkFrame"]["fg_color"])
-        self.Popup_text_color = self._apply_appearance_mode(
-            ctk.ThemeManager.theme["CTkLabel"]["text_color"],
-        )
-        self.selected_color = self._apply_appearance_mode(
-            ctk.ThemeManager.theme["CTkButton"]["fg_color"],
-        )
-
-        # Set up the style/theme
-        self.Popup_style = ttk.Style(self)
-        self.Popup_style.theme_use("default")
-
-    # The "after" n second timer tripped from popup window.  Close the window.
-    # Note: rungui will have already completely run by this time.
-    def popup_button_event(self) -> None:
-        """
-        Define the behavior of the popup button event function.  Close the window and exit.
-        """
-        #self.exit = True
-        self.quit()
-        self.quit()

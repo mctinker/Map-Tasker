@@ -2,24 +2,20 @@
 
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # maputils: General utilities used by program.                                         #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
+
 # #################################################################################### #
 from __future__ import annotations
 
 import ipaddress
 import json
+import os
 import socket
 import subprocess
 import sys
+from contextlib import contextmanager
 
 import defusedxml.ElementTree as et
 import requests
@@ -30,6 +26,32 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.xmldata import rewrite_xml
+
+
+@contextmanager
+def suppress_stdout() -> None:
+    """
+    Context manager that suppresses the standard output during its execution.
+
+    This context manager redirects the standard output to `/dev/null`, effectively suppressing any output.
+    It uses the `open` function to open `/dev/null` in write mode and assigns it to the `devnull` variable.
+    Then, it saves the current standard output in the `old_stdout` variable.
+    After that, it sets the standard output to `devnull`.
+
+    The `yield` statement is used to enter the context manager's block.
+    Once the block is executed, the `finally` block is executed to restore the standard output to its original value.
+
+    This context manager is useful when you want to suppress the standard output of a specific block of code."""
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        old_stderr = sys.stderr
+        sys.stderr = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
 
 
 # ##################################################################################
@@ -132,23 +154,25 @@ def http_request(
     # Make the request.
     error_message = ""
     response = ""
-    try:
-        response = requests.get(url, timeout=5)
-    except InvalidSchema:
-        error_message = f"Request failed for url: {url} .  Invalid url!"
-    except ConnectionError:
-        error_message = f"Request failed for url: {url} .  Connection error! Unable to get XML from Android device."
-    except Timeout:
-        error_message = f"Request failed for url: {url} .  Timeout error.  Or perhaps the profile 'MapTasker List' has not been imported into Tasker on the Android device!"
-    except Exception as e:
-        error_message = f"Request failed for url: {url}, error: {e} ."
+
+    with suppress_stdout():  # Suppress any errors (system IMK)
+        try:
+            response = requests.get(url, timeout=5)
+        except InvalidSchema:
+            error_message = f"Request failed for url: {url} .  Invalid url!"
+        except ConnectionError:
+            error_message = f"Request failed for url: {url} .  Connection error! Unable to get XML from Android device."
+        except Timeout:
+            error_message = f"Request failed for url: {url} .  Timeout error.  Or perhaps the profile 'MapTasker List' has not been imported into Tasker on the Android device!"
+        except Exception as e:
+            error_message = f"Request failed for url: {url}, error: {e} ."
 
     # If we have an error message, return as error.
     if error_message:
         logger.debug(error_message)
         return 8, error_message
 
-    # Check the response status code.
+    # Check the response status code.  200 is good!
     if response and response.status_code == 200:
         # Return the contents of the file.
         return 0, response.content
@@ -234,7 +258,6 @@ def validate_xml(ip_address: str, android_file: str, return_code: int, file_cont
 # Read XML file and validate the XML.
 # ##################################################################################
 def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
-
     # Read the file
     """Validates an XML file from an Android device.
     Parameters:
@@ -269,3 +292,25 @@ def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
         return 0, f"File {android_file} is not valid Tasker XML.\n\nTry again."
 
     return 0, ""
+
+
+# If we have set the single Project name due to a single Task or Profile name, then reset it.
+def reset_named_objects() -> None:
+    """_summary_
+    Reset the single Project name if it was set due to a single Task or Profile name.
+    Parameters:
+        None
+    Returns:
+        None
+    """
+    # Check in name hierarchy: Task then Profile
+    if PrimeItems.program_arguments["single_task_name"]:
+        PrimeItems.program_arguments["single_project_name"] = ""
+        PrimeItems.found_named_items["single_project_found"] = False
+        PrimeItems.program_arguments["single_profile_name"] = ""
+        PrimeItems.found_named_items["single_profile_found"] = False
+    elif PrimeItems.program_arguments["single_profile_name"]:
+        PrimeItems.program_arguments["single_project_name"] = ""
+        PrimeItems.found_named_items["single_project_found"] = False
+        PrimeItems.program_arguments["single_task_name"] = ""
+        PrimeItems.found_named_items["single_task_found"] = False

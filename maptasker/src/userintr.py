@@ -5,12 +5,8 @@
 #                                                                                      #
 # userintr: provide GUI and process input for program arguments                        #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
+# MIT License   Refer to https://opensource.org/license/mit                            #
+
 import contextlib
 import json
 import webbrowser
@@ -27,10 +23,6 @@ from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutils import (
     CHANGELOG,
-    AnalysisWindow,
-    CTkAnalysisview,
-    CTkTreeview,
-    TreeviewWindow,
     add_button,
     add_label,
     build_profiles,
@@ -44,17 +36,23 @@ from maptasker.src.guiutils import (
     display_selected_object_labels,
     get_api_key,
     get_xml,
-    initialize_gui,
-    initialize_screen,
     is_new_version,
     list_tasker_objects,
     ping_android_device,
-    save_window_position,
     set_tasker_object_names,
     setup_name_error,
     update_tasker_object_menus,
     valid_item,
     validate_or_filelist_xml,
+)
+from maptasker.src.guiwins import (
+    AnalysisWindow,
+    CTkAnalysisview,
+    CTkTreeview,
+    TreeviewWindow,
+    initialize_gui,
+    initialize_screen,
+    save_window_position,
 )
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
@@ -129,7 +127,9 @@ INFO_TEXT = (
     "Notes:\n\n"
     "- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n"
     "- If running on OS X Ventura, you may receive the runtime error: +[CATransaction synchronize] called within transaction. This can be ignored and the program will still run correctly.\n\n"
+    "- Likewise, if you receive the runtime error: 'IMKClient Stall detected...', this can be ignored.\n\n"
     "- The 'Rerun' button will spit out the message 'Task policy set failed: 4 ((os/kern) invalid argument)' which can be ignored.\n\n"
+    "- Drag the window to expand the text as desired.\n\n"
 )
 BACKUP_HELP_TEXT = (
     "The following steps are required in order to fetch a Tasker XML file directly"
@@ -228,16 +228,19 @@ class MyGui(customtkinter.CTk):
         initialize_screen(self)
 
         # set default values
-        self.set_defaults(True)
+        self.set_defaults()
 
         # Now restore the settings and update the fields if not resetting.
         if not PrimeItems.program_arguments["reset"]:
-            self.restore_settings_event(first_time=True)
+            self.restore_settings_event()
         else:
             self.display_message_box("GUI started with the '-reset' option.\n", "Green")
 
         # Set the window's geometry
         self.set_main_window_geometry()
+
+        # Turn off first time
+        self.first_time = False
 
         # See if we have any carryover error messages from last run (rerun).
         # Note: this must go after the settings restoration.
@@ -264,7 +267,7 @@ class MyGui(customtkinter.CTk):
         self.deiconify()
 
     # Establish all of the default values used
-    def set_defaults(self, first_time: bool) -> None:
+    def set_defaults(self) -> None:
         # Item names must be the same as their value in
         #  PrimeItems.program_arguments
         """
@@ -304,7 +307,7 @@ class MyGui(customtkinter.CTk):
         self.android_ipaddr = ""
         self.android_port = ""
         self.android_file = ""
-        if first_time:
+        if self.first_time:
             self.all_messages = {}
         self.color_lookup = {}  # Setup default dictionary as empty list
         self.font = OUTPUT_FONT
@@ -316,6 +319,15 @@ class MyGui(customtkinter.CTk):
         self.ai_model = ""
         self.ai_prompt = AI_PROMPT
         self.specific_name_msg = ""
+        self.current_file_display_message = True
+        # Setup default window position = current position or first-time position
+        if self.first_time:
+            if PrimeItems.program_arguments["window_position"]:
+                self.window_position = PrimeItems.program_arguments["window_position"]
+            else:
+                self.window_position = "1129x937+698+145"  # Default window position
+        else:
+            self.window_position = save_window_position(self)
 
         # Display current Items setting.
         with contextlib.suppress(AttributeError):  # single_name_status may not be defined yet.
@@ -341,7 +353,7 @@ class MyGui(customtkinter.CTk):
             self,
             self,
             color1,
-            ("#0BF075", "#1AD63D"),
+            ("#0BF075", "#FFFFFF"),
             color2,
             routine,
             1,
@@ -382,16 +394,7 @@ class MyGui(customtkinter.CTk):
         if color.isnumeric():
             color = f"#{color}"
 
-        ## Delete prior contents
-        # self.textbox.destroy()
-
-        ## Recreate text box
-        # self.textbox = customtkinter.CTkTextbox(self, height=650, width=250)
-        # self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
-        # self.textbox.configure(state="disabled", font=(self.font, 14), wrap="word")
-
-        ## Display the pre-exising messages from our message dictionary.
-        # line_num = self.display_existing_messages()
+        # Get the total number of lines already in the text box.
         line_num = len(self.all_messages)
 
         # Insert the text with our new message into the text box.
@@ -416,39 +419,6 @@ class MyGui(customtkinter.CTk):
         self.check_message_for_special_highlighting(message, line_num_str)
 
         self.textbox.focus_set()
-
-    # Display pre-existing messages from our message dictionary.
-    # def display_existing_messages(self) -> int:
-    #    """
-    #    Display existing messages in the text box based on the messages stored in the dictionary.
-
-    #    Parameters:
-    #        self: The object instance.
-    #        line_num: An integer representing the line number in the text box.
-
-    #    Returns:
-    #        line_num (int): An integer representing the last line number in the text box.
-    #    """
-    #    line_num = 0
-    #    # Go through our messages in the dictionary and add each to the text box.
-    #    for num, key in enumerate(self.all_messages):
-    #        line_num = num + 1
-    #        line_num_str = str(line_num)
-    #        line_detail = self.all_messages[key]
-    #        # fmt: off
-    #        self.textbox.insert(f"{line_num_str}.0", line_detail["text"], (line_num_str))
-    #        self.textbox.tag_add(line_num_str, f"{line_num_str}.0", f"{line_num_str}.{len(line_detail['text'])!s}") # fmt: skip
-    #        # fmt: on
-    #        self.textbox.tag_config(line_num_str, foreground=line_detail["color"])
-    #        # See if we are to highlight a string within the message
-    #        if self.all_messages[int(line_num_str)]["highlight_color"]:
-    #            self.highlight_string(
-    #                line_detail["text"],
-    #                line_num_str,
-    #                line_detail["highlight_position"],
-    #                line_detail["highlight_color"],
-    #            )
-    #    return line_num
 
     # Check the current messsage for additional highlighting
     def check_message_for_special_highlighting(self, message: str, line_num_str: str) -> None:
@@ -621,7 +591,7 @@ class MyGui(customtkinter.CTk):
                     self.single_project_name = name_entered
                     # Clear out all of the old data for this new Project.
                     # They will get repopulated by call to...
-                    # update_tasker_object_menus() > list_tasker_objects() > load_xml()
+                    # (below) update_tasker_object_menus() > list_tasker_objects() > load_xml()
                     clear_tasker_data()
 
                 case "Profile":
@@ -638,7 +608,7 @@ class MyGui(customtkinter.CTk):
 
         # Update the pulldown menus and text labels, and set the color for Analyze button
         update_tasker_object_menus(self, get_data=True)
-        display_analyze_button(self, 13)
+        display_analyze_button(self, 13, first_time=False)
 
     # Process single name restore
     def process_single_name_restore(
@@ -658,6 +628,8 @@ class MyGui(customtkinter.CTk):
             - Clear existing single name values
             - Match the name type and assign the entered name to the correct single name attribute
             - Do nothing if an invalid name type is provided"""
+        # Don't display current_file message
+        self.current_file_display_message = False
         # Make sure it is a valid Profile name
         if name_entered == "None or unnamed!":
             self.single_profile_name = ""
@@ -1459,7 +1431,7 @@ class MyGui(customtkinter.CTk):
         return message
 
     # Process the 'Restore Settings' checkbox
-    def restore_settings_event(self, first_time: bool) -> None:
+    def restore_settings_event(self) -> None:
         """
         Resets settings to defaults and restores from saved settings file
         Args:
@@ -1474,7 +1446,7 @@ class MyGui(customtkinter.CTk):
             - Extract restored settings into class attributes
             - Empty message queue after restoring
         """
-        self.set_defaults(first_time)  # Reset all values
+        self.set_defaults()  # Reset all values
         temp_args = self.color_lookup = {}
         # Restore all changes that have been saved
         temp_args, self.color_lookup = save_restore_args(temp_args, self.color_lookup, False)
@@ -1544,6 +1516,7 @@ class MyGui(customtkinter.CTk):
         starting_row: int,
         indentation_x_label: int,
         indentation_y_label: int,
+        indentation_y_input: int,
         input_name: customtkinter.CTkButton,
         label_name: customtkinter.CTkLabel,
         do_input: bool,
@@ -1556,6 +1529,7 @@ class MyGui(customtkinter.CTk):
             starting_row: The grid row that the label starts on
             indentation_x_label: the x indentation amount for the label
             indentation_y_label: the y indentation amount for the label
+            indentation_y_input: the y indentation amount for the input field
             input_name: the name of the input field
             do_input: whether to display the input field (True) or not (False)
         Returns:
@@ -1566,6 +1540,7 @@ class MyGui(customtkinter.CTk):
             - Inserts the default value into the entry field
             - Returns the value entered by the user
         """
+        # Draw each on the same row, incrementing y factor for each
         # Add a label over the TCPIP entry field.
         label_name = customtkinter.CTkLabel(
             master=self,
@@ -1577,7 +1552,7 @@ class MyGui(customtkinter.CTk):
             column=1,
             columnspan=1,
             padx=(200, indentation_x_label),
-            pady=(indentation_y_label, 5),
+            pady=(indentation_y_label, 0),
             sticky="nw",
         )
 
@@ -1594,21 +1569,15 @@ class MyGui(customtkinter.CTk):
                 text_color=("#0BF075", "#1AD63D"),
             )
             input_name.insert(0, default_value)
-            next_row = starting_row + 1
-            # If file location, we have to push line up by 1 for some reason.
-            # if next_row == 10:
-            #    next_row = 9
-            #    sticky = "se"
-            # else:
-            #    sticky = "ne"
-            sticky = "nw"
+
+            # Input field
             input_name.grid(
-                row=next_row,
+                row=starting_row,
                 column=1,
-                columnspan=1,
-                padx=(200, 90),
-                pady=(0, 0),
-                sticky=sticky,
+                # columnspan=1,
+                padx=(200, 70),
+                pady=(indentation_y_input, 0),
+                sticky="nw",
             )
         return input_name, label_name
 
@@ -1630,31 +1599,34 @@ class MyGui(customtkinter.CTk):
         """
         # First clear out any entries we may already have filled in.
         clear_android_buttons(self)
+        # Everyhting is based off row 7 for better spacing control
         ###  TCP/IP Address ###
-        if self.android_ipaddr == "" or self.android_ipaddr is None:
-            self.android_ipaddr = "192.168.0.210"
+        android_ipaddr = (
+            "192.168.0.210" if self.android_ipaddr == "" or self.android_ipaddr is None else self.android_ipaddr
+        )
         self.ip_entry = self.ip_label = None
         self.ip_entry, self.ip_label = self.display_label_and_input(
             "1-TCP/IP Address:",
-            self.android_ipaddr,
+            android_ipaddr,
             7,
             110,
-            30,
+            35,
+            70,
             self.ip_entry,
             self.ip_label,
             True,
         )
 
         ### Port Number ###
-        if self.android_port == "" or self.android_port is None:
-            self.android_port = "1821"
+        android_port = "1821" if self.android_port == "" or self.android_port is None else self.android_port
         self.port_entry = self.port_label = None
         self.port_entry, self.port_label = self.display_label_and_input(
             "2-Port Number:",
-            self.android_port,
-            8,
+            android_port,
+            7,
             127,
-            30,
+            100,
+            130,
             self.port_entry,
             self.port_label,
             True,
@@ -1662,14 +1634,17 @@ class MyGui(customtkinter.CTk):
 
         ###  File Location ###
         if self.android_file == "" or self.android_file is None:
-            self.android_file = "/Tasker/configs/user/backup.xml".replace("/", PrimeItems.slash)
+            android_file = "/Tasker/configs/user/backup.xml".replace("/", PrimeItems.slash)
+        else:
+            android_file = self.android_file.replace("/", PrimeItems.slash)
         self.file_entry = self.file_label = None
         self.file_entry, self.file_label = self.display_label_and_input(
             "3-File Location:",
-            self.android_file,
-            9,  # Start row
+            android_file,
+            7,  # Start row
             129,  # Indentation x
-            30,  # Indentation y
+            160,  # Indentation y
+            190,
             self.file_entry,
             self.file_label,
             True,
@@ -1683,13 +1658,13 @@ class MyGui(customtkinter.CTk):
             "",
             "#1bc9ff",
             self.backup_cancel_event,
-            2,
+            2,  # border width
             "Cancel Entry",
-            2,
-            8,
-            1,
+            2,  # column span
+            7,  # row
+            1,  # column
             (80, 260),
-            (0, 0),
+            (70, 0),
             "ne",
         )
 
@@ -1698,32 +1673,32 @@ class MyGui(customtkinter.CTk):
             self,
             self,
             "#D62CFF",
-            ("#0BF075", "#1AD63D"),
+            ("#0BF075", "#FFFFFF"),
             "#6563ff",
             self.list_files_event,
             2,
             "List XML Files",
             2,
-            10,
+            7,
             1,
-            (80, 240),
-            (0, 45),
-            "se",
+            (5, 270),
+            (190, 0),
+            "ne",
         )
 
-        # Add ..or.. label.
-        self.label_or = customtkinter.CTkLabel(
-            master=self,
-            text=".or.",
-            anchor="sw",
-        )
-        self.label_or.grid(
-            row=10,
-            column=1,
-            columnspan=1,
-            padx=(0, 83),
-            pady=(0, 45),
-            sticky="se",
+        ## Add ..or.. label.
+        self.label_or = add_label(
+            self,
+            self,
+            ".or.",
+            "",
+            12,
+            "normal",
+            7,
+            1,
+            (250, 0),
+            (195, 0),
+            "s",
         )
 
         #  Query ? button
@@ -1737,11 +1712,11 @@ class MyGui(customtkinter.CTk):
             1,
             "?",
             2,
-            10,
+            7,
             1,
-            (0, 200),
-            (0, 45),
-            "se",
+            (0, 230),
+            (190, 0),
+            "ne",
         )
         self.list_files_query_button.configure(width=20)
 
@@ -1911,10 +1886,10 @@ class MyGui(customtkinter.CTk):
             "",
             12,
             "normal",
-            8,
+            7,
             1,
             (60, 0),
-            (0, 50),
+            (70, 0),
             "ne",
         )
 
@@ -1926,10 +1901,10 @@ class MyGui(customtkinter.CTk):
             "",
             13,
             "normal",
-            8,
+            7,
             1,
             (60, 0),
-            (0, 50),
+            (90, 50),
             "ne",
         )
 
@@ -2036,7 +2011,7 @@ class MyGui(customtkinter.CTk):
         if self.color_labels:  # is there any color text?
             for label in self.color_labels:
                 label.configure(text="")
-        self.set_defaults(False)  # Reset all defaults
+        self.set_defaults()  # Reset all defaults
 
         # Cleanup the inline data.
         clean_up_memory()
@@ -2057,6 +2032,9 @@ class MyGui(customtkinter.CTk):
 
         # Update the Tasker selected object pulldown names and labels
         update_tasker_object_menus(self, get_data=False)
+
+        # Reset Analyze button to non-pink
+        display_analyze_button(self, 13, first_time=False)
 
         # Reset current file
         display_current_file(self, "None")
@@ -2486,7 +2464,8 @@ class MyGui(customtkinter.CTk):
             ```
         """
         display_current_file(self, filename)
-        self.display_message_box(f"Current file set to {filename}", "Green")
+        if self.current_file_display_message:
+            self.display_message_box(f"Current file set to {filename}", "Green")
         self.file = filename  # Set this so it is saved in settings.
 
     # Get XML button clicked.  Prompt usere for XML and load it.
@@ -2513,7 +2492,10 @@ class MyGui(customtkinter.CTk):
         self.android_file = ""
 
         # Redisplay the Projects/Profiles/Tasks pulldown menus for selection
+        # It will call 'display_and_set_file' to display the current file name via call to 'load_xml'
+        self.current_file_display_message = True
         update_tasker_object_menus(self, get_data=True)
+        self.current_file_display_message = False
 
     # Show for edit the AI API Key
     def ai_apikey_event(self) -> None:
@@ -2570,7 +2552,7 @@ class MyGui(customtkinter.CTk):
         self.display_message_box("Model set to " + model + ".", "Green")
 
         # Redisplay the Analyze button.
-        display_analyze_button(self, 13)
+        display_analyze_button(self, 13, first_time=False)
 
         # Redisplay the ai settings
         display_selected_object_labels(self)
@@ -2607,11 +2589,11 @@ class MyGui(customtkinter.CTk):
                 "Orange",
             )
             # Get the Profile or Task to analyze
-            self.ai_analyze_button.destroy()
+            # self.ai_analyze_button.destroy()
             # If there are no Profiles or Tasks, redisplay the Analyze button
             if not list_tasker_objects(self):
                 # Drop here if we don't have any XML loaded yet.
-                display_analyze_button(self, 13)
+                display_analyze_button(self, 13, first_time=False)
 
             # Update the Project/Profile/Task pulldown option menus.
             set_tasker_object_names(self)
@@ -2730,7 +2712,7 @@ class MyGui(customtkinter.CTk):
                 2,
                 (0, 170),
                 (0, 10),
-                "sw",
+                "w",
             )
             #  Query ? button
             self.list_files_query_button = add_button(
@@ -2745,10 +2727,10 @@ class MyGui(customtkinter.CTk):
                 1,
                 "What's New?",
                 2,
-                7,
+                6,
                 2,
                 (0, 180),
-                (0, 10),
+                (80, 10),
                 "",
             )
             # self.list_files_query_button.configure(width=20)

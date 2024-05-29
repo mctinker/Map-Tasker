@@ -2,16 +2,10 @@
 
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # getputer: Save and restore program arguments                                         #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
+
 # #################################################################################### #
 from __future__ import annotations
 
@@ -27,6 +21,7 @@ import tomllib
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.maputils import reset_named_objects
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ARGUMENTS_FILE, NOW_TIME, OLD_ARGUMENTS_FILE, logger
 
@@ -85,6 +80,10 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     Returns:
         None
     """
+    # In the event we set the single Projeect name due to a single Task or Profile name,
+    # then reset it before we do a save and exit.
+    reset_named_objects()
+
     guidance = {
         "Guidance": "Modify this file as needed below the entries [program_arguments] and [colors_to_use].  Run 'maptasker -h' for details.",
     }
@@ -115,6 +114,7 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
             tomli_w.dump(settings, settings_file)
         except TypeError as e:
             logger.debug(f"getputer tomli failure: {e}")
+            print(f"getputer tomli failure: {e}...one or more settings is 'None'!")
         settings_file.close()
 
 
@@ -172,9 +172,7 @@ def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, 
 
     # Read the TOML file
     elif os.path.isfile(new_file):
-
         with open(new_file, "rb") as f:
-
             # Setup old date if date last used is not in TROML settings file.  Catch all possible errors with TOML file.
             try:
                 # Colors to use
