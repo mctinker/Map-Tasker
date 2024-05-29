@@ -1,15 +1,12 @@
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # nameattr: Format the Project/Profile/Task/Scene name with bold, highlighting or      #
 #            italisized.  Also used for some utility functions.                        #
 #                                                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
+
+
 # #################################################################################### #
 import tkinter as tk
 

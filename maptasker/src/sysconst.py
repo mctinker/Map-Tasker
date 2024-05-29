@@ -2,16 +2,10 @@
 
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # sysconst: System constants                                                           #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
+
 # #################################################################################### #
 from __future__ import annotations
 
@@ -26,7 +20,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "4.0.6"
+VERSION = "4.0.7"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
