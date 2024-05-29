@@ -2,18 +2,11 @@
 
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # variables: process Tasker variables.                                                 #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
-# #################################################################################### #
-import darkdetect
+# MIT License   Refer to https://opensource.org/license/mit                            #
+
 import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.primitem import PrimeItems
@@ -190,16 +183,19 @@ def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> N
         if project is not None and project != "":
             # Does this variable have a list of Projects?
             if PrimeItems.variables[key]["project"]:
-                for variable_project in PrimeItems.variables[key]["project"]:
-                    if variable_project["xml"] == project:
-                        variable_output_lines.append(
-                            f"<tr>{table_definition}{key}</td>{table_definition}{value['value']}</td></tr>"
-                        )
-                # variable_output_lines.extend(
-                #     f'<tr>{table_definition}{key}</td>{table_definition}{value["value"]}</td></tr>'
-                #     for variable_project in PrimeItems.variables[key]["project"]
-                #     if variable_project["xml"] == project
-                # )
+                variable_output_lines.extend(
+                    [
+                        f"<tr>{table_definition}{key}</td>{table_definition}{value['value']}</td></tr>"
+                        for variable_project in PrimeItems.variables[key]["project"]
+                        if variable_project["xml"] == project
+                    ],
+                )
+                # for variable_project in PrimeItems.variables[key]["project"]:
+                #    if variable_project["xml"] == project:
+                #        variable_output_lines.append(
+                #            f"<tr>{table_definition}{key}</td>{table_definition}{value['value']}</td></tr>",
+                #        )
+
         # If this is a verified "tasker variable", and not a Project global var?
         elif PrimeItems.variables[key]["verified"] and not PrimeItems.variables[key]["project"]:
             # It is an unrefereenced variable.

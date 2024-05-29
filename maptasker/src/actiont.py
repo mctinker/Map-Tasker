@@ -1,17 +1,10 @@
 # sourcery skip: avoid-global-variables
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # actiont: Task Action table/dictionary of keywords for MapTasker                      #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
-# #################################################################################### #
+# MIT License   Refer to https://opensource.org/license/mit                            #
 # The following dictionary provides the strings for various specific code Actions which
 # need to be looked up.
 # actionc.py entries that have a [xx, l, xx] represent a lookup (l entry) into this
