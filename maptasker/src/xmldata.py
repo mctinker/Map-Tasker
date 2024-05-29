@@ -2,16 +2,10 @@
 
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # xmldata: deal with the xml data                                                      #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
+
 # #################################################################################### #
 import os
 import shutil
@@ -80,7 +74,6 @@ def tag_in_type(tag: str, flag: bool) -> bool:
 # We have an integer.  Evaluaate it's value based oon the code's evaluation parameters.
 # ##################################################################################
 def extract_integer(action: defusedxml.ElementTree.XML, arg: str, argeval: str) -> str:
-
     # Don't move import to avoid cirtcular import
     """
     Extract an integer value from an XML action element
@@ -107,7 +100,6 @@ def extract_integer(action: defusedxml.ElementTree.XML, arg: str, argeval: str) 
             the_arg = child.attrib.get("sr")
             # Is this our arg?
             if arg == the_arg:
-
                 # We have the arg we are looking for.
                 if child.attrib.get("val") is not None:
                     the_int_value = child.attrib.get("val")  # There a numeric value as a string?

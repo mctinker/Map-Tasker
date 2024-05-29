@@ -2,16 +2,10 @@
 
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # actionr: process Task "Action" and return the result                                 #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-# #################################################################################### #
+
 from __future__ import annotations
 
 import re
@@ -101,7 +95,6 @@ def find_capitalized_percent_substrings(string: str) -> list:
 # Get the variables from this result and save them in the dictionary.
 # ##################################################################################
 def get_variables(result: str) -> None:
-
     # Fid all variables with at least one capitalized letter.
     """Get all variables with at least one capitalized letter.
     Parameters:

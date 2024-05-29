@@ -2,7 +2,6 @@
 
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # runcli: process command line interface arguments for MapTasker                       #
 #                                                                                      #
@@ -11,12 +10,7 @@
 #  DEPRECATION WARNING: The system version of Tk is deprecated ...                     #
 #  "export TK_SILENCE_DEPRECATION = 1"                                                 #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
+
 # #################################################################################### #
 import contextlib
 import os
@@ -136,7 +130,6 @@ def get_the_other_arguments(args: list) -> None:
     # Get display detail level, if provided.
     detail = getattr(args, "detail")
     if detail is not None:
-
         if isinstance(detail, int):
             PrimeItems.program_arguments["display_detail_level"] = detail
         elif isinstance(detail, list):

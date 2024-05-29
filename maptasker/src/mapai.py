@@ -2,16 +2,10 @@
 
 #! /usr/bin/env python3
 
-# #################################################################################### #
 #                                                                                      #
 # mapai: Ai support                                                                    #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
+
 # #################################################################################### #
 import contextlib
 import importlib.util
@@ -23,7 +17,8 @@ from openai import OpenAI, OpenAIError
 
 from maptasker.src.config import AI_PROMPT
 from maptasker.src.error import error_handler
-from maptasker.src.guiutils import PopupWindow, get_api_key
+from maptasker.src.guiutils import get_api_key
+from maptasker.src.guiwins import PopupWindow
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ANALYSIS_FILE, ERROR_FILE, KEYFILE, OPENAI_MODELS
 

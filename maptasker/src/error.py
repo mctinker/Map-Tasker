@@ -3,19 +3,12 @@
 #! /usr/bin/env python3
 import sys
 
-# #################################################################################### #
 #                                                                                      #
 # Error: Process Errors                                                                #
 #                                                                                      #
-# GNU General Public License v3.0                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
 # #################################################################################### #
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import Colors, logger, ERROR_FILE
+from maptasker.src.sysconst import ERROR_FILE, Colors, logger
 
 
 def error_handler(error_message: str, exit_code: int) -> None:
@@ -45,7 +38,6 @@ def error_handler(error_message: str, exit_code: int) -> None:
 
         # If coming from GUI, set error info. and return to GUI.
         if PrimeItems.program_arguments and PrimeItems.program_arguments["gui"]:
-
             # Write the rror to file for use by userinter (e.g. on rerun), so userintr can display error on entry.
             with open(ERROR_FILE, "w") as error_file:
                 error_file.write(f"{error_message}\n")

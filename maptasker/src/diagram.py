@@ -1,21 +1,19 @@
 #! /usr/bin/env python3
-# #################################################################################### #
 #                                                                                      #
 # diagram: Output a diagram/map of the Tasker configuration.                           #
 #                                                                                      #
 # Traverse our network map and print out everything in connected boxes.                #
 #                                                                                      #
 # Permissions of this strong copyleft license are conditioned on making available      #
-# complete source code of licensed works and modifications, which include larger works #
-# using a licensed work, under the same license. Copyright and license notices must be #
-# preserved. Contributors provide an express grant of patent rights.                   #
-#                                                                                      #
+
+
 # #################################################################################### #
 """
 This code is somewhat of a mess.  It is overly complex, but I wanted to develop my own
 diagramming app rather than rely on yet-another-dependency such as that for
 diagram and graphviz.
 """
+
 from __future__ import annotations
 
 import contextlib
