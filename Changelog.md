@@ -2,25 +2,37 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0.7] 30-May-2024
+## [4.0.8] 04-June-2024
 
 ### Added
 
-- Added: An entire project can now be analyzed via the 'Analyze' tab.
+- Added: The Ai Analysis models 'mistrel', 'codegemma', 'gemma', 'deepseek-coder' and 'phi3' have been added.
+- Added: The model name and object name are now displayed with the Ai analysis response.
+- Added: The message that the analysis is running in the background has been animated for awareness.
+- Added: The pulldown menus for selecting a single object now includes "None" so that it can be used to clear the selection without having to resort to a 'Reset Settings' in the GUI.
+- Added: Three additional Tasker preferences have been mapped and one has been corrected.
 
 ### Changed
 
-- Changed: Redefined the default window size for the GUI so that it is large enough for asll of the fields to show appropriately.
+- Changed: Ai models are now listed alphabetically, with the last-used model listed first.  The default of 'None (llama)' has been removed.
 
 ### Fixed
 
+- Fixed: The 'ReRun' command caused the error message: 'Task policy set failed...'.
+- Fixed: If doing a single object (Project/Profile/Task)and doing Tasker Preferences, Preferences were empty.  Display appropriate message in output.
+- Fixed: Getting XML file from Android device did not reset the local file pointer, causing a conflict between the two.
+
+## Older History Logs
+
+## [4.0.7]
+
+- Added: An entire project can now be analyzed via the 'Analyze' tab.
+- Changed: Redefined the default window size for the GUI so that it is large enough for asll of the fields to show appropriately.
 - Fixed: Analysis API key is showing 'Set' when, in fact, it is unset.
 - Fixed: Realigned the GUI fields for getting the file from the Android device.
 - Fixed: Incorrectly defining Android device attributes when selecting "Get XML from Android Device" and then cancelling this option in the GUI.
 - Fixed: If displaying the outline and processing only a single Profile, then the outline is showing all Projects rather than just the Project this Profile is a part of.
 - Fixed: In certain circumstances, if doing a single Profile or Task, the containing Project/Profile would also be saved in the settings.
-
-## Older History Logs
 
 ## [4.0.6]
 
