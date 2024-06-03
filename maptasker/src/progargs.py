@@ -40,9 +40,11 @@ def get_program_arguments() -> None:
         process_gui(True)
 
     # Make sure we don't have too much
-    if (PrimeItems.program_arguments["single_project_name"] and PrimeItems.program_arguments["single_profile_name"]) or (
-        PrimeItems.program_arguments["single_project_name"] and PrimeItems.program_arguments["single_task_name"]
-    ) or (PrimeItems.program_arguments["single_profile_name"] and PrimeItems.program_arguments["single_task_name"]):
+    if (
+        (PrimeItems.program_arguments["single_project_name"] and PrimeItems.program_arguments["single_profile_name"])
+        or (PrimeItems.program_arguments["single_project_name"] and PrimeItems.program_arguments["single_task_name"])
+        or (PrimeItems.program_arguments["single_profile_name"] and PrimeItems.program_arguments["single_task_name"])
+    ):
         # More than one single item wasd specified in saved file.  Set all to blank
         PrimeItems.program_arguments["single_task_name"] = ""
         PrimeItems.program_arguments["single_project_name"] = ""

@@ -513,8 +513,16 @@ def fix_project_name_for_single_name() -> None:
     Returns:
         None
     """
-    if not check_for_single_name(PrimeItems.tasker_root_elements["all_profiles"], PrimeItems.program_arguments["single_profile_name"], do_pids=True):
-        _ = check_for_single_name(PrimeItems.tasker_root_elements["all_tasks"], PrimeItems.program_arguments["single_task_name"], do_pids=False)
+    if not check_for_single_name(
+        PrimeItems.tasker_root_elements["all_profiles"],
+        PrimeItems.program_arguments["single_profile_name"],
+        do_pids=True,
+    ):
+        _ = check_for_single_name(
+            PrimeItems.tasker_root_elements["all_tasks"],
+            PrimeItems.program_arguments["single_task_name"],
+            do_pids=False,
+        )
 
 
 # ##################################################################################

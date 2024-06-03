@@ -349,7 +349,9 @@ class PopupWindow(ctk.CTk):
 
         # Label widget
         our_label = "Analysis is running in the background.  Please stand by..."
-        self.Popup_label = ctk.CTkLabel(master=self, text=our_label, font=("", 24), text_color="turquoise")
+        self.text = ""
+        self.count = 0
+        self.Popup_label = ctk.CTkLabel(master=self, text=self.text, font=("", 24), text_color="turquoise")
         self.Popup_label.grid(row=0, column=0, padx=0, pady=10, sticky="n")
 
         # Basic appearance for text, foreground and background.
@@ -365,15 +367,39 @@ class PopupWindow(ctk.CTk):
         self.Popup_style = ttk.Style(self)
         self.Popup_style.theme_use("default")
 
+        # Animate the text so it is more visable
+        def slider() -> None:
+            """
+            Animates the text on the Popup_label widget by gradually displaying each character from the `our_label` string.
+
+            This function is called recursively using the `after` method to create a sliding effect. It checks if the current index `count` has reached the length of `our_label`. If it has, it resets the `count` to -1 and clears the `text` variable. If not, it appends the character at the current index to the `text` variable and updates the `Popup_label` widget with the new text. The `count` is incremented and the `slider` function is called again after a delay of 5 milliseconds.
+
+            Parameters:
+                None
+
+            Returns:
+                None
+            """
+            if self.count >= len(our_label):
+                self.count = -1
+                self.text = ""
+                return
+            self.text = self.text + our_label[self.count]
+            self.Popup_label.configure(text=self.text)
+            self.count += 1
+            self.after(5, slider)
+
+        # Set the focus on our popup window and start the animation.
+        self.Popup_label.focus_set()
+        slider()
+
     # The "after" n second timer tripped from popup window.  Close the window.
     # Note: rungui will have already completely run by this time.
     def popup_button_event(self) -> None:
         """
         Define the behavior of the popup button event function.  Close the window and exit.
         """
-        # self.exit = True
-        self.quit()
-        self.quit()
+        get_rid_of_window(self)
 
 
 # Save the positition of a window
@@ -1161,7 +1187,13 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         (0, 0),
         "n",
     )
-    display_models = ["None (llama3)", *OPENAI_MODELS, *LLAMA_MODELS]  # Combine lists
+    display_models = [*OPENAI_MODELS, *LLAMA_MODELS]  # Combine lists
+    display_models.sort()
+    (
+        display_models.insert(0, PrimeItems.program_arguments["ai_model"])
+        if PrimeItems.program_arguments["ai_model"]
+        else display_models.insert(0, "None")
+    )
     self.ai_model_option = add_option_menu(
         self,
         self.tabview.tab("Analyze"),
@@ -1222,3 +1254,21 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "w",
         "#6563ff",
     )
+
+
+# Delete the window
+def get_rid_of_window(self) -> None:  # noqa: ANN001
+    """
+    Hides the window and terminates the application.
+
+    This function withdraws the window, which removes it from the screen, and then calls the `quit()` method twice to terminate the application.
+
+    Parameters:
+        self (object): The instance of the class.
+
+    Returns:
+        None
+    """
+    self.withdraw()  # Remove the Window
+    self.quit()
+    self.quit()

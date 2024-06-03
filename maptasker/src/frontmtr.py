@@ -1,3 +1,6 @@
+"""Display the front portion of the output."""
+
+#! /usr/bin/env python3
 #                                                                                      #
 # frontmtr - Output the front matter: heading, runtime settings, directory, prefs      #
 #                                                                                      #

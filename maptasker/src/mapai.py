@@ -53,13 +53,14 @@ def module_is_available(module_name: str) -> bool:
 # ##################################################################################
 # Record the response to the analysis logs.
 # ##################################################################################
-def record_response(response: str, ai_object: str) -> None:
+def record_response(response: str, ai_object: str, item: str) -> None:
     """
     Writes the given response to the ANALYSIS_FILE and ERROR_FILE. The ERROR_FILE will be displayed in GUI on ReRun.
 
     Args:
         response (str): The response to be written to the file.
         ai_object (str): The object that was analyzed.
+        item (str): The item name that was analyzed.
 
     Returns:
         None: This function does not return anything.
@@ -69,21 +70,24 @@ def record_response(response: str, ai_object: str) -> None:
     """
 
     with open(ANALYSIS_FILE, "w") as response_file:
-        response_file.write("Ai Response:\n\n" + response)
-
-    process_error(f"{response}\n\nAnalysis Response saved in file: " + ANALYSIS_FILE, ai_object)
+        response_file.write(
+            f'Ai Response using model {PrimeItems.program_arguments["ai_model"]} for {ai_object} "{item}":\n\n{response}',
+        )
+    # QAueue up the message to display in the GUI textbox.
+    process_error(f"{response}\n\nAnalysis Response saved in file: " + ANALYSIS_FILE, ai_object, item)
 
 
 # ##################################################################################
 # Do local Ai processing.
 # ##################################################################################
-def local_ai(query: str, ai_object: str) -> None:
+def local_ai(query: str, ai_object: str, item: str) -> None:
     """
     Perform local AI processing on the given query.
 
     Args:
         query (str): The query to be processed by the local AI model.
         ai_objeect (str): The object to be processed by the local AI model.
+        item (str): the object's name
 
     Returns:
         None: This function does not return anything.
@@ -103,8 +107,9 @@ def local_ai(query: str, ai_object: str) -> None:
         return
 
     # Fix the model name
-    if PrimeItems.program_arguments["ai_model"] == "None (llama3)":
-        PrimeItems.program_arguments["ai_model"] = "llama3"
+    if PrimeItems.program_arguments["ai_model"] == "None":
+        error_handler("No model selected.", 12)
+        return
 
     # Open the model and get the response
     try:
@@ -112,7 +117,7 @@ def local_ai(query: str, ai_object: str) -> None:
             response = ai.chat(query, stream=False)
 
         # Open error file, since we're going to queue up the response in this file for display back to the GUI.
-        record_response(response, ai_object)
+        record_response(response, ai_object, item)
 
         # for chunk in response:
         #    print(chunk, end="")
@@ -129,13 +134,14 @@ def local_ai(query: str, ai_object: str) -> None:
 # ##################################################################################
 # Handle ChatGPT Error
 # ##################################################################################
-def process_error(error: str, ai_object: str) -> None:
+def process_error(error: str, ai_object: str, item: str) -> None:
     """
     Process errors based on the given error message and record the response.
 
     Args:
         error (str): The error message to be processed.
         ai_object (str): The object that caused the error.
+        item (str): The item name that caused the error.
 
     Returns:
         None: This function does not return anything.
@@ -147,20 +153,25 @@ def process_error(error: str, ai_object: str) -> None:
     else:
         output_error = error
 
+    # Write the error to the error file, which will be read in by guiutils and displayed in GUI text box.
+    # Note: "Ai Response" must be a part of the message for it to be recognized by guiutils.
     with open(ERROR_FILE, "w") as error_file:
-        error_file.write("Ai Response:\n\n" + output_error)
+        error_file.write(
+            f'Ai Response using model {PrimeItems.program_arguments["ai_model"]} for {ai_object} {item}:\n\n{output_error}',
+        )
 
 
 # ##################################################################################
 # Do server-side ChatGPT Ai processing.
 # ##################################################################################
-def server_openai(query: str, ai_object: str) -> None:
+def server_openai(query: str, ai_object: str, item: str) -> None:
     """
     Sends a query to the OpenAI API to generate a completion using the specified model.
 
     Args:
         query (str): The query to be sent to the OpenAI API.
         ai_object (str): The object to be processed by the OpenAI API.
+        item (str): the object's name
 
     Returns:
         None: This function does not return anything.
@@ -191,16 +202,16 @@ def server_openai(query: str, ai_object: str) -> None:
             response += chunk.choices[0].delta.content or ""
             # print(chunk.choices[0].delta.content or "", end="")
         # Open error file, since we're going to queue up the response in this file for display back to the GUI.
-        record_response(response, ai_object)
+        record_response(response, ai_object, item)
 
     # Handle all OpenAI API errors
     except OpenAIError as e:
-        process_error(str(e), ai_object)
+        process_error(str(e), ai_object, item)
 
-    except:
+    except Exception as e:  # noqa: BLE001
         # Open error file, since we're going to queue up the response in this file for display back to the GUI.
         with open(ERROR_FILE, "w") as response_file:
-            response_file.write(f"OpenAi failed, most likely due to an invalid api key:\n{PrimeItems.ai['api_key']}")
+            response_file.write(f"OpenAi failed with error: {e!s}")
 
 
 # ##################################################################################
@@ -273,13 +284,13 @@ def map_ai() -> None:
         query += f"{line}\n"
 
     # Let the user know what is going on.
-    print(f"MapTasker analysis for {ai_object} {item} is running in the background.  Please wait...")
+    print(f"MapTasker analysis for {ai_object} '{item}' is running in the background.  Please wait...")
 
     # Call appropriate AI routine: OpenAI or local Ollama
     if PrimeItems.program_arguments["ai_model"] in OPENAI_MODELS:
-        server_openai(query, ai_object)
+        server_openai(query, ai_object, item)
     else:
-        local_ai(query, ai_object)
+        local_ai(query, ai_object, item)
 
     # Indicate that we are done
     PrimeItems.program_arguments["ai_analyze"] = False

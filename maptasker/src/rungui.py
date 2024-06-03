@@ -101,6 +101,8 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # Display GUI and get the user input
     user_input = MyGui()
     user_input.mainloop()
+    MyGui.quit(user_input)
+    del MyGui
 
     # Establish our runtime default values if we don't yet have 'em.
     if not PrimeItems.colors_to_use:
