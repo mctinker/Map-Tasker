@@ -50,6 +50,7 @@ from maptasker.src.guiwins import (
     CTkAnalysisview,
     CTkTreeview,
     TreeviewWindow,
+    get_rid_of_window,
     initialize_gui,
     initialize_screen,
     save_window_position,
@@ -121,14 +122,13 @@ INFO_TEXT = (
     "   (These three are exclusive: enter one only)\n\n"
     "* Colors tab: select colors for various elements of the display.\n"
     "              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n"
-    "* Analyze tab: Run the analysis for Profile or Task against an Ai model.\n\n"
+    "* Analyze tab: Run the analysis for a Project, Profile or Task against an Ai model.\n\n"
     "* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n"
     "* Exit: Exit the program (quit).\n\n"
     "Notes:\n\n"
     "- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n"
-    "- If running on OS X Ventura, you may receive the runtime error: +[CATransaction synchronize] called within transaction. This can be ignored and the program will still run correctly.\n\n"
+    "- If running on OS X Ventura, you may receive the runtime error: '+[CATransaction synchronize] called within transaction'. This is a bug in OS X Ventura. This can be ignored and the program will still run correctly.\n\n"
     "- Likewise, if you receive the runtime error: 'IMKClient Stall detected...', this can be ignored.\n\n"
-    "- The 'Rerun' button will spit out the message 'Task policy set failed: 4 ((os/kern) invalid argument)' which can be ignored.\n\n"
     "- Drag the window to expand the text as desired.\n\n"
 )
 BACKUP_HELP_TEXT = (
@@ -185,12 +185,12 @@ TREEVIEW_HELP_TEXT = (
 AI_HELP_TEXT = (
     "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open Ai model.\n\n"
     "The following steps are required in order to run Ai against your Profile.\n\n"
-    "1- If using Open Ai, you must have a valid Open Ai api key.  You can use the 'Show/Edit Open AI key' button to enter your key.\n\n"
-    "2- The default prompt is:'how could it be improved:', and is automatically preceded by the 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'how could it be improved:' portion.\n\n"
-    "3- If using the local model, you must manually download and install Ollama via 'https://ollama.com/download'.  Then, run it once to load the model and then 'Run Analysis' Again.\n\n"
+    "1- If using Open Ai, you must have a valid Open Ai API key.  You can use the 'Show/Edit Open AI key' button to enter your key.\n\n"
+    "2- The default prompt is:'how could it be improved:', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'how could it be improved:' portion.\n\n"
+    "3- If using the local model, you must manually download and install Ollama via 'https://ollama.com/download' first.  Then, run it once from the command line to load the model, and then 'Run Analysis' Again.\n\n"
     "   If you select a model that has not yet been loaded, it will be loaded in the background once the analysis begins.\n\n"
-    "4- Select the model you want to use.  The default is None (llama3):\n\n"
-    "5- Click the 'Run Analysis' button.\n\n"
+    "4- Select the model you want to use.\n\n"
+    "5- Click the 'Run Analysis' button.  It will turn pink when all of the necessary data has been entered.\n\n"
     "   If you have not yet selected a Profile or Task from the 'Specify Name' tab, then you will be prompted to do so.\n\n"
     "The process may take some time and runs in the background.  The results will appear in a separate window.\n\n"
     "Your designated api-key (if any), model, selected profile or task and prompt will all be saved across sessions.\n\n"
@@ -437,6 +437,10 @@ class MyGui(customtkinter.CTk):
             "set On": "LimeGreen",
             "set to False": "Red",
             "set to True": "LimeGreen",
+            "is not named": "Red",
+            "is named": "LimeGreen",
+            "set to": "LimeGreen",
+            "is not set": "Red",
         }
 
         final_position = -1
@@ -543,10 +547,13 @@ class MyGui(customtkinter.CTk):
             return False
 
         # No error.
-        self.display_message_box(
-            f"Display only the '{the_name}' {element_name} (overrides any previous set name).",
-            "Green",
-        )
+        if the_name == "None":
+            self.display_message_box("'None' selected.  Displaying all Projects, Profiles and Tasks.", "Green")
+        else:
+            self.display_message_box(
+                f"Display only the '{the_name}' {element_name} (overrides any previous set name).",
+                "Green",
+            )
         return True
 
     # Process single name selection/event
@@ -573,11 +580,11 @@ class MyGui(customtkinter.CTk):
             - Notify user of filter
             - Deselect checkbox clicked
         """
-        if name_entered == "None":
-            self.display_message_box("'None' selected.  No change.", "Orange")
-            # Update the pulldown menus since without this the 'None' would display for some reason.
-            update_tasker_object_menus(self, get_data=True)
-            return
+        # if name_entered == "None":
+        #    self.display_message_box("'None' selected.  No change.", "Orange")
+        #    # Update the pulldown menus since without this the 'None' would display for some reason.
+        #    update_tasker_object_menus(self, get_data=True)
+        #    return
         if name_entered in ["No profiles found", "No tasks found"]:
             self.display_message_box("Selection ignored.", "Orange")
             return
@@ -585,6 +592,7 @@ class MyGui(customtkinter.CTk):
         if self.check_name(name_entered, my_name):
             # Name is valid... deselect other buttons and set the name
             self.single_project_name = self.single_profile_name = self.single_task_name = ""
+            name_entered = "" if name_entered == "None" else name_entered
             # Get the name entered
             match my_name:
                 case "Project":
@@ -601,7 +609,8 @@ class MyGui(customtkinter.CTk):
                     self.single_task_name = name_entered
 
             # Let the user know...
-            self.specific_name_msg = f"Display only {my_name} '{name_entered}'."
+            if name_entered:
+                self.specific_name_msg = f"Display only {my_name} '{name_entered}'."
 
         else:
             self.single_name_msg = all_objects
@@ -1353,8 +1362,7 @@ class MyGui(customtkinter.CTk):
             "debug": lambda: self.select_deselect_checkbox(self.debug_checkbox, value, "Debug Mode"),
             "directory": lambda: self.select_deselect_checkbox(self.directory_checkbox, value, "Display Directory"),
             "display_detail_level": lambda: self.detail_selected_event(value),
-            "fetched_backup_from_android": lambda: f"Fetched XML From Android:{value}.\n",
-            # "file": lambda: f"Get XML file named '{value}'.\n",
+            #"fetched_backup_from_android": lambda: f"Fetched XML From Android:{value}.\n",
             "file": lambda: self.display_and_set_file(value),
             "font": lambda: f"Font set to {value}.\n",
             "highlight": lambda: self.select_deselect_checkbox(
@@ -1925,12 +1933,12 @@ class MyGui(customtkinter.CTk):
         self.android_file = ""
         self.android_ipaddr = ""
         self.android_port = ""
-        self.display_message_box("'Get XML From Android' Cancelled.", "Orange")
+        self.display_message_box("'Get XML From Android' canceled.", "Orange")
 
     # List (Android) XML files event
     def list_files_event(self) -> None:
         """
-        Closes the backup details window.
+        List (Android) XML files event.
         Args:
             self: The class instance
         Returns:
@@ -1942,7 +1950,7 @@ class MyGui(customtkinter.CTk):
 
     # User has selected a specific XML file to get from Android device from pulldown menu.
     def file_selected_event(self, android_file: str) -> None:
-        """User has selected a specific XML file from pulldown menu.
+        """User has selected a specific Android XML file from pulldown menu.
         Returns:
             - None: Adds android_file to file_list."""
         self.android_file = android_file
@@ -1956,6 +1964,7 @@ class MyGui(customtkinter.CTk):
             ],
             True,
         )
+        self.file = ""  # Negate any local file.
 
         # Validate XML file.
         PrimeItems.program_arguments["gui"] = True
@@ -2028,7 +2037,7 @@ class MyGui(customtkinter.CTk):
         with contextlib.suppress(AttributeError):
             self.task_optionmenu.set("None")
         self.ai_prompt = AI_PROMPT
-        self.ai_model = "None (llama3)"
+        self.ai_model = "None"
 
         # Update the Tasker selected object pulldown names and labels
         update_tasker_object_menus(self, get_data=False)
@@ -2104,13 +2113,12 @@ class MyGui(customtkinter.CTk):
         if window_pos := save_window_position(self.toplevel_window):
             self.ai_analysis_window_position = window_pos
 
-        # If 'Run' only, then just quit.  Otherwise, destroy sidebar frame.
+        # If 'Run and Exit' only, then just quit.  Otherwise, destroy sidebar frame.
         if run_only:
             self.quit()
         else:
-            self.withdraw()
-            self.quit()
-            self.quit()
+            # ReRun
+            get_rid_of_window(self)
             self.sidebar_frame.destroy()
 
     # Validate XML and close the GUI.
@@ -2134,7 +2142,7 @@ class MyGui(customtkinter.CTk):
         if PrimeItems.xml_tree is None:
             PrimeItems.program_arguments["gui"] = True
             # Get and validate the XML.
-            if self.load_xml():  # If true, the XML is valid.  Signal exit.
+            if self.load_xml():  # If true, the XML is valid.  Cleanup and exit.
                 self.cleanup(run_only)
 
             # XML error.  Just return to the GUI.
@@ -2145,7 +2153,7 @@ class MyGui(customtkinter.CTk):
         if not self.ai_analyze:
             self.cleanup(run_only)
         else:
-            self.quit()
+            get_rid_of_window(self)
 
     # The 'Run' program button has been pressed.  Set the run flag and close the GUI
     def run_program(self) -> None:
@@ -2270,6 +2278,9 @@ class MyGui(customtkinter.CTk):
         # Good return from getting the XML
         if PrimeItems.file_to_get.name:
             self.display_and_set_file(PrimeItems.file_to_get.name)
+            self.android_file = self.android_ipaddr = self.android_port = ""
+            clear_android_buttons(self)
+            self.display_message_box("'Get XML From Android' settings cleared.", "Green")
         return True
 
     # Load the XML if not already loaded.
@@ -2420,7 +2431,7 @@ class MyGui(customtkinter.CTk):
         else:
             self.display_message_box("No Project(s) Found in XML!", "Red")
 
-    # Displayh Ai Analysis response in a separate top level window.
+    # Display Ai Analysis response in a separate top level window.
     def display_ai_response(self, error_msg: str) -> None:
         """
         Display AI response in a GUI window.
@@ -2546,8 +2557,11 @@ class MyGui(customtkinter.CTk):
         Returns:
             None
         """
-        if model == "None (llama3)":
-            model = "llama3"
+        if model == "None":
+            self.display_message_box("No model selected.", "Orange")
+            self.ai_model = ""
+            display_analyze_button(self, 13, first_time=False)
+            return
         self.ai_model = model
         self.display_message_box("Model set to " + model + ".", "Green")
 
@@ -2575,6 +2589,9 @@ class MyGui(customtkinter.CTk):
         Returns:
             None
         """
+        if self.ai_model is None or self.ai_model == "None" or self.ai_model == "":
+            self.display_message_box("No model selected.", "Orange")
+            return
         if self.single_profile_name == "None or unnamed!":
             self.single_profile_name = ""
         # Do we have a single item identified?
@@ -2619,7 +2636,7 @@ class MyGui(customtkinter.CTk):
         Opens a dialog box for the user to enter a new AI prompt. Displays the current prompt and prompts the user to
         enter a new prompt.
 
-        If the user cancels the prompt change, a message box is displayed indicating that the prompt change was cancelled.
+        If the user cancels the prompt change, a message box is displayed indicating that the prompt change was canceled.
         If the user enters the same prompt as the current prompt, a message box is displayed indicating that the prompt did not change.
         If the user enters a new prompt, the AI prompt is updated and a message box is displayed indicating the new prompt.
 
@@ -2637,7 +2654,7 @@ class MyGui(customtkinter.CTk):
         name_entered = dialog.get_input()
         # Canceled?
         if name_entered is None:
-            self.display_message_box("Prompt change cancelled.", "Orange")
+            self.display_message_box("Prompt change canceled.", "Orange")
         # The same?
         elif name_entered == self.ai_prompt:
             self.display_message_box("Prompt did not change.", "Orange")

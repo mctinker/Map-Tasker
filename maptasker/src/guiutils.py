@@ -49,17 +49,20 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.0.7 - Change Log\n
+Version 4.0.8 - Change Log\n
 ### Added\n
-- Added: An entire project can now be analyzed via the 'Analyze' tab.\n
+- Added: The Ai Analysis models 'mistrel', 'codegemma', 'gemma', 'deepseek-coder' and 'phi3' have been added.\n
+- Added: The model name and object name are now displayed with the Ai analysis response.\n
+- Added: The message that the analysis is running in the background has been animated for awareness.\n
+- Added: The pulldown menus for selecting a single object now includes "None" so that it can be used to clear the selection without having to resort to a 'Reset Settings' in the GUI.\n
+- Added: Three additional Tasker preferences have been mapped and one has been corrected.\n
 ### Changed\n
-- Changed: Redefined the default window size for the GUI so that it is large enough for asll of the fields to show appropriately.\n
+- Changed: Ai models are now listed alphabetically, with the last-used model listed first.  The default of 'None (llama)' has been removed.\n
 ### Fixed\n
-- Fixed: Analysis API key is showing 'Set' when, in fact, it is unset.\n
-- Fixed: Realigned the GUI fields for getting the file from the Android device.\n
-- Fixed: Incorrectly defining Android device attributes when selecting "Get XML from Android Device" and then cancelling this option in the GUI.\n
-- Fixed: If displaying the outline and processing only a single Profile, then the outline is showing all Projects rather than just the Project this Profile is a part of.\n
-- Fixed: In certain circumstances, if doing a single Profile or Task, the containing Project/Profile would also be saved in the settings.\n
+- Fixed: The 'ReRun' command caused the error message: 'Task policy set failed...'.\n
+- Fixed: If doing a single object (Project/Profile/Task)and doing Tasker Preferences, Preferences were empty.  Display appropriate message in output.\n
+- Fixed: Getting XML file from Android device did not reset the local file pointer, causing a conflict between the two.\n\n
+Refer to the github changelog for a history of all changes made at: https://tinyurl.com/bdh47a44\n
 """
 CHANGELOG_JSON = {
     "version": "4.0.3",
@@ -94,6 +97,8 @@ def valid_item(self, the_name: str, element_name: str, debug: bool, appearance_m
     - Match element type and get corresponding root element
     - Check if item name exists by going through all names in root element
     """
+    if the_name == "None":
+        return True
     # Set our file to get the file from the local drive since it had previously been pulled from the Android device.
     # Setting PrimeItems.program_arguments["file"] will be used in get_xml() and won't prompt for file if it exists.
     filename_location = self.android_file.rfind(PrimeItems.slash) + 1
@@ -774,7 +779,7 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
     # Read the api key.
     self.ai_apikey = get_api_key()
     key_to_display = "Unset" if self.ai_apikey == "None" or not self.ai_apikey else "Set"
-    model_to_display = self.ai_model if self.ai_model else "None (llama3)"
+    model_to_display = self.ai_model if self.ai_model else "None"
     self.ai_set_label1 = add_label(
         self,
         self.tabview.tab("Analyze"),
@@ -1176,7 +1181,10 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     # Make alphabetical
     if projects_to_display:
         projects_to_display = sorted(projects_to_display)
+        projects_to_display.insert(0, "None")
     profiles_to_display = sorted(profiles_to_display)
+    profiles_to_display.insert(0, "None")
+    tasks_to_display.insert(0, "None")
 
     # Display the object pulldowns in 'Analyze' tab
     self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(

@@ -16,8 +16,9 @@ import socket
 import subprocess
 import sys
 from contextlib import contextmanager
+from typing import Generator
 
-import defusedxml.ElementTree as et
+import defusedxml.ElementTree as et  # noqa: N813
 import requests
 from requests.exceptions import ConnectionError, InvalidSchema, Timeout
 
@@ -29,7 +30,7 @@ from maptasker.src.xmldata import rewrite_xml
 
 
 @contextmanager
-def suppress_stdout() -> None:
+def suppress_stdout() -> Generator: # type: ignore  # noqa: PGH003
     """
     Context manager that suppresses the standard output during its execution.
 

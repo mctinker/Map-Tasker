@@ -20,7 +20,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "4.0.7"
+VERSION = "4.0.8"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -101,7 +101,7 @@ TYPES_OF_COLORS = {
     "Heading": "Heading",
 }
 
-# Runtime argument names/keywords that are used throughout the program
+# Runtime argument names/keywords that are used throughout the program and meant to be saved.
 ARGUMENT_NAMES = {
     "ai_analyze": "Analyze AI",
     "ai_model": "AI Model",
@@ -118,7 +118,6 @@ ARGUMENT_NAMES = {
     "preferences": "Display Tasker Preferences",
     "conditions": "Display Project/Profile/Task Conditions",
     "taskernet": "Display TaskerNet Info",
-    "fetched_backup_from_android": "Fetched backup from Android device",
     "file": "Get backup file named",
     "font": "Font To Use",
     "gui": "GUI Mode",
@@ -220,4 +219,4 @@ TABLE_BORDER = (
 NOW_TIME = datetime.now()  # noqa: DTZ005
 
 OPENAI_MODELS = ["gpt-3.5-turbo", "gpt-4o", "gpt-4", "gpt-4-turbo"]
-LLAMA_MODELS = ["llama2", "llama3"]
+LLAMA_MODELS = ["llama2", "llama3", "mistral", "gemma", "codegemma", "phi3", "deepseek-coder"]

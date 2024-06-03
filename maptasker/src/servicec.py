@@ -52,7 +52,7 @@ service_codes = {
             3: "Always",
         },
     },
-    "orientation": {  # Missing
+    "oss": {  # Missing
         "display": "Orientation",
         "section": 0,
         "num": 6,
@@ -86,6 +86,11 @@ service_codes = {
         "section": 0,
         "num": 9,
     },
+    "PREF_USE_2024_TASKER": {
+        "display": "Use Tasker 2024 UI (Very Early)",
+        "section": 1,
+        "num": 9.5,
+    },
     "mSi": {
         "display": "Always Show Enable Icon",
         "section": 1,
@@ -117,9 +122,14 @@ service_codes = {
         "num": 15,
     },
     "cmdTs": {
-        "display": "Command Text Monospace/Unwrapped",
+        "display": "Value / Command Text Size",
         "section": 1,
         "num": 16,
+    },
+    "cmdTmnuw": {
+        "display": "VCommand Text Monospaced/Unwrapped",
+        "section": 1,
+        "num": 16.5,
     },
     "apl": {
         "display": "Profile Auto-Collapse Mania",

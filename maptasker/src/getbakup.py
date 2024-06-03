@@ -28,7 +28,7 @@ def write_out_backup_file(file_contents: bin) -> None:
     my_output_dir = getcwd()
     if my_output_dir is None:
         error_handler(
-            "MapTasker cancelled.  An error occurred in getbakup.  Program cancelled.",
+            "MapTasker canceled.  An error occurred in getbakup.  Program canceled.",
             2,
         )
 

@@ -100,7 +100,7 @@ def prompt_for_backup_file(dir_path: str) -> None:
     if PrimeItems.file_to_get is None:
         file_error = True
     if file_error and not PrimeItems.program_arguments["gui"]:
-        error_handler("Backup file selection cancelled.  Program ended.", 6)
+        error_handler("Backup file selection canceled.  Program ended.", 6)
     elif file_error:
         PrimeItems.error_code = 6
 

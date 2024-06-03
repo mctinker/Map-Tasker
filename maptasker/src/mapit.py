@@ -383,7 +383,7 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
         "The Configuration Map was saved as MapTasker_Map.txt.  " if PrimeItems.program_arguments["outline"] else ""
     )
 
-    print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}.")
+    print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}")
     print("")
 
 
@@ -523,7 +523,7 @@ def display_back_matter(
     logger.debug(f"output directory:{my_output_dir}")
     if my_output_dir is None:
         error_handler(
-            f"{Colors.Yellow}MapTasker cancelled.  An error occurred.  Program cancelled.",
+            f"{Colors.Yellow}MapTasker canceled.  An error occurred.  Program canceled.",
             0,
         )
         clean_up_memory()
@@ -561,12 +561,14 @@ def restart_program() -> None:
     #
     # sys.executable points to location of python: ../../python runtime
     # Asterisk before sys.argv breaks it into separate arguments
-    with contextlib.suppress(OSError):
+    with contextlib.suppress(OSError, SystemError):
         if platform.system() == "Windows":
             subprocess.run([sys.executable, *sys.argv], check=False)  # noqa: S603
         else:
             # Start a new process which replaces our current process (it does not return).
-            os.execl(sys.executable, "python", *sys.argv)
+            # print("You can ignore the following error message: 'Task policy set failed...' (if it appears)")
+            # os.execl(sys.executable, "python", *sys.argv)
+            _ = mapit_all("")
 
     sys.exit(0)  # This should never be called.
 

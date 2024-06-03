@@ -1,3 +1,4 @@
+"""Process the Tasker preferences via the services xml elements"""
 #! /usr/bin/env python3
 
 #                                                                                      #
@@ -93,6 +94,21 @@ def process_preferences(temp_output_lines: list) -> None:
     first_time = True
     blank = "&nbsp;"
 
+    # No preferences if doing single object
+    if not PrimeItems.tasker_root_elements["all_services"]:
+        temp_output_lines.append(
+            [
+                dummy_num,
+                format_html(
+                    "preferences_color",
+                    "",
+                    "Preferences not found in this XML file.  Most likely due to a single Project/Profile/Task/Scene only display.",
+                    True,
+                ),
+            ],
+        )
+        return
+
     # Go through each <service> xml element
     for service in PrimeItems.tasker_root_elements["all_services"]:
         # Make sure the <Setting> xml element is valid
@@ -123,7 +139,7 @@ def process_preferences(temp_output_lines: list) -> None:
                             "",
                             (
                                 f"{blank * 2}Not yet"
-                                f" mapped:{service_name}{blank * 4}type:{service_type}\
+                                f" mapped or unused:{service_name}{blank * 4}type:{service_type}\
                                 {blank * 4}value:{service_value}"
                             ),
                             True,
@@ -134,8 +150,6 @@ def process_preferences(temp_output_lines: list) -> None:
         # Invalid <Setting> xml element
         else:
             error_handler("Error: the backup xml file is corrupt.  Program terminated.", 3)
-
-    return
 
 
 def get_preferences() -> None:
@@ -181,7 +195,7 @@ def get_preferences() -> None:
     sorted_output = sorted(temp_output_lines, key=itemgetter(0))
 
     # Now output them: go through list of output lines (sorted) and "output" each
-    for index, (num, line) in enumerate(sorted_output):
+    for _, (num, line) in enumerate(sorted_output):
         section = next(
             (item[1]["section"] for item in service_codes.items() if item[1]["num"] == num),
             None,
@@ -199,7 +213,7 @@ def get_preferences() -> None:
     # Let user know that we have not mapped the remaining items
     PrimeItems.output_lines.add_line_to_output(
         0,
-        "The remaining preferences are not yet mapped",
+        "The remaining preferences are not yet mapped or are unused.",
         ["", "preferences_color", FormatLine.add_end_span],
     )
     PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
