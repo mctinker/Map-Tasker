@@ -63,9 +63,9 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
 - Enter the command:
 
-     `maptasker (runtime options)`
+     `maptasker -option1 -option2` ...
 
- See below for runtime options.
+&nbsp;&nbsp;See below for runtime options.
 
 - If running from the sourced GITHUB zip file, then do the following to run the program:
 
@@ -77,8 +77,7 @@ Program output:
 - The file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.
 - If the "-outline" runtime option is used, then a textual diagram of the configuration is also written as "MapTasker_Map.txt" and will be displayed in your default text editor.  Ensure that text-wrap is off and a monospace font is used when viewing this map in the text editor.
 - The runtime settings are saved in the file" MapTasker_Settings.toml".  You can modify this file but care should be taken not to change the field formats (e.g. change an integer to a text string).  Incorrect values will be ignored.
-
-Runtime: `maptasker -option1 -option2` ...
+<br><br>
 
 ### [Runtime options](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)
 
