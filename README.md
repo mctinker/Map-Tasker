@@ -77,7 +77,7 @@ Program output:
 
 Runtime: `maptasker -option1 -option2` ...
 
-### [Runtime options] (https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)
+### [Runtime options](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)
 
 ### [Example runtime options](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)
 
