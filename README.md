@@ -33,21 +33,36 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
 ### Features
  
- > Display everything from a summary overview to a very detailed level of your Tasker configuration..
+ > Display everything from a summary overview to a very detailed level of your Tasker configuration.
+ 
  > Display just a single Project, Profile, or Task.
+ 
  > Include/exclude Profile and Task conditions: States, Events, etc.
+ 
  > Just stream everything or make the output "pretty" by aligning all of the fields.
+ 
  > Change the appearance: light, dark or use the system default.
+ 
  > Output using your favorite monospaced font, and accent Project, Profile and Task names by making them italicized, bold, highlighted and/or underscored.
+ 
  > Modify the colors associated with various aspects of the output to suit your mood.
+ 
  > Include TaskerNet descriptions and/or Tasker preferences.
+ 
  > For complex configurations, optionally include a dictionary of hot-links to your Projects, Profiles, Tasks and Scenes.
+ 
  > Display a diagram of your entire Tasker configuration.
+ 
  > Command line or GUI interface.
+ 
  > Use exported XML or fetch the XML directly from your Android device for the configuration mapping.
+ 
  > Save and restore commonly used runtime settings.
+ 
  > Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT or the local-based Llama-ollama supported models.**
+ 
  > Tree view of Projects and their Profiles, Tasks and Scenes.**
+ 
  > Automatic update detection and optional installation.**
 
 &nbsp;&nbsp;** Available via the GUI only.
