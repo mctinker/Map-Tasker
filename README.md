@@ -28,8 +28,6 @@
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see Note 1).
 I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, so I wrote a Python program for my MAC to provide an indented list of my entire configuration based on my Tasker backup XML file that I saved to my Google Drive.
 
-A portion/example of the results can be found at https://imgur.com/a/KIR7Vep.
-
 The Tasker backup or exported XML can either be manually uploaded to your PC/Mac/Linux/cloud-drive, or this program can fetch it directly from your Android device.
 
 ### Program Dependencies
@@ -79,108 +77,12 @@ Program output:
 
 Runtime: `maptasker -option1 -option2` ...
 
-### Runtime options (only available if not using the GUI)
+### [Runtime options] (https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)
 
-    `-h` for help.
+### [Example runtime options](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)
 
-    `-android_ipaddr` TCP/IP address of the Android device from which to fetch the backup/exported XML file (see Note 2).
+### [Sample Output](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
-    `-android_port` the port number of the Android device from which to fetch the backup/exported XML file.
-      Example: 1821
-
-    `-android_file` the location of the backup/exported XML file on the Android device.
-      Example: /Tasker/configs/user/backup.xml
-
-    The above three 'android' options are mutually inclusive.
-
-    `-appearance` for appearance mode, one of system, light, dark.
-
-    `-conditions` to display a Profile's and Task's condition(s),
-
-    `-c(type) color_name` defines a specific color to 'type', where 'type' is *one* of the following:
-
-      'Project' 'Profile' 'Task' 'Action' 'DisabledProfile' 'UnknownTask'
-      'DisabledAction' 'ActionCondition' 'ProfileCondition' 'LauncherTask'
-      'Background' 'ActionLabel' 'Bullets' 'TaskerNetInfo', "Preferences',
-      "Heading', 'Highlight'
-
-        Example color options: -cTask Green -cBackground Black cProfile 19c8ff
-
-    `-ch` color help: display all valid colors",
-
-    `-detail 0` for minimal mode: simple Project/Profile/Task/Scene names with no details,
-    `-detail 1` to display the Action list only if the Task is unnamed or anonymous,
-    `-detail 2` to display Action list names for *all* Tasks,
-    `-detail 3` to display Action list names with *all* parameters for all Tasks,
-    `-detail 4` to display detail at level 3 plus all Project and unreferenced global variables (default),
-    `-detail 5` to display level 4 detail plus Scene element UI details.
-
-    `-directory` to display a directory of all Projects/Profiles/Tasks/Scenes,
-    `-e` to display 'everything': Runtime settings, Tasker Preferences, Directory, Profile 'conditions', TaskerNet info and full Task (action) details with Project variables, etc.
-    `-file` to specify a specific XML file to read from your local PC/MAC/Linux drive.
-    `-font` font to use (preferably a monospace font),  If "-f help" is entered, then the list of installed monospace fonts on your system will be printed out on the runtime console.
-    `-g` to get arguments from the GUI rather than via the command line,
-    `-i` the amount of indentation for If/Then/Else Task actions (default=4),
-    `-n {bold highlight italicize}` to add formatting options to Project/Profile/Task/Scene names,
-    `-o` to display the Configuration outline and output a map as MapTasker_map.txt
-    `-preferences` to display Tasker's preference settings,
-    `-pretty` to make the output pretty by breaking the lines at commas and open parenthesis,
-    `-reset` to ignore and reset the previously stored runtime arguments to default values,
-    `-runtime` to display the runtime arguments and their settings at the top of the output,
-    `-twisty` to display Task details hidden by a twisty "▶︎".  Click on twisty to reveal.  (Mutually exclusive with '-everything')
-    `-taskernet` to display any TaskerNet share details,
-
-    The following three arguments are mutually exclusive.  Use one only:
-
-    `-project 'name of the project'` to display a single Project, its Profiles and Tasks only,
-    `-profile 'profile name'` to display a single Profile and its Tasks only,
-    `-task 'task name'` to display a single Task only,
-
-
-  Ai analysis support via OpenAi and Llama is currently only offered through the GUI.  (See Note 5).
-
-### Examples
-
-The MapTasker GUI:
-
-<img src="/documentation_images/display_gui.png" width="800"/>
-
-Sample output with runtime option '-everything':
-
-<img src="/documentation_images/display_level-d4.png" width="800"/>
-
-<!-- Sample output with runtime option '-detail 1':
-
-<img src="/documentation_images/display_level-d1.png" width="800"/>
-
-Sample output with runtime option '-detail 2':
-
-<img src="/documentation_images/display_level-d2.png" width="800"/>
-
-Sample output with runtime options '-detail 3 -conditions':
-
-<img src="/documentation_images/display_level-d3.png" width="800"/> -->
-
- Sample Configuration Map from runtime option -outline:
-
-<img src="/documentation_images/configuration_map.png" width="800"/>
-
-Example runtime options:
-
-    'maptasker -detail 2 -conditions -taskernet'
-        (show limited details and include Profile and Task 'conditions' and TaskerNet details.)
-
-Example using the GUI:
-
-    'maptasker -g'
-
-Example fetching backup file directly from your Android device:
-
-    'maptasker -android_ipaddr=192.168.0.60 -android_port=1821 -android_file=/Tasker/configs/user/backup.xml'
-
-Example using a specific local XML file (File_List.prf.xml) from Google Drive:
-
-    'maptasker -file "/Users/mikrubin/Library/CloudStorage/GoogleDrive-mikrubin@gmail.com/My Drive/Python/maptasker/File_List.prf.xml"'
 
 ## Notes
 
@@ -246,9 +148,9 @@ The usage of llama models also requires that you manually install Ollama from [h
 
 ## Privacy Statement
 
-No information whatsoever is captured and sent via the network to myself or any other third party.
+No information whatsoever is captured and sent via the network to myself or any other third party, other than through the use of server-based Ai Analysis which will send your Project/Profile/Task to ChatGPT.
 
- When reporting an error, you will most likely be asked to provide the output log file from the error and your XML file, both of which will be solely used to debug the program and then immediately deleted.
+When reporting an error, you will most likely be asked to provide the output log file from the error and your XML file, both of which will be solely used to debug the program and then immediately deleted.
 
 The only network traffic that occurs is if and when you retrieve the backup/exported XML file directly from your Android device on the same network, and during the GUI startup to check the pypi.org server for updates to the program.
 
