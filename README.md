@@ -32,11 +32,13 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
 ### Program Dependencies
 
-#### - Python version v3.11 (see Note 4) or higher and Tkinter 8.6 or higher.
+#### - Python version v3.11 (see [Note 4](#4)) or higher and Tkinter 8.6 or higher.
 
 #### - Tasker full or partial backup or exported XML file.
 
-(anyname.xml…you will be prompted to locate and identify your Tasker backup/exported XML file) on your desktop, created by Tasker version 5 or version 6.  Optionally, this can be fetched directly from your Android device (see Note 2).
+(anyname.xml…you will be prompted to locate and identify your Tasker backup/exported XML file) on your desktop, created by Tasker version 5 or version 6.  Optionally, this can be fetched directly from your Android device (see [Note 2](#2)).
+
+#### - Ai Analysis requires a valid ChatGPT API key if using the server-based analysis, or the installation of ollama for local analysis (See [Note 5](#5)).
 
 
 ### Installation
@@ -60,7 +62,7 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
 - Enter the command:
 
-     `maptasker (runtime options...se below)`
+     `maptasker [Runtime options](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)`
 
  See below for runtime options.
 
