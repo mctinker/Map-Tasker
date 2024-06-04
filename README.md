@@ -54,7 +54,7 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
     - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment:
     -  `python -m venv venv`
     - `source {directory path to 'xxx'}/venv/bin/activate`
-    - `pip3 install maptasker`
+    - `pip install maptasker`
 
 - To install it from GitHub, get the zip file by clicking on the ['Code'](https://github.com/mctinker/Map-Tasker) pull-down menu, select 'Download ZIP', save it into a new directory (e.g. /your_id/maptasker) and uncompress it into that directory.
 
@@ -63,7 +63,7 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
 - Enter the command:
 
-     `maptasker [Runtime options](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)`
+     `maptasker (runtime options)`
 
  See below for runtime options.
 
