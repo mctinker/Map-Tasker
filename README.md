@@ -80,7 +80,9 @@ Program output:
 - The file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.
 - If the "-outline" runtime option is used, then a textual diagram of the configuration is also written as "MapTasker_Map.txt" and will be displayed in your default text editor.  Ensure that text-wrap is off and a monospace font is used when viewing this map in the text editor.
 - The runtime settings are saved in the file" MapTasker_Settings.toml".  You can modify this file but care should be taken not to change the field formats (e.g. change an integer to a text string).  Incorrect values will be ignored.
-- MapTasker_Map.txt will be written if you ran MapTasker with the '-outline' runtime option.
+- "MapTasker_Map.txt" will be written if you ran MapTasker with the '-outline' runtime option.
+- "MapTasker_Analysis.txt" will be created if you run the Ai Analysis from the GUI, which holds the response from the analysis.
+- "maptasker.log" trace log file used for program debugging only.
 <br><br>
 
 ### [Runtime options](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)
