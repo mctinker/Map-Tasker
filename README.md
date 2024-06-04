@@ -36,7 +36,7 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
 #### - Tasker full or partial backup or exported XML file.
 
-&nbsp;&nbsp;(anyname.xml…you will be prompted to locate and identify your Tasker backup/exported XML file) on your desktop, created by Tasker version 5 or version 6.  Optionally, this can be fetched directly from your Android device (see [Note 2](#2)).
+&nbsp;&nbsp;-anyname-.xml: you will be prompted to locate and identify your Tasker backup/exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, this can be fetched directly from your Android device (see [Note 2](#2)).
 
 #### - Ai Analysis
  
@@ -53,7 +53,6 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
     - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment:
     -  `python -m venv venv`
-    - `set VIRTUAL_ENV {directory path to 'xxx'}/venv`
     - `source {directory path to 'xxx'}/venv/bin/activate`
     - `pip3 install maptasker`
 
