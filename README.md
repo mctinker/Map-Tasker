@@ -26,9 +26,10 @@
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX machine based on Tasker's backup or exported XML file.
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see [Note 1](#1)).
-I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, so I wrote a Python program for my MAC to provide an indented list of my entire configuration based on my Tasker backup XML file that I saved to my Google Drive.
 
-The Tasker backup or exported XML can either be manually uploaded to your PC/Mac/Linux/cloud-drive, or this program can fetch it directly from your Android device.
+I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, my phone was too small to navigate over my Projects, Profiles, Tasks and Scenes.  So I wrote a Python program for my MAC to provide an indented list of my entire configuration based on my Tasker backup XML file that I saved to my Google Drive.
+
+The Tasker backup or exported XML can either be manually uploaded to your PC/Mac/Linux/cloud-drive, or this program can fetch it directly from your Android device (see [Note 2](#2)).
 
 ### Program Dependencies
 
@@ -160,7 +161,7 @@ No information whatsoever is captured and sent via the network to myself or any 
 
 When reporting an error, you will most likely be asked to provide the output log file from the error and your XML file, both of which will be solely used to debug the program and then immediately deleted.
 
-The only network traffic that occurs is if and when you retrieve the backup/exported XML file directly from your Android device on the same network, and during the GUI startup to check the pypi.org server for updates to the program.
+The only network traffic that occurs is if and when you retrieve the backup/exported XML file directly from your Android device on the same network, use of the ChatGPT analysis feature, and during the GUI startup to check the pypi.org server for updates to the program.
 
 
 ## Contributions
