@@ -24,7 +24,7 @@
 # MapTasker
 
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX machine based on Tasker's backup or exported XML file
-
+# FIX url
 ![](https://github.com/mctinker/Map-Tasker/blob/Version-4.0.9/documentation_images/intro.png)
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see [Note 1](#1)).
@@ -48,7 +48,7 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 - Command line or GUI interface.
 - Use exported XML or fetch the XML directly from your Android device for the configuration mapping.
 - Save and restore commonly used runtime settings.
-- Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT or the local-based Llama-ollama supported models.*
+- Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT or the local-based Llama (via Ollama) supported models.*
 - Tree view of Projects and their Profiles, Tasks and Scenes.*
 - Automatic update detection and optional installation.*
 
@@ -58,13 +58,15 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
 #### - Python version v3.11 (see [Note 4](#4)) or higher and Tkinter 8.6 or higher
 
-#### - Tasker full or partial full backup or XML file
+#### - TKinter 8.6 or higher (see [Note 3](#3))
 
-&nbsp;&nbsp;anyname.xml: you will be prompted to locate and identify your Tasker backup/exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, this can be fetched directly from your Android device (see [Note 2](#2)).
+#### - Tasker full or partial full backup or other exported Tasker XML file
+
+&nbsp;&nbsp;You will be prompted to locate and identify your Tasker backup/exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
 
 #### - Ai Analysis
 
-&nbsp;&nbsp;This requires a valid ChatGPT API key if using the server-based analysis, or the installation of 'ollama' for local analysis (See [Note 5](#5)).
+&nbsp;&nbsp;This requires a valid ChatGPT API key if using the server-based analysis, or the installation of 'Ollama' for local analysis (See [Note 5](#5)).
 
 ### Installation
 
@@ -93,34 +95,45 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
      `maptasker -option1 -option2` ...
 
-&nbsp;&nbsp;&nbsp;&nbsp;See below for runtime options.
+     &nbsp;See below for runtime options.
 
 - If running from the sourced GITHUB zip file, then do the following to run the program:
 
      `python main.py (runtime options...see below)`   ...to run Map-Tasker
 
 Program output:
-- The file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.
-- If the "-outline" runtime option is used, then a textual diagram of the configuration is also written as "MapTasker_Map.txt" and will be displayed in your default text editor.  Ensure that text-wrap is off and a monospace font is used when viewing this map in the text editor.
-- The runtime settings are saved in the file" MapTasker_Settings.toml".  You can modify this file but care should be taken not to change the field formats (e.g. change an integer to a text string).  Incorrect values will be ignored.
-- "MapTasker_Analysis.txt" will be created if you run the Ai Analysis from the GUI, which holds the response from the analysis.
-- "maptasker.log" trace log file used for program debugging only.
-<br><br>
 
-### [Runtime options](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)
+- “MapTasker.html”
 
-### [Example runtime options](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)
+     This file will be written to your runtime/current folder, which will be opened in your default browser as a new tab.  It will contain the mapping of your Tasker configuration.
 
-### [Sample Output](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
+- “MapTasker_Map.txt”
 
+     This file will be written to your runtime/current folder as a result of running with the runtime option '-outline'.  It will contain a textual diagram of the configuration.  It will be displayed in your default text editor.  Ensure that 'text-wrap' is off and a monospace font is used when viewing this map in the text editor.
+
+- "MapTasker_Settings.toml"
+
+     This file contains your saved program settings.  You can modify this file but care should be taken not to change the field formats (e.g. _do not_ change an integer to a text string).  Incorrect values will be ignored.
+
+- "MapTasker_Analysis.txt"
+
+     This file will be created if you run the Ai Analysis from the GUI, which holds the response from the analysis.
+
+- "maptasker.log"
+
+     This is a trace log file used for program debugging only and will be created only if 'debug' is specified in the runtime options.
+
+### More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)&nbsp;&nbsp;[[MIT License]](https://opensource.org/license/mit)
 
 ## Notes
 
 ### 1
 
 Windows 11 has been tested and verified to work.  Limitations:
+
 - The Edge web browser, though, closes as soon as it opens when invoked from this program.  Therefore, it is recommended to use any browser other than Edge.
-- Notepad does not treat spacing correctly for the configuration diagram (MapTasker_Map.txt).  Install an app such as "Typepad" and set it as your default app for opening txt files.
+
+- Notepad does not treat spacing correctly for the configuration diagram (MapTasker_Map.txt).  Install an app such as "Typepad" and set it as your default app for opening 'txt' files.
 
 ### 2
 
@@ -136,10 +149,14 @@ For the "Get backup" (retrieve the Tasker XML file directly from your Android de
 
 ### 3
 
+To determine the version of Tkinter you are using, run the following command from Terminal:
+
+     'python -m tkinter'
+
 If having problems getting Tkinter to version 8.6, try the following:
 
 - uninstall python
-- brew install tcl-tk
+- 'brew install tcl-tk'
 - reinstall python
 
 If still having Tkinter version problems, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
@@ -150,11 +167,11 @@ If you are unable to upgrade to Python version 3.11 or higher, an older version 
 
 	'pip install maptasker==2.6.3'
 
-With this older version, you will not get the benefits offered by the newer version.  Refer to Changelog for details.
+With this older version, you will not get the benefits offered by the newer version.  Refer to [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md) for details.
 
 ### 5
 
-Ai analysis is available through the GUI only.  You can run an analysis using a single Profile or Task only.  Support is available for server-based OpenAi (chat-gpt) and local-based Llama.
+Ai analysis is available through the GUI only.  You can run an analysis using a single Project, Profile or Task only.  Support is available for server-based OpenAi (ChatGPT) and local-based Llama models.
 
 The usage of llama models also requires that you manually install Ollama from [here](https://ollama.com/download) and you must run the application once to do the initial setup.  Then you can run an analysis via the GUI (see the "Analyze" tab).
 
