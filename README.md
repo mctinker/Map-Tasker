@@ -121,7 +121,7 @@ Program output:
 
 - "maptasker.log"
 
-     This is a trace log file used for program debugging only and will be created only if 'debug' is specified in the runtime options.
+     This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.
 
 ### More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)&nbsp;&nbsp;[[MIT License]](https://opensource.org/license/mit)
 
@@ -137,13 +137,13 @@ Windows 11 has been tested and verified to work.  Limitations:
 
 ### 2
 
-For the "Get backup" (retrieve the Tasker XML file directly from your Android device) option to work, you must have the following prerequisites:
+To retrieve the Tasker XML file directly from your Android device, you must have the following prerequisites:
 
-- Both the desktop and Android devices must be on the same network.
+- Both the desktop and Android devices must be on the same local network.
 
-- The [sample Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").  Make sure to run the "launch" Task and enter your Google Drive ID.
+- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").  Make sure to run the "launch" Task and enter your Google Drive ID.
 
-- The TaskerNet profile, [MapTasker List](https://shorturl.at/buvK6), must be imported into Tasker in order for the 'List XML Files' button to work.
+- The TaskerNet profile, [MapTasker List](https://shorturl.at/buvK6), must be imported into Tasker for the 'List XML Files' button to work in the GUI.  You can also first [preview this app on TaskerNet](https://taskernet.com/?public&tags=maptasker,Utility&time=AllTime).
 
 - Once the XML has been retrieved from your Android device, it is not necessary to keep retrieving it unless it has changed since it is automatically saved on your desktop.
 
@@ -204,7 +204,9 @@ Network traffic is as follows:
 - Local LAN traffic when fetching XML directly from your Android device.
 - On startup, check against pypi.com to determine if a new release is available.
 - Update the program from pypi.com (via 'pip) if 'Upgrade' is selected in the GUI.
-- Use of chatgpt.com when using Ai Analysis with anyh of the OpenAi models.
+- Read file 'maptasker_changelog.json' from https://github.com/mctinker/Map-Tasker if "What's New" is selected in the GUI.
+- Use of chatgpt.com when using Ai Analysis with any of the OpenAi models.
+- New local Ai models will be loaded from https://ollama.com/library.
 
 ## Contributions
 
@@ -215,6 +217,8 @@ Network traffic is as follows:
 [Tom Schimansky for CustomTkinter](https://github.com/TomSchimansky/CustomTkinter)
 
 [Akash Bora for CTkColorPicker](https://github.com/Akascape/CTkColorPicker)
+
+[Ollama](https://ollama.com/) and [OpenAi](https://openai.com/)
 
 
 
