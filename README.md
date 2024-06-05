@@ -23,7 +23,9 @@
 
 # MapTasker
 
-## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX machine based on Tasker's backup or exported XML file.
+## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX machine based on Tasker's backup or exported XML file
+
+![](https://github.com/mctinker/Map-Tasker/blob/Version-4.0.9/documentation_images/intro.png)
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see [Note 1](#1)).
 
@@ -32,53 +34,37 @@ I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable
 The Tasker backup or exported XML can either be manually uploaded to your PC/Mac/Linux/cloud-drive, or this program can fetch it directly from your Android device (see [Note 2](#2)).
 
 ### Features
- 
-- Display everything from a summary overview to a very detailed level of your Tasker configuration.
- 
-- Display just a single Project, Profile, or Task.
- 
-- Include/exclude Profile and Task conditions: States, Events, etc.
- 
-- Just stream everything or make the output "pretty" by aligning all of the fields.
- 
-- Change the appearance: light, dark or use the system default.
- 
-- Output using your favorite monospaced font, and accent Project, Profile and Task names by making them italicized, bold, highlighted and/or underscored.
- 
-- Modify the colors associated with various aspects of the output to suit your mood.
- 
-- Include TaskerNet descriptions and/or Tasker preferences.
- 
-- For complex configurations, optionally include a dictionary of hot-links to your Projects, Profiles, Tasks and Scenes.
- 
-- Display a diagram of your entire Tasker configuration.
- 
-- Command line or GUI interface.
- 
-- Use exported XML or fetch the XML directly from your Android device for the configuration mapping.
- 
- > Save and restore commonly used runtime settings.
- 
-- Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT or the local-based Llama-ollama supported models.**
- 
-- Tree view of Projects and their Profiles, Tasks and Scenes.**
- 
-- Automatic update detection and optional installation.**
 
-&nbsp;&nbsp;** Available via the GUI only.
+- Your choice of output detail level, from a summary overview to a very detailed level of your configuration.
+- Display just a single Project, Profile, or Task.
+- Include/exclude Profile and Task conditions: States, Events, etc.
+- Just stream everything and/or make the output "pretty" by aligning all of the fields.
+- Change the appearance: select 'light', or 'dark' or use the 'system' default.
+- Output using your favorite monospaced font, and accent Project, Profile and Task names by making them italicized, bold, highlighted and/or underscored.
+- Modify the colors associated with various aspects of the output to suit your mood.
+- Include TaskerNet descriptions and/or Tasker preferences.
+- For complex configurations, optionally include a dictionary of hotlinks to your Projects, Profiles, Tasks and Scenes.
+- Display a diagram of your entire Tasker configuration.
+- Command line or GUI interface.
+- Use exported XML or fetch the XML directly from your Android device for the configuration mapping.
+- Save and restore commonly used runtime settings.
+- Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT or the local-based Llama-ollama supported models.*
+- Tree view of Projects and their Profiles, Tasks and Scenes.*
+- Automatic update detection and optional installation.*
+
+&nbsp;&nbsp;&nbsp;&nbsp;* Available via the GUI only.
 
 ### Program Dependencies
 
-#### - Python version v3.11 (see [Note 4](#4)) or higher and Tkinter 8.6 or higher.
+#### - Python version v3.11 (see [Note 4](#4)) or higher and Tkinter 8.6 or higher
 
-#### - Tasker full or partial backup or exported XML file.
+#### - Tasker full or partial full backup or XML file
 
-&nbsp;&nbsp;-anyname-.xml: you will be prompted to locate and identify your Tasker backup/exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, this can be fetched directly from your Android device (see [Note 2](#2)).
+&nbsp;&nbsp;anyname.xml: you will be prompted to locate and identify your Tasker backup/exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, this can be fetched directly from your Android device (see [Note 2](#2)).
 
 #### - Ai Analysis
- 
-&nbsp;&nbsp;This requires a valid ChatGPT API key if using the server-based analysis, or the installation of ollama for local analysis (See [Note 5](#5)).
 
+&nbsp;&nbsp;This requires a valid ChatGPT API key if using the server-based analysis, or the installation of 'ollama' for local analysis (See [Note 5](#5)).
 
 ### Installation
 
@@ -93,9 +79,9 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
     - `source {directory path to 'xxx'}/venv/bin/activate`
     - `pip install maptasker`
 
-- To install it from GitHub: 
-    - get the zip file by clicking on the ['Code'](https://github.com/mctinker/Map-Tasker) pull-down menu, 
-    - select 'Download ZIP', 
+- To install it from GitHub:
+    - get the zip file by clicking on the ['Code'](https://github.com/mctinker/Map-Tasker) pull-down menu,
+    - select 'Download ZIP',
     - save it into a new directory (e.g. /your_id/maptasker) and
     - uncompress it into that directory.
     - `pip install -r requirements.txt`   ...to first install the prerequisites
@@ -117,7 +103,6 @@ Program output:
 - The file “MapTasker.html” will be written to your runtime/current folder, which will be opened in your default browser as a new tab.
 - If the "-outline" runtime option is used, then a textual diagram of the configuration is also written as "MapTasker_Map.txt" and will be displayed in your default text editor.  Ensure that text-wrap is off and a monospace font is used when viewing this map in the text editor.
 - The runtime settings are saved in the file" MapTasker_Settings.toml".  You can modify this file but care should be taken not to change the field formats (e.g. change an integer to a text string).  Incorrect values will be ignored.
-- "MapTasker_Map.txt" will be written if you ran MapTasker with the '-outline' runtime option.
 - "MapTasker_Analysis.txt" will be created if you run the Ai Analysis from the GUI, which holds the response from the analysis.
 - "maptasker.log" trace log file used for program debugging only.
 <br><br>
@@ -197,8 +182,12 @@ No information whatsoever is captured and sent via the network to myself or any 
 
 When reporting an error, you will most likely be asked to provide the output log file from the error and your XML file, both of which will be solely used to debug the program and then immediately deleted.
 
-The only network traffic that occurs is if and when you retrieve the backup/exported XML file directly from your Android device on the same network, use of the ChatGPT analysis feature, and during the GUI startup to check the pypi.org server for updates to the program.
+Network traffic is as follows:
 
+- Local LAN traffic when fetching XML directly from your Android device.
+- On startup, check against pypi.com to determine if a new release is available.
+- Update the program from pypi.com (via 'pip) if 'Upgrade' is selected in the GUI.
+- Use of chatgpt.com when using Ai Analysis with anyh of the OpenAi models.
 
 ## Contributions
 
