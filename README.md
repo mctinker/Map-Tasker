@@ -29,11 +29,13 @@
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see [Note 1](#1)).
 
-I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, my phone was too small to navigate over my Projects, Profiles, Tasks and Scenes.  So I wrote a Python program for my MAC to provide an indented list of my entire configuration based on my Tasker backup XML file that I saved to my Google Drive.
+I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, and my phone was too small to navigate over my Projects, Profiles, Tasks and Scenes.  So I wrote a Python program for my desktop to provide a complete map of my entire configuration based on my Tasker backup XML file that I saved to my local desktop drive.
 
-The Tasker backup or exported XML can either be manually uploaded to your PC/Mac/Linux/cloud-drive, or this program can fetch it directly from your Android device (see [Note 2](#2)).
+Over time, I refined the map by providing many additional options.
 
-### Features
+The Tasker backup or exported XML can either be manually uploaded to your PC/Mac/Linux/cloud drive, or this program can retrieve it directly from your Android device (see [Note 2](#2)).
+
+## Features
 
 - Your choice of output detail level, from a summary overview to a very detailed level of your configuration.
 - Display just a single Project, Profile, or Task.
@@ -54,21 +56,21 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
 &nbsp;&nbsp;&nbsp;&nbsp;* Available via the GUI only.
 
-### Program Dependencies
+## Program Dependencies
 
-#### - Python version v3.11 (see [Note 4](#4)) or higher and Tkinter 8.6 or higher
+### - Python version v3.11 (see [Note 4](#4)) or higher and Tkinter 8.6 or higher
 
-#### - TKinter 8.6 or higher (see [Note 3](#3))
+### - TKinter 8.6 or higher (see [Note 3](#3))
 
-#### - Tasker full or partial full backup or other exported Tasker XML file
+### - Tasker full or partial full backup or other exported Tasker XML file
 
-&nbsp;&nbsp;You will be prompted to locate and identify your Tasker backup/exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
+&nbsp;&nbsp;You will be prompted to locate and identify your Tasker exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
 
-#### - Ai Analysis
+### - Ai Analysis
 
 &nbsp;&nbsp;This requires a valid ChatGPT API key if using the server-based analysis, or the installation of 'Ollama' for local analysis (See [Note 5](#5)).
 
-### Installation
+## Installation
 
 - Install MapTasker by entering the following command into the Terminal:
 
@@ -89,7 +91,7 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
     - `pip install -r requirements.txt`   ...to first install the prerequisites
 
 
-### Usage
+## Usage
 
 - Enter the command:
 
@@ -123,7 +125,7 @@ Program output:
 
      This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.
 
-### More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)&nbsp;&nbsp;[[MIT License]](https://opensource.org/license/mit)
+## More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)&nbsp;&nbsp;[[MIT License]](https://opensource.org/license/mit)
 
 ## Notes
 
@@ -195,7 +197,7 @@ The usage of llama models also requires that you manually install Ollama from [h
 
 ## Privacy Statement
 
-No information whatsoever is captured and sent via the network to myself or any other third party, other than through the use of server-based Ai Analysis which will send your Project/Profile/Task to ChatGPT.
+No information whatsoever is captured and sent via the network to myself or any other third party, other than that listed below (Network Traffic).
 
 When reporting an error, you will most likely be asked to provide the output log file from the error and your XML file, both of which will be solely used to debug the program and then immediately deleted.
 
