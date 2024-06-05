@@ -33,7 +33,7 @@ I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable
 
 Over time, I refined the map by providing many additional options.
 
-The Tasker backup or exported XML can either be manually uploaded to your PC/Mac/Linux/cloud drive, or this program can retrieve it directly from your Android device (see [Note 2](#2)).
+The Tasker backup or other Tasker exported XML can either be manually uploaded to your PC/Mac/Linux/cloud drive, or this program can retrieve it directly from your Android device (see [Note 2](#2)).
 
 ## Features
 
@@ -78,18 +78,17 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
 - To install it into a virtual environment, enter the following command into Terminal:
 
-    - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment:
-    -  `python -m venv venv`
-    - `source {directory path to 'xxx'}/venv/bin/activate`
-    - `pip install maptasker`
+  - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment:
+  - `python -m venv venv`
+  - `source {directory path to 'xxx'}/venv/bin/activate`
+  - `pip install maptasker`
 
 - To install it from GitHub:
-    - get the zip file by clicking on the ['Code'](https://github.com/mctinker/Map-Tasker) pull-down menu,
-    - select 'Download ZIP',
-    - save it into a new directory (e.g. /your_id/maptasker) and
-    - uncompress it into that directory.
-    - `pip install -r requirements.txt`   ...to first install the prerequisites
-
+  - get the zip file by clicking on the ['Code'](https://github.com/mctinker/Map-Tasker) pull-down menu,
+  - select 'Download ZIP',
+  - save it into a new directory (e.g. /your_id/maptasker) and
+  - uncompress it into that directory.
+  - `pip install -r requirements.txt`   ...to first install the prerequisites
 
 ## Usage
 
@@ -101,7 +100,7 @@ The Tasker backup or exported XML can either be manually uploaded to your PC/Mac
 
 - If running from the sourced GITHUB zip file, then do the following to run the program:
 
-     `python main.py (runtime options...see below)`   ...to run Map-Tasker
+     `python main.py -option1 -option2`   ...to run Map-Tasker
 
 Program output:
 
@@ -119,13 +118,17 @@ Program output:
 
 - "MapTasker_Analysis.txt"
 
-     This file will be created if you run the Ai Analysis from the GUI, which holds the response from the analysis.
+     This file will be created if you run the Ai analysis from the GUI, which holds the response from the analysis.
 
 - "maptasker.log"
 
      This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.
 
-## More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)&nbsp;&nbsp;[[MIT License]](https://opensource.org/license/mit)
+## More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
+
+## License
+
+This program is licensed under the [MIT License](https://opensource.org/license/mit).
 
 ## Notes
 
