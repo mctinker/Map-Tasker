@@ -1,721 +1,0 @@
-<!doctype html>
-<html lang=”en”>
-<head>
-<title>MapTasker</title>
-<body style="background-color:DarkBlue">
-<span style="color:LawnGreen;font-family:Courier">MapTask Tasker Mapping................&nbsp;&nbsp;&nbsp;Tasker version: 6.0.7-beta&nbsp;&nbsp;&nbsp;&nbsp;Map-Tasker version: MapTasker version 2.0.6&nbsp;&nbsp;Device screen size: 720.0 X 1460.0</span><br>
-<span style="color:LawnGreen;font-family:Courier"><br><br>Source backup file: /Users/mikrubin/Kaka/maptasker_test/backup old.xml</span><br>
-     <ul>
-<br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Base</span> </li>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Battery Full </span> <span style="color:Lavender;font-family:Courier"> (condition State: Battery Level&nbsp;&nbsp; From:85 , To:85)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Battery Full Alert&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Full Brightness For Camera </span> <span style="color:Lavender;font-family:Courier"> (condition Application: Maps Camera)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Max Brite&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Reg Brite&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Alert For Smartthings Notifications </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Notification&nbsp;&nbsp; Class:com.smartthings.android.main.MainActivity, Package:com.smartthings.android, App:SmartThings       ,  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Smartthings Alert&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Check Smartthings Batteries </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 8:00 repeat every 6 hours  to 21:59 and State: Wifi Connected&nbsp;&nbsp;    Active:Any, )</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Check Batteries&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Notification Off 4 Music </span> <span style="color:Lavender;font-family:Courier"> (condition Application: Poweramp)</span>  </span></li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Turn notifications off if playing music.</span>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Turn Off Notifications&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Turn On Notifications&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Daily Setup </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 9:00 to -1:-1)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Morning Setup&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Check Heat </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 9:00 repeat every 30 minutes  to 21:00)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Check Downstairs Heat&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Check Upstairs Heat&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Crawlspace Power Chg </span> <span style="color:Lavender;font-family:Courier"> (condition Event: SharpTools Thing&nbsp;&nbsp; Thing: Crawlspace
-Attribute: ALL
-
-Triggered when an attribute matching the filters changes.r
-r
-IMPORTANT: Be sure to manually subscribe to the desired attribute in the main SharpTools app by long-pressing on the desired thing. Priority:0)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Crawlspace Power Event&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Turn Off Comms @ 11pm </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 23:00 to 23:00)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Turn Off Communications&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Turn On Comms @ 7am </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 7:00 to 7:00)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Turn On Communications&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Keep Track Of App Usage </span> <span style="color:Lavender;font-family:Courier"> (condition Event: App Changed&nbsp;&nbsp;  Priority:0)</span>  </span></li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Important: need the Tasker beta for this. (https://joaoapps.com/beta-testing/)
-
-Will show a notification of the time you spent in an app in the last 24 hours.
-
-Will show a pop-up notification if you've used the app for over 60 minutes in a single day.</span>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Variable Set</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Name:%current, To:%app_package , Max Rounding Digits:0</span></li>
-     </ul>     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Is Living RM Lite On </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 9:00 repeat every 1 hours  to 19:00 and State: Wifi Connected&nbsp;&nbsp;    Active:Any, )</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Chk Living Room Lite On&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Check Smartthings Wreaths </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 8:00 repeat every 1 hours  to 17:00)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Check Wreaths&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Battery Is 30% </span> <span style="color:Lavender;font-family:Courier"> (condition State: Battery Level&nbsp;&nbsp; From:30 , To:30 and State: Power&nbsp;&nbsp; Set:AC,  [inverted])</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Battery Half Alert&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Update All Apps On Playstore </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 20:43 to 20:43)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Update My Apps Google Play Store&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: GetOffAss </span> <span style="color:Lavender;font-family:Courier"> (condition State: Variable Value and Time: from 11:00 repeat every 45 minutes  to 15:00)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;GetUpStart&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Sync Every Hour </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 8:30 repeat every 1 hours  to 22:30)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Daytime Hourly Stuff&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Pocket Guard: Turn Off Display In Pocket </span> <span style="color:Lavender;font-family:Courier"> (condition State: Proximity Sensor and State: Display State&nbsp;&nbsp; )</span>  </span></li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Turn off the display if your phone is in your pocket and accidentally turns on.
-
-It'll also turn off the display if you put it in your pocket while it's turned on.
-
-It'll wait 5 seconds until it turns it off to prevent false positives.
-
-This is achieved by checking the proximity sensor on your device, so please make sure that your device has a working proximity sensor if you want to use this.</span>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Flash</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Text:Pocket Guard running in 5 seconds... , Dismiss On Click, Continue Task Immediately</span></li>
-     </ul>     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Device Boots </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Device Boot (Is Deprecated)  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Run Tasks On Bootup&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Ringer & Notification Vol Equalizer </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Variable Set&nbsp;&nbsp; Variable:%VOLR, Value:* ,  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Notification Volume&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Kaka </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 12:32 to 12:32)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">If</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp;  %ALSname = 0</span></li>
-     </ul>     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Base are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;LR Battery Low <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Office&Sonos Off <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Sonos & Office Off @ Nite <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Speak Battery Status <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;sunriseset <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Get Station Windspeed <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Set Upstairs Heat @ Nite <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Is Dehumidifier On? <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Test <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Most Used Apps <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Most Used Apps 2day <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Power Saving Mode <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Power Normal Mode <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Just Play Music <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Take Phone Alert <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Camera Enabled <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Sunrise Sunset <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Process REDDIT Code v3.0 <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;PopUp App <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;AN Get All AutoNotification Vars V2 <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;GetUpEnd <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Help Swipe Up <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Notifications <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;NetSpeed Test V1 <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Enable Accessibility <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Toggle Outside Lites <em>(Not referenced by any Profile in Project Base)</em></span></li>
-     </ul><br>
-        <li style="color:White"><span style="color:Lime;font-family:Courier">Scene:&nbsp;Variable Query</span></li>
-        <li style="color:White"><span style="color:Lime;font-family:Courier">Scene:&nbsp;OneLine</span></li>
-        <li style="color:White"><span style="color:Lime;font-family:Courier">Scene:&nbsp;Popup</span></li>
-<br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Weather</span> <span style="color:GreenYellow;font-family:Courier">[Launcher Task: Show Weather] </span></li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Multiple weather related profiles and tasks: 
-
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"> Check the current weather
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"> Check today rain probability
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"> Check Sunset and Sunrise times
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"> Profile to automate something based on if it's going to rain
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"> Profile to automate things based on sunset and sunrise times with optional time offsets</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: 🌧️ </span> <span style="color:Lavender;font-family:Courier"> (condition State: Variable Value)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Notify Cancel</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Title:Rain, </span></li>
-     </ul>        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Notify Cancel</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Title:Rain, </span></li>
-     </ul>     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Check Weather At 6 </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 6:00 repeat every 30 minutes  to 21:00)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Check Weather&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: 🌄 </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from %SunriseTime to %SunsetTime )</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Variable Clear</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Name:%SunOut, </span></li>
-     </ul>        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Variable Clear</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Name:%SunOut, </span></li>
-     </ul>     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Weather are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Show Weather <em>(Not referenced by any Profile in Project Weather)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Check If Going To Rain Today <em>(Not referenced by any Profile in Project Weather)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Get Sunset Sunrise <em>(Not referenced by any Profile in Project Weather)</em></span></li>
-     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Task Logger</span> </li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: <p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">Write Tasker Tasks and Events to Google Sheets. No setup needed, it works instantly. (Working demos are included.) Just copy-paste a single Task Action into a Task and see variable data logged to an <a href="https://docs.google.com/spreadsheets/d/1IjkiKWdsFjQ7PrRKyAs2in6MJ80UX8Vwz4XVS1sUyY0/edit?usp=sharing">online spreadsheet</a>, including accurate timestamps. Very useful for keeping an ongoing record of any sorts of events or for debugging Tasks.
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"><a href="https://i.imgur.com/httEnoM.jpg"><img src="https://i.imgur.com/httEnoM.jpg" alt="" width="246" height="150" /></a>
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"><a href="https://i.imgur.com/0WGjMAm.jpg"><img src="https://i.imgur.com/0WGjMAm.jpg" alt="" width="242" height="150" /></a>
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">With one extra click you can even tell it to auto-create graphs or pie-charts from your data &lsquo;on the fly&rsquo;. You can simply drop it in or take it out of any Task and it can collect any selected data instantly without affecting the Task, the data then uploads in the background to write into a spreadsheet. Collecting different data from different Tasks and writing to different spreadsheets is easy to do&nbsp; &nbsp;(<a href="https://www.reddit.com/r/tasker/comments/se1ffd/project_tasklogger_write_data_to_google_sheets/">Reddit Link</a>)
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">. <a href="https://i.imgur.com/ZIYeecZ.jpg"><img src="https://i.imgur.com/ZIYeecZ.jpg" alt="" width="195" height="150" /></a>
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"><a href="https://i.imgur.com/6qd83T8.jpg"><img src="https://i.imgur.com/6qd83T8.jpg" width="254" height="150" /></a>
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">&nbsp; <a href="https://i.imgur.com/M4GcrXy.jpg"><img src="https://i.imgur.com/M4GcrXy.jpg" width="250" height="150" /></a>
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"><a href="https://i.imgur.com/Teg2Jgs.jpg"><img src="https://i.imgur.com/Teg2Jgs.jpg" alt="" width="62" height="127" /></a> <a href="https://i.imgur.com/Ead97QN.jpg" target="_blank"><img src="https://i.imgur.com/Ead97QN.jpg" alt="" width="62" height="128" /></a>&nbsp;<a href="https://i.imgur.com/RpogZhd.jpg" target="_blank"><img src="https://i.imgur.com/RpogZhd.jpg" alt="" width="62" height="127" /></a> &nbsp;<a href="https://www.dropbox.com/s/i8p1lx6ybn3kyf9/Screen_Recording.mp4?dl=0" target="_blank"><img src="https://i.imgur.com/g4gecDR.jpg" alt="" width="62" height="127" /></a> &nbsp;<a href="https://imgur.com/jgmw2PM.jpg"><img src="https://i.imgur.com/jgmw2PM.jpg" alt="" width="62" height="125" /></a>&nbsp;
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">&nbsp;
-<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">&nbsp;</span>
-<span style="color:LightPink;font-family:Courier">
-<br><br>TaskerNet search on: Google Sheets,Web,Data</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: TaskLogger >G-Sheets !WiFi 💾 </span> <span style="color:Lavender;font-family:Courier"> (condition State: Wifi Connected&nbsp;&nbsp;    Active:Any,  [inverted])</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;TaskLogger: Send Log Data&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: TaskLogger >G-Sheets WiFi  💾 </span> <span style="color:Lavender;font-family:Courier"> (condition State: Wifi Connected&nbsp;&nbsp;    Active:Yes, )</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;TaskLogger: Send Log Data&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: None or unnamed! </span> <span style="color:Lavender;font-family:Courier"> (condition State: Variable Value and State: Wifi Connected&nbsp;&nbsp;    Active:Any, )</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;TaskLogger: Send Log Data&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Run Logger Every Half Hour </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 8:38 repeat every 30 minutes  to 21:29 and State: Wifi Connected&nbsp;&nbsp; SSID:Rubicon   Active:Any, )</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;TaskLogger: Send Log Data&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Task Logger are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Demo1:  Data Log <em>(Not referenced by any Profile in Project Task Logger)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Demo2:  Line Chart <em>(Not referenced by any Profile in Project Task Logger)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;View Public Sheet URL  💻 <em>(Not referenced by any Profile in Project Task Logger)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Demo4: Air Pressure (* If Avail) <em>(Not referenced by any Profile in Project Task Logger)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;TaskLogger: Paste-In Action 🚩 <em>(Not referenced by any Profile in Project Task Logger)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Demo3:  Pie Chart <em>(Not referenced by any Profile in Project Task Logger)</em></span></li>
-     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: PrfTsk List</span> </li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: </p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">Profiles and Tasks Lister/Logger</h1>List and optionally log all of your Profiles and Tasks.  
-<br></br>
-All functionality is self-contained in this project.
-<br></br>
-Logging is done upon request by incorporating the functionality of <a href="https://taskernet.com/shares/?user=AS35m8lLgtnokrJ3WOnswWexIFXZu9jFqi2MPjRyoXC%2FS72e4vE8D3UvUTYz4Ul9BYg%3D&id=Project%3ATask+Logger">TaskLogger</a> and are logged to a shared public "Google Sheets" spreadsheet.  If you wish to deploy your own spreadsheet, refer to TaskLogger <a href="https://www.reddit.com/r/tasker/comments/se1ffd/project_tasklogger_write_data_to_google_sheets/">here</a>.
-<br></br>
-This is an extension of this <a href="https://taskernet.com/shares/?user=AS35m8lnbGhm%2F58jHvsiqVNumDAJZVkcfcE7gQxfcMjrFBCkp6sNKYf3YiK9WVWZBoDf&id=Project%3AProfiles+List">this Profile List</a>, and has all of the functionality of this other project built-in, including copy-to-clipboard of selected profiles/tasks and invocation of selected profiles/tasks.
-<br></br>
-After installing this project, add the task "PT List Profiles and Tasks" to your phone's desktop as a tasker shortcut and run it from there.  You will be prompted for:
-<br></br>
-</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">- Once the profiles are listed, do you want to log them?
-</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">- If you responded "yes" to logging, then you will be prompted for the sheet/tab name in the public spreadsheet to log to.  Try to use a unique name to avoid stepping on top of someone else's log. 
-</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">- Once the tasks are listed, do you want to log them (via TaskLogger)?
-</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">- If you responded "yes" to logging, then you will be prompted for the sheet/tab name in the public spreadsheet to log to.  It can be the same name as used for your Profiles, or another name just for your Tasks. 
-</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">- If either is logged, do you want to wait for the logging to complete?
-<br></br>
-This last prompt is provided since the logging could potentially take a minute or more.  If you wait, it will show you the remaining log count every 5 seconds until the log is completed.  If you don't wait, the task will end and the logging will complete in the background.
-<br></br>
-
-Here's what you will see in this specific order:
-<br></br>
-</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">- A scrollable scene displaying all of your Profiles
-</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">- Once you click on "Quit" or "X", you will get a prompt asking if want to log the results.  If you respond "yes", you will be prompted for the spreadsheet sheet/tab name to use and the Profile-names logging will occur in the background.
-</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">- A scrollable scene displaying all of your Tasks
-</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">- Once you click on "Quit" or "X", you will get a prompt asking if want to log the results.  If you respond "yes", you will be prompted for the spreadsheet sheet/tab name to use and the Task-names logging will occur in the background.
-you will be asked if you want to wait for the logging to complete.  If you say "yes", then every 5 seconds you will be flashed a count of the remaining log entries to be processed.  If you say "no", the task will exit and the completion of the logging will occur in the background.
-<br></br>
-A second task is included, PT View Spreadsheet, which can be used to display the Google Sheet in a browser or via Google Sheets (if this app is installed on your phone).
-<br></br>
-</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">Note: Logging of say, up to 52 profiles and 140 tasks can take upwards of seven minutes or more.  Check your output before rerunning this to make sure the previous run has completed.
-</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">Note: You can view the spreadsheet <a href=https://docs.google.com/spreadsheets/d/1RmnoUpdknz9IaNoJr3YBSNNx1YI0TnB8-QSaEjaAX8o/edit#yyy=xxxxxxxx>here</a>.
-<br></br>
-Credit goes to  <a href="https://www.reddit.com/user/Godberd">Godberd</a> for use of the TaskLogger code.</span>
-<span style="color:LightPink;font-family:Courier">
-<br><br>TaskerNet search on: Google Sheets,Utility,Display</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: PT TaskLogger >G-Sheets WiFi  💾 </span> <span style="color:Lavender;font-family:Courier"> (condition State: Wifi Connected&nbsp;&nbsp;    Active:Any, )</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;PT TaskLogger: Send Log Data&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project PrfTsk List are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;PT Display List <em>(Not referenced by any Profile in Project PrfTsk List)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;PT View Spreadsheet  📊 <em>(Not referenced by any Profile in Project PrfTsk List)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;PT Wait For Log Complete <em>(Not referenced by any Profile in Project PrfTsk List)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;PT List Profiles & Tasks  🏘 <em>(Not referenced by any Profile in Project PrfTsk List)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;PT README <em>(Not referenced by any Profile in Project PrfTsk List)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;PT Tasks <em>(Not referenced by any Profile in Project PrfTsk List)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;PT Profiles <em>(Not referenced by any Profile in Project PrfTsk List)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;PT Log List <em>(Not referenced by any Profile in Project PrfTsk List)</em></span></li>
-     </ul><br>
-        <li style="color:White"><span style="color:Lime;font-family:Courier">Scene:&nbsp;PT List</span></li>
-<br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Apps Used</span> <span style="color:GreenYellow;font-family:Courier">[Launcher Task: AL Runonce Get Sheet Name] </span></li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Something</span>
-<span style="color:LightPink;font-family:Courier">
-<br><br>TaskerNet search on: Google Sheets,Utility,Display</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: AL List And Pie-Chart Apps  🏞️ </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 21:29 to 21:30)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;AL Apps Today  🟢&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: AL TaskLogger >G-Sheets WiFi  💾 </span> <span style="color:Lavender;font-family:Courier"> (condition State: Wifi Connected&nbsp;&nbsp;    Active:Any, )</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;AL TaskLogger: Send Log Data&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Apps Used are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;AL Runonce Get Sheet Name <em>(Not referenced by any Profile in Project Apps Used)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;AL View Spreadsheet  📊 <em>(Not referenced by any Profile in Project Apps Used)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Get All Apps Installed Time (A) v1.1 <em>(Not referenced by any Profile in Project Apps Used)</em></span></li>
-     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Battery Bar</span> </li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: A bar on your screen that shows the current battery level. The width of the scene and the position of the overlay are both hard-coded for a Galaxy S10+ so you'll have to change them.
-
-Version 1.3</span>
-<span style="color:LightPink;font-family:Courier">
-<br><br>TaskerNet search on: Battery,Overlays,Scenes</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Charging Colour </span> <span style="color:Lavender;font-family:Courier"> (condition State: Power&nbsp;&nbsp; Set:Any, )</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Element Back Color</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Scene Name:Battery Bar, Element:Rectangle1, Colour:#FFF93232, End Colour:#FFF93232</span></li>
-     </ul>        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Element Back Color</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Scene Name:Battery Bar, Element:Rectangle1, Colour:#FFF93232, End Colour:#FFF93232</span></li>
-     </ul>     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: None or unnamed! </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Display Unlocked)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Set Width&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Show At Startup </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Monitor Start Priority:0)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Show Battery Bar&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Update On Battery Level Change </span> <span style="color:Lavender;font-family:Courier"> (condition State: Display State&nbsp;&nbsp;  and Event: Battery Changed Priority:3)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Set Width&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Landscape Resize </span> <span style="color:Lavender;font-family:Courier"> (condition State: Variable Value)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Show Battery Bar&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Show Battery Bar&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Immersive Landscape </span> <span style="color:Lavender;font-family:Courier"> (condition State: Display Orientation&nbsp;&nbsp; Is:Landscape, )</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Variable Clear</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Name:%Landscape, </span></li>
-     </ul>        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Variable Clear</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Name:%Landscape, </span></li>
-     </ul>     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Battery Bar are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Destroy Battery Bar <em>(Not referenced by any Profile in Project Battery Bar)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Hide Battery Bar <em>(Not referenced by any Profile in Project Battery Bar)</em></span></li>
-     </ul><br>
-        <li style="color:White"><span style="color:Lime;font-family:Courier">Scene:&nbsp;Battery Bar</span></li>
-<br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Wear Maps</span> <span style="color:GreenYellow;font-family:Courier">[Launcher Task: Wear Location Variables] </span></li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: temp</span>
-<span style="color:LightPink;font-family:Courier">
-<br><br>TaskerNet search on: Watch</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Address Menu </span> <span style="color:Lavender;font-family:Courier"> (condition Event: AutoWear Command/Command Filter&nbsp;&nbsp; Command Filter: MapsMenu ,  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Wear Location Menu&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Input Address </span> <span style="color:Lavender;font-family:Courier"> (condition Event: AutoShare&nbsp;&nbsp; ,  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Location share&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Map commute </span> <span style="color:Lavender;font-family:Courier"> (condition Event: AutoWear Command/Command Filter&nbsp;&nbsp; Event: &APPOPENEDCOMMUTE&  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Wear Location Menu&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Saved locations </span> <span style="color:Lavender;font-family:Courier"> (condition Event: AutoWear Command/Command Filter&nbsp;&nbsp; Command Filter: saved addresses
-Case Insensitive: true  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Wear Location Menu&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Address selected </span> <span style="color:Lavender;font-family:Courier"> (condition Event: AutoWear Command/Command Filter&nbsp;&nbsp; Command Filter: WearMaps=:=  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Map Selected&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Wear Maps are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Wear Location Variables <em>(Not referenced by any Profile in Project Wear Maps)</em></span></li>
-     </ul><br>
-        <li style="color:White"><span style="color:Lime;font-family:Courier">Scene:&nbsp;Location popup</span></li>
-        <li style="color:White"><span style="color:Lime;font-family:Courier">Scene:&nbsp;Location First Run Popup</span></li>
-<br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Useful</span> </li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Some useful tasks for opening text/CSV files, and viewing all the current variables in a task.</span>
-     <ul>
-<span style="color:Aqua;font-family:Courier"><em>Project has no Profiles</em></span>
-     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Useful are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;.U Show local vars <em>(Not referenced by any Profile in Project Useful)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;U View text file <em>(Not referenced by any Profile in Project Useful)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;.U View text var <em>(Not referenced by any Profile in Project Useful)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;U View CSV file <em>(Not referenced by any Profile in Project Useful)</em></span></li>
-     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Say Times</span> </li>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Say Time </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 12:00 repeat every 30 minutes  to 15:30)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;SayTime&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Say Times are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;ToggleTimeAlerts <em>(Not referenced by any Profile in Project Say Times)</em></span></li>
-     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: View Variables </span> </li>
-     <ul>
-<span style="color:Aqua;font-family:Courier"><em>Project has no Profiles</em></span>
-     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project View Variables  are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;View All Tasker GLOBAL Vars <em>(Not referenced by any Profile in Project View Variables )</em></span></li>
-     </ul><br>
-        <li style="color:White"><span style="color:Lime;font-family:Courier">Scene:&nbsp;Global Var List Display</span></li>
-<br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Call Vol</span> </li>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Call Volume </span> <span style="color:Lavender;font-family:Courier"> (condition State: Call)</span>  </span></li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Call Volume
-
-Sets the Ringer volume to Max when any call is either incoming or outgoing, sets the volume back to 5 on disconnection.</span>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Call Volume&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Call Volume Exit&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     </ul>     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Apps</span> </li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: A simple profile to keep track of all app installations, updates and deletions.</span>
-<span style="color:LightPink;font-family:Courier">
-<br><br>TaskerNet search on: Apps</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: None or unnamed! </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Package Updated&nbsp;&nbsp;   Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;App Updated&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Clear Cumulative Notification </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Notification Removal&nbsp;&nbsp; , Title:App updates completed.     Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Clear App Notifications&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: None or unnamed! </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Package Removed&nbsp;&nbsp;  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;App Removed&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: None or unnamed! </span> <span style="color:Lavender;font-family:Courier"> (condition Event: New Package&nbsp;&nbsp;   Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;App Installed&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Apps are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;App Changes <em>(Not referenced by any Profile in Project Apps)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Show App Changes <em>(Not referenced by any Profile in Project Apps)</em></span></li>
-     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Save Parking Spot</span> </li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: save parking spot when Bluetooth disconnects, add button to maps to navigate to it.</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: None or unnamed! </span> <span style="color:Lavender;font-family:Courier"> (condition Application: Maps)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Show Spot&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: None or unnamed! </span> <span style="color:Lavender;font-family:Courier"> (condition State: BT Connected&nbsp;&nbsp; Name:HandsFreeLink )</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Clear Park&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Save Spot&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Save Parking Spot are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Hide spot <em>(Not referenced by any Profile in Project Save Parking Spot)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Log Where Are You <em>(Not referenced by any Profile in Project Save Parking Spot)</em></span></li>
-     </ul><br>
-        <li style="color:White"><span style="color:Lime;font-family:Courier">Scene:&nbsp;Offer Parking Spot</span></li>
-<br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Accessibility Monitor</span> <span style="color:GreenYellow;font-family:Courier">[Launcher Task: Accessibility Services Monitor] </span></li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Monitor enabled accessibility service belongs to monitored app(s). 
-
-After importing, you will be asked with several dialogs to choose which apps you want to monitor. Once you are done choosing you are good to go. Make sure Tasker has WRITE_SECURE_SETTINGS permission granted.
-
-If you want to re select which app you want to monitor, you can run Accessibility Service Monitor Task again manually.</span>
-<span style="color:LightPink;font-family:Courier">
-<br><br>TaskerNet search on: Utility,Apps</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: ♿ Accessibility Monitor </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Custom Setting&nbsp;&nbsp; Type:Secure, Name:enabled_accessibility_services  Priority:0 and State: Variable Value and State: Variable Value)</span> <span style="color:GreenYellow;font-family:Courier">[Launcher Task]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Accessibility Services Monitor&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Accessibility Boot Check </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Device Boot (Is Deprecated)  (Is Deprecated)  Priority:0)</span> <span style="color:GreenYellow;font-family:Courier">[Launcher Task]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Custom Settings</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Test:Secure, Name:enabled_accessibility_services, Read Setting To:%value</span></li>
-     </ul>     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Accessibility Monitor are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Accessibility Component Name <em>(Not referenced by any Profile in Project Accessibility Monitor)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Accessibility Service Manager <em>(Not referenced by any Profile in Project Accessibility Monitor)</em></span></li>
-     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Installed Apps</span> </li>
-     <ul>
-<span style="color:Aqua;font-family:Courier"><em>Project has no Profiles</em></span>
-     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Installed Apps are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;List Installed Apps <em>(Not referenced by any Profile in Project Installed Apps)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Clear Variable <em>(Not referenced by any Profile in Project Installed Apps)</em></span></li>
-     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Disabled Profiles</span> <span style="color:GreenYellow;font-family:Courier">[Launcher Task: DP Build Initial List Of Disabled Profiles 🚀] </span></li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Disabled Profiles description</span>
-<span style="color:LightPink;font-family:Courier">
-<br><br>TaskerNet search on: Notifications,Tasker Secondary,Utility</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: DP Check For Newly Disabled Profiles </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 8:30 repeat every 1 hours  to 21:30)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;DP Compare Initial Vs Now&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Disabled Profiles are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;DP Get List Of Disabled Profiles <em>(Not referenced by any Profile in Project Disabled Profiles)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;DP Build Initial List Of Disabled Profiles 🚀 <em>(Not referenced by any Profile in Project Disabled Profiles)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;DP Show Disabled Profiles <em>(Not referenced by any Profile in Project Disabled Profiles)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;DP Clear Notifications <em>(Not referenced by any Profile in Project Disabled Profiles)</em></span></li>
-     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Scene Mgr</span> </li>
-     <ul>
-<span style="color:Aqua;font-family:Courier"><em>Project has no Profiles</em></span>
-     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Scene Mgr are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Tasker Scene Manager <em>(Not referenced by any Profile in Project Scene Mgr)</em></span></li>
-     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Set Loud</span> <span style="color:GreenYellow;font-family:Courier">[Launcher Task: Loud] </span></li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Gain the ability to set your phone to load by texting it "set loud" when you misplace it in a room whilst it's on silent! This makes it easy to find the phone because you can then ring it and easily find it.</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: None or unnamed! </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Received Text&nbsp;&nbsp; Type:Any, Content:set loud   Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Loud&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul>     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Snap Camera</span> </li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Take automatic 'n' number of photos with your Samsung phone.<p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"> Designed for S21 Ultra, it should work with other current Samsung phones with the latest camera app.
- 
-You will be prompted for the number of seconds before starting, the number of seconds between shots, and the total number of photos to take. 
- 
-Create a desktop shortcut to this task to easily trigger-start it.</span>
-     <ul>
-<span style="color:Aqua;font-family:Courier"><em>Project has no Profiles</em></span>
-     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Snap Camera are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;SnapCam <em>(Not referenced by any Profile in Project Snap Camera)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Converttime <em>(Not referenced by any Profile in Project Snap Camera)</em></span></li>
-     </ul><br>
-        <li style="color:White"><span style="color:Lime;font-family:Courier">Scene:&nbsp;Get Input</span></li>
-<br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: BT Automation</span> </li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Turn off Bluetooth automatically when not connected anymore <p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"> method 2</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Bluetooth </span> <span style="color:Lavender;font-family:Courier"> (condition State: BT Connected&nbsp;&nbsp;   [inverted] and State: Mobile Data Settings&nbsp;&nbsp; Set:On, )</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Disconnect Bluetooth&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Text Msg From Favorite </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Received Text&nbsp;&nbsp; Type:SMS, Sender:C:FAV    Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Say Message&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul>     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Smart Lights On Lock Screen</span> </li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: Add a smart light icon on your lock screen.</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"></p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">Make sure to edit the scene's icon tap action to trigger your own scene in Alexa.
-</p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier"></p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">
-IMPORTANT:</b> you have to import the <a href="https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3ADisplay+And+Lock+State">Display And Lock State</a> project which creates the needed variables for this project to work.</span>
-<span style="color:LightPink;font-family:Courier">
-<br><br>TaskerNet search on: Scenes,Smart Home,Developer's Choice</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Display On & Lock Scr </span> <span style="color:Lavender;font-family:Courier"> (condition State: Variable Value)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Destroy Scene</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Name:Smart Lights & Cam, </span></li>
-     </ul>        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Destroy Scene</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Name:Smart Lights & Cam, </span></li>
-     </ul>     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Smart Lights On Lock Screen are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Runonce <em>(Not referenced by any Profile in Project Smart Lights On Lock Screen)</em></span></li>
-     </ul><br>
-        <li style="color:White"><span style="color:Lime;font-family:Courier">Scene:&nbsp;Smart Lights & Cam</span></li>
-<br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Display And Lock State</span> </li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: <p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">Will create several useful display-related variables that you can use anywhere in your projects:
-
-     <ul>
-     </p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">%AOD</b>: Will be set to 1</b> if the Always-On-Display is showing, unset if not. Can be used to show info-only scenes on your AOD with Blocking Overlay +</b> type scenes
-     </p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">%DisplayOn</b>: Will be set to 1</b> if the Display is on, unset if not (can be locked or not locked).
-     </p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">%Locked</b>: Will be set to 1</b> if the Display is locked, unset if not (display can be on or off). Can be used to destroy scenes that you don't want to show while the phone is unlocked for example.
-     </p><p style="margin-left:20px;margin-right:50px;color:LightPink;font-family:Courier">%LockScreen</b>: Will be set to 1</b> if the Lock Screen is showing (while the display is on), unset if not.  Can be used to show interactive scenes on your Lock Screen with Blocking Overlay +</b> type scenes
-     </ul></span>
-<span style="color:LightPink;font-family:Courier">
-<br><br>TaskerNet search on: Developer's Choice,Display,Utility</span>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: None or unnamed! </span> <span style="color:Lavender;font-family:Courier"> (condition Event: Display Unlocked)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Variable Clear</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Name:%Locked, </span></li>
-     </ul>     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: None or unnamed! </span> <span style="color:Lavender;font-family:Courier"> (condition State: Display State&nbsp;&nbsp; )</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Multiple Variables Set</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Names:%Locked, Values:1  , </span></li>
-     </ul>        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Multiple Variables Set</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Names:%Locked, Values:1  , </span></li>
-     </ul>     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Lock Screen </span> <span style="color:Lavender;font-family:Courier"> (condition State: Variable Value)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Variable Clear</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Name:%LockScreen, </span></li>
-     </ul>        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Variable Clear</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Name:%LockScreen, </span></li>
-     </ul>     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: AOD </span> <span style="color:Lavender;font-family:Courier"> (condition State: Variable Value)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Variable Clear</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Name:%AOD, </span></li>
-     </ul>        <li style="color:White"><span style="color:Red;font-family:Courier">Task:&nbsp;Unnamed/Anonymous.&nbsp;&nbsp;&nbsp;&nbsp;<<< Exit Task</span></li>
-     <ul>
-        <li style=color:White><span style="color:DarkOrange;font-family:Courier">01</span>: <span style="color:Gold;font-family:Courier">Variable Clear</span><span style="color:DarkOrange;font-family:Courier">&nbsp;&nbsp; Name:%AOD, </span></li>
-     </ul>     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: None or unnamed! </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 7:00 to 7:00)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Set Electric Blanket Flag&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul>     </ul><br>
-        <li style="color:White"><span style="color:Lime;font-family:Courier">Scene:&nbsp;Electric Blanket</span></li>
-<br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Autowear Stuff</span> </li>
-     <ul>
-<br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Battery Low </span> <span style="color:Lavender;font-family:Courier"> (condition State: AutoWear State&nbsp;&nbsp; Battery Low: true Structure Output (JSON (etc), )</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Watch Needs Charging&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Phone Is Charged </span> <span style="color:Lavender;font-family:Courier"> (condition State: Battery Level&nbsp;&nbsp; From:87 , To:88)</span>  </span></li>
-<span style="color:LightPink;font-family:Courier">TaskerNet description: This uses Autowear to alert your watch when your phone is fully charged.</span>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Phone Is Charged&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Display Scr1 4Scene Triggered </span> <span style="color:Lavender;font-family:Courier"> (condition Event: AutoWear Command/Command Filter&nbsp;&nbsp; Command Filter: sc1=:= , Structure Output (JSON, etc),  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Scene1 Actions&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Main Screen Icon Pressed </span> <span style="color:Lavender;font-family:Courier"> (condition Event: AutoWear Command/Command Filter&nbsp;&nbsp; Command Filter: scr=:= , Structure Output (JSON, etc),  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Main Screen Icon Processing&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Voice Command Triggered </span> <span style="color:Lavender;font-family:Courier"> (condition Event: AutoWear Command/Command Filter&nbsp;&nbsp; Command Filter: SVoice=:= , Structure Output (JSON, etc),  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;SVoice Commands&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Watch Battery Value Received </span> <span style="color:Lavender;font-family:Courier"> (condition Event: AutoWear Command/Command Filter&nbsp;&nbsp; Command Filter: wbat=:= , Structure Output (JSON, etc),  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Watch Battery Sent&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Watch Connected To Phone </span> <span style="color:Lavender;font-family:Courier"> (condition Event: BT Connected&nbsp;&nbsp; Name:Galaxy Watch4 Classic (EBBD)  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Start Watch Tasks&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Display HearingAid Screen Triggered </span> <span style="color:Lavender;font-family:Courier"> (condition Event: AutoWear Command/Command Filter&nbsp;&nbsp; Command Filter: sc2=:= , Structure Output (JSON, etc),  Priority:0)</span>  </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Scene2 Actions&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Draw Battery Chart </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 21:31 repeat every 1 hours  to 21:31)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Draw Watch Chart&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul><br>        <li style=color:White><span style="color:Aqua;font-family:Courier">Profile: Creat Battery Log </span> <span style="color:Lavender;font-family:Courier"> (condition Time: from 8:30 repeat every 30 minutes  to 21:30)</span> <span style="color:Red;font-family:Courier">[DISABLED]</span> </span></li>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Log Watch Battery&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task</span></li>
-     </ul>     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Autowear Stuff are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Create Floating Icons <em>(Not referenced by any Profile in Project Autowear Stuff)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Touch To Wake On <em>(Not referenced by any Profile in Project Autowear Stuff)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Get Watch Battery <em>(Not referenced by any Profile in Project Autowear Stuff)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Watch Battery Timer <em>(Not referenced by any Profile in Project Autowear Stuff)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Setup ADB Permissions <em>(Not referenced by any Profile in Project Autowear Stuff)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Get Watch Screen Fields <em>(Not referenced by any Profile in Project Autowear Stuff)</em></span></li>
-     </ul>     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Local Var Watch (debug) <em>(Not referenced by any Profile in Project Autowear Stuff)</em></span></li>
-     </ul><br>
-     </ul><br>        <li style=color:White><span style="color:White;font-family:Courier">Project: Status Bar</span> </li>
-     <ul>
-<span style="color:Aqua;font-family:Courier"><em>Project has no Profiles</em></span>
-     </ul><span style="color:Yellow;font-family:Courier">&nbsp;&nbsp;&nbsp;The following Tasks in Project Status Bar are not in any Profile...</span><br>
-     <ul>
-     <ul>
-        <li style="color:White"><span style="color:Yellow;font-family:Courier">Task:&nbsp;Status Bar Text Web Screen <em>(Not referenced by any Profile in Project Status Bar)</em></span></li>
-     </ul><br>
-     </ul>     </ul>     </ul>     </ul>     <ul><br><span style="color:PeachPuff;font-family:Courier"><em>Projects Without Profiles...</em></span>
-<span style="color:PeachPuff;font-family:Courier">- Project Useful has no Profiles</span><br>
-<span style="color:PeachPuff;font-family:Courier">- Project View Variables  has no Profiles</span><br>
-<span style="color:PeachPuff;font-family:Courier">- Project Installed Apps has no Profiles</span><br>
-<span style="color:PeachPuff;font-family:Courier">- Project Scene Mgr has no Profiles</span><br>
-<span style="color:PeachPuff;font-family:Courier">- Project Snap Camera has no Profiles</span><br>
-<span style="color:PeachPuff;font-family:Courier">- Project Status Bar has no Profiles</span><br>
-     </ul><hr><br>
-     <ul><span style="color:PeachPuff;font-family:Courier">CAVEATS:<br>
-- This has only been tested on my own backup.xml file.  For problems, report them on https://github.com/mctinker/Map-Tasker/issues .<br>
-- Tasks that are identified as "Unnamed/Anonymous" have no name and are considered Anonymous.
-<br>
-- For option -d0, Tasks that are identified as "Unnamed/Anonymous" will have their first Action only listed....
-  just like Tasker does.
-<br>
-- All attempts are made to retain embedded HTML (e.g. color=...>") in Tasker fields, but is stripped out of Action labels and TaskerNet comments.</span><br>
-
-</body>
-</html>
