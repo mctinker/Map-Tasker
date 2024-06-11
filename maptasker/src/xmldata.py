@@ -5,8 +5,6 @@
 #                                                                                      #
 # xmldata: deal with the xml data                                                      #
 #                                                                                      #
-
-# #################################################################################### #
 import os
 import shutil
 
@@ -16,9 +14,7 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import clean
 
 
-# ##################################################################################
 # See if the xml tag is one of the predefined types and return result
-# ##################################################################################
 def tag_in_type(tag: str, flag: bool) -> bool:
     """
     Evaluate the xml tag to see if it is one of our predefined types
@@ -70,9 +66,7 @@ def tag_in_type(tag: str, flag: bool) -> bool:
     return flag and tag in scene_task_element_types or not flag and tag in scene_task_click_types  # Boolean
 
 
-# ##################################################################################
 # We have an integer.  Evaluaate it's value based oon the code's evaluation parameters.
-# ##################################################################################
 def extract_integer(action: defusedxml.ElementTree.XML, arg: str, argeval: str) -> str:
     # Don't move import to avoid cirtcular import
     """
@@ -131,9 +125,7 @@ def extract_integer(action: defusedxml.ElementTree.XML, arg: str, argeval: str) 
     return ""  # No Integer value or variable found...return empty
 
 
-# ##################################################################################
 # Extracts and returns the text from the given argument as a string.
-# ##################################################################################
 def extract_string(action: defusedxml.ElementTree.XML, arg: str, argeval: str) -> str:
     """
     Extracts a string from an XML action element.
@@ -170,9 +162,7 @@ def extract_string(action: defusedxml.ElementTree.XML, arg: str, argeval: str) -
     return ""
 
 
-# ##################################################################################
 # Given a string, remove all HTML (anything between < >) tags from it
-# ##################################################################################
 def remove_html_tags(text: str, replacement: str) -> str:
     """
     Remove html tags from a string
@@ -185,9 +175,7 @@ def remove_html_tags(text: str, replacement: str) -> str:
     return re.sub(clean, replacement, text)
 
 
-# ##################################################################################
 # Find Task by name in PrimeItems.tasker_root_elements["all_tasks"]
-# ##################################################################################
 def find_task_by_name(task_name: str) -> defusedxml.ElementTree.XML:
     """
     Find a task by name in the tasker_root_elements["all_tasks"] list
@@ -200,9 +188,7 @@ def find_task_by_name(task_name: str) -> defusedxml.ElementTree.XML:
     return None
 
 
-# ##################################################################################
 # Append file1 to file2
-# ##################################################################################
 def append_files(file1_path: str, file2_path: str) -> None:
     """Appends the contents of file1 to file2.
     Parameters:
@@ -218,9 +204,7 @@ def append_files(file1_path: str, file2_path: str) -> None:
         shutil.copyfileobj(file1, file2)
 
 
-# ##################################################################################
 # The XML file hs incorrect encoding.  Let's read it in and rewrite it correctly.
-# ##################################################################################
 def rewrite_xml(file_to_parse: str) -> None:
     """Rewrite XML file with UTF-8 encoding.
     Parameters:

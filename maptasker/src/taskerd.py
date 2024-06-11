@@ -5,8 +5,6 @@
 #                                                                                      #
 # taskerd: get Tasker data from backup xml                                             #
 #                                                                                      #
-
-# #################################################################################### #
 import defusedxml.ElementTree as ET  # noqa: N817
 
 from maptasker.src.error import error_handler
@@ -15,9 +13,7 @@ from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.xmldata import rewrite_xml
 
 
-# ##################################################################################
 # Convert list of xml to dictionary
-# ##################################################################################
 def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
     """
     Given a list of Profile/Task/Scene elements, find each name and store the element and name in a dictionary.
@@ -41,10 +37,8 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
     return new_table
 
 
-# ##################################################################################
 # Load all of the Projects, Profiles and Tasks into a format we can easily
 # navigate through.
-# ##################################################################################
 def get_the_xml_data() -> bool:
     # Put this code into a while loop in the event we have to re-call it again.
     """Gets the XML data from a Tasker backup file and returns it in a dictionary.

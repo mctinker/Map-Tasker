@@ -5,10 +5,6 @@
 #                                                                                      #
 # format: Various formatting functions,                                                #
 #                                                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-
-
-# #################################################################################### #
 
 from maptasker.src.sysconst import (
     pattern2,
@@ -23,9 +19,7 @@ from maptasker.src.sysconst import (
 THREE_LINES = 3
 
 
-# ##################################################################################
 # Given a line in the output queue, reformat it before writing to file
-# ##################################################################################
 def format_line(item: str) -> str:
     """
     Given a line in our list of output lines, do some additional formatting
@@ -72,9 +66,7 @@ def format_line(item: str) -> str:
     return pattern10.sub("</p>", output_line)
 
 
-# ##################################################################################
 # Plug in the html for color along with the text
-# ##################################################################################
 def format_html(
     color_code: str,
     text_before: str,

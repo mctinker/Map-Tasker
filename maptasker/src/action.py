@@ -5,10 +5,7 @@
 #                                                                                      #
 # action: Find Task's Action arguments (<argn>) and return as sorted list              #
 #                                                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
 
-# #################################################################################### #
-# import re
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -26,7 +23,6 @@ from maptasker.src.sysconst import DISABLED, FONT_FAMILY, RE_FONT, DISPLAY_DETAI
 from maptasker.src.xmldata import remove_html_tags
 
 
-# ##################################################################################
 # Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
 #  This is only called if the action code is not already in our master dictionary
 #   actionc.py
@@ -36,7 +32,6 @@ from maptasker.src.xmldata import remove_html_tags
 # Output:
 #   arg_lst: list of sorted args as numbers only (e.g. 'arg' removed from 'arg0')
 #   type_list: list of sorted types (e.g. 'Int', 'Str', etc.)
-# ##################################################################################
 def get_args(action: defusedxml.ElementTree, ignore_list: list) -> tuple[list, list, list]:
     """
     Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
@@ -69,9 +64,7 @@ def get_args(action: defusedxml.ElementTree, ignore_list: list) -> tuple[list, l
     return arguments, argument_types, arg_nums
 
 
-# ##################################################################################
 # Evaluate the If statement and return the operation
-# ##################################################################################
 def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
     """
     Evaluate the If statement and return the operation
@@ -123,7 +116,6 @@ def drop_trailing_comma(match_results: list) -> list:
     return match_results
 
 
-# ##################################################################################
 # Define a class for converting string '1' setting to its value
 # code_flag identifies the type of xml data to go after based on the specific code
 #   in <code>xxx</code>
@@ -131,7 +123,6 @@ def drop_trailing_comma(match_results: list) -> list:
 #   0: True=it is a string, False it is an integer,
 #   1: the value to test
 #   2: the value to plug in if it meets the test
-# ##################################################################################
 def evaluate_action_setting(*args: list) -> list:
     """Evaluates action settings and returns results.
     Define a class for converting string '1' setting to its value.
@@ -158,7 +149,6 @@ def evaluate_action_setting(*args: list) -> list:
     return results
 
 
-# ##################################################################################
 # Given a required value logic and its position, evaluate the found integer and add
 #   to match_results
 # code_flag identifies the type of xml data to go after based on the specific code
@@ -167,7 +157,6 @@ def evaluate_action_setting(*args: list) -> list:
 #   1: True=it is a string, False it is an integer,
 #   2: the value to test
 #   3: the value to plug in if it meets the test
-# ##################################################################################
 def process_xml_list(
     names: list,
     arg_location: int,
@@ -238,7 +227,7 @@ def process_xml_list(
                     evaluated_value = [lookup_values[the_list[idx]][int(the_int_value)]]
                     evaluated_value = f"{the_list[idx - 2]}{evaluated_value[0]}, "
                     match_results.append(evaluated_value)
-                except KeyError:
+                except (KeyError, IndexError):
                     match_results.append(
                         f"MapTasker 'mapped' error in action: int {the_int_value} not"
                         f" in lookup_values (actiont) for item {the_list[idx]} which is"
@@ -265,9 +254,7 @@ def process_xml_list(
         )
 
 
-# ##################################################################################
 # Get Task's label, disabled flag and any conditions
-# ##################################################################################
 def get_label_disabled_condition(child: defusedxml.ElementTree.XML) -> str:
     """
     Get Task's label, disabled flag and any conditions
@@ -311,9 +298,7 @@ def get_label_disabled_condition(child: defusedxml.ElementTree.XML) -> str:
     return f"{task_conditions}{action_disabled}{task_label}"
 
 
-# ##################################################################################
 # Get any/all conditions associated wwith this Task.
-# ##################################################################################
 # Get any/all conditions associated with Action
 def get_conditions(child: defusedxml, the_action_code: str) -> str:
     """
@@ -356,10 +341,8 @@ def get_conditions(child: defusedxml, the_action_code: str) -> str:
     return result
 
 
-# ##################################################################################
 # Given the Task action's label, get rid of anything that could be problematic
 # for the output format
-# ##################################################################################
 def clean_label(lbl: str) -> str:
     """
     Given the Task action's label, get rid of anything that could be problematic
@@ -379,12 +362,10 @@ def clean_label(lbl: str) -> str:
     )
 
 
-# ##################################################################################
 # Chase after relevant data after <code> Task action
 # code_flag identifies the type of xml data to go after based on the specific code
 # in <code>xxx</code>
 # Get the: label, whether to continue Task after error, etc.
-# ##################################################################################
 """
 Objective:
 - The objective of the 'get_extra_stuff' function is to retrieve extra details about
@@ -424,9 +405,7 @@ Additional aspects:
 """
 
 
-# ##################################################################################
 # Chase after relevant data after <code> Task action
-# ##################################################################################
 def get_extra_stuff(
     code_action: defusedxml.ElementTree,
     action_type: bool,
@@ -490,9 +469,7 @@ def get_extra_stuff(
     return f"{extra_stuff}"
 
 
-# ##################################################################################
 # Get the application specifics for the given code
-# ##################################################################################
 def get_app_details(code_child: defusedxml.ElementTree.XML) -> tuple[str, str, str, str]:
     """
     Get the application specifics for the given code (<App>)

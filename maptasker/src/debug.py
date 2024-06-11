@@ -8,8 +8,6 @@ Returns:
 #                                                                                      #
 # debug: special debug code for MapTasker                                              #
 #                                                                                      #
-
-# #################################################################################### #
 import sys
 
 from maptasker.src.format import format_html
@@ -36,9 +34,7 @@ def output_debug_line(begin_or_end: str) -> None:
     )
 
 
-# ##################################################################################
 # Format a text line to a specific width by filling in blank spaces with periods.
-# ##################################################################################
 def format_line_debug(text: str, width: int) -> str:
     """Format text line to given width by filling with periods"""
 
@@ -147,9 +143,7 @@ def display_debug_info() -> None:
     )
 
 
-# ##################################################################################
 # Argument not found in dictionary
-# ##################################################################################
 def not_in_dictionary(condition_type: str, code: str) -> None:
     """
     Handle condition if Action/Event/State code not found in our dictionary (actionc.py)

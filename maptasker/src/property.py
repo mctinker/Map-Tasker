@@ -5,8 +5,6 @@
 #                                                                                      #
 # property: get Project/Profile/Task properties and output them                        #
 #                                                                                      #
-
-# #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.actione import fix_json
@@ -14,9 +12,7 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
 
 
-# ##################################################################################
 # Parse Property's variable and output it
-# ##################################################################################
 def parse_variable(property_tag: str, css_attribute: str, variable_header: defusedxml.ElementTree) -> None:
     """
     Parses the variable header of a property tag and outputs the properties of the variable.
@@ -60,9 +56,7 @@ def parse_variable(property_tag: str, css_attribute: str, variable_header: defus
     PrimeItems.output_lines.add_line_to_output(2, out_string, ["", css_attribute, FormatLine.add_end_span])
 
 
-# ##################################################################################
 # Figure out which CSS attribute to insert into the output
-# ##################################################################################
 def get_css_attributes(property_tag: str) -> str:
     """
     Get the CSS attribute based on the property tag.
@@ -83,10 +77,8 @@ def get_css_attributes(property_tag: str) -> str:
     return css_attribute
 
 
-# ##################################################################################
 # Given the xml header to the Project/Profile/Task, get the properties belonging
 # to this header and write them out.
-# ##################################################################################
 def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
     """
 

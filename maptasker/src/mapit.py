@@ -27,8 +27,6 @@ executes the key steps to take the Tasker backup and produce the visual map outp
 #                                                                                      #
 # Reference: https://github.com/Taskomater/Tasker-XML-Info                             #
 #                                                                                      #
-# #################################################################################### #
-
 import contextlib
 import gc
 import os
@@ -79,9 +77,7 @@ from maptasker.src.sysconst import (
 crash_debug = False
 
 
-# ##################################################################################
 # Handle program error gracefully if not in debug mode
-# ##################################################################################
 def on_crash(exctype: str, value: str, traceback: list) -> None:
     # Display the crash report if in debug mode
     """
@@ -122,9 +118,7 @@ def on_crash(exctype: str, value: str, traceback: list) -> None:
             sys.__excepthook__(exctype, value, traceback)
 
 
-# ##################################################################################
 # Clean up our memory hogs
-# ##################################################################################
 def clean_up_memory() -> None:
     """
     Clean up our memory hogs
@@ -158,9 +152,7 @@ def clean_up_memory() -> None:
     gc.collect()
 
 
-# ##################################################################################
 # write_out_the_file: we have a list of output lines.  Write them out.
-# ##################################################################################
 def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
     """
     write_out_the_file: we have a list of output lines.  Write them out.
@@ -216,9 +208,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
         os.fsync(out_file)  # Force write to disk
 
 
-# ##################################################################################
 # Cleanup memory and let user know there was no match found for Task/Profile
-# ##################################################################################
 def clean_up_and_exit(
     name: str,
     profile_or_task_name: str,
@@ -239,9 +229,7 @@ def clean_up_and_exit(
     sys.exit(5)
 
 
-# ##################################################################################
 # Output grand totals
-# ##################################################################################
 def output_grand_totals() -> None:
     """
     Output the grand totals of Projects/Profiles/Tasks/Scenes
@@ -279,9 +267,7 @@ def output_grand_totals() -> None:
     PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
-# ##################################################################################
 # Set up the major variables used within this program, and set up crash routine
-# ##################################################################################
 def initialize_everything() -> dict:
     """
     Set up all the variables and logic in case program craps out
@@ -316,9 +302,7 @@ def initialize_everything() -> dict:
     return [], [], []
 
 
-# ##################################################################################
 # If not doing a single named item, then output unique Project/Profile situations
-# ##################################################################################
 def process_unique_situations(
     projects_with_no_tasks: list,
     projects_without_profiles: list,
@@ -361,9 +345,7 @@ def process_unique_situations(
     return
 
 
-# ##################################################################################
 # Display the output in the default web browser,
-# ##################################################################################
 def display_output(my_output_dir: str, my_file_name: str) -> None:
     """
     Display the output in the default web browser,
@@ -387,9 +369,7 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
     print("")
 
 
-# ##################################################################################
 # Output the configuration outline and map
-# ##################################################################################
 def process_outline() -> None:
     """
     Output the configuration outline and map
@@ -421,9 +401,7 @@ def process_outline() -> None:
             run(["open", "MapTasker_map.txt"], check=False)  # noqa: S607, S603
 
 
-# ##################################################################################
 # Check if doing a single item and if not found, then clean up and exit
-# ##################################################################################
 def check_single_item(
     single_project_name: str,
     single_project_found: bool,
@@ -451,9 +429,7 @@ def check_single_item(
         clean_up_and_exit("Profile", single_profile_name)
 
 
-# ##################################################################################
 # We've displayed Projects etc.. Now display the back matter
-# ##################################################################################
 def display_back_matter(
     program_arguments: dict,
     single_project_name: str,
@@ -537,9 +513,7 @@ def display_back_matter(
     display_output(my_output_dir, my_file_name)
 
 
-# ##################################################################################
 # Re-launch our program via the "rerun" feature.
-# ##################################################################################
 def restart_program() -> None:
     # Restart our program
     # sys.executable = the path of the python interpreter and use it to execute ourselves again.
@@ -565,17 +539,28 @@ def restart_program() -> None:
         if platform.system() == "Windows":
             subprocess.run([sys.executable, *sys.argv], check=False)  # noqa: S603
         else:
+            # Flush any output from this run
+            sys.stdout.flush()
             # Start a new process which replaces our current process (it does not return).
             # print("You can ignore the following error message: 'Task policy set failed...' (if it appears)")
-            # os.execl(sys.executable, "python", *sys.argv)
+            # Put quotes arount the file option
+            # for arg in sys.argv:
+            #    if "-file" in arg:
+            #        sys.argv.remove(arg)
+            #        sys.argv.append(f'-file="{arg[6:]}"')
+            #        break
+            # sys.argv[0] = f"'{sys.argv[0]}'"  # Add quotes around the sys.argv
+            # print("\n", [sys.executable], *sys.argv, "\n")
+
+            # with contextlib.suppress(OSError):
+            #    os.execl(sys.executable, "arg", *sys.argv)
+
             _ = mapit_all("")
 
     sys.exit(0)  # This should never be called.
 
 
-# ##################################################################################
 # Handle "rerun" request
-# ##################################################################################
 def do_rerun() -> None:
     """
     Re-runs the program with a new file
@@ -599,10 +584,8 @@ def do_rerun() -> None:
         # mapit_all(filename)
 
 
-# ##################################################################################
 # Do the cleanup stuff: check for single name, do unique situations, and display
 # back matter.
-# ##################################################################################
 def special_handling(found_tasks: list, projects_without_profiles: list, projects_with_no_tasks: list) -> None:
     # Store single item details in local variables
     """

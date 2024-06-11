@@ -33,9 +33,7 @@ from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine, debug_out, log
 from maptasker.src.xmldata import remove_html_tags
 
 
-# ##################################################################################
 # Class definition for our output lines
-# ##################################################################################
 class LineOut:
     """Class definition for our output lines"""
 
@@ -133,14 +131,13 @@ class LineOut:
             # Start Project list
             self.add_line_to_output(1, "", FormatLine.dont_format_line)
 
-    # ##################################################################################
-    # Generate an updated output line with HTML style details
+        # Generate an updated output line with HTML style details
+
     # Input is a dictionary containing the requirements:
     #  color - color to user
     #  tab - CSS tab to use
     #  font - the m,onospace font to use
     #  element - the actual output line
-    # ##################################################################################
     def add_style(self, style_details: dict) -> str:
         """
         Add appropriate HTML style tags based on parameters in dictionary passed in
@@ -161,9 +158,7 @@ class LineOut:
 
         return line_with_style
 
-    # ##################################################################################
     #  Adds a directory link to the provided string.
-    # ##################################################################################
     def add_directory_link(self, arg1: str, element: str, arg3: str) -> str:
         """
         Adds a directory link to the provided string.
@@ -187,9 +182,7 @@ class LineOut:
             directory = f"<a id={directory_item}></a>\n"
         return f"{directory}{arg1}{element}{arg3}"
 
-    # ##################################################################################
     # Find the color attribute/class and add the tab attribute to it.
-    # ##################################################################################
     def add_tab(self, tab: str, element: str) -> str:
         r"""
 
@@ -218,10 +211,8 @@ class LineOut:
         color_pos = element.find('_color"')
         return f'{element[0:color_pos]}_color {tab}"{element[(color_pos+7):]}'
 
-    # ##################################################################################
     # Given a text string to output, format it based on it's contents:
     #   Project/Profile/Task/Actrion/Scene
-    # ##################################################################################
     def format_line_list_item(self, element: str) -> str:
         """
         Generate the output list (<li>) string based on the input XML <code> passed in
@@ -252,9 +243,7 @@ class LineOut:
         # Must be additional item
         return self.handle_additional(element)
 
-    # ##################################################################################
     # Insert the hyperlink target if doing a the directory
-    # ##################################################################################
     def handle_project(self, element: str) -> str:
         """
         Insert the hyperlink target if doing a the directory
@@ -268,9 +257,7 @@ class LineOut:
         element = self.add_tab("projtab", element)
         return self.add_directory_link("<br>", element, "\n")
 
-    # ##################################################################################
     # Handles profile element by adding directory link
-    # ##################################################################################
     def handle_profile(self, element: str) -> None:
         """Handles profile element by adding directory link
         Args:
@@ -285,9 +272,7 @@ class LineOut:
         # Add <div </div> to ensure line wrap breaks at proftab (Profile spacing)
         return self.add_directory_link("<br><div ", element, "</div><br>\n")
 
-    # ##################################################################################
     # Handle styling for a task element
-    # ##################################################################################
     def handle_task(self, element: str, font: str) -> str:
         """Handle styling for a task element
         Args:
@@ -310,9 +295,7 @@ class LineOut:
         # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
         return self.add_style(style_details)
 
-    # ##################################################################################
     # Handle Scene
-    # ##################################################################################
     def handle_scene(self, element: str, font: str) -> str:
         r"""
         This function handles a scene element by generating a string with HTML tags and style details. The function takes two parameters: element and font.
@@ -359,20 +342,18 @@ class LineOut:
         # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
         return f"{directory}<br><div>{self.add_style(style_details)}</div>"
 
-    # def remove_attributes(self, scene_name):
-    #     scene_name = scene_name.replace("<em>", "")
-    #     scene_name = scene_name.replace("</em>", "")
-    #     scene_name = scene_name.replace("<b>", "")
-    #     scene_name = scene_name.replace("</b>", "")
-    #     scene_name = scene_name.replace("<mark>", "")
-    #     scene_name = scene_name.replace("</mark>", "")
-    #     scene_name = scene_name.replace("<u>", "")
-    #     scene_name = scene_name.replace("</u>", "")
-    #     return scene_name
+        # def remove_attributes(self, scene_name):
+        #     scene_name = scene_name.replace("<em>", "")
+        #     scene_name = scene_name.replace("</em>", "")
+        #     scene_name = scene_name.replace("<b>", "")
+        #     scene_name = scene_name.replace("</b>", "")
+        #     scene_name = scene_name.replace("<mark>", "")
+        #     scene_name = scene_name.replace("</mark>", "")
+        #     scene_name = scene_name.replace("<u>", "")
+        #     scene_name = scene_name.replace("</u>", "")
+        #     return scene_name
 
-    # ##################################################################################
     # Handles the action element.
-    # ##################################################################################
     def handle_action(self, element: str) -> str:
         """
         This function handles an action element by processing its contents and formatting it into HTML code.
@@ -427,9 +408,7 @@ class LineOut:
         # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
         return f"<div {element}</span></div><br>\n"
 
-    # ##################################################################################
     # Handle taskernet
-    # ##################################################################################
     def handle_taskernet(self, element: str) -> str:
         r"""
         This function handles a taskernet by appending a given element to a new line.
@@ -454,9 +433,7 @@ class LineOut:
         """
         return f"{element}\n"
 
-    # ##################################################################################
     # Handle additional elements and return a formatted list item string.
-    # ##################################################################################
     def handle_additional(self, element: str) -> str:
         """
         Handle additional elements and return a formatted list item string.
@@ -470,10 +447,9 @@ class LineOut:
         """
         return element
 
-    # ##################################################################################
-    # Generate the output string based on the input XML <code> passed in
+        # Generate the output string based on the input XML <code> passed in
+
     # Returns a formatted string for output based on the input codes
-    # ##################################################################################
     def format_line_out(self, element: str, lvl: int) -> str:
         """
         Start formatting the output line with appropriate HTML
@@ -510,9 +486,7 @@ class LineOut:
             return f"{element}\n"
         return element
 
-    # ##################################################################################
     # Write line of output
-    # ##################################################################################
     def add_line_to_output(
         self,
         list_level: int,

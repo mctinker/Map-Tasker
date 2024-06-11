@@ -11,9 +11,7 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES, logger
 
 
-# ##################################################################################
 # Given a list [x,y,z] , print as x y z
-# ##################################################################################
 def print_list(title: str, parse_items: list) -> None:
     """
     Given a list [x,y,z] , print as x y z
@@ -33,9 +31,7 @@ def print_list(title: str, parse_items: list) -> None:
     print(line_out)
 
 
-# ##################################################################################
 # Validate the color name provided.  If color name is 'h', simply display all the colors
-# ##################################################################################
 def validate_color(the_color: str) -> object:
     """
     Validate the color name provided.
@@ -246,9 +242,7 @@ def validate_color(the_color: str) -> object:
     exit(0)
 
 
-# ##################################################################################
 # Get the runtime option for a color change and set it
-# ##################################################################################
 def get_and_set_the_color(the_arg: str) -> None:
     """
     Get the runtime option for a color change and set it

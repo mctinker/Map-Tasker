@@ -18,9 +18,7 @@ from maptasker.src.nameattr import get_tk
 from maptasker.src.sysconst import LLAMA_MODELS, OPENAI_MODELS, TYPES_OF_COLORS, logger
 
 
-# ##################################################################################
 # Validate mutually inclusive variables
-# ##################################################################################
 def validate_vars(var1: str, var2: int, var3: str) -> None:
     """Validate mutually inclusive arguments
     Args:
@@ -159,7 +157,6 @@ def file_validation(file: str) -> str:
 
 ##################################################################################
 # Get the program arguments using via a GUI (Gooey)
-# ##################################################################################
 def runtime_parser() -> None:
     """
     Get the program arguments using via a GUI (Gooey)
@@ -515,9 +512,7 @@ def runtime_parser() -> None:
     return args
 
 
-# ##################################################################################
 # Get the program arguments using via a GUI (Gooey)
-# ##################################################################################
 def output_results(args: object) -> None:
     # Arguments have been provided
     """Outputs logging information about function arguments

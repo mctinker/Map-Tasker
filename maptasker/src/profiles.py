@@ -5,8 +5,6 @@
 #                                                                                      #
 # profiles: process Profiles for given project                                         #
 #                                                                                      #
-
-# #################################################################################### #
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -26,9 +24,7 @@ if TYPE_CHECKING:
     import defusedxml.ElementTree
 
 
-# ##################################################################################
 # Get a specific Profile's Tasks (maximum of two:entry and exit)
-# ##################################################################################
 def get_profile_tasks(
     the_profile: defusedxml.ElementTree.XML,
     found_tasks_list: list,
@@ -88,9 +84,7 @@ def get_profile_tasks(
     return list_of_tasks
 
 
-# ##################################################################################
 # Get a specific Profile's name
-# ##################################################################################
 def get_profile_name(
     profile: defusedxml.ElementTree,
 ) -> tuple[str, str]:
@@ -125,9 +119,7 @@ def get_profile_name(
     return profile_name_with_html, the_profile_name
 
 
-# ##################################################################################
 # Get the Profile's key attributes: limit, launcher task, run conditions
-# ##################################################################################
 def build_profile_line(
     project: defusedxml.ElementTree.XML,
     profile: defusedxml.ElementTree.XML,
@@ -230,9 +222,7 @@ def build_profile_line(
     return profile_name
 
 
-# ##################################################################################
 # Process the Profile passed in.
-# ##################################################################################
 def do_profile(
     item: defusedxml.ElementTree.XML,
     project: defusedxml.ElementTree.XML,
@@ -323,9 +313,7 @@ def do_profile(
     )
 
 
-# ##################################################################################
 # Go through all Projects Profiles...and output them
-# ##################################################################################
 def process_profiles(
     project: defusedxml.ElementTree.XML,
     project_name: str,

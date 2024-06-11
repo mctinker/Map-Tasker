@@ -40,9 +40,7 @@ def convert_to_integer(value_to_convert: str, default_value: int) -> int:
         return default_value
 
 
-# ##################################################################################
 # Get the colors to use.
-# ##################################################################################
 def do_colors(user_input: dict) -> dict:
     """Sets color mode and processes colors.
     Parameters:
@@ -67,9 +65,7 @@ def do_colors(user_input: dict) -> dict:
     return colormap
 
 
-# ##################################################################################
 # Get the program arguments from GUI
-# ##################################################################################
 def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # global MyGui
     """Parameters:
@@ -89,6 +85,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         - Convert display_detail_level and indent to integers.
         - Get font from GUI.
         - Return program arguments and colors to use."""
+    # Keep this here to avoid circular import
     if use_gui:
         from maptasker.src.userintr import MyGui
 
@@ -101,6 +98,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # Display GUI and get the user input
     user_input = MyGui()
     user_input.mainloop()
+    # Get rid of window
     MyGui.quit(user_input)
     del MyGui
 

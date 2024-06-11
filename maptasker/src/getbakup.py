@@ -14,9 +14,7 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
 
-# ##################################################################################
 # We've read in the xml backup file.  Now save it for processing.
-# ##################################################################################
 def write_out_backup_file(file_contents: bin) -> None:
     """
     We've read in the xml backup file.  Now save it for processing.
@@ -62,9 +60,7 @@ def write_out_backup_file(file_contents: bin) -> None:
     PrimeItems.program_arguments["fetched_backup_from_android"] = True
 
 
-# ##################################################################################
 # Return the substring after the last occurance of a specific character in a string
-# ##################################################################################
 def substring_after_last(string: str, char: chr) -> str:
     """
     Return the substring after the last occurance of a specific character in a string
@@ -79,9 +75,7 @@ def substring_after_last(string: str, char: chr) -> str:
     return "" if index == -1 else string[index + 1 :]
 
 
-# ##################################################################################
 # Set up to fetch the Tasker backup xml file from the Android device running
-# ##################################################################################
 def get_backup_file() -> str:
     """
     Set up to fetch the Tasker backup xml file from the Android device running

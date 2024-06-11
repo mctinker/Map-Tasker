@@ -5,8 +5,6 @@
 #                                                                                      #
 # share: process TaskerNet "Share" information                                         #
 #                                                                                      #
-
-# #################################################################################### #
 import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.format import format_html
@@ -14,10 +12,8 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
 
 
-# ##################################################################################
 # Go through xml <Share> elements to grab and output TaskerNet description and
 # search-on lines.
-# ##################################################################################
 def share(
     root_element: defusedxml.ElementTree.XML,
     tab: str,

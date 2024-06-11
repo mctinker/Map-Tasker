@@ -5,9 +5,6 @@
 #                                                                                      #
 # addcss: Add formatting CSS to output HTML for the colors and font to use             #
 #                                                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-
-# #################################################################################### #
 import contextlib
 
 from maptasker.src.primitem import PrimeItems

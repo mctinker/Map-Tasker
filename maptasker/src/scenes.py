@@ -5,9 +5,6 @@
 #                                                                                      #
 # scenes: Process the Tasker Scene passed as input                                     #
 #                                                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-
-# #################################################################################### #
 from __future__ import annotations
 
 import contextlib
@@ -54,9 +51,7 @@ SCENE_TAGS_TO_IGNORE = [
 blank = "&nbsp;"
 
 
-# ##################################################################################
 # Get the Scene's geometry
-# ##################################################################################
 def get_geometry(scene_element: defusedxml.ElementTree.XML) -> tuple[str, str]:
     """
     Get the Scene's geometry
@@ -73,9 +68,7 @@ def get_geometry(scene_element: defusedxml.ElementTree.XML) -> tuple[str, str]:
     return width, height
 
 
-# ##################################################################################
 # Get the Scene's elements
-# ##################################################################################
 def get_scene_elements(
     child: defusedxml.ElementTree,
     indentation: int,
@@ -113,9 +106,7 @@ def get_scene_elements(
     )
 
 
-# ##################################################################################
 # Handle sub-lements of the element we are doing.
-# ##################################################################################
 def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> None:
     """
     Process the sub-elements of the given child ElementTree.
@@ -155,9 +146,7 @@ def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> Non
                 )
 
 
-# ##################################################################################
 # Process the Properties ListElementItem element.
-# ##################################################################################
 def process_list_element(child: defusedxml.ElementTree, indentation: int, element_name: str) -> None:
     """
     Process the list element associated with the given child element.
@@ -195,9 +184,7 @@ def process_list_element(child: defusedxml.ElementTree, indentation: int, elemen
         )
 
 
-# ##################################################################################
 # Get the xxxElement arguments, format and output them.  Recurse for more sub-elements.
-# ##################################################################################
 def format_and_output_arguments(child: defusedxml.ElementTree, element_type: str, indentation: int) -> None:
     """
     Formats and outputs the arguments for the given child element, element type, and indentation level.
@@ -270,9 +257,7 @@ def format_and_output_arguments(child: defusedxml.ElementTree, element_type: str
     process_sub_elements(child, indentation)
 
 
-# ##################################################################################
 # Break down the UI aspects and output them based on it's arguments.
-# ##################################################################################
 def process_arguments(child: defusedxml.ElementTree, element_type: str, indentation: int) -> None:
     """
     Process the arguments of a given child element in a scene.
@@ -305,9 +290,7 @@ def process_arguments(child: defusedxml.ElementTree, element_type: str, indentat
     format_and_output_arguments(child, element_type, indentation)
 
 
-# ##################################################################################
 # Go through Scene's XML looking for Tasks (e.g. ClickTask) and output if found
-# ##################################################################################
 def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
     """Parameters:
         - child (defusedxml.ElementTree): The element to be processed.
@@ -376,9 +359,7 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
             break
 
 
-# ##################################################################################
 # Pull out the screen width and height
-# ##################################################################################
 def get_details(
     scene: defusedxml.ElementTree,
     tasks_found: defusedxml.ElementTree,
@@ -434,9 +415,7 @@ def get_details(
         PrimeItems.output_lines.output_lines.append("<br>")
 
 
-# ##################################################################################
 # Process the Scene's Properties
-# ##################################################################################
 def process_properties(scene: defusedxml.ElementTree, indentation: int) -> None:
     # Get the PropertiesElement
     """Returns:
@@ -454,9 +433,7 @@ def process_properties(scene: defusedxml.ElementTree, indentation: int) -> None:
         process_tasks(properties, [])
 
 
-# ##################################################################################
 # Process the Scene
-# ##################################################################################
 def process_scene(
     my_scene: str,
     tasks_found: list[str],
@@ -501,9 +478,7 @@ def process_scene(
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
-# ##################################################################################
 # Go through all Scenes for Project, get their detail and output it
-# ##################################################################################
 def process_project_scenes(
     project: defusedxml.ElementTree.XML,
     our_task_element: defusedxml.ElementTree.XML,

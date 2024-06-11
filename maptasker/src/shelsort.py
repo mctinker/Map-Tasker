@@ -8,9 +8,7 @@
 from maptasker.src.sysconst import logger
 
 
-# ##################################################################################
 # Shell sort for Action list (Actions are not necessarily in numeric order in XML backup file).
-# ##################################################################################
 def shell_sort(arr: list, do_arguments: bool, by_numeric: bool) -> None:
     """
     Shell sort the list in-place

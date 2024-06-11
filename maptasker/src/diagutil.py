@@ -6,9 +6,6 @@
 #                                                                                      #
 # Traverse our network map and print out everything in connected boxes.                #
 #                                                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
-
-# #################################################################################### #
 from __future__ import annotations
 
 import contextlib
@@ -46,9 +43,7 @@ printable_chars: set[str] = set(string.printable)
 printable_chars = printable_chars.union(extra_cars)
 
 
-# ##################################################################################
 # Add line to our output queue.
-# ##################################################################################
 def add_output_line(line: str) -> None:
     """
     Adds a line to the output of the netmap report
@@ -63,9 +58,7 @@ def add_output_line(line: str) -> None:
     PrimeItems.netmap_output.append(line)
 
 
-# ##################################################################################
 # Given an array of 3 string elements, format them with fillers for headings
-# ##################################################################################
 def include_heading(header: str, output_lines: list) -> None:
     """
     Adds a header to the output lines.
@@ -85,9 +78,7 @@ def include_heading(header: str, output_lines: list) -> None:
     output_lines[2] = f"{filler}{output_lines[2]}"
 
 
-# ##################################################################################
 # Given a list of 3 text elements, print them.
-# ##################################################################################
 def print_3_lines(lines: list) -> None:
     """
     Prints 3 lines from a list of items
@@ -107,9 +98,7 @@ def print_3_lines(lines: list) -> None:
             add_output_line(line)
 
 
-# ##################################################################################
 # Given a list of text strings, print all of them.
-# ##################################################################################
 def print_all(lines: list) -> None:
     """
     Print all lines in a list
@@ -124,9 +113,7 @@ def print_all(lines: list) -> None:
         add_output_line(line)
 
 
-# ##################################################################################
 # Given a text string and title, enclose them in a box and print the box.
-# ##################################################################################
 def print_box(name: str, title: str, indent: int) -> None:
     """
     Given a text string and title, enclose them in a box and print the box.
@@ -155,9 +142,7 @@ def print_box(name: str, title: str, indent: int) -> None:
     print_3_lines(box)
 
 
-# ##################################################################################
 # Get the dimensions of a text string using tkinter to calculate the width needed.
-# ##################################################################################
 def width_and_height_calculator_in_pixel(txt: str, fontname: str, fontsize: int) -> list:
     """
     Calculates the width and height of the given text in pixels.
@@ -180,9 +165,7 @@ def width_and_height_calculator_in_pixel(txt: str, fontname: str, fontsize: int)
     return [the_font.measure(txt), the_font.metrics("linespace")]
 
 
-# ##################################################################################
 # Wew have an icon in our name.  Remove any padding as necessary
-# ##################################################################################
 def fix_icon(name: str) -> str:
     """
     Fixes icon characters in a name string.
@@ -206,10 +189,8 @@ def fix_icon(name: str) -> str:
     return trailer
 
 
-# ##################################################################################
 # Remove a character from a string at a specific location and return the modified
 # string.
-# ##################################################################################
 def remove_char(string: str, index: int) -> str:
     """
     Remove character from string at given index and return modified string
@@ -224,9 +205,7 @@ def remove_char(string: str, index: int) -> str:
     return string[:index] + string[index + 1 :]
 
 
-# ##################################################################################
 # Count the number of icons (non-alphanumeric chars) in the line of text
-# ##################################################################################
 def count_icons(text: str) -> int:
     """Returns the number of icons in the text string.
 
@@ -242,9 +221,7 @@ def count_icons(text: str) -> int:
     return len(matches)
 
 
-# ##################################################################################
 # If an icon is found in the string passed in, remove it and return modified string.
-# ##################################################################################
 def remove_icon(text: str) -> str:
     """
     Remove any icon characters from a string
@@ -280,9 +257,7 @@ def remove_icon(text: str) -> str:
     return output
 
 
-# ##################################################################################
 # Given a name, enclose it in a text box
-# ##################################################################################
 def build_box(name: str, output_lines: list) -> tuple:
     """
     Builds a box around the given name.
@@ -323,9 +298,7 @@ def build_box(name: str, output_lines: list) -> tuple:
     return output_lines, position_for_anchor
 
 
-# ##################################################################################
 # Trace backwards in the output, inserting a barb (|) through right arrows.
-# ##################################################################################
 def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_position: int) -> list:
     """
     Adds a bar above the specified line in the output lines.
@@ -357,9 +330,7 @@ def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_pos
                 check_line = False
 
 
-# ##################################################################################
 # Go through output and delete all occurances of hanging bars |
-# ##################################################################################
 def delete_hanging_bars(output_lines: list) -> list:
     """
     Go through output and delete all occurances of hanging bars |.
@@ -397,9 +368,7 @@ def delete_hanging_bars(output_lines: list) -> list:
     return output_lines
 
 
-# ##################################################################################
 # Return the index of a caller/called Task name in a specific output line.
-# ##################################################################################
 def get_index(line_num: int, output_lines: list, task_to_find: str, search_for: str) -> int:
     """
     Finds the index of a task in a list of tasks
@@ -427,11 +396,9 @@ def get_index(line_num: int, output_lines: list, task_to_find: str, search_for: 
     )
 
 
-# ##################################################################################
 # Get the index of the caller/called Task from all caller/called Tasks in line.
 # We want the position of the called Task in the caller Task line, and the
 # position of the caller Task in the called Task line.
-# ##################################################################################
 def get_indices_of_line(
     caller_task_name: str,
     caller_line_num: int,
@@ -460,9 +427,7 @@ def get_indices_of_line(
     )
 
 
-# ##################################################################################
 # Build a sorted list of all caller Tasks and their called Tasks.
-# ##################################################################################
 def build_call_table(output_lines: list) -> list:
     """
     Build a sorted list of all caller Tasks and their called Tasks.
@@ -488,9 +453,7 @@ def build_call_table(output_lines: list) -> list:
     return dict(sorted(call_table.items()))
 
 
-# ##################################################################################
 # Complete Task details and save them in call_table
-# ##################################################################################
 def get_task_details_and_save(
     output_lines: list,
     call_table: dict,
@@ -580,10 +543,8 @@ def get_task_details_and_save(
     return call_table
 
 
-# ##################################################################################
 # Go through all caller and called Tasks and build the call table based on the
 # input line passed in.
-# ##################################################################################
 def process_callers_and_called_tasks(output_lines: list, call_table: dict, caller_line_num: int, line: str) -> dict:
     """
     Processes caller and called tasks

@@ -28,7 +28,7 @@ from maptasker.src.sysconst import LLAMA_MODELS, OPENAI_MODELS
 
 # Set up for access to icons
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
-ICON_DIR = os.path.join(CURRENT_PATH, "../assets", "icons")
+ICON_DIR = os.path.join(CURRENT_PATH, f"..{PrimeItems.slash}assets", "icons")
 ICON_PATH = {
     "close": (os.path.join(ICON_DIR, "close_black.png"), os.path.join(ICON_DIR, "close_white.png")),
     # "images": list(os.path.join(ICON_DIR, f"image{i}.jpg") for i in range(1, 4)),
@@ -111,7 +111,7 @@ Click item and scroll mouse-wheel/trackpad\nas needed to go up or down.
         self.tree_style = ttk.Style(self)
         self.tree_style.theme_use("default")
 
-        # Gteth the icons to be used in the Tree view.
+        # Get the icons to be used in the Tree view.
         self.im_open = Image.open(ICON_PATH["arrow"])
         self.im_close = self.im_open.rotate(90)
         self.im_empty = Image.new("RGBA", (15, 15), "#00000000")
@@ -226,8 +226,23 @@ class TreeviewWindow(ctk.CTkToplevel):
             - Pack label widget with padding.
             - Set label widget text."""
         super().__init__(*args, **kwargs)
-        self.geometry("600x600")
+
+        # Position the widget
+        try:
+            self.geometry(self.master.tree_window_position)
+        except (AttributeError, TypeError):
+            self.geometry("570x800")
+
         self.title("MapTasker Configuration Treeview")
+
+        # Save the window position on closure
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    # Tree view window is getting closed
+    def on_closing(self) -> None:
+        """Save the window position and close the window."""
+        self.master.tree_window_position = self.wm_geometry()
+        self.destroy()
 
 
 # Display a Analysis structure
@@ -474,7 +489,8 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.underline = None
     self.outline = False
     self.pretty = False
-    self.toplevel_window = None
+    self.treeview_window = None
+    self.ai_analysis_window = None
     PrimeItems.program_arguments["gui"] = True
     self.list_files = False
     self.ai_apikey = None
@@ -485,6 +501,8 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.window_position = None
     self.ai_popup_window_position = ""
     self.ai_analysis_window_position = ""
+    self.tree_window_position = ""
+    self.color_window_position = ""
     self.all_messages = {}
     self.first_time = True
 
@@ -1271,4 +1289,22 @@ def get_rid_of_window(self) -> None:  # noqa: ANN001
     """
     self.withdraw()  # Remove the Window
     self.quit()
-    self.quit()
+
+
+# Store our various window positions
+def store_windows(self) -> None:  # noqa: ANN001
+    """
+    Stores the positions of the AI analysis and treeview windows.
+
+    This function saves the positions of the AI analysis and treeview windows using the `save_window_position` function. If the window positions are successfully saved, they are assigned to the corresponding instance variables `ai_analysis_window_position` and `tree_window_position`.
+
+    Parameters:
+        self (object): The instance of the class.
+
+    Returns:
+        None
+    """
+    if window_pos := save_window_position(self.ai_analysis_window):
+        self.ai_analysis_window_position = window_pos
+    if window_pos := save_window_position(self.treeview_window):
+        self.tree_window_position = window_pos

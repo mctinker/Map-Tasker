@@ -4,10 +4,7 @@
 #                                                                                      #
 # Traverse our network map and print out everything in connected boxes.                #
 #                                                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
 
-
-# #################################################################################### #
 """
 This code is somewhat of a mess.  It is overly complex, but I wanted to develop my own
 diagramming app rather than rely on yet-another-dependency such as that for
@@ -60,9 +57,7 @@ directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arr
 bar = "│"
 
 
-# ##################################################################################
 # Print the specific Task.
-# ##################################################################################
 def output_the_task(
     print_tasks: bool,
     found_tasks: list,
@@ -132,9 +127,7 @@ def output_the_task(
     return found_tasks, last_upward_bar
 
 
-# ##################################################################################
 # Process all Tasks in the Profile
-# ##################################################################################
 def print_all_tasks(
     tasks: defusedxml.ElementTree,
     position_for_anchor: int,
@@ -199,9 +192,7 @@ def print_all_tasks(
     return found_tasks
 
 
-# ##################################################################################
 # Process all Scenes in the Project, 8 Scenes to a row.
-# ##################################################################################
 def print_all_scenes(scenes: list) -> None:
     """
         Prints all scenes in a project, 8 Scenes to a row.
@@ -248,9 +239,7 @@ def print_all_scenes(scenes: list) -> None:
     print_3_lines(output_scene_lines)
 
 
-# ##################################################################################
 # Process Tasks not in any Profile
-# ##################################################################################
 def do_tasks_with_no_profile(
     project_name: str,
     output_profile_lines: list,
@@ -319,9 +308,7 @@ def do_tasks_with_no_profile(
     return output_profile_lines, output_task_lines
 
 
-# ##################################################################################
 # Fill the designated line with arrows starting at the specified position.
-# ##################################################################################
 def fill_line_with_arrows(line: str, arrow: str, line_length: int, call_task_position: int) -> str:
     """
     Fills spaces in a line with arrows up to a specified position.
@@ -356,9 +343,7 @@ def fill_line_with_arrows(line: str, arrow: str, line_length: int, call_task_pos
     return output
 
 
-# ##################################################################################
 # Add up and down arrows to the connection points.
-# ##################################################################################
 def add_down_and_up_arrows(
     caller_line_index: int,
     caller_line_num: int,
@@ -420,9 +405,7 @@ def add_down_and_up_arrows(
     )
 
 
-# ##################################################################################
 # Draw arrows to called Task from Task doing the calling.
-# ##################################################################################
 def draw_arrows_to_called_task(
     up_down_location: int,
     value: list,
@@ -509,9 +492,7 @@ def draw_arrows_to_called_task(
         output_lines[start_line + x] = new_line
 
 
-# ##################################################################################
 # Find and flag in the output those called Tasks that don't exist.
-# ##################################################################################
 def mark_tasks_not_found(output_lines: list) -> None:
     """
     Mark tasks not found in output lines
@@ -561,9 +542,7 @@ def mark_tasks_not_found(output_lines: list) -> None:
                     )
 
 
-# ##################################################################################
 # If Task line has a "Calls", fill it with arrows.
-# ##################################################################################
 def handle_calls(output_lines: list) -> None:
     """
     Handle calls in output lines from parsing
@@ -597,9 +576,7 @@ def handle_calls(output_lines: list) -> None:
     return delete_hanging_bars(output_lines)
 
 
-# ##################################################################################
 # Build the Profile box.
-# ##################################################################################
 def build_profile_box(
     profile: defusedxml.ElementTree,
     profile_counter: int,
@@ -652,9 +629,7 @@ def build_profile_box(
     )
 
 
-# ##################################################################################
 # Process all Profiles and their Tasks for the given Project
-# ##################################################################################
 def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
     """
     Prints profiles and tasks from a project.
@@ -733,9 +708,7 @@ def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
     add_output_line(" ")
 
 
-# ##################################################################################
 # Process all Projects
-# ##################################################################################
 def build_network_map(data: dict) -> None:
     """
     Builds a network map from project and profile data
@@ -758,9 +731,7 @@ def build_network_map(data: dict) -> None:
     PrimeItems.netmap_output = handle_calls(PrimeItems.netmap_output)
 
 
-# ##################################################################################
 # Print the network map.
-# ##################################################################################
 def network_map(network: dict) -> None:
     """
     Output a network map of the Tasker configuration.

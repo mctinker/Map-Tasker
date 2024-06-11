@@ -14,9 +14,7 @@ from maptasker.src.rungui import process_gui
 from maptasker.src.sysconst import DEBUG_PROGRAM
 
 
-# ##################################################################################
 # Get the program arguments (e.g. python mapit.py -x)
-# ##################################################################################
 def get_program_arguments() -> None:
     # Are we using the GUI?
     """

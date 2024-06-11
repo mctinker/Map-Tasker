@@ -190,9 +190,7 @@ def format_item(
         get_properties("Task:", the_task)
 
 
-# ##################################################################################
 # Process Given a Task/Scene, process it.
-# ##################################################################################
 def process_item(
     the_item: str,
     list_type: str,
@@ -259,9 +257,7 @@ def process_item(
     return
 
 
-# ##################################################################################
 # Process Task/Scene text/line item: call recursively for Tasks within Scenes
-# ##################################################################################
 def process_list(
     list_type: str,
     the_list: list,

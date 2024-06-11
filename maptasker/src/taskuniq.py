@@ -13,9 +13,7 @@ from maptasker.src.tasks import get_project_for_solo_task, get_task_name, output
 from maptasker.src.twisty import add_twisty, remove_twisty
 
 
-# ##################################################################################
 # Output Projects Without Tasks and Projects Without Profiles
-# ##################################################################################
 def process_missing_tasks_and_profiles(
     projects_with_no_tasks: list,
     projects_without_profiles: list,
@@ -63,9 +61,7 @@ def process_missing_tasks_and_profiles(
         PrimeItems.output_lines.add_line_to_output(3, "<br>", FormatLine.dont_format_line)
 
 
-# ##################################################################################
 # Add heading to output for named Tasks not in any Profile
-# ##################################################################################
 def add_heading(save_twisty: bool) -> bool:
     """
     Add a header to the output for the solo Tasks
@@ -93,10 +89,8 @@ def add_heading(save_twisty: bool) -> bool:
     return True
 
 
-# ##################################################################################
 # Process a single Task that does not belong to any Profile
 # This function is called recursively
-# ##################################################################################
 def process_solo_task_with_no_profile(
     task_id: str,
     found_tasks: list,
@@ -167,9 +161,7 @@ def process_solo_task_with_no_profile(
     return have_heading, specific_task, task_count
 
 
-# ##################################################################################
 # process_tasks: go through all tasks and output them
-# ##################################################################################
 def process_tasks_not_called_by_profile(
     projects_with_no_tasks: list,
     found_tasks_list: list,

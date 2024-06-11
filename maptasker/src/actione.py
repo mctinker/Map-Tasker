@@ -32,9 +32,7 @@ from maptasker.src.sysconst import logger, pattern13
 blank = "&nbsp;"
 
 
-# ##################################################################################
 # See if this Task or Profile code is deprecated.
-# ##################################################################################
 def check_for_deprecation(the_action_code_plus: str) -> None:
     """
     See if this Task or Profile code isa deprecated
@@ -50,9 +48,7 @@ def check_for_deprecation(the_action_code_plus: str) -> None:
     return ""
 
 
-# ##################################################################################
 # Given an action code, evaluate it for display.
-# ##################################################################################
 def get_action_code(
     code_child: defusedxml.ElementTree.XML,
     code_action: defusedxml.ElementTree.XML,
@@ -67,7 +63,7 @@ def get_action_code(
         :param code_type: 'e'=event, 's'=state, 't'=task
         :return: formatted output line with action details
     """
-    logger.debug(f"get action code:{code_child.text}{code_type}")
+    # logger.debug(f"get action code:{code_child.text}{code_type}")
     the_action_code_plus = code_child.text + code_type
 
     # See if this code is deprecated
@@ -141,9 +137,7 @@ def get_action_code(
     return the_result
 
 
-# ##################################################################################
 # Put the line '"Structure Output (JSON, etc)' back together.
-# ##################################################################################
 def fix_json(line_to_fix: str, text_to_match: str) -> str:
     """
     Fix the JSON line by undoing the breakup at the comma for "Structure Output (JSON, etc)".
@@ -164,9 +158,7 @@ def fix_json(line_to_fix: str, text_to_match: str) -> str:
     return line_to_fix
 
 
-# ##################################################################################
 # Make the action line pretty by aligning the arguments.
-# ##################################################################################
 def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     """
     Makes the given task code line prettier by adding line breaks and indentation.
@@ -213,9 +205,7 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     return task_code_line, extra_blanks
 
 
-# ##################################################################################
 # Finalize the action line and append it to the list of actions.
-# ##################################################################################
 def finalize_action_details(task_code_line: str, alist: list, indent: int, extra_blanks: int, count: int) -> list:
     r"""
     Finalize the action line and append it to the list of actions.
@@ -286,9 +276,7 @@ def finalize_action_details(task_code_line: str, alist: list, indent: int, extra
     return alist
 
 
-# ##################################################################################
 # Construct Task Action output line
-# ##################################################################################
 def build_action(
     alist: list,
     task_code_line: str,

@@ -5,9 +5,7 @@ import sys
 
 #                                                                                      #
 # Error: Process Errors                                                                #
-#                                                                                      #
-# #################################################################################### #
-from maptasker.src.primitem import PrimeItems
+#                                                                                      #from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ERROR_FILE, Colors, logger
 
 

@@ -5,8 +5,6 @@
 #                                                                                      #
 # sysconst: System constants                                                           #
 #                                                                                      #
-
-# #################################################################################### #
 from __future__ import annotations
 
 import logging
@@ -20,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "4.0.8"
+VERSION = "4.0.9"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -135,7 +133,9 @@ ARGUMENT_NAMES = {
     "underline": "Underline Names",
     "window_position": "Last Window Position",
     "ai_popup_window_position": "Last Ai Popup Window Position",
-    "ai_analysis_window_position": "Last Ai Analysis Window Position",  # Last-used ai analysis window position
+    "ai_analysis_window_position": "Last Ai Analysis Window Position",
+    "tree_window_position": "Last Tree Window Position",
+    "color_window_position": "Last Color Window Position",
 }
 
 # Debug stuff

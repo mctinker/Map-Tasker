@@ -5,8 +5,6 @@
 #                                                                                      #
 # getputer: Save and restore program arguments                                         #
 #                                                                                      #
-
-# #################################################################################### #
 from __future__ import annotations
 
 import contextlib
@@ -28,9 +26,7 @@ from maptasker.src.sysconst import ARGUMENTS_FILE, NOW_TIME, OLD_ARGUMENTS_FILE,
 twenty_four_hours_ago = NOW_TIME - timedelta(hours=25)
 
 
-# ##################################################################################
 # Settings file is corrupt.  Let user know and reset colors to use and program arguments
-# ##################################################################################
 def corrupted_file(program_arguments: dict, colors_to_use: dict) -> None:
     """
     Checks for corrupted settings file and handles error
@@ -63,9 +59,7 @@ def corrupted_file(program_arguments: dict, colors_to_use: dict) -> None:
     return program_arguments, colors_to_use
 
 
-# ##################################################################################
 # Write out our runtime settings as a TOML file
-# ##################################################################################
 def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) -> None:
     """
     Save the program arguments, colors to use, and new file to a JSON file.
@@ -139,7 +133,8 @@ def process_old_formatted_file(program_arguments: dict, colors_to_use: dict, old
     arguments dictionary. If the key is a string, it converts it to an integer. If the key is not found, it calls the
     corrupted_file function. If the file is not found, it calls the error_handler function with an appropriate error message.
     If the file is not in the expected format, it calls the corrupted_file function. If the program arguments contain a
-    backup_file_http key, it extracts the android_ipaddr, android_port, and android_file keys from it and updates the settings."""
+    backup_file_http key, it extracts the android_ipaddr, android_port, and android_file keys from it and updates the settings.
+    """
     try:
         with open(old_file) as f:
             list_to_restore = json.load(f)
@@ -226,11 +221,8 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
     return program_arguments, colors_to_use
 
 
-# ##################################################################################
 # Read in the TOML runtime settings
-# ##################################################################################
 def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, new_file: str) -> None:
-
     """
     Reads the program arguments, colors to use, old file, and new file.
 
@@ -247,18 +239,14 @@ def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, 
     if os.path.isfile(old_file):
         program_arguments, colors_to_use = process_old_formatted_file(program_arguments, colors_to_use, old_file)
 
-
     # Read the TOML file
     elif os.path.isfile(new_file):
         program_arguments, colors_to_use = read_toml_file(new_file)
 
-
     return program_arguments, colors_to_use
 
 
-# ##################################################################################
 # Save and restore colors to use and program arguments
-# ##################################################################################
 def save_restore_args(
     program_arguments: dict,
     colors_to_use: dict,

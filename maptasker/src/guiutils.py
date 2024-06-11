@@ -49,19 +49,17 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.0.8 - Change Log\n
+Version 4.0.9 - Change Log\n
 ### Added\n
-- Added: The Ai Analysis models 'mistrel', 'codegemma', 'gemma', 'deepseek-coder' and 'phi3' have been added.\n
-- Added: The model name and object name are now displayed with the Ai analysis response.\n
-- Added: The message that the analysis is running in the background has been animated for awareness.\n
-- Added: The pulldown menus for selecting a single object now includes "None" so that it can be used to clear the selection without having to resort to a 'Reset Settings' in the GUI.\n
-- Added: Three additional Tasker preferences have been mapped and one has been corrected.\n
+- Added: Save the Treeview and Color Picker window positions and sizes, and restore the last-used position and size for each.\n
+- Added: Support for Tasker version 6.3.10-rc.\n
+- Added: Missing 'Device Admin/Owner' actions: Uninstall App, Perrmission, Clear Device Owner.\n
 ### Changed\n
-- Changed: Ai models are now listed alphabetically, with the last-used model listed first.  The default of 'None (llama)' has been removed.\n
+- Changed: Major overhaul of the README file.\n
 ### Fixed\n
-- Fixed: The 'ReRun' command caused the error message: 'Task policy set failed...'.\n
-- Fixed: If doing a single object (Project/Profile/Task)and doing Tasker Preferences, Preferences were empty.  Display appropriate message in output.\n
-- Fixed: Getting XML file from Android device did not reset the local file pointer, causing a conflict between the two.\n\n
+- Fixed: Program error if Task action parameter is out of range (e.g. not yet defined).\n
+- Fixed: Color picker does not show up after having done a 'ReRun'.\n
+- Fixed: Tree view under Windows is not getting the proper arrow icons.\n\n
 Refer to the github changelog for a history of all changes made at: https://tinyurl.com/bdh47a44\n
 """
 CHANGELOG_JSON = {

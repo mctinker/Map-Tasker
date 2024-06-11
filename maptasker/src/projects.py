@@ -32,9 +32,7 @@ if TYPE_CHECKING:
     import defusedxml.ElementTree
 
 
-# ##################################################################################
 # process_projects: go through all Projects Profiles...and output them
-# ##################################################################################
 def process_projects_and_their_profiles(
     found_tasks: list,
     projects_without_profiles: list,
@@ -145,9 +143,7 @@ def get_launcher_task(project: defusedxml.ElementTree.XML) -> str:
     return launcher_task_info
 
 
-# ##################################################################################
 # Add heading for Tasks that are not in any Profile
-# ##################################################################################
 def task_not_in_profile_heading(project_name: str) -> None:
     # Format the output line
     """Returns a formatted output line for the tasks that are not in any profile.
@@ -188,9 +184,7 @@ def task_not_in_profile_heading(project_name: str) -> None:
     PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
 
-# ##################################################################################
 # Process all of the Tasks in this Project
-# ##################################################################################
 def do_tasks_in_project(
     task_ids: list,
     project_name: str,
@@ -268,9 +262,7 @@ def do_tasks_in_project(
     return have_tasks_not_in_profile
 
 
-# ##################################################################################
 # Process all Tasks in Project that are not referenced by a Profile
-# ##################################################################################
 def tasks_not_in_profiles(
     task_ids: list,
     found_tasks: list,
@@ -310,9 +302,7 @@ def tasks_not_in_profiles(
     return have_tasks_not_in_profile
 
 
-# ##################################################################################
 # Add extra info to Project output line as appropriate and then output it.
-# ##################################################################################
 def get_extra_and_output_project(
     project: defusedxml.ElementTree.XML,
     project_name: str,
@@ -388,9 +378,7 @@ def get_extra_and_output_project(
     return False
 
 
-# ##################################################################################
 # Initialize out grand total counters
-# ##################################################################################
 def setup_summary_counts() -> int:
     """
     Initialize summary counters for the Project
@@ -405,9 +393,7 @@ def setup_summary_counts() -> int:
     return 0
 
 
-# ##################################################################################
 # Output the grand total counters for this Project
-# ##################################################################################
 def summary_counts(project_name: str, profile_count: int) -> None:
     """
     Output Project's summary counts
@@ -451,9 +437,7 @@ def summary_counts(project_name: str, profile_count: int) -> None:
     )
 
 
-# ##################################################################################
 # Output the remaining components related to the Project
-# ##################################################################################
 def finish_up(
     project: defusedxml.ElementTree.XML,
     project_name: str,
@@ -513,9 +497,7 @@ def finish_up(
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)  # Close Profile list
 
 
-# ##################################################################################
 # Helper functions to process_projects function, below
-# ##################################################################################
 # Return the flags for single-task-found and single-profile-found
 def is_single_task_or_profile_found() -> bool:
     """
@@ -524,9 +506,7 @@ def is_single_task_or_profile_found() -> bool:
     return PrimeItems.found_named_items["single_task_found"] or PrimeItems.found_named_items["single_profile_found"]
 
 
-# ##################################################################################
 # Retrieves profile IDs for a given project and project name, excluding projects without profiles.
-# ##################################################################################
 def get_profile_ids(
     project: defusedxml.ElementTree.XML,
     project_name: str,
@@ -543,9 +523,7 @@ def get_profile_ids(
     return get_ids(True, project, project_name, projects_without_profiles)
 
 
-# ##################################################################################
 # Check if a single profile is not found based on program arguments and named items.
-# ##################################################################################
 # Return True if we are doing a single Profile and it was not found, False otherwise
 def is_single_profile_not_found() -> bool:
     """
@@ -557,9 +535,7 @@ def is_single_profile_not_found() -> bool:
     )
 
 
-# ##################################################################################
 # Add a line to the output with the message "<em>Project has no Profiles</em>" and some formatting.
-# ##################################################################################
 def add_no_profiles_line_to_output() -> None:
     """
     Add a line to the output with the message "<em>Project has no Profiles</em>" and some formatting.
@@ -571,9 +547,7 @@ def add_no_profiles_line_to_output() -> None:
     )
 
 
-# ##################################################################################
 # Determine if we are doing a single Project or Profile or Task
-# ##################################################################################
 def is_single_project_or_profile_or_task_found() -> bool:
     """
     Check if a single project, profile, or task is found and return a boolean.
@@ -585,9 +559,7 @@ def is_single_project_or_profile_or_task_found() -> bool:
     )
 
 
-# ##################################################################################
 # Add a closing Project list
-# ##################################################################################
 def add_close_project_list_line_to_output() -> None:
     """
     Add a close project list line to the output.
@@ -681,9 +653,7 @@ def process_project_profiles(
     return False, our_task_element, profile_count
 
 
-# ##################################################################################
 # Go through all the Projects, get their detail and output it
-# ##################################################################################
 def process_projects(
     projects_without_profiles: list,
     found_tasks: list,

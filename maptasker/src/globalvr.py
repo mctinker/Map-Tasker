@@ -118,9 +118,7 @@ tasker_global_variables = [
 ]
 
 
-# ##################################################################################
 # Read in the variables and save them for now.
-# ##################################################################################
 def get_variables() -> None:
     """
     Read in and save the Tasker variables.
@@ -152,9 +150,7 @@ def get_variables() -> None:
         }
 
 
-# ##################################################################################
 # Print the variables (Project's or Unreferenced)
-# ##################################################################################
 def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> None:
     """Parameters:
         - color_to_use (str): The color to use for the table definition.
@@ -204,9 +200,7 @@ def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> N
     return variable_output_lines
 
 
-# ##################################################################################
 # Print variables by adding them to the output.
-# ##################################################################################
 def output_variables(heading: str, project: defusedxml.ElementTree) -> None:
     """
     Print variables by adding them to the output.

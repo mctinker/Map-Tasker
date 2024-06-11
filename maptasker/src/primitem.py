@@ -9,8 +9,6 @@
 # using a licensed work under the same license. Copyright and license notices must be  #
 # preserved. Contributors provide an express grant of patent rights.                   #
 #                                                                                      #
-# #################################################################################### #
-
 # Primary Items = global variables used throughout MapTasker
 #
 # Set up an initial empty dictionary of primary items used throughout this project
@@ -108,9 +106,7 @@ class PrimeItems:
     slash = "/"
 
 
-# ##################################################################################
 # Reset all values
-# ##################################################################################
 class PrimeItemsReset:
     """Re-initialize all values in PrimeItems class"""
 

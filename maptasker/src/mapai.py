@@ -5,8 +5,6 @@
 #                                                                                      #
 # mapai: Ai support                                                                    #
 #                                                                                      #
-
-# #################################################################################### #
 import contextlib
 import importlib.util
 import os
@@ -23,9 +21,7 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ANALYSIS_FILE, ERROR_FILE, KEYFILE, OPENAI_MODELS
 
 
-# ##################################################################################
 # Determine if a module is available or not.
-# ##################################################################################
 def module_is_available(module_name: str) -> bool:
     """
     Check if a module is available or not.
@@ -50,9 +46,7 @@ def module_is_available(module_name: str) -> bool:
     return False
 
 
-# ##################################################################################
 # Record the response to the analysis logs.
-# ##################################################################################
 def record_response(response: str, ai_object: str, item: str) -> None:
     """
     Writes the given response to the ANALYSIS_FILE and ERROR_FILE. The ERROR_FILE will be displayed in GUI on ReRun.
@@ -77,9 +71,7 @@ def record_response(response: str, ai_object: str, item: str) -> None:
     process_error(f"{response}\n\nAnalysis Response saved in file: " + ANALYSIS_FILE, ai_object, item)
 
 
-# ##################################################################################
 # Do local Ai processing.
-# ##################################################################################
 def local_ai(query: str, ai_object: str, item: str) -> None:
     """
     Perform local AI processing on the given query.
@@ -131,9 +123,7 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
         )
 
 
-# ##################################################################################
 # Handle ChatGPT Error
-# ##################################################################################
 def process_error(error: str, ai_object: str, item: str) -> None:
     """
     Process errors based on the given error message and record the response.
@@ -161,9 +151,7 @@ def process_error(error: str, ai_object: str, item: str) -> None:
         )
 
 
-# ##################################################################################
 # Do server-side ChatGPT Ai processing.
-# ##################################################################################
 def server_openai(query: str, ai_object: str, item: str) -> None:
     """
     Sends a query to the OpenAI API to generate a completion using the specified model.
@@ -214,10 +202,8 @@ def server_openai(query: str, ai_object: str, item: str) -> None:
             response_file.write(f"OpenAi failed with error: {e!s}")
 
 
-# ##################################################################################
 # Clean up the output list since it has all the front matter and we only need
 # the object (Project/Profile/Task)
-# ##################################################################################
 def cleanup_output() -> list:
     """
     A function that cleans up the output list in prepartion of the query.
@@ -244,9 +230,7 @@ def cleanup_output() -> list:
     return temp_output
 
 
-# ##################################################################################
 # Map Ai: set up Ai query and call appropriate function based on the model.
-# ##################################################################################
 def map_ai() -> None:
     """
     A function that determines whether to call the OpenAI or local AI routine based on the model specified in PrimeItems.

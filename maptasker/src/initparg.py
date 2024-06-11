@@ -5,14 +5,11 @@
 #                                                                                      #
 # initparg: intialize command line interface/runtime arguments for MapTasker           #
 #                                                                                      #
-
-# #################################################################################### #
 from maptasker.src.config import ANDROID_FILE, ANDROID_IPADDR, ANDROID_PORT, OUTPUT_FONT
 
 
 #######################################################################################
 # Initialize Program runtime arguments to default values
-# ##################################################################################
 # Command line parameters
 def initialize_runtime_arguments() -> dict:
     """
@@ -57,4 +54,6 @@ def initialize_runtime_arguments() -> dict:
         "window_position": "",  # Last-used window position
         "ai_popup_window_position": "",  # Last-used ai popup window position (currently not used)
         "ai_analysis_window_position": "",  # Last-used ai analysis window position
+        "tree_window_position": "",  # Last-used treeview window position
+        "color_window_position": "",  # Last-used color window position
     }

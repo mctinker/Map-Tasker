@@ -14,9 +14,7 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, NORMAL_TAB, NOW_TIME, FormatLine
 
 
-# ##################################################################################
 # Add the heading matter to the output: heading, source, screen size, etc.
-# ##################################################################################
 def output_the_heading() -> None:
     """
     Display the heading and source file details
@@ -111,9 +109,7 @@ def output_the_heading() -> None:
     )
 
 
-# ##################################################################################
 # Output the heading etc. as the front matter.
-# ##################################################################################
 def output_the_front_matter() -> None:
     """
     Generates the front matter for the output file: heading, runtime settings,

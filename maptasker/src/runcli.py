@@ -10,8 +10,6 @@
 #  DEPRECATION WARNING: The system version of Tk is deprecated ...                     #
 #  "export TK_SILENCE_DEPRECATION = 1"                                                 #
 #                                                                                      #
-
-# #################################################################################### #
 import contextlib
 import os
 import sys
@@ -57,9 +55,7 @@ def get_arg_if_in_list(args: list, the_argument: str) -> int:
     return the_value
 
 
-# ##################################################################################
 # We have a -name argument.  Get the name's attributes and save them
-# ##################################################################################
 def get_name_attributes(value: str) -> None:
     """
     We have a -name argument.  Get the name's attributes and save them
@@ -77,9 +73,7 @@ def get_name_attributes(value: str) -> None:
             PrimeItems.program_arguments[attribute] = True
 
 
-# ##################################################################################
 # Go through all boolean settings, get each and if have it then set value to True
-# ##################################################################################
 def get_and_set_booleans(args: list) -> None:
     """
     Go through all boolean settings, get each and if have it then set value to True
@@ -116,9 +110,7 @@ def get_and_set_booleans(args: list) -> None:
                     PrimeItems.program_arguments[key] = True
 
 
-# ##################################################################################
 # Get the the other arguments
-# ##################################################################################
 def get_the_other_arguments(args: list) -> None:
     """
     Get the remainder of the arguments
@@ -263,9 +255,7 @@ def process_extended_arguments(args: list) -> None:
             program_arguments["file"] = file
 
 
-# ##################################################################################
 # Get our parsed program arguments and save them to PrimeItems.program_args"]
-# ##################################################################################
 def get_runtime_arguments(args: list) -> None:
     """
     Function to get runtime arguments from the command line.
@@ -293,9 +283,7 @@ def get_runtime_arguments(args: list) -> None:
     process_extended_arguments(args)
 
 
-# ##################################################################################
 # Add some pazaazz to the version identiifer
-# ##################################################################################
 def display_version() -> None:
     """
     Display the version of the program.
@@ -330,9 +318,7 @@ def display_version() -> None:
     sys.exit(0)
 
 
-# ##################################################################################
 # Get arguments from command line and put them to the proper settings
-# ##################################################################################
 def process_arguments(args: object) -> dict:
     """
     Get arguments from command line and put them to the proper settings
@@ -357,9 +343,7 @@ def process_arguments(args: object) -> dict:
     return
 
 
-# ##################################################################################
 # Get arguments from saved file and restore them to the proper settings
-# ##################################################################################
 def restore_arguments() -> dict:
     """
     Get arguments from saved file and restore them to the proper settings
@@ -390,12 +374,10 @@ def restore_arguments() -> dict:
     return
 
 
-# ##################################################################################
 # Unit tests...
 # We're running a unit test. Get the unit test arguments and create the arg namespace.
 # We do this so that 1) we can run a unit test without command line arguments, and
 # 2) we can rerun over and over as many times as needed.
-# ##################################################################################
 def unit_test() -> namedtuple:  # noqa: PYI024
     """
     We're running a unit test. Get the unit test arguments and create the arg namespace
@@ -492,9 +474,7 @@ def unit_test() -> namedtuple:  # noqa: PYI024
     return args
 
 
-# ##################################################################################
 # Validate arguments by looking for inconsistancies.
-# ##################################################################################
 def validate_arguments() -> None:
     """
     Validate arguments by looking for inconsistancies.
@@ -510,9 +490,7 @@ def validate_arguments() -> None:
         logger.info(message)
 
 
-# ##################################################################################
 # Get the program arguments from command line or via unit test (e.g. python mapit.py -x)
-# ##################################################################################
 # Command line parameters
 def process_cli() -> None:
     """
@@ -553,7 +531,7 @@ def process_cli() -> None:
         PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.
 
     # If using the GUI, them process the GUI.
-    do_version = getattr(args, version_flag)
+    do_version = getattr(args, version_flag)  # See if doing version (-v)
     if PrimeItems.program_arguments["gui"] and not do_version:  # GUI for input?
         (
             PrimeItems.program_arguments,

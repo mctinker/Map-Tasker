@@ -18,9 +18,7 @@ from maptasker.src.xmldata import find_task_by_name
 period = "."
 
 
-# ##################################################################################
 # Search a list of lists for a given string.  Return True if found.
-# ##################################################################################
 def search_lists(search_string: str, list_of_lists: list) -> bool:
     """
     Search a list of lists for a given string.  Return True if found.
@@ -36,9 +34,7 @@ def search_lists(search_string: str, list_of_lists: list) -> bool:
     return search_string in lookup
 
 
-# ##################################################################################
 # Add directory item (Project/Profile/Task/Scene) to our dictionary of items
-# ##################################################################################
 def add_directory_item(key: str, name: str) -> None:
     """
     We are doing a directory.  Add the Project/Profile/Task/Scene name and hyperlink name to our dictionary of items
@@ -205,9 +201,7 @@ def do_trailing_matters() -> None:
     output_table(trailing_matter, 4)
 
 
-# ##################################################################################
 # Determinme if an item is in a specific a specific Project.
-# ##################################################################################
 def find_task_in_project(start_index: object, item_to_match: str, items_to_search: str) -> bool:
     """
     Determinme if an item is in a specific a specific Project.
@@ -232,9 +226,7 @@ def find_task_in_project(start_index: object, item_to_match: str, items_to_searc
     return False, ""
 
 
-# ##################################################################################
 # Doing Scene hyperlink.  Make sure it is okay to do this Scene hyperlink.
-# ##################################################################################
 def check_scene(item: str) -> bool:
     """
     Check to make sure this Scene should be included in the output
@@ -279,9 +271,7 @@ def check_scene(item: str) -> bool:
     return True
 
 
-# ##################################################################################
 # Doing Task hyperlink.  Make sure it is okay to do this Task hyperlink.
-# ##################################################################################
 def check_task(item: str) -> bool:
     """
     Check to make sure this Task should be included in the output
@@ -316,9 +306,7 @@ def check_task(item: str) -> bool:
     return True
 
 
-# ##################################################################################
 # Doing Profile hyperlink.  Make sure it is okay to do this Profile hyperlink.
-# ##################################################################################
 def check_profile(item: str) -> bool:
     """
     Check to make sure this Profile should be included in the output
@@ -336,9 +324,7 @@ def check_profile(item: str) -> bool:
     return not PrimeItems.program_arguments["single_task_name"]
 
 
-# ##################################################################################
 # Doing Project hyperlinks.  Make sure it is okay to do this Project hyperlink.
-# ##################################################################################
 def check_project(item: str) -> bool:
     """
     Check to make sure this Project should be included in the output
@@ -366,9 +352,7 @@ def check_project(item: str) -> bool:
     return True
 
 
-# ##################################################################################
 # Check to make sure this directory item should be included in the output.
-# ##################################################################################
 def check_item(name: str, item: str) -> bool:
     """
     Check to make sure this item should be included in the output

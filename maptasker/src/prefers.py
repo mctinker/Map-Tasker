@@ -1,4 +1,5 @@
 """Process the Tasker preferences via the services xml elements"""
+
 #! /usr/bin/env python3
 
 #                                                                                      #
@@ -81,9 +82,7 @@ def process_service(
     )
 
 
-# ##################################################################################
 # Go through all of the <service> xml elements to process the Tasker preferences.
-# ##################################################################################
 def process_preferences(temp_output_lines: list) -> None:
     """
     Go through all of the <service> xml elements to process the Tasker preferences.

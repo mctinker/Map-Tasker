@@ -35,10 +35,8 @@ from maptasker.src.sysconst import (
 from maptasker.src.taskerd import get_the_xml_data
 
 
-# ##################################################################################
 # Use a counter to determine if this is the first time run.
 #  If first time only, then provide a user prompt to locate the backup file
-# ##################################################################################
 def read_counter() -> int:
     """
     Read the program counter
@@ -68,9 +66,7 @@ run_counter = read_counter()
 atexit.register(write_counter)
 
 
-# ##################################################################################
 # Prompt user to select the backup xml file to use.
-# ##################################################################################
 def prompt_for_backup_file(dir_path: str) -> None:
     """
     Prompt user to select a backup file
@@ -105,10 +101,8 @@ def prompt_for_backup_file(dir_path: str) -> None:
         PrimeItems.error_code = 6
 
 
-# ##################################################################################
 # Open and read the Tasker backup XML file
 # Return the file name for use for
-# ##################################################################################
 def open_and_get_backup_xml_file() -> dict:
     """
     Open the Tasker backup file and return the file object
@@ -171,9 +165,7 @@ def open_and_get_backup_xml_file() -> dict:
     return
 
 
-# ##################################################################################
 # Build color dictionary
-# ##################################################################################
 def setup_colors() -> dict:
     """
     Determine and set colors to use in the output
@@ -208,9 +200,7 @@ def setup_colors() -> dict:
     return colors_to_use
 
 
-# ##################################################################################
 # Set up logging
-# ##################################################################################
 def setup_logging() -> None:
     """
     Set up the logging: name the file and establish the log type and format
@@ -225,9 +215,7 @@ def setup_logging() -> None:
     logger.info(sys.version_info)
 
 
-# ##################################################################################
 # Log the arguments
-# ##################################################################################
 def log_startup_values() -> None:
     """
     Log the runtime arguments and color mappings
@@ -241,9 +229,7 @@ def log_startup_values() -> None:
         logger.info(f"colormap for {key} set to {value}")
 
 
-# ##################################################################################
 # POpen and read xml and output the introduction/heading matter
-# ##################################################################################
 def get_data_and_output_intro(do_front_matter: bool) -> int:
     """
     Gets data from Tasker backup file and outputs introductory information.
@@ -300,9 +286,7 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
     return return_code
 
 
-# ##################################################################################
 # Make sure we have the appropriate version of Python and Tkinter
-# ##################################################################################
 def check_versions() -> None:
     """
     Checks the Python and Tkinter versions
@@ -335,9 +319,7 @@ def check_versions() -> None:
         exit(0)  # noqa: PLR1722
 
 
-# ##################################################################################
 # Perform maptasker program initialization functions
-# ##################################################################################
 def start_up() -> dict:
     # Get any arguments passed to program
     """

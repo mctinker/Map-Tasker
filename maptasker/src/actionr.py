@@ -32,10 +32,8 @@ if TYPE_CHECKING:
     import defusedxml.ElementTree
 
 
-# ##################################################################################
 # Given a list of positional items, return a string in the correct order based
 # on position
-# ##################################################################################
 def get_results_in_arg_order(evaluated_results: dict) -> str:
     """
     Get all of the evaluated results into a single list and return results as a string.
@@ -63,10 +61,8 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
     return ""
 
 
-# ##################################################################################
 # Search for and return all substrings in a string that begin with a percent sign and
 # have at least one capitalized letter in the substring.
-# ##################################################################################
 def find_capitalized_percent_substrings(string: str) -> list:
     """
     Searches for and returns all of the occurrences of substrings that begin with a
@@ -91,9 +87,7 @@ def find_capitalized_percent_substrings(string: str) -> list:
     return [word for word in pattern12.findall(string) if re.match(pattern11, word)]
 
 
-# ##################################################################################
 # Get the variables from this result and save them in the dictionary.
-# ##################################################################################
 def get_variables(result: str) -> None:
     # Fid all variables with at least one capitalized letter.
     """Get all variables with at least one capitalized letter.
@@ -127,11 +121,9 @@ def get_variables(result: str) -> None:
                 }
 
 
-# ##################################################################################
 # For the given code, save the display_name, required arg list and associated
 # type list in dictionary.
 # Then evaluate the data against the master dictionary of actions.
-# ##################################################################################
 def get_action_results(
     the_action_code_plus: str,
     lookup_code_entry: defusedxml.ElementTree.XML,

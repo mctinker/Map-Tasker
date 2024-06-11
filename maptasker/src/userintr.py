@@ -15,10 +15,12 @@ from typing import Callable
 
 import customtkinter
 import requests
-from CTkColorPicker.ctk_color_picker import AskColor
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
+
+# from CTkColorPicker.ctk_color_picker import AskColor
+from maptasker.src.ctk_color_picker import AskColor
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutils import (
@@ -54,6 +56,7 @@ from maptasker.src.guiwins import (
     initialize_gui,
     initialize_screen,
     save_window_position,
+    store_windows,
 )
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
@@ -128,7 +131,8 @@ INFO_TEXT = (
     "Notes:\n\n"
     "- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n"
     "- If running on OS X Ventura, you may receive the runtime error: '+[CATransaction synchronize] called within transaction'. This is a bug in OS X Ventura. This can be ignored and the program will still run correctly.\n\n"
-    "- Likewise, if you receive the runtime error: 'IMKClient Stall detected...', this can be ignored.\n\n"
+    "- If you receive the runtime error: 'IMKClient Stall detected...', this can be ignored.\n\n"
+    "- Using the 'ReRun' button will result in the error message, 'Task policy set failed: 4 ((os/kern) invalid argument)', which can be ignored.\n\n"
     "- Drag the window to expand the text as desired.\n\n"
 )
 BACKUP_HELP_TEXT = (
@@ -191,9 +195,11 @@ AI_HELP_TEXT = (
     "   If you select a model that has not yet been loaded, it will be loaded in the background once the analysis begins.\n\n"
     "4- Select the model you want to use.\n\n"
     "5- Click the 'Run Analysis' button.  It will turn pink when all of the necessary data has been entered.\n\n"
-    "   If you have not yet selected a Profile or Task from the 'Specify Name' tab, then you will be prompted to do so.\n\n"
+    "   If you have not yet selected a Project, Profile or Task, then you will be prompted to do so.\n\n"
     "The process may take some time and runs in the background.  The results will appear in a separate window.\n\n"
-    "Your designated api-key (if any), model, selected profile or task and prompt will all be saved across sessions.\n\n"
+    "Your designated api-key (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\n"
+    "Models that start with 'gpt' are server-based models.  All others are local models.\n\n"
+    "If using a local model for the first time, Ollama will automatically install it for you in the background.\n\n"
     "The 'Rerun' feature will be used to display the results of the analysis in a new window.\n\n"
 )
 
@@ -878,6 +884,7 @@ class MyGui(customtkinter.CTk):
                 return
         # Put up color picker and get the color
         pick_color = AskColor()  # Open the Color Picker
+        pick_color.focus_set()  # Set focus to the color picker
         color = pick_color.get()  # Get the color
         if color is not None:
             self.display_message_box(f"{color_selected_item} color changed to {color}", color)
@@ -885,7 +892,7 @@ class MyGui(customtkinter.CTk):
             # Okay, plug in the selected color for the selected named item
             self.extract_color_from_event(color, color_selected_item)
 
-            # Display the color.
+            # Destroy previous label and display the color as a label.
             with contextlib.suppress(Exception):
                 self.color_change.destroy()
             self.color_change = customtkinter.CTkLabel(
@@ -897,6 +904,11 @@ class MyGui(customtkinter.CTk):
             self.color_row += 1
             if self.color_row > max_row:
                 self.color_row = 4
+
+        # Cleanup
+        pick_color.destroy()
+        pick_color.grab_release()
+        del pick_color
 
     # Color selected...process it.
     def extract_color_from_event(self, color: str, color_selected_item: str) -> None:
@@ -1362,7 +1374,7 @@ class MyGui(customtkinter.CTk):
             "debug": lambda: self.select_deselect_checkbox(self.debug_checkbox, value, "Debug Mode"),
             "directory": lambda: self.select_deselect_checkbox(self.directory_checkbox, value, "Display Directory"),
             "display_detail_level": lambda: self.detail_selected_event(value),
-            #"fetched_backup_from_android": lambda: f"Fetched XML From Android:{value}.\n",
+            # "fetched_backup_from_android": lambda: f"Fetched XML From Android:{value}.\n",
             "file": lambda: self.display_and_set_file(value),
             "font": lambda: f"Font set to {value}.\n",
             "highlight": lambda: self.select_deselect_checkbox(
@@ -2109,9 +2121,8 @@ class MyGui(customtkinter.CTk):
             - Closes the application.
             - If run_only is True, only closes the application.
             - If run_only is False, withdraws the funds before closing the application."""
-        # Save the position of the Analsysis window.
-        if window_pos := save_window_position(self.toplevel_window):
-            self.ai_analysis_window_position = window_pos
+        # Store window positions.
+        store_windows(self)
 
         # If 'Run and Exit' only, then just quit.  Otherwise, destroy sidebar frame.
         if run_only:
@@ -2119,7 +2130,10 @@ class MyGui(customtkinter.CTk):
         else:
             # ReRun
             get_rid_of_window(self)
+            # Now get rid of stuff we don't want around anymore
             self.sidebar_frame.destroy()
+            with contextlib.suppress(AttributeError):
+                self.treeview_window.destroy()
 
     # Validate XML and close the GUI.
     def cleanup_and_run(self, run_only: bool) -> None:
@@ -2237,9 +2251,8 @@ class MyGui(customtkinter.CTk):
         - Calls quit() twice to ensure program exits cleanly
         - Calling quit() twice is done as a precaution in case one call fails to exit for some reason
         """
-        # Save the position of the Analsysis window.
-        if window_pos := save_window_position(self.toplevel_window):
-            self.ai_analysis_window_position = window_pos
+        # Get and store the position of the windows.
+        store_windows(self)
 
         # Indicate that the user hit the 'Exit' button.
         self.exit = True
@@ -2351,7 +2364,7 @@ class MyGui(customtkinter.CTk):
         # If we don't have any data, get it.
         if self.load_xml():
             # Ok, we have our root Tasker elements.  Build the tree
-            self.toplevel_window = None
+            self.treeview_window = None
 
             # Build our tree from XML data
             tree_data = self.build_the_tree()
@@ -2420,13 +2433,13 @@ class MyGui(customtkinter.CTk):
             - Displays the given data in a treeview format.
             - Packs the treeview in the window with specified padding and filling."""
         if tree_data:
-            if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-                self.toplevel_window = TreeviewWindow(self)  # create window if its None or destroyed
+            if self.treeview_window is None or not self.treeview_window.winfo_exists():
+                self.treeview_window = TreeviewWindow(self)  # create window if its None or destroyed
             else:
-                self.toplevel_window.focus()  # if window exists focus it
+                self.treeview_window.focus()  # if window exists focus it
 
             # Display the tree in the toplevel window.
-            tree_view = CTkTreeview(master=self.toplevel_window, items=tree_data)
+            tree_view = CTkTreeview(master=self.treeview_window, items=tree_data)
             tree_view.pack(padx=10, pady=10, fill="both", expand=True)
         else:
             self.display_message_box("No Project(s) Found in XML!", "Red")
@@ -2442,15 +2455,16 @@ class MyGui(customtkinter.CTk):
         Returns:
             None
         """
-        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = AnalysisWindow(self)  # create window if its None or destroyed
+        # create window if its None or destroyed
+        if self.ai_analysis_window is None or not self.ai_analysis_window.winfo_exists():
+            self.ai_analysis_window = AnalysisWindow(self)
         else:
-            self.toplevel_window.focus()  # if window exists focus it
+            self.ai_analysis_window.focus()  # if window exists focus it
 
         # Display the analysis in the toplevel window.
-        analysis_view = CTkAnalysisview(master=self.toplevel_window, message=error_msg)
+        analysis_view = CTkAnalysisview(master=self.ai_analysis_window, message=error_msg)
         analysis_view.pack(padx=10, pady=10, fill="both", expand=True)
-        analysis_view.after(10, self.toplevel_window.lift)  # Make window jump to the front
+        analysis_view.after(10, self.ai_analysis_window.lift)  # Make window jump to the front
 
     # Set and display the file name.
     def display_and_set_file(self, filename: str) -> None:
@@ -2750,7 +2764,6 @@ class MyGui(customtkinter.CTk):
                 (80, 10),
                 "",
             )
-            # self.list_files_query_button.configure(width=20)
             self.message = self.message + "\n\nA new version of MapTasker is available."
         else:
             self.new_version = False

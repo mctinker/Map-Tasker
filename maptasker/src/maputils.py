@@ -5,8 +5,6 @@
 #                                                                                      #
 # maputils: General utilities used by program.                                         #
 #                                                                                      #
-
-# #################################################################################### #
 from __future__ import annotations
 
 import ipaddress
@@ -30,7 +28,7 @@ from maptasker.src.xmldata import rewrite_xml
 
 
 @contextmanager
-def suppress_stdout() -> Generator: # type: ignore  # noqa: PGH003
+def suppress_stdout() -> Generator:  # type: ignore  # noqa: PGH003
     """
     Context manager that suppresses the standard output during its execution.
 
@@ -55,9 +53,7 @@ def suppress_stdout() -> Generator: # type: ignore  # noqa: PGH003
             sys.stderr = old_stderr
 
 
-# ##################################################################################
 # Validate TCP/IP Address
-# ##################################################################################
 def validate_ip_address(address: str) -> bool:
     """
     Validates an IP address.
@@ -75,9 +71,7 @@ def validate_ip_address(address: str) -> bool:
     return True
 
 
-# ##################################################################################
 # Validate Port Number
-# ##################################################################################
 def validate_port(address: str, port_number: int) -> bool:
     """
     Validates a port number.
@@ -104,9 +98,7 @@ def validate_port(address: str, port_number: int) -> bool:
     return 0
 
 
-# ##################################################################################
 # Auto Update our code
-# ##################################################################################
 def update() -> None:
     """Update this package."""
     version = get_pypi_version()
@@ -114,9 +106,7 @@ def update() -> None:
     subprocess.call([sys.executable, "-m", "pip", "install", packageversion, "--upgrade"])  # noqa: S603
 
 
-# ##################################################################################
 # Get the version of our code out on Pypi
-# ##################################################################################
 def get_pypi_version() -> str:
     """Get the PyPi version of this package."""
     url = "https://pypi.org/pypi/maptasker/json"
@@ -127,9 +117,7 @@ def get_pypi_version() -> str:
     return version
 
 
-# ##################################################################################
 # Issue HTTP Request to get something from the Android device.
-# ##################################################################################
 def http_request(
     ip_address: str,
     ip_port: str,
@@ -187,9 +175,7 @@ def http_request(
     )
 
 
-# ##################################################################################
 # Validate XML
-# ##################################################################################
 def validate_xml(ip_address: str, android_file: str, return_code: int, file_contents: str) -> tuple:
     # Run loop since we may have to rerun validation if unicode error
     """Validates an XML file and returns an error message and the parsed XML tree.
@@ -255,9 +241,7 @@ def validate_xml(ip_address: str, android_file: str, return_code: int, file_cont
     return error_message, xml_tree
 
 
-# ##################################################################################
 # Read XML file and validate the XML.
-# ##################################################################################
 def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
     # Read the file
     """Validates an XML file from an Android device.

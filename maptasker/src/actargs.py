@@ -18,9 +18,7 @@ from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.xmldata import extract_integer, extract_string
 
 
-# ##################################################################################
 # We have a <bundle>.   Process it
-# ##################################################################################
 def get_bundle(code_action: defusedxml.ElementTree.XML, evaluated_results: dict, arg: str) -> dict:
     """
     Gets a bundle from an XML code action.
@@ -56,9 +54,7 @@ def get_bundle(code_action: defusedxml.ElementTree.XML, evaluated_results: dict,
     return evaluated_results
 
 
-# ##################################################################################
 # Given an <argn> element, evaluate it's contents based on our Action code dictionary
-# ##################################################################################
 def get_action_arguments(
     evaluated_results: dict,
     arg: object,
@@ -120,9 +116,7 @@ def get_action_arguments(
     return evaluated_results
 
 
-# ##################################################################################
 # Get image details from <img> sub-elements.
-# ##################################################################################
 # Get image related details from action xml
 def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str, arg: str) -> None:
     """
@@ -157,9 +151,7 @@ def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str
         # evaluated_results["returning_something"] = False  # NOTE: This caused errors with Scene ButtonElement
 
 
-# ##################################################################################
 # Get condition releated details from action xml
-# ##################################################################################
 # Get condition releated details from action xml
 def extract_condition(evaluated_results: dict, arg: str, argeval: str, code_action: str) -> None:
     # Get argument
@@ -196,9 +188,7 @@ def extract_condition(evaluated_results: dict, arg: str, argeval: str, code_acti
     evaluated_results[f"arg{arg}"]["value"] = seperator.join(conditions)
 
 
-# ##################################################################################
 # Get the argument details from action xml
-# ##################################################################################
 # Get the argument details from action xml
 def extract_argument(evaluated_results: dict, arg: str, argeval: str) -> None:
     """
@@ -215,9 +205,7 @@ def extract_argument(evaluated_results: dict, arg: str, argeval: str) -> None:
     evaluated_results[f"arg{arg}"]["value"] = argeval
 
 
-# ##################################################################################
 # Action code not found...let user know
-# ##################################################################################
 def handle_missing_code(the_action_code_plus: str, index: int) -> str:
     """
     Handle missing action code in MapTasker.
@@ -245,9 +233,7 @@ def handle_missing_code(the_action_code_plus: str, index: int) -> str:
     return ""
 
 
-# ##################################################################################
 # Go through the arguments and parse each one based on its argument 'type'
-# ##################################################################################
 def action_args(
     arg_list: list,
     the_action_code_plus: str,

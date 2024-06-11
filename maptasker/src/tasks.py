@@ -5,8 +5,6 @@
 #                                                                                      #
 # tasks: Process Tasks                                                                 #
 #                                                                                      #
-
-# #################################################################################### #
 from __future__ import annotations
 
 import defusedxml.ElementTree  # Need for type hints
@@ -25,10 +23,8 @@ from maptasker.src.xmldata import tag_in_type
 blank = "&nbsp;"
 
 
-# ##################################################################################
 # Navigate through Task's Actions and identify each
 # Return a list of Task's actions for the given Task
-# ##################################################################################
 def get_actions(
     current_task: defusedxml.ElementTree.XML,
 ) -> list:
@@ -114,9 +110,7 @@ def get_actions(
     return tasklist
 
 
-# ##################################################################################
 # Determine if the Task is an Entry or Exit Task.
-# ##################################################################################
 def extry_or_exit_task(
     task_output_lines: list,
     task_name: str,
@@ -169,10 +163,8 @@ def extry_or_exit_task(
     return task_output_lines, task_name
 
 
-# ##################################################################################
 # Get the name of the task given the Task ID
 # return the Task's element and the Task's name
-# ##################################################################################
 def get_task_name(
     the_task_id: str,
     tasks_that_have_been_found: list,
@@ -216,9 +208,7 @@ def get_task_name(
     return task, task_name
 
 
-# ##################################################################################
 # Find the Project belonging to the Task id passed in
-# ##################################################################################
 def get_project_for_solo_task(
     the_task_id: str,
     projects_with_no_tasks: list,
@@ -250,9 +240,7 @@ def get_project_for_solo_task(
     return project_name, project_element
 
 
-# ##################################################################################
 # Identify whether the Task passed in is part of a Scene: True = yes, False = no
-# ##################################################################################
 def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
     """
     Identify whether the Task passed in is part of a Scene: True = yes, False = no
@@ -274,9 +262,7 @@ def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
     return False
 
 
-# ##################################################################################
 # We're processing a single task only
-# ##################################################################################
 def do_single_task(
     our_task_name: str,
     project_name: str,
@@ -397,9 +383,7 @@ def do_single_task(
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
-# ##################################################################################
 # Search image xml element for key and return title=value
-# ##################################################################################
 def get_image(image: defusedxml.ElementTree, title: str, key: str) -> str:
     """Returns:
         - str: Returns a string.
@@ -422,9 +406,7 @@ def get_image(image: defusedxml.ElementTree, title: str, key: str) -> str:
     return f"{title}={text} " if text else ""
 
 
-# ##################################################################################
 # If Task has an icon, get and format it in the Task output line.
-# ##################################################################################
 def get_icon_info(the_task: defusedxml.ElementTree) -> str:
     """
     Gets icon information from the task XML.
@@ -449,9 +431,7 @@ def get_icon_info(the_task: defusedxml.ElementTree) -> str:
     return f"[Icon Info({text})]"
 
 
-# ##################################################################################
 # Get additional information for this Task
-# ##################################################################################
 def get_extra_details(
     our_task_element: defusedxml.ElementTree,
     task_output_lines: list,
@@ -489,9 +469,7 @@ def get_extra_details(
     return kid_app_info, priority, collision, stay_awake, icon_info
 
 
-# ##################################################################################
 # Given a list of tasks, output them.
-# ##################################################################################
 def output_task_list(
     list_of_tasks: list,
     project_name: str,

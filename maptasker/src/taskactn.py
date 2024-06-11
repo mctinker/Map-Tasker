@@ -17,9 +17,7 @@ if TYPE_CHECKING:
     import defusedxml.ElementTree
 
 
-# ##################################################################################
 # Go through list of actions and output them
-# ##################################################################################
 def output_list_of_actions(
     action_count: int,
     alist: list,
@@ -70,9 +68,7 @@ def output_list_of_actions(
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
-# ##################################################################################
 # For this specific Task, get its Actions and output the Task and Actions
-# ##################################################################################
 def get_task_actions_and_output(
     the_task: defusedxml.ElementTree.XML,
     list_type: str,

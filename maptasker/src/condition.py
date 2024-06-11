@@ -4,8 +4,6 @@
 #                                                                                      #
 # condition: Process profile condition: time, date, state, event, location, app        #
 #                                                                                      #
-
-# #################################################################################### #
 import defusedxml.ElementTree
 
 import maptasker.src.actiond as process_action_codes
@@ -19,9 +17,7 @@ from maptasker.src.sysconst import logger
 from maptasker.src.taskflag import get_priority
 
 
-# ##################################################################################
 # Profile condition: Time
-# ##################################################################################
 def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) -> str:
     """
     Handle the "Time" condition
@@ -85,11 +81,7 @@ def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) 
     return the_output_condition
 
 
-# ##################################################################################
-
-
 # Profile condition: Day
-# ##################################################################################
 def condition_day(the_item: defusedxml.ElementTree.XML, the_output_condition: str) -> str:
     """
     Handle the "Day" condition
@@ -143,9 +135,7 @@ def condition_day(the_item: defusedxml.ElementTree.XML, the_output_condition: st
     return the_output_condition
 
 
-# ##################################################################################
 # Profile condition: State
-# ##################################################################################
 def condition_state(the_item: defusedxml.ElementTree.XMLParse, the_output_condition: str) -> str:
     """
     Handle the "State" condition
@@ -182,9 +172,7 @@ def condition_state(the_item: defusedxml.ElementTree.XMLParse, the_output_condit
     return ""
 
 
-# ##################################################################################
 # Profile condition: Event
-# ##################################################################################
 def condition_event(the_item: defusedxml.ElementTree.XMLParse, the_output_condition: str) -> str:
     """
     Handle the "Event" condition
@@ -217,9 +205,7 @@ def condition_event(the_item: defusedxml.ElementTree.XMLParse, the_output_condit
     return the_output_condition
 
 
-# ##################################################################################
 # Profile condition: App (application)
-# ##################################################################################
 def condition_app(item: defusedxml.ElementTree.XMLParse, condition: str) -> str:
     """
     Handle the "App" condition
@@ -235,9 +221,7 @@ def condition_app(item: defusedxml.ElementTree.XMLParse, condition: str) -> str:
     return f"{condition}Application:{the_apps}"
 
 
-# ##################################################################################
 # Profile condition: Loc (location)
-# ##################################################################################
 def condition_loc(item: defusedxml.ElementTree.XMLParse, condition: str) -> str:
     """
     Handle the "Location" condition
@@ -254,9 +238,7 @@ def condition_loc(item: defusedxml.ElementTree.XMLParse, condition: str) -> str:
     return ""
 
 
-# ##################################################################################
 # Given a Profile, return its list of conditions
-# ##################################################################################
 def parse_profile_condition(the_profile: defusedxml.ElementTree) -> str:
     """
     Given a Profile, return its list of conditions

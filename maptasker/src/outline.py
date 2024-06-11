@@ -5,10 +5,7 @@
 #                                                                                      #
 # outline: Output the Tasker configuration in outline format                           #
 #                                                                                      #
-# Permissions of this strong copyleft license are conditioned on making available      #
 
-
-# #################################################################################### #
 
 # Our network dictionary looks like the following...
 
@@ -48,9 +45,7 @@ line = "─"
 arrow = f"├{line*3}▶"
 
 
-# ##################################################################################
 # Update Task with calls and called_by details
-# ##################################################################################
 def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_name: str) -> None:
     # Find the Task xml element to which this Perform Task refers.
     """
@@ -93,9 +88,7 @@ def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_na
                 task_called["called_by"] = [task["name"]]
 
 
-# ##################################################################################
 # Go through the Task's Actions looking for any Perform Task actions.
-# ##################################################################################
 def do_task_actions(task_actions: defusedxml.ElementTree, task: defusedxml.ElementTree) -> None:
     """
     Parses task action elements and updates task call relationships
@@ -123,10 +116,8 @@ def do_task_actions(task_actions: defusedxml.ElementTree, task: defusedxml.Eleme
                 update_caller_and_called_tasks(task, perform_task_name)
 
 
-# ##################################################################################
 # Go through all Tasks for Profile and see if any have a "Perform Task" action.
 # If so, save the link to the other Task to be displayed in the outline.
-# ##################################################################################
 def get_perform_task_actions(the_tasks: list) -> None:
     """
     Go through all Tasks for Profile and see if any have a "Perform Task" action.
@@ -149,9 +140,7 @@ def get_perform_task_actions(the_tasks: list) -> None:
             do_task_actions(task_actions, task)
 
 
-# ##################################################################################
 # Output the Tasks that are not in any Profile
-# ##################################################################################
 def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list) -> None:
     # Now process all Tasks under Project that are not called by any Profile
     # task_ids is a list of strings, each string is a Task id.
@@ -205,9 +194,7 @@ def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list) -> No
         get_perform_task_actions(no_profile_task_lines)
 
 
-# ##################################################################################
 # Outline the Scenes under the Project
-# ##################################################################################
 def outline_scenes(project_name: str, network: dict) -> None:
     """
     Outline the Scenes under the Project
@@ -239,9 +226,7 @@ def outline_scenes(project_name: str, network: dict) -> None:
             )
 
 
-# ##################################################################################
 # Go through the Tasks in the Profile and output them.
-# ##################################################################################
 def do_profile_tasks(
     project_name: str,
     profile_name: str,
@@ -313,9 +298,7 @@ def do_profile_tasks(
     return tasks_in_profile
 
 
-# ##################################################################################
 # Given a Project, outline it's Profiles, Tasks and Scenes
-# ##################################################################################
 def outline_profiles_tasks_scenes(
     project_name: str,
     profile_ids: list,
@@ -389,9 +372,7 @@ def outline_profiles_tasks_scenes(
     outline_scenes(project_name, network)
 
 
-# ##################################################################################
 # Name anonymous Tasks as "anonymous#1", "anonymous#2", etc.
-# ##################################################################################
 def assign_names_to_anonymous_tasks() -> None:
     """Assign names to anonymous tasks in the task list
     Args:
@@ -415,9 +396,7 @@ def assign_names_to_anonymous_tasks() -> None:
         PrimeItems.tasks_by_name[value["name"]] = value
 
 
-# ##################################################################################
 # Start outline beginning with the Projects
-# ##################################################################################
 def do_the_outline(network: dict) -> None:
     """
     Start outline beginning with the Projects
@@ -525,9 +504,7 @@ def fix_project_name_for_single_name() -> None:
         )
 
 
-# ##################################################################################
 # Outline the Tasker Configuration
-# ##################################################################################
 def outline_the_configuration() -> None:
     """
     Outline the Tasker Configuration
