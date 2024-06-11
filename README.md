@@ -25,7 +25,7 @@
 
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX machine based on Tasker's backup or exported XML file
 
-![](https://github.com/mctinker/Map-Tasker/tree/Master/documentation_images)
+![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see [Note 1](#1)).
 
