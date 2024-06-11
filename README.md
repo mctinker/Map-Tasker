@@ -24,8 +24,8 @@
 # MapTasker
 
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX machine based on Tasker's backup or exported XML file
-# FIX url
-![](https://github.com/mctinker/Map-Tasker/blob/Version-4.0.9/documentation_images/intro.png)
+
+![](https://github.com/mctinker/Map-Tasker/tree/Master/documentation_images)
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see [Note 1](#1)).
 
@@ -102,7 +102,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
      `python main.py -option1 -option2`   ...to run Map-Tasker
 
-Program output:
+## Program Output
 
 - “MapTasker.html”
 
@@ -118,7 +118,7 @@ Program output:
 
 - "MapTasker_Analysis.txt"
 
-     This file will be created if you run the Ai analysis from the GUI, which holds the response from the analysis.
+     This file will be created if you run the Ai analysis from the GUI, which holds the response from the analysis.  It will be displayed in a separate window along with the GUI.
 
 - "maptasker.log"
 
@@ -212,6 +212,10 @@ Network traffic is as follows:
 - Read file 'maptasker_changelog.json' from https://github.com/mctinker/Map-Tasker if "What's New" is selected in the GUI.
 - Use of chatgpt.com when using Ai Analysis with any of the OpenAi models.
 - New local Ai models will be loaded from https://ollama.com/library.
+
+## Known Issues
+
+- ReRun will fail after so many reruns.  It is not clear why this happens.
 
 ## Contributions
 

@@ -2,27 +2,37 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0.8] 04-June-2024
+## [4.0.9] 11-June-2024
 
 ### Added
+
+- Added: Save the Treeview and Color Picker window positions and sizes, and restore the last-used position and size for each.
+- Added: Support for Tasker version 6.3.10-rc.
+- Added: Missing 'Device Admin/Owner' actions: Uninstall App, Perrmission, Clear Device Owner.
+
+### Changed
+
+- Changed: Major overhaul of the README file.
+
+### Fixed
+
+- Fixed: Program error if Task action parameter is out of range (e.g. not yet defined).
+- Fixed: Color picker does not show up after having done a 'ReRun'.
+- Fixed: Tree view under Windows is not getting the proper arrow icons.
+
+## Older History Logs
+
+## [4.0.8]
 
 - Added: The Ai Analysis models 'mistrel', 'codegemma', 'gemma', 'deepseek-coder' and 'phi3' have been added.
 - Added: The model name and object name are now displayed with the Ai analysis response.
 - Added: The message that the analysis is running in the background has been animated for awareness.
 - Added: The pulldown menus for selecting a single object now includes "None" so that it can be used to clear the selection without having to resort to a 'Reset Settings' in the GUI.
 - Added: Three additional Tasker preferences have been mapped and one has been corrected.
-
-### Changed
-
 - Changed: Ai models are now listed alphabetically, with the last-used model listed first.  The default of 'None (llama)' has been removed.
-
-### Fixed
-
 - Fixed: The 'ReRun' command caused the error message: 'Task policy set failed...'.
 - Fixed: If doing a single object (Project/Profile/Task)and doing Tasker Preferences, Preferences were empty.  Display appropriate message in output.
 - Fixed: Getting XML file from Android device did not reset the local file pointer, causing a conflict between the two.
-
-## Older History Logs
 
 ## [4.0.7]
 
