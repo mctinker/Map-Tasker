@@ -9,6 +9,8 @@
 
 import contextlib
 import json
+import os
+import sys
 import webbrowser
 from pathlib import Path
 from typing import Callable
@@ -60,7 +62,7 @@ from maptasker.src.guiwins import (
 )
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
-from maptasker.src.mapit import clean_up_memory, do_rerun
+from maptasker.src.mapit import clean_up_memory
 from maptasker.src.maputils import update, validate_xml_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
@@ -2214,7 +2216,11 @@ class MyGui(customtkinter.CTk):
         self.display_message_box("Program updated.  Restarting...", "Green")
         # Create the Change Log file to be read and displayed after a program update.
         create_changelog()
-        do_rerun()
+        # ReRun via a new process, which will load and run the new program/version.
+        # Note: this will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'
+        # Note: this current process will not return after this call, but simply be killed.
+        os.execl(sys.executable, "python", *sys.argv)
+        #do_rerun()
 
     # The Upgrade Version button has been pressed.
     def report_issue_event(self) -> None:
