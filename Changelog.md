@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0.10] 12-June-2024
+## [4.0.10/4.0.11] 12-June-2024
 
 ### Added
 
@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Updating the program from the GUI doesn't reload the program with the new version just updated.
+- Fixed: Color picker causes a program error.
 
 ## Older History Logs
 
