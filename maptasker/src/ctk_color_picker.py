@@ -100,14 +100,14 @@ class AskColor(customtkinter.CTkToplevel):
         self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
 
         # Set up for access to icons
-        current_path = pathlib.Path().resolve()
-        assets = f"{current_path}{PrimeItems.slash}maptasker{PrimeItems.slash}assets"
-        color_wheel = os.path.join(assets, "color_wheel.png")
+        current_path = os.path.dirname(os.path.realpath(__file__))
+        icon_path = os.path.join(current_path, f"..{PrimeItems.slash}assets")
+        color_wheel = os.path.join(icon_path, "color_wheel.png")
         self.img1 = Image.open(color_wheel).resize(
             (self.image_dimension, self.image_dimension),
             Image.Resampling.LANCZOS,
         )
-        target = color_wheel = os.path.join(assets, "target.png")
+        target = color_wheel = os.path.join(icon_path, "target.png")
         self.img2 = Image.open(target).resize(
             (self.target_dimension, self.target_dimension),
             Image.Resampling.LANCZOS,

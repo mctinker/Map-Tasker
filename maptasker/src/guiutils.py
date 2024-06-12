@@ -49,7 +49,7 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.0.9/4.0.10 - Change Log\n
+Version 4.0.9/4.0.10/4.0.11 - Change Log\n
 ### Added\n
 - Added: Save the Treeview and Color Picker window positions and sizes, and restore the last-used position and size for each.\n
 - Added: Support for Tasker version 6.3.10-rc.\n
@@ -59,23 +59,12 @@ Version 4.0.9/4.0.10 - Change Log\n
 ### Fixed\n
 - Fixed: Program error if Task action parameter is out of range (e.g. not yet defined).\n
 - Fixed: Color picker does not show up after having done a 'ReRun'.\n
-- Fixed: Tree view under Windows is not getting the proper arrow icons.\n\n
+- Fixed: Tree view under Windows is not getting the proper arrow icons.\n
 - Fixed: Updating the program from the GUI doesn't reload the program with the new version just updated.\n
+- Fixed: Color picker causes a program error.\n
 Refer to the github changelog for a history of all changes made at: https://tinyurl.com/bdh47a44\n
 """
-CHANGELOG_JSON = {
-    "version": "4.0.3",
-    "changes": [
-        {
-            "change": "Fixed an issue where analysis results were not being properly cleared between analyses.",
-            "type": "fixed",
-        },
-        {
-            "change": "Improved error handling for analysis failures.",
-            "type": "changed",
-        },
-    ],
-}
+
 default_font_size = 14
 
 
