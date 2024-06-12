@@ -2,25 +2,31 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0.9] 11-June-2024
+## [4.0.10] 12-June-2024
 
 ### Added
+
+- Added:
+
+### Changed
+
+- Changed:
+
+### Fixed
+
+- Fixed: Updating the program from the GUI doesn't reload the program with the new version just updated.
+
+## Older History Logs
+
+## [4.0.9] 11-June-2024
 
 - Added: Save the Treeview and Color Picker window positions and sizes, and restore the last-used position and size for each.
 - Added: Support for Tasker version 6.3.10-rc.
 - Added: Missing 'Device Admin/Owner' actions: Uninstall App, Perrmission, Clear Device Owner.
-
-### Changed
-
 - Changed: Major overhaul of the README file.
-
-### Fixed
-
 - Fixed: Program error if Task action parameter is out of range (e.g. not yet defined).
 - Fixed: Color picker does not show up after having done a 'ReRun'.
 - Fixed: Tree view under Windows is not getting the proper arrow icons.
-
-## Older History Logs
 
 ## [4.0.8]
 
