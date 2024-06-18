@@ -494,7 +494,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     PrimeItems.program_arguments["gui"] = True
     self.list_files = False
     self.ai_apikey = None
-    self.ai_model = None
+    self.ai_model = ""
     self.ai_analysis = None
     self.ai_missing_module = None
     self.ai_prompt = None
@@ -505,6 +505,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.color_window_position = ""
     self.all_messages = {}
     self.first_time = True
+    self.default_font = ""
 
     self.title("MapTasker Runtime Options")
 
@@ -860,6 +861,9 @@ def initialize_screen(self) -> None:  # noqa: ANN001
 
     # Get fonts from TkInter
     font_items, res = get_monospace_fonts()
+    default_font = [value for value in font_items if "Courier" in value]
+    self.default_font = default_font[0]
+
     # Delete the tkroot obtained by get_monospace_fonts
     if PrimeItems.tkroot is not None:
         del PrimeItems.tkroot
@@ -1067,7 +1071,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.create_new_textbox()
 
     # Start third grid / column definitions
-    # create tabview for Name, Color, and Debug
+    # create tabview for Name, Color, Analysis and Debug
     self.tabview = ctk.CTkTabview(self, width=250, segmented_button_fg_color="#6563ff")
     self.tabview.grid(row=0, column=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
     self.tabview.add("Specific Name")

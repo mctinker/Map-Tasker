@@ -244,6 +244,7 @@ def output_grand_totals() -> None:
     grand_total_named_tasks = PrimeItems.grand_totals["named_tasks"]
     if PrimeItems.program_arguments["single_task_name"]:
         grand_total_named_tasks = 1
+        grand_total_profiles = 1
     grand_total_scenes = PrimeItems.grand_totals["scenes"]
     # If doing a directory, then add id to hyperlink to.
     if PrimeItems.program_arguments["directory"]:

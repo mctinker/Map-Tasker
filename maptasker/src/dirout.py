@@ -9,8 +9,6 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 import math
 
-import darkdetect
-
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import NO_PROFILE, NORMAL_TAB, TABLE_BACKGROUND_COLOR, TABLE_BORDER, FormatLine
 from maptasker.src.xmldata import find_task_by_name

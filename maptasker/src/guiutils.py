@@ -49,19 +49,18 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.0.9/4.0.10/4.0.11 - Change Log\n
-### Added\n
-- Added: Save the Treeview and Color Picker window positions and sizes, and restore the last-used position and size for each.\n
-- Added: Support for Tasker version 6.3.10-rc.\n
-- Added: Missing 'Device Admin/Owner' actions: Uninstall App, Perrmission, Clear Device Owner.\n
+Version 4.0.12 - Change Log\n
 ### Changed\n
-- Changed: Major overhaul of the README file.\n
+- Changed: Moved the 'Get XML from Android Device' button to avoid overlap with font selection button.\n
 ### Fixed\n
-- Fixed: Program error if Task action parameter is out of range (e.g. not yet defined).\n
-- Fixed: Color picker does not show up after having done a 'ReRun'.\n
-- Fixed: Tree view under Windows is not getting the proper arrow icons.\n
-- Fixed: Updating the program from the GUI doesn't reload the program with the new version just updated.\n
-- Fixed: Color picker causes a program error.\n
+- Fixed: Restored font is not showing as the default font in the GUI.\n
+- Fixed: The Ai Analysis window incorrectly hangs around from the previous analysis while doing a new analysis.\n
+- Fixed: If displaying a single task only, the total number of Profiles displayed included the total for all Profiles under the Project in which the Task is contained, rather than just 1.\n
+- Fixed: The 'Set Prompt' Ai Analysis dialog window is not always selectable.\n
+- Fixed: "Reset Settings' does not reset the font to the default monospace Courier font.\n
+- Fixed: Program error if trying to run analysis with no XML data loaded.\n
+- Fixed: 'Run Analysis' button turns pink even if there is no model selected.\n
+- Fixed: Select Project/Profile/Task names not working properly if there are none to select.\n
 Refer to the github changelog for a history of all changes made at: https://tinyurl.com/bdh47a44\n
 """
 
@@ -179,7 +178,7 @@ def get_monospace_fonts() -> dict:
     - Return lists of monospace fonts and Courier/Monaco font
     """
     fonts = get_mono_fonts()
-    font_items = ["Courier"]
+    #font_items = ["Courier"]
     font_items = [value for value in fonts.values() if "Wingdings" not in value]
     # Find which Courier font is in our list and set.
     res = [i for i in font_items if "Courier" in i]
@@ -707,6 +706,9 @@ def display_analyze_button(self, row: int, first_time: bool) -> None:  # noqa: A
     Returns:
         None: This function does not return anything.
     """
+    # Make sure Ai model is blkank if value is "None"
+    if self.ai_model == "None":
+        self.ai_model = ""
     # Highlight the button if we have everything to run the Analysis.
     if ((self.ai_model in OPENAI_MODELS and self.ai_apikey) or self.ai_model) and (
         self.single_task_name or self.single_profile_name or self.single_project_name
@@ -782,9 +784,9 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         "nw",
     )
     # Set up name to display
-    project_to_display = self.single_project_name if self.single_project_name else "Undefined"
-    profile_to_display = self.single_profile_name if self.single_profile_name else "Undefined"
-    task_to_display = self.single_task_name if self.single_task_name else "Undefined"
+    project_to_display = self.single_project_name if self.single_project_name else "None"
+    profile_to_display = self.single_profile_name if self.single_profile_name else "None"
+    task_to_display = self.single_task_name if self.single_task_name else "None"
     self.ai_model_option.set(model_to_display)  # Set the current model in the pulldown.
 
     # Display the Project to analyze
@@ -866,6 +868,7 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
 
 
 # Update the Project/Profile/Task pulldown option menus.
+# @profile
 def update_tasker_object_menus(self, get_data: bool) -> None:  # noqa: ANN001
     """
     args:
@@ -888,9 +891,10 @@ def update_tasker_object_menus(self, get_data: bool) -> None:  # noqa: ANN001
     # Get data tree, list and set the Project/Profile/Task list in 'Specific Name' and 'Analyze' tab.
     # Only do this if we have the object name since it forces a read of XML.
     if get_data:
-        _ = list_tasker_objects(self)
+        return_code = list_tasker_objects(self)
+        if not return_code:
+            return
 
-    # Determine values based on conditions
     # Update the Project/Profile/Task pulldown option menus.
     set_tasker_object_names(self)
 
@@ -1028,82 +1032,101 @@ def display_object_pulldowns(
     # Display all of the Projects for selection.
     profile_row = row + 2
     task_row = row + 4
-    self.project_label = add_label(
-        self,
-        frame,
-        "Select Project to process:",
-        "",
-        0,
-        "normal",
-        row,
-        0,
-        20,
-        (10, 0),
-        "s",
-    )
-    project_option = add_option_menu(
-        self,
-        frame,
-        project_name_event,
-        projects_to_display,
-        row + 1,
-        0,
-        20,
-        (0, 10),
-        "n",
-    )
 
-    # Display all of the Profiles for selection.
-    self.profile_label = add_label(
-        self,
-        frame,
-        "Select Profile to process:",
-        "",
-        0,
-        "normal",
-        profile_row,
-        0,
-        20,
-        (0, 0),
-        "s",
-    )
-    profile_option = add_option_menu(
-        self,
-        frame,
-        profile_name_event,
-        profiles_to_display,
-        profile_row + 1,
-        0,
-        20,
-        (0, 10),
-        "n",
-    )
+    # Make sure there is something to display
+    if not projects_to_display and not profiles_to_display and not tasks_to_display:
+        self.project_label = add_label(
+            self,
+            frame,
+            "No Projects, Profiles or Tasks to display!",
+            "",
+            0,
+            "normal",
+            row,
+            0,
+            20,
+            (10, 0),
+            "s",
+        )
 
-    # Display all of the Tasks for selection.
-    self.task_label = add_label(
-        self,
-        frame,
-        "Select Task to process:",
-        "",
-        0,
-        "normal",
-        task_row,
-        0,
-        20,
-        (0, 0),
-        "n",
-    )
-    task_option = add_option_menu(
-        self,
-        frame,
-        task_name_event,
-        tasks_to_display,
-        task_row,
-        0,
-        20,
-        (30, 0),
-        "s",
-    )
+    # Okay, we have some actual data to display
+    else:
+        self.project_label = add_label(
+            self,
+            frame,
+            "Select Project to process:",
+            "",
+            0,
+            "normal",
+            row,
+            0,
+            20,
+            (10, 0),
+            "s",
+        )
+        project_option = add_option_menu(
+            self,
+            frame,
+            project_name_event,
+            projects_to_display,
+            row + 1,
+            0,
+            20,
+            (0, 10),
+            "n",
+        )
+
+        # Display all of the Profiles for selection.
+        self.profile_label = add_label(
+            self,
+            frame,
+            "Select Profile to process:",
+            "",
+            0,
+            "normal",
+            profile_row,
+            0,
+            20,
+            (0, 0),
+            "s",
+        )
+        profile_option = add_option_menu(
+            self,
+            frame,
+            profile_name_event,
+            profiles_to_display,
+            profile_row + 1,
+            0,
+            20,
+            (0, 10),
+            "n",
+        )
+
+        # Display all of the Tasks for selection.
+        self.task_label = add_label(
+            self,
+            frame,
+            "Select Task to process:",
+            "",
+            0,
+            "normal",
+            task_row,
+            0,
+            20,
+            (0, 0),
+            "n",
+        )
+        task_option = add_option_menu(
+            self,
+            frame,
+            task_name_event,
+            tasks_to_display,
+            task_row,
+            0,
+            20,
+            (30, 0),
+            "s",
+        )
     return project_option, profile_option, task_option
 
 
@@ -1138,6 +1161,7 @@ def delete_old_pulldown_menus(self) -> None:  # noqa: ANN001
 
 
 # Provide a pulldown list for the selection of a Profile name
+# @profile
 def list_tasker_objects(self) -> bool:  # noqa: ANN001
     """
     Lists the projects, profiles and tasks available in the XML file.  The list for each will appear in a pulldown option list.
@@ -1242,26 +1266,19 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
                     profiles.append(profile["name"])
                     tasks.extend(profile["children"])
     # Clean up the object lists by removing anonymous or missing objects.
-    have_profiles = have_tasks = True
+
     profiles_to_display = [profile for profile in profiles if profile != "Profile: Unnamed/Anonymous"]
+    if not projects_to_display:
+        projects_to_display = ["No projects found"]
     if not profiles_to_display:
         profiles_to_display = ["No profiles found"]
-        have_profiles = False
 
     tasks_to_display = [task for task in tasks if task not in ["Task: Unnamed/Anonymous.", ""]]
     if not tasks_to_display:
         tasks_to_display = ["No tasks found"]
-        have_tasks = False
     else:
         tasks_to_display = list(set(tasks_to_display))
         tasks_to_display.sort()
-
-    if not have_profiles and not have_tasks:
-        self.display_message_box(
-            "No profiles or tasks found in XML file.  Using the 'Get Local Xml button, load another XML file and try again.",
-            "Red",
-        )
-        return False, [], [], []
 
     return True, projects_to_display, profiles_to_display, tasks_to_display
 

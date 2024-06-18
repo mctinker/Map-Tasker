@@ -104,7 +104,7 @@ def get_backup_file() -> str:
             return None
         error_handler(str(file_contents), 8)
 
-    # Process the backup file
+    # Write the XML file to local storage.
     write_out_backup_file(file_contents)
 
     return substring_after_last(PrimeItems.program_arguments["android_file"], "/")

@@ -73,6 +73,7 @@ from maptasker.src.sysconst import (
     TYPES_OF_COLOR_NAMES,
     VERSION,
     DISPLAY_DETAIL_LEVEL_all_parameters,
+    logger,
 )
 from maptasker.src.taskerd import get_the_xml_data
 
@@ -134,7 +135,6 @@ INFO_TEXT = (
     "- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n"
     "- If running on OS X Ventura, you may receive the runtime error: '+[CATransaction synchronize] called within transaction'. This is a bug in OS X Ventura. This can be ignored and the program will still run correctly.\n\n"
     "- If you receive the runtime error: 'IMKClient Stall detected...', this can be ignored.\n\n"
-    "- Using the 'ReRun' button will result in the error message, 'Task policy set failed: 4 ((os/kern) invalid argument)', which can be ignored.\n\n"
     "- Drag the window to expand the text as desired.\n\n"
 )
 BACKUP_HELP_TEXT = (
@@ -260,7 +260,7 @@ class MyGui(customtkinter.CTk):
             self.display_backup_details()
 
         # Update the Project/Profile/Task pulldown option menus and text labels.
-        update_tasker_object_menus(self, get_data=True)
+        # update_tasker_object_menus(self, get_data=True)
 
         # Check if newer version of our code is available on Pypi.
         self.check_new_version()
@@ -273,6 +273,8 @@ class MyGui(customtkinter.CTk):
 
         # Finally, show the window. It was hidden in initialize_screen.
         self.deiconify()
+        # The following line is equivelent to a call to update_tasker_object_menus but only when the Analysis tab is clicked.
+        self.tabview.configure("Analyze", command=update_tasker_object_menus(self, get_data=True))
 
     # Establish all of the default values used
     def set_defaults(self) -> None:
@@ -369,7 +371,7 @@ class MyGui(customtkinter.CTk):
             2,  # Column span
             7,  # row
             1,  # col
-            (200, 200),
+            (210, 165),
             (0, 10),
             "nw",
         )
@@ -406,7 +408,7 @@ class MyGui(customtkinter.CTk):
         line_num = len(self.all_messages)
 
         # Insert the text with our new message into the text box.
-        line_num += 1  # Increment our line number to lthe line with the message
+        line_num += 1  # Increment our line number to the line with the message
         line_num_str = str(line_num)
         # message = f"{line_num_str}: {message}"  # For debug only
         # Add this message to our dictionary of messages.
@@ -416,7 +418,7 @@ class MyGui(customtkinter.CTk):
             "highlight_color": "",
             "highlight_position": "",
         }
-        # Add the test and color to the text box.
+        # Add the text and color to the text box.
         # fmt: off
         self.textbox.insert(f"{line_num_str}.0", f"{message}\n", (line_num_str))
         self.textbox.tag_add(line_num_str, f"{line_num_str}.0", f"{line_num_str}.{len(message)!s}")
@@ -426,7 +428,9 @@ class MyGui(customtkinter.CTk):
         # If current message is a setting ("set On/Off/True/False"), then color it
         self.check_message_for_special_highlighting(message, line_num_str)
 
-        self.textbox.focus_set()
+        # self.textbox.focus_set()
+        # Set the font
+        self.textbox.configure(font=(self.font, 14))
 
     # Check the current messsage for additional highlighting
     def check_message_for_special_highlighting(self, message: str, line_num_str: str) -> None:
@@ -474,7 +478,7 @@ class MyGui(customtkinter.CTk):
     # Highlight a string in the textbox.
     def highlight_string(self, message: str, line_num_str: str, highlight_position: int, highlight_color: str) -> None:
         """
-        Adds a tag to the text box highlighting a specific portion of text.
+        Adds a tag to the text box highlighting a specific portion of text in a specific color.
 
         Args:
             message (str): The text to highlight.
@@ -588,14 +592,9 @@ class MyGui(customtkinter.CTk):
             - Notify user of filter
             - Deselect checkbox clicked
         """
-        # if name_entered == "None":
-        #    self.display_message_box("'None' selected.  No change.", "Orange")
-        #    # Update the pulldown menus since without this the 'None' would display for some reason.
-        #    update_tasker_object_menus(self, get_data=True)
-        #    return
-        if name_entered in ["No profiles found", "No tasks found"]:
+        if name_entered in ["No projects found", "No profiles found", "No tasks found"]:
             self.display_message_box("Selection ignored.", "Orange")
-            return
+            name_entered = "None"
         # Make sure it is a valid name and display message.
         if self.check_name(name_entered, my_name):
             # Name is valid... deselect other buttons and set the name
@@ -746,6 +745,7 @@ class MyGui(customtkinter.CTk):
             font=(font_selected, 14),
         )
         self.font_out_label.grid(row=6, column=1, padx=10, pady=10, sticky="sw")
+        self.font_optionmenu.set(font_selected)
         self.display_message_box(f"Font To Use set to {font_selected}", "Green")
 
     # Clear the message text box.
@@ -906,6 +906,10 @@ class MyGui(customtkinter.CTk):
             self.color_row += 1
             if self.color_row > max_row:
                 self.color_row = 4
+
+        # Nothing selected
+        else:
+            self.display_message_box("No color selected.", "Orange")
 
         # Cleanup
         pick_color.destroy()
@@ -1345,7 +1349,8 @@ class MyGui(customtkinter.CTk):
         checkbox.select() if checked else checkbox.deselect()
         return f"{argument_name} set to {checked}.\n"
 
-    # Restore displays setting from restored value!
+    # Given a setting key and value, set the attribute for the key to the value and return the setting as a message.
+    # @profile
     def restore_display(self, key: str, value: str) -> str:
         # Dictionary of program arguments and function to run for each upon restoration.
         """
@@ -1378,7 +1383,8 @@ class MyGui(customtkinter.CTk):
             "display_detail_level": lambda: self.detail_selected_event(value),
             # "fetched_backup_from_android": lambda: f"Fetched XML From Android:{value}.\n",
             "file": lambda: self.display_and_set_file(value),
-            "font": lambda: f"Font set to {value}.\n",
+            "font": lambda: self.font_event(value),
+            # "font": lambda: f"Font set to {value}.\n",
             "highlight": lambda: self.select_deselect_checkbox(
                 self.highlight_checkbox,
                 value,
@@ -1433,10 +1439,13 @@ class MyGui(customtkinter.CTk):
             if hasattr(self, key):
                 setattr(self, key, value)
         else:
-            # Use dictionary lookup and lambda funtion to process key/value
+            # Use dictionary lookup and lambda funtion to process key/value.
             message_func = message_map.get(key)
             if message_func:
-                message = message_func()
+                # Note: display_detail_level, file, font, indent, and single object name all return a message of 'None'.
+                message = message_func()  # This calls the lambda function and takes a bit of time.
+            elif self.debug:
+                logger.debug("userintr: no lambda rtn for key or value: ", key, value)
 
         # Cleanup the end of the message if it is not set.
         the_empty_ending = "set to \n"
@@ -1494,6 +1503,7 @@ class MyGui(customtkinter.CTk):
             self.display_message_box("No settings file found.", "Orange")
 
     # We have read colors and runtime args from backup file.  Now extract them for use.
+    # @profile
     def extract_settings(self, temp_args: dict) -> None:
         """
         Extract settings from arguments dictionary
@@ -1520,6 +1530,7 @@ class MyGui(customtkinter.CTk):
                 if key == "msg":
                     inv_color_names[key] = ""
                 else:
+                    # Set the displayed color to that of the color name, unlessa it is the background color.
                     color = value
                     if inv_color_names[key] == "Background":
                         color = "white"
@@ -2031,6 +2042,7 @@ class MyGui(customtkinter.CTk):
         self.runtime_checkbox.deselect()  # Display runtime
         self.outline_checkbox.deselect()  # Display outline
         self.everything_checkbox.deselect()  # Display everything
+        self.font_event(self.default_font)  # Set the font to the default font
         if self.color_labels:  # is there any color text?
             for label in self.color_labels:
                 label.configure(text="")
@@ -2051,7 +2063,7 @@ class MyGui(customtkinter.CTk):
         with contextlib.suppress(AttributeError):
             self.task_optionmenu.set("None")
         self.ai_prompt = AI_PROMPT
-        self.ai_model = "None"
+        self.ai_model = ""
 
         # Update the Tasker selected object pulldown names and labels
         update_tasker_object_menus(self, get_data=False)
@@ -2219,8 +2231,9 @@ class MyGui(customtkinter.CTk):
         # ReRun via a new process, which will load and run the new program/version.
         # Note: this will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'
         # Note: this current process will not return after this call, but simply be killed.
+        print("The following error message can be ignored: 'Task policy set failed: 4 ((os/kern) invalid argument)'.")
         os.execl(sys.executable, "python", *sys.argv)
-        #do_rerun()
+        # do_rerun()
 
     # The Upgrade Version button has been pressed.
     def report_issue_event(self) -> None:
@@ -2619,7 +2632,20 @@ class MyGui(customtkinter.CTk):
             self.ai_analyze = True
             self.clear_messages_event()  # Clear out all displayed messages.
             self.display_message_box(f"Running analysis with model {self.ai_model}.", "Green")
+            if self.ai_analysis_window is not None:
+                self.ai_analysis_window.destroy()  # Delete previous window before creating a new one.
             self.rerun_the_program()
+        # Test if no XML data loaded
+        elif (
+            not PrimeItems.tasker_root_elements["all_projects"]
+            and not PrimeItems.tasker_root_elements["all_profiles"]
+            and not PrimeItems.tasker_root_elements["all_tasks"]
+        ):
+            self.display_message_box(
+                "No projects, profiles, or tasks have been loaded!  Load some XML and try again.",
+                "Orange",
+            )
+        # No single item has been selected.
         else:
             self.display_message_box(
                 "Single Project/Profile/Task has not been selected!  Select only one and try again.",
@@ -2670,6 +2696,7 @@ class MyGui(customtkinter.CTk):
             text=f"Current prompt: '{self.ai_prompt}'\n\nEnter a new prompt for the AI to use:",
             title="Change the Ai Prompt",
         )
+        dialog.focus_set()  # Make sure it is selectable.
         # Get the name entered
         name_entered = dialog.get_input()
         # Canceled?
