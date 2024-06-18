@@ -2,22 +2,29 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0.10/4.0.11] 12-June-2024
-
-### Added
-
-- Added:
+## [4.0.12] 18-June-2024
 
 ### Changed
 
-- Changed:
+- Changed: Moved the 'Get XML from Android Device' button to avoid overlap with font selection button.
 
 ### Fixed
 
-- Fixed: Updating the program from the GUI doesn't reload the program with the new version just updated.
-- Fixed: Color picker causes a program error.
+- Fixed: Restored font is not showing as the default font in the GUI.
+- Fixed: The Ai Analysis window incorrectly hangs around from the previous analysis while doing a new analysis.
+- Fixed: If displaying a single task only, the total number of Profiles displayed included the total for all Profiles under the Project in which the Task is contained, rather than just 1.
+- Fixed: The 'Set Prompt' Ai Analysis dialog window is not always selectable.
+- Fixed: "Reset Settings' does not reset the font to the default monospace Courier font.
+- Fixed: Program error if trying to run analysis with no XML data loaded.
+- Fixed: 'Run Analysis' button turns pink even if there is no model selected.
+- Fixed: Select Project/Profile/Task names not working properly if there are none to select.
 
 ## Older History Logs
+
+## [4.0.10/4.0.11]
+
+- Fixed: Updating the program from the GUI doesn't reload the program with the new version just updated.
+- Fixed: Color picker causes a program error.
 
 ## [4.0.9] 11-June-2024
 
@@ -60,6 +67,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Corrected the alignment of the GUI buttons for getting the XML from the Android device.
 - Fixed: The GUI startup time is improved slightly.
 - Fixed: The 'Report Issue' button is missing.
+- Fixed: Text message window is not using the current font.
 
 ## [4.0.3/4.0.4/4.0.5]
 

@@ -190,11 +190,11 @@ The usage of llama models also requires that you manually install Ollama from [h
 
 - [x] Add a runtime option for more pretty output
 
-- [x] Add Ai support to analyze Profiles and Tasks
+- [x] Add AI support to analyze Profiles and Tasks
 
-- [x] Save and restore the Ai Analysis window location
+- [x] Save and restore the AI analysis window location
 
-- [ ] Include/map remaining Tasker preferences
+- [ ] Map remaining Tasker preferences
 
 - [ ] Support additional plugins
 
@@ -209,9 +209,9 @@ Network traffic is as follows:
 - Local LAN traffic when fetching XML directly from your Android device.
 - On startup, check against pypi.com to determine if a new release is available.
 - Update the program from pypi.com (via 'pip) if 'Upgrade' is selected in the GUI.
-- Read file 'maptasker_changelog.json' from https://github.com/mctinker/Map-Tasker if "What's New" is selected in the GUI.
-- Use of chatgpt.com when using Ai Analysis with any of the OpenAi models.
-- New local Ai models will be loaded from https://ollama.com/library.
+- Read file 'maptasker_changelog.json' from 'https://github.com/mctinker/Map-Tasker' if "What's New" is selected in the GUI.
+- Use chatgpt.com when using AI analysis with any of the OpenAi models.
+- New local Ai models will be loaded from 'https://ollama.com/library'.
 
 ## Known Issues
 
