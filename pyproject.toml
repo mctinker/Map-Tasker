@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "maptasker"
 
-version = "4.0.12"
+version = "4.1.0"
 
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
@@ -21,7 +21,7 @@ exclude = ["run_test.py", "**/maptasker/**/backup.xml", "**/maptasker/maptasker.
 [tool.poetry.dependencies]
 python = "<=3.13,>=3.11"
 customtkinter = "^5.2.2"  # GUI
-# ctkcolorpicker = "^0.9.0"  # Color picker in GUI
+# ctkcolorpicker = "^0.9.0"  # Color picker in GUI. Using local version to fix a bug
 pillow = "^10.3.0"  # Image support in GUI
 darkdetect = "^0.8.0"  # Appearance mode detection
 defusedxml = "^0.7.1"  # More secure xml parser
@@ -29,6 +29,7 @@ requests = "^2.32.0"  # HTTP Server function request
 tomli_w = "^1.0.0"  # Write toml file
 cria = "^1.6.5"  #  Ai Ollama support
 openai = "^1.30.1"  #  Ai OpenAi support
+# ollama = "^0.2.1"  #  Ai Ollama support > cria rquires this
 # line-profiler = "^4.1.3"
 
 [tool.poetry.scripts]

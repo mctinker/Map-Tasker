@@ -136,7 +136,10 @@ This program is licensed under the [MIT License](https://opensource.org/license/
 
 Windows 11 has been tested and verified to work.  Limitations:
 
-- The Edge web browser, though, closes as soon as it opens when invoked from this program.  Therefore, it is recommended to use any browser other than Edge.
+- If a conflict arises during installation of 'psutil', then do the following:
+  - 'pip uninstall psutil'
+  - 'pip install psutil==5.9.8'
+  - 'pip install maptasker'
 
 - Notepad does not treat spacing correctly for the configuration diagram (MapTasker_Map.txt).  Install an app such as "Typepad" and set it as your default app for opening 'txt' files.
 
@@ -177,8 +180,6 @@ With this older version, you will not get the benefits offered by the newer vers
 ### 5
 
 Ai analysis is available through the GUI only.  You can run an analysis using a single Project, Profile or Task only.  Support is available for server-based OpenAi (ChatGPT) and local-based Llama models.
-
-The usage of llama models also requires that you manually install Ollama from [here](https://ollama.com/download) and you must run the application once to do the initial setup.  Then you can run an analysis via the GUI (see the "Analyze" tab).
 
 ## To-Do List (in no particular order)
 

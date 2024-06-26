@@ -2,14 +2,32 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.0.12] 18-June-2024
+## [4.1.0] 26-June-2024
+
+### Added
+
+- Added: If 'Debug' is on and trying to get new XML data, then display the message that 'backup.xmnl' is being used.
+- Added: Three new analysis models have been added: "qwen", "codellama" and "aya".
 
 ### Changed
 
-- Changed: Moved the 'Get XML from Android Device' button to avoid overlap with font selection button.
+- Changed: Reemoved the requirement to manually install Ollama since it is now included.
+- Changed: Simplified the ReRun option for Windows users.
 
 ### Fixed
 
+- Fixed: GUI labels are difficult to see if in "light" appearance mode.
+- Fixed: The saved GUI 'appearance' mode is not being restored on reentry to the GUI.
+- Fixed: If no Project in XML, then the outline is blank.
+- Fixed: A bad XML file was not properly being reported in the GUI.
+- Fixed: Program error when getting XML from Android device.
+- Fixed: GUI program error if no file has yet to be selected.
+
+## Older History Logs
+
+## [4.0.12] 18-June-2024
+
+- Changed: Moved the 'Get XML from Android Device' button to avoid overlap with font selection button.
 - Fixed: Restored font is not showing as the default font in the GUI.
 - Fixed: The Ai Analysis window incorrectly hangs around from the previous analysis while doing a new analysis.
 - Fixed: If displaying a single task only, the total number of Profiles displayed included the total for all Profiles under the Project in which the Task is contained, rather than just 1.
@@ -18,8 +36,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Program error if trying to run analysis with no XML data loaded.
 - Fixed: 'Run Analysis' button turns pink even if there is no model selected.
 - Fixed: Select Project/Profile/Task names not working properly if there are none to select.
-
-## Older History Logs
 
 ## [4.0.10/4.0.11]
 
