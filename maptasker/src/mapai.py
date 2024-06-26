@@ -105,6 +105,7 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
 
     # Open the model and get the response
     try:
+        print(f"Model: {PrimeItems.program_arguments['ai_model']}")
         with cria.Model(PrimeItems.program_arguments["ai_model"]) as ai:
             response = ai.chat(query, stream=False)
 

@@ -71,6 +71,7 @@ def get_the_xml_data() -> bool:
             PrimeItems.xml_tree = ET.parse(file_to_parse, parser=xmlp)
             process_file = False  # Get out of while/loop
         except ET.ParseError:  # Parsing error
+            PrimeItems.xml_tree = None
             error_message = f"Improperly formatted XML in {file_to_parse}"
             error_handler(error_message, 1)  # Error out and exit
             process_file = False  # Get out of while/loop

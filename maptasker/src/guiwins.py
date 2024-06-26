@@ -565,7 +565,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.sidebar_detail_option = add_option_menu(
         self,
         self.sidebar_frame,
-        self.detail_selected_event,
+        self.event_handlers.detail_selected_event,
         ["0", "1", "2", "3", "4"],
         2,
         0,
@@ -577,7 +577,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.everything_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
-        self.everything_event,
+        self.event_handlers.everything_event,
         "Just Display Everything!",
         3,
         0,
@@ -591,7 +591,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.condition_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
-        self.condition_event,
+        self.event_handlers.condition_event,
         "Display Profile and Task Action Conditions",
         4,
         0,
@@ -605,7 +605,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.taskernet_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
-        self.taskernet_event,
+        self.event_handlers.taskernet_event,
         "Display TaskerNet Info",
         5,
         0,
@@ -619,7 +619,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.preferences_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
-        self.preferences_event,
+        self.event_handlers.preferences_event,
         "Display Tasker Preferences",
         6,
         0,
@@ -633,7 +633,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.twisty_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
-        self.twisty_event,
+        self.event_handlers.twisty_event,
         "Hide Task Details Under Twisty",
         7,
         0,
@@ -647,7 +647,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.directory_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
-        self.directory_event,
+        self.event_handlers.directory_event,
         "Display Directory",
         8,
         0,
@@ -661,7 +661,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.outline_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
-        self.outline_event,
+        self.event_handlers.outline_event,
         "Display Configuration Outline",
         9,
         0,
@@ -675,7 +675,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.pretty_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
-        self.pretty_event,
+        self.event_handlers.pretty_event,
         "Display Prettier Output",
         10,
         0,
@@ -701,13 +701,15 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     )
 
     # Bold
-    self.bold_checkbox = add_checkbox(self, self.sidebar_frame, self.names_bold_event, "Bold", 12, 0, 20, 0, "ne", "")
+    self.bold_checkbox = add_checkbox(
+        self, self.sidebar_frame, self.event_handlers.names_bold_event, "Bold", 12, 0, 20, 0, "ne", "",
+    )
 
     # Italicize
     self.italicize_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
-        self.names_italicize_event,
+        self.event_handlers.names_italicize_event,
         "italicize",
         12,
         0,
@@ -721,7 +723,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.highlight_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
-        self.names_highlight_event,
+        self.event_handlers.names_highlight_event,
         "Highlight",
         13,
         0,
@@ -735,7 +737,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.underline_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
-        self.names_underline_event,
+        self.event_handlers.names_underline_event,
         "Underline",
         13,
         0,
@@ -764,7 +766,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.indent_option = add_option_menu(
         self,
         self.sidebar_frame,
-        self.indent_selected_event,
+        self.event_handlers.indent_selected_event,
         ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
         15,
         0,
@@ -791,7 +793,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.appearance_mode_optionmenu = add_option_menu(
         self,
         self.sidebar_frame,
-        self.change_appearance_mode_event,
+        self.event_handlers.change_appearance_mode_event,
         ["Light", "Dark", "System"],
         17,
         0,
@@ -807,7 +809,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         "",
         "",
-        self.treeview_event,
+        self.event_handlers.treeview_event,
         2,
         "Tree View",
         0,
@@ -824,7 +826,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         ("#0BF075", "#ffd941"),
         "#1bc9ff",
-        self.treeview_query_event,
+        self.event_handlers.treeview_query_event,
         1,
         "?",
         1,
@@ -843,7 +845,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         "",
         "",
-        self.reset_settings_event,
+        self.event_handlers.reset_settings_event,
         2,
         "Reset Options",
         1,
@@ -871,7 +873,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.font_optionmenu = add_option_menu(
         self,
         self,
-        self.font_event,
+        self.event_handlers.font_event,
         font_items,
         7,
         1,
@@ -888,7 +890,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#6563ff",
         "",
         "",
-        self.save_settings_event,
+        self.event_handlers.save_settings_event,
         2,
         "Save Settings",
         1,
@@ -906,7 +908,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#6563ff",
         "",
         "",
-        self.restore_settings_event,
+        self.event_handlers.restore_settings_event,
         2,
         "Restore Settings",
         1,
@@ -924,7 +926,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "",
         "",
         "",
-        self.report_issue_event,
+        self.event_handlers.report_issue_event,
         2,
         "Report Issue",
         1,
@@ -942,7 +944,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         "",
         "",
-        self.clear_messages_event,
+        lambda: self.event_handlers.clear_messages_event(),
         2,
         "Clear Messages",
         1,
@@ -957,7 +959,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "Get XML from Android Device",
         "#246FB6",
         "#6563ff",
-        self.get_backup_event,
+        self.event_handlers.get_xml_from_android_event,
     )
     # 'Get local XML' button
     self.getxml_button = add_button(
@@ -966,7 +968,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "",
         "",
         "",
-        self.getxml_event,
+        self.event_handlers.getxml_event,
         2,
         "Get Local XML",
         1,
@@ -984,7 +986,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         ("#0BF075", "#ffd941"),
         "",
-        self.help_event,
+        self.event_handlers.help_event,
         2,
         "Display Help",
         1,
@@ -1002,7 +1004,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         ("#0BF075", "#ffd941"),
         "",
-        self.backup_help_event,
+        self.event_handlers.backup_help_event,
         2,
         "Get Android Help",
         1,
@@ -1020,7 +1022,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         ("#0BF075", "#1AD63D"),
         "",
-        self.run_program,
+        self.event_handlers.run_program_event,
         2,
         "Run and Exit",
         1,
@@ -1038,7 +1040,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         ("#0BF075", "#1AD63D"),
         "",
-        self.rerun_the_program,
+        self.event_handlers.rerun_the_program_event,
         2,
         "ReRun",
         1,
@@ -1056,7 +1058,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         "Red",
         "",
-        self.exit_program,
+        self.event_handlers.exit_program_event,
         2,
         "Exit",
         1,
@@ -1115,7 +1117,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.colors_optionmenu = add_option_menu(
         self,
         self.tabview.tab("Colors"),
-        self.colors_event,
+        self.event_handlers.colors_event,
         [
             "Projects",
             "Profiles",
@@ -1148,7 +1150,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "",
         "",
         "",
-        self.color_reset_event,
+        self.event_handlers.color_reset_event,
         2,
         "Reset to Default Colors",
         1,
@@ -1168,7 +1170,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "",  # fg_color: str,
         "",  # text_color: str,
         "",  # border_color: str,
-        self.ai_apikey_event,  # command
+        self.event_handlers.ai_apikey_event,  # command
         2,  # border_width: int,
         "Show/Edit OpenAI API Key",  # text: str,
         1,  # columnspan: int,
@@ -1185,7 +1187,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "",  # fg_color: str,
         "",  # text_color: str,
         "",  # border_color: str,
-        self.ai_prompt_event,  # command
+        self.event_handlers.ai_prompt_event,  # command
         2,  # border_width: int,
         "Change Prompt",  # text: str,
         1,  # columnspan: int,
@@ -1219,7 +1221,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.ai_model_option = add_option_menu(
         self,
         self.tabview.tab("Analyze"),
-        self.ai_model_selected_event,
+        self.event_handlers.ai_model_selected_event,
         display_models,
         6,
         0,
@@ -1238,7 +1240,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         ("#0BF075", "#ffd941"),
         "#1bc9ff",  # border_color: str,
-        self.ai_help_event,  # command
+        self.event_handlers.ai_help_event,  # command
         1,  # border_width: int,
         "?",  # text: str,
         1,  # columnspan: int,
@@ -1254,7 +1256,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.debug_checkbox = add_checkbox(
         self,
         self.tabview.tab("Debug"),
-        self.debug_checkbox_event,
+        self.event_handlers.debug_checkbox_event,
         "Debug Mode",
         4,
         3,
@@ -1267,7 +1269,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     self.runtime_checkbox = add_checkbox(
         self,
         self.tabview.tab("Debug"),
-        self.runtime_checkbox_event,
+        self.event_handlers.runtime_checkbox_event,
         "Display Runtime Settings",
         3,
         3,

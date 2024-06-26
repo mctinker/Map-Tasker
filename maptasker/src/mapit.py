@@ -524,40 +524,9 @@ def restart_program() -> None:
     Returns:
         - None
     Processing Logic:
-        - Use sys.executable to execute ourselves again.
-        - Use contextlib.suppress to ignore OSError.
-        - Use platform.system to check the system: Windows or Linux/UNix base.
-        - Use subprocess.run to run the program if Windows.
-        - Use os.execl to execute the program if not Windows.
-        - Use sys.exit to exit the program."""
-    # NOTE: execl is the preferred method to launch a new program, but it doesn't work on Windows.
-    #       So for Windows, we use subprocess.run.
-    #       'subprocess' does not immediately return from the call whereas 'execl' does return immediate control.
-    #
-    # sys.executable points to location of python: ../../python runtime
-    # Asterisk before sys.argv breaks it into separate arguments
-    with contextlib.suppress(OSError, SystemError):
-        if platform.system() == "Windows":
-            subprocess.run([sys.executable, *sys.argv], check=False)  # noqa: S603
-        else:
-            # Flush any output from this run
-            sys.stdout.flush()
-            # Start a new process which replaces our current process (it does not return).
-            # print("You can ignore the following error message: 'Task policy set failed...' (if it appears)")
-            # Put quotes arount the file option
-            # for arg in sys.argv:
-            #    if "-file" in arg:
-            #        sys.argv.remove(arg)
-            #        sys.argv.append(f'-file="{arg[6:]}"')
-            #        break
-            # sys.argv[0] = f"'{sys.argv[0]}'"  # Add quotes around the sys.argv
-            # print("\n", [sys.executable], *sys.argv, "\n")
+        - Call ourselves and exit after the last call."""
 
-            # with contextlib.suppress(OSError):
-            #    os.execl(sys.executable, "arg", *sys.argv)
-
-            _ = mapit_all("")
-
+    _ = mapit_all("")
     sys.exit(0)  # This should never be called.
 
 

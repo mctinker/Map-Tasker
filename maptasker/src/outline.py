@@ -205,25 +205,26 @@ def outline_scenes(project_name: str, network: dict) -> None:
                     the owning Project.
     """
     scene_names = ""
-    project = PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"]
-    with contextlib.suppress(Exception):
-        scene_names = project.find("scenes").text
-    if scene_names != "":
-        scene_list = scene_names.split(",")
+    if PrimeItems.tasker_root_elements["all_projects"]:
+        project = PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"]
+        with contextlib.suppress(Exception):
+            scene_names = project.find("scenes").text
+        if scene_names != "":
+            scene_list = scene_names.split(",")
 
-        # Add Scenes to our network
-        network[project_name]["Scenes"] = scene_list
+            # Add Scenes to our network
+            network[project_name]["Scenes"] = scene_list
 
-        arrow_to_use = arrow
-        for scene in scene_list:
-            # If last Scene for Project, put an elbow in instead of full bracket
-            if scene == scene_list[-1]:
-                arrow_to_use = arrow_to_use.replace("├", "└")
-            PrimeItems.output_lines.add_line_to_output(
-                0,
-                f"{blank*5}{arrow_to_use}{blank*2}Scene: {scene}",
-                ["", "scene_color", FormatLine.add_end_span],
-            )
+            arrow_to_use = arrow
+            for scene in scene_list:
+                # If last Scene for Project, put an elbow in instead of full bracket
+                if scene == scene_list[-1]:
+                    arrow_to_use = arrow_to_use.replace("├", "└")
+                PrimeItems.output_lines.add_line_to_output(
+                    0,
+                    f"{blank*5}{arrow_to_use}{blank*2}Scene: {scene}",
+                    ["", "scene_color", FormatLine.add_end_span],
+                )
 
 
 # Go through the Tasks in the Profile and output them.
@@ -254,6 +255,10 @@ def do_profile_tasks(
     arrow_to_use = arrow1
 
     tasks_in_profile = []
+    # If no Project, then this XML only has a Profile or Task
+    if not project_name:
+        project_name = "No Project"
+        network[project_name] = {}
     network[project_name][profile_name] = []
 
     # Go through Task's output lines and Tasks, and add arrows as appropriate.
@@ -401,12 +406,34 @@ def do_the_outline(network: dict) -> None:
     """
     Start outline beginning with the Projects
         Args:
-
             network (dict): Dictionary structure for our network
     """
     # Name anonymous Tasks as "anonymous#1", "anonymous#2", etc.
     assign_names_to_anonymous_tasks()
 
+    # If no projects and a profile or task, just display profile or task rather than going through this loop.
+    if not PrimeItems.tasker_root_elements["all_projects"] and (
+        PrimeItems.tasker_root_elements["all_profiles"] or PrimeItems.tasker_root_elements["all_tasks"]
+    ):
+        pids = []
+        tids = []
+        # Get the Profile and Task IDs
+        for key in PrimeItems.tasker_root_elements["all_profiles"]:
+            pids.append(key)  # noqa: PERF402
+        for key in PrimeItems.tasker_root_elements["all_tasks"]:
+            tids.append(key)
+            # If no Profile at this point, let user know and return.
+            if not pids:
+                PrimeItems.output_lines.add_line_to_output(
+                    0,
+                    f"{blank*3}Task only...nothing to outline",
+                    ["", "project_color", FormatLine.add_end_span],
+                )
+                return
+        outline_profiles_tasks_scenes("", pids, tids, network)
+        return
+
+    # Go thru all Projects
     for project_item in PrimeItems.tasker_root_elements["all_projects"]:
         # Get the Project XML element
         project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]
@@ -535,6 +562,19 @@ def outline_the_configuration() -> None:
         ["", "trailing_comments_color", FormatLine.add_end_span],
     )
 
+    # Make sure there is something to outline
+    if (
+        not PrimeItems.tasker_root_elements["all_tasks"]
+        and not PrimeItems.tasker_root_elements["all_profiles"]
+        and not PrimeItems.tasker_root_elements["all_projects"]
+    ):
+        PrimeItems.output_lines.add_line_to_output(
+            0,
+            "Nothing to outline",
+            ["", "trailing_comments_color", FormatLine.add_end_span],
+        )
+        return
+
     # Go do it!  Generate the outline near the bottom of the output.
     do_the_outline(network)
 
@@ -546,4 +586,5 @@ def outline_the_configuration() -> None:
     )
 
     # Now generate the outline diagram text file.
-    network_map(network)
+    if network:
+        network_map(network)

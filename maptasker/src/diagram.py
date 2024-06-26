@@ -262,6 +262,9 @@ def do_tasks_with_no_profile(
         - Build profile box for tasks not in any profile
         - Print tasks not in any profile
     """
+    # If no Project, just return
+    if project_name == "No Project":
+        return output_profile_lines, output_task_lines
 
     project_root = PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"]
     tasks_not_in_profile = []

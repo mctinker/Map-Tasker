@@ -49,18 +49,20 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.0.12 - Change Log\n
+Version 4.1.0 - Change Log\n
+### Added\n
+- Added: If 'Debug' is on and trying to get new XML data, then display the message that 'backup.xmnl' is being used.\n
+- Added: Three new analysis models have been added: "qwen", "codellama" and "aya".\n
 ### Changed\n
-- Changed: Moved the 'Get XML from Android Device' button to avoid overlap with font selection button.\n
+- Changed: Reemoved the requirement to manually install Ollama since it is now included.\n
+- Changed: Simplified the ReRun option for Windows users.\n
 ### Fixed\n
-- Fixed: Restored font is not showing as the default font in the GUI.\n
-- Fixed: The Ai Analysis window incorrectly hangs around from the previous analysis while doing a new analysis.\n
-- Fixed: If displaying a single task only, the total number of Profiles displayed included the total for all Profiles under the Project in which the Task is contained, rather than just 1.\n
-- Fixed: The 'Set Prompt' Ai Analysis dialog window is not always selectable.\n
-- Fixed: "Reset Settings' does not reset the font to the default monospace Courier font.\n
-- Fixed: Program error if trying to run analysis with no XML data loaded.\n
-- Fixed: 'Run Analysis' button turns pink even if there is no model selected.\n
-- Fixed: Select Project/Profile/Task names not working properly if there are none to select.\n
+- Fixed: GUI labels are difficult to see if in "light" appearance mode.\n
+- Fixed: The saved GUI 'appearance' mode is not being restored on reentry to the GUI.\n
+- Fixed: If no Project in XML, then the outline is blank.\n
+- Fixed: A bad XML file was not properly being reported in the GUI.\n
+- Fixed: Program error when getting XML from Android device.\n
+- Fixed: GUI program error if no file has yet to be selected.\n
 Refer to the github changelog for a history of all changes made at: https://tinyurl.com/bdh47a44\n
 """
 
@@ -136,6 +138,7 @@ def get_xml(debug: bool, appearance_mode: str) -> int:
         - Return data and output intro."""
     if not PrimeItems.file_to_get:
         PrimeItems.file_to_get = "backup.xml" if debug else ""
+    PrimeItems.file_to_use = ""  # Get rid of any previous file
     PrimeItems.program_arguments["debug"] = debug
     PrimeItems.program_arguments["gui"] = True
     PrimeItems.colors_to_use = set_color_mode(appearance_mode)
@@ -178,7 +181,7 @@ def get_monospace_fonts() -> dict:
     - Return lists of monospace fonts and Courier/Monaco font
     """
     fonts = get_mono_fonts()
-    #font_items = ["Courier"]
+    # font_items = ["Courier"]
     font_items = [value for value in fonts.values() if "Wingdings" not in value]
     # Find which Courier font is in our list and set.
     res = [i for i in font_items if "Courier" in i]
@@ -243,9 +246,8 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
         self: The class instance
     Returns:
         None
-    - Destroys IP, port, file entry and label widgets
-    - Destroys get backup button
-    - Displays new backup button with callback to get_backup_event method"""
+    - Destroys all labels, buttons and entries associated with fetching the backup file from Android device
+    """
 
     # Each element to be destoryed needs a suppression since any one suppression will be triggered if any one of
     # the elements is not defined.
@@ -273,16 +275,17 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
         self.filelist_label.destroy()
     with contextlib.suppress(AttributeError):
         self.filelist_option.destroy()
-    with contextlib.suppress(AttributeError):
-        self.list_files_query_button.destroy()
-    with contextlib.suppress(AttributeError):  # Destroy upgrade button since file location would sit on top of it.
-        self.upgrade_button.destroy()
+    if not self.first_time:  # If first time, don't destory Upgrade and What's New buttons.
+        with contextlib.suppress(AttributeError):
+            self.list_files_query_button.destroy()
+        with contextlib.suppress(AttributeError):  # Destroy upgrade button since file location would sit on top of it.
+            self.upgrade_button.destroy()
 
     self.get_backup_button = self.display_backup_button(
         "Get XML from Android Device",
         "#246FB6",
         "#6563ff",
-        self.get_backup_event,
+        self.event_handlers.get_xml_from_android_event,
     )
 
 
@@ -499,7 +502,7 @@ def add_logo(self) -> None:  # noqa: ANN001
 
 # Create a label general routine
 def add_label(
-    self,  # noqa: ANN001, ARG001
+    self,
     frame: ctk.CTkFrame,
     text: str,
     text_color: str,
@@ -534,13 +537,18 @@ def add_label(
     if not font_size or font_size == 0:
         font_size = default_font_size
     if not text_color:
-        text_color = "#FFFFFF"
-    label_name = ctk.CTkLabel(
-        frame,
-        text=text,
-        text_color=text_color,
-        font=ctk.CTkFont(size=font_size, weight=font_weight),
-    )
+        label_name = ctk.CTkLabel(
+            frame,
+            text=text,
+            font=ctk.CTkFont(size=font_size, weight=font_weight),
+        )
+    else:
+        label_name = ctk.CTkLabel(
+            frame,
+            text=text,
+            text_color=text_color,
+            font=ctk.CTkFont(size=font_size, weight=font_weight),
+        )
     label_name.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
     return label_name
 
@@ -727,7 +735,7 @@ def display_analyze_button(self, row: int, first_time: bool) -> None:  # noqa: A
             fg_color,  # fg_color: str,
             text_color,  # text_color: str,
             "#6563ff",  # border_color: str,
-            self.ai_analyze_event,  # command
+            self.event_handlers.ai_analyze_event,  # command
             2,  # border_width: int,
             "Run Analysis",  # text: str,
             1,  # columnspan: int,
@@ -856,7 +864,8 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         self,
         self.tabview.tab("Specific Name"),
         name_to_display,
-        ("#0BF075", "#3f99ff"),
+        "",
+        # ("#0BF075", "#3f99ff"),
         0,
         "normal",
         10,
@@ -983,7 +992,7 @@ def validate_or_filelist_xml(
         self.filelist_option = add_option_menu(
             self,
             self,
-            self.file_selected_event,
+            self.event_handlers.file_selected_event,
             filelist,
             7,
             1,
@@ -1206,9 +1215,9 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
         projects_to_display,
         profiles_to_display,
         tasks_to_display,
-        self.single_project_name_event,
-        self.single_profile_name_event,
-        self.single_task_name_event,
+        self.event_handlers.single_project_name_event,
+        self.event_handlers.single_profile_name_event,
+        self.event_handlers.single_task_name_event,
     )
 
     # Display the object pulldowns in 'Specific Name' tab
@@ -1222,9 +1231,9 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
             projects_to_display,
             profiles_to_display,
             tasks_to_display,
-            self.single_project_name_event,
-            self.single_profile_name_event,
-            self.single_task_name_event,
+            self.event_handlers.single_project_name_event,
+            self.event_handlers.single_profile_name_event,
+            self.event_handlers.single_task_name_event,
         )
     )
     return True
@@ -1491,12 +1500,15 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
         self.ai_profile_optionmenu.set(default_profile)
     else:
         self.specific_name_msg = ""
-        self.specific_project_optionmenu.set(default_project)
-        self.specific_profile_optionmenu.set(default_profile)
-        self.ai_project_optionmenu.set(default_project)
-        self.ai_profile_optionmenu.set(default_profile)
-        self.specific_task_optionmenu.set(default_task)
-        self.ai_task_optionmenu.set(default_task)
+        try:  # If it works on the first one, then all others will work as well.
+            self.specific_project_optionmenu.set(default_project)
+            self.specific_profile_optionmenu.set(default_profile)
+            self.ai_project_optionmenu.set(default_project)
+            self.ai_profile_optionmenu.set(default_profile)
+            self.specific_task_optionmenu.set(default_task)
+            self.ai_task_optionmenu.set(default_task)
+        except AttributeError:
+            pass
 
 
 # Clear all Tasker XML data from memory so we start anew.
