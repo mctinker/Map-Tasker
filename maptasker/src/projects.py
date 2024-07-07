@@ -483,7 +483,7 @@ def finish_up(
         PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
     # Output the Project's variables
-    if PrimeItems.program_arguments["display_detail_level"] == 4:
+    if PrimeItems.program_arguments["display_detail_level"] >= 4:
         output_variables("Project Global Variables", project)
 
     # Output the Project summary line

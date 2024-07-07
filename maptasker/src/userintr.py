@@ -25,9 +25,11 @@ from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT
 from maptasker.src.ctk_color_picker import AskColor
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
+from maptasker.src.guimap import get_the_map
 from maptasker.src.guiutils import (
     CHANGELOG,
     add_button,
+    add_cancel_button,
     add_label,
     build_profiles,
     check_for_changelog,
@@ -43,6 +45,7 @@ from maptasker.src.guiutils import (
     is_new_version,
     list_tasker_objects,
     ping_android_device,
+    reload_gui,
     set_tasker_object_names,
     setup_name_error,
     update_tasker_object_menus,
@@ -50,10 +53,10 @@ from maptasker.src.guiutils import (
     validate_or_filelist_xml,
 )
 from maptasker.src.guiwins import (
-    AnalysisWindow,
-    CTkAnalysisview,
+    CTkHyperlinkManager,
+    CTkTextview,
     CTkTreeview,
-    TreeviewWindow,
+    TextWindow,
     get_rid_of_window,
     initialize_gui,
     initialize_screen,
@@ -62,12 +65,14 @@ from maptasker.src.guiwins import (
 )
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
-from maptasker.src.mapit import clean_up_memory
+from maptasker.src.mapit import clean_up_memory, mapit_all
 from maptasker.src.maputils import update, validate_xml_file
+from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     CHANGELOG_JSON_URL,
+    DIAGRAM_FILE,
     KEYFILE,
     OPENAI_MODELS,
     TYPES_OF_COLOR_NAMES,
@@ -147,7 +152,7 @@ BACKUP_HELP_TEXT = (
     "    https://shorturl.at/bwCD4\n\n"
     "3- If you want to use the 'List XML Files' option, then you must also import the following profile "
     "into the Android device and make sure the imported profile 'MapTasker List' is enabled:\n\n"
-    "    https://shorturl.at/buvK6\n\n"
+    "    https://shorturl.at/sGS08\n\n"
     "You will be asked for the IP address, the port number for your Android device,"
     " as well as the file location on the Android device.  Default values are supplied, where...\n\n"
     "'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP"
@@ -180,13 +185,23 @@ LISTFILES_HELP_TEXT = (
     "    https://shorturl.at/buvK6\n\n"
 )
 
-TREEVIEW_HELP_TEXT = (
-    "The Treeview has the following limitations/behavior:\n\n"
+VIEW_HELP_TEXT = (
+    "XML must first be obtained from the either local drive or Android device for the views to work.\n\n"
+    "All view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\n"
+    "If the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data."
+    " In otherwords, the view will remain the same until either the 'Reset' button is hit, or a new XML file is fetched from the"
+    " local drive or Android device.\n\n"
+    "\nThe Map View has the following behavior:\n\n"
+    " - The coloring and highlighting of the map is targeted for a future release.\n\n"
+    " - While the browser is not invoked directly, the map is displayed in the browser by opening the 'MapTasker.html' file.\n\n"
+    " - The horizontal scrollbar goes beyond the end of the map for some reason.\n\n"
+    " - The vertical scrollbar only appears for lines that are too long for the text window.\n\n"
+    " - The display 'Directory' and 'Outline' settings are ignored since they do not work in the Map view.\n\n"
+    "\nThe Diagram View has the following behavior:\n\n"
+    " - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n"
+    "\nThe Tree View has the following behavior:\n\n"
     "- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n"
-    "- Only Projects can be displayed. XML consisting of only a single Profile or Task will not be displayed.\n\n"
-    "- If the XML has already been fetched, it will be used as input to the treeview.  Hitting the 'Reset' button will clear the treeview data."
-    " In otherwords, the treeview will remain the same until either the 'Reset' button is hit, or a new XML file is fetched from the"
-    " Android device or the program is run with the '-reset' option."
+    "- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n"
 )
 
 AI_HELP_TEXT = (
@@ -263,7 +278,7 @@ class MyGui(customtkinter.CTk):
         # Check if newer version of our code is available on Pypi.
         self.check_new_version()
 
-        # See if we have a changelog, and get it if we do.
+        # See if we have a changelog, and get it if we do.  This must go before 'self.process_current_messages()' call.
         check_for_changelog(self)
 
         # See if we have any current messages to display.
@@ -276,6 +291,10 @@ class MyGui(customtkinter.CTk):
 
         # Update the analysis button
         display_analyze_button(self, 13, first_time=True)
+
+        # Process Map View
+        if PrimeItems.program_arguments["mapgui"]:
+            self.display_map()
 
         # We are done with the initialization.
         self.display_message_box("Initialization complete.\n", "Green")
@@ -406,6 +425,11 @@ class MyGui(customtkinter.CTk):
         # Catch erroneous message
         if message == "None":
             return
+
+        # Clear previous messages
+        if self.clear_messages:
+            self.clear_messages = False
+            self.event_handlers.clear_messages_event()
 
         # Convert numeric to proper format
         if color.isnumeric():
@@ -575,8 +599,6 @@ class MyGui(customtkinter.CTk):
             )
         return True
 
-
-
     # Process single name restore
     def process_single_name_restore(
         self,
@@ -622,7 +644,6 @@ class MyGui(customtkinter.CTk):
                 case _:
                     pass
 
-
     # Define the textbox for information/feedback
     def create_new_textbox(self) -> None:
         """
@@ -646,7 +667,7 @@ class MyGui(customtkinter.CTk):
         self.textbox = customtkinter.CTkTextbox(self, height=650, width=250)
         self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
         self.textbox.configure(font=(self.font, 14), wrap="word", scrollbar_button_color="#6563ff")
-
+        self.hyperlink = CTkHyperlinkManager(self.textbox)
 
     # ################################################################################
     # Select or deselect a checkbox based on the value passed in
@@ -665,8 +686,6 @@ class MyGui(customtkinter.CTk):
         checkbox_value = checkbox.get()
         self.inform_message(title, checkbox_value, "")
         return checkbox_value
-
-
 
     # Rebuilld message box with new text (e.g. for Help).
     def new_message_box(self, message: str) -> None:
@@ -690,6 +709,23 @@ class MyGui(customtkinter.CTk):
         self.create_new_textbox()
         # Insert the text.
         self.textbox.insert("0.0", message)
+
+        # Check for hyperlink
+        # [hypers.append(m.start()) for m in re.finditer("https://", message)]
+        hyper = message.find("https://")
+        if hyper != -1:
+            text_lines = message.split("\n")
+            for num, line in enumerate(text_lines):
+                hyper = line.find("https://")
+                if hyper != -1:
+                    end_hyper = line.find(" ", hyper)
+                    if end_hyper == -1:
+                        end_hyper = len(line)
+                    link = line[hyper : end_hyper + 1]
+                    # Delete the http url
+                    self.textbox.delete(f"{num+1}.{hyper}", f"{num+1}.{end_hyper+1}")
+                    # Add the link
+                    self.textbox.insert(f"{num+1}.{end_hyper+2}", link, self.hyperlink.add(link))
 
         # Display some colored text: the heading
         self.textbox.tag_add(
@@ -767,7 +803,21 @@ class MyGui(customtkinter.CTk):
             - Returns message generated by lambda function
         """
         message = ""
-        keys_to_ignore = {"gui", "save", "restore", "rerun", "reset", "window_position"}
+        keys_to_ignore = {
+            "gui",
+            "save",
+            "restore",
+            "rerun",
+            "reset",
+            "window_position",
+            "ai_analysis_window_position",
+            "color_window_position",
+            "diagram_window_position",
+            "map_window_position",
+            "tree_window_position",
+            "mapgui",
+            "fetched_backup_from_android",
+        }
         message_map = {
             "android_ipaddr": lambda: f"Android Get XML TCP IP Address set to {value}\n",
             "android_port": lambda: f"Android Get XML Port Number set to {value}\n",
@@ -1087,7 +1137,7 @@ class MyGui(customtkinter.CTk):
             self.quit()
         else:
             # ReRun
-            get_rid_of_window(self)
+            get_rid_of_window(self, delete_all=True)
             # Now get rid of stuff we don't want around anymore
             self.sidebar_frame.destroy()
             with contextlib.suppress(AttributeError):
@@ -1120,11 +1170,8 @@ class MyGui(customtkinter.CTk):
             else:
                 return
 
-        # We already have the XML.  Just exit.
-        if not self.ai_analyze:
-            self.cleanup(run_only)
-        else:
-            get_rid_of_window(self)
+        # Do the final cleanup of windows and exit.
+        self.cleanup(run_only)
 
     # Prompt for and get the XML file from the local drive.
     def prompt_and_get_file(self, debug: bool, appearance_mode: str) -> bool:
@@ -1268,7 +1315,12 @@ class MyGui(customtkinter.CTk):
             - Packs the treeview in the window with specified padding and filling."""
         if tree_data:
             if self.treeview_window is None or not self.treeview_window.winfo_exists():
-                self.treeview_window = TreeviewWindow(self)  # create window if its None or destroyed
+                self.treeview_window = TextWindow(
+                    master=self,
+                    window_position=self.tree_window_position,
+                    title="Tree View",
+                )  # create window if its None or destroyed
+
             else:
                 self.treeview_window.focus()  # if window exists focus it
 
@@ -1277,6 +1329,55 @@ class MyGui(customtkinter.CTk):
             tree_view.pack(padx=10, pady=10, fill="both", expand=True)
         else:
             self.display_message_box("No Project(s) Found in XML!", "Red")
+
+    # Display diagram view
+    def display_diagram(self, diagram_data: list) -> None:
+        """Displays a diagram window with given data.
+        Parameters:
+            diagram_data (list): List of data to be displayed in the diagramview.
+        Returns:
+            None: This function does not return anything.
+        Processing Logic:
+            - Creates a new window if one does not exist.
+            - Focuses on the window if it already exists.
+            - Displays the given data in a view format.
+            - Packs the diagramview in the window with specified padding and filling."""
+        if diagram_data:
+            if self.diagramview_window is None or not self.diagramview_window.winfo_exists():
+                self.diagramview_window = TextWindow(
+                    master=self,
+                    window_position=self.diagram_window_position,
+                    title="Diagram View",
+                )  # create window if its None or destroyed
+            else:
+                self.diagramview_window.focus()  # if window exists focus it
+
+            # Display the diagram.
+            diagram_view = CTkTextview(master=self.diagramview_window, title="Diagram View", the_data=diagram_data)
+            diagram_view.pack(padx=10, pady=10, fill="both", expand=True)
+        else:
+            self.display_message_box("No Project(s) Found in XML!", "Red")
+
+    # Display dmap view
+    def display_map(self) -> None:
+        """
+        A method to display the map view, creating a TextWindow if not already existing, and focusing on it if it does.
+        Creates a map view using CTkTextview with the specified title and empty data, packing it with certain padding
+        and expansion properties.
+        """
+        if self.mapview_window is None or not self.mapview_window.winfo_exists():
+            self.mapview_window = TextWindow(
+                master=self,
+                window_position=self.map_window_position,
+                title="Map View",
+            )  # create window if its None or destroyed
+        else:
+            self.mapview_window.focus()  # if window exists focus it
+
+        # Display the diagram.
+        map_data = get_the_map()
+        map_view = CTkTextview(master=self.mapview_window, title="Map View", the_data=map_data)
+        map_view.pack(padx=10, pady=10, fill="both", expand=True)
 
     # Display Ai Analysis response in a separate top level window.
     def display_ai_response(self, error_msg: str) -> None:
@@ -1291,12 +1392,16 @@ class MyGui(customtkinter.CTk):
         """
         # create window if its None or destroyed
         if self.ai_analysis_window is None or not self.ai_analysis_window.winfo_exists():
-            self.ai_analysis_window = AnalysisWindow(self)
+            self.ai_analysis_window = TextWindow(
+                master=self,
+                window_position=self.ai_analysis_window_position,
+                title="Analysis View",
+            )
         else:
             self.ai_analysis_window.focus()  # if window exists focus it
 
         # Display the analysis in the toplevel window.
-        analysis_view = CTkAnalysisview(master=self.ai_analysis_window, message=error_msg)
+        analysis_view = CTkTextview(master=self.ai_analysis_window, title="Analysis View", the_data=error_msg)
         analysis_view.pack(padx=10, pady=10, fill="both", expand=True)
         analysis_view.after(10, self.ai_analysis_window.lift)  # Make window jump to the front
 
@@ -1425,7 +1530,8 @@ class MyGui(customtkinter.CTk):
             screen_height = self.winfo_screenheight()
 
             # Overall window dimensions
-            self.geometry(f"1100x900+{screen_width//4}+{screen_height//6}")
+            self.geometry(f"1129x988+{screen_width//4}+{screen_height//6}")
+
 
 # Event handlers for Customtkinter widgets
 class EventHandlers:
@@ -1438,6 +1544,7 @@ class EventHandlers:
     Returns:
         None
     """
+
     def __init__(self, parent: object) -> None:
         """
         Initializes an instance of the EventHandlers class with the given parent.
@@ -1578,24 +1685,6 @@ class EventHandlers:
             True,
         )
 
-        # Add Cancel button
-        self.cancel_entry_button = add_button(
-            self,
-            self,
-            "#246FB6",
-            "",
-            "#1bc9ff",
-            self.event_handlers.backup_cancel_event,
-            2,  # border width
-            "Cancel Entry",
-            2,  # column span
-            7,  # row
-            1,  # column
-            (80, 260),
-            (70, 0),
-            "ne",
-        )
-
         # Add 'List XML Files' button
         self.list_files_button = add_button(
             self,
@@ -1613,6 +1702,9 @@ class EventHandlers:
             (190, 0),
             "ne",
         )
+
+        # Add 'Cancel Entry' button
+        add_cancel_button(self, row=7, delta_y=70)
 
         ## Add ..or.. label.
         self.label_or = add_label(
@@ -1759,6 +1851,7 @@ class EventHandlers:
         - Displays the help message text in the message box"""
         self = self.parent
         self.new_message_box(HELP)
+        self.clear_messages = True  # Flag to tell display_message_box to clear the message box
 
     # Process the 'Get Backup Help' button
     def backup_help_event(self) -> None:
@@ -1773,6 +1866,7 @@ class EventHandlers:
             - Displays the backup help text in the message box"""
         self = self.parent
         self.new_message_box("Fetch Backup Help\n\n" + BACKUP_HELP_TEXT)
+        self.clear_messages = True  # Flag to tell display_message_box to clear the message box
 
     # Process the '?' List XML Files query button
     def listfile_query_event(self) -> None:
@@ -1787,6 +1881,7 @@ class EventHandlers:
             - Help text is stored in LISTFILES_HELP_TEXT variable."""
         self = self.parent
         self.new_message_box("List XML Files Help\n\n" + LISTFILES_HELP_TEXT)
+        self.clear_messages = True  # Flag to tell display_message_box to clear the message box
 
     # Process the '?' Tree View query button
     def treeview_query_event(self) -> None:
@@ -1800,8 +1895,8 @@ class EventHandlers:
             - Uses new_message_box method.
             - Help text is stored in LISTFILES_HELP_TEXT variable."""
         self = self.parent
-        self.new_message_box("Tree View Help\n\n" + TREEVIEW_HELP_TEXT)
-
+        self.new_message_box("View Help\n\n" + VIEW_HELP_TEXT)
+        self.clear_messages = True  # Flag to tell display_message_box to clear the message box
 
     # Cancel the entry of backup parameters
     def backup_cancel_event(self) -> None:
@@ -2002,11 +2097,14 @@ class EventHandlers:
         self.display_message_box("Program updated.  Restarting...", "Green")
         # Create the Change Log file to be read and displayed after a program update.
         create_changelog()
-        # ReRun via a new process, which will load and run the new program/version.
-        # Note: this will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'
-        # Note: this current process will not return after this call, but simply be killed.
-        print("The following error message can be ignored: 'Task policy set failed: 4 ((os/kern) invalid argument)'.")
-        os.execl(sys.executable, "python", *sys.argv)
+
+        # Reload the GUI by running a new process with the new program/version.
+        reload_gui(self, sys.argv)
+        ## ReRun via a new process, which will load and run the new program/version.
+        ## Note: this will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'
+        ## Note: this current process will not return after this call, but simply be killed.
+        # print("The following error message can be ignored: 'Task policy set failed: 4 ((os/kern) invalid argument)'.")
+        # os.execl(sys.executable, "python", *sys.argv)
 
     # The Upgrade Version button has been pressed.
     def report_issue_event(self) -> None:
@@ -2030,7 +2128,7 @@ class EventHandlers:
         except webbrowser.Error:
             self.display_message_box("Error: Failed to open output in browser: your browser is not supported.", "Red")
             return
-        self.new_message_box("Report an Issue or Request a Feature\n\n" + issue_text)
+        self.display_message_box("Report an Issue or Request a Feature\n\n" + issue_text)
 
     # Process single name selection/event
     def process_name_event(
@@ -2625,6 +2723,7 @@ class EventHandlers:
 
             # Display the tree
             self.display_tree(tree_data)
+            self.display_message_box("Tree View displayed.", "Green")
 
     # Get XML button clicked.  Prompt usere for XML and load it.
     def getxml_event(self) -> None:
@@ -2782,7 +2881,7 @@ class EventHandlers:
             # Update the Project/Profile/Task pulldown option menus.
             set_tasker_object_names(self)
 
-    # Process the '?' Tree View query button
+    # Process the '?' Ai query button
     def ai_help_event(self) -> None:
         """Function to display help text for the Analysis tab.
         Parameters:
@@ -2795,6 +2894,7 @@ class EventHandlers:
             - Help text is stored in AI_HELP_TEXT variable."""
         self = self.parent
         self.new_message_box("Analyze Help\n\n" + AI_HELP_TEXT)
+        self.clear_messages = True  # Flush messages after displaying this help info.
 
     # Handle Ai Prompt change event.
     def ai_prompt_event(self) -> None:
@@ -2928,3 +3028,127 @@ class EventHandlers:
         # Close it down
         self.quit()
         self.quit()
+
+    # Diagram View event
+    def diagram_event(self) -> None:
+        """
+        Event handler for the diagram event.
+
+        This method is responsible for processing the diagram when the diagram event is triggered. It performs the following steps:
+        1. It assigns the parent object to the current object.
+        2. It checks if there is already a Project.
+            - If there is a Project, it performs the following steps:
+                - It calls the `outline_the_configuration` function to process the diagram and build the 'network'.
+                - It clears the `PrimeItems.output_lines.output_lines` list.
+                - It retrieves the directory from which the diagram file is being run.
+                - It opens the diagram file in read mode using UTF-8 encoding.
+                - It reads the contents of the file into a list called `diagram_data` by stripping the trailing newline characters.
+                - It calls the `display_diagram` method of the current object, passing `diagram_data` as an argument.
+            - If there is no Project, it displays a message box indicating that the diagram is not possible due to no Projects in the current XML file.
+        3. If there is no XML file loaded, it displays a message box indicating that the diagram is not possible due to no XML file loaded.
+
+        This method does not return any value.
+        """
+        self = self.parent
+        # If we don't already have Project, then get some XML.
+        if self.load_xml():
+            if PrimeItems.tasker_root_elements["all_projects"] or PrimeItems.tasker_root_elements["all_profiles"]:
+                # Process the diagram: builds the 'network' and then draws it in the GUI
+                outline_the_configuration()
+                PrimeItems.output_lines.output_lines.clear()
+                # Process the diagram file
+                diagram_dir = (
+                    f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"  # Get the directory from which we are running.
+                )
+                with open(str(diagram_dir), encoding="utf-8") as diagram_file:
+                    diagram_data = [line.rstrip() for line in diagram_file]  # Read file into a list
+
+                    # Display the diagram
+                    self.display_diagram(diagram_data)
+                    self.display_message_box("Diagram View displayed.", "Green")
+            else:
+                self.display_message_box(
+                    "Diagram not possible.  No Projects or Profiles in the current XML file.",
+                    "Orange",
+                )
+        else:
+            # No XML to diagram.
+            self.display_message_box("Diagram not possible.  No XML file loaded.", "Orange")
+
+    def map_event(self) -> None:
+        """
+        Executes the map event.
+
+        This function checks if the XML file is loaded. If it is, it checks if there are any projects, profiles, tasks,
+        or scenes in the XML. If there are, it sets the `mapgui` attribute to `True` and executes the `mapit_all`
+        function. If there are no projects, profiles, tasks, or scenes, it displays a message box indicating that the
+        map is not possible. If the XML is not loaded, it displays a message box indicating that the map is not
+        possible because there is no XML file loaded.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
+        self = self.parent
+        # If we don't already have Project, then get some XML.
+        if self.load_xml():
+            if (
+                PrimeItems.tasker_root_elements["all_projects"]
+                or PrimeItems.tasker_root_elements["all_profiles"]
+                or PrimeItems.tasker_root_elements["all_tasks"]
+                or PrimeItems.tasker_root_elements["all_scenes"]
+            ):
+
+                # Save windows and delete previous mapview window.
+                store_windows(self)
+
+                # Get rid of previous map view.
+                if self.mapview_window is not None:
+                    self.mapview_window.destroy()
+
+                # Turn off settings that don't work in a textbox
+                save_directory = self.directory
+                save_twisty = self.twisty
+                save_outline = self.outline
+                self.directory = False
+                self.twisty = False
+                self.outline = False
+
+                # Save the settings
+                temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
+                _, _ = save_restore_args(temp_args, self.color_lookup, True)
+
+                # Remove the current GUI
+                # self.withdraw()
+
+                # Now flag the fact that we are rerunning for the map view.
+                # These flags are critical for the proper proceessing of the map.
+                self.mapgui = True  # Set it for save_settings
+                PrimeItems.program_arguments["mapgui"] = True  # Set it for mapit_all
+
+                # Re-invoke ourselves to force the html to be written
+                _ = mapit_all("")
+
+                # Restore settings
+                self.directory = save_directory
+                self.twisty = save_twisty
+                self.outline = save_outline
+
+                # Now display the results
+                self.display_map()
+                self.display_message_box("Map View displayed.", "Green")
+
+                # Reload the GUI by running a new process with the new program/version.
+                # reload_gui(self, sys.argv[0], "-g", "-mapgui")
+                # There is no return from the above call.
+            else:
+                self.display_message_box(
+                    "Map not possible.  No Projects, Profiles, Tasks or Scenes in the current XML file.",
+                    "Orange",
+                )
+
+        else:
+            # No XML to diagram.
+            self.display_message_box("Map not possible.  No XML file loaded.", "Orange")

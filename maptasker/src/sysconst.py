@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "4.1.0"
+VERSION = "4.2.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -34,6 +34,7 @@ CHANGELOG_JSON_URL = "https://raw.githubusercontent.com/mctinker/Map-Tasker/Mast
 KEYFILE = ".maptasker.key"
 ERROR_FILE = ".maptasker_error.txt"
 ANALYSIS_FILE = "MapTasker_Analysis.txt"
+DIAGRAM_FILE = "MapTasker_Map.txt"
 
 #  List of color arguments and their names
 #  Two different key/value structures in one:
@@ -101,41 +102,44 @@ TYPES_OF_COLORS = {
 
 # Runtime argument names/keywords that are used throughout the program and meant to be saved.
 ARGUMENT_NAMES = {
+    "ai_analysis_window_position": "Last Ai Analysis Window Position",
     "ai_analyze": "Analyze AI",
-    "ai_model": "AI Model",
     "ai_apikey": "AI Api Key",
+    "ai_model": "AI Model",
+    "ai_popup_window_position": "Last Ai Popup Window Position",
     "ai_prompt": "AI Prompt",
-    "android_ipaddr": "Android IP Address",
     "android_file": "Android Backup File location on Android device",
+    "android_ipaddr": "Android IP Address",
     "android_port": "Android Port Number",
     "appearance_mode": "Appearance Mode",
     "bold": "Bold Names",
+    "color_window_position": "Last Color Window Position",
+    "conditions": "Display Project/Profile/Task Conditions",
     "debug": "Debug Mode",
+    "diagram_window_position": "Last Diagram Window Position",
     "directory": "Display Directory",
     "display_detail_level": "Display Level",
-    "preferences": "Display Tasker Preferences",
-    "conditions": "Display Project/Profile/Task Conditions",
-    "taskernet": "Display TaskerNet Info",
     "file": "Get backup file named",
     "font": "Font To Use",
     "gui": "GUI Mode",
     "highlight": "Highlight Names",
     "indent": "Indentation Amount",
     "italicize": "Italicize Names",
+    "mapgui": "Use GUI Map",
+    "map_window_position": "Last Map Window Position",
     "outline": "Display Configuration Outline",
+    "preferences": "Display Tasker Preferences",
     "pretty": "Display Prettier Output",
     "rerun": "ReRun Program",
     "runtime": "Display Runtime Arguments/Settings",
     "single_profile_name": "Single Profile Name",
     "single_project_name": "Single Project Name",
     "single_task_name": "Single Task Name",
+    "taskernet": "Display TaskerNet Info",
+    "tree_window_position": "Last Tree Window Position",
     "twisty": "Hide Task Details under Twisty",
     "underline": "Underline Names",
     "window_position": "Last Window Position",
-    "ai_popup_window_position": "Last Ai Popup Window Position",
-    "ai_analysis_window_position": "Last Ai Analysis Window Position",
-    "tree_window_position": "Last Tree Window Position",
-    "color_window_position": "Last Color Window Position",
 }
 
 # Debug stuff
@@ -219,4 +223,15 @@ TABLE_BORDER = (
 NOW_TIME = datetime.now()  # noqa: DTZ005
 
 OPENAI_MODELS = ["gpt-3.5-turbo", "gpt-4o", "gpt-4", "gpt-4-turbo"]
-LLAMA_MODELS = ["llama2", "llama3", "mistral", "gemma", "codegemma", "phi3", "deepseek-coder", "qwen", "codellama", "aya"]
+LLAMA_MODELS = [
+    "llama2",
+    "llama3",
+    "mistral",
+    "gemma",
+    "codegemma",
+    "phi3",
+    "deepseek-coder",
+    "qwen",
+    "codellama",
+    "aya",
+]

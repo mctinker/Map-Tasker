@@ -32,7 +32,7 @@ from maptasker.src.diagutil import (
 )
 from maptasker.src.getids import get_ids
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import MY_VERSION, NOW_TIME, FormatLine
+from maptasker.src.sysconst import DIAGRAM_FILE, MY_VERSION, NOW_TIME, FormatLine
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -793,7 +793,7 @@ def network_map(network: dict) -> None:
 
     # Print it all out.
     # Redirect print to a file
-    output_dir = f"{os.getcwd()}{PrimeItems.slash}MapTasker_Map.txt"  # Get the directory from which we are running.
+    output_dir = f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"  # Get the directory from which we are running.
     with open(str(output_dir), "w", encoding="utf-8") as mapfile:
         # PrimeItems.printfile = mapfile
         for line in PrimeItems.netmap_output:

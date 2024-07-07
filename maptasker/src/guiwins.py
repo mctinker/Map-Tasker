@@ -6,9 +6,11 @@
 # userwins: provide GUI window functions                                               #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
+from __future__ import annotations
 
 import contextlib
 import os
+import webbrowser
 from tkinter import TclError, ttk
 
 import customtkinter as ctk
@@ -208,36 +210,6 @@ Click item and scroll mouse-wheel/trackpad\nas needed to go up or down.
             else:
                 self.treeview.insert(parent, "end", text=item)
 
-
-# Define the Treeview window
-class TreeviewWindow(ctk.CTkToplevel):
-    """Define our top level window for the tree view."""
-
-    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
-        """Creates a label widget for a tree view.
-        Parameters:
-            self (object): The object being passed.
-            *args (any): Additional arguments.
-            **kwargs (any): Additional keyword arguments.
-        Returns:
-            None: This function does not return anything.
-        Processing Logic:
-            - Initialize label widget.
-            - Pack label widget with padding.
-            - Set label widget text."""
-        super().__init__(*args, **kwargs)
-
-        # Position the widget
-        try:
-            self.geometry(self.master.tree_window_position)
-        except (AttributeError, TypeError):
-            self.geometry("570x800")
-
-        self.title("MapTasker Configuration Treeview")
-
-        # Save the window position on closure
-        self.protocol("WM_DELETE_WINDOW", self.on_closing)
-
     # Tree view window is getting closed
     def on_closing(self) -> None:
         """Save the window position and close the window."""
@@ -245,65 +217,18 @@ class TreeviewWindow(ctk.CTkToplevel):
         self.destroy()
 
 
-# Display a Analysis structure
-class CTkAnalysisview(ctk.CTkFrame):
-    """Class to handle the Treeview
-
-    Args:
-        ctk (ctk): Our GUI framework
-    """
-
-    def __init__(self, master: any, message: str) -> None:
-        """Function:
-        def __init__(self, master: any, items: list):
-            Initializes a Analysisview widget with a given master and list of items.
-            Parameters:
-                master (any): The parent widget for the Analysisview.
-                items (list): A list of items to be inserted into the Analysisview.
-            Returns:
-                None.
-            Processing Logic:
-                - Sets up the Analysisview widget with appropriate styles and bindings.
-                - Inserts the given items into the Treeview.
-        """
-        self.root = master
-        super().__init__(self.root)
-
-        self.grid_columnconfigure(0, weight=1)
-
-        # Basic appearance for text, foreground and background.
-        self.analysis_bg_color = self.root._apply_appearance_mode(  # noqa: SLF001
-            ctk.ThemeManager.theme["CTkFrame"]["fg_color"],
-        )
-        self.analysis_text_color = self.root._apply_appearance_mode(  # noqa: SLF001
-            ctk.ThemeManager.theme["CTkLabel"]["text_color"],
-        )
-        self.selected_color = self.root._apply_appearance_mode(  # noqa: SLF001
-            ctk.ThemeManager.theme["CTkButton"]["fg_color"],
-        )
-
-        # Set up the style/theme
-        self.analysis_style = ttk.Style(self)
-        self.analysis_style.theme_use("default")
-
-        # Recreate text box
-        self.analysis_textbox = ctk.CTkTextbox(self, height=700, width=550)
-        self.analysis_textbox.grid(row=1, column=1, padx=20, pady=40, sticky="nsew")
-
-        # Insert the text with our new message into the text box.
-        # Add the test and color to the text box.
-        # fmt: off
-        self.analysis_textbox.insert("0.0", f"{message}\n")
-        self.analysis_textbox.configure(state="disabled", wrap="word")  # configure textbox to be read-only
-        self.analysis_textbox.focus_set()
-
-
-# Define the Ai Analysis window
-class AnalysisWindow(ctk.CTkToplevel):
+# Define the Text window
+class TextWindow(ctk.CTkToplevel):
     """Define our top level window for the analysis view."""
 
-    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
-        """Creates a label widget for a tree view.
+    def __init__(
+        self,
+        window_position: str | None = None,
+        title: str | None = None,
+        *args,  # noqa: ANN002
+        **kwargs,  # noqa: ANN003
+    ) -> None:
+        """Creates a window for the configuration diagram.
         Parameters:
             self (object): The object being passed.
             *args (any): Additional arguments.
@@ -318,20 +243,143 @@ class AnalysisWindow(ctk.CTkToplevel):
 
         # Position the widget
         try:
-            self.geometry(self.master.ai_analysis_window_position)
+            self.geometry(window_position)
+            work_window_geometry = window_position.split("x")
+            self.master.text_window_width = int(work_window_geometry[0]) - 10
+            self.master.text_window_height = work_window_geometry[1].split("+")[0]
         except (AttributeError, TypeError):
             self.geometry("600x800+600+0")
+            self.master.text_window_width = 590
+            self.master.text_window_height = 790
 
-        self.title("MapTasker Analysis Response")
+        # Display the title.
+        self.title(f"{title} - Drag window to desired position and rerun the {title} command.")
 
         # Save the window position on closure
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    # Analysis window is getting closed
+    # Text window is getting closed.  Save the window position.
     def on_closing(self) -> None:
         """Save the window position and close the window."""
-        self.master.ai_analysis_window_position = self.wm_geometry()
+        window_position = self.wm_geometry()
+        title = self.wm_title()
+        if "Diagram" in title:
+            self.master.diagram_window_position = window_position
+        elif "Analysis" in title:
+            self.master.ai_analysis_window_position = window_position
+        elif "Tree" in title:
+            self.master.tree_window_position = window_position
+        elif "Map" in title:
+            self.master.map_window_position = window_position
+
         self.destroy()
+
+
+# Display a Diagram structure
+class CTkTextview(ctk.CTkFrame):
+    """Class to handle the Treeview
+
+    Args:
+        ctk (ctk): Our GUI framework
+    """
+
+    def __init__(self, master: any, title: str, the_data: list) -> None:
+        """Function:
+        def __init__(self, master: any, items: list):
+            Initializes a Textview widget with a given master and list of items.
+            Parameters:
+                master (any): The parent widget for the Textview.
+                items (list): A list of items to be inserted into the Textview.
+            Returns:
+                None.
+            Processing Logic:
+                - Sets up the ATextview widget with appropriate styles and bindings.
+                - Inserts the given items into the Textview.
+        """
+        self.root = master
+        super().__init__(self.root)
+
+        self.grid_columnconfigure(0, weight=1)
+
+        # Basic appearance for text, foreground and background.
+        self.textview_bg_color = self.root._apply_appearance_mode(  # noqa: SLF001
+            ctk.ThemeManager.theme["CTkFrame"]["fg_color"],
+        )
+        self.textview_text_color = self.root._apply_appearance_mode(  # noqa: SLF001
+            ctk.ThemeManager.theme["CTkLabel"]["text_color"],
+        )
+        self.selected_color = self.root._apply_appearance_mode(  # noqa: SLF001
+            ctk.ThemeManager.theme["CTkButton"]["fg_color"],
+        )
+
+        # Set up the style/theme
+        self.textview_style = ttk.Style(self)
+        self.textview_style.theme_use("default")
+        self.title = f"{title} - Drag window to desired position and rerun the {title} command."
+
+        # Recreate text box
+        width = getattr(master.master, "text_window_width")
+        height = str(int(getattr(master.master, "text_window_height")) - 100)
+        font = getattr(master.master, "font")
+        self.textview_textbox = ctk.CTkTextbox(
+            self,
+            font=(font, 12),
+        )
+        self.textview_textbox.grid(row=0, column=0, padx=20, pady=40, sticky="nsew")
+
+        # create CTk scrollbar
+        # ctk_textbox_scrollbar = ctk.CTkScrollbar(
+        #    master=self,
+        #    orientation="vertical",
+        #    # command=self.textview_scroll_event,
+        # )
+        # ctk_textbox_scrollbar.grid(row=0, column=1, sticky="ns")
+        # connect textbox scroll event to CTk scrollbar
+        self.textview_textbox.configure(
+            # yscrollcommand=ctk_textbox_scrollbar.set,
+            height=height,
+            width=width,
+        )
+
+        # Insert the text with our new message into the text box.
+        # fmt: off
+        if type(the_data) == str:
+            the_data = the_data.split("\n")
+        for num, line in enumerate(the_data):
+            text_line = num + 1
+            self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
+        self.textview_textbox.configure(state="disabled", wrap="none")  # configure textbox to be read-only
+        # Add label
+        self.drag_label = add_label(
+                self,
+                self,
+                f"Drag window to desired position and rerun the {title} command.",
+                "Orange",
+                12,
+                "normal",
+                0,
+                0,
+                10,
+                height,
+                "n",
+        )
+
+        # Set a timer so we can delete the label after a certain amount of time.
+        self.after(5000, self.delay_event)  # 5 second timer
+        self.textview_textbox.focus_set()
+
+    # def textview_scroll_event(self) -> None:
+    #    """
+    #    A method that handles the scroll event for the diagram. It sets the scrolling position of the diagram
+    #    scrollbar and canvas based on the event coordinates.
+    #    """
+    #    self = self.parent
+
+    def delay_event(self) -> None:
+        """
+        A method that handles the delay event for the diagram. It deletes the label after a certain amount of time.
+        """
+        self.drag_label.destroy()
 
 
 # Define the Ai Popup window
@@ -414,16 +462,101 @@ class PopupWindow(ctk.CTk):
         """
         Define the behavior of the popup button event function.  Close the window and exit.
         """
-        get_rid_of_window(self)
+        get_rid_of_window(self, delete_all=False)
+
+
+# Hyperlink in textbox support
+class CTkHyperlinkManager:
+    """
+    Modified class for implementing hyperlink in CTkTextbox
+    """
+
+    def __init__(self, master: object, text_color: str = "#82c7ff") -> None:
+        """
+        Initializes the CTkHyperlinkManager class.
+
+        Args:
+            master (tk.Text): The master widget.
+            text_color (str, optional): The color of the hyperlink text. Defaults to "#82c7ff".
+
+        Returns:
+            None
+        """
+        self.text = master
+        self.text.tag_config("hyper", foreground=text_color, underline=1)
+        self.text.tag_bind("hyper", "<Enter>", self._enter)
+        self.text.tag_bind("hyper", "<Leave>", self._leave)
+        self.text.tag_bind("hyper", "<Button-1>", self._click)
+        self.links = {}
+
+    def add(self, link: str) -> tuple:
+        """
+        Adds a hyperlink to the CTkHyperlinkManager.
+
+        Args:
+            link (str): The hyperlink to add.
+
+        Returns:
+            tuple: A tuple containing the type of link ("hyper") and the tag of the link.
+        """
+        tag = "hyper-%d" % len(self.links)
+        self.links[tag] = link
+        return "hyper", tag
+
+    def _enter(self, event: object) -> None:  # noqa: ARG002
+        """
+        Set the cursor to a hand pointer when the mouse enters the text widget.
+
+        Args:
+            event (object): The event object.
+
+        Returns:
+            None
+        """
+        self.text.configure(cursor="hand2")
+
+    def _leave(self, event: object) -> None:  # noqa: ARG002
+        """
+        Set the cursor to the default cursor when the mouse leaves the text widget.
+
+        Args:
+            event (object): The event object.
+
+        Returns:
+            None
+        """
+        self.text.configure(cursor="xterm")
+
+    def _click(self, event: object) -> None:  # noqa: ARG002
+        """
+        Handle the click event on the text widget.
+
+        Args:
+            event (object): The click event object.
+
+        Returns:
+            None: This function does not return anything.
+
+        This function is called when the user clicks on the text widget. It iterates over the tags of the current
+        selection and checks if any of them start with "hyper-". If a tag starting with "hyper-" is found, it opens
+        the corresponding URL using the `webbrowser.open()` function. The function then returns, ending the execution.
+
+        Note: This function assumes that the `text` attribute of the class instance is a `ctk.Text` widget and
+        the `links` attribute is a dictionary mapping tag names to URLs.
+        """
+        for tag in self.text.tag_names(ctk.CURRENT):
+            if tag[:6] == "hyper-":
+                webbrowser.open(self.links[tag])
+                return
 
 
 # Save the positition of a window
-def save_window_position(window: CTkAnalysisview) -> None:
+def save_window_position(window: CTkTextview) -> None:
     """
     Saves the window position by getting the geometry of the window.
 
     Args:
-        window: The CTkAnalysisview window to save the position of.
+        window: The CTkTextview window to save the position of.
 
     Returns:
         window position or "" if no window
@@ -453,30 +586,51 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     """
     Initialize variables for the MapTasker Runtime Options window.
     """
+    PrimeItems.program_arguments["gui"] = True
+    self.ai_analysis = None
+    self.ai_analysis_window = None
+    self.ai_analysis_window_position = ""
+    self.ai_apikey = None
+    self.ai_missing_module = None
+    self.ai_model = ""
+    self.ai_popup_window_position = ""
+    self.ai_prompt = None
+    self.all_messages = {}
+    self.android_file = ""
     self.android_ipaddr = ""
     self.android_port = ""
-    self.android_file = ""
     self.appearance_mode = None
     self.bold = None
+    self.clear_messages = False
     self.color_labels = None
     self.color_lookup = None
     self.color_text_row = None
-    self.debug = None
-    self.display_detail_level = None
-    self.preferences = None
+    self.color_window_position = ""
     self.conditions = None
+    self.debug = None
+    self.default_font = ""
+    self.diagram_window_position = ""
+    self.diagramview_window = None
+    self.display_detail_level = None
     self.everything = None
-    self.taskernet = None
     self.exit = None
     self.fetched_backup_from_android = False
     self.file = None
+    self.first_time = True
     self.font = None
     self.go_program = None
     self.gui = True
     self.highlight = None
     self.indent = None
     self.italicize = None
+    self.list_files = False
+    self.map_window_position = ""
+    self.mapgui = False
+    self.mapview_window = None
     self.named_item = None
+    self.outline = False
+    self.preferences = None
+    self.pretty = False
     self.rerun = None
     self.reset = None
     self.restore = False
@@ -485,29 +639,13 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.single_profile_name = None
     self.single_project_name = None
     self.single_task_name = None
+    self.taskernet = None
+    self.title("MapTasker Runtime Options")
+    self.tree_window_position = ""
+    self.treeview_window = None
     self.twisty = None
     self.underline = None
-    self.outline = False
-    self.pretty = False
-    self.treeview_window = None
-    self.ai_analysis_window = None
-    PrimeItems.program_arguments["gui"] = True
-    self.list_files = False
-    self.ai_apikey = None
-    self.ai_model = ""
-    self.ai_analysis = None
-    self.ai_missing_module = None
-    self.ai_prompt = None
     self.window_position = None
-    self.ai_popup_window_position = ""
-    self.ai_analysis_window_position = ""
-    self.tree_window_position = ""
-    self.color_window_position = ""
-    self.all_messages = {}
-    self.first_time = True
-    self.default_font = ""
-
-    self.title("MapTasker Runtime Options")
 
     # configure grid layout (4x4).  A non-zero weight causes a row or column to grow if there's extra space needed.
     # The default is a weight of zero, which means the column will not grow if there's extra space.
@@ -702,7 +840,16 @@ def initialize_screen(self) -> None:  # noqa: ANN001
 
     # Bold
     self.bold_checkbox = add_checkbox(
-        self, self.sidebar_frame, self.event_handlers.names_bold_event, "Bold", 12, 0, 20, 0, "ne", "",
+        self,
+        self.sidebar_frame,
+        self.event_handlers.names_bold_event,
+        "Bold",
+        12,
+        0,
+        20,
+        0,
+        "ne",
+        "",
     )
 
     # Italicize
@@ -802,6 +949,59 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "n",
     )
 
+    # Views
+    self.appearance_mode_label = add_label(
+        self,
+        self.sidebar_frame,
+        "Views",
+        "",
+        0,
+        "normal",
+        18,
+        0,
+        0,
+        0,
+        "s",
+    )
+
+    # 'Map View' button definition
+    self.mapview_button = add_button(
+        self,
+        self.sidebar_frame,
+        "#246FB6",
+        "",
+        "",
+        self.event_handlers.map_event,
+        1,
+        "Map",
+        1,
+        19,
+        0,
+        (20, 0),
+        0,
+        "sw",
+    )
+    self.mapview_button.configure(width=50)
+
+    # 'Diagram View' button definition
+    self.diagramview_button = add_button(
+        self,
+        self.sidebar_frame,
+        "#246FB6",
+        "",
+        "",
+        self.event_handlers.diagram_event,
+        2,
+        "Diagram",
+        1,
+        19,
+        0,
+        0,
+        0,
+        "s",
+    )
+    self.diagramview_button.configure(width=120)
+
     # 'Tree View' button definition
     self.treeview_button = add_button(
         self,
@@ -811,16 +1011,17 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "",
         self.event_handlers.treeview_event,
         2,
-        "Tree View",
+        "Tree",
         0,
-        18,
+        19,
         0,
+        (0, 40),
         0,
-        10,
-        "",
+        "se",
     )
+    self.treeview_button.configure(width=50)
     #  Query ? button
-    self.treeview_query_button = add_button(
+    self.view_query_button = add_button(
         self,
         self.sidebar_frame,
         "#246FB6",
@@ -830,13 +1031,13 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         1,
         "?",
         1,
-        18,
+        19,
         0,
-        (200, 0),
-        (0, 0),
-        "",
+        (300, 0),
+        0,
+        "s",
     )
-    self.treeview_query_button.configure(width=20)
+    self.view_query_button.configure(width=20)
 
     # 'Reset Settings' button definition
     self.reset_button = add_button(
@@ -849,11 +1050,11 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         2,
         "Reset Options",
         1,
-        19,
+        20,
         0,
         20,
-        20,
-        "s",
+        (30, 0),
+        "n",
     )
 
     # Start second grid / column definitions
@@ -1280,10 +1481,10 @@ def initialize_screen(self) -> None:  # noqa: ANN001
     )
 
 
-# Delete the window
-def get_rid_of_window(self) -> None:  # noqa: ANN001
+# Delete the windows
+def get_rid_of_window(self, delete_all: bool = True) -> None:  # noqa: ANN001
     """
-    Hides the window and terminates the application.
+    Hides open windows and terminates the application.
 
     This function withdraws the window, which removes it from the screen, and then calls the `quit()` method twice to terminate the application.
 
@@ -1294,6 +1495,15 @@ def get_rid_of_window(self) -> None:  # noqa: ANN001
         None
     """
     self.withdraw()  # Remove the Window
+    if delete_all:
+        if self.ai_analysis_window is not None:
+            self.ai_analysis_window.destroy()
+        if self.diagramview_window is not None:
+            self.diagramview_window.destroy()
+        if self.treeview_window is not None:
+            self.treeview_window.destroy()
+        if self.mapview_window is not None:
+            self.mapview_window.destroy()
     self.quit()
 
 
@@ -1302,7 +1512,7 @@ def store_windows(self) -> None:  # noqa: ANN001
     """
     Stores the positions of the AI analysis and treeview windows.
 
-    This function saves the positions of the AI analysis and treeview windows using the `save_window_position` function. If the window positions are successfully saved, they are assigned to the corresponding instance variables `ai_analysis_window_position` and `tree_window_position`.
+    This function saves the positions of the various windows using the `save_window_position()` function.
 
     Parameters:
         self (object): The instance of the class.
@@ -1314,3 +1524,9 @@ def store_windows(self) -> None:  # noqa: ANN001
         self.ai_analysis_window_position = window_pos
     if window_pos := save_window_position(self.treeview_window):
         self.tree_window_position = window_pos
+    if window_pos := save_window_position(self.diagramview_window):
+        self.diagram_window_position = window_pos
+    if window_pos := save_window_position(self.mapview_window):
+        self.map_window_position = window_pos
+    if window_pos := save_window_position(self):
+        self.window_position = window_pos

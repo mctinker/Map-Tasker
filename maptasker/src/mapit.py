@@ -31,7 +31,6 @@ import contextlib
 import gc
 import os
 import platform
-import subprocess
 import sys
 import webbrowser
 from subprocess import run
@@ -275,9 +274,9 @@ def initialize_everything() -> dict:
         :return: dictionary of primary items used throughout project, and empty staring
     """
 
-    # Check to see if we might be coming from another program (e.g. run_test.py).
+    # Check to see if we might be coming from another program (e.g. run_test.py), and we are not generating a map view.
     # If so, re-initialize PrimeItems since it is still carrying the values from the last test/run.
-    if PrimeItems.colors_to_use:
+    if PrimeItems.colors_to_use and not PrimeItems.program_arguments["mapgui"]:
         PrimeItemsReset()
 
     # We have to initialize output_lines here. Otherwise, we'll lose the output class
@@ -355,17 +354,19 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
         my_file_name (str): The name of the file to open.
     """
     logger.debug("MapTasker program ended normally")
-    try:
-        webbrowser.open(f"file:{PrimeItems.slash*2}{my_output_dir}{my_file_name}", new=2)
-    except webbrowser.Error:
-        error_handler("Error: Failed to open output in browser: your browser is not supported.", 1)
-    print("")
+
+    # Only invoke the browser if not doing a Map View from the GUI.
+    if not PrimeItems.program_arguments["mapgui"]:
+        try:
+            webbrowser.open(f"file:{PrimeItems.slash*2}{my_output_dir}{my_file_name}", new=2)
+        except webbrowser.Error:
+            error_handler("Error: Failed to open output in browser: your browser is not supported.", 1)
 
     # If doing the outline, let 'em know about the map file.
     map_text = (
         "The Configuration Map was saved as MapTasker_Map.txt.  " if PrimeItems.program_arguments["outline"] else ""
     )
-
+    print("")
     print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}")
     print("")
 
@@ -496,7 +497,7 @@ def display_back_matter(
     final_msg = "\n</body>\n</html>"
     PrimeItems.output_lines.add_line_to_output(5, final_msg, FormatLine.dont_format_line)
 
-    #
+    # If not output directory, cleanup and exit.
     logger.debug(f"output directory:{my_output_dir}")
     if my_output_dir is None:
         error_handler(
@@ -539,8 +540,6 @@ def do_rerun() -> None:
     Returns:
         None: Function does not return anything
     Re-runs the program with a new file by:
-    - Checking if a file is specified to rerun with
-    - Getting the file name
     - Freeing up memory
     - Rerunning the program with the new file
     """
@@ -549,9 +548,9 @@ def do_rerun() -> None:
     clean_up_memory()
 
     # Now do it!  Rerun the program.
-    with contextlib.suppress(KeyError):
-        restart_program()
-        # mapit_all(filename)
+    restart_program()
+    # with contextlib.suppress(KeyError):
+    # mapit_all(filename)
 
 
 # Do the cleanup stuff: check for single name, do unique situations, and display
@@ -650,11 +649,20 @@ def mapit_all(file_to_get: str) -> int:
     Processes unique situations like Tasks not in Profiles and Projects without Profiles/Tasks
     Cleans up memory after completing processing
     """
+    # Save our mapview flag since 'initialize_everything' would otherwise wipe it out.
+    try:
+        save_map = PrimeItems.program_arguments["mapgui"]
+    except (KeyError, TypeError):
+        save_map = False
+
     (
         found_tasks,
         projects_without_profiles,
         projects_with_no_tasks,
     ) = initialize_everything()
+
+    PrimeItems.program_arguments["mapgui"] = save_map
+
     if PrimeItems.error_code > 0:
         sys.exit(PrimeItems.error_code)
 

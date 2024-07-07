@@ -372,6 +372,13 @@ def runtime_parser() -> None:
         nargs=1,
         default=4,
     )
+    # Gui Map View feature
+    parser.add_argument(
+        "-mapgui",
+        help=argparse.SUPPRESS,  # Don't display this in the help
+        action="store_true",
+        default=False,
+    )
     # Display Project/Profile/Task/Scene names in bold
     parser.add_argument(
         "-names",

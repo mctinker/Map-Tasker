@@ -12,6 +12,7 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import sys
 from tkinter import font
 from typing import TYPE_CHECKING, Callable
 
@@ -33,6 +34,7 @@ from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
 from maptasker.src.sysconst import (
     ANALYSIS_FILE,
+    ARGUMENT_NAMES,
     CHANGELOG_FILE,
     CHANGELOG_JSON_FILE,
     ERROR_FILE,
@@ -49,25 +51,22 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.1.0 - Change Log\n
+Version 4.2.0 - Change Log\n
 ### Added\n
-- Added: If 'Debug' is on and trying to get new XML data, then display the message that 'backup.xmnl' is being used.\n
-- Added: Three new analysis models have been added: "qwen", "codellama" and "aya".\n
+- Added: 'Cancel Entry' button added to 'Select XML From Android Device' prompt in GUI.\n
+- Added: 'View' buttons now display the configuration 'Map', 'Diagram' or 'Tree' right within the GUI.\n
+- Added: Hyperlinks have been added to the help text in the GUI.\n
 ### Changed\n
-- Changed: Reemoved the requirement to manually install Ollama since it is now included.\n
-- Changed: Simplified the ReRun option for Windows users.\n
+- Changed: Added verticle scrollbars to the Analysis and Diagram Views output windows.\n
 ### Fixed\n
-- Fixed: GUI labels are difficult to see if in "light" appearance mode.\n
-- Fixed: The saved GUI 'appearance' mode is not being restored on reentry to the GUI.\n
-- Fixed: If no Project in XML, then the outline is blank.\n
-- Fixed: A bad XML file was not properly being reported in the GUI.\n
-- Fixed: Program error when getting XML from Android device.\n
-- Fixed: GUI program error if no file has yet to be selected.\n
-Refer to the github changelog for a history of all changes made at: https://tinyurl.com/bdh47a44\n
+- Fixed: Help information in text box dopes not get removed once displayed.\n
+- Fixed: Some window positions not saved under certain situations.\n
+- Fixed: Unreference global variable values are not displaying properly.\n
+- Fixed: Project global variables are not displaying if the display level is 5.\n
+- Fixed: Program errors if doing a "Rerun" with "Debug" on.\n
 """
 
 default_font_size = 14
-
 
 # Make sure the single named item exists...that it is a valid name
 def valid_item(self, the_name: str, element_name: str, debug: bool, appearance_mode: str) -> bool:  # noqa: ANN001
@@ -502,7 +501,7 @@ def add_logo(self) -> None:  # noqa: ANN001
 
 # Create a label general routine
 def add_label(
-    self,
+    self,  # noqa: ANN001, ARG001
     frame: ctk.CTkFrame,
     text: str,
     text_color: str,
@@ -979,7 +978,7 @@ def validate_or_filelist_xml(
         self.filelist_label = add_label(
             self,
             self,
-            "Select XML File From Android Device:",
+            "Select XML From Android Device:",
             "",
             0,
             "normal",
@@ -1000,6 +999,8 @@ def validate_or_filelist_xml(
             (50, 10),
             "w",
         )
+        # Add 'Cancel Entry' button.
+        add_cancel_button(self, row=8, delta_y=0)
 
         # Set backup IP and file location attributes if valid
         self.android_ipaddr = android_ipaddr
@@ -1531,3 +1532,74 @@ def clear_tasker_data() -> None:
     PrimeItems.tasker_root_elements["all_profiles"].clear()
     PrimeItems.tasker_root_elements["all_tasks"].clear()
     PrimeItems.tasker_root_elements["all_scenes"].clear()
+
+
+# Adds the "Cancel Entry" button to the GUI.
+def add_cancel_button(self, row: int, delta_y: int) -> None:  # noqa: ANN001
+    """
+    Adds a cancel button to the GUI.
+
+    This function creates a cancel button and adds it to the GUI. The button is created using the `add_button` function
+    and is assigned to the `cancel_entry_button` attribute of the `self` object.
+    The button is styled with specific colors and has a label "Cancel Entry".
+
+    Parameters:
+        row (int): The row number where the button should be placed.
+        delta_y (int): The vertical offset of the button.
+
+    Returns:
+        None
+    """
+    # Add Cancel button
+    self.cancel_entry_button = add_button(
+        self,
+        self,
+        "#246FB6",
+        "",
+        "#1bc9ff",
+        self.event_handlers.backup_cancel_event,
+        2,  # border width
+        "Cancel Entry",
+        2,  # column span
+        row,  # row
+        1,  # column
+        (80, 260),
+        (delta_y, 0),
+        "ne",
+    )
+
+
+# Reload the program
+def reload_gui(self, *args: list) -> None:  # noqa: ANN001
+    """
+    Reload the GUI by running a new process with the new program/version.
+
+    This function reloads the GUI by running a new process using the `os.execl` function.
+    The new process will load and run the new program/version.
+
+    Note:
+        - This function will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'.
+        - The current process will not return after this call, but will simply be killed.
+
+    Parameters:
+        *args (list): A variable-length argument list of command-line arguments to be passed to the new process.
+
+    Returns:
+        None
+    """
+    # Imports are here to avoid circular import.
+    from maptasker.src.getputer import save_restore_args
+    from maptasker.src.guiwins import store_windows
+
+    # Save windows
+    store_windows(self)
+
+    # Save the settings
+    temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
+    _, _ = save_restore_args(temp_args, self.color_lookup, True)
+
+    # ReRun via a new process, which will load and run the new program/version.
+    # Note: this will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'
+    # Note: this current process will not return after this call, but simply be killed.
+    print("The following error message can be ignored: 'Task policy set failed: 4 ((os/kern) invalid argument)'.")
+    os.execl(sys.executable, "python", *args)

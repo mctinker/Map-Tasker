@@ -5,13 +5,14 @@
 # frontmtr - Output the front matter: heading, runtime settings, directory, prefs      #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
+import datetime
 
 from maptasker.src.addcss import add_css
 from maptasker.src.debug import display_debug_info
 from maptasker.src.format import format_html
 from maptasker.src.prefers import get_preferences
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import MY_VERSION, NORMAL_TAB, NOW_TIME, FormatLine
+from maptasker.src.sysconst import MY_VERSION, NORMAL_TAB, FormatLine
 
 
 # Add the heading matter to the output: heading, source, screen size, etc.
@@ -53,7 +54,10 @@ def output_the_heading() -> None:
         background_color_html = ""
 
     # Output date and time if in debug mode
-    now_for_output = NOW_TIME.strftime("%d-%B-%Y %H:%M:%S")
+    # now_for_output = NOW_TIME.strftime("%d-%B-%Y %H:%M:%S")
+    current_time = datetime.datetime.now()  # noqa: DTZ005
+    # formatted_time = current_time.strftime('%H:%M:%S')
+    now_for_output = current_time.strftime("%d-%B-%Y %H:%M:%S")
 
     # Format the output heading
     heading_color = "heading_color"
@@ -64,7 +68,7 @@ def output_the_heading() -> None:
             heading_color,
             "",
             (
-                f"<h2>{NORMAL_TAB}MapTasker</h2><br>{NORMAL_TAB}{tasker_mapping}"
+                f"<h2>MapTasker</h2><br>{tasker_mapping}"
                 f" {PrimeItems.xml_root.attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;"
                 f"{MY_VERSION}{screen_size}&nbsp;&nbsp;&nbsp;&nbsp;{now_for_output}"
             ),

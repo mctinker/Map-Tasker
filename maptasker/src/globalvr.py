@@ -195,7 +195,9 @@ def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> N
         # If this is a verified "tasker variable", and not a Project global var?
         elif PrimeItems.variables[key]["verified"] and not PrimeItems.variables[key]["project"]:
             # It is an unrefereenced variable.
-            variable_output_lines.append(f"<tr>{table_definition}{key}</td>{table_definition}{value}</td></tr>")
+            variable_output_lines.append(
+                f"<tr>{table_definition}{key}</td>{table_definition}{value['value']}</td></tr>"
+            )
 
     return variable_output_lines
 
