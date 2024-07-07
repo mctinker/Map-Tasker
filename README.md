@@ -51,7 +51,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Use exported XML or fetch the XML directly from your Android device for the configuration mapping.
 - Save and restore commonly used runtime settings.
 - Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT or the local-based Llama (via Ollama) supported models.*
-- Tree view of Projects and their Profiles, Tasks and Scenes.*
+- Display results directly within the GUI: Map View, Tree View, and Diagram View.*
 - Automatic update detection and optional installation.*
 
 &nbsp;&nbsp;&nbsp;&nbsp;* Available via the GUI only.
@@ -199,6 +199,8 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 
 - [ ] Support additional plugins
 
+- [ ] Add color and highlighting to the Map View in the GUI
+
 ## Privacy Statement
 
 No information whatsoever is captured and sent via the network to myself or any other third party, other than that listed below (Network Traffic).
@@ -226,7 +228,7 @@ Network traffic is as follows:
 
 [Tom Schimansky for CustomTkinter](https://github.com/TomSchimansky/CustomTkinter)
 
-[Akash Bora for CTkColorPicker](https://github.com/Akascape/CTkColorPicker)
+[Akash Bora for CTkColorPicker and XYFrame](https://github.com/Akascape/CTkColorPicker)
 
 [Ollama](https://ollama.com/) and [OpenAi](https://openai.com/)
 

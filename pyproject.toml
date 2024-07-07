@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "maptasker"
 
-version = "4.1.0"
+version = "4.2.0"
 
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
@@ -22,13 +22,13 @@ exclude = ["run_test.py", "**/maptasker/**/backup.xml", "**/maptasker/maptasker.
 python = "<=3.13,>=3.11"
 customtkinter = "^5.2.2"  # GUI
 # ctkcolorpicker = "^0.9.0"  # Color picker in GUI. Using local version to fix a bug
-pillow = "^10.3.0"  # Image support in GUI
+pillow = "^10.4.0"  # Image support in GUI
 darkdetect = "^0.8.0"  # Appearance mode detection
 defusedxml = "^0.7.1"  # More secure xml parser
-requests = "^2.32.0"  # HTTP Server function request
+requests = "^2.32.3"  # HTTP Server function request
 tomli_w = "^1.0.0"  # Write toml file
 cria = "^1.6.5"  #  Ai Ollama support
-openai = "^1.30.1"  #  Ai OpenAi support
+openai = "^1.35.9"  #  Ai OpenAi support
 # ollama = "^0.2.1"  #  Ai Ollama support > cria rquires this
 # line-profiler = "^4.1.3"
 
@@ -109,6 +109,7 @@ select = [
 # Exclude a variety of commonly ignored directories.
 exclude = [
     ".direnv",
+    "dist",
     ".eggs",
     ".git",
     ".git-rewrite",
@@ -121,12 +122,15 @@ exclude = [
     ".venv",
     ".vscode",
     "__pypackages__",
+    "_build",
     "build",
     "dist",
     "site-packages",
     "venv",
     ".md",
+    "__init__.py",
 ]
+
 ignore = [
     "PLR2004",  # Constant value comparison
     "SIM115",   # Missing "with" on oepn file
@@ -167,6 +171,8 @@ ban-relative-imports = 'all'
 quote-style = "double"
 # indent-style = "tab"
 docstring-code-format = true
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
 
 [tool.black]
 --line-length = 120
@@ -190,3 +196,7 @@ pytest-mock = "*"
 files = ["maptasker/src/sysconst.py"]
 search = 'VERSION = "{current_version}"'
 replace = 'VERSION = "{new_version}"'
+
+[tool.poetry.dev-dependencies]
+black = "^24.4.2"
+# +black = { version = "*", allows-prereleases = true }

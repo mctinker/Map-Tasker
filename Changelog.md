@@ -2,28 +2,40 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.1.0] 26-June-2024
+## [4.1.1] 08-Jul-2024
 
 ### Added
 
-- Added: If 'Debug' is on and trying to get new XML data, then display the message that 'backup.xmnl' is being used.
-- Added: Three new analysis models have been added: "qwen", "codellama" and "aya".
+- Added: 'Cancel Entry' button added to 'Select XML From Android Device' prompt in GUI.
+- Added: 'View' buttons now display the configuration 'Map', 'Diagram' or 'Tree' right within the GUI.
+- Added: Hyperlinks have been added to the help text in the GUI.
 
 ### Changed
 
-- Changed: Reemoved the requirement to manually install Ollama since it is now included.
-- Changed: Simplified the ReRun option for Windows users.
+- Changed: Added verticle scrollbars to the Analysis and Diagram Views output windows.
 
 ### Fixed
 
+- Fixed: Help information in text box dopes not get removed once displayed.
+- Fixed: Some window positions not saved under certain situations.
+- Fixed: Unreference global variable values are not displaying properly.
+- Fixed: Project global variables are not displaying if the display level is 5.
+- Fixed: Program errors if doing a "Rerun" with "Debug" on.
+
+## Older History Logs
+
+## [4.1.0]
+
+- Added: If 'Debug' is on and trying to get new XML data, then display the message that 'backup.xmnl' is being used.
+- Added: Three new analysis models have been added: "qwen", "codellama" and "aya".
+- Changed: Reemoved the requirement to manually install Ollama since it is now included.
+- Changed: Simplified the ReRun option for Windows users.
 - Fixed: GUI labels are difficult to see if in "light" appearance mode.
 - Fixed: The saved GUI 'appearance' mode is not being restored on reentry to the GUI.
 - Fixed: If no Project in XML, then the outline is blank.
 - Fixed: A bad XML file was not properly being reported in the GUI.
 - Fixed: Program error when getting XML from Android device.
 - Fixed: GUI program error if no file has yet to be selected.
-
-## Older History Logs
 
 ## [4.0.12] 18-June-2024
 
