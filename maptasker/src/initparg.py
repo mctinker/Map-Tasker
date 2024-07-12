@@ -43,7 +43,7 @@ def initialize_runtime_arguments() -> dict:
         "highlight": False,  # Highlight Project/Profile?Task/Scene names
         "indent": 4,  # Backup file was fetched from Android device
         "italicize": False,  # Italicise Project/Profile?Task/Scene names
-        "mapgui": False,  # Use the GUI to get the runtime and color options
+        "guiview": False,  # Use the GUI to get the runtime and color options
         "map_window_position": "",  # Last-used map window position
         "outline": False,  # Outline Project/Profile?Task/Scene names
         "preferences": False,  # Display Tasker's preferences

@@ -799,3 +799,4 @@ def network_map(network: dict) -> None:
         for line in PrimeItems.netmap_output:
             # print(line, file=mapfile)
             mapfile.write(f"{line}\n")
+        mapfile.close()

@@ -93,7 +93,7 @@ def get_and_set_booleans(args: list) -> None:
         "runtime": "",
         "taskernet": "",
         "twisty": "",
-        "mapgui": "",
+        "guiview": "",
     }
 
     # Loop through all possible boolean program arguments and get/set each
@@ -430,7 +430,7 @@ def unit_test() -> namedtuple:  # noqa: PYI024
         file="",
         font="Courier",
         g=False,
-        mapgui=False,
+        guiview=False,
         i=4,
         names=False,
         o=False,
@@ -509,11 +509,11 @@ def process_cli() -> None:
 
     # Intialize runtime arguments.
     try:  # Save map view flag in case we are coming from the GUI.
-        save_mapgui = PrimeItems.program_arguments["mapgui"]
+        save_guiview = PrimeItems.program_arguments["guiview"]
     except (TypeError, KeyError):
-        save_mapgui = False
+        save_guiview = False
     PrimeItems.program_arguments = initialize_runtime_arguments()
-    PrimeItems.program_arguments["mapgui"] = save_mapgui
+    PrimeItems.program_arguments["guiview"] = save_guiview
 
     # Process unit tests if "-test" in arguments, else get normal runtime arguments via Parsearg.
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
@@ -525,30 +525,30 @@ def process_cli() -> None:
     PrimeItems.program_arguments["reset"] = getattr(args, reset_flag)
     PrimeItems.program_arguments["gui"] = getattr(args, gui_flag)
     save_gui = PrimeItems.program_arguments["gui"]
-    save_map = PrimeItems.program_arguments["mapgui"]
+    save_map = PrimeItems.program_arguments["guiview"]
     if (
         not PrimeItems.program_arguments["reset"]
         and not PrimeItems.program_arguments["gui"]
         and os.path.isfile(ARGUMENTS_FILE)
-    ) or PrimeItems.program_arguments["mapgui"]:
+    ) or PrimeItems.program_arguments["guiview"]:
         restore_arguments()
 
         # Restore the GUI and Map View flags.
         PrimeItems.program_arguments["gui"] = save_gui  # Restore GUI flag from runtime options,
-        PrimeItems.program_arguments["mapgui"] = save_map  # Restore GUI Map View flag from runtime options,
+        PrimeItems.program_arguments["guiview"] = save_map  # Restore GUI Map View flag from runtime options,
 
         PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.
 
     # If using the GUI and not doing a map view or version, them process the GUI.
     do_version = getattr(args, version_flag)  # See if doing version (-v)
-    if PrimeItems.program_arguments["gui"] and not PrimeItems.program_arguments["mapgui"] and not do_version:
+    if PrimeItems.program_arguments["gui"] and not PrimeItems.program_arguments["guiview"] and not do_version:
         (
             PrimeItems.program_arguments,
             PrimeItems.colors_to_use,
         ) = process_gui(True)
 
     # Not doing the GUI or Map View.  Process commands from command line.
-    elif not PrimeItems.program_arguments["mapgui"]:
+    elif not PrimeItems.program_arguments["guiview"]:
         process_arguments(args)
 
     # Validate arguments against each other (e.g. look for combo problems).

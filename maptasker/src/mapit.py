@@ -276,7 +276,9 @@ def initialize_everything() -> dict:
 
     # Check to see if we might be coming from another program (e.g. run_test.py), and we are not generating a map view.
     # If so, re-initialize PrimeItems since it is still carrying the values from the last test/run.
-    if PrimeItems.colors_to_use and not PrimeItems.program_arguments["mapgui"]:
+    if (
+        PrimeItems.colors_to_use and (PrimeItems.program_arguments and not PrimeItems.program_arguments["guiview"])
+    ) or not PrimeItems.colors_to_use:
         PrimeItemsReset()
 
     # We have to initialize output_lines here. Otherwise, we'll lose the output class
@@ -356,7 +358,7 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
     logger.debug("MapTasker program ended normally")
 
     # Only invoke the browser if not doing a Map View from the GUI.
-    if not PrimeItems.program_arguments["mapgui"]:
+    if not PrimeItems.program_arguments["guiview"]:
         try:
             webbrowser.open(f"file:{PrimeItems.slash*2}{my_output_dir}{my_file_name}", new=2)
         except webbrowser.Error:
@@ -394,13 +396,14 @@ def process_outline() -> None:
     outline_the_configuration()
 
     # Display the diagram in the default text editor.
-    with contextlib.suppress(FileNotFoundError):
-        # Asterisk before sys.argv breaks it into separate arguments
-        if platform.system() == "Windows":
-            directory = os.getcwd()
-            os.startfile(f"{directory}{PrimeItems.slash}MapTasker_map.txt")
-        else:
-            run(["open", "MapTasker_map.txt"], check=False)  # noqa: S607, S603
+    if not PrimeItems.program_arguments["guiview"]:
+        with contextlib.suppress(FileNotFoundError):
+            # Asterisk before sys.argv breaks it into separate arguments
+            if platform.system() == "Windows":
+                directory = os.getcwd()
+                os.startfile(f"{directory}{PrimeItems.slash}MapTasker_map.txt")
+            else:
+                run(["open", "MapTasker_map.txt"], check=False)  # noqa: S607, S603
 
 
 # Check if doing a single item and if not found, then clean up and exit
@@ -651,7 +654,7 @@ def mapit_all(file_to_get: str) -> int:
     """
     # Save our mapview flag since 'initialize_everything' would otherwise wipe it out.
     try:
-        save_map = PrimeItems.program_arguments["mapgui"]
+        save_map = PrimeItems.program_arguments["guiview"]
     except (KeyError, TypeError):
         save_map = False
 
@@ -661,7 +664,7 @@ def mapit_all(file_to_get: str) -> int:
         projects_with_no_tasks,
     ) = initialize_everything()
 
-    PrimeItems.program_arguments["mapgui"] = save_map
+    PrimeItems.program_arguments["guiview"] = save_map
 
     if PrimeItems.error_code > 0:
         sys.exit(PrimeItems.error_code)

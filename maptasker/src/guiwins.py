@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import random
 import webbrowser
 from tkinter import TclError, ttk
 
@@ -26,7 +27,7 @@ from maptasker.src.guiutils import (
     get_monospace_fonts,
 )
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import LLAMA_MODELS, OPENAI_MODELS
+from maptasker.src.sysconst import LLAMA_MODELS, OPENAI_MODELS, logger
 
 # Set up for access to icons
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -345,9 +346,21 @@ class CTkTextview(ctk.CTkFrame):
         # fmt: off
         if type(the_data) == str:
             the_data = the_data.split("\n")
-        for num, line in enumerate(the_data):
-            text_line = num + 1
-            self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
+
+        # Process list data (list of lines)
+        if type(the_data) !=  dict:
+            for num, line in enumerate(the_data):
+                text_line = num + 1
+                self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
+
+        # Process the Map view (dictionary of lines)
+        else:
+            self.output_map(the_data)
+
+        # Get rid of the data since we don't need it anymore
+        the_data = None
+
+        # Configure the textbox and add label.
         self.textview_textbox.configure(state="disabled", wrap="none")  # configure textbox to be read-only
         # Add label
         self.drag_label = add_label(
@@ -375,9 +388,84 @@ class CTkTextview(ctk.CTkFrame):
     #    """
     #    self = self.parent
 
+    def output_map(self, the_data: dict) -> None:
+        """
+        Outputs the data from the given dictionary to a text box.
+
+        Args:
+            the_data (dict): The dictionary containing the data to output.
+
+        Returns:
+            None
+        """
+        # Iterate through dictionary of lines and insert into textbox
+        line_num = 1
+        tags = []
+        previous_color = "white"
+        for value in the_data.values():
+            line_num_str = str(line_num)
+
+            # Is the text to be colored?
+            if value["color"]:
+                # Add the text and color to the text box.
+                # fmt: off
+                char_position = 0
+
+                # Go through all of the text/color combinations
+                for num, message in enumerate(value["text"]):
+                    char_position_str = str(char_position)
+                    # Build the tag to use and make sure it is unique
+                    tag_id = f"{line_num_str}{char_position_str}"
+                    while tag_id in tags:
+                        tag_id = f"{tag_id}{random.randint(100, 999)}"  # noqa: S311
+                    tags.append(tag_id)
+
+                    # Parameters: line_number.character_position, text, tag(tuple)
+                    self.textview_textbox.insert(f"{line_num_str}.{char_position_str}", f"{message}\n", (tag_id))
+                    self.textview_textbox.tag_add(tag_id, f"{line_num_str}.{char_position_str}", f"{line_num_str}.{len(message)!s}")
+                    # fmt: on
+                    char_position += len(message)  # Point to next position for text
+
+                    # Get the color.  Use previous color if it doesn't exist.
+                    # Have to handle background color separately
+                    if "Color for Background set to" in message or "highlighted for visibility" in message:
+                        color = "White"
+                    # Determine the proper color to use.
+                    else:
+                        try:
+                            color = self.master.master.color_lookup.get(f'{value["color"][num]}')
+
+                            # If color is None, then it wasn't found in the lookup table.  It is a raw color name.
+                            if color is None and value["color"][num] != "n/a":
+                                color = value["color"][num]
+                            elif color is None and value["color"][num] == "n/a" or "-" in color:
+                                color = previous_color
+                            else:
+                                previous_color = color
+                        except IndexError:
+                            color = previous_color
+
+                        # Deal with a hex value for color
+                        if color and color.isdigit():
+                            color = f"#{color}"
+                    # Save previous color in case we need to use it.
+                    previous_color = color
+
+                    # Add color to the tag
+                    self.textview_textbox.tag_config(tag_id, foreground=color)
+
+            else:
+                self.textview_textbox.insert(f"{line_num!s}.0", f'{value["text"][0]}\n')
+
+            if self.master.master.debug:
+                logger.info(f"Map View Value: {value}")
+            line_num += 1
+
+
     def delay_event(self) -> None:
         """
-        A method that handles the delay event for the diagram. It deletes the label after a certain amount of time.
+        A method that handles the delay event for the various text views.
+        It deletes the label after a certain amount of time.
         """
         self.drag_label.destroy()
 
@@ -620,12 +708,12 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.font = None
     self.go_program = None
     self.gui = True
+    self.guiview = False
     self.highlight = None
     self.indent = None
     self.italicize = None
     self.list_files = False
     self.map_window_position = ""
-    self.mapgui = False
     self.mapview_window = None
     self.named_item = None
     self.outline = False

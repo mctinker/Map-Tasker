@@ -7,6 +7,8 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
+from __future__ import annotations
+
 import contextlib
 import json
 import os
@@ -39,6 +41,7 @@ from maptasker.src.guiutils import (
     display_analyze_button,
     display_current_file,
     display_messages_from_last_run,
+    display_no_xml_message,
     display_selected_object_labels,
     get_api_key,
     get_xml,
@@ -46,6 +49,7 @@ from maptasker.src.guiutils import (
     list_tasker_objects,
     ping_android_device,
     reload_gui,
+    reset_primeitems_single_names,
     set_tasker_object_names,
     setup_name_error,
     update_tasker_object_menus,
@@ -67,7 +71,6 @@ from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapit import clean_up_memory, mapit_all
 from maptasker.src.maputils import update, validate_xml_file
-from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
@@ -192,16 +195,16 @@ VIEW_HELP_TEXT = (
     " In otherwords, the view will remain the same until either the 'Reset' button is hit, or a new XML file is fetched from the"
     " local drive or Android device.\n\n"
     "\nThe Map View has the following behavior:\n\n"
-    " - The coloring and highlighting of the map is targeted for a future release.\n\n"
-    " - While the browser is not invoked directly, the map is displayed in the browser by opening the 'MapTasker.html' file.\n\n"
-    " - The horizontal scrollbar goes beyond the end of the map for some reason.\n\n"
-    " - The vertical scrollbar only appears for lines that are too long for the text window.\n\n"
-    " - The display 'Directory' and 'Outline' settings are ignored since they do not work in the Map view.\n\n"
+    " - The name highlighting/italicizin/etc. of names in the Map View is targeted for a future release.\n\n"
+    " - While the browser is not invoked directly, the map can be displayed in the browser by opening the 'MapTasker.html' file.\n\n"
+    " - The display 'Directory', 'Outline' and name highlighting settings are ignored since they do not work in the Map view.\n\n"
+    " - Very large configuration maps will incur high CPU usage.  For best p[erformance, select a single Project to map.\n\n"
     "\nThe Diagram View has the following behavior:\n\n"
     " - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n"
     "\nThe Tree View has the following behavior:\n\n"
     "- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n"
     "- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n"
+    "- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
 )
 
 AI_HELP_TEXT = (
@@ -293,7 +296,7 @@ class MyGui(customtkinter.CTk):
         display_analyze_button(self, 13, first_time=True)
 
         # Process Map View
-        if PrimeItems.program_arguments["mapgui"]:
+        if PrimeItems.program_arguments["guiview"]:
             self.display_map()
 
         # We are done with the initialization.
@@ -815,7 +818,7 @@ class MyGui(customtkinter.CTk):
             "diagram_window_position",
             "map_window_position",
             "tree_window_position",
-            "mapgui",
+            "guiview",
             "fetched_backup_from_android",
         }
         message_map = {
@@ -1301,83 +1304,61 @@ class MyGui(customtkinter.CTk):
         # Return our data tree
         return tree_data
 
-    # Display the tree view.
-    def display_tree(self, tree_data: list) -> None:
-        """Displays a treeview window with given data.
+    def display_view(self, view_type: str, data: list | dict | None = None) -> object:
+        """
+        Displays a window with the given view type and data.
+
         Parameters:
-            tree_data (list): List of data to be displayed in the treeview.
+            view_type (str): The type of view to display ("map", "diagram", or "tree").
+            data (list or dict, optional): List of data to be displayed in the view. Defaults to None.
+
         Returns:
-            None: This function does not return anything.
+            View (object): Thwindow view.
+
         Processing Logic:
             - Creates a new window if one does not exist.
             - Focuses on the window if it already exists.
-            - Displays the given data in a treeview format.
-            - Packs the treeview in the window with specified padding and filling."""
-        if tree_data:
-            if self.treeview_window is None or not self.treeview_window.winfo_exists():
-                self.treeview_window = TextWindow(
-                    master=self,
-                    window_position=self.tree_window_position,
-                    title="Tree View",
-                )  # create window if its None or destroyed
-
-            else:
-                self.treeview_window.focus()  # if window exists focus it
-
-            # Display the tree in the toplevel window.
-            tree_view = CTkTreeview(master=self.treeview_window, items=tree_data)
-            tree_view.pack(padx=10, pady=10, fill="both", expand=True)
-        else:
-            self.display_message_box("No Project(s) Found in XML!", "Red")
-
-    # Display diagram view
-    def display_diagram(self, diagram_data: list) -> None:
-        """Displays a diagram window with given data.
-        Parameters:
-            diagram_data (list): List of data to be displayed in the diagramview.
-        Returns:
-            None: This function does not return anything.
-        Processing Logic:
-            - Creates a new window if one does not exist.
-            - Focuses on the window if it already exists.
-            - Displays the given data in a view format.
-            - Packs the diagramview in the window with specified padding and filling."""
-        if diagram_data:
-            if self.diagramview_window is None or not self.diagramview_window.winfo_exists():
-                self.diagramview_window = TextWindow(
-                    master=self,
-                    window_position=self.diagram_window_position,
-                    title="Diagram View",
-                )  # create window if its None or destroyed
-            else:
-                self.diagramview_window.focus()  # if window exists focus it
-
-            # Display the diagram.
-            diagram_view = CTkTextview(master=self.diagramview_window, title="Diagram View", the_data=diagram_data)
-            diagram_view.pack(padx=10, pady=10, fill="both", expand=True)
-        else:
-            self.display_message_box("No Project(s) Found in XML!", "Red")
-
-    # Display dmap view
-    def display_map(self) -> None:
+            - Displays the given data in the specified view format.
+            - Packs the view in the window with specified padding and filling.
         """
-        A method to display the map view, creating a TextWindow if not already existing, and focusing on it if it does.
-        Creates a map view using CTkTextview with the specified title and empty data, packing it with certain padding
-        and expansion properties.
-        """
-        if self.mapview_window is None or not self.mapview_window.winfo_exists():
-            self.mapview_window = TextWindow(
-                master=self,
-                window_position=self.map_window_position,
-                title="Map View",
+        window_attribute = f"{view_type}view_window"
+        window_position_attribute = f"{view_type}_window_position"
+        window_title = f"{view_type.capitalize()} View"
+
+        if getattr(self, window_attribute) is None or not getattr(self, window_attribute).winfo_exists():
+            setattr(
+                self,
+                window_attribute,
+                TextWindow(
+                    master=self,
+                    window_position=getattr(self, window_position_attribute),
+                    title=window_title,
+                ),
             )  # create window if its None or destroyed
         else:
-            self.mapview_window.focus()  # if window exists focus it
+            getattr(self, window_attribute).focus()  # if window exists focus it
 
-        # Display the diagram.
-        map_data = get_the_map()
-        map_view = CTkTextview(master=self.mapview_window, title="Map View", the_data=map_data)
-        map_view.pack(padx=10, pady=10, fill="both", expand=True)
+        if view_type == "map":
+            map_data = get_the_map()
+            view = CTkTextview(master=getattr(self, window_attribute), title=window_title, the_data=map_data)
+        elif view_type == "diagram":
+            # Display the data.
+            if data:
+                view = CTkTextview(master=getattr(self, window_attribute), title=window_title, the_data=data)
+            else:
+                self.display_message_box("No Project(s) Found in XML!", "Red")
+                return
+        elif view_type == "tree":
+            if data:
+                view = CTkTreeview(master=getattr(self, window_attribute), items=data)
+            else:
+                self.display_message_box("No Project(s) Found in XML!", "Red")
+                return
+        else:
+            self.display_message_box()("Invalid view type specified. Use 'map', 'diagram', or 'tree'.", "Red")
+
+        view.pack(padx=10, pady=10, fill="both", expand=True)
+        return view
 
     # Display Ai Analysis response in a separate top level window.
     def display_ai_response(self, error_msg: str) -> None:
@@ -2714,16 +2695,20 @@ class EventHandlers:
 
         # Do we already have the XML?
         # If we don't have any data, get it.
-        if self.load_xml():
+        if PrimeItems.tasker_root_elements["all_projects"]:
             # Ok, we have our root Tasker elements.  Build the tree
-            self.treeview_window = None
+            if self.treeview_window is not None:
+                self.treeview_window.destroy()
 
             # Build our tree from XML data
             tree_data = self.build_the_tree()
 
             # Display the tree
-            self.display_tree(tree_data)
+            self.treeview = self.display_view("tree", tree_data)
             self.display_message_box("Tree View displayed.", "Green")
+        else:
+            display_no_xml_message(self)
+            self.display_message_box("XML must have at least one Project.", "Orange")
 
     # Get XML button clicked.  Prompt usere for XML and load it.
     def getxml_event(self) -> None:
@@ -3050,37 +3035,59 @@ class EventHandlers:
         This method does not return any value.
         """
         self = self.parent
-        # If we don't already have Project, then get some XML.
-        if self.load_xml():
-            if PrimeItems.tasker_root_elements["all_projects"] or PrimeItems.tasker_root_elements["all_profiles"]:
-                # Process the diagram: builds the 'network' and then draws it in the GUI
-                outline_the_configuration()
-                PrimeItems.output_lines.output_lines.clear()
-                # Process the diagram file
-                diagram_dir = (
-                    f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"  # Get the directory from which we are running.
-                )
-                with open(str(diagram_dir), encoding="utf-8") as diagram_file:
-                    diagram_data = [line.rstrip() for line in diagram_file]  # Read file into a list
 
-                    # Display the diagram
-                    self.display_diagram(diagram_data)
-                    self.display_message_box("Diagram View displayed.", "Green")
-            else:
-                self.display_message_box(
-                    "Diagram not possible.  No Projects or Profiles in the current XML file.",
-                    "Orange",
-                )
+        # Check if we have a Project or Profile
+        # If we don't already have Project, then get some XML.
+        if PrimeItems.tasker_root_elements["all_projects"] or PrimeItems.tasker_root_elements["all_profiles"]:
+            # Process the diagram: builds the 'network' and then draws it in the GUI
+            save_outline = self.outline
+            self.outline = True
+
+            # Get rid of the previous window
+            if self.diagramview_window is not None:
+                self.diagramview_window.destroy()
+
+            # Save the settings
+            temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
+            _, _ = save_restore_args(temp_args, self.color_lookup, True)
+
+            # Reset PrimItems
+            reset_primeitems_single_names()
+
+            # Now flag the fact that we are rerunning for the map view.
+            # These flags are critical for the proper proceessing of the map.
+            self.guiview = True  # Set it for save_settings
+            PrimeItems.program_arguments["guiview"] = True  # Set it for mapit_all
+
+            # outline_the_configuration()
+            # Re-invoke ourselves to force the html to be written
+            _ = mapit_all("")
+            PrimeItems.output_lines.output_lines.clear()
+            # Process the diagram file
+            diagram_dir = (
+                f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"  # Get the directory from which we are running.
+            )
+            # Read the diagram file
+            with open(str(diagram_dir), encoding="utf-8") as diagram_file:
+                diagram_data = [line.rstrip() for line in diagram_file]  # Read file into a list
+                # Display the diagram
+                self.diagram_view = self.display_view("diagram", diagram_data)
+                self.display_message_box("Diagram View displayed.", "Green")
+                diagram_file.close()
+
+            # Cleanup
+            self.outline = save_outline
+            self.guiview = False
+            PrimeItems.program_arguments["guiview"] = True
         else:
-            # No XML to diagram.
-            self.display_message_box("Diagram not possible.  No XML file loaded.", "Orange")
+            display_no_xml_message(self)
 
     def map_event(self) -> None:
         """
         Executes the map event.
 
         This function checks if the XML file is loaded. If it is, it checks if there are any projects, profiles, tasks,
-        or scenes in the XML. If there are, it sets the `mapgui` attribute to `True` and executes the `mapit_all`
+        or scenes in the XML. If there are, it sets the `guiview` attribute to `True` and executes the `mapit_all`
         function. If there are no projects, profiles, tasks, or scenes, it displays a message box indicating that the
         map is not possible. If the XML is not loaded, it displays a message box indicating that the map is not
         possible because there is no XML file loaded.
@@ -3093,62 +3100,56 @@ class EventHandlers:
         """
         self = self.parent
         # If we don't already have Project, then get some XML.
-        if self.load_xml():
-            if (
-                PrimeItems.tasker_root_elements["all_projects"]
-                or PrimeItems.tasker_root_elements["all_profiles"]
-                or PrimeItems.tasker_root_elements["all_tasks"]
-                or PrimeItems.tasker_root_elements["all_scenes"]
-            ):
+        if (
+            PrimeItems.tasker_root_elements["all_projects"]
+            or PrimeItems.tasker_root_elements["all_profiles"]
+            or PrimeItems.tasker_root_elements["all_tasks"]
+            or PrimeItems.tasker_root_elements["all_scenes"]
+        ):
+            # Save windows and delete previous mapview window.
+            store_windows(self)
 
-                # Save windows and delete previous mapview window.
-                store_windows(self)
+            # Get rid of previous map view.
+            if self.mapview_window is not None:
+                self.mapview_window.destroy()
 
-                # Get rid of previous map view.
-                if self.mapview_window is not None:
-                    self.mapview_window.destroy()
+            # Turn off settings that don't work in a textbox
+            save_directory = self.directory
+            save_twisty = self.twisty
+            save_outline = self.outline
+            self.directory = False
+            self.twisty = False
+            self.outline = False
 
-                # Turn off settings that don't work in a textbox
-                save_directory = self.directory
-                save_twisty = self.twisty
-                save_outline = self.outline
-                self.directory = False
-                self.twisty = False
-                self.outline = False
+            # Save the settings
+            temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
+            _, _ = save_restore_args(temp_args, self.color_lookup, True)
 
-                # Save the settings
-                temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
-                _, _ = save_restore_args(temp_args, self.color_lookup, True)
+            # Remove the current GUI
+            # self.withdraw()
 
-                # Remove the current GUI
-                # self.withdraw()
+            # Now flag the fact that we are rerunning for the map view.
+            # These flags are critical for the proper proceessing of the map.
+            self.guiview = True  # Set it for save_settings
+            PrimeItems.program_arguments["guiview"] = True  # Set it for mapit_all
 
-                # Now flag the fact that we are rerunning for the map view.
-                # These flags are critical for the proper proceessing of the map.
-                self.mapgui = True  # Set it for save_settings
-                PrimeItems.program_arguments["mapgui"] = True  # Set it for mapit_all
+            # Initialize a few things first
+            reset_primeitems_single_names()
 
-                # Re-invoke ourselves to force the html to be written
-                _ = mapit_all("")
+            # Re-invoke ourselves to force the html to be written
+            _ = mapit_all("")
 
-                # Restore settings
-                self.directory = save_directory
-                self.twisty = save_twisty
-                self.outline = save_outline
+            # Restore settings
+            self.directory = save_directory
+            self.twisty = save_twisty
+            self.outline = save_outline
 
-                # Now display the results
-                self.display_map()
-                self.display_message_box("Map View displayed.", "Green")
+            # Now display the results
+            self.mapview = self.display_view("map")
+            self.display_message_box("Map View displayed.", "Green")
 
-                # Reload the GUI by running a new process with the new program/version.
-                # reload_gui(self, sys.argv[0], "-g", "-mapgui")
-                # There is no return from the above call.
-            else:
-                self.display_message_box(
-                    "Map not possible.  No Projects, Profiles, Tasks or Scenes in the current XML file.",
-                    "Orange",
-                )
-
+            # Reload the GUI by running a new process with the new program/version.
+            # reload_gui(self, sys.argv[0], "-g", "-guiview")
+            # There is no return from the above call.
         else:
-            # No XML to diagram.
-            self.display_message_box("Map not possible.  No XML file loaded.", "Orange")
+            display_no_xml_message(self)

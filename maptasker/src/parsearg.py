@@ -374,7 +374,7 @@ def runtime_parser() -> None:
     )
     # Gui Map View feature
     parser.add_argument(
-        "-mapgui",
+        "-guiview",
         help=argparse.SUPPRESS,  # Don't display this in the help
         action="store_true",
         default=False,

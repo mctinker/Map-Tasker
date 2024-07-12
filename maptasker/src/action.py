@@ -91,6 +91,9 @@ def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
     the_operation = the_operations[operation]
     if "set" not in the_operation and child.find("rhs").text is not None:  # No second string if "set/not" set
         second_operation = child.find("rhs").text
+        # Fix embedded html tags in text string.
+        second_operation = second_operation.replace("<", "&lt;")
+        second_operation = second_operation.replace(">", "&gt;")
     else:
         second_operation = ""
 
@@ -330,7 +333,7 @@ def get_conditions(child: defusedxml, the_action_code: str) -> str:
             if condition_count != 0:
                 boolean_to_inject = f" {booleans[condition_count - 1].upper()} "
                 # Add this conditional statement to the chain of conditional statements
-            result = f"{result}{boolean_to_inject} condition: If {string1}{operator} {string2}"
+            result = f"{result}{boolean_to_inject} condition: If {string1}{operator}{string2}"
             condition_count += 1
     if the_action_code == "35":  # Wait Until?
         result = result.replace(" condition: If", "<em>UNTIL</em>")

@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "4.2.0"
+VERSION = "4.2.1"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -125,7 +125,7 @@ ARGUMENT_NAMES = {
     "highlight": "Highlight Names",
     "indent": "Indentation Amount",
     "italicize": "Italicize Names",
-    "mapgui": "Use GUI Map",
+    "guiview": "Use GUI Map",
     "map_window_position": "Last Map Window Position",
     "outline": "Display Configuration Outline",
     "preferences": "Display Tasker Preferences",

@@ -191,6 +191,7 @@ def build_profile_line(
                     ",",
                     f"<br>{blank*(len(profile_name)+condition_length+7)}",
                 )
+                # TODO: Need to fix (JSON etc) being broken up in above line. Call actione.py fix_json(line_to_fix: str, text_to_match: str)
 
             # Add the HTML
             condition_text = format_html(

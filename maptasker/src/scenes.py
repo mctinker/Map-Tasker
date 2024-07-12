@@ -343,7 +343,7 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
                 else:
                     preamble = ""
 
-                # Ok, process the task (e.g. output it).
+                # Ok, process the task (e.g. output it).  "&#45;" = hyphen
                 extra = f"{blank*2}ID:"
                 task_type = f"<br>{blank}{preamble}&#45;&#45;Task: {task_title}{extra}"
                 # process the Scene's Task

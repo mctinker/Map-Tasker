@@ -90,8 +90,6 @@ def get_actions(
             if "Configuration Parameter(s):" in task_code and PrimeItems.program_arguments["pretty"]:
                 number_of_blanks = task_code.find(":")
                 task_code = task_code.replace(",", f"<br>{blank*(number_of_blanks-70)}")  # Back out the "<span..."
-                if "Configuration Parameter(s):\n," in task_code:
-                    task_code = task_code.replace("Configuration Parameter(s):\n,", "Configuration Parameter(s):\n")
 
             # Build the output line.
             tasklist = action_evaluate.build_action(

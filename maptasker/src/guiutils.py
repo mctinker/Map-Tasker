@@ -51,19 +51,15 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.2.0 - Change Log\n
+Version 4.2.1 - Change Log\n
 ### Added\n
-- Added: 'Cancel Entry' button added to 'Select XML From Android Device' prompt in GUI.\n
-- Added: 'View' buttons now display the configuration 'Map', 'Diagram' or 'Tree' right within the GUI.\n
-- Added: Hyperlinks have been added to the help text in the GUI.\n
-### Changed\n
-- Changed: Added verticle scrollbars to the Analysis and Diagram Views output windows.\n
+- Added: Color has been added to the GUI 'Map' View.\n
 ### Fixed\n
-- Fixed: Help information in text box dopes not get removed once displayed.\n
-- Fixed: Some window positions not saved under certain situations.\n
-- Fixed: Unreference global variable values are not displaying properly.\n
-- Fixed: Project global variables are not displaying if the display level is 5.\n
-- Fixed: Program errors if doing a "Rerun" with "Debug" on.\n
+- Fixed: The Map View formatting has been corrected.\n
+- Fixed: Program terminates if doing a second "Map" view request with a single name selected.\n
+- Fixed: Program abend if no XML file loaded when trying to get display a Map/Diagram/Tree view after having selected a single name.\n
+- Fixed: The GUI 'Views' are incorrect if switching from one single name to another.\n
+- Fixed: Parameters and arguments with embedded '<' and '>' characters were not appearing in the output.\n
 """
 
 default_font_size = 14
@@ -1603,3 +1599,34 @@ def reload_gui(self, *args: list) -> None:  # noqa: ANN001
     # Note: this current process will not return after this call, but simply be killed.
     print("The following error message can be ignored: 'Task policy set failed: 4 ((os/kern) invalid argument)'.")
     os.execl(sys.executable, "python", *args)
+
+def display_no_xml_message(self) -> None:  # noqa: ANN001
+    """
+    Display a message indicating that a map is not possible because there are no projects, profiles, tasks, or scenes
+    in the current XML file.
+
+    This function does not take any parameters.
+
+    Returns:
+        None
+    """
+    self.display_message_box(
+        "Map not possible.  No Projects, Profiles, Tasks or Scenes in the current XML file.\n",
+        "Orange",
+    )
+    self.display_message_box(
+        "Click the 'Get Local XML' or 'Get XML From Android' button to load some XML first.", "Orange",
+    )
+
+def reset_primeitems_single_names() -> None:
+    """
+    Reset the prime items related to single names.
+    """
+    PrimeItems.found_named_items = {
+                "single_project_found": False,
+                "single_profile_found": False,
+                "single_task_found": False,
+            }
+    PrimeItems.program_arguments["single_project_name"] = ""
+    PrimeItems.program_arguments["single_profile_name"] = ""
+    PrimeItems.program_arguments["single_task_name"] = ""
