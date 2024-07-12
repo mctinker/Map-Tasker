@@ -199,7 +199,9 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 
 - [ ] Support additional plugins
 
-- [ ] Add color and highlighting to the Map View in the GUI
+- [X ] Add color to the Map View in the GUI
+
+- [ ] Add name attributes (highlight, bold, italicize, underline) to the Map View in the GUI
 
 ## Privacy Statement
 

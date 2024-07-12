@@ -2,27 +2,37 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.2.0] 07-Jul-2024
+## [4.2.1] 12-Jul-2024
 
 ### Added
+
+- Added: Color added to the Map View in the GUI.
+
+### Changed
+
+- Changed:
+
+### Fixed
+
+- Fixed: The Map View formatting has been corrected.
+- Fixed: Program terminates if doing a second "Map" view request with a single name selected.
+- Fixed: Program abend if no XML file loaded when trying to get display a Map/Diagram/Tree view after having selected a single name.
+- Fixed: The GUI 'Views' are incorrect if switching from one single name to another.
+- Fixed: Parameters and arguments with embedded '<' and '>' characters were not appearing in the output.
+
+## Older History Logs
+
+## [4.1.1]
 
 - Added: 'Cancel Entry' button added to 'Select XML From Android Device' prompt in GUI.
 - Added: 'View' buttons now display the configuration 'Map', 'Diagram' or 'Tree' right within the GUI.
 - Added: Hyperlinks have been added to the help text in the GUI.
-
-### Changed
-
 - Changed: Added verticle scrollbars to the Analysis and Diagram Views output windows.
-
-### Fixed
-
 - Fixed: Help information in text box dopes not get removed once displayed.
 - Fixed: Some window positions not saved under certain situations.
 - Fixed: Unreference global variable values are not displaying properly.
 - Fixed: Project global variables are not displaying if the display level is 5.
 - Fixed: Program errors if doing a "Rerun" with "Debug" on.
-
-## Older History Logs
 
 ## [4.1.0]
 
