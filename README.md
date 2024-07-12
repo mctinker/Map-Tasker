@@ -197,9 +197,9 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 
 - [ ] Map remaining Tasker preferences
 
-- [ ] Support additional plugins
+- [x] Add color to the Map View in the GUI
 
-- [X ] Add color to the Map View in the GUI
+- [ ] Support additional plugins
 
 - [ ] Add name attributes (highlight, bold, italicize, underline) to the Map View in the GUI
 
