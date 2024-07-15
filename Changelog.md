@@ -2,25 +2,34 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.2.1] 12-Jul-2024
+## [4.2.2] 15-Jul-2024
 
 ### Added
 
-- Added: Color added to the Map View in the GUI.
+- Added: Display a "Please stand by" message while building the 'Map' view from the GUI.
+- Added: Name highlighting (bold, underline, italicize and highlight) are now supported in the 'Map' view.
 
 ### Changed
 
-- Changed:
+- Changed: Removed non-user modifiable arguments from the user settings file, 'MapTasker_Settings.toml'.
 
 ### Fixed
 
+- Fixed: 'Update to Latest Version' gives a program error even though it still works.
+- Fixed: Formatting for 'Configutration Parameter(s):' in the 'Map' view is incorrect.
+- Fixed: If 'Get Local XML' is selected in the GUI and returns bad XML, the 'Current File' is not updated to 'None'.
+- Fixed: If 'Tree' view is selected and there is no XML loaded, the error message says the 'Map is not possible rather than the 'View is not possible'.
+
+## Older History Logs
+
+## [4.2.1]
+
+- Added: Color added to the Map View in the GUI.
 - Fixed: The Map View formatting has been corrected.
 - Fixed: Program terminates if doing a second "Map" view request with a single name selected.
 - Fixed: Program abend if no XML file loaded when trying to get display a Map/Diagram/Tree view after having selected a single name.
 - Fixed: The GUI 'Views' are incorrect if switching from one single name to another.
 - Fixed: Parameters and arguments with embedded '<' and '>' characters were not appearing in the output.
-
-## Older History Logs
 
 ## [4.1.1]
 
