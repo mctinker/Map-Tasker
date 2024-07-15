@@ -239,7 +239,11 @@ def map_ai() -> None:
     Does the setup for the query by concatenating the lines in PrimeItems.ai["output_lines"].
     """
     # Display a popup window telling user we are analyzing
-    popup = PopupWindow()
+    popup = PopupWindow(
+        title="MapTasker Analysis",
+        message="Analysis is running in the background.  Please stand by...",
+        exit_when_done=True,
+    )
     popup.mainloop()
 
     # Clean up the output list since it has all the front matter and we only need the object (Project/Profile/Task)

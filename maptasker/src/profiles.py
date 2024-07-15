@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from maptasker.src import condition, tasks
+from maptasker.src.actione import fix_json
 from maptasker.src.dirout import add_directory_item
 
 # from maptasker.src.kidapp import get_kid_app
@@ -191,7 +192,8 @@ def build_profile_line(
                     ",",
                     f"<br>{blank*(len(profile_name)+condition_length+7)}",
                 )
-                # TODO: Need to fix (JSON etc) being broken up in above line. Call actione.py fix_json(line_to_fix: str, text_to_match: str)
+                # Fix splitting up of JSON Structure Output text
+                profile_conditions = fix_json(profile_conditions, "Structure Output")
 
             # Add the HTML
             condition_text = format_html(
