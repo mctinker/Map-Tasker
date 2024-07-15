@@ -51,18 +51,21 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.2.1 - Change Log\n
+Version 4.2.2 - Change Log\n
 ### Added\n
-- Added: Color has been added to the GUI 'Map' View.\n
+- Added: Display a "Please stand by" message while building the 'Map' view from the GUI.\n
+- Added: Name highlighting (bold, underline, italicize and highlight) are now supported in the 'Map' view.\n
+### Changed\n
+- Changed: Removed non-user modifiable arguments from the user settings file, 'MapTasker_Settings.toml'.\n
 ### Fixed\n
-- Fixed: The Map View formatting has been corrected.\n
-- Fixed: Program terminates if doing a second "Map" view request with a single name selected.\n
-- Fixed: Program abend if no XML file loaded when trying to get display a Map/Diagram/Tree view after having selected a single name.\n
-- Fixed: The GUI 'Views' are incorrect if switching from one single name to another.\n
-- Fixed: Parameters and arguments with embedded '<' and '>' characters were not appearing in the output.\n
+- Fixed: 'Update to Latest Version' gives a program error even though it still works.\n
+- Fixed: Formatting for 'Configutration Parameter(s):' in the 'Map' view is incorrect.\n
+- Fixed: If 'Get Local XML' is selected in the GUI and returns bad XML, the 'Current File' is not updated to 'None'.\n
+- Fixed: If 'Tree' view is selected and there is no XML loaded, the error message says the 'Map is not possible rather than the 'View is not possible'.\n
 """
 
 default_font_size = 14
+
 
 # Make sure the single named item exists...that it is a valid name
 def valid_item(self, the_name: str, element_name: str, debug: bool, appearance_mode: str) -> bool:  # noqa: ANN001
@@ -432,7 +435,7 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
         - Check if the changelog file exists.
         - If it exists, prepare to display changes and remove the file so we only display the changes once."""
     # TODO Test changelog before posting to PyPi.  Comment it out after testing.
-    #self.message = CHANGELOG
+    # self.message = CHANGELOG
 
     if os.path.isfile(CHANGELOG_FILE):
         self.message = CHANGELOG
@@ -1598,7 +1601,8 @@ def reload_gui(self, *args: list) -> None:  # noqa: ANN001
     # Note: this will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'
     # Note: this current process will not return after this call, but simply be killed.
     print("The following error message can be ignored: 'Task policy set failed: 4 ((os/kern) invalid argument)'.")
-    os.execl(sys.executable, "python", *args)
+    os.execl(sys.executable, "python", *sys.argv)
+
 
 def display_no_xml_message(self) -> None:  # noqa: ANN001
     """
@@ -1611,22 +1615,34 @@ def display_no_xml_message(self) -> None:  # noqa: ANN001
         None
     """
     self.display_message_box(
-        "Map not possible.  No Projects, Profiles, Tasks or Scenes in the current XML file.\n",
+        "View not possible.  No Projects, Profiles, Tasks or Scenes in the current XML file.\n",
         "Orange",
     )
     self.display_message_box(
-        "Click the 'Get Local XML' or 'Get XML From Android' button to load some XML first.", "Orange",
+        "Click the 'Get Local XML' or 'Get XML From Android' button to load some XML first.",
+        "Orange",
     )
+
 
 def reset_primeitems_single_names() -> None:
     """
     Reset the prime items related to single names.
     """
     PrimeItems.found_named_items = {
-                "single_project_found": False,
-                "single_profile_found": False,
-                "single_task_found": False,
-            }
+        "single_project_found": False,
+        "single_profile_found": False,
+        "single_task_found": False,
+    }
     PrimeItems.program_arguments["single_project_name"] = ""
     PrimeItems.program_arguments["single_profile_name"] = ""
     PrimeItems.program_arguments["single_task_name"] = ""
+
+
+def fresh_message_box(self: ctk.windows.Window) -> None:
+    """
+    A function to refresh the message box by destroying the existing textbox and creating a new one.
+    No parameters are taken, and no return value is provided.
+    """
+    self.all_messages = {}
+    self.textbox.destroy()
+    self.create_new_textbox()

@@ -105,10 +105,12 @@ def eliminate_blanks(output_lines: dict) -> dict:
 # Capture text and it's colring and highlighting
 def coloring_and_highlights(output_lines: str, line: str, line_num: int) -> dict:
     """
-    Given a dictionary of output lines, a line of text, and a line number, this function adds color and highlighting information to the output lines.
+    Given a dictionary of output lines, a line of text, and a line number, this function adds color and highlighting
+    information to the output lines.
 
     Args:
-        output_lines (dict): A dictionary of output lines, where each line is represented as a dictionary with keys "color" and "text".
+        output_lines (dict): A dictionary of output lines, where each line is represented as a dictionary with
+        keys "color" and "text".
         line (str): The line of text to process.
         line_num (int): The line number of the line.
 
@@ -116,14 +118,25 @@ def coloring_and_highlights(output_lines: str, line: str, line_num: int) -> dict
         dict: The updated output lines dictionary with added color and highlighting information.
 
     Description:
-        This function searches for occurrences of the string "class=" in the given line. For each occurrence, it splits the line starting from that occurrence and extracts the color string. If the color string contains the substring "_color", it adds the color string to the "color" key of the line dictionary in the output lines. It then removes any HTML tags from the text portion of the line and appends it to the "text" key of the line dictionary.
+        This function searches for occurrences of the string "class=" in the given line.
+        For each occurrence, it splits the line starting from that occurrence and extracts the color string.
+        If the color string contains the substring "_color", it adds the color string to the "color" key of the
+        line dictionary in the output lines. It then removes any HTML tags from the text portion of the line and
+        appends it to the "text" key of the line dictionary.
 
         If the line dictionary already has a color value, the new color value is appended to the existing color list.
 
         The function returns the updated output lines dictionary.
     """
+    # Look for name attributes
+    highlight_tags = {
+        "<b>": "bold",
+        "<em>": "italic",
+        "<u>": "underline",
+        "<mark>": "mark",
+    }
     color_list = [m.start() for m in re.finditer("class=", line)]
-    for color in color_list:
+    for num, color in enumerate(color_list):
         temp = line[color:].split('"')
 
         # If we have a color string, then we need to add it to the output lines
@@ -149,12 +162,90 @@ def coloring_and_highlights(output_lines: str, line: str, line_num: int) -> dict
             html_start = temp[2].find("</span")
             if html_start != -1:
                 temp[2] = temp[2][0:html_start]
+
+            # Get name attributes (bold, underline, etc)
+            if num == 0:  # Only do this if we are looking at the first color only.
+                name_end_position = temp[2].find("</")  # Find first </
+                temp_string = temp[2][0:name_end_position]
+                name_start_position = temp_string.rfind(">")  # Find first <
+
+                highlight_name = temp_string[name_start_position + 1 : name_end_position]
+                for tag, style in highlight_tags.items():
+                    if tag in temp[2][:name_end_position]:
+                        text_final = f"{style},{highlight_name}"
+                        if line_num in output_lines:
+                            if "highlights" in output_lines[line_num]:
+                                output_lines[line_num]["highlights"].append(text_final)
+                            else:
+                                output_lines[line_num]["highlights"] = [text_final]
+                        else:
+                            output_lines[line_num] = {"highlights": [text_final]}
+
             # Remove rest of html tags
-            text = remove_html_tags(temp[2], "").replace("<span class=", " ")
-            text = text.replace("\n\n", "\n")
-            output_lines[line_num]["text"].append(text)
+            raw_text = remove_html_tags(temp[2], "")
+            raw_text = raw_text.replace("<span class=", " ")
+            raw_text = raw_text.replace("\n\n", "\n")
+            output_lines[line_num]["text"].append(raw_text)
 
     return output_lines
+
+
+def calculate_spacing(
+    spacing: int,
+    output_lines: dict,
+    line_num: int,
+    doing_global_variables: bool,
+    previous_line: str,
+) -> int:
+    """
+    Calculate initial spacer based on specific conditions.
+
+    Args:
+        spacing (int): The initial spacing value.
+        output_lines (dict): Dictionary containing output lines.
+        line_num (int): The line number.
+        doing_global_variables (bool): Indicates if global variables are present.
+        previous_line (str): The previous line of text.
+
+    Returns:
+        int: The calculated spacing value.
+    """
+    # Project or Scene
+    if (
+        output_lines[line_num]["text"][0][0:8] == "Project:"
+        or doing_global_variables
+        or "Project Global Variables" in output_lines[line_num]["text"][0]
+        or output_lines[line_num]["text"][0][0:6] == "Scene:"
+    ):
+        spacing = 0
+
+    # Profile or TaskerNet
+    elif output_lines[line_num]["text"][0][0:8] == "Profile:" or output_lines[line_num]["text"][0][0:9] == "TaskerNet":
+        spacing = 5
+
+    # Task
+    elif (
+        output_lines[line_num]["text"][0][0:5] == "Task:"
+        or "--Task:" in output_lines[line_num]["text"][0][0:7]
+        or output_lines[line_num]["text"][0][0:11] == "- Project '"
+    ):
+        spacing = 10
+    # Configuration parameters
+    elif "Configuration Parameter(s):" in previous_line:
+        if PrimeItems.program_arguments["pretty"]:
+            spacing = 61
+    # If we previously did the 1st parameter after "Configuration Parameter(s):", do the rest at 11
+    elif spacing == 61:
+        spacing = 11
+
+    # Continued lines not included in Configuration Parameter(s):
+    elif output_lines[line_num]["text"][0][0].isdigit() or " continued >>>" in output_lines[line_num]["text"][0]:
+        spacing = 15
+
+    else:
+        pass
+
+    return spacing
 
 
 def additional_formatting(
@@ -163,16 +254,19 @@ def additional_formatting(
     output_lines: dict,
     line_num: int,
     spacing: int,
+    previous_line: str,
 ) -> str:
     """
     Applies special formatting to a given line of text and appends the formatted line to an output list.
 
     Args:
         doing_global_variables (bool): Whether or not the line contains global variables.
+        lines (list): A list of lines of HTML code.
         line (str): The line of text to be formatted.
         output_lines (dict): The dictionary to which the formatted line will be appended.
         line_num (int): The line number of the line in the output dictionary.
         spacing (int): The number of spaces to be inserted at the beginning of the formatted line.
+        last_line (str): The previous line of the output list.
 
     Returns:
         list: The updated output list.
@@ -218,26 +312,8 @@ def additional_formatting(
 
     output_lines = cleanup_text_elements(output_lines, line_num)
 
-    # Calculate initial spacer by evaluating the first text file in the list of text
-    if (
-        output_lines[line_num]["text"][0][0:8] == "Project:"
-        or doing_global_variables
-        or "Project Global Variables" in output_lines[line_num]["text"][0]
-        or output_lines[line_num]["text"][0][0:6] == "Scene:"
-    ):
-        spacing = 0
-    elif output_lines[line_num]["text"][0][0:8] == "Profile:" or output_lines[line_num]["text"][0][0:9] == "TaskerNet":
-        spacing = 5
-    elif (
-        output_lines[line_num]["text"][0][0:5] == "Task:"
-        or "--Task:" in output_lines[line_num]["text"][0][0:7]
-        or output_lines[line_num]["text"][0][0:11] == "- Project '"
-    ):
-        spacing = 10
-    elif output_lines[line_num]["text"][0][0].isdigit() or " continued >>>" in output_lines[line_num]["text"][0]:
-        spacing = 15
-    else:
-        pass
+    # Determine the amount of spacing needed for this line
+    spacing = calculate_spacing(spacing, output_lines, line_num, doing_global_variables, previous_line)
 
     # Put it all together with the spacing.
     output_lines[line_num]["text"][0] = f'{spacing*" "}{output_lines[line_num]["text"][0]}'
@@ -268,6 +344,7 @@ def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) 
 
     """
     doing_global_variables = False
+    previous_line = ""
     # Format the html
     for line_num, line in enumerate(lines):
         # If we are to skip the next line, then skip it.
@@ -281,8 +358,8 @@ def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) 
             output_lines[line_num] = {
                 "text": ["Variable Name...............Variable Value"],
                 "color": ["turquoise1"],
-                "highlight_color": "",
-                "highlight_position": "",
+                "highlight_color": [],
+                "highlights": [],
             }
             doing_global_variables = True
             continue
@@ -296,7 +373,15 @@ def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) 
             continue
 
         # Handle special formatting
-        output_lines, spacing = additional_formatting(doing_global_variables, line, output_lines, line_num, spacing)
+        output_lines, spacing = additional_formatting(
+            doing_global_variables,
+            line,
+            output_lines,
+            line_num,
+            spacing,
+            previous_line,
+        )
+        previous_line = line
 
     # Eliminate consequtive blank lines and return our dictionary.
     return eliminate_blanks(output_lines)
@@ -314,7 +399,7 @@ def parse_html() -> dict:
             "text": [f"{message}\n, messqage2\n, etc."],
             "color": [color1, color2, color3, etc.],
             "highlight_color": [""],
-            "highlight_position": "",
+            "highlights": [highlight, string],
         }
     """
     output_lines = {}

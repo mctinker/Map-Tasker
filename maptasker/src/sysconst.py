@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "4.2.1"
+VERSION = "4.2.2"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -35,6 +35,7 @@ KEYFILE = ".maptasker.key"
 ERROR_FILE = ".maptasker_error.txt"
 ANALYSIS_FILE = "MapTasker_Analysis.txt"
 DIAGRAM_FILE = "MapTasker_Map.txt"
+SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"
 
 #  List of color arguments and their names
 #  Two different key/value structures in one:
@@ -122,10 +123,10 @@ ARGUMENT_NAMES = {
     "file": "Get backup file named",
     "font": "Font To Use",
     "gui": "GUI Mode",
+    "guiview": "Use GUI Map",
     "highlight": "Highlight Names",
     "indent": "Indentation Amount",
     "italicize": "Italicize Names",
-    "guiview": "Use GUI Map",
     "map_window_position": "Last Map Window Position",
     "outline": "Display Configuration Outline",
     "preferences": "Display Tasker Preferences",
@@ -141,6 +142,18 @@ ARGUMENT_NAMES = {
     "underline": "Underline Names",
     "window_position": "Last Window Position",
 }
+
+SYSTEM_ARGUMENTS = [
+    "window_position",
+    "tree_window_position",
+    "diagram_window_position",
+    "color_window_position",
+    "ai_popup_window_position",
+    "ai_analysis_window_position",
+    "map_window_position",
+    "gui_view",
+    "rerun",
+]
 
 # Debug stuff
 logger = logging.getLogger("MapTasker")

@@ -10,6 +10,7 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import pickle
 from datetime import timedelta
 from pathlib import Path
 
@@ -21,7 +22,15 @@ from maptasker.src.error import error_handler
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.maputils import reset_named_objects
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import ARGUMENTS_FILE, NOW_TIME, OLD_ARGUMENTS_FILE, logger
+from maptasker.src.sysconst import (
+    ARGUMENT_NAMES,
+    ARGUMENTS_FILE,
+    NOW_TIME,
+    OLD_ARGUMENTS_FILE,
+    SYSTEM_ARGUMENTS,
+    SYSTEM_SETTINGS_FILE,
+    logger,
+)
 
 twenty_four_hours_ago = NOW_TIME - timedelta(hours=25)
 
@@ -90,23 +99,38 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     except AttributeError:
         program_arguments["file"] = ""
 
+    # Separate user from system settings
+    user_args = {}
+    sys_args = {}
+    for argument in ARGUMENT_NAMES:
+        if argument in SYSTEM_ARGUMENTS:
+            sys_args[argument] = program_arguments[argument]
+        else:
+            user_args[argument] = program_arguments[argument]
+
     # Save dictionaries
-    settings = {"program_arguments": program_arguments, "colors_to_use": colors_to_use, "last_run": PrimeItems.last_run}
+    settings = {"program_arguments": user_args, "colors_to_use": colors_to_use, "last_run": PrimeItems.last_run}
 
     # Write out the guidance for the file.
     with open(new_file, "wb") as settings_file:
         tomli_w.dump(guidance, settings_file)
         settings_file.close()
 
-    # Write out the program arguments in TOML format.  Open in binary append format (ab).
+    # Write out the user program arguments in TOML format.  Open in binary append format (ab).
     with open(new_file, "ab") as settings_file:
-        settings["program_arguments"] = dict(sorted(program_arguments.items()))  # Sort the program args first.
+        settings["program_arguments"] = dict(sorted(user_args.items()))  # Sort the program args first.
         settings["colors_to_use"] = dict(sorted(colors_to_use.items()))  # Sort the colors first.
         try:
             tomli_w.dump(settings, settings_file)
         except TypeError as e:
             logger.debug(f"getputer tomli failure: {e}")
             print(f"getputer tomli failure: {e}...one or more settings is 'None'!")
+        settings_file.close()
+
+    # Write out the system program arguments in PICKLE format.
+    with open(SYSTEM_SETTINGS_FILE, "wb") as settings_file:
+        # dump information to that file
+        pickle.dump(sys_args, settings_file)
         settings_file.close()
 
 
@@ -235,13 +259,21 @@ def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, 
     Returns:
         None: This function does not return anything.
     """
+    sys_file = f"{Path.cwd()}{PrimeItems.slash}{SYSTEM_SETTINGS_FILE}"
     # First see if there is an old formatted file to restore.
     if os.path.isfile(old_file):
         program_arguments, colors_to_use = process_old_formatted_file(program_arguments, colors_to_use, old_file)
 
-    # Read the TOML file
+    # Read the user settingsTOML file
     elif os.path.isfile(new_file):
         program_arguments, colors_to_use = read_toml_file(new_file)
+
+    # Read the system settings PICKLE file
+    if os.path.isfile(sys_file):
+        with open(sys_file, "rb") as sys_settings_file:
+            sys_args = pickle.load(sys_settings_file)  # noqa: S301
+            for key, value in sys_args.items():
+                program_arguments[key] = value
 
     return program_arguments, colors_to_use
 

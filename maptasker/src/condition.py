@@ -199,7 +199,7 @@ def condition_event(the_item: defusedxml.ElementTree.XMLParse, the_output_condit
     # Get the event priority
     event = f"{event}{get_priority(the_item, True)}"
 
-    # TODO: Configuration Paramerter(s) not getting broken up into separate lines at "\n"
+    # Format the Event text
     the_output_condition = f"{the_output_condition}Event: {event}"
     if PrimeItems.program_arguments["debug"]:  # if program_args['debug'] then add the code
         the_output_condition = f"{the_output_condition} (code:{the_event_code.text})"

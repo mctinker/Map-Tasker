@@ -43,6 +43,7 @@ from maptasker.src.guiutils import (
     display_messages_from_last_run,
     display_no_xml_message,
     display_selected_object_labels,
+    fresh_message_box,
     get_api_key,
     get_xml,
     is_new_version,
@@ -103,6 +104,7 @@ INFO_TEXT = (
     "    Level 2 = display full Task action name on every Task.\n"
     "    Level 3 = display full Task action details on every Task with action details.\n"
     "    Level 4 = display level of 3 plus Project's global variables.\n\n"
+    "    Level 5 = display level of 4 plus Scene argument details.\n\n"
     "* Just Display Everything: Turns on the display of "
     "conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n"
     "* Display Conditions: Turn on the display of Profile and Task conditions.\n\n"
@@ -119,7 +121,7 @@ INFO_TEXT = (
     "* Report Issue - This will bring up your browser to the issue reporting site, and you can use this to "
     "either report a bug or request a new feature ( [Feature Request] )\n\n"
     "* Appearance Mode: Dark, Light, or System default.\n\n"
-    "* Tree View: Display a tree of your Projects/Profiles/Tasks.\n\n"
+    "* Views: Display your configuration map, diagram, or tree view of your Projects, Profiles, Tasks and Scenes.\n\n"
     "* Reset Options: Clear everything and start anew.\n\n"
     "* Clear Messages: Clear any messages in the textbox.\n\n"
     "* Font To Use: Change the monospace font used for the output.\n\n"
@@ -199,6 +201,7 @@ VIEW_HELP_TEXT = (
     " - While the browser is not invoked directly, the map can be displayed in the browser by opening the 'MapTasker.html' file.\n\n"
     " - The display 'Directory', 'Outline' and name highlighting settings are ignored since they do not work in the Map view.\n\n"
     " - Very large configuration maps will incur high CPU usage.  For best p[erformance, select a single Project to map.\n\n"
+    " - If both 'Italicize' and 'Bold' are selected, 'Italicize' will take precedence for an unknown reason.\n\n"
     "\nThe Diagram View has the following behavior:\n\n"
     " - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n"
     "\nThe Tree View has the following behavior:\n\n"
@@ -706,10 +709,9 @@ class MyGui(customtkinter.CTk):
             - Sets the textbox to read-only and wraps text
             - Applies a color tag to a portion of the text
         """
-        self.textbox.destroy()
+        # Get rid of old messages
+        fresh_message_box(self)
 
-        # Recreate text box
-        self.create_new_textbox()
         # Insert the text.
         self.textbox.insert("0.0", message)
 
@@ -737,7 +739,6 @@ class MyGui(customtkinter.CTk):
             f"1.{len(message)}",
         )  # '1.5' means first line, 5th character; '1.11' means first line, 11th character
         self.textbox.tag_config("color", foreground="green")
-        self.all_messages = {}
 
     # ################################################################################
     # Inform user of toggle selection
@@ -1199,6 +1200,7 @@ class MyGui(customtkinter.CTk):
                     [f"{PrimeItems.error_msg}\n", "Click 'Get Local XML' to try a different XML file."],
                     "Red",
                 )
+                display_current_file(self, "None")
             return False
 
         # Good return from getting the XML
@@ -1347,13 +1349,13 @@ class MyGui(customtkinter.CTk):
                 view = CTkTextview(master=getattr(self, window_attribute), title=window_title, the_data=data)
             else:
                 self.display_message_box("No Project(s) Found in XML!", "Red")
-                return
+                return None
         elif view_type == "tree":
             if data:
                 view = CTkTreeview(master=getattr(self, window_attribute), items=data)
             else:
                 self.display_message_box("No Project(s) Found in XML!", "Red")
-                return
+                return None
         else:
             self.display_message_box()("Invalid view type specified. Use 'map', 'diagram', or 'tree'.", "Red")
 
@@ -3135,6 +3137,9 @@ class EventHandlers:
 
             # Initialize a few things first
             reset_primeitems_single_names()
+            fresh_message_box(self)
+
+            self.display_message_box("The 'Map' view is running in the background.  Please stand by...", "LimeGreen")
 
             # Re-invoke ourselves to force the html to be written
             _ = mapit_all("")
@@ -3148,8 +3153,5 @@ class EventHandlers:
             self.mapview = self.display_view("map")
             self.display_message_box("Map View displayed.", "Green")
 
-            # Reload the GUI by running a new process with the new program/version.
-            # reload_gui(self, sys.argv[0], "-g", "-guiview")
-            # There is no return from the above call.
         else:
             display_no_xml_message(self)

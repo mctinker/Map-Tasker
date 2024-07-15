@@ -398,10 +398,19 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None
         """
+        bold_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], weight="bold", size=12)
+        italic_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], size=12, slant="italic")
+        highlight_configurations = {
+            "bold": {"font": bold_font},
+            "italic": {"font": italic_font},
+            "underline": {"underline": True},
+            "mark": {"background": PrimeItems.colors_to_use["highlight_color"]},
+        }
         # Iterate through dictionary of lines and insert into textbox
         line_num = 1
         tags = []
         previous_color = "white"
+
         for value in the_data.values():
             line_num_str = str(line_num)
 
@@ -430,8 +439,24 @@ class CTkTextview(ctk.CTkFrame):
                     # Have to handle background color separately
                     if "Color for Background set to" in message or "highlighted for visibility" in message:
                         color = "White"
-                    # Determine the proper color to use.
+                    # Determine the proper color and highlighting to use.
                     else:
+                        with contextlib.suppress(KeyError):
+                            if num == 0 and value["highlights"]:
+                                for highlight in value["highlights"]:
+                                    highlights = highlight.split(",")
+                                    start_position = message.find(highlights[1])
+                                    end_position = start_position + len(highlights[1])
+
+                                    highlight_type = highlights[0]
+                                    if highlight_type in highlight_configurations:
+                                        new_tag = f"{tag_id}{highlight_type}"
+                                        tags.append(new_tag)
+                                        self.textview_textbox.tag_config(new_tag, **highlight_configurations[highlight_type])
+                                        self.textview_textbox.tag_add(new_tag, f"{line_num_str}.{start_position}", f"{line_num_str}.{end_position}")
+
+
+                        # Color the text
                         try:
                             color = self.master.master.color_lookup.get(f'{value["color"][num]}')
 
@@ -461,7 +486,6 @@ class CTkTextview(ctk.CTkFrame):
                 logger.info(f"Map View Value: {value}")
             line_num += 1
 
-
     def delay_event(self) -> None:
         """
         A method that handles the delay event for the various text views.
@@ -469,12 +493,35 @@ class CTkTextview(ctk.CTkFrame):
         """
         self.drag_label.destroy()
 
+    def new_tag_config(self, tagName: str, **kwargs: list) -> object:
+        """
+        A function to override the CustomTkinter tag configuration to allow a font= argument.
+
+        Parameters:
+            - self: The object instance.
+            - tagName: The name of the tag to be configured.
+            - **kwargs: Additional keyword arguments for configuring the tag.
+
+        Returns:
+            The result of calling tag_config on the _textbox attribute with the provided tagName and keyword arguments.
+        """
+        return self._textbox.tag_config(tagName, **kwargs)
+
+    ctk.CTkTextbox.tag_config = new_tag_config
+
 
 # Define the Ai Popup window
 class PopupWindow(ctk.CTk):
     """Define our top level window for the Popup view."""
 
-    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
+    def __init__(
+        self,
+        title: str = "",
+        message: str = "",
+        exit_when_done: bool = False,
+        *args,
+        **kwargs,  # noqa: ANN002, ANN003
+    ) -> None:
         """Creates a label widget for a tree view.
         Parameters:
             self (object): The object being passed.
@@ -491,15 +538,16 @@ class PopupWindow(ctk.CTk):
         # Position the widget over our main GUI
         self.geometry(PrimeItems.program_arguments["window_position"])
 
-        self.title("MapTasker Analysis")
+        self.title(title)
 
         self.grid_columnconfigure(0, weight=1)
 
         # Set popup window wait time to .5 seconds, after which popup_button_event will be called.
-        self.after(500, self.popup_button_event)
+        if exit_when_done:
+            self.after(500, self.popup_button_event)
 
         # Label widget
-        our_label = "Analysis is running in the background.  Please stand by..."
+        our_label = message
         self.text = ""
         self.count = 0
         self.Popup_label = ctk.CTkLabel(master=self, text=self.text, font=("", 24), text_color="turquoise")
