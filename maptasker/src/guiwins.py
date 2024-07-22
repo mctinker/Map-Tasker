@@ -504,7 +504,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Get the name to be inserted.  Add a break if end of the row.
         spacer = "\n" if char_position == spacing * columns - spacing else ""
-        name_to_insert = f"{hotlink_name.ljust(spacing, " ")}{spacer}"
+        name_to_insert = f'{hotlink_name.ljust(spacing, " ")}{spacer}'
         link = [value["directory"][0], hotlink_name]
 
         # Add the text to the text box.  The tag is obtained from call to self.textview_hyperlink.add.
