@@ -3169,6 +3169,11 @@ class EventHandlers:
             or PrimeItems.tasker_root_elements["all_tasks"]
             or PrimeItems.tasker_root_elements["all_scenes"]
         ):
+            # In order for the map to work, we need to ensure that we have the colors defined.
+            if not self.color_lookup:
+                self.color_lookup = set_color_mode(self.appearance_mode)
+
+            # Initiate the map view.
             self.remapit(clear_names=True)
         # We don't have any XML.
         else:

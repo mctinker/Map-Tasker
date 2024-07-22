@@ -54,7 +54,7 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.2.3/4.2.4 - Change Log\n
+Version 4.2.3 thru 4.2.5 - Change Log\n
 ### Added\n
 - Added: Support for Tasker Release 6.3.12.\n
 - Added: 'Intensity Pattern' is now included with the "Notify" Task action.\n
