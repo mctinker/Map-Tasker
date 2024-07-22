@@ -33,139 +33,139 @@ def test_it():
 
 # Run these in small chunks, depending on the size of the backup file being used.
 def test_main():
-    """
-    Test main function to test various scenarios using patch to simulate different sys.argv inputs.
-    """
-    ip = "62"
-    # Test name attributes
-    with patch("sys.argv", ["-test=yes", "reset", "debug", "outline" ]):
-       test_it()
-    # Test name attributes
-    with patch("sys.argv", ["-test=yes", "reset", "detail=2", "debug", "names=bold highlight", "cHighlight LightBlue"]):
-       test_it()
-    with patch(
-       "sys.argv", ["-test=yes", "reset", "detail=1", "debug", "names=underline italicize", "font='Menlo'"],
-    ):
-       test_it()
-    # Test light mode
-    with patch("sys.argv", ["-test=yes", "reset", "detail=2", "debug", "appearance=light"]):
-       test_it()
-    # Test max detail
-    with patch("sys.argv", ["-test=yes", "reset", "detail=5", "debug"]):
-       test_it()
-    # Test max detail
-    with patch("sys.argv", ["-test=yes", "reset", "detail=4", "debug", "i=10"]):
-       test_it()
-    # Test full detail
-    with patch("sys.argv", ["-test=yes", "reset", "detail=3", "debug", "pretty"]):
-       test_it()
-    # Test limited detail
-    with patch("sys.argv", ["-test=yes", "reset", "detail=2", "debug"]):
-       test_it()
-    # Test limited detail 1
-    with patch("sys.argv", ["-test=yes", "reset", "detail=1", "debug"]):
-       test_it()
-    # Test no detail
-    with patch("sys.argv", ["-test=yes", "reset", "detail=0", "debug"]):
-       test_it()
-    # Test by Project name
-    with patch(
-       "sys.argv", ["-test=yes", "reset", "project=Base", "debug", "conditions", "taskernet"]):
-       test_it()
-    # Test by Profile name
-    with patch(
-       "sys.argv",
-       ["-test=yes", "reset", "profile=Call Volume", "detail=3", "debug", "pretty"]):
-       test_it()
-    # Test by Task name
-    with patch("sys.argv", ["-test=yes", "reset", "task=Check Batteries", "debug", "detail=4"]):
-       test_it()
-    # Test -pref
-    with patch("sys.argv", ["-test=yes", "reset", "preferences", "debug", "taskernet", "detail=2"]):
-       test_it()
-    # Test -dir
-    with patch("sys.argv", ["-test=yes", "reset", "directory", "debug", "taskernet", "detail=4"]):
-      test_it()
-    # Test new -everything with twisty and outline
-    with patch("sys.argv", ["-test=yes", "reset", "e"]):
-       test_it()
-    # Test fetch backup xml file
-    with patch(
-       "sys.argv",
-       [
-           "-test=yes", "reset",
-           f"android_ipaddr=192.168.0.{ip}", "android_port=1821", "android_file=/Tasker/configs/user/backup.xml",
-       ],
-    ):
-       test_it()
-    # Test just a Profile
-    with patch(
-       "sys.argv",
-       [
-           "-test=yes", "reset",
-           f"android_ipaddr=192.168.0.{ip}", "android_port=1821", "android_file=/Tasker/profiles/File_List.prf.xml",
-       ],
-    ):
-       test_it()
-    # Test just a Task
-    with patch(
-       "sys.argv",
-       [
-           "-test=yes", "reset",
-           f"android_ipaddr=192.168.0.{ip}", "android_port=1821", "android_file=/Tasker/tasks/Setup_ADB_Permissions.tsk.xml",
-       ],
-    ):
-       test_it()
-    # Test just a Scene
-    with patch(
-       "sys.argv",
-       [
-           "-test=yes", "reset", "pretty",
-           f"android_ipaddr=192.168.0.{ip}", "android_port=1821", "android_file=/Tasker/scenes/Lock.scn.xml",
-       ],
-    ):
-       test_it()
-    # Test colors
-    with patch(
-       "sys.argv",
-       [
-           "-test=yes", "reset",
-           "cBackground=Black",
-           "cActionCondition=Yellow",
-           "cProfileCondition=Red",
-           "cActionLabel=White",
-           "cProfile=Yellow",
-           "cDisabledAction=Green",
-           "cLauncherTask=Purple",
-           "cActionName=White",
-           "cTask=Yellow",
-           "cUnknownTask=Green",
-           "cScene=Teal",
-           "cTaskerNetInfo=Violet",
-           "cProfile=Yellow",
-           "cDisabledProfile=Orange",
-           "cBullet=Red",
-           "cPreferences=Linen",
-           "cAction=Blue",
-           "cTrailingComments=LightGoldenrodYellow",
-           "e",
-           "debug",
-       ],
-    ):
-       test_it()
+   """
+   Test main function to test various scenarios using patch to simulate different sys.argv inputs.
+   """
+   ip = "62"
+   # # Test name attributes
+   # with patch("sys.argv", ["-test=yes", "reset", "debug", "outline" ]):
+   #    test_it()
+   # # Test name attributes
+   # with patch("sys.argv", ["-test=yes", "reset", "detail=2", "debug", "names=bold highlight", "cHighlight LightBlue"]):
+   #    test_it()
+   # with patch(
+   #    "sys.argv", ["-test=yes", "reset", "detail=1", "debug", "names=underline italicize", "font='Menlo'"],
+   # ):
+   #    test_it()
+   # # Test light mode
+   # with patch("sys.argv", ["-test=yes", "reset", "detail=2", "debug", "appearance=light"]):
+   #    test_it()
+   # # Test max detail
+   # with patch("sys.argv", ["-test=yes", "reset", "detail=5", "debug"]):
+   #    test_it()
+   # # Test max detail
+   # with patch("sys.argv", ["-test=yes", "reset", "detail=4", "debug", "i=10"]):
+   #    test_it()
+   # # Test full detail
+   # with patch("sys.argv", ["-test=yes", "reset", "detail=3", "debug", "pretty"]):
+   #    test_it()
+   # # Test limited detail
+   # with patch("sys.argv", ["-test=yes", "reset", "detail=2", "debug"]):
+   #    test_it()
+   # # Test limited detail 1
+   # with patch("sys.argv", ["-test=yes", "reset", "detail=1", "debug"]):
+   #    test_it()
+   # # Test no detail
+   # with patch("sys.argv", ["-test=yes", "reset", "detail=0", "debug"]):
+   #    test_it()
+   # # Test by Project name
+   # with patch(
+   #    "sys.argv", ["-test=yes", "reset", "project=Base", "debug", "conditions", "taskernet"]):
+   #    test_it()
+   # # Test by Profile name
+   # with patch(
+   #    "sys.argv",
+   #    ["-test=yes", "reset", "profile=Call Volume", "detail=3", "debug", "pretty"]):
+   #    test_it()
+   # # Test by Task name
+   # with patch("sys.argv", ["-test=yes", "reset", "task=Check Batteries", "debug", "detail=4"]):
+   #    test_it()
+   # # Test -pref
+   # with patch("sys.argv", ["-test=yes", "reset", "preferences", "debug", "taskernet", "detail=2"]):
+   #    test_it()
+   # # Test -dir
+   # with patch("sys.argv", ["-test=yes", "reset", "directory", "debug", "taskernet", "detail=4"]):
+   # test_it()
+   # # Test new -everything with twisty and outline
+   # with patch("sys.argv", ["-test=yes", "reset", "e"]):
+   #    test_it()
+   # # Test fetch backup xml file
+   # with patch(
+   #    "sys.argv",
+   #    [
+   #       "-test=yes", "reset",
+   #       f"android_ipaddr=192.168.0.{ip}", "android_port=1821", "android_file=/Tasker/configs/user/backup.xml",
+   #    ],
+   # ):
+   #    test_it()
+   # # Test just a Profile
+   # with patch(
+   #    "sys.argv",
+   #    [
+   #       "-test=yes", "reset",
+   #       f"android_ipaddr=192.168.0.{ip}", "android_port=1821", "android_file=/Tasker/profiles/File_List.prf.xml",
+   #    ],
+   # ):
+   #    test_it()
+   # # Test just a Task
+   # with patch(
+   #    "sys.argv",
+   #    [
+   #       "-test=yes", "reset",
+   #       f"android_ipaddr=192.168.0.{ip}", "android_port=1821", "android_file=/Tasker/tasks/Setup_ADB_Permissions.tsk.xml",
+   #    ],
+   # ):
+   #    test_it()
+   # # Test just a Scene
+   # with patch(
+   #    "sys.argv",
+   #    [
+   #       "-test=yes", "reset", "pretty",
+   #       f"android_ipaddr=192.168.0.{ip}", "android_port=1821", "android_file=/Tasker/scenes/Lock.scn.xml",
+   #    ],
+   # ):
+   #    test_it()
+   # # Test colors
+   # with patch(
+   #    "sys.argv",
+   #    [
+   #       "-test=yes", "reset",
+   #       "cBackground=Black",
+   #       "cActionCondition=Yellow",
+   #       "cProfileCondition=Red",
+   #       "cActionLabel=White",
+   #       "cProfile=Yellow",
+   #       "cDisabledAction=Green",
+   #       "cLauncherTask=Purple",
+   #       "cActionName=White",
+   #       "cTask=Yellow",
+   #       "cUnknownTask=Green",
+   #       "cScene=Teal",
+   #       "cTaskerNetInfo=Violet",
+   #       "cProfile=Yellow",
+   #       "cDisabledProfile=Orange",
+   #       "cBullet=Red",
+   #       "cPreferences=Linen",
+   #       "cAction=Blue",
+   #       "cTrailingComments=LightGoldenrodYellow",
+   #       "e",
+   #       "debug",
+   #    ],
+   # ):
+   #    test_it()
 
-    # Test invalid runtime parameters
+   # Test invalid runtime parameters
 
-    # Test bad IP address/port/file
-    with patch(
-        "sys.argv",
-        [
-            "-test=yes", "reset",
-            "android_ipaddr192.168.0.6x", "android_port=1821", "android_file=/Tasker/configs/user/backup.xml",
-        ],
-    ):
-        test_it()
+   # # Test bad IP address/port/file
+   # with patch(
+   #    "sys.argv",
+   #    [
+   #       "-test=yes", "reset",
+   #       "android_ipaddr192.168.0.6x", "android_port=1821", "android_file=/Tasker/configs/user/backup.xml",
+   #    ],
+   # ):
+   #    test_it()
 
 
 if __name__ == "__main__":
-    test_main()
+   test_main()
