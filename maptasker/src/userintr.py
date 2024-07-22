@@ -1639,7 +1639,8 @@ class EventHandlers:
         """
         self = self.parent
         self.set_defaults()  # Reset all values
-        temp_args = self.color_lookup = {}
+        temp_args = {}
+        self.color_lookup = {}
         # Restore all changes that have been saved
         temp_args, self.color_lookup = save_restore_args(temp_args, self.color_lookup, False)
 
