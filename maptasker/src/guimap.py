@@ -523,7 +523,7 @@ def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) 
         if line == "<th>Name</th>\n" and lines[line_num + 1] == "<th>Value</th>\n":
             iterate = True
             output_lines[line_num] = {
-                "text": [f"{" " * glob_spacing}Variable Name...............Variable Value"],
+                "text": [f'{" " * glob_spacing}Variable Name...............Variable Value'],
                 "color": ["turquoise1"],
                 "highlight_color": [],
                 "highlights": [],
