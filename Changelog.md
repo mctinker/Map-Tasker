@@ -2,25 +2,36 @@
 
 All notable changes to this project will be documented in this file!
 
-## [4.2.2] 15-Jul-2024
+## [4.2.3] 22-Jul-2024
 
 ### Added
 
-- Added: Display a "Please stand by" message while building the 'Map' view from the GUI.
-- Added: Name highlighting (bold, underline, italicize and highlight) are now supported in the 'Map' view.
+- Added: Support for Tasker Release 6.3.12.
+- Added: 'Intensity Pattern' is now included with the "Notify" Task action.
+- Added: Open Ai model 'cpt-40-mini' added to the 'Analysis' tab.
+- Added: Direcory (hotlinks) are now supported in the 'Map' view within the GUI.
 
 ### Changed
 
-- Changed: Removed non-user modifiable arguments from the user settings file, 'MapTasker_Settings.toml'.
+- Changed: Nothing has changed.
 
 ### Fixed
 
+- Fixed: The 'Map' and 'Tree' views are not including Tasks that are not part of a Profile.
+- Fixed: 'Map' view global variables are not displaying properly.
+- Fixed: A caveat is not displaying properly.
+
+## Older History Logs
+
+## [4.2.2]
+
+- Added: Display a "Please stand by" message while building the 'Map' view from the GUI.
+- Added: Name highlighting (bold, underline, italicize and highlight) are now supported in the 'Map' view.
+- Changed: Removed non-user modifiable arguments from the user settings file, 'MapTasker_Settings.toml'.
 - Fixed: 'Update to Latest Version' gives a program error even though it still works.
 - Fixed: Formatting for 'Configutration Parameter(s):' in the 'Map' view is incorrect.
 - Fixed: If 'Get Local XML' is selected in the GUI and returns bad XML, the 'Current File' is not updated to 'None'.
 - Fixed: If 'Tree' view is selected and there is no XML loaded, the error message says the 'Map is not possible rather than the 'View is not possible'.
-
-## Older History Logs
 
 ## [4.2.1]
 
@@ -45,7 +56,7 @@ All notable changes to this project will be documented in this file!
 
 ## [4.1.0]
 
-- Added: If 'Debug' is on and trying to get new XML data, then display the message that 'backup.xmnl' is being used.
+- Added: If 'Debug' is on and trying to get new XML data, then display the message that 'backup.xml' is being used.
 - Added: Three new analysis models have been added: "qwen", "codellama" and "aya".
 - Changed: Reemoved the requirement to manually install Ollama since it is now included.
 - Changed: Simplified the ReRun option for Windows users.

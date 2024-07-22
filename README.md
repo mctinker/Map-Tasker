@@ -52,7 +52,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Save and restore commonly used runtime settings.
 - Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT or the local-based Llama (via Ollama) supported models.*
 - Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View.*
-- Automatic update detection and optional installation.*
+- Automatic update detection and optional installation of new versions.*
 
 &nbsp;&nbsp;&nbsp;&nbsp;* Available via the GUI only.
 
@@ -151,7 +151,7 @@ To retrieve the Tasker XML file directly from your Android device, you must have
 
 - The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").  Make sure to run the "launch" Task and enter your Google Drive ID.
 
-- The TaskerNet profile, [MapTasker List](https://shorturl.at/buvK6), must be imported into Tasker for the 'List XML Files' button to work in the GUI.  You can also first [preview this app on TaskerNet](https://taskernet.com/?public&tags=maptasker,Utility&time=AllTime).
+- The TaskerNet profile, [MapTasker List](https://shorturl.at/0MQrL), must be imported into Tasker for the 'List XML Files' button to work in the GUI.  You can also first [preview this app on TaskerNet](https://taskernet.com/?public&tags=maptasker,Utility&time=AllTime).
 
 - Once the XML has been retrieved from your Android device, it is not necessary to keep retrieving it unless it has changed since it is automatically saved on your desktop.
 
@@ -221,7 +221,7 @@ Network traffic is as follows:
 
 ## Known Issues
 
-- None.
+- Firefox doesn't recognize a light background (appearance is 'light').
 
 ## Contributions
 
