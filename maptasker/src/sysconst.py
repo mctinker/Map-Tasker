@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "4.2.2"
+VERSION = "4.2.3"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -235,7 +235,7 @@ TABLE_BORDER = (
 
 NOW_TIME = datetime.now()  # noqa: DTZ005
 
-OPENAI_MODELS = ["gpt-3.5-turbo", "gpt-4o", "gpt-4", "gpt-4-turbo"]
+OPENAI_MODELS = ["gpt-3.5-turbo", "gpt-4o", "gpt-4", "gpt-4-turbo", "gpt-4o-mini"]
 LLAMA_MODELS = [
     "llama2",
     "llama3",

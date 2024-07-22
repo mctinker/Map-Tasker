@@ -30,7 +30,7 @@ def display_caveats() -> None:
             "- This has only been tested on my own backup.xml file."
             "  For problems, report them on https://github.com/mctinker/Map-Tasker/issues .\n"
         ),
-        ('- Tasks that are identified as "Unnamed/Anonymous" have no name and are considered Anonymous.\n'),
+        ("- Tasks that are identified as 'Unnamed/Anonymous' have no name and are considered Anonymous.\n"),
         (
             '- All attempts are made to retain embedded HTML (e.g. color=...>") in Tasker'
             " fields, but is stripped out of Action labels and TaskerNet comments.\n"

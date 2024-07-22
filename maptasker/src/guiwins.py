@@ -25,6 +25,8 @@ from maptasker.src.guiutils import (
     add_option_menu,
     display_analyze_button,
     get_monospace_fonts,
+    reset_primeitems_single_names,
+    update_tasker_object_menus,
 )
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import LLAMA_MODELS, OPENAI_MODELS, logger
@@ -342,6 +344,10 @@ class CTkTextview(ctk.CTkFrame):
             width=width,
         )
 
+        # Enable hyperlinks if needed
+        if self.master.master.directory:
+            self.textview_hyperlink = CTkHyperlinkManager(self.textview_textbox)
+
         # Insert the text with our new message into the text box.
         # fmt: off
         if type(the_data) == str:
@@ -390,13 +396,224 @@ class CTkTextview(ctk.CTkFrame):
 
     def output_map(self, the_data: dict) -> None:
         """
-        Outputs the data from the given dictionary to a text box.
+        Outputs the data from the given map data (dictionary) to a text box.
 
         Args:
             the_data (dict): The dictionary containing the data to output.
 
         Returns:
             None
+        """
+        # Iterate through dictionary of lines and insert into textbox
+        line_num = 1
+        tags = []
+        previous_color = "white"
+        previous_directory = ""
+        previous_value = ""
+        char_position = 0
+        # Delete the in-memory output since it is no longer needed
+        PrimeItems.output_lines.output_lines = []
+
+        # Process the data.
+        for value in the_data.values():
+            with contextlib.suppress(IndexError):
+                if value == "\n":
+                    continue
+
+            # Check to see if we should bump the output line number
+            try:
+                if previous_value == "directory" and not value["directory"]:
+                    line_num += 1
+                    char_position = 0
+            except KeyError:
+                if previous_value == "directory":
+                    line_num += 1
+                    char_position = 0
+
+            # Is the text to be colored?
+            # If there is a color attribute, then we will go through all text lines and add the color fore the specific text entry
+            if not value["color"] and value["text"]:
+                value["color"] = [previous_color]
+            if value["color"]:
+                line_num += 1  # For a bump in line number since we are adding a '\n' to text
+
+                # Handle special case of Directory and "Projects....." etc. lines by adding ane xtra '\n'
+                if value["text"][0] == "Directory\n":
+                    value["text"] = "\nDirectory    (entries are hotlinks)\n"
+                elif value["text"][0].startswith("\nn"):
+                    save_text = value["text"][0][2:]
+                    save_color = value["color"]
+                    value["text"] = "\n\n"
+                    previous_color = self.output_map_text_lines(value, line_num, tags, previous_color)
+                    line_num += 1
+                    value["text"] = save_text
+                    value["color"] = save_color
+
+                # Output the each text line and color in the data 'value' entry.
+                previous_color = self.output_map_text_lines(value, line_num, tags, previous_color)
+                line_num += 1
+                previous_value = "color"
+
+            # Process the directory entry
+            elif value["directory"]:
+                if previous_value != "directory":
+                    char_position = 0
+                char_position, previous_directory, line_num = self.process_directory(
+                    value,
+                    line_num,
+                    previous_directory,
+                    char_position,
+                )
+                previous_value = "directory"
+
+            if self.master.master.debug:
+                logger.info(f"Map View Value: {value}")
+
+    # Process directory entries as hotlinks
+    def process_directory(self, value: dict, line_num: int, previous_directory: str, char_position: int) -> tuple:
+        """
+        A function that processes a directory based on the given values.
+
+        Parameters:
+            - self: The object itself.
+            - value: A dictionary containing information about the directory.
+            - line_num: An integer representing the line number.
+            - previous_directory: The previous Tasker type ("projects", "profiles", etc.) that was processed.
+            - char_position: An integer representing the character position in the text line.
+
+        Returns:
+            char_position: An integer representing the updated character position in the text line.
+            previous_directory: The previous Tasker type ("projects", "profiles", etc.) that was processed.
+            line_num: An integer representing the updated line number.
+        """
+        spacing = 40
+        columns = 3
+
+        # We dont't support Scenes or Grand Totals hotlinks (yet)
+        if value["directory"][0] in ("scenes", "grand", "</td"):
+            char_position = 0
+            return char_position, previous_directory, line_num
+
+        # If we have a change in directory Tasker object, reset positon to 0.
+        if previous_directory != value["directory"][0]:
+            char_position = 0
+
+        # Setup the info to insert into the text box.
+        line_num_str = str(line_num)
+        hotlink_name = value["directory"][1]
+
+        # Get the name to be inserted.  Add a break if end of the row.
+        spacer = "\n" if char_position == spacing * columns - spacing else ""
+        name_to_insert = f"{hotlink_name.ljust(spacing, " ")}{spacer}"
+        link = [value["directory"][0], hotlink_name]
+
+        # Add the text to the text box.  The tag is obtained from call to self.textview_hyperlink.add.
+        self.textview_textbox.insert(
+            f"{line_num_str}.{char_position!s}",
+            name_to_insert,
+            self.textview_hyperlink.add(link),
+        )
+
+        # Set up for next time through...
+        char_position += spacing
+        if char_position == spacing * columns:
+            line_num += 1
+            char_position = 0
+            # kaka = self.textview_textbox.get("1.0", f"{line_num!s}.{char_position!s}")
+            # ...
+        previous_directory = value["directory"][0]
+
+        return char_position, previous_directory, line_num
+
+    def output_map_text_lines(self, value: dict, line_num: int, tags: list, previous_color: str) -> str:
+        """
+        A function that outputs text lines with specified colors and formatting to a text box for the value passed in.
+        Parameters:
+            - value: A dictionary 'value' containing text, color, and highlights information.
+            - line_num: An integer representing the line number.
+            - tags: A list of tags for text formatting.
+            - previous_color: A string representing the previous color used.
+        Returns:
+            previous_color: A string representing the previous color used.
+        """
+
+        # Go through all of the text/color combinations
+        char_position = 0
+        line_num_str = str(line_num)
+        for num, message in enumerate(value["text"]):
+            char_position_str = str(char_position)
+
+            # Build the tag to use and make sure it is unique
+            tag_id = f"{line_num_str}{char_position_str}"
+            while tag_id in tags:
+                tag_id = f"{tag_id}{random.randint(100, 999)}"  # noqa: S311
+            tags.append(tag_id)
+
+            # Determine if this is the last item in the list of text elements and add a new line if it is.
+            line_to_insert = f"{message}\n" if message == value["text"][-1] and "\n" not in message else message
+
+            # Insert the text to the text box.  The tag is obtained from call to self.textview_hyperlink.add.
+            self.textview_textbox.insert(f"{line_num_str}.{char_position_str}", f"{line_to_insert}", tag_id)
+            self.textview_textbox.tag_add(
+                tag_id,
+                f"{line_num_str}.{char_position_str}",
+                f"{line_num_str}.{len(line_to_insert)!s}",
+            )
+            # fmt: on
+            char_position += len(line_to_insert)  # Point to next position for text
+
+            # Do color and name highlighting (bold/italicize/underline/highlight).  Use previous color if it doesn't exist.
+            # Have to handle background color separately
+            color = previous_color
+            if "Color for Background set to" in line_to_insert or "highlighted for visibility" in line_to_insert:
+                color = "White"
+            # Determine the proper color and highlighting to use.
+            else:
+                color = self.output_map_colors_highlighting(
+                    value,
+                    line_num_str,
+                    tags,
+                    previous_color,
+                    num,
+                    line_to_insert,
+                    tag_id,
+                    color,
+                )
+
+            # Save previous color in case we need to use it.
+            previous_color = color
+
+            # Add color to the tag
+            self.textview_textbox.tag_config(tag_id, foreground=color)
+        return previous_color
+
+    def output_map_colors_highlighting(
+        self,
+        value: dict,
+        line_num_str: str,
+        tags: list,
+        previous_color: str,
+        num: int,
+        message: str,
+        tag_id: str,
+        color: str,
+    ) -> str:
+        """
+        A function to apply color highlighting to text based on the specified configurations.
+
+        Parameters:
+            - self: the object instance
+            - value: a dictionary containing the value to be highlighted
+            - line_num_str: a string representing the line number
+            - tags: a list of tags to be applied
+            - previous_color: a string representing the previous color used
+            - num: an integer representing a specific number
+            - message: a string containing the message to be highlighted
+            - tag_id: a string representing the tag ID
+            - color: a string representing the color
+
+        Returns:
+            - color (string): the color to be applied
         """
         bold_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], weight="bold", size=12)
         italic_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], size=12, slant="italic")
@@ -406,85 +623,42 @@ class CTkTextview(ctk.CTkFrame):
             "underline": {"underline": True},
             "mark": {"background": PrimeItems.colors_to_use["highlight_color"]},
         }
-        # Iterate through dictionary of lines and insert into textbox
-        line_num = 1
-        tags = []
-        previous_color = "white"
+        with contextlib.suppress(KeyError):
+            if num == 0 and value["highlights"]:
+                for highlight in value["highlights"]:
+                    highlights = highlight.split(",")
+                    start_position = message.find(highlights[1])
+                    end_position = start_position + len(highlights[1])
 
-        for value in the_data.values():
-            line_num_str = str(line_num)
+                    highlight_type = highlights[0]
+                    if highlight_type in highlight_configurations:
+                        new_tag = f"{tag_id}{highlight_type}"
+                        tags.append(new_tag)
+                        self.textview_textbox.tag_config(new_tag, **highlight_configurations[highlight_type])
+                        self.textview_textbox.tag_add(
+                            new_tag,
+                            f"{line_num_str}.{start_position}",
+                            f"{line_num_str}.{end_position}",
+                        )
 
-            # Is the text to be colored?
-            if value["color"]:
-                # Add the text and color to the text box.
-                # fmt: off
-                char_position = 0
+        # Color the text
+        try:
+            color = self.master.master.color_lookup.get(f'{value["color"][num]}')
 
-                # Go through all of the text/color combinations
-                for num, message in enumerate(value["text"]):
-                    char_position_str = str(char_position)
-                    # Build the tag to use and make sure it is unique
-                    tag_id = f"{line_num_str}{char_position_str}"
-                    while tag_id in tags:
-                        tag_id = f"{tag_id}{random.randint(100, 999)}"  # noqa: S311
-                    tags.append(tag_id)
-
-                    # Parameters: line_number.character_position, text, tag(tuple)
-                    self.textview_textbox.insert(f"{line_num_str}.{char_position_str}", f"{message}\n", (tag_id))
-                    self.textview_textbox.tag_add(tag_id, f"{line_num_str}.{char_position_str}", f"{line_num_str}.{len(message)!s}")
-                    # fmt: on
-                    char_position += len(message)  # Point to next position for text
-
-                    # Get the color.  Use previous color if it doesn't exist.
-                    # Have to handle background color separately
-                    if "Color for Background set to" in message or "highlighted for visibility" in message:
-                        color = "White"
-                    # Determine the proper color and highlighting to use.
-                    else:
-                        with contextlib.suppress(KeyError):
-                            if num == 0 and value["highlights"]:
-                                for highlight in value["highlights"]:
-                                    highlights = highlight.split(",")
-                                    start_position = message.find(highlights[1])
-                                    end_position = start_position + len(highlights[1])
-
-                                    highlight_type = highlights[0]
-                                    if highlight_type in highlight_configurations:
-                                        new_tag = f"{tag_id}{highlight_type}"
-                                        tags.append(new_tag)
-                                        self.textview_textbox.tag_config(new_tag, **highlight_configurations[highlight_type])
-                                        self.textview_textbox.tag_add(new_tag, f"{line_num_str}.{start_position}", f"{line_num_str}.{end_position}")
-
-
-                        # Color the text
-                        try:
-                            color = self.master.master.color_lookup.get(f'{value["color"][num]}')
-
-                            # If color is None, then it wasn't found in the lookup table.  It is a raw color name.
-                            if color is None and value["color"][num] != "n/a":
-                                color = value["color"][num]
-                            elif color is None and value["color"][num] == "n/a" or "-" in color:
-                                color = previous_color
-                            else:
-                                previous_color = color
-                        except IndexError:
-                            color = previous_color
-
-                        # Deal with a hex value for color
-                        if color and color.isdigit():
-                            color = f"#{color}"
-                    # Save previous color in case we need to use it.
-                    previous_color = color
-
-                    # Add color to the tag
-                    self.textview_textbox.tag_config(tag_id, foreground=color)
-
+            # If color is None, then it wasn't found in the lookup table.  It is a raw color name.
+            if color is None and value["color"][num] != "n/a":
+                color = value["color"][num]
+            elif color is None and value["color"][num] == "n/a" or "-" in color:
+                color = previous_color
             else:
-                self.textview_textbox.insert(f"{line_num!s}.0", f'{value["text"][0]}\n')
+                previous_color = color
+        except IndexError:
+            color = previous_color
 
-            if self.master.master.debug:
-                logger.info(f"Map View Value: {value}")
-            line_num += 1
+        # Deal with a hex value for color
+        if color and color.isdigit():
+            color = f"#{color}"
+        return color
 
     def delay_event(self) -> None:
         """
@@ -519,8 +693,8 @@ class PopupWindow(ctk.CTk):
         title: str = "",
         message: str = "",
         exit_when_done: bool = False,
-        *args,
-        **kwargs,  # noqa: ANN002, ANN003
+        *args,  # noqa: ANN002
+        **kwargs,  # noqa: ANN003
     ) -> None:
         """Creates a label widget for a tree view.
         Parameters:
@@ -619,7 +793,7 @@ class CTkHyperlinkManager:
             None
         """
         self.text = master
-        self.text.tag_config("hyper", foreground=text_color, underline=1)
+        self.text.tag_config("hyper", foreground=text_color, underline=0)
         self.text.tag_bind("hyper", "<Enter>", self._enter)
         self.text.tag_bind("hyper", "<Leave>", self._leave)
         self.text.tag_bind("hyper", "<Button-1>", self._click)
@@ -631,6 +805,7 @@ class CTkHyperlinkManager:
 
         Args:
             link (str): The hyperlink to add.
+
 
         Returns:
             tuple: A tuple containing the type of link ("hyper") and the tag of the link.
@@ -663,7 +838,7 @@ class CTkHyperlinkManager:
         """
         self.text.configure(cursor="xterm")
 
-    def _click(self, event: object) -> None:  # noqa: ARG002
+    def _click(self, event: object) -> None:
         """
         Handle the click event on the text widget.
 
@@ -681,9 +856,47 @@ class CTkHyperlinkManager:
         the `links` attribute is a dictionary mapping tag names to URLs.
         """
         for tag in self.text.tag_names(ctk.CURRENT):
-            if tag[:6] == "hyper-":
-                webbrowser.open(self.links[tag])
+            if tag.startswith("hyper-"):
+                link = self.links[tag]
+                if isinstance(link, list):
+                    action, name = link
+                    guiself = event.widget.master.master.root.master
+                    self.remap_single_item(action, name, guiself)
+                else:
+                    webbrowser.open(link)
                 return
+
+    # The user has clicked on a hotlink.  Get the item clicked and remap using only that single item.
+    def remap_single_item(self, action: str, name: str, guiself: ctk) -> None:
+        """
+        Remap with single item based on action type.
+
+        Args:
+            action (str): The type of action to perform (e.g., 'projects', 'profiles', 'tasks').
+            name (str): The name of the item to remap.
+            guiself (ctk): The GUI self reference.
+
+        Returns:
+            None: This function does not return anything.
+        """
+        if action in ("scenes", "grand"):
+            nogo_name = "Grand Totals" if action == "grand" else "Scene"
+            guiself.display_message_box(f"'{nogo_name}' hotlinks are not working yet.", "Orange")
+        else:
+            # Reset all names
+            reset_primeitems_single_names(guiself)
+            guiself.single_project_name = ""
+            guiself.single_profile_name = ""
+            guiself.single_task_name = ""
+            # Set up for single item
+            PrimeItems.program_arguments[f"single_{action}_name"] = name
+            single_name_parm = action[0 : len(action) - 1]
+            # Update self.single_xxx_name
+            setattr(guiself, f"single_{single_name_parm}_name", name)
+            # Reset single item menus
+            update_tasker_object_menus(guiself, get_data=False)
+            # Remap it.
+            guiself.remapit(clear_names=False)
 
 
 # Save the positition of a window

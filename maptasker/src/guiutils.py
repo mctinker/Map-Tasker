@@ -20,6 +20,7 @@ import customtkinter as ctk
 from PIL import Image
 
 from maptasker.src.colrmode import set_color_mode
+from maptasker.src.getids import get_ids
 from maptasker.src.lineout import LineOut
 from maptasker.src.maputils import (
     get_pypi_version,
@@ -47,21 +48,23 @@ from maptasker.src.sysconst import (
 if TYPE_CHECKING:
     from datetime import datetime
 
+    import defusedxml
+
 all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 4.2.2 - Change Log\n
+Version 4.2.3 - Change Log\n
 ### Added\n
-- Added: Display a "Please stand by" message while building the 'Map' view from the GUI.\n
-- Added: Name highlighting (bold, underline, italicize and highlight) are now supported in the 'Map' view.\n
+- Added: Support for Tasker Release 6.3.12.\n
+- Added: 'Intensity Pattern' is now included with the "Notify" Task action.\n
+- Added: Direcory (hotlinks) are now supported in the 'Map' view within the GUI.\n
 ### Changed\n
-- Changed: Removed non-user modifiable arguments from the user settings file, 'MapTasker_Settings.toml'.\n
+- No changes.\n
 ### Fixed\n
-- Fixed: 'Update to Latest Version' gives a program error even though it still works.\n
-- Fixed: Formatting for 'Configutration Parameter(s):' in the 'Map' view is incorrect.\n
-- Fixed: If 'Get Local XML' is selected in the GUI and returns bad XML, the 'Current File' is not updated to 'None'.\n
-- Fixed: If 'Tree' view is selected and there is no XML loaded, the error message says the 'Map is not possible rather than the 'View is not possible'.\n
+- Fixed: The 'Map' and 'Tree' views are not including Tasks that are not part of a Profile.\n
+- Fixed: 'Map' view global variables are not displaying properly.\n
+- Fixed: A caveat is not displaying properly.\n
 """
 
 default_font_size = 14
@@ -1207,6 +1210,11 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     profiles_to_display.insert(0, "None")
     tasks_to_display.insert(0, "None")
 
+    # Remove 'No Profile' profiles
+    new_profiles = [profile for profile in profiles_to_display if profile != "No Profile"]
+    if new_profiles:
+        profiles_to_display = new_profiles
+
     # Display the object pulldowns in 'Analyze' tab
     self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
         self,
@@ -1293,10 +1301,11 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
 
 
 # Build a list of Profiles that are under the given project
-def build_profiles(root: dict, profile_ids: list) -> list:
+def build_profiles(root: dict, profile_ids: list, project: defusedxml.ElementTree) -> list:
     """Parameters:
         - root (dict): Dictionary containing all profiles and their tasks.
         - profile_ids (list): List of profile IDs to be processed.
+        - project (defusedxml.ElementTree): The project xml element.
     Returns:
         - list: List of dictionaries containing profile names and their corresponding tasks.
     Processing Logic:
@@ -1313,6 +1322,7 @@ def build_profiles(root: dict, profile_ids: list) -> list:
         - Return the profile list."""
     profiles = root["all_profiles"]
     profile_list = []
+    found_tasks = []
     for profile in profile_ids:
         # Get the Profile's Tasks
         PrimeItems.task_count_unnamed = 0  # Avoid an error in get_profile_tasks
@@ -1324,6 +1334,7 @@ def build_profiles(root: dict, profile_ids: list) -> list:
                     task_list.append("Task: Unnamed Task")
                 else:
                     task_list.append(f'Task: {task["name"]}')
+                    found_tasks.append(task["name"])  # Keep track of found tasks
         else:
             task_list = ["No Profile Tasks Found"]
 
@@ -1335,6 +1346,15 @@ def build_profiles(root: dict, profile_ids: list) -> list:
 
         # Combine the Profile with it's Tasks
         profile_list.append({"name": profile_name, "children": task_list})
+
+    # Now add tasks that are not found in any Profile that belong to the Project
+    no_profile_tasks = []
+    task_ids = get_ids(False, PrimeItems.tasker_root_elements["all_projects"][project]["xml"], project, [])
+    for task_id in task_ids:
+        if root["all_tasks"][task_id]["name"] not in found_tasks:
+            no_profile_tasks.append(root["all_tasks"][task_id]["name"])  # noqa: PERF401
+    if no_profile_tasks:
+        profile_list.append({"name": "No Profile", "children": no_profile_tasks})
 
     return profile_list
 
@@ -1624,7 +1644,7 @@ def display_no_xml_message(self) -> None:  # noqa: ANN001
     )
 
 
-def reset_primeitems_single_names() -> None:
+def reset_primeitems_single_names(self) -> None:
     """
     Reset the prime items related to single names.
     """
@@ -1633,9 +1653,19 @@ def reset_primeitems_single_names() -> None:
         "single_profile_found": False,
         "single_task_found": False,
     }
+    PrimeItems.directory_items = {
+        "current_item": "",
+        "projects": [],
+        "profiles": [],
+        "tasks": [],
+        "scenes": [],
+    }
     PrimeItems.program_arguments["single_project_name"] = ""
     PrimeItems.program_arguments["single_profile_name"] = ""
     PrimeItems.program_arguments["single_task_name"] = ""
+    # self.single_project_name = ""
+    # self.single_profile_name = ""
+    # self.single_task_name = ""
 
 
 def fresh_message_box(self: ctk.windows.Window) -> None:

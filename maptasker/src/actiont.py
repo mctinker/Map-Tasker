@@ -362,6 +362,7 @@ lookup_values = {
         "Uninstall App",
         "Permission",
         "Clear Device Owner",
+        "Check Device Owner",
     ],
     "380": ["Text", "File", "Redirect"],
     "383": ["Connectivity", "NFC", "Volume", "WiFi", "Media Output"],

@@ -8,13 +8,14 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 from __future__ import annotations
 
+import contextlib
 import re
 
-# from maptasker.src.debug import format_line_debug
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import pattern8
 from maptasker.src.xmldata import remove_html_tags
 
+glob_spacing = 15
 
 def cleanup_text_elements(output_lines: dict, line_num: int) -> dict:
     r"""
@@ -66,7 +67,7 @@ def next_key(my_dict: dict, key: int) -> any | bool:
 
 
 def eliminate_blanks(output_lines: dict) -> dict:
-    """Eliminate leading blanks from the top of the output.
+    """Eliminate consequtive blanks from the output.
 
     Args:
         output_lines (dict): dictionary of output lines
@@ -74,36 +75,199 @@ def eliminate_blanks(output_lines: dict) -> dict:
     Returns:
         output_lines (dict): dictionary of output lines
     """
-    # Eliminate leading blanks.  Care must be taken not to iterate over the list we are modifying.
-    # Only botherdr with the first text element in each line.
-    keys_to_remove = []
+    # Eliminate consequtive blanks.  Care must be taken not to iterate over the list we are modifying.
     prev_value = None
+    items_to_remove = []
     # Build a list of keys that have consequtive blanks.
     for key, value in output_lines.items():
-        if (value["text"][0] in ("\n", "    \n")) and (
-            prev_value is not None and prev_value["text"][0] in ("\n", "    \n")
-        ):
-            keys_to_remove.append(key)
-        elif value["text"][0] not in ("\n", "    \n"):  # Get out if we have a non-blank line.
-            break
-        prev_value = value
+        # One or more text items in the list.
+        new_list = []
+        # Igfnore dictionarys.
+        with contextlib.suppress(KeyError):
+            if value["directory"]:
+                prev_value = None
+                continue
+        for item in value["text"]:
+            if item in ("\n", "    \n") and (prev_value is not None and prev_value in ("\n", "    \n")):
+                prev_value = item
+                continue
+            new_list.append(item)
+            prev_value = item
 
-    # Eliminate remaining (e.g. highlighting) stuff from the remaining couple of lines
-    cleanup = True
-    while cleanup:
-        if "MapTasker\n" in output_lines[key]["text"][0]:
-            break
-        keys_to_remove.append(key)
-        key = next_key(output_lines, key)  # Get the next key
+        # Update or remove the text list.
+        if new_list:
+            value["text"] = new_list
+        else:
+            items_to_remove.append(key)
 
-    # Remove the keys
-    for key in keys_to_remove:
-        del output_lines[key]
+    # Remove the consequtive blank keys.
+    for item in items_to_remove:
+        output_lines.pop(item)
+
     return output_lines
 
 
-# Capture text and it's colring and highlighting
-def coloring_and_highlights(output_lines: str, line: str, line_num: int) -> dict:
+# def remove_html_tags(text, replacement=""):
+#     return re.sub(r"<[^>]+>", replacement, text)
+
+
+def extract_colors(line: str) -> list:
+    """
+    Extracts the starting positions of all color classes in the given line.
+
+    Args:
+        line (str): The line of text to search for color classes.
+
+    Returns:
+        list: A list of integers representing the starting positions of all color classes found in the line.
+    """
+    return [m.start() for m in re.finditer(r'class="([^"]*_color[^"]*)"', line)]
+
+
+def process_color_string(line: str, color_pos: int) -> tuple:
+    """
+    Extracts the color string from the given line based on the color position.
+
+    Args:
+        line (str): The line containing the color string
+        color_pos (int): The starting position of the color string
+
+    Returns:
+        tuple: A tuple containing the extracted color string and the split result
+    """
+    temp = line[color_pos:].split('"')
+    if len(temp) > 1:
+        return temp[1].split(), temp
+    return [], temp
+
+
+def extract_working_text(temp: list) -> str:
+    """
+    Extracts the working text from the given list of strings.
+
+    Args:
+        temp (list): A list of strings containing HTML tags and text.
+
+    Returns:
+        str: The extracted working text, with double newlines replaced by single newlines.
+    """
+    if temp[2].startswith("><h2><span class=") or temp[2].startswith("><span class="):
+        return temp[4].replace("\n\n", "\n")
+    return temp[2].replace("\n\n", "\n")
+
+
+def handle_continued_text(line: str, working_text: str) -> str:
+    """
+    Extracts the text between "continued >>>" and "<" in the given line and returns it.
+
+    Args:
+        line (str): The line of text to search for "continued >>>" and "<".
+        working_text (str): The text to search for "continued >>>".
+
+    Returns:
+        str: The extracted text between "continued >>>" and "<", or the original working_text if "continued >>>" is not found.
+    """
+    if "continued >>>" in working_text:
+        continued_start = line.find(">")
+        continued_end = line.find("<", continued_start)
+        return line[continued_start:continued_end]
+    return working_text
+
+
+def remove_html_spans(working_text: str) -> str:
+    """
+    Removes HTML spans from the working_text and returns the modified text.
+
+    Parameters:
+        - working_text (str): The text containing HTML spans to be processed.
+
+    Returns:
+        - str: The working_text with HTML spans removed.
+    """
+    return re.sub(r"</span.*?>", "", working_text.lstrip(">"))
+
+
+def extract_highlights(working_text: str, highlight_tags: list) -> list:
+    """
+    Extracts highlights from the working text based on the provided highlight tags.
+
+    Args:
+        working_text (str): The text to extract highlights from
+        highlight_tags (list): A list of tags to search for in the working text
+
+    Returns:
+        list: A list of strings representing the extracted highlights
+    """
+    name_end_position = working_text.find("</")
+    temp_string = working_text[:name_end_position]
+    name_start_position = temp_string.rfind(">")
+    highlight_name = temp_string[name_start_position + 1 :]
+
+    highlights = []
+    for tag, style in highlight_tags.items():
+        if tag in working_text[:name_end_position]:
+            highlights.append(f"{style},{highlight_name}")
+    return highlights
+
+
+def process_line(output_lines: list, line: str, line_num: int, highlight_tags: list) -> list:
+    """
+    A function to process a line of text, extract colors, working text, and highlights.
+
+    Parameters:
+        - output_lines (list): A list containing the processed output lines.
+        - line (str): The input line of text to process.
+        - line_num (int): The line number corresponding to the input line.
+        - highlight_tags (list): A list of highlight tags to be applied to the text.
+
+    Returns:
+        - list: The updated output lines list after processing the input line.
+    """
+    color_list = extract_colors(line)
+    previous_line = ""
+
+    for color_pos in color_list:
+        color_to_use, temp = process_color_string(line, color_pos)
+
+        if color_to_use:
+            color = color_to_use[0]
+            if "_color" in color:
+
+                # Get the text
+                working_text = extract_working_text(temp)
+                # Ignore duplicate lines due to multiple colors and only one text item.
+                if working_text == previous_line:
+                    continue
+                previous_line = working_text
+                working_text = handle_continued_text(line, working_text)
+                working_text = remove_html_spans(working_text)
+
+                # Get the color
+                if line_num not in output_lines:
+                    output_lines[line_num] = {"color": [], "text": [], "highlights": []}
+                output_lines[line_num]["color"].append(color)
+
+                if color_pos == color_list[0]:
+                    highlights = extract_highlights(working_text, highlight_tags)
+                    if "highlights" in output_lines[line_num]:
+                        output_lines[line_num]["highlights"].extend(highlights)
+                    else:
+                        output_lines[line_num]["highlights"] = highlights
+
+                raw_text = remove_html_tags(working_text, "").replace("<span class=", " ").replace("\n\n", "\n")
+                if (
+                    "Projects..........................." in raw_text
+                    or "Profiles..........................." in raw_text
+                    or "Tasks..........................." in raw_text
+                ):
+                    raw_text = f"\nn{raw_text}"
+
+                output_lines[line_num]["text"].append(raw_text)
+
+    return output_lines
+
+
+def coloring_and_highlights(output_lines: list, line: str, line_num: int) -> list:
     """
     Given a dictionary of output lines, a line of text, and a line number, this function adds color and highlighting
     information to the output lines.
@@ -115,79 +279,15 @@ def coloring_and_highlights(output_lines: str, line: str, line_num: int) -> dict
         line_num (int): The line number of the line.
 
     Returns:
-        dict: The updated output lines dictionary with added color and highlighting information.
-
-    Description:
-        This function searches for occurrences of the string "class=" in the given line.
-        For each occurrence, it splits the line starting from that occurrence and extracts the color string.
-        If the color string contains the substring "_color", it adds the color string to the "color" key of the
-        line dictionary in the output lines. It then removes any HTML tags from the text portion of the line and
-        appends it to the "text" key of the line dictionary.
-
-        If the line dictionary already has a color value, the new color value is appended to the existing color list.
-
-        The function returns the updated output lines dictionary.
+        output_lines (dict): The updated output lines dictionary with added color and highlighting information.
     """
-    # Look for name attributes
     highlight_tags = {
         "<b>": "bold",
         "<em>": "italic",
         "<u>": "underline",
         "<mark>": "mark",
     }
-    color_list = [m.start() for m in re.finditer("class=", line)]
-    for num, color in enumerate(color_list):
-        temp = line[color:].split('"')
-
-        # If we have a color string, then we need to add it to the output lines
-        if len(temp) > 1 and "_color" in temp[1]:
-            color_to_use = temp[1].split(" ")
-            # Grab the color string
-            if not output_lines[line_num]["color"]:
-                output_lines[line_num]["color"] = [color_to_use[0]]
-            else:
-                output_lines[line_num]["color"].append(color_to_use[0])
-
-            # If 'conmtinued >>>' is in the text, then we need to get all of the text
-            if "continued >>>" in temp[2]:
-                continued_start = line.find(">")
-                continued_end = line.find("<", continued_start)
-                temp[2] = line[continued_start:continued_end]
-
-            # Remove html before appending text
-            if temp[2][0] == ">":  # Drop first character if it's a ">"
-                temp[2] = temp[2][1:]
-
-            # Get rid of any html tags in the text
-            html_start = temp[2].find("</span")
-            if html_start != -1:
-                temp[2] = temp[2][0:html_start]
-
-            # Get name attributes (bold, underline, etc)
-            if num == 0:  # Only do this if we are looking at the first color only.
-                name_end_position = temp[2].find("</")  # Find first </
-                temp_string = temp[2][0:name_end_position]
-                name_start_position = temp_string.rfind(">")  # Find first <
-
-                highlight_name = temp_string[name_start_position + 1 : name_end_position]
-                for tag, style in highlight_tags.items():
-                    if tag in temp[2][:name_end_position]:
-                        text_final = f"{style},{highlight_name}"
-                        if line_num in output_lines:
-                            if "highlights" in output_lines[line_num]:
-                                output_lines[line_num]["highlights"].append(text_final)
-                            else:
-                                output_lines[line_num]["highlights"] = [text_final]
-                        else:
-                            output_lines[line_num] = {"highlights": [text_final]}
-
-            # Remove rest of html tags
-            raw_text = remove_html_tags(temp[2], "")
-            raw_text = raw_text.replace("<span class=", " ")
-            raw_text = raw_text.replace("\n\n", "\n")
-            output_lines[line_num]["text"].append(raw_text)
-
-    return output_lines
+    return process_line(output_lines, line, line_num, highlight_tags)
 
 
 def calculate_spacing(
@@ -210,6 +310,7 @@ def calculate_spacing(
     Returns:
         int: The calculated spacing value.
     """
+
     # Project or Scene
     if (
         output_lines[line_num]["text"][0][0:8] == "Project:"
@@ -217,7 +318,7 @@ def calculate_spacing(
         or "Project Global Variables" in output_lines[line_num]["text"][0]
         or output_lines[line_num]["text"][0][0:6] == "Scene:"
     ):
-        spacing = 0
+        spacing = 0 + spacing
 
     # Profile or TaskerNet
     elif output_lines[line_num]["text"][0][0:8] == "Profile:" or output_lines[line_num]["text"][0][0:9] == "TaskerNet":
@@ -271,7 +372,6 @@ def additional_formatting(
     Returns:
         list: The updated output list.
     """
-
     # replace "<br>" with "\n"
     line = pattern8.sub("\n", line)
 
@@ -304,11 +404,15 @@ def additional_formatting(
         # temp_line = f"{global_var_name}{global_var_value}"  # Different kind of formatting
         output_lines[line_num]["color"] = ["Turquoise"]
 
+
     # Handle the rest of the lines
     else:
         # Remove all HTML
         temp_line = remove_html_tags(line, "")
         output_lines[line_num]["text"].append(temp_line.replace("Go to top", ""))
+        # If we fall here and we are doing global variables, then we have a global variable value
+        if doing_global_variables:
+            spacing = glob_spacing   # Global variable value spacing
 
     output_lines = cleanup_text_elements(output_lines, line_num)
 
@@ -319,6 +423,41 @@ def additional_formatting(
     output_lines[line_num]["text"][0] = f'{spacing*" "}{output_lines[line_num]["text"][0]}'
 
     return output_lines, spacing
+
+
+def add_directory_entry(temp: list, output_lines: dict, line_num: int) -> dict:
+    """
+    Adds a directory entry to the output lines dictionary.
+
+    Args:
+        temp (list): A list containing the directory information.
+        output_lines (dict): A dictionary containing the output lines.
+        line_num (int): The line number.
+
+    Returns:
+        output_lines (dict): The updated output lines dictionary.
+
+    """
+    # Ignore garbage
+    if temp[1] == "</td>\n":
+        return output_lines
+
+    # Get the tasker object type (projects, profiles, tasks, scenes)
+    tasker_type = temp[1].split("_")[0]
+    tasker_type = tasker_type.replace("<a href=#", "")
+
+    # Get the object name
+    name = temp[1].split("<a href=#")[1]
+    name = name.split("</a")[0]
+    name = name.split(">")[1]
+    # If name is blank, then the name has ">>" in it (double ">")
+    if name == "":
+        newname = temp[1].split(">>")
+        name = newname[2].split("</a>")[0].lstrip()
+
+    # Add the directory entry
+    output_lines[line_num] = {"directory": [tasker_type, name], "text": [], "color": []}
+    return output_lines
 
 
 # Formats the output HTML by processing each line of the input list.
@@ -343,10 +482,38 @@ def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) 
         The function returns the formatted output list.
 
     """
+    text_to_ignore = [
+        "<style>",
+        "<tr> ",
+        "<table>",
+        # "</tr>",
+        # "</table>",
+        "<td></td>",
+        "<a id=",
+        "Trailing Information...",
+        "Scenes",
+    ]
     doing_global_variables = False
     previous_line = ""
-    # Format the html
+
+    # Reformat the html by going through each line
     for line_num, line in enumerate(lines):
+
+        # Ignore certain lines
+        for ignore_str in text_to_ignore:
+            if ignore_str in line:
+                iterate = True
+                break
+        if iterate:
+            iterate = False
+            continue
+
+        # Process directory entries
+        if "<td>" in line:
+            temp = line.split("<td>")
+            output_lines = add_directory_entry(temp, output_lines, line_num)
+            iterate = True
+
         # If we are to skip the next line, then skip it.
         if iterate:
             iterate = False
@@ -356,10 +523,11 @@ def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) 
         if line == "<th>Name</th>\n" and lines[line_num + 1] == "<th>Value</th>\n":
             iterate = True
             output_lines[line_num] = {
-                "text": ["Variable Name...............Variable Value"],
+                "text": [f"{" " * glob_spacing}Variable Name...............Variable Value"],
                 "color": ["turquoise1"],
                 "highlight_color": [],
                 "highlights": [],
+                "directory": [],
             }
             doing_global_variables = True
             continue
@@ -367,6 +535,8 @@ def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) 
         # End of global variables if we hit the end of the table.
         if doing_global_variables and line == "</table><br>\n":
             doing_global_variables = False
+            spacing = 0
+            continue
 
         # Ignore non-text data
         if "{color: " in line or "{display: " in line or "padding: 5px;" in line:

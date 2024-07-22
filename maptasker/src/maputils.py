@@ -299,3 +299,37 @@ def reset_named_objects() -> None:
         PrimeItems.found_named_items["single_project_found"] = False
         PrimeItems.program_arguments["single_task_name"] = ""
         PrimeItems.found_named_items["single_task_found"] = False
+
+
+# Count the number of consecutive occurrences of a substring within a main string.
+def count_consecutive_substr(main_str: str, substr: str) -> int:
+    """
+    A function to count the maximum consecutive occurrences of a substring within a main string.
+
+    Args:
+        main_str: The main string to search for consecutive substrings.
+        substr: The substring to count consecutive occurrences of.
+
+    Returns:
+        The maximum count of consecutive occurrences of the substring within the main string.
+    """
+    if not main_str or not substr:
+        return 0
+
+    count = 0
+    max_count = 0
+    i = 0
+
+    while i <= len(main_str) - len(substr):
+        if main_str[i : i + len(substr)] == substr:
+            count += 1
+            i += len(substr)
+        else:
+            max_count = max(max_count, count)
+            count = 0
+            i += 1
+
+    # Check the last count
+    max_count = max(max_count, count)
+
+    return max_count

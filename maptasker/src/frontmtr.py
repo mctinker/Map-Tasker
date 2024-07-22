@@ -29,9 +29,6 @@ def output_the_heading() -> None:
     # x.innerHTML = "Browser width: " + w + ", height: " + h + ".";
     # </script>"""
 
-    # Start out by outputting our colors and font CSS
-    add_css()
-
     # Check if Ai analysis running.
     ai_message = " Ai Analysis Run" if PrimeItems.program_arguments["ai_analyze"] else ""
 
@@ -89,6 +86,9 @@ def output_the_heading() -> None:
         PrimeItems.heading,
         FormatLine.dont_format_line,
     )
+
+    # Add css
+    add_css()
 
     # Display where the source file came from
     # Did we restore the backup from Android?

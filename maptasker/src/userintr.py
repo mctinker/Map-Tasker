@@ -673,7 +673,7 @@ class MyGui(customtkinter.CTk):
         self.textbox = customtkinter.CTkTextbox(self, height=650, width=250)
         self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
         self.textbox.configure(font=(self.font, 14), wrap="word", scrollbar_button_color="#6563ff")
-        self.hyperlink = CTkHyperlinkManager(self.textbox)
+        self.hyperlink = CTkHyperlinkManager(self.textbox, text_color="blue")
 
     # ################################################################################
     # Select or deselect a checkbox based on the value passed in
@@ -716,7 +716,6 @@ class MyGui(customtkinter.CTk):
         self.textbox.insert("0.0", message)
 
         # Check for hyperlink
-        # [hypers.append(m.start()) for m in re.finditer("https://", message)]
         hyper = message.find("https://")
         if hyper != -1:
             text_lines = message.split("\n")
@@ -815,6 +814,7 @@ class MyGui(customtkinter.CTk):
             "reset",
             "window_position",
             "ai_analysis_window_position",
+            "ai_popup_window_position",
             "color_window_position",
             "diagram_window_position",
             "map_window_position",
@@ -1285,7 +1285,7 @@ class MyGui(customtkinter.CTk):
                 # Retrieves profile IDs for a given project and project name, excluding projects without profiles.
                 if profile_ids := get_ids(True, projects[project]["xml"], project_name, []):
                     # Build our list of Profiles in this Project.
-                    profile_list = build_profiles(root, profile_ids)
+                    profile_list = build_profiles(root, profile_ids, project)
 
                 # Project has no Profiles
                 else:
@@ -1340,8 +1340,20 @@ class MyGui(customtkinter.CTk):
         else:
             getattr(self, window_attribute).focus()  # if window exists focus it
 
+        # Map view
         if view_type == "map":
             map_data = get_the_map()
+            # Check if too much data to display
+            map_length = len(map_data)
+            if map_length > 10000:
+                self.display_message_box(
+                    f"Too much data to display (length={map_length}, max=10000).  Select a single Project, Profile or Task and try again.",
+                    "Orange",
+                )
+                if self.mapview_window is not None:
+                    self.mapview_window.destroy()
+                return None
+
             view = CTkTextview(master=getattr(self, window_attribute), title=window_title, the_data=map_data)
         elif view_type == "diagram":
             # Display the data.
@@ -1514,6 +1526,59 @@ class MyGui(customtkinter.CTk):
 
             # Overall window dimensions
             self.geometry(f"1129x988+{screen_width//4}+{screen_height//6}")
+
+    # Re-invoke mapit.
+
+    def remapit(self, clear_names: bool = True) -> None:
+        """
+        Re-invoke the 'mapit' function.
+
+        Parameters:
+            clear_names (bool): Indicates whether to clear names.
+
+        Returns:
+            None
+        """
+        # Save windows and delete previous mapview window.
+        store_windows(self)
+
+        # Get rid of previous map view.
+        if self.mapview_window is not None:
+            self.mapview_window.destroy()
+
+        # Turn off settings that don't work in a textbox
+        save_twisty = self.twisty
+        save_outline = self.outline
+        self.twisty = False
+        self.outline = False
+
+        # Save the settings
+        temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
+        _, _ = save_restore_args(temp_args, self.color_lookup, True)
+
+        # Now flag the fact that we are rerunning for the map view.
+        # These flags are critical for the proper proceessing of the map.
+        self.guiview = True  # Set it for save_settings
+        PrimeItems.program_arguments["guiview"] = True  # Set it for mapit_all
+
+        # Initialize a few things first
+        if clear_names:
+            reset_primeitems_single_names(self)
+        fresh_message_box(self)
+
+        self.display_message_box("The 'Map' view is running in the background.  Please stand by...", "LimeGreen")
+
+        # Re-invoke ourselves to force the html to be written
+        _ = mapit_all("")
+
+        # Restore settings
+        self.twisty = save_twisty
+        self.outline = save_outline
+
+        # Now display the results
+        self.mapview = self.display_view("map")
+        if self.mapview is not None:
+            self.display_message_box("Map View displayed.", "Green")
 
 
 # Event handlers for Customtkinter widgets
@@ -2083,11 +2148,6 @@ class EventHandlers:
 
         # Reload the GUI by running a new process with the new program/version.
         reload_gui(self, sys.argv)
-        ## ReRun via a new process, which will load and run the new program/version.
-        ## Note: this will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'
-        ## Note: this current process will not return after this call, but simply be killed.
-        # print("The following error message can be ignored: 'Task policy set failed: 4 ((os/kern) invalid argument)'.")
-        # os.execl(sys.executable, "python", *sys.argv)
 
     # The Upgrade Version button has been pressed.
     def report_issue_event(self) -> None:
@@ -3054,7 +3114,7 @@ class EventHandlers:
             _, _ = save_restore_args(temp_args, self.color_lookup, True)
 
             # Reset PrimItems
-            reset_primeitems_single_names()
+            reset_primeitems_single_names(self)
 
             # Now flag the fact that we are rerunning for the map view.
             # These flags are critical for the proper proceessing of the map.
@@ -3101,57 +3161,14 @@ class EventHandlers:
             None
         """
         self = self.parent
-        # If we don't already have Project, then get some XML.
+        # If we have some XML, then map it.
         if (
             PrimeItems.tasker_root_elements["all_projects"]
             or PrimeItems.tasker_root_elements["all_profiles"]
             or PrimeItems.tasker_root_elements["all_tasks"]
             or PrimeItems.tasker_root_elements["all_scenes"]
         ):
-            # Save windows and delete previous mapview window.
-            store_windows(self)
-
-            # Get rid of previous map view.
-            if self.mapview_window is not None:
-                self.mapview_window.destroy()
-
-            # Turn off settings that don't work in a textbox
-            save_directory = self.directory
-            save_twisty = self.twisty
-            save_outline = self.outline
-            self.directory = False
-            self.twisty = False
-            self.outline = False
-
-            # Save the settings
-            temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
-            _, _ = save_restore_args(temp_args, self.color_lookup, True)
-
-            # Remove the current GUI
-            # self.withdraw()
-
-            # Now flag the fact that we are rerunning for the map view.
-            # These flags are critical for the proper proceessing of the map.
-            self.guiview = True  # Set it for save_settings
-            PrimeItems.program_arguments["guiview"] = True  # Set it for mapit_all
-
-            # Initialize a few things first
-            reset_primeitems_single_names()
-            fresh_message_box(self)
-
-            self.display_message_box("The 'Map' view is running in the background.  Please stand by...", "LimeGreen")
-
-            # Re-invoke ourselves to force the html to be written
-            _ = mapit_all("")
-
-            # Restore settings
-            self.directory = save_directory
-            self.twisty = save_twisty
-            self.outline = save_outline
-
-            # Now display the results
-            self.mapview = self.display_view("map")
-            self.display_message_box("Map View displayed.", "Green")
-
+            self.remapit(clear_names=True)
+        # We don't have any XML.
         else:
             display_no_xml_message(self)
