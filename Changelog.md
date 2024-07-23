@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file!
 - Added: Support for Tasker Release 6.3.12.
 - Added: 'Intensity Pattern' is now included with the "Notify" Task action.
 - Added: Open Ai model 'cpt-40-mini' added to the 'Analysis' tab.
-- Added: Direcory (hotlinks) are now supported in the 'Map' view within the GUI.
+- Added: Directory (hotlinks) are now supported in the 'Map' view within the GUI.
 
 ### Changed
 
