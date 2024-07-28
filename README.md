@@ -68,13 +68,13 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ### - Ai Analysis
 
-&nbsp;&nbsp;This requires a valid ChatGPT API key if using the server-based analysis, or the installation of 'Ollama' for local analysis (See [Note 5](#5)).
+&nbsp;&nbsp;This requires a valid ChatGPT API key if using the server-based analysis  (See [Note 5](#5)).
 
 ## Installation
 
 - Install MapTasker by entering the following command into the Terminal:
 
-     `pip install maptasker`
+     `python -m pip install maptasker`
 
 - To install it into a virtual environment, enter the following command into Terminal:
 
@@ -198,6 +198,8 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 - [x] Add color to the Map View in the GUI
 
 - [x] Add name attributes (highlight, bold, italicize, underline) to the Map View in the GUI
+
+- [ ] Display progress bar for diagram view
 
 - [ ] Support additional plugins
 

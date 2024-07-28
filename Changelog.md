@@ -1,27 +1,36 @@
-# MapTasker Change log
+# MapTasker Change log  # ruff: noqa
 
 All notable changes to this project will be documented in this file!
 
-## [5.0.0] 23-Jul-2024
+## [5.0.1] 28-Jul-2024
 
 ### Added
+
+- Added: 'Map' view 'Map Limit' pull-down added to the GUI to control the processing time when generating the map.
+- Added: The new 'llama3.1' Ai model added to the 'Analysis' tab.
+  - Added: A progress bar has been added to show the progress of the 'Map' view.
+
+### Changed
+
+- Changed:
+
+### Fixed
+
+- Fixed: Invalid spacing appears in the Map view directory list.
+- Fixed: Spacing for parameters with "Pretty" enabled is slightly off in ther Map view.
+
+## Older History Logs
+
+## [5.0.0]
 
 - Added: Support for Tasker Release 6.3.12.
 - Added: 'Intensity Pattern' is now included with the "Notify" Task action.
 - Added: Open Ai model 'cpt-40-mini' added to the 'Analysis' tab.
-- Added: Directory (hotlinks) are now supported in the 'Map' view within the GUI.
-
-### Changed
-
+- Added: Direcory (hotlinks) are now supported in the 'Map' view within the GUI.
 - Changed: Nothing has changed.
-
-### Fixed
-
 - Fixed: The 'Map' and 'Tree' views are not including Tasks that are not part of a Profile.
 - Fixed: 'Map' view global variables are not displaying properly.
 - Fixed: A caveat is not displaying properly.
-
-## Older History Logs
 
 ## [4.2.2]
 
