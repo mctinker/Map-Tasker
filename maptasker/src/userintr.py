@@ -187,7 +187,7 @@ LISTFILES_HELP_TEXT = (
     "input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\n"
     "In order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running "
     "on your Android device.  This profile can be found at the following URL:\n\n"
-    "    https://shorturl.at/buvK6\n\n"
+    "    https://t.ly/8vI1f\n\n"
 )
 
 VIEW_HELP_TEXT = (
@@ -223,6 +223,17 @@ AI_HELP_TEXT = (
     "Your designated api-key (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\n"
     "Models that start with 'gpt' are server-based models.  All others are local models.\n\n"
     "The 'Rerun' feature will be used to display the results of the analysis in a new window.\n\n"
+)
+
+MAPLIMIT_HELP_TEXT = (
+    "The 'Map Limit' is a means to control the amount of processing time used when mapping the configuration.\n\n"
+    "- The numbers represent the relative amount of output lines to be generated.\n\n"
+    "- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n"
+    "- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n"
+    "- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n"
+    "- If the limit is hit when calculating the map, no output map will be generated.\n\n"
+    "- You can experiment with this setting to see which setting is for your use case.\n\n"
+    "- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
 )
 
 HELP = f"MapTasker {VERSION} Help\n\n{INFO_TEXT}{CHANGELOG}"
@@ -367,7 +378,7 @@ class MyGui(customtkinter.CTk):
             if PrimeItems.program_arguments["window_position"]:
                 self.window_position = PrimeItems.program_arguments["window_position"]
             else:
-                self.window_position = "1129x937+698+145"  # Default window position
+                self.window_position = "1129x987+698+145"  # Default window position
         else:
             self.window_position = save_window_position(self)
 
@@ -851,6 +862,7 @@ class MyGui(customtkinter.CTk):
                 value,
                 "Display Names Italicized",
             ),
+            "map_limit": lambda: self.event_handlers.maplimit_event(value),
             "outline": lambda: self.select_deselect_checkbox(
                 self.outline_checkbox,
                 value,
@@ -1345,9 +1357,9 @@ class MyGui(customtkinter.CTk):
             map_data = get_the_map()
             # Check if too much data to display
             map_length = len(map_data)
-            if map_length > 10000:
+            if map_length > self.map_limit:
                 self.display_message_box(
-                    f"Too much data to display (length={map_length}, max=10000).  Select a single Project, Profile or Task and try again.",
+                    f"Too much data to display (size={map_length}, map limit={self.map_limit}).  Select a larger 'Map Limit' or a single Project / Profile / Task and try again.",
                     "Orange",
                 )
                 if self.mapview_window is not None:
@@ -1524,8 +1536,8 @@ class MyGui(customtkinter.CTk):
             screen_width = self.winfo_screenwidth()
             screen_height = self.winfo_screenheight()
 
-            # Overall window dimensions
-            self.geometry(f"1129x988+{screen_width//4}+{screen_height//6}")
+            # Overall window dimensions: width x height + x offset + y offset
+            self.geometry(f"1129x1188+{screen_width//4}+{screen_height//6}")
 
     # Re-invoke mapit.
 
@@ -1777,7 +1789,7 @@ class EventHandlers:
             "#246FB6",
             ("#0BF075", "#ffd941"),
             "#1bc9ff",
-            self.event_handlers.listfile_query_event,
+            lambda: self.event_handlers.query_event("listfile"),
             1,
             "?",
             2,
@@ -1888,65 +1900,6 @@ class EventHandlers:
         # Update the Project/Profile/Task pulldown option menus and labels.
         update_tasker_object_menus(self, get_data=False)
 
-    # Process the 'Display Help' button
-    def help_event(self) -> None:
-        """Displays help information in a message box.
-        Args:
-            self: The class instance.
-        Returns:
-            None: Does not return anything.
-        - Constructs a message with help text information
-        - Opens a new message box window
-        - Displays the help message text in the message box"""
-        self = self.parent
-        self.new_message_box(HELP)
-        self.clear_messages = True  # Flag to tell display_message_box to clear the message box
-
-    # Process the 'Get Backup Help' button
-    def backup_help_event(self) -> None:
-        """Backs up help text and displays it in a message box
-        Args:
-            self: The class instance
-        Returns:
-            None: Does not return anything
-        Processes:
-            - Fetches the backup help text from a constant
-            - Creates a new message box window
-            - Displays the backup help text in the message box"""
-        self = self.parent
-        self.new_message_box("Fetch Backup Help\n\n" + BACKUP_HELP_TEXT)
-        self.clear_messages = True  # Flag to tell display_message_box to clear the message box
-
-    # Process the '?' List XML Files query button
-    def listfile_query_event(self) -> None:
-        """Function to display help text for the listfile_query_event method.
-        Parameters:
-            - self (object): The object that the method is being called on.
-        Returns:
-            - None: This method does not return anything.
-        Processing Logic:
-            - Displays help text for listfile_query_event method.
-            - Uses new_message_box method.
-            - Help text is stored in LISTFILES_HELP_TEXT variable."""
-        self = self.parent
-        self.new_message_box("List XML Files Help\n\n" + LISTFILES_HELP_TEXT)
-        self.clear_messages = True  # Flag to tell display_message_box to clear the message box
-
-    # Process the '?' Tree View query button
-    def treeview_query_event(self) -> None:
-        """Function to display help text for the listfile_query_event method.
-        Parameters:
-            - self (object): The object that the method is being called on.
-        Returns:
-            - None: This method does not return anything.
-        Processing Logic:
-            - Displays help text for treeview_query_event method.
-            - Uses new_message_box method.
-            - Help text is stored in LISTFILES_HELP_TEXT variable."""
-        self = self.parent
-        self.new_message_box("View Help\n\n" + VIEW_HELP_TEXT)
-        self.clear_messages = True  # Flag to tell display_message_box to clear the message box
-
     # Cancel the entry of backup parameters
     def backup_cancel_event(self) -> None:
         """
@@ -2050,6 +2003,8 @@ class EventHandlers:
         self.outline_checkbox.deselect()  # Display outline
         self.everything_checkbox.deselect()  # Display everything
         self.event_handlers.font_event(self.default_font)  # Set the font to the default font
+        self.map_limit = 10000
+        self.maplimit_optionmenu.set("10000")
         if self.color_labels:  # is there any color text?
             for label in self.color_labels:
                 label.configure(text="")
@@ -2929,21 +2884,6 @@ class EventHandlers:
             # Update the Project/Profile/Task pulldown option menus.
             set_tasker_object_names(self)
 
-    # Process the '?' Ai query button
-    def ai_help_event(self) -> None:
-        """Function to display help text for the Analysis tab.
-        Parameters:
-            - self (object): The object that the method is being called on.
-        Returns:
-            - None: This method does not return anything.
-        Processing Logic:
-            - Displays help text for Analysis tab.
-            - Uses new_message_box method.
-            - Help text is stored in AI_HELP_TEXT variable."""
-        self = self.parent
-        self.new_message_box("Analyze Help\n\n" + AI_HELP_TEXT)
-        self.clear_messages = True  # Flush messages after displaying this help info.
-
     # Handle Ai Prompt change event.
     def ai_prompt_event(self) -> None:
         """
@@ -3105,6 +3045,11 @@ class EventHandlers:
             # Process the diagram: builds the 'network' and then draws it in the GUI
             save_outline = self.outline
             self.outline = True
+            # The following doesn't display
+            self.display_message_box(
+                "The 'Diagram' view is running in the background.  Please stand by...", "LimeGreen",
+            )
+            self.textbox.focus_set()
 
             # Get rid of the previous window
             if self.diagramview_window is not None:
@@ -3178,3 +3123,43 @@ class EventHandlers:
         # We don't have any XML.
         else:
             display_no_xml_message(self)
+
+    def maplimit_event(self: object, map_limit: str) -> None:
+        """
+        Map Limit Event
+        """
+        self = self.parent
+        self.map_limit = 9999999 if map_limit == "Unlimited" else int(map_limit)
+        if map_limit == 9999999:
+            map_limit = "Unlimited"
+        self.maplimit_optionmenu.set(map_limit)
+        self.display_message_box(f"Map Limit set to {map_limit}.", "Green")
+
+    # Process the '?' List XML Files query button
+    def query_event(self: object, query_name: str) -> None:
+        """Function to display help text for the query_event method.
+        Parameters:
+            - self (object): The object that the method is being called on.
+            - query_name (str): The name of the query to display help for.
+        Returns:
+            - None: This method does not return anything.
+        Processing Logic:
+            - Displays help text for query_event method.
+            - Uses new_message_box method.
+            - Help text is stored in {query_event.upper}_HELP_TEXT variable."""
+
+        self = self.parent
+
+        help_texts = {
+            "maplimit": ("Map Limit Help", MAPLIMIT_HELP_TEXT),
+            "view": ("Views Help", VIEW_HELP_TEXT),
+            "ai": ("Ai Analyze Help", AI_HELP_TEXT),
+            "help": ("", HELP),
+            "android": ("Get XML From Android Device Help", BACKUP_HELP_TEXT),
+            "listfile": ("List Android Files Help", LISTFILES_HELP_TEXT),
+        }
+
+        title, help_text = help_texts.get(query_name, ("", "No help available for this query."))
+
+        self.new_message_box(f"{title}\n\n{help_text}")
+        self.clear_messages = True  # Flag to tell display_message_box to clear the message box

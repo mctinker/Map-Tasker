@@ -17,6 +17,7 @@ from maptasker.src.xmldata import remove_html_tags
 
 glob_spacing = 15
 
+
 def cleanup_text_elements(output_lines: dict, line_num: int) -> dict:
     r"""
     Cleanup all of the text elements in the line by fixing html and other stuff.
@@ -404,7 +405,6 @@ def additional_formatting(
         # temp_line = f"{global_var_name}{global_var_value}"  # Different kind of formatting
         output_lines[line_num]["color"] = ["Turquoise"]
 
-
     # Handle the rest of the lines
     else:
         # Remove all HTML
@@ -412,7 +412,7 @@ def additional_formatting(
         output_lines[line_num]["text"].append(temp_line.replace("Go to top", ""))
         # If we fall here and we are doing global variables, then we have a global variable value
         if doing_global_variables:
-            spacing = glob_spacing   # Global variable value spacing
+            spacing = glob_spacing  # Global variable value spacing
 
     output_lines = cleanup_text_elements(output_lines, line_num)
 

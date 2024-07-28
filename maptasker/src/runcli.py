@@ -255,6 +255,10 @@ def process_extended_arguments(args: list) -> None:
         else:
             program_arguments["file"] = file
 
+    # Map view limit
+    if map_limit := get_arg_if_in_list(args, "map_limit"):
+        program_arguments["map_limit"] = map_limit
+
 
 # Get our parsed program arguments and save them to PrimeItems.program_args"]
 def get_runtime_arguments(args: list) -> None:

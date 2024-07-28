@@ -54,17 +54,14 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.0.0 - Change Log\n
+Version 5.0.1 - Change Log\n
 ### Added\n
-- Added: Support for Tasker Release 6.3.12.\n
-- Added: 'Intensity Pattern' is now included with the "Notify" Task action.\n
-- Added: Direcory (hotlinks) are now supported in the 'Map' view within the GUI.\n
-### Changed\n
-- No changes.\n
+- Added: 'Map' view 'Map Limit' pull-down added to the GUI to control the processing time when generating the map.\n
+- Added: The new 'llama3.1' Ai model added to the 'Analysis' tab.\n
+- Added: A progress bar has been added to show the progress of the 'Map' view.\n
 ### Fixed\n
-- Fixed: The 'Map' and 'Tree' views are not including Tasks that are not part of a Profile.\n
-- Fixed: 'Map' view global variables are not displaying properly.\n
-- Fixed: A caveat is not displaying properly.\n
+- Fixed: Invalid spacing appears in the Map view directory list.\n
+- Fixed: Spacing for parameters with "Pretty" enabled is slightly off in ther Map view.\n
 """
 
 default_font_size = 14
@@ -1674,5 +1671,32 @@ def fresh_message_box(self: ctk.windows.Window) -> None:
     No parameters are taken, and no return value is provided.
     """
     self.all_messages = {}
-    self.textbox.destroy()
+    with contextlib.suppress(AttributeError):
+        self.textbox.destroy()
     self.create_new_textbox()
+
+
+# Define the textbox for information/feedback
+def create_new_textbox(self: object) -> None:
+    """
+    Creates a new text box widget with specified dimensions and configuration.
+
+    This function initializes a new `CTkTextbox` widget with the specified height and width.
+    The widget is then added to the grid layout of the parent widget (`self`) at row 0, column 1,
+    with a padding of 20 pixels on the left and right. The widget is also configured with the
+    following properties:
+    - `state` is set to "disabled" to make the text box read-only.
+    - `font` is set to `(self.font, 14)` to use the specified font with a size of 14 points.
+    - `wrap` is set to "word" to enable word wrapping.
+    - `scrollbar_button_color` is set to "#6563ff" to set the color of the scrollbar buttons.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
+    self.textbox = ctk.CTkTextbox(self, height=650, width=250)
+    self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
+    self.textbox.configure(font=(self.font, 14), wrap="word", scrollbar_button_color="#6563ff")
+    self.hyperlink = CTkHyperlinkManager(self.textbox, text_color="blue")

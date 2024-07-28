@@ -29,7 +29,7 @@ from maptasker.src.xmldata import remove_html_tags
 # Input:
 #   action: list of actions or parameters
 #   ignore_list: xml to ignore (e.g. label, on, etc.
-# Output:
+# Output:∏
 #   arg_lst: list of sorted args as numbers only (e.g. 'arg' removed from 'arg0')
 #   type_list: list of sorted types (e.g. 'Int', 'Str', etc.)
 def get_args(action: defusedxml.ElementTree, ignore_list: list) -> tuple[list, list, list]:

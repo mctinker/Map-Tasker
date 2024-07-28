@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "5.0.0"
+VERSION = "5.0.1"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -127,6 +127,7 @@ ARGUMENT_NAMES = {
     "highlight": "Highlight Names",
     "indent": "Indentation Amount",
     "italicize": "Italicize Names",
+    "map_limit": "Map Limit",
     "map_window_position": "Last Map Window Position",
     "outline": "Display Configuration Outline",
     "preferences": "Display Tasker Preferences",
@@ -239,6 +240,7 @@ OPENAI_MODELS = ["gpt-3.5-turbo", "gpt-4o", "gpt-4", "gpt-4-turbo", "gpt-4o-mini
 LLAMA_MODELS = [
     "llama2",
     "llama3",
+    "llama3.1",
     "mistral",
     "gemma",
     "codegemma",

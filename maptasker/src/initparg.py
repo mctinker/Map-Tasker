@@ -44,6 +44,7 @@ def initialize_runtime_arguments() -> dict:
         "indent": 4,  # Backup file was fetched from Android device
         "italicize": False,  # Italicise Project/Profile?Task/Scene names
         "guiview": False,  # Use the GUI to get the runtime and color options
+        "map_limit": 10000,  # Map view limit
         "map_window_position": "",  # Last-used map window position
         "outline": False,  # Outline Project/Profile?Task/Scene names
         "preferences": False,  # Display Tasker's preferences

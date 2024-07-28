@@ -394,6 +394,7 @@ class CTkTextview(ctk.CTkFrame):
     #    """
     #    self = self.parent
 
+    # Output the map view data to the text window.
     def output_map(self, the_data: dict) -> None:
         """
         Outputs the data from the given map data (dictionary) to a text box.
@@ -414,45 +415,99 @@ class CTkTextview(ctk.CTkFrame):
         # Delete the in-memory output since it is no longer needed
         PrimeItems.output_lines.output_lines = []
 
-        # Process the data.
-        for value in the_data.values():
+        # Make sure we have the window position set for the progress bar
+        if not PrimeItems.program_arguments["map_window_position"]:
+            PrimeItems.program_arguments["map_window_position"] = self.master.master.window_position
+
+        # Create a progress bar widget
+        self.progress_bar = ProgressbarWindow()
+        self.progress_bar.progressbar.configure(width=300, height=30)
+        self.progress_bar.progressbar.start()
+
+        # Go through all of the map data and format it accordingly.
+        self.process_map_data(
+            line_num,
+            tags,
+            char_position,
+            previous_color,
+            previous_directory,
+            previous_value,
+            the_data,
+        )
+
+        # Stop the progress bar and destroy the widget
+        self.progress_bar.progressbar.stop()
+        self.progress_bar.progressbar.destroy()
+        self.progress_bar.destroy()
+
+    # Go through all of the map data and format it accordingly.
+    def process_map_data(
+        self: object,
+        line_num: int,
+        tags: list,
+        char_position: int,
+        previous_color: str,
+        previous_directory: str,
+        previous_value: str,
+        the_data: dict,
+    ) -> None:
+        """
+        Process the given map data and output the text lines and colors to a text box.
+
+        Args:
+            line_num (int): The current line number.
+            tags (list): The list of tags.
+            char_position (int): The current character position.
+            previous_color (str): The previous color.
+            previous_directory (str): The previous directory.
+            previous_value (str): The previous value.
+            the_data (dict): The dictionary containing the map data.
+
+        Returns:
+            Tuple[int, list, int, str, str, str]: The updated line number, tags, character position, previous color, previous directory, and previous value.
+
+        This function iterates through the map data and processes each value. It handles special cases of directory and "Projects..." lines by adding an extra newline. It outputs each text line and color in the data 'value' entry. It also processes the directory entry and updates the line number, tags, character position, previous color, previous directory, and previous value accordingly.
+
+        If the debug flag is set, it logs the map view value.
+        """
+        max_data = len(the_data)
+        tenth_increment = max_data // 10
+
+        # Go through the map data looking at the values.
+        for num, (_, value) in enumerate(the_data.items()):
+            # Update progress bar if needed.
+            if num % tenth_increment == 0:
+                if num <= tenth_increment * 3:
+                    progress_color = "red"
+                elif num <= tenth_increment * 6:
+                    progress_color = "orange"
+                else:
+                    progress_color = "green"
+                self.progress_bar.progressbar.set(num / max_data)
+                self.progress_bar.progressbar.configure(progress_color=progress_color)
+                self.progress_bar.progressbar.update()
+
+            # Ignore this space and new line, since it causes double spacing in directory
             with contextlib.suppress(IndexError):
-                if value == "\n":
+                if value["text"][0] == "  \n":
                     continue
 
             # Check to see if we should bump the output line number
-            try:
-                if previous_value == "directory" and not value["directory"]:
-                    line_num += 1
-                    char_position = 0
-            except KeyError:
-                if previous_value == "directory":
-                    line_num += 1
-                    char_position = 0
+            line_num, char_position = self.check_bump(line_num, char_position, previous_value, value)
 
             # Is the text to be colored?
             # If there is a color attribute, then we will go through all text lines and add the color fore the specific text entry
             if not value["color"] and value["text"]:
                 value["color"] = [previous_color]
             if value["color"]:
-                line_num += 1  # For a bump in line number since we are adding a '\n' to text
-
-                # Handle special case of Directory and "Projects....." etc. lines by adding ane xtra '\n'
-                if value["text"][0] == "Directory\n":
-                    value["text"] = "\nDirectory    (entries are hotlinks)\n"
-                elif value["text"][0].startswith("\nn"):
-                    save_text = value["text"][0][2:]
-                    save_color = value["color"]
-                    value["text"] = "\n\n"
-                    previous_color = self.output_map_text_lines(value, line_num, tags, previous_color)
-                    line_num += 1
-                    value["text"] = save_text
-                    value["color"] = save_color
-
-                # Output the each text line and color in the data 'value' entry.
-                previous_color = self.output_map_text_lines(value, line_num, tags, previous_color)
-                line_num += 1
-                previous_value = "color"
+                # Handle colored text.
+                line_num, previous_color, previous_value, tags = self.process_colored_text(
+                    value,
+                    line_num,
+                    previous_color,
+                    previous_value,
+                    tags,
+                )
 
             # Process the directory entry
             elif value["directory"]:
@@ -469,7 +524,77 @@ class CTkTextview(ctk.CTkFrame):
             if self.master.master.debug:
                 logger.info(f"Map View Value: {value}")
 
-    # Process directory entries as hotlinks
+    def process_colored_text(
+        self: object,
+        value: dict,
+        line_num: int,
+        previous_color: str,
+        previous_value: str,
+        tags: list,
+    ) -> tuple:
+        """
+        Process colored text and output the text lines and colors to a text box.
+
+        Args:
+            self (object): The instance of the class.
+            value (dict): A dictionary containing the text and color information.
+            line_num (int): The current line number.
+            previous_color (str): The previous color.
+            previous_value (str): The previous value.
+            tags (list): The list of tags.
+
+        Returns:
+            tuple: A tuple containing the updated line number, previous color, previous value, and tags.
+
+        This function processes colored text and outputs the text lines and colors to a text box.
+        It handles special cases of directory and "Projects..." lines by adding extra newlines.
+        It outputs each text line and color in the data 'value' entry. It also updates the line number,
+        previous color, previous value, and tags accordingly.
+        """
+        line_num += 1  # For a bump in line number since we are adding a '\n' to text
+
+        # Handle special case of Directory and "Projects....." etc. lines by adding ane xtra '\n'
+        if value["text"][0] == "Directory\n":
+            value["text"] = "\nDirectory    (entries are hotlinks)\n"
+        elif value["text"][0].startswith("\nn"):
+            save_text = value["text"][0][2:]
+            save_color = value["color"]
+            value["text"] = "\n\n"
+            previous_color = self.output_map_text_lines(value, line_num, tags, previous_color)
+            line_num += 1
+            value["text"] = save_text
+            value["color"] = save_color
+
+        # Output the each text line and color in the data 'value' entry.
+        previous_color = self.output_map_text_lines(value, line_num, tags, previous_color)
+        line_num += 1
+        previous_value = "color"
+
+        return line_num, previous_color, previous_value, tags
+
+    def check_bump(self, line_num: int, char_position: int, previous_value: str, value: dict) -> tuple:
+        """
+        Check if there is a need to bump the line number and reset the character position based on the previous value and the current value.
+
+        Args:
+            line_num (int): The current line number.
+            char_position (int): The current character position.
+            previous_value (str): The previous value.
+            value (dict): The current value.
+
+        Returns:
+            tuple: A tuple containing the updated line number and character position.
+        """
+        try:
+            if previous_value == "directory" and not value["directory"]:
+                line_num += 1
+                char_position = 0
+        except KeyError:
+            if previous_value == "directory":
+                line_num += 1
+                char_position = 0
+        return line_num, char_position
+
     def process_directory(self, value: dict, line_num: int, previous_directory: str, char_position: int) -> tuple:
         """
         A function that processes a directory based on the given values.
@@ -485,6 +610,9 @@ class CTkTextview(ctk.CTkFrame):
             char_position: An integer representing the updated character position in the text line.
             previous_directory: The previous Tasker type ("projects", "profiles", etc.) that was processed.
             line_num: An integer representing the updated line number.
+
+        Note: Clicking on a hotlink will open the corresponding Tasker object via a call to self.remap_single_item.
+                In effect, mapit is re-invoked for the corresponding Tasker object that was clicked on.
         """
         spacing = 40
         columns = 3
@@ -536,11 +664,13 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             previous_color: A string representing the previous color used.
         """
-
+        spaces = " " * 20  # Approximate amount of spacing prior to a Task parameter.
         # Go through all of the text/color combinations
         char_position = 0
         line_num_str = str(line_num)
         for num, message in enumerate(value["text"]):
+            if self.master.master.pretty and message[0:20] == spaces:
+                message = f"  {message}"  # noqa: PLW2901
             char_position_str = str(char_position)
 
             # Build the tag to use and make sure it is unique
@@ -667,7 +797,7 @@ class CTkTextview(ctk.CTkFrame):
         """
         self.drag_label.destroy()
 
-    def new_tag_config(self, tagName: str, **kwargs: list) -> object:
+    def new_tag_config(self, tagName: str, **kwargs: list) -> object:  # noqa: N803
         """
         A function to override the CustomTkinter tag configuration to allow a font= argument.
 
@@ -682,6 +812,23 @@ class CTkTextview(ctk.CTkFrame):
         return self._textbox.tag_config(tagName, **kwargs)
 
     ctk.CTkTextbox.tag_config = new_tag_config
+
+
+# Define the Progressbar window
+class ProgressbarWindow(ctk.CTk):
+    """Define our top level window for the Progressbar view."""
+
+    def __init__(self) -> None:
+        """Intialize our top level window for the Progressbar view."""
+        super().__init__()
+
+        # Position the widget over our main GUI
+        self.geometry(PrimeItems.program_arguments["map_window_position"])
+        self.value = 0
+        self.progressbar = ctk.CTkProgressBar(self)
+        self.title("Map Progress")
+        self.progressbar.pack(pady=20)
+        self.progressbar.set(self.value)
 
 
 # Define the Ai Popup window
@@ -974,6 +1121,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.indent = None
     self.italicize = None
     self.list_files = False
+    self.map_limit = 10000
     self.map_window_position = ""
     self.mapview_window = None
     self.named_item = None
@@ -1007,13 +1155,13 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     # create sidebar frame with widgets on the left side of the window.
     self.sidebar_frame = ctk.CTkFrame(self, width=140, corner_radius=0)
     self.sidebar_frame.configure(bg_color="black")
-    self.sidebar_frame.grid(row=0, column=0, rowspan=17, sticky="nsew")
+    self.sidebar_frame.grid(row=0, column=0, rowspan=19, sticky="nsew")
     # Define sidebar background frame with 17 rows
-    self.sidebar_frame.grid_rowconfigure(20, weight=1)  # Make anything in rows 20-xx stretchable.
+    self.sidebar_frame.grid_rowconfigure(22, weight=1)  # Make anything in rows 20-xx stretchable.
 
 
 # Define all of the menu elements
-def initialize_screen(self) -> None:  # noqa: ANN001
+def initialize_screen(self: object) -> None:  # noqa: PLR0915
     # Add grid title
     """Initializes the screen with various display options and settings.
     Parameters:
@@ -1376,7 +1524,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         ("#0BF075", "#ffd941"),
         "#1bc9ff",
-        self.event_handlers.treeview_query_event,
+        lambda: self.event_handlers.query_event("view"),
         1,
         "?",
         1,
@@ -1387,6 +1535,50 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "s",
     )
     self.view_query_button.configure(width=20)
+
+    # View Map Limit
+    self.maplimit_label = add_label(
+        self,
+        self.sidebar_frame,
+        "Map Limit:",
+        "",
+        0,
+        "normal",
+        20,
+        0,
+        30,
+        20,
+        "nw",
+    )
+    self.maplimit_optionmenu = add_option_menu(
+        self,
+        self.sidebar_frame,
+        self.event_handlers.maplimit_event,
+        ["5000", "10000", "20000", "30000", "Unlimited"],
+        20,
+        0,
+        (20, 0),
+        20,
+        "n",
+    )
+    #  Query ? button
+    self.maplimit_query_button = add_button(
+        self,
+        self.sidebar_frame,
+        "#246FB6",
+        ("#0BF075", "#ffd941"),
+        "#1bc9ff",
+        lambda: self.event_handlers.query_event("maplimit"),
+        1,
+        "?",
+        1,
+        20,
+        0,
+        (200, 0),
+        20,
+        "n",
+    )
+    self.maplimit_query_button.configure(width=20)
 
     # 'Reset Settings' button definition
     self.reset_button = add_button(
@@ -1399,11 +1591,11 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         2,
         "Reset Options",
         1,
-        20,
+        21,
         0,
         20,
-        (30, 0),
-        "n",
+        (20, 10),
+        "",
     )
 
     # Start second grid / column definitions
@@ -1536,7 +1728,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         ("#0BF075", "#ffd941"),
         "",
-        self.event_handlers.help_event,
+        lambda: self.event_handlers.query_event("help"),
         2,
         "Display Help",
         1,
@@ -1554,7 +1746,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         ("#0BF075", "#ffd941"),
         "",
-        self.event_handlers.backup_help_event,
+        lambda: self.event_handlers.query_event("android"),
         2,
         "Get Android Help",
         1,
@@ -1790,7 +1982,7 @@ def initialize_screen(self) -> None:  # noqa: ANN001
         "#246FB6",
         ("#0BF075", "#ffd941"),
         "#1bc9ff",  # border_color: str,
-        self.event_handlers.ai_help_event,  # command
+        lambda: self.event_handlers.query_event("ai"),  # command
         1,  # border_width: int,
         "?",  # text: str,
         1,  # columnspan: int,
