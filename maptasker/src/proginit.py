@@ -337,6 +337,8 @@ def start_up() -> dict:
         - Gets key program elements and outputs intro text
         - Logs startup values if debug mode is enabled
     """
+    from maptasker.src.guiwins import PopupWindow
+
     logger.info(f"sys.argv{sys.argv!s}")
 
     # Get the OS so we know which directory slash to use (/ or \)
@@ -346,7 +348,7 @@ def start_up() -> dict:
     else:
         PrimeItems.slash = "/"
 
-    # Validate runtime versions
+    # Validate runtime versions for python and tkinter
     check_versions()
 
     # Get runtime arguments (from CLI or GUI)
@@ -357,6 +359,17 @@ def start_up() -> dict:
 
     # Get our map of colors
     PrimeItems.colors_to_use = setup_colors()
+
+    # Display a popup window telling user we are analyzing
+    if PrimeItems.program_arguments["diagramview"]:
+        popup = PopupWindow(
+            title="MapTasker",
+            message="The view is running in the background.  Please stand by...",
+            exit_when_done=True,
+            delay=600,
+        )
+        popup.mainloop()
+        PrimeItems.program_arguments["diagramview"] = False
 
     # Get the XML data and output the front matter
     _ = get_data_and_output_intro(True)

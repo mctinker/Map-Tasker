@@ -33,6 +33,7 @@ def initialize_runtime_arguments() -> dict:
         "color_window_position": "",  # Last-used color window position
         "conditions": False,  # Display Profile and Task conditions
         "debug": False,  # Run in debug mode (create log file)
+        "diagramview": False,  # Use the GUI to get the digaram view
         "diagram_window_position": "",  # Last-used diagram window position
         "directory": False,  # Display directory
         "display_detail_level": 4,  # Display detail level
@@ -40,10 +41,10 @@ def initialize_runtime_arguments() -> dict:
         "file": "",  # If we are re-running, then this is the file to re-use
         "font": OUTPUT_FONT,  # Font to use in the output
         "gui": False,  # Use the GUI to get the runtime and color options
+        "guiview": False,  # Use the GUI to get the view (Map, Diagram, Tree)
         "highlight": False,  # Highlight Project/Profile?Task/Scene names
         "indent": 4,  # Backup file was fetched from Android device
         "italicize": False,  # Italicise Project/Profile?Task/Scene names
-        "guiview": False,  # Use the GUI to get the runtime and color options
         "map_limit": 10000,  # Map view limit
         "map_window_position": "",  # Last-used map window position
         "outline": False,  # Outline Project/Profile?Task/Scene names

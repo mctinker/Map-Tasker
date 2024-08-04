@@ -243,6 +243,7 @@ def map_ai() -> None:
         title="MapTasker Analysis",
         message="Analysis is running in the background.  Please stand by...",
         exit_when_done=True,
+        delay=500,
     )
     popup.mainloop()
 

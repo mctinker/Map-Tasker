@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "5.0.1"
+VERSION = "5.0.2"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -152,7 +152,8 @@ SYSTEM_ARGUMENTS = [
     "ai_popup_window_position",
     "ai_analysis_window_position",
     "map_window_position",
-    "gui_view",
+    "guiview",
+    "diagramview",
     "rerun",
 ]
 

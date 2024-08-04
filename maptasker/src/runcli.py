@@ -512,12 +512,17 @@ def process_cli() -> None:
     version_flag = "v"
 
     # Intialize runtime arguments.
-    try:  # Save map view flag in case we are coming from the GUI.
+    try:  # Save map and diagram view flags in case we are coming from the GUI.
         save_guiview = PrimeItems.program_arguments["guiview"]
     except (TypeError, KeyError):
         save_guiview = False
+    try:
+        save_diagram = PrimeItems.program_arguments["diagramview"]
+    except (KeyError, TypeError):
+        save_diagram = False
     PrimeItems.program_arguments = initialize_runtime_arguments()
     PrimeItems.program_arguments["guiview"] = save_guiview
+    PrimeItems.program_arguments["diagramview"] = save_diagram
 
     # Process unit tests if "-test" in arguments, else get normal runtime arguments via Parsearg.
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
