@@ -54,14 +54,24 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.0.1 - Change Log\n
+Version 5.0.2 - Change Log\n
 ### Added\n
-- Added: 'Map' view 'Map Limit' pull-down added to the GUI to control the processing time when generating the map.\n
-- Added: The new 'llama3.1' Ai model added to the 'Analysis' tab.\n
-- Added: A progress bar has been added to show the progress of the 'Map' view.\n
+- Added: Display a message if 'Diagram' view is being processed in the background.\n
+- Added: 'Map' view now has a "Up One Level" directory hotlink if a single Profile or Task is being mapped.\n
+- Added: A progress bar has been added to the GUI to show the progress of the 'Diagram' view.\n
+- Added: Tasker beta 6.14 'Remote Execution' Task action and associated preferences are now recognized.\n
+### Changed\n
+- Changed: The 'Map' view directory hotlink for a Task unassociated with a Profile will now point up to the owning Project rather than the entire configuration.\n
+- Changed: The GUI progress bar now shows a smoother color scheme transition (red through to green).\n
 ### Fixed\n
-- Fixed: Invalid spacing appears in the Map view directory list.\n
-- Fixed: Spacing for parameters with "Pretty" enabled is slightly off in ther Map view.\n
+- Fixed: If Profile has no name, say so in the 'Map' view output.\n
+- Fixed: The GUI list of Tasks incorrectly showed some Tasks names that were not proceeded by "Task:".\n
+- Fixed: Program error if changing the indentation amount and then display the 'Map' or 'Diagram' view.\n
+- Fixed: Moving a 'Map', 'Diagram' or 'Tree' view window will not change the window position on consequtive displays of the same view.\n
+- Fixed: 'Map' view does not work if colors have not yet been defined.\n
+- Fixed: Task action 'Browse URL' is missing the detailed parameters.\n
+- Fixed: Performing a 'ReRun' proeeded by a 'Map' view with a single Task selected results in output not related to the single Task.\n
+- Fixed: 'Map' view output spacing for Projects and Scenes is incorrect.\n
 """
 
 default_font_size = 14
@@ -1287,7 +1297,14 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     if not profiles_to_display:
         profiles_to_display = ["No profiles found"]
 
-    tasks_to_display = [task for task in tasks if task not in ["Task: Unnamed/Anonymous.", ""]]
+    # Cleanup Task names.
+    tasks_to_display = []
+    for task in tasks:
+        name_to_use = task if task[0:5] == "Task:" else "Task: " + task
+        if name_to_use != "Task: Unnamed/Anonymous.":
+            tasks_to_display.append(name_to_use)
+
+    # Check for no tasks.
     if not tasks_to_display:
         tasks_to_display = ["No tasks found"]
     else:
@@ -1641,7 +1658,7 @@ def display_no_xml_message(self) -> None:  # noqa: ANN001
     )
 
 
-def reset_primeitems_single_names(self) -> None:
+def reset_primeitems_single_names() -> None:
     """
     Reset the prime items related to single names.
     """
@@ -1660,6 +1677,11 @@ def reset_primeitems_single_names(self) -> None:
     PrimeItems.program_arguments["single_project_name"] = ""
     PrimeItems.program_arguments["single_profile_name"] = ""
     PrimeItems.program_arguments["single_task_name"] = ""
+    PrimeItems.found_named_items = {
+        "single_project_found": False,
+        "single_profile_found": False,
+        "single_task_found": False,
+    }
     # self.single_project_name = ""
     # self.single_profile_name = ""
     # self.single_task_name = ""

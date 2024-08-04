@@ -691,4 +691,19 @@ service_codes = {
         "section": 13,
         "num": 110,
     },
+    "gcsa": {
+        "display": "Google Cloud Service Account",
+        "section": 13,
+        "num": 111,
+    },
+    "KEY_SERVICE_ACCOUNT": {
+        "display": "Key Service Account",
+        "section": 13,
+        "num": 112,
+    },
+    "KEY_FIREBASE_CONFIGURATION": {
+        "display": "Google Cloud Firebase",
+        "section": 13,
+        "num": 113,
+    },
 }

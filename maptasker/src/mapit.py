@@ -330,7 +330,11 @@ def process_unique_situations(
         - Get and output tasks not called by any profile
         - Get and output projects that don't have any tasks or profiles
     """
-    if single_task_name or single_project_name or single_profile_name:
+    if (
+        (single_task_name and PrimeItems.found_named_items["single_task_found"])
+        or (single_project_name and PrimeItems.found_named_items["single_project_found"])
+        or (single_profile_name and PrimeItems.found_named_items["single_profile_found"])
+    ):
         return
 
     # Get and output all Tasks not called by any Profile
@@ -648,15 +652,21 @@ def mapit_all(file_to_get: str) -> int:
         - Gets all Project and Profile variables
         - Processes each Project and its associated Profiles
         - Stores details of single selected Project, Profile or Task
-    Checks for single selected item and processes accordingly
-    Processes unique situations like Tasks not in Profiles and Projects without Profiles/Tasks
-    Cleans up memory after completing processing
+
+    Checks for single selected item and processes accordingly.
+    Processes unique situations like Tasks not in Profiles and Projects without Profiles/Tasks.
+    Cleans up memory after completing processing.
+    If coming from the GUI, then PrimeItems may already be primed with data.
     """
-    # Save our mapview flag since 'initialize_everything' would otherwise wipe it out.
+    # Save our mapview and diagramview flags since 'initialize_everything' would otherwise wipe it out.
     try:
         save_map = PrimeItems.program_arguments["guiview"]
     except (KeyError, TypeError):
         save_map = False
+    try:
+        save_diagram = PrimeItems.program_arguments["diagramview"]
+    except (KeyError, TypeError):
+        save_diagram = False
 
     (
         found_tasks,
@@ -665,6 +675,7 @@ def mapit_all(file_to_get: str) -> int:
     ) = initialize_everything()
 
     PrimeItems.program_arguments["guiview"] = save_map
+    PrimeItems.program_arguments["diagramview"] = save_diagram
 
     if PrimeItems.error_code > 0:
         sys.exit(PrimeItems.error_code)
@@ -696,10 +707,12 @@ def mapit_all(file_to_get: str) -> int:
     _, _ = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)
     PrimeItems.program_arguments["rerun"] = save_rerun_state
 
+    # Do a little cleanup by clearing output lines
+    PrimeItems.output_lines.output_lines.clear()
+
     # Rerun this program if "Rerun" was selected from GUI
     # First get the filename as a string.
     if PrimeItems.program_arguments["rerun"]:
         do_rerun()
-    # Just exit.
 
     return 0

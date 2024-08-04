@@ -297,17 +297,6 @@ def do_single_task(
     # This import must reside here to avoid circular error.
     from maptasker.src.proclist import process_list
 
-    """
-    Process a single Task only
-
-        :param our_task_name: name of Task we are to process
-        :param project_name: name of the Project Task belongs to
-        :param profile_name: name of the Profile the Task belongs to
-        :param task_list: list of Tasks
-        :param our_task_element: the xml element for this Task
-        :param list_of_found_tasks: all Tasks processed so far
-    """
-
     logger.debug(
         "tasks single task"
         f' name:{PrimeItems.program_arguments["single_task_name"]} our Task'
@@ -488,7 +477,7 @@ def output_task_list(
             list_of_found_tasks (list): list of Tasks found so far
             do_extra (bool): True to output extra info.
         Returns:
-            bool: True if we found a Task"""
+            bool: True if we found a single Task we are looking for"""
     for count, task_item in enumerate(list_of_tasks):
         # If we are coming in without a Task name, then we are only doing a single Task and we need to plug in
         # the Task name.

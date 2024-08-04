@@ -40,6 +40,7 @@ def process_service(
     output_service_name = service_codes[service_name]["display"]
     if output_service_name == "Unknown":
         output_service_name = f"{service_name}: Unknown"
+
     # Left justify and fill to 15 characters
     output_service_name = output_service_name.ljust(45, ".")
 
@@ -210,9 +211,9 @@ def get_preferences() -> None:
         PrimeItems.output_lines.add_line_to_output(0, f"{line}", FormatLine.dont_format_line)
 
     # Let user know that we have not mapped the remaining items
-    PrimeItems.output_lines.add_line_to_output(
-        0,
-        "The remaining preferences are not yet mapped or are unused.",
-        ["", "preferences_color", FormatLine.add_end_span],
-    )
+    # PrimeItems.output_lines.add_line_to_output(
+    #     0,
+    #     "The remaining preferences are not yet mapped or are unused.",
+    #     ["", "preferences_color", FormatLine.add_end_span],
+    # )
     PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)

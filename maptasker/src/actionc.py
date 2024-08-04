@@ -48,7 +48,15 @@ action_codes = {
     "102t": ActionCode(0, "", [], [], "Open File", [], []),
     "103s": ActionCode(0, "", [], [], "Light Level", ["0"], []),
     "104s": ActionCode(0, "", [], [], "Pressure", [], []),
-    "104t": ActionCode(0, "", [], [], "Browse URL", [], []),
+    "104t": ActionCode(
+        4,
+        "",
+        ["0", "1", "2", "3"],
+        ["Str", "App", "Int", "Str"],
+        "Browse URL",
+        ["0", "1", "2", "3"],
+        ["URL=", "Package/App Name=", ["", "e", ", 'Open With' Dialog"], ", 'Open With' Title="],
+    ),
     "1040876951t": ActionCode(
         5,
         "",

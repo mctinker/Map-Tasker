@@ -246,7 +246,7 @@ def do_tasks_in_project(
 
             # Output the Task (we don't care about the returned value)
             our_task = PrimeItems.tasker_root_elements["all_tasks"][the_id]
-            tasks.output_task_list(
+            _ = tasks.output_task_list(
                 [our_task],
                 project_name,
                 "",

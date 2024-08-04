@@ -309,10 +309,6 @@ class MyGui(customtkinter.CTk):
         # Update the analysis button
         display_analyze_button(self, 13, first_time=True)
 
-        # Process Map View
-        if PrimeItems.program_arguments["guiview"]:
-            self.display_map()
-
         # We are done with the initialization.
         self.display_message_box("Initialization complete.\n", "Green")
 
@@ -1572,10 +1568,11 @@ class MyGui(customtkinter.CTk):
         # These flags are critical for the proper proceessing of the map.
         self.guiview = True  # Set it for save_settings
         PrimeItems.program_arguments["guiview"] = True  # Set it for mapit_all
+        PrimeItems.colors_to_use = self.color_lookup  # Make sure we have a color to use for mapit_all.
 
         # Initialize a few things first
         if clear_names:
-            reset_primeitems_single_names(self)
+            reset_primeitems_single_names()
         fresh_message_box(self)
 
         self.display_message_box("The 'Map' view is running in the background.  Please stand by...", "LimeGreen")
@@ -2310,7 +2307,7 @@ class EventHandlers:
         - Update the indent option dropdown to the selected amount
         - Display confirmation message of indentation amount"""
         self = self.parent
-        self.indent = ident_amount
+        self.indent = int(ident_amount)
         self.indent_option.set(ident_amount)
         self.inform_message("Indentation Amount", True, ident_amount)
 
@@ -2989,6 +2986,8 @@ class EventHandlers:
         - Calls withdraw() to reset the program state
         - Calls quit() twice to ensure program exits"""
         self = self.parent
+        # Reset the program state since it may have been previously set by the 'Map' view.
+        reset_primeitems_single_names()
         self.rerun = True
         self.cleanup_and_run(run_only=False)
 
@@ -3047,7 +3046,8 @@ class EventHandlers:
             self.outline = True
             # The following doesn't display
             self.display_message_box(
-                "The 'Diagram' view is running in the background.  Please stand by...", "LimeGreen",
+                "The 'Diagram' view is running in the background.  Please stand by...",
+                "LimeGreen",
             )
             self.textbox.focus_set()
 
@@ -3060,17 +3060,19 @@ class EventHandlers:
             _, _ = save_restore_args(temp_args, self.color_lookup, True)
 
             # Reset PrimItems
-            reset_primeitems_single_names(self)
+            reset_primeitems_single_names()
 
             # Now flag the fact that we are rerunning for the map view.
             # These flags are critical for the proper proceessing of the map.
             self.guiview = True  # Set it for save_settings
             PrimeItems.program_arguments["guiview"] = True  # Set it for mapit_all
+            self.diagramview = True
+            PrimeItems.program_arguments["diagramview"] = True  # Set it for mapit_all
 
             # outline_the_configuration()
             # Re-invoke ourselves to force the html to be written
             _ = mapit_all("")
-            PrimeItems.output_lines.output_lines.clear()
+
             # Process the diagram file
             diagram_dir = (
                 f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"  # Get the directory from which we are running.
@@ -3078,6 +3080,7 @@ class EventHandlers:
             # Read the diagram file
             with open(str(diagram_dir), encoding="utf-8") as diagram_file:
                 diagram_data = [line.rstrip() for line in diagram_file]  # Read file into a list
+
                 # Display the diagram
                 self.diagram_view = self.display_view("diagram", diagram_data)
                 self.display_message_box("Diagram View displayed.", "Green")
@@ -3086,7 +3089,10 @@ class EventHandlers:
             # Cleanup
             self.outline = save_outline
             self.guiview = False
-            PrimeItems.program_arguments["guiview"] = True
+            PrimeItems.program_arguments["guiview"] = False
+
+            # Save window.
+            store_windows(self)
         else:
             display_no_xml_message(self)
 

@@ -266,6 +266,7 @@ def get_label_disabled_condition(child: defusedxml.ElementTree.XML) -> str:
     """
     task_label = ""
     task_conditions = ""
+    remote_execution = ""
 
     # If no code found, bail.
     if child.find("code") is not None:
@@ -297,8 +298,12 @@ def get_label_disabled_condition(child: defusedxml.ElementTree.XML) -> str:
     if task_conditions:
         task_conditions = format_html("action_condition_color", "", task_conditions, True)
 
+    # See if this is a remote action
+    if child.find("remoteDevice") is not None:
+        remote_execution = format_html("action_condition_color", "", ", Remote Execution", True)
+
     # Return the lot
-    return f"{task_conditions}{action_disabled}{task_label}"
+    return f"{task_conditions}{action_disabled}{task_label}{remote_execution}"
 
 
 # Get any/all conditions associated wwith this Task.
@@ -423,7 +428,7 @@ def get_extra_stuff(
         :return: formatted line of extra details about Task Action
     """
 
-    # If no code, just bail out.add
+    # If no code, just bail out.
     if code_action.find("code") is None:
         return ""
 

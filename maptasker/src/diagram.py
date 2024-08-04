@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import time
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -31,6 +32,7 @@ from maptasker.src.diagutil import (
     remove_icon,
 )
 from maptasker.src.getids import get_ids
+from maptasker.src.guiwins import ProgressbarWindow
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import DIAGRAM_FILE, MY_VERSION, NOW_TIME, FormatLine
 
@@ -55,6 +57,16 @@ left_arrow_corner_up = "↖"
 arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}"
 directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
 bar = "│"
+
+
+def current_milli_time() -> int:
+    """
+    Returns the current time in milliseconds.
+
+    Returns:
+        int: The current time in milliseconds.
+    """
+    return round(time.time() * 1000)
 
 
 # Print the specific Task.
@@ -527,15 +539,15 @@ def mark_tasks_not_found(output_lines: list) -> None:
 
                 # Make sure the called Task exists.
                 found_called_task = False
-                for called_line_num, check_line in enumerate(output_lines):
+                for check_line in output_lines:
                     if search_name in check_line:
                         found_called_task = True
-                        called_task_position = output_lines[called_line_num].index(called_task_name[0])
+                        called_task_position = check_line.index(called_task_name[0])
                         break
 
                 # If Task doesn't exist, mark it as such.
                 if not found_called_task:
-                    called_task_position = output_lines[caller_line_num].index(called_task_name[0])
+                    called_task_position = line.index(called_task_name[0])
                     end_of_called_task_position = called_task_position + len(called_task_name[0])
                     output_lines[caller_line_num] = (
                         output_lines[caller_line_num][:called_task_position]
@@ -559,6 +571,24 @@ def handle_calls(output_lines: list) -> None:
     - Traverse the call table and add arrows to the output lines
     - Remove all icons from the names to ensure arrow alignment
     """
+
+    # Display a progress bar if coming from the GUI.
+    if PrimeItems.program_arguments["gui"]:
+        # Make sure we have a geometry set for the progress bar
+        if not PrimeItems.program_arguments["map_window_position"]:
+            PrimeItems.program_arguments["map_window_position"] = "300x200+600+0"
+        # Create a progress bar widget
+        progress_bar = ProgressbarWindow()
+        progress_bar.progressbar.configure(width=300, height=30)
+        progress_bar.title("Diagram Progress")
+        progress_bar.progressbar.start()
+
+        # Setup for our progress bar.  Use the total number of Profiles as the metric.
+        max_data = len(output_lines)
+        tenth_increment = max_data // 10
+        if tenth_increment == 0:
+            tenth_increment = 1
+
     # Identify called Tasks that don't exist and add blank lines for called/caller Tasks.
     mark_tasks_not_found(output_lines)
 
@@ -571,9 +601,25 @@ def handle_calls(output_lines: list) -> None:
 
     # Reduce lines with icons in the names to ensure arrow alignment.
     for line_num, line in enumerate(output_lines):
+
+        # Update progress bar if needed.
+        if PrimeItems.program_arguments["gui"] and line_num % tenth_increment == 0:
+            display_progress_bar(
+                progress_bar,
+                max_data,
+                line_num,
+                tenth_increment,
+            )
+
+        # Get rid of icons in the names
         if any(char in line for char in arrows):
             output_lines[line_num] = remove_icon(line)
             continue
+
+    # Update progress bar if needed.
+    if PrimeItems.program_arguments["gui"]:
+        progress_bar.progressbar.stop()
+        progress_bar.destroy()
 
     # Get rid of hanging "│" characters
     return delete_hanging_bars(output_lines)
@@ -659,6 +705,8 @@ def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
 
     # Now output each Profile and it's Tasks.
     for profile, tasks in profiles.items():
+
+        # Process the Profile
         if profile != "Scenes":
             (
                 output_profile_lines,
@@ -711,6 +759,30 @@ def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
     add_output_line(" ")
 
 
+def display_progress_bar(progress_bar: object, max_data: int, num: int, tenth_increment: int) -> None:
+    """
+    Display a progress bar with a specified color based on the progress percentage.
+
+    Args:
+        self (object): The instance of the class.
+        max_data (int): The maximum value for the progress bar.
+        num (int): The current value of the progress bar.
+        tenth_increment (int): The increment value for each 10% of progress.
+
+    Returns:
+        None: This function does not return anything.
+    """
+    if num <= tenth_increment * 3:
+        progress_color = "red"
+    elif num <= tenth_increment * 6:
+        progress_color = "orange"
+    else:
+        progress_color = "green"
+    progress_bar.progressbar.set(num / max_data)
+    progress_bar.progressbar.configure(progress_color=progress_color)
+    progress_bar.progressbar.update()
+
+
 # Process all Projects
 def build_network_map(data: dict) -> None:
     """
@@ -723,8 +795,10 @@ def build_network_map(data: dict) -> None:
     - Prints all profiles and their tasks for that project
     - Handles calling relationships between tasks and adds them to the network map output
     """
+
     # Go through each project
     for project, profiles in data.items():
+
         # Print Project as a box
         print_box(project, "Project:", 1)
         # Print all of the Project's Profiles and their Tasks
@@ -797,6 +871,5 @@ def network_map(network: dict) -> None:
     with open(str(output_dir), "w", encoding="utf-8") as mapfile:
         # PrimeItems.printfile = mapfile
         for line in PrimeItems.netmap_output:
-            # print(line, file=mapfile)
             mapfile.write(f"{line}\n")
         mapfile.close()

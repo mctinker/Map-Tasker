@@ -228,14 +228,20 @@ def process_line(output_lines: list, line: str, line_num: int, highlight_tags: l
     previous_line = ""
 
     for color_pos in color_list:
+        # Break up line into color and text (temp)
         color_to_use, temp = process_color_string(line, color_pos)
 
         if color_to_use:
             color = color_to_use[0]
             if "_color" in color:
-
                 # Get the text
                 working_text = extract_working_text(temp)
+                # Special handling if a Tasker preferencews key.
+                if PrimeItems.program_arguments["preferences"] and (
+                    "Key Service Account" in temp[2] or "Google Cloud Firebase" in temp[2]
+                ):
+                    working_text = line.split('preferences_color">')[1]
+
                 # Ignore duplicate lines due to multiple colors and only one text item.
                 if working_text == previous_line:
                     continue
@@ -319,7 +325,7 @@ def calculate_spacing(
         or "Project Global Variables" in output_lines[line_num]["text"][0]
         or output_lines[line_num]["text"][0][0:6] == "Scene:"
     ):
-        spacing = 0 + spacing
+        spacing = 0
 
     # Profile or TaskerNet
     elif output_lines[line_num]["text"][0][0:8] == "Profile:" or output_lines[line_num]["text"][0][0:9] == "TaskerNet":
@@ -492,13 +498,14 @@ def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) 
         "<a id=",
         "Trailing Information...",
         "Scenes",
+        "mark {",
+        "background-color: ",
     ]
     doing_global_variables = False
     previous_line = ""
 
     # Reformat the html by going through each line
     for line_num, line in enumerate(lines):
-
         # Ignore certain lines
         for ignore_str in text_to_ignore:
             if ignore_str in line:
@@ -523,7 +530,7 @@ def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) 
         if line == "<th>Name</th>\n" and lines[line_num + 1] == "<th>Value</th>\n":
             iterate = True
             output_lines[line_num] = {
-                "text": [f'{" " * glob_spacing}Variable Name...............Variable Value'],
+                "text": ["Variable Name...............Variable Value"],
                 "color": ["turquoise1"],
                 "highlight_color": [],
                 "highlights": [],
@@ -552,6 +559,10 @@ def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) 
             previous_line,
         )
         previous_line = line
+
+        # Validate Profile name.  If no name then say so.
+        if "Profile:" in line and output_lines[line_num]["text"][0] == "     Profile: \n":
+            output_lines[line_num]["text"][0] = "     Profile: (no name)\n"
 
     # Eliminate consequtive blank lines and return our dictionary.
     return eliminate_blanks(output_lines)

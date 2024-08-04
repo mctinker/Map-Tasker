@@ -242,7 +242,9 @@ def remove_icon(text: str) -> str:
     output: str = text
 
     # If there are icons in the text...
-    if icon_count := count_icons(text):
+    icon_count = count_icons(text)
+    if icon_count > 0:
+
         # Drop here if there is at least one icon.
         for find_arrow in directional_arrows:
             found_arrow = text.find(find_arrow)

@@ -17,6 +17,7 @@ from tkinter import TclError, ttk
 import customtkinter as ctk
 from PIL import Image, ImageTk
 
+from maptasker.src.getids import get_ids
 from maptasker.src.guiutils import (
     add_button,
     add_checkbox,
@@ -193,6 +194,35 @@ Click item and scroll mouse-wheel/trackpad\nas needed to go up or down.
         # Add items to the tree
         self.insert_items(self.items)
 
+        # Catch window resizing
+        self.bind("<Configure>", self.on_resize)
+
+    # Text window was resized.
+    def on_resize(self, event: dict) -> None:  # noqa: ARG002
+        """
+        Resizes the Diagram window based on the event width and height.
+
+        Args:
+            event (any): The event object containing the width and height of the window.
+
+        Returns:
+            None: This function does not return anything.
+
+        Raises:
+            None: This function does not raise any exceptions.
+
+        This function is called when the window is resized. It retrieves the current window position from `self.master.master.{view}_window_position`,
+        splits it into width, height, and x and y coordinates. It then updates the window geometry with the new width, height, and x and y coordinates
+        based on the event width and height.
+        """
+
+        position_key = "tree_window_position"
+
+        # Get the current window position
+        window_position = self.root.wm_geometry()
+        # Set the 'view' new window position in our GUI self.
+        setattr(self.master.master, position_key, window_position)
+
     # Inset items into the treeview.
     def insert_items(self, items: list, parent="") -> None:  # noqa: ANN001
         """Inserts items into a treeview.
@@ -247,13 +277,16 @@ class TextWindow(ctk.CTkToplevel):
         # Position the widget
         try:
             self.geometry(window_position)
+            # window_ shouldn't be in here.  If it is, pickle file is corrupt.
+            window_position = window_position.replace("window_", "")
             work_window_geometry = window_position.split("x")
-            self.master.text_window_width = int(work_window_geometry[0]) - 10
+            self.master.text_window_width = int(work_window_geometry[0])
             self.master.text_window_height = work_window_geometry[1].split("+")[0]
         except (AttributeError, TypeError):
-            self.geometry("600x800+600+0")
-            self.master.text_window_width = 590
-            self.master.text_window_height = 790
+            self.master.text_window_position = "600x800+600+0"
+            self.master.text_window_width = "600"
+            self.master.text_window_height = "800"
+            self.geometry(self.master.text_window_position)
 
         # Display the title.
         self.title(f"{title} - Drag window to desired position and rerun the {title} command.")
@@ -322,7 +355,8 @@ class CTkTextview(ctk.CTkFrame):
 
         # Recreate text box
         width = getattr(master.master, "text_window_width")
-        height = str(int(getattr(master.master, "text_window_height")) - 100)
+        height = getattr(master.master, "text_window_height")
+        # height = str(int(getattr(master.master, "text_window_height")) - 100)
         font = getattr(master.master, "font")
         self.textview_textbox = ctk.CTkTextbox(
             self,
@@ -330,16 +364,7 @@ class CTkTextview(ctk.CTkFrame):
         )
         self.textview_textbox.grid(row=0, column=0, padx=20, pady=40, sticky="nsew")
 
-        # create CTk scrollbar
-        # ctk_textbox_scrollbar = ctk.CTkScrollbar(
-        #    master=self,
-        #    orientation="vertical",
-        #    # command=self.textview_scroll_event,
-        # )
-        # ctk_textbox_scrollbar.grid(row=0, column=1, sticky="ns")
-        # connect textbox scroll event to CTk scrollbar
         self.textview_textbox.configure(
-            # yscrollcommand=ctk_textbox_scrollbar.set,
             height=height,
             width=width,
         )
@@ -384,15 +409,45 @@ class CTkTextview(ctk.CTkFrame):
         )
 
         # Set a timer so we can delete the label after a certain amount of time.
-        self.after(5000, self.delay_event)  # 5 second timer
+        self.after(3000, self.delay_event)  # 3 second timer
         self.textview_textbox.focus_set()
 
-    # def textview_scroll_event(self) -> None:
-    #    """
-    #    A method that handles the scroll event for the diagram. It sets the scrolling position of the diagram
-    #    scrollbar and canvas based on the event coordinates.
-    #    """
-    #    self = self.parent
+    # Text window was resized.
+    def on_resize(self, event: dict) -> None:
+        """
+        Resizes the Diagram window based on the event width and height.
+
+        Args:
+            event (any): The event object containing the width and height of the window.
+
+        Returns:
+            None: This function does not return anything.
+
+        Raises:
+            None: This function does not raise any exceptions.
+
+        This function is called when the window is resized. It retrieves the current window position from `self.master.master.{view}_window_position`,
+        splits it into width, height, and x and y coordinates. It then updates the window geometry with the new width, height, and x and y coordinates
+        based on the event width and height.
+
+        Note: The code snippet provided is incomplete and does not contain the implementation of the function.
+        """
+
+        if "Diagram" in self.title:
+            position_key = "diagram_window_position"
+        elif "Analysis" in self.title:
+            position_key = "ai_analysis_window_position"
+        elif "Tree" in self.title:
+            position_key = "tree_window_position"
+        elif "Map" in self.title:
+            position_key = "map_window_position"
+        else:
+            return
+
+        # Get the current window position
+        window_position = self.root.wm_geometry()
+        # Set the 'view' new window position in our GUI self.
+        setattr(self.master.master, position_key, window_position)
 
     # Output the map view data to the text window.
     def output_map(self, the_data: dict) -> None:
@@ -412,8 +467,6 @@ class CTkTextview(ctk.CTkFrame):
         previous_directory = ""
         previous_value = ""
         char_position = 0
-        # Delete the in-memory output since it is no longer needed
-        PrimeItems.output_lines.output_lines = []
 
         # Make sure we have the window position set for the progress bar
         if not PrimeItems.program_arguments["map_window_position"]:
@@ -477,15 +530,7 @@ class CTkTextview(ctk.CTkFrame):
         for num, (_, value) in enumerate(the_data.items()):
             # Update progress bar if needed.
             if num % tenth_increment == 0:
-                if num <= tenth_increment * 3:
-                    progress_color = "red"
-                elif num <= tenth_increment * 6:
-                    progress_color = "orange"
-                else:
-                    progress_color = "green"
-                self.progress_bar.progressbar.set(num / max_data)
-                self.progress_bar.progressbar.configure(progress_color=progress_color)
-                self.progress_bar.progressbar.update()
+                self.display_progress_bar(max_data, num, tenth_increment)
 
             # Ignore this space and new line, since it causes double spacing in directory
             with contextlib.suppress(IndexError):
@@ -499,6 +544,7 @@ class CTkTextview(ctk.CTkFrame):
             # If there is a color attribute, then we will go through all text lines and add the color fore the specific text entry
             if not value["color"] and value["text"]:
                 value["color"] = [previous_color]
+
             if value["color"]:
                 # Handle colored text.
                 line_num, previous_color, previous_value, tags = self.process_colored_text(
@@ -508,6 +554,14 @@ class CTkTextview(ctk.CTkFrame):
                     previous_value,
                     tags,
                 )
+                # If this is the start of the directory, add a directory entry to 'Go Up One Level'
+                if "Directory    (entries are hotlinks)" in value["text"][0]:
+                    line_num, previous_directory, previous_value, char_position = self.one_level_up(
+                        line_num,
+                        previous_directory,
+                        previous_value,
+                        char_position,
+                    )
 
             # Process the directory entry
             elif value["directory"]:
@@ -523,6 +577,168 @@ class CTkTextview(ctk.CTkFrame):
 
             if self.master.master.debug:
                 logger.info(f"Map View Value: {value}")
+
+    def one_level_up(
+        self: object, line_num: int, previous_directory: str, previous_value: str, char_position: int
+    ) -> tuple:
+        """
+        Moves one level up in the directory hierarchy.
+
+        Args:
+            self (object): The instance of the class.
+            line_num (int): The current line number.
+            previous_directory (str): The previous directory.
+            previous_value (str): The previous value.
+            char_position (int): The current character position.
+
+        Returns:
+            tuple: A tuple containing the updated line number, previous directory, previous value, and character position.
+        """
+        single_project = PrimeItems.program_arguments["single_project_name"]
+        single_profile = PrimeItems.program_arguments["single_profile_name"]
+        single_task = PrimeItems.program_arguments["single_task_name"]
+        # Don't do anything if we are not doing a single item.
+        if not single_project and not single_profile and not single_task:
+            return line_num, previous_directory, previous_value, char_position
+
+        value = {}
+        # Doing single Project
+        if single_project:
+            value = {"directory": ["%%", ""]}
+        # Doing single Profile
+        elif single_profile:
+            value = {"directory": ["%%projects", self.find_owning_project(single_profile)]}
+        # Doing single Task
+        elif single_task:
+            single_profile_name = self.find_owning_profile(single_task)
+            if not single_profile_name:
+                value = {"directory": ["%%projects", self.find_task_owning_project(single_task)]}
+            else:
+                value = {"directory": ["%%profiles", single_profile_name]}
+
+        # Build the direcetory entry
+        char_position, previous_directory, line_num = self.process_directory(
+            value,
+            line_num,
+            previous_directory,
+            char_position,
+        )
+        previous_value = "directory"
+        return line_num, previous_directory, previous_value, char_position
+
+    # Find owning Project given a Profile name
+    def find_owning_project(self: object, profile_name: str) -> str:
+        """
+        Find the owning Project given a Profile name.
+
+        Args:
+            self (object): The instance of the class.
+            profile_name (str): The name of the Profile.
+
+        Returns:
+            str: The owning Project name.
+        """
+        # Get this Profile's pid
+        pid = ""
+        for key, value in PrimeItems.tasker_root_elements["all_profiles"].items():
+            if value["name"] == profile_name:
+                pid = key
+                break
+
+        # Find the owning Project
+        if pid:
+            for project in PrimeItems.tasker_root_elements["all_projects"]:
+                profile_ids = get_ids(
+                    True, PrimeItems.tasker_root_elements["all_projects"][project]["xml"], project, [],
+                )
+                if profile_ids and pid in profile_ids:
+                    return project
+        return ""
+
+    # Find Task's owning Project
+    def find_task_owning_project(self: object, task_name: str) -> str:
+        """
+        Find the owning project of a task given its name.
+
+        Args:
+            self (object): The instance of the class.
+            task_name (str): The name of the task.
+
+        Returns:
+            str: The name of the owning project, or an empty string if not found.
+        """
+        for project in PrimeItems.tasker_root_elements["all_projects"]:
+            task_ids = get_ids(
+                False,
+                PrimeItems.tasker_root_elements["all_projects"][project]["xml"],
+                project,
+                [],
+            )
+            if task_ids:
+                for tid in task_ids:
+                    if PrimeItems.tasker_root_elements["all_tasks"][tid]["name"] == task_name:
+                        return PrimeItems.tasker_root_elements["all_projects"][project]["name"]
+        return ""
+
+    # Find the owning Profile given a Task name
+    def find_owning_profile(self: object, task_name: str) -> str:
+        """
+        Find the owning Profile given a Task name.
+
+        This function takes a Task name as input and searches for the corresponding Task ID in the `PrimeItems.tasker_root_elements["all_tasks"]` dictionary. It then iterates over the `PrimeItems.tasker_root_elements["all_projects"]` dictionary to find the Project that contains the Task ID. If a matching Project is found, its name is returned. If no matching Project is found, an empty string is returned.
+
+        Parameters:
+            task_name (str): The name of the Task.
+
+        Returns:
+            str: The name of the owning Profile, or an empty string if no matching Profile is found.
+        """
+        # Get this Task's tid
+        tid = ""
+        for key, value in PrimeItems.tasker_root_elements["all_tasks"].items():
+            if value["name"] == task_name:
+                tid = key
+                break
+
+        # Find the owning Profile
+        # Go through all Profiles looking for "mid0" or "mid1" that matches our Task
+        if tid:
+            for profile in PrimeItems.tasker_root_elements["all_profiles"]:
+                profile_value = PrimeItems.tasker_root_elements["all_profiles"][profile]
+                mid = profile_value["xml"].find("mid0")
+                if mid is not None and mid.text == tid:
+                    return profile_value["name"]
+                mid = profile_value["xml"].find("mid1")
+                if mid is not None and mid.text == tid:
+                    return profile_value["name"]
+        return ""
+
+    def display_progress_bar(self: object, max_data: int, num: int, tenth_increment: int) -> None:
+        """
+        Display a progress bar with a specified color based on the progress percentage.
+
+        Args:
+            self (object): The instance of the class.
+            max_data (int): The maximum value for the progress bar.
+            num (int): The current value of the progress bar.
+            tenth_increment (int): The increment value for each 10% of progress.
+
+        Returns:
+            None: This function does not return anything.
+        """
+        if num <= tenth_increment * 2:
+            progress_color = "red"
+        elif num <= tenth_increment * 4:
+            progress_color = "orangered"
+        elif num <= tenth_increment * 6:
+            progress_color = "orange"
+        elif num <= tenth_increment * 8:
+            progress_color = "limegreen"
+        else:
+            progress_color = "green"
+        self.progress_bar.progressbar.set(num / max_data)
+        self.progress_bar.progressbar.configure(progress_color=progress_color)
+        self.progress_bar.progressbar.update()
 
     def process_colored_text(
         self: object,
@@ -555,7 +771,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Handle special case of Directory and "Projects....." etc. lines by adding ane xtra '\n'
         if value["text"][0] == "Directory\n":
-            value["text"] = "\nDirectory    (entries are hotlinks)\n"
+            value["text"] = ["\nDirectory    (entries are hotlinks)\n"]
         elif value["text"][0].startswith("\nn"):
             save_text = value["text"][0][2:]
             save_color = value["color"]
@@ -630,10 +846,21 @@ class CTkTextview(ctk.CTkFrame):
         line_num_str = str(line_num)
         hotlink_name = value["directory"][1]
 
-        # Get the name to be inserted.  Add a break if end of the row.
-        spacer = "\n" if char_position == spacing * columns - spacing else ""
-        name_to_insert = f'{hotlink_name.ljust(spacing, " ")}{spacer}'
-        link = [value["directory"][0], hotlink_name]
+        # Check for special "Up One Level" hotlink and modify the text to be displayed if it is.
+        if value["directory"][0][:2] == "%%":
+            value["directory"][0] = value["directory"][0][2:]
+
+            name_to_go_up = "entire configuration" if value["directory"][1] == "" else value["directory"][1]
+            object_name = "" if value["directory"][1] == "" else value["directory"][0][:-1].capitalize()
+
+            hotlink_name = f"Up One Level to {object_name}: {name_to_go_up}"
+            name_to_insert = hotlink_name
+            link = [value["directory"][0], value["directory"][1]]
+            spacer = ""
+        else:
+            spacer = "\n" if char_position == spacing * columns - spacing else ""
+            name_to_insert = f'{hotlink_name.ljust(spacing, " ")}{spacer}'
+            link = [value["directory"][0], hotlink_name]
 
         # Add the text to the text box.  The tag is obtained from call to self.textview_hyperlink.add.
         self.textview_textbox.insert(
@@ -796,6 +1023,8 @@ class CTkTextview(ctk.CTkFrame):
         It deletes the label after a certain amount of time.
         """
         self.drag_label.destroy()
+        # Catch window resizing
+        self.bind("<Configure>", self.on_resize)
 
     def new_tag_config(self, tagName: str, **kwargs: list) -> object:  # noqa: N803
         """
@@ -840,20 +1069,24 @@ class PopupWindow(ctk.CTk):
         title: str = "",
         message: str = "",
         exit_when_done: bool = False,
+        delay: int = 500,
         *args,  # noqa: ANN002
         **kwargs,  # noqa: ANN003
     ) -> None:
-        """Creates a label widget for a tree view.
+        """
+        Initializes the PopupWindow object.
+
         Parameters:
-            self (object): The object being passed.
-            *args (any): Additional arguments.
-            **kwargs (any): Additional keyword arguments.
+            title (str): The title of the popup window. Default is an empty string.
+            message (str): The message to be displayed in the popup window. Default is an empty string.
+            exit_when_done (bool): Whether the popup window should exit when done. Default is False.
+            delay (int): The delay in milliseconds before the popup window exits. Default is 500.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
         Returns:
-            None: This function does not return anything.
-        Processing Logic:
-            - Initialize label widget.
-            - Pack label widget with padding.
-            - Set label widget text."""
+            None
+        """
         super().__init__(*args, **kwargs)
 
         # Position the widget over our main GUI
@@ -865,7 +1098,7 @@ class PopupWindow(ctk.CTk):
 
         # Set popup window wait time to .5 seconds, after which popup_button_event will be called.
         if exit_when_done:
-            self.after(500, self.popup_button_event)
+            self.after(delay, self.popup_button_event)
 
         # Label widget
         our_label = message
@@ -1031,7 +1264,7 @@ class CTkHyperlinkManager:
             guiself.display_message_box(f"'{nogo_name}' hotlinks are not working yet.", "Orange")
         else:
             # Reset all names
-            reset_primeitems_single_names(guiself)
+            reset_primeitems_single_names()
             guiself.single_project_name = ""
             guiself.single_profile_name = ""
             guiself.single_task_name = ""
@@ -1105,6 +1338,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.conditions = None
     self.debug = None
     self.default_font = ""
+    self.diagramview = False
     self.diagram_window_position = ""
     self.diagramview_window = None
     self.display_detail_level = None

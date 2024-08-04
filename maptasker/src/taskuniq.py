@@ -195,7 +195,12 @@ def process_tasks_not_called_by_profile(
                 projects_with_no_tasks,
                 save_twisty,
             )
-            if specific_task:
+
+            if (
+                specific_task
+                or PrimeItems.program_arguments["single_task_name"] == PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
+            ):
+                PrimeItems.found_named_items["single_task_found"] = True
                 break
 
     # End the twisty hidden Task list.  Remove it and restore the setting.
