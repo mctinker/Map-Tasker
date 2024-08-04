@@ -436,6 +436,7 @@ def unit_test() -> namedtuple:  # noqa: PYI024
         g=False,
         guiview=False,
         i=4,
+        map_limit=5000,
         names=False,
         o=False,
         p=False,
