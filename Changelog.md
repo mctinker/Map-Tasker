@@ -1,25 +1,41 @@
-# MapTasker Change log
+# MapTasker Change log  # ruff: noqa
 
 All notable changes to this project will be documented in this file!
 
-## [5.0.1] 28-Jul-2024
+## [5.0.2] 04-Aug-2024
 
 ### Added
 
-- Added: 'Map' view 'Map Limit' pull-down added to the GUI to control the processing time when generating the map.
-- Added: The new 'llama3.1' Ai model added to the 'Analysis' tab.
-  - Added: A progress bar has been added to show the progress of the 'Map' view.
+- Added: Display a message if 'Diagram' view is being processed in the background.
+- Added: 'Map' view now has a "Up One Level" directory hotlink if a single Profile or Task is being mapped.
+- Added: A progress bar has been added to the GUI to show the progress of the 'Diagram' view.
+- Added: Tasker beta 6.14 'Remote Execution' Task action and associated preferences are now recognized.
 
 ### Changed
 
-- Changed:
+- Changed: The 'Map' view directory hotlink for a Task unassociated with a Profile will now point up to the owning Project rather than the entire configuration.
+- Changed: The GUI progress batr now shows a smoother color scheme transition (red through to green).
 
 ### Fixed
 
-- Fixed: Invalid spacing appears in the Map view directory list.
-- Fixed: Spacing for parameters with "Pretty" enabled is slightly off in ther Map view.
+- Fixed: If Profile has no name, say so in the 'Map' view output.
+- Fixed: The GUI list of Tasks incorrectly showed some Tasks names that were not proceeded by "Task:".
+- Fixed: Program error if changing the indentation amount and then display the 'Map' or 'Diagram' view.
+- Fixed: Moving a 'Map', 'Diagram' or 'Tree' view window will not change the window position on conseuqtive displays of the same view.
+- Fixed: 'Map' view does not work if colors have not yet been defined.
+- Fixed: Task action 'Browse URL' is missing the detailed parameters.
+- Fixed: Performing a 'ReRun' proeeded by a 'Map' view with a single Task selected results in output not related to the single Task.
+- Fixed: 'Map' view output spacing for Projects and Scenes is incorrect.
 
 ## Older History Logs
+
+## [5.0.1]
+
+- Added: 'Map' view 'Map Limit' pull-down added to the GUI to control the processing time when generating the map.
+- Added: The new 'llama3.1' Ai model added to the 'Analysis' tab.
+- Added: A progress bar has been added to show the progress of the 'Map' view.
+- Fixed: Invalid spacing appears in the Map view directory list.
+- Fixed: Spacing for parameters with "Pretty" enabled is slightly off in ther Map view.
 
 ## [5.0.0]
 

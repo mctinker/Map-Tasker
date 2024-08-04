@@ -74,7 +74,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 - Install MapTasker by entering the following command into the Terminal:
 
-     `python -m pip install maptasker`
+     ```python -m pip install maptasker -U```
 
 - To install it into a virtual environment, enter the following command into Terminal:
 
@@ -94,13 +94,16 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 - Enter the command:
 
-     `maptasker -option1 -option2` ...
+     ```maptasker -option1 -option2``` ...
 
      &nbsp;See below for runtime options.
 
 - If running from the sourced GITHUB zip file, then do the following to run the program:
 
-     `python main.py -option1 -option2`   ...to run Map-Tasker
+     ```python main.py -option1 -option2```   ...to run Map-Tasker
+     
+- Get started with the GUI:
+    ```maptasker -g```
 
 ## Program Output
 
@@ -199,7 +202,7 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 
 - [x] Add name attributes (highlight, bold, italicize, underline) to the Map View in the GUI
 
-- [ ] Display progress bar for diagram view
+- [x] Display progress bar for diagram view
 
 - [ ] Support additional plugins
 
