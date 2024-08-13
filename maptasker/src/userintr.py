@@ -147,6 +147,8 @@ INFO_TEXT = (
     "- If running on OS X Ventura, you may receive the runtime error: '+[CATransaction synchronize] called within transaction'. This is a bug in OS X Ventura. This can be ignored and the program will still run correctly.\n\n"
     "- If you receive the runtime error: 'IMKClient Stall detected...', this can be ignored.\n\n"
     "- Drag the window to expand the text as desired.\n\n"
+    "- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n"
+    "- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
 )
 BACKUP_HELP_TEXT = (
     "The following steps are required in order to fetch a Tasker XML file directly"
@@ -938,6 +940,8 @@ class MyGui(customtkinter.CTk):
         - Loops through color lookup and builds message of color changes
         - Displays message box with all setting changes
         """
+        # Indicate that an extraction is in progress so we don't inadvertently change the colors already set via the 'appearance_mode' setting.
+        self.extract_in_progress = True
         for key, value in temp_args.items():
             if key is not None:
                 setattr(self, key, value)
@@ -960,8 +964,15 @@ class MyGui(customtkinter.CTk):
                     with contextlib.suppress(KeyError):
                         self.display_message_box(f"{inv_color_names[key]} color set to {text_out}\n", color)
 
+        # Make sure we have all of our colors.  If any are missing then just make them turquoise.
+        for key, color in TYPES_OF_COLOR_NAMES.items():
+            if color not in self.color_lookup:
+                self.color_lookup[color] = "turquoise"
+                self.display_message_box(f"{key} color missing.  It has been set to turquoise.\n", "turquoise")
+
         # Display completion
         self.display_message_box("Settings restored.\n", "Green")
+        self.extract_in_progress = False
 
     # Display an input field and a label for the user to input a value
     def display_label_and_input(
@@ -1362,7 +1373,14 @@ class MyGui(customtkinter.CTk):
                     self.mapview_window.destroy()
                 return None
 
-            view = CTkTextview(master=getattr(self, window_attribute), title=window_title, the_data=map_data)
+            # Define the view.
+            view = CTkTextview(
+                master=getattr(self, window_attribute),
+                title=window_title,
+                the_data=map_data,
+            )
+
+        # Setup diagram view.
         elif view_type == "diagram":
             # Display the data.
             if data:
@@ -1379,7 +1397,7 @@ class MyGui(customtkinter.CTk):
         else:
             self.display_message_box()("Invalid view type specified. Use 'map', 'diagram', or 'tree'.", "Red")
 
-        view.pack(padx=10, pady=10, fill="both", expand=True)
+        view.pack(padx=10, pady=10, fill="none", expand=True)
         return view
 
     # Display Ai Analysis response in a separate top level window.
@@ -1560,6 +1578,11 @@ class MyGui(customtkinter.CTk):
         self.twisty = False
         self.outline = False
 
+        # Make sure we have all of our colors.  If any are missing then just make them turquoise.
+        for color in TYPES_OF_COLOR_NAMES.values():
+            if color not in self.color_lookup:
+                self.color_lookup[color] = "turquoise"
+
         # Save the settings
         temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
         _, _ = save_restore_args(temp_args, self.color_lookup, True)
@@ -1584,7 +1607,7 @@ class MyGui(customtkinter.CTk):
         self.twisty = save_twisty
         self.outline = save_outline
 
-        # Now display the results
+        # Now display the results.
         self.mapview = self.display_view("map")
         if self.mapview is not None:
             self.display_message_box("Map View displayed.", "Green")
@@ -2234,10 +2257,13 @@ class EventHandlers:
             None: Does not return anything
         - Set the global appearance mode to the new mode
         - Update the local appearance mode attribute to the new lowercased mode"""
+
         self = self.parent
         customtkinter.set_appearance_mode(new_appearance_mode)
         self.appearance_mode = new_appearance_mode.lower()
         self.appearance_mode_optionmenu.set(self.appearance_mode.capitalize())
+        if not self.extract_in_progress:
+            self.color_lookup = set_color_mode(self.appearance_mode)
         self.display_message_box("Appearance mode set to " + self.appearance_mode.capitalize(), "Green")
 
     # Process the screen mode: dark, light, system
@@ -2842,7 +2868,7 @@ class EventHandlers:
             None
         """
         self = self.parent
-        if self.ai_model is None or self.ai_model == "None" or self.ai_model == "":
+        if self.ai_model in ("None", ""):
             self.display_message_box("No model selected.", "Orange")
             return
         if self.single_profile_name == "None or unnamed!":
@@ -3068,6 +3094,10 @@ class EventHandlers:
             PrimeItems.program_arguments["guiview"] = True  # Set it for mapit_all
             self.diagramview = True
             PrimeItems.program_arguments["diagramview"] = True  # Set it for mapit_all
+            # Set our target objects since mapit-all will bypass setting these values
+            PrimeItems.program_arguments["single_project_name"] = self.single_project_name
+            PrimeItems.program_arguments["single_profile_name"] = self.single_profile_name
+            PrimeItems.program_arguments["single_task_name"] = self.single_task_name
 
             # outline_the_configuration()
             # Re-invoke ourselves to force the html to be written

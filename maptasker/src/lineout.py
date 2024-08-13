@@ -204,8 +204,8 @@ class LineOut:
         - Example usage of the function:
 
             # Calling the function with tab = "\t" and element = 'background_color:"red"'
-            add_tab("\t", 'background_color:"red"')
-            # Output: '\tbackground_color "red"'
+            add_tab("tab_name", 'background_color:"red"')
+            # Output: 'tab_name background_color "red"'
 
         """
         color_pos = element.find('_color"')

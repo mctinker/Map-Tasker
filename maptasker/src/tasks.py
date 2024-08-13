@@ -26,12 +26,12 @@ blank = "&nbsp;"
 # Navigate through Task's Actions and identify each
 # Return a list of Task's actions for the given Task
 def get_actions(
-    current_task: defusedxml.ElementTree.XML,
+    current_task: defusedxml.ElementTree,
 ) -> list:
     """
     Get the actions for a task
     Args:
-        current_task: defusedxml.ElementTree.XML - The XML element of the current task
+        current_task: defusedxml.ElementTree - The XML element of the current task
     Returns:
         list - The list of actions for the task
     Processing Logic:
@@ -66,6 +66,7 @@ def get_actions(
         # Now go through each Action to start processing it.  They are in "argn" "n" order.
         for action in task_actions:
             child = action.find("code")  # Get the <code> element
+
             # Get the Action code ( <code> ).  task_code will be returned with the formatted task action output line.
             task_code = action_evaluate.get_action_code(
                 child,
@@ -75,7 +76,7 @@ def get_actions(
             )
             # Log the Task action.
             # logger.debug(
-            #     f'Task ID:{str(action.attrib["sr"])} Code:{child.text} task_code:{task_code}Action attr:{str(action.attrib)}'
+            #     f'Task ID:{action.attrib["sr"]!s} Code:{child.text} task_code:{task_code}Action attr:{action.attrib!s}',
             # )
 
             # Calculate the amount of indention required
@@ -168,7 +169,7 @@ def get_task_name(
     tasks_that_have_been_found: list,
     task_output_lines: list,
     task_type: str,
-) -> tuple[defusedxml.ElementTree.XML, str]:
+) -> tuple[defusedxml.ElementTree, str]:
     """
     Get the name of the task given the Task ID.
     Add to the output line if this is an Entry or xit Task.
@@ -210,7 +211,7 @@ def get_task_name(
 def get_project_for_solo_task(
     the_task_id: str,
     projects_with_no_tasks: list,
-) -> tuple[str, defusedxml.ElementTree.XML]:
+) -> tuple[str, defusedxml.ElementTree]:
     """
     Find the Project belonging to the Task id passed in
     :param the_task_id: the ID of the Task
@@ -266,7 +267,7 @@ def do_single_task(
     project_name: str,
     profile_name: str,
     task_list: list,
-    our_task_element: defusedxml.ElementTree.XML,
+    our_task_element: defusedxml.ElementTree,
     list_of_found_tasks: list,
 ) -> None:
     """
@@ -277,7 +278,7 @@ def do_single_task(
         project_name (str): The name of the Project the Task belongs to.
         profile_name (str): The name of the Profile the Task belongs to.
         task_list (list): A list of Tasks.
-        our_task_element (defusedxml.ElementTree.XML): The XML element for this Task.
+        our_task_element (defusedxml.ElementTree): The XML element for this Task.
         list_of_found_tasks (list): A list of all Tasks processed so far.
 
     Returns:

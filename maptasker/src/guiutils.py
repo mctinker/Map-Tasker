@@ -54,24 +54,18 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.0.2 - Change Log\n
+Version 5.0.3 - Change Log\n
 ### Added\n
-- Added: Display a message if 'Diagram' view is being processed in the background.\n
-- Added: 'Map' view now has a "Up One Level" directory hotlink if a single Profile or Task is being mapped.\n
-- Added: A progress bar has been added to the GUI to show the progress of the 'Diagram' view.\n
-- Added: Tasker beta 6.14 'Remote Execution' Task action and associated preferences are now recognized.\n
+- Added: A message is printed indicating that the error "IMKClient Stall detected, *please Report*..." can be ignored on 'Map' and 'Diagram' views that take a long time to process.\n
 ### Changed\n
-- Changed: The 'Map' view directory hotlink for a Task unassociated with a Profile will now point up to the owning Project rather than the entire configuration.\n
-- Changed: The GUI progress bar now shows a smoother color scheme transition (red through to green).\n
+- Changed: The background color for the directory has been darkened for dark mode and lightened in light mode to improve readability.\n
 ### Fixed\n
-- Fixed: If Profile has no name, say so in the 'Map' view output.\n
-- Fixed: The GUI list of Tasks incorrectly showed some Tasks names that were not proceeded by "Task:".\n
-- Fixed: Program error if changing the indentation amount and then display the 'Map' or 'Diagram' view.\n
-- Fixed: Moving a 'Map', 'Diagram' or 'Tree' view window will not change the window position on consequtive displays of the same view.\n
-- Fixed: 'Map' view does not work if colors have not yet been defined.\n
-- Fixed: Task action 'Browse URL' is missing the detailed parameters.\n
-- Fixed: Performing a 'ReRun' proeeded by a 'Map' view with a single Task selected results in output not related to the single Task.\n
-- Fixed: 'Map' view output spacing for Projects and Scenes is incorrect.\n
+- Fixed: 'Diagram' view diagrams the entire project if a single Task is selected, rater than the Task's owning Profile.\n
+- Fixed: 'Timeout=' Task action parameter is improperly formatted in the 'Map' view.\n
+- Fixed: Notify Task action is incorrectly showing a zero value in the output.\n
+- Fixed: 'Map' view gets a program error if a particular color is missing.\n
+- Fixed: Saved color changes are being ignored if restoring the settings in the GUI.\n
+- Fixed: The background color is not recognized in the 'Map' view.\n
 """
 
 default_font_size = 14
@@ -1717,8 +1711,11 @@ def create_new_textbox(self: object) -> None:
 
     Returns:
         None
+
+    Note: This is a duplciate of the samd function in userintr.py.
+    It can not be imported since it would cause a circular import.
     """
     self.textbox = ctk.CTkTextbox(self, height=650, width=250)
     self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
     self.textbox.configure(font=(self.font, 14), wrap="word", scrollbar_button_color="#6563ff")
-    self.hyperlink = CTkHyperlinkManager(self.textbox, text_color="blue")
+    self.hyperlink = ctk.HyperlinkManager(self.textbox, text_color="blue")

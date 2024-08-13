@@ -198,7 +198,8 @@ def process_tasks_not_called_by_profile(
 
             if (
                 specific_task
-                or PrimeItems.program_arguments["single_task_name"] == PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
+                or PrimeItems.program_arguments["single_task_name"]
+                == PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
             ):
                 PrimeItems.found_named_items["single_task_found"] = True
                 break

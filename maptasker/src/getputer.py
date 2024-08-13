@@ -81,7 +81,7 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     Returns:
         None
     """
-    # In the event we set the single Projeect name due to a single Task or Profile name,
+    # In the event we set the single Project name due to a single Task or Profile name,
     # then reset it before we do a save and exit.
     reset_named_objects()
 
@@ -264,7 +264,7 @@ def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, 
     if os.path.isfile(old_file):
         program_arguments, colors_to_use = process_old_formatted_file(program_arguments, colors_to_use, old_file)
 
-    # Read the user settingsTOML file
+    # Read the user settings TOML file
     elif os.path.isfile(new_file):
         program_arguments, colors_to_use = read_toml_file(new_file)
 

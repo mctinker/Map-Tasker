@@ -11,6 +11,7 @@ from __future__ import annotations
 import contextlib
 import re
 
+from maptasker.src.maputils import count_consecutive_substr
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import pattern8
 from maptasker.src.xmldata import remove_html_tags
@@ -44,6 +45,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int) -> dict:
         temp_text = temp_text.replace("[Launcher Task:", " [Launcher Task:")  # Add a space
         temp_text = temp_text.replace(" --Task:", "--Task:")  # Scene Task
         new_text_list.append(temp_text)
+
     if new_text_list:
         output_lines[line_num]["text"] = new_text_list
 
@@ -262,6 +264,8 @@ def process_line(output_lines: list, line: str, line_num: int, highlight_tags: l
                         output_lines[line_num]["highlights"] = highlights
 
                 raw_text = remove_html_tags(working_text, "").replace("<span class=", " ").replace("\n\n", "\n")
+
+                # Indicate a directory header
                 if (
                     "Projects..........................." in raw_text
                     or "Profiles..........................." in raw_text
@@ -318,40 +322,42 @@ def calculate_spacing(
         int: The calculated spacing value.
     """
 
-    # Project or Scene
-    if (
-        output_lines[line_num]["text"][0][0:8] == "Project:"
-        or doing_global_variables
-        or "Project Global Variables" in output_lines[line_num]["text"][0]
-        or output_lines[line_num]["text"][0][0:6] == "Scene:"
-    ):
-        spacing = 0
+    text = output_lines[line_num]["text"][0]
 
-    # Profile or TaskerNet
-    elif output_lines[line_num]["text"][0][0:8] == "Profile:" or output_lines[line_num]["text"][0][0:9] == "TaskerNet":
-        spacing = 5
+    if text.startswith(("Project:", "Scene:")) or doing_global_variables or "Project Global Variables" in text:
+        return 0
 
-    # Task
-    elif (
-        output_lines[line_num]["text"][0][0:5] == "Task:"
-        or "--Task:" in output_lines[line_num]["text"][0][0:7]
-        or output_lines[line_num]["text"][0][0:11] == "- Project '"
-    ):
-        spacing = 10
-    # Configuration parameters
-    elif "Configuration Parameter(s):" in previous_line:
-        if PrimeItems.program_arguments["pretty"]:
-            spacing = 61
-    # If we previously did the 1st parameter after "Configuration Parameter(s):", do the rest at 11
-    elif spacing == 61:
-        spacing = 11
+    if text.startswith(("Profile:", "TaskerNet")):
+        return 5
 
-    # Continued lines not included in Configuration Parameter(s):
-    elif output_lines[line_num]["text"][0][0].isdigit() or " continued >>>" in output_lines[line_num]["text"][0]:
-        spacing = 15
+    if text.startswith(("Task:", "- Project '")) or "--Task:" in text[:7]:
+        return 10
 
-    else:
-        pass
+    # Handle dangling Task action parameters
+    if ("Configuration Parameter(s):" in previous_line or "Timeout=" in text) and PrimeItems.program_arguments[
+        "pretty"
+    ]:
+        # Cleanup "Timeout=" parameter of Task action
+        if "Timeout=" in text:
+            temp = output_lines[line_num]["text"][0].replace(" Timeout=", "Timeout=")
+            output_lines[line_num]["text"][0] = temp
+            return count_consecutive_substr(previous_line, "&nbsp;") + spacing
+        return 61
+    # Add spacing for "Structure Output (JSON, etc)"
+    if "Timeout=" in previous_line and "Structure Output (JSON, etc)" in text:
+        output_lines[line_num]["text"][0] = "Structure Output (JSON, etc)\n"
+        return spacing
+    # Add spacing for "[Continue Task After Error])"
+    if "[Continue Task After Error]" in text:
+        output_lines[line_num]["text"][0] = "[Continue Task After Error]\n"
+        previous_formatted_line = output_lines[line_num - 1]["text"][0]
+        return len(previous_formatted_line) - len(previous_formatted_line.lstrip())
+
+    if spacing == 61:
+        return 15
+
+    if text[0].isdigit() or " continued >>>" in text:
+        return 15
 
     return spacing
 
@@ -363,7 +369,7 @@ def additional_formatting(
     line_num: int,
     spacing: int,
     previous_line: str,
-) -> str:
+) -> tuple:
     """
     Applies special formatting to a given line of text and appends the formatted line to an output list.
 
@@ -377,56 +383,63 @@ def additional_formatting(
         last_line (str): The previous line of the output list.
 
     Returns:
-        list: The updated output list.
+        tuple: output_lines and spacing.
     """
-    # replace "<br>" with "\n"
+
     line = pattern8.sub("\n", line)
 
     # Fix icons
     line = line.replace("&#9940;", "⛔")
     line = line.replace("&#11013;", "⫷⇦") if "Entry" in line else line.replace("&#11013;", "⇨⫸")
 
-    # Initialize the output_lines fields
     output_lines[line_num] = {"text": [], "color": []}
 
     # Capture any text before the first color tags
     color_location = line.find("_color")
-    if color_location != -1 and (line[0:6] == "&nbsp;"):
+    if color_location != -1 and line.startswith("&nbsp;"):
         color_location = line.find("<span class=")
-        output_lines[line_num]["text"] = [line[0:color_location]]
-        output_lines[line_num]["color"] = ["n/a"]
+        output_lines[line_num]["text"] = [line[:color_location]]
+        # Assign the last color used as the default color
+        for output_line_num in reversed(output_lines):
+            if output_lines[output_line_num]["color"]:
+                output_lines[line_num]["color"] = [output_lines[output_line_num]["color"][-1]]
+                break
 
     # Build coloring
     if "<span class=" in line and "_color" in line:
-        # Get the color(s) and highlights
         output_lines = coloring_and_highlights(output_lines, line, line_num)
 
     # Extract global variable from table definition
-    elif line[0:7] == "<tr><td":
+    elif line.startswith("<tr><td"):
         temp1 = line.split('text-align:left">')
         global_var_name = temp1[1].split("<")[0]
-        # global_var_name = format_line_debug(global_var_name, 34) # Different kind of formatting
         global_var_value = temp1[2].split("<")[0]
         output_lines[line_num]["text"] = [f"{global_var_name.ljust(25, '.')}{global_var_value.rjust(15, '.')}"]
-        # temp_line = f"{global_var_name}{global_var_value}"  # Different kind of formatting
         output_lines[line_num]["color"] = ["Turquoise"]
 
     # Handle the rest of the lines
     else:
-        # Remove all HTML
         temp_line = remove_html_tags(line, "")
         output_lines[line_num]["text"].append(temp_line.replace("Go to top", ""))
-        # If we fall here and we are doing global variables, then we have a global variable value
         if doing_global_variables:
-            spacing = glob_spacing  # Global variable value spacing
+            spacing = glob_spacing
 
     output_lines = cleanup_text_elements(output_lines, line_num)
 
-    # Determine the amount of spacing needed for this line
+    # If [⛔ DISABLED] is in the line for a Profile, then move it up to the profile line and blank out the original.
+    if (
+        "[⛔ DISABLED]" in output_lines[line_num]["text"][0]
+        and output_lines[line_num - 1]["color"][0] == "profile_color"
+        and output_lines[line_num - 1]["text"][1] == "\n"
+    ):
+        output_lines[line_num - 1]["text"][1] = "  [⛔ DISABLED]\n"
+        # This blank line will be ignored by guiwins.py output_map_text_lines
+        output_lines[line_num]["text"][0] = " "
+        output_lines[line_num]["color"] = {}
+
     spacing = calculate_spacing(spacing, output_lines, line_num, doing_global_variables, previous_line)
 
-    # Put it all together with the spacing.
-    output_lines[line_num]["text"][0] = f'{spacing*" "}{output_lines[line_num]["text"][0]}'
+    output_lines[line_num]["text"][0] = f'{spacing * " "}{output_lines[line_num]["text"][0]}'
 
     return output_lines, spacing
 
@@ -466,53 +479,65 @@ def add_directory_entry(temp: list, output_lines: dict, line_num: int) -> dict:
     return output_lines
 
 
-# Formats the output HTML by processing each line of the input list.
-def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) -> list:
-    r"""
-    Formats the output HTML by processing each line of the input list.
+def ignore_line(line: str) -> bool:
+    """
+    Check if a given line of HTML should be ignored.
 
     Args:
-        lines (list): A list of lines of HTML code.
-        output_lines (dict): A list to store the formatted output.
-        spacing (int): The amount of spacing to be added before each line.
-        iterate (bool): A flag indicating whether to skip the next line.
+        line (str): The line of HTML to check.
 
     Returns:
-        list: The formatted output list.
-
-    Description:
-        This function processes each line of the input list and applies specific formatting rules.
-        It checks if the line is a table definition and appends a formatted string to the output list.
-        It ignores lines containing non-text data and applies special formatting rules based on the line content.
-
-        The function returns the formatted output list.
-
+        bool: True if the line should be ignored, False otherwise.
     """
     text_to_ignore = [
         "<style>",
         "<tr> ",
         "<table>",
-        # "</tr>",
-        # "</table>",
         "<td></td>",
         "<a id=",
         "Trailing Information...",
         "Scenes",
         "mark {",
         "background-color: ",
+        "{color: ",
+        "padding: 5px;",
+        "{display: ",
     ]
+    # Ignore certain lines
+    return any(ignore_str in line for ignore_str in text_to_ignore)
+
+
+# Loop through html and format ourput
+def process_html_lines(lines: list, output_lines: list, spacing: int, iterate: bool) -> list:
+    """
+    Processes HTML lines and adds them to the output_lines list.
+
+    Args:
+        lines (list): A list of HTML lines to be processed.
+        output_lines (list): A list to store the processed lines.
+        spacing (int): The spacing value for formatting.
+        iterate (bool): A flag indicating whether to iterate through the lines.
+
+    Returns:
+        list: The updated output_lines list.
+
+    Description:
+        This function processes a list of HTML lines and adds them to the output_lines list. It performs the following tasks:
+        - Ignores certain lines.
+        - Processes directory entries.
+        - Ignores non-text data.
+        - Handles special formatting.
+        - Validates the profile name.
+
+        The function modifies the output_lines list in place.
+    """
     doing_global_variables = False
     previous_line = ""
 
     # Reformat the html by going through each line
     for line_num, line in enumerate(lines):
         # Ignore certain lines
-        for ignore_str in text_to_ignore:
-            if ignore_str in line:
-                iterate = True
-                break
-        if iterate:
-            iterate = False
+        if ignore_line(line):
             continue
 
         # Process directory entries
@@ -545,10 +570,6 @@ def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) 
             spacing = 0
             continue
 
-        # Ignore non-text data
-        if "{color: " in line or "{display: " in line or "padding: 5px;" in line:
-            continue
-
         # Handle special formatting
         output_lines, spacing = additional_formatting(
             doing_global_variables,
@@ -563,6 +584,35 @@ def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) 
         # Validate Profile name.  If no name then say so.
         if "Profile:" in line and output_lines[line_num]["text"][0] == "     Profile: \n":
             output_lines[line_num]["text"][0] = "     Profile: (no name)\n"
+
+    return output_lines
+
+
+# Formats the output HTML by processing each line of the input list.
+def format_output(lines: list, output_lines: dict, spacing: int, iterate: bool) -> list:
+    r"""
+    Formats the output HTML by processing each line of the input list.
+
+    Args:
+        lines (list): A list of lines of HTML code.
+        output_lines (dict): A list to store the formatted output.
+        spacing (int): The amount of spacing to be added before each line.
+        iterate (bool): A flag indicating whether to skip the next line.
+
+    Returns:
+        list: The formatted output list.
+
+    Description:
+        This function processes each line of the input list and applies specific formatting rules.
+        It checks if the line is a table definition and appends a formatted string to the output list.
+        It ignores lines containing non-text data and applies special formatting rules based on the line content.
+
+        The function returns the formatted output list.
+
+    """
+
+    # Format the lines in the html
+    output_lines = process_html_lines(lines, output_lines, spacing, iterate)
 
     # Eliminate consequtive blank lines and return our dictionary.
     return eliminate_blanks(output_lines)
@@ -585,6 +635,7 @@ def parse_html() -> dict:
     """
     output_lines = {}
     iterate = False
+    # PrimeItems.tab_table = {}  # Tabs table
 
     # Read the mapped html file
     with open("MapTasker.html") as html:
@@ -599,8 +650,6 @@ def parse_html() -> dict:
         html.close()
 
     return output_lines
-    # Reorganize the lines
-    # return reorganize_lines(output_lines)
 
 
 def get_the_map() -> dict:

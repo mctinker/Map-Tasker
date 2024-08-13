@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import contextlib
 import os
-import time
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -57,16 +56,6 @@ left_arrow_corner_up = "↖"
 arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}"
 directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
 bar = "│"
-
-
-def current_milli_time() -> int:
-    """
-    Returns the current time in milliseconds.
-
-    Returns:
-        int: The current time in milliseconds.
-    """
-    return round(time.time() * 1000)
 
 
 # Print the specific Task.

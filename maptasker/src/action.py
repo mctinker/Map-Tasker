@@ -258,7 +258,7 @@ def process_xml_list(
 
 
 # Get Task's label, disabled flag and any conditions
-def get_label_disabled_condition(child: defusedxml.ElementTree.XML) -> str:
+def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
     """
     Get Task's label, disabled flag and any conditions
         :param child: head Action xml element
@@ -478,7 +478,7 @@ def get_extra_stuff(
 
 
 # Get the application specifics for the given code
-def get_app_details(code_child: defusedxml.ElementTree.XML) -> tuple[str, str, str, str]:
+def get_app_details(code_child: defusedxml.ElementTree) -> tuple[str, str, str, str]:
     """
     Get the application specifics for the given code (<App>)
 

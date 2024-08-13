@@ -8,7 +8,6 @@
 #                                                                                      #
 from __future__ import annotations
 
-import contextlib
 import re
 import string
 from string import printable
@@ -244,7 +243,6 @@ def remove_icon(text: str) -> str:
     # If there are icons in the text...
     icon_count = count_icons(text)
     if icon_count > 0:
-
         # Drop here if there is at least one icon.
         for find_arrow in directional_arrows:
             found_arrow = text.find(find_arrow)
@@ -318,7 +316,7 @@ def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_pos
     line_num = line_to_modify - 1
     check_line = True
     while check_line:
-        with contextlib.suppress(IndexError):
+        if len(output_lines[line_num]) >= called_task_position:
             # Only insert bar if previous line character is a right arrow or two blanks.
             if output_lines[line_num][called_task_position] == right_arrow or (
                 output_lines[line_num][called_task_position] == " "
@@ -330,6 +328,8 @@ def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_pos
                 line_num -= 1
             else:
                 check_line = False
+        else:
+            break
 
 
 # Go through output and delete all occurances of hanging bars |
@@ -350,6 +350,8 @@ def delete_hanging_bars(output_lines: list) -> list:
     line_num = len(output_lines) - 1
 
     while line_num > 0:
+        if line_num == 13:
+            print(line_num)
         indices = [i.start() for i in re.finditer(bar, output_lines[line_num])]
 
         # Go through list of bar positions in line.
@@ -586,7 +588,7 @@ def process_callers_and_called_tasks(output_lines: list, call_table: dict, calle
 
         # Make sure the called Task exists.
         found_called_task = False
-        for called_line_num, check_line in enumerate(output_lines):
+        for called_line_num, check_line in enumerate(output_lines):  # noqa: B007
             # See if the task name is in the line
             if search_name in check_line:
                 # Make certain that this is the exact string we want and not a substr match.
@@ -598,9 +600,7 @@ def process_callers_and_called_tasks(output_lines: list, call_table: dict, calle
                     continue
                 found_called_task = True
                 # Find the position of the "Calls -->" task name on the called line
-                caller_task_position = output_lines[called_line_num].index(called_task_name) + (
-                    len(called_task_name) // 2
-                )
+                caller_task_position = check_line.index(called_task_name) + (len(called_task_name) // 2)
                 # Find the position of the "Called by" task name on the caller by line
                 called_task_position = output_lines[caller_line_num].index(called_task_name) + (
                     len(called_task_name) // 2

@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "5.0.2"
+VERSION = "5.0.3"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -218,21 +218,10 @@ NORMAL_TAB = '<span class="normtab"></span>'
 DISABLED = " [&#9940;&nbsp;DISABLED]"  # &#9940 = "⛔"
 
 # Set up background color and border for tables
-TABLE_BACKGROUND_COLOR = "LightSteelBlue" if darkdetect.isDark() else "DarkTurquoise"
+TABLE_BACKGROUND_COLOR = "DarkSteelBlue" if darkdetect.isDark() else "PaleTurquois"
+TABLE_BORDER_COLOR = "DarkSlateGrey" if darkdetect.isDark() else "LightGrey"
 TABLE_BORDER = (
-    "\n"
-    "<style> \
-        table, \
-        td, \
-        th { \
-        padding: 5px; \
-        border: 2px solid #1c87c9; \
-        border-radius: 3px; \
-        background-color: #128198; \
-        text-align: center; \
-        } \
-    </style>"
-)
+    f"\n<style> table, td, th {{ padding: 5px; border: 2px solid {TABLE_BORDER_COLOR}; border-radius: 3px; background-color: {TABLE_BACKGROUND_COLOR}; text-align: center;}} </style>")
 
 
 NOW_TIME = datetime.now()  # noqa: DTZ005

@@ -11,6 +11,7 @@ from __future__ import annotations
 import contextlib
 import os
 import random
+import time
 import webbrowser
 from tkinter import TclError, ttk
 
@@ -413,7 +414,7 @@ class CTkTextview(ctk.CTkFrame):
         self.textview_textbox.focus_set()
 
     # Text window was resized.
-    def on_resize(self, event: dict) -> None:
+    def on_resize(self, event: dict) -> None:  # noqa: ARG002
         """
         Resizes the Diagram window based on the event width and height.
 
@@ -515,38 +516,27 @@ class CTkTextview(ctk.CTkFrame):
             previous_directory (str): The previous directory.
             previous_value (str): The previous value.
             the_data (dict): The dictionary containing the map data.
-
-        Returns:
-            Tuple[int, list, int, str, str, str]: The updated line number, tags, character position, previous color, previous directory, and previous value.
-
-        This function iterates through the map data and processes each value. It handles special cases of directory and "Projects..." lines by adding an extra newline. It outputs each text line and color in the data 'value' entry. It also processes the directory entry and updates the line number, tags, character position, previous color, previous directory, and previous value accordingly.
-
-        If the debug flag is set, it logs the map view value.
         """
         max_data = len(the_data)
-        tenth_increment = max_data // 10
+        tenth_increment = max_data // 10 or 1  # Avoid division by zero
 
-        # Go through the map data looking at the values.
+        # Go through the data and format it accordingly.
         for num, (_, value) in enumerate(the_data.items()):
-            # Update progress bar if needed.
             if num % tenth_increment == 0:
                 self.display_progress_bar(max_data, num, tenth_increment)
+            # Ignore blank lines
+            text = value.get("text", [])
+            if text and text[0] == "  \n":
+                continue
 
-            # Ignore this space and new line, since it causes double spacing in directory
-            with contextlib.suppress(IndexError):
-                if value["text"][0] == "  \n":
-                    continue
-
-            # Check to see if we should bump the output line number
+            # Check if we need to bump the line number
             line_num, char_position = self.check_bump(line_num, char_position, previous_value, value)
 
-            # Is the text to be colored?
-            # If there is a color attribute, then we will go through all text lines and add the color fore the specific text entry
+            # Check if we need to change the color
             if not value["color"] and value["text"]:
                 value["color"] = [previous_color]
 
             if value["color"]:
-                # Handle colored text.
                 line_num, previous_color, previous_value, tags = self.process_colored_text(
                     value,
                     line_num,
@@ -554,7 +544,7 @@ class CTkTextview(ctk.CTkFrame):
                     previous_value,
                     tags,
                 )
-                # If this is the start of the directory, add a directory entry to 'Go Up One Level'
+                # Check if we need to go one level up
                 if "Directory    (entries are hotlinks)" in value["text"][0]:
                     line_num, previous_directory, previous_value, char_position = self.one_level_up(
                         line_num,
@@ -563,8 +553,8 @@ class CTkTextview(ctk.CTkFrame):
                         char_position,
                     )
 
-            # Process the directory entry
-            elif value["directory"]:
+            # Process the directory
+            elif value.get("directory"):
                 if previous_value != "directory":
                     char_position = 0
                 char_position, previous_directory, line_num = self.process_directory(
@@ -578,8 +568,45 @@ class CTkTextview(ctk.CTkFrame):
             if self.master.master.debug:
                 logger.info(f"Map View Value: {value}")
 
+    def check_bump(self: object, line_num: int, char_position: int, previous_value: str, current_value: dict) -> tuple:
+        """
+        Check if there is a need to bump the line number and reset the character position based on the previous value and the current value.
+
+        Args:
+            line_num (int): The current line number.
+            char_position (int): The current character position.
+            previous_value (str): The previous value.
+            current_value (dict): The current value.
+
+        Returns:
+            tuple: Updated line number and character position.
+        """
+        # Extract relevant fields from the current value dictionary
+        current_text = current_value.get("text", [])
+        current_directory = current_value.get("directory", False)
+
+        # If the previous value was a directory and the current one isn't, bump the line number
+        if (
+            previous_value == "directory"
+            and not current_directory
+            or current_text
+            and previous_value != current_text[0]
+        ):
+            line_num += 1
+            char_position = 0
+
+        # If we are still within the same directory, increase the character position
+        if current_directory and previous_value == "directory":
+            char_position += len(current_text[0]) if current_text else 0
+
+        return line_num, char_position
+
     def one_level_up(
-        self: object, line_num: int, previous_directory: str, previous_value: str, char_position: int
+        self: object,
+        line_num: int,
+        previous_directory: str,
+        previous_value: str,
+        char_position: int,
     ) -> tuple:
         """
         Moves one level up in the directory hierarchy.
@@ -639,20 +666,21 @@ class CTkTextview(ctk.CTkFrame):
             str: The owning Project name.
         """
         # Get this Profile's pid
-        pid = ""
-        for key, value in PrimeItems.tasker_root_elements["all_profiles"].items():
-            if value["name"] == profile_name:
-                pid = key
-                break
+        profile_dict = PrimeItems.tasker_root_elements["all_profiles"]
+        profile_ids = {value["name"]: key for key, value in profile_dict.items()}
+        pid = profile_ids.get(profile_name)
 
         # Find the owning Project
         if pid:
-            for project in PrimeItems.tasker_root_elements["all_projects"]:
-                profile_ids = get_ids(
-                    True, PrimeItems.tasker_root_elements["all_projects"][project]["xml"], project, [],
-                )
-                if profile_ids and pid in profile_ids:
-                    return project
+            projects_dict = PrimeItems.tasker_root_elements["all_projects"]
+            for project_name, project_value in projects_dict.items():
+                if pid in get_ids(
+                    True,
+                    project_value["xml"],
+                    project_name,
+                    [],
+                ):
+                    return project_name
         return ""
 
     # Find Task's owning Project
@@ -667,17 +695,18 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             str: The name of the owning project, or an empty string if not found.
         """
-        for project in PrimeItems.tasker_root_elements["all_projects"]:
-            task_ids = get_ids(
-                False,
-                PrimeItems.tasker_root_elements["all_projects"][project]["xml"],
-                project,
-                [],
-            )
-            if task_ids:
-                for tid in task_ids:
-                    if PrimeItems.tasker_root_elements["all_tasks"][tid]["name"] == task_name:
-                        return PrimeItems.tasker_root_elements["all_projects"][project]["name"]
+        all_projects = PrimeItems.tasker_root_elements["all_projects"]
+        all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+
+        for project_key, project_value in all_projects.items():
+            project_xml = project_value["xml"]
+            task_ids = get_ids(False, project_xml, project_key, [])
+
+            for task_id in task_ids:
+                task = all_tasks.get(task_id)
+                if task and task["name"] == task_name:
+                    return project_value["name"]
+
         return ""
 
     # Find the owning Profile given a Task name
@@ -726,19 +755,28 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None: This function does not return anything.
         """
-        if num <= tenth_increment * 2:
+        threshold = num / tenth_increment
+        if threshold <= 2:
             progress_color = "red"
-        elif num <= tenth_increment * 4:
+        elif threshold <= 4:
             progress_color = "orangered"
-        elif num <= tenth_increment * 6:
+        elif threshold <= 6:
             progress_color = "orange"
-        elif num <= tenth_increment * 8:
+        elif threshold <= 8:
             progress_color = "limegreen"
         else:
             progress_color = "green"
+
         self.progress_bar.progressbar.set(num / max_data)
         self.progress_bar.progressbar.configure(progress_color=progress_color)
         self.progress_bar.progressbar.update()
+        # Print alert if necessary.
+        if (
+            self.progress_bar.progressbar.print_alert
+            and round(time.time() * 1000) - self.progress_bar.progressbar.start_time > 4000
+        ):
+            print("You can ignore the error message: IMKClient Stall detected, *please Report*...")
+            self.progress_bar.progressbar.print_alert = False
 
     def process_colored_text(
         self: object,
@@ -772,6 +810,7 @@ class CTkTextview(ctk.CTkFrame):
         # Handle special case of Directory and "Projects....." etc. lines by adding ane xtra '\n'
         if value["text"][0] == "Directory\n":
             value["text"] = ["\nDirectory    (entries are hotlinks)\n"]
+        # \nn indicates a directory header (e.g. Projects...........)
         elif value["text"][0].startswith("\nn"):
             save_text = value["text"][0][2:]
             save_color = value["color"]
@@ -787,29 +826,6 @@ class CTkTextview(ctk.CTkFrame):
         previous_value = "color"
 
         return line_num, previous_color, previous_value, tags
-
-    def check_bump(self, line_num: int, char_position: int, previous_value: str, value: dict) -> tuple:
-        """
-        Check if there is a need to bump the line number and reset the character position based on the previous value and the current value.
-
-        Args:
-            line_num (int): The current line number.
-            char_position (int): The current character position.
-            previous_value (str): The previous value.
-            value (dict): The current value.
-
-        Returns:
-            tuple: A tuple containing the updated line number and character position.
-        """
-        try:
-            if previous_value == "directory" and not value["directory"]:
-                line_num += 1
-                char_position = 0
-        except KeyError:
-            if previous_value == "directory":
-                line_num += 1
-                char_position = 0
-        return line_num, char_position
 
     def process_directory(self, value: dict, line_num: int, previous_directory: str, char_position: int) -> tuple:
         """
@@ -874,8 +890,7 @@ class CTkTextview(ctk.CTkFrame):
         if char_position == spacing * columns:
             line_num += 1
             char_position = 0
-            # kaka = self.textview_textbox.get("1.0", f"{line_num!s}.{char_position!s}")
-            # ...
+
         previous_directory = value["directory"][0]
 
         return char_position, previous_directory, line_num
@@ -895,9 +910,19 @@ class CTkTextview(ctk.CTkFrame):
         # Go through all of the text/color combinations
         char_position = 0
         line_num_str = str(line_num)
+        previous_color = ""
+
+        # Loop through all of the text strings.
         for num, message in enumerate(value["text"]):
+
+            # Add a couple more blanks to the beginning of each line if we are doing pretty.
             if self.master.master.pretty and message[0:20] == spaces:
                 message = f"  {message}"  # noqa: PLW2901
+
+            # Ignore extra blank line after "[⛔ DISABLED]" text...it is following a disabled "Profile:"" line.
+            if message == "      ":
+                continue
+
             char_position_str = str(char_position)
 
             # Build the tag to use and make sure it is unique
@@ -937,11 +962,16 @@ class CTkTextview(ctk.CTkFrame):
                     color,
                 )
 
-            # Save previous color in case we need to use it.
+            # Save previous color and text in case we need to use it.
             previous_color = color
 
             # Add color to the tag
-            self.textview_textbox.tag_config(tag_id, foreground=color)
+            bg_color = self.master.master.color_lookup["background_color"]
+            if bg_color.isdigit():
+                bg_color = "#" + bg_color
+
+            # self.textview_textbox.tag_config(tag_id, foreground=color)
+            self.textview_textbox.tag_config(tag_id, foreground=color, background=bg_color)
         return previous_color
 
     def output_map_colors_highlighting(
@@ -986,11 +1016,10 @@ class CTkTextview(ctk.CTkFrame):
                     highlights = highlight.split(",")
                     start_position = message.find(highlights[1])
                     end_position = start_position + len(highlights[1])
-
+                    # Add the highlight tag
                     highlight_type = highlights[0]
                     if highlight_type in highlight_configurations:
                         new_tag = f"{tag_id}{highlight_type}"
-                        tags.append(new_tag)
                         self.textview_textbox.tag_config(new_tag, **highlight_configurations[highlight_type])
                         self.textview_textbox.tag_add(
                             new_tag,
@@ -1058,6 +1087,8 @@ class ProgressbarWindow(ctk.CTk):
         self.title("Map Progress")
         self.progressbar.pack(pady=20)
         self.progressbar.set(self.value)
+        self.progressbar.start_time = round(time.time() * 1000)
+        self.progressbar.print_alert = True
 
 
 # Define the Ai Popup window
@@ -1343,6 +1374,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.diagramview_window = None
     self.display_detail_level = None
     self.everything = None
+    self.extract_in_progress = False
     self.exit = None
     self.fetched_backup_from_android = False
     self.file = None

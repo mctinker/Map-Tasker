@@ -27,7 +27,7 @@ from maptasker.src.debug import not_in_dictionary
 from maptasker.src.deprecate import depricated
 from maptasker.src.format import format_html
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import logger, pattern13
+from maptasker.src.sysconst import pattern13
 
 blank = "&nbsp;"
 
@@ -50,8 +50,8 @@ def check_for_deprecation(the_action_code_plus: str) -> None:
 
 # Given an action code, evaluate it for display.
 def get_action_code(
-    code_child: defusedxml.ElementTree.XML,
-    code_action: defusedxml.ElementTree.XML,
+    code_child: defusedxml.ElementTree,
+    code_action: defusedxml.ElementTree,
     action_type: bool,
     code_type: str,
 ) -> str:
@@ -63,6 +63,7 @@ def get_action_code(
         :param code_type: 'e'=event, 's'=state, 't'=task
         :return: formatted output line with action details
     """
+
     # logger.debug(f"get action code:{code_child.text}{code_type}")
     the_action_code_plus = code_child.text + code_type
 
@@ -280,7 +281,7 @@ def finalize_action_details(task_code_line: str, alist: list, indent: int, extra
 def build_action(
     alist: list,
     task_code_line: str,
-    code_element: defusedxml.ElementTree.XML,
+    code_element: defusedxml.ElementTree,
     indent: int,
     indent_amt: str,
 ) -> list:

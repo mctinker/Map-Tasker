@@ -66,9 +66,13 @@ def display_caveats() -> None:
         caveats.extend(
             (
                 "- Inactive variables are global variables used in a Task which has not been run/used.\n",
-                "- Unreference variables are global variables that may have been used in the past, but are no longer referenced and can be deleted.\n",
+                "- Unreference variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n",
             ),
         )
+
+    if PrimeItems.program_arguments["guiview"]:
+        caveats.append("- The background color setting is ignored in the GUI 'views'.\n")
+
     # Start the output
     PrimeItems.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)
 

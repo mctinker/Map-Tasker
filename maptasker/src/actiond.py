@@ -29,7 +29,7 @@ IGNORE_ITEMS = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
 #  This is only called if the action code is already in our master
 #  dictionary of codes.
 def update_action_codes(
-    action: defusedxml.ElementTree.XML,
+    action: defusedxml.ElementTree,
     the_action_code_plus: defusedxml.ElementTree,
 ) -> defusedxml.ElementTree:
     """
@@ -63,7 +63,7 @@ def update_action_codes(
 # Build the dictionary for the Action code.  Only called if the action code is not
 #   in our master dictionary of codes.
 def build_new_action_codes(
-    action: defusedxml.ElementTree.XML,
+    action: defusedxml.ElementTree,
     the_action_code_plus: defusedxml.ElementTree,
 ) -> defusedxml.ElementTree:
     """
@@ -92,8 +92,8 @@ def build_new_action_codes(
 # action = pointer to root xml (<Action> or <Profile>)
 # adder = empty if <action>.  Else it is a Profile condition, and we need to make key unique
 def build_action_codes(
-    action: defusedxml.ElementTree.XML,
-    child: defusedxml.ElementTree.XML,
+    action: defusedxml.ElementTree,
+    child: defusedxml.ElementTree,
 ) -> defusedxml.ElementTree:
     """
     Build the dictionary for each Action code
@@ -150,7 +150,7 @@ def get_boolean_or_condition(
 # Trundle through ConditionList "If" conditions
 # Return the list of conditions and list of associated booleans
 def process_condition_list(
-    code_action: defusedxml.ElementTree.XML,
+    code_action: defusedxml.ElementTree,
 ) -> tuple[list[list[Any]], list[str]]:
     """
     Trundle through ConditionList "If" conditions

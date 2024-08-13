@@ -73,11 +73,17 @@ def get_profile_tasks(
             )
             # Add this Task to our list of Tasks processed thus far.
             list_of_tasks.append({"xml": the_task_element, "name": the_task_name})
+            # Chedck if we are doing a single task and if this is it.
             if (
                 PrimeItems.program_arguments["single_task_name"]
                 and PrimeItems.program_arguments["single_task_name"] == the_task_name
             ):
+                # We are doiung a single Task and we found it.
                 PrimeItems.found_named_items["single_task_found"] = True
+                # Grab and save the associated Profile name also.
+                profile_name = the_profile.find("nme")
+                if profile_name is not None:
+                    PrimeItems.program_arguments["single_profile_name"] = profile_name.text
                 break
         # If hit Profile's name, we've passed all the Task ids.
         elif child.tag == "nme":
