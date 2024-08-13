@@ -1,4 +1,4 @@
-# MapTasker Change Log  # ruff: noqa
+# MapTasker Change Log
 
 All notable changes to this project will be documented in this file!
 
