@@ -101,7 +101,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - If running from the sourced GITHUB zip file, then do the following to run the program:
 
      ```python main.py -option1 -option2```   ...to run Map-Tasker
-     
+
 - Get started with the GUI:
     ```maptasker -g```
 
@@ -208,7 +208,6 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 
 - [ ] Map remaining Tasker preferences
 
-
 ## Privacy Statement
 
 No information whatsoever is captured and sent via the network to myself or any other third party, other than that listed below (Network Traffic).
@@ -226,7 +225,7 @@ Network traffic is as follows:
 
 ## Known Issues
 
-- Firefox doesn't recognize a light background (appearance is 'light').
+- Firefox doesn't recognize a light background (appearance is 'light').  Themes and the Firefox "Manage Colors" settings can mess this up.
 
 ## Contributions
 

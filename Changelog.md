@@ -1,23 +1,36 @@
-# MapTasker Change Log
+# MapTasker Change Log  # ruff: noqa
 
 All notable changes to this project will be documented in this file!
 
-## [5.0.2] 04-Aug-2024
+## [5.0.3] 13-Aug-2024
 
 ### Added
+
+- Added: A message is printed indicating that the error "IMKClient Stall detected, *please Report*..." can be ignored on 'Map' and 'Diagram' views that take a long time to process.
+
+### Changed
+
+- Changed: The background color for the directory has been darkened for dark mode and lightened in light mode to improve readability.
+
+### Fixed
+
+- Fixed: 'Diagram' view diagrams the entire project if a single Task is selected, rater than the Task's owning Profile.
+- Fixed: 'Timeout=' Task action parameter is improperly formatted in the 'Map' view.
+- Fixed: Notify Task action is incorrectly showing a zero value in the output.
+- Fixed: 'Map' view gets a program error if a particular color is missing.
+- Fixed: Saved color changes are being ignored if restoring the settings in the GUI.
+- Fixed: The background color is not recognized in the 'Map' view.
+
+## Older History Logs
+
+## [5.0.2]
 
 - Added: Display a message if 'Diagram' view is being processed in the background.
 - Added: 'Map' view now has a "Up One Level" directory hotlink if a single Profile or Task is being mapped.
 - Added: A progress bar has been added to the GUI to show the progress of the 'Diagram' view.
 - Added: Tasker beta 6.14 'Remote Execution' Task action and associated preferences are now recognized.
-
-### Changed
-
 - Changed: The 'Map' view directory hotlink for a Task unassociated with a Profile will now point up to the owning Project rather than the entire configuration.
 - Changed: The GUI progress batr now shows a smoother color scheme transition (red through to green).
-
-### Fixed
-
 - Fixed: If Profile has no name, say so in the 'Map' view output.
 - Fixed: The GUI list of Tasks incorrectly showed some Tasks names that were not proceeded by "Task:".
 - Fixed: Program error if changing the indentation amount and then display the 'Map' or 'Diagram' view.
@@ -26,8 +39,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Task action 'Browse URL' is missing the detailed parameters.
 - Fixed: Performing a 'ReRun' proeeded by a 'Map' view with a single Task selected results in output not related to the single Task.
 - Fixed: 'Map' view output spacing for Projects and Scenes is incorrect.
-
-## Older History Logs
 
 ## [5.0.1]
 
