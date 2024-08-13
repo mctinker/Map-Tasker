@@ -426,13 +426,27 @@ def additional_formatting(
 
     output_lines = cleanup_text_elements(output_lines, line_num)
 
+    # Find the previous output line in prep for checking disabled.
+    prev_line_num = line_num - 1
+    keep_going = True
+    while keep_going:
+        try:
+            if output_lines[prev_line_num]:
+                keep_going = False
+                break
+        except KeyError:
+            prev_line_num -= 1
+            if prev_line_num < 0:
+                prev_line_num = 0
+                break
+
     # If [⛔ DISABLED] is in the line for a Profile, then move it up to the profile line and blank out the original.
     if (
         "[⛔ DISABLED]" in output_lines[line_num]["text"][0]
-        and output_lines[line_num - 1]["color"][0] == "profile_color"
-        and output_lines[line_num - 1]["text"][1] == "\n"
+        and output_lines[prev_line_num]["color"] == ["profile_color"]
+        and output_lines[prev_line_num]["text"][1] == "\n"
     ):
-        output_lines[line_num - 1]["text"][1] = "  [⛔ DISABLED]\n"
+        output_lines[prev_line_num]["text"][1] = "  [⛔ DISABLED]\n"
         # This blank line will be ignored by guiwins.py output_map_text_lines
         output_lines[line_num]["text"][0] = " "
         output_lines[line_num]["color"] = {}

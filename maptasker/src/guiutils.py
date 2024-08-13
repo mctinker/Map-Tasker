@@ -54,7 +54,7 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.0.3 - Change Log\n
+Version 5.0.3 and 5.0.4 - Change Log\n
 ### Added\n
 - Added: A message is printed indicating that the error "IMKClient Stall detected, *please Report*..." can be ignored on 'Map' and 'Diagram' views that take a long time to process.\n
 ### Changed\n
@@ -66,6 +66,7 @@ Version 5.0.3 - Change Log\n
 - Fixed: 'Map' view gets a program error if a particular color is missing.\n
 - Fixed: Saved color changes are being ignored if restoring the settings in the GUI.\n
 - Fixed: The background color is not recognized in the 'Map' view.\n
+- Fixed: Program error in 'Map' view.
 """
 
 default_font_size = 14
