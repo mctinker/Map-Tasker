@@ -1,25 +1,18 @@
-# MapTasker Change Log
+# MapTasker Change Log  # ruff: noqa
 
 All notable changes to this project will be documented in this file!
 
-## [5.0.3] 13-Aug-2024
-
-### Added
+## [5.0.3 and 5.0.4] 13-Aug-2024
 
 - Added: A message is printed indicating that the error "IMKClient Stall detected, *please Report*..." can be ignored on 'Map' and 'Diagram' views that take a long time to process.
-
-### Changed
-
 - Changed: The background color for the directory has been darkened for dark mode and lightened in light mode to improve readability.
-
-### Fixed
-
 - Fixed: 'Diagram' view diagrams the entire project if a single Task is selected, rater than the Task's owning Profile.
 - Fixed: 'Timeout=' Task action parameter is improperly formatted in the 'Map' view.
 - Fixed: Notify Task action is incorrectly showing a zero value in the output.
 - Fixed: 'Map' view gets a program error if a particular color is missing.
 - Fixed: Saved color changes are being ignored if restoring the settings in the GUI.
 - Fixed: The background color is not recognized in the 'Map' view.
+- Fixed: 'Program error in 'Map' view.
 
 ## Older History Logs
 
