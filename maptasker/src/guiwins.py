@@ -27,6 +27,7 @@ from maptasker.src.guiutils import (
     add_option_menu,
     display_analyze_button,
     get_monospace_fonts,
+    make_hex_color,
     reset_primeitems_single_names,
     update_tasker_object_menus,
 )
@@ -37,20 +38,20 @@ from maptasker.src.sysconst import LLAMA_MODELS, OPENAI_MODELS, logger
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 ICON_DIR = os.path.join(CURRENT_PATH, f"..{PrimeItems.slash}assets", "icons")
 ICON_PATH = {
-    "close": (os.path.join(ICON_DIR, "close_black.png"), os.path.join(ICON_DIR, "close_white.png")),
-    # "images": list(os.path.join(ICON_DIR, f"image{i}.jpg") for i in range(1, 4)),
-    "eye1": (os.path.join(ICON_DIR, "eye1_black.png"), os.path.join(ICON_DIR, "eye1_white.png")),
-    "eye2": (os.path.join(ICON_DIR, "eye2_black.png"), os.path.join(ICON_DIR, "eye2_white.png")),
-    "info": os.path.join(ICON_DIR, "info.png"),
-    "warning": os.path.join(ICON_DIR, "warning.png"),
-    "error": os.path.join(ICON_DIR, "error.png"),
-    "left": os.path.join(ICON_DIR, "left.png"),
-    "right": os.path.join(ICON_DIR, "right.png"),
-    "warning2": os.path.join(ICON_DIR, "warning2.png"),
-    "loader": os.path.join(ICON_DIR, "loader.gif"),
-    "icon": os.path.join(ICON_DIR, "icon.png"),
+    # "close": (os.path.join(ICON_DIR, "close_black.png"), os.path.join(ICON_DIR, "close_white.png")),
+    # # "images": list(os.path.join(ICON_DIR, f"image{i}.jpg") for i in range(1, 4)),
+    # "eye1": (os.path.join(ICON_DIR, "eye1_black.png"), os.path.join(ICON_DIR, "eye1_white.png")),
+    # "eye2": (os.path.join(ICON_DIR, "eye2_black.png"), os.path.join(ICON_DIR, "eye2_white.png")),
+    # "info": os.path.join(ICON_DIR, "info.png"),
+    # "warning": os.path.join(ICON_DIR, "warning.png"),
+    # "error": os.path.join(ICON_DIR, "error.png"),
+    # "left": os.path.join(ICON_DIR, "left.png"),
+    # "right": os.path.join(ICON_DIR, "right.png"),
+    # "warning2": os.path.join(ICON_DIR, "warning2.png"),
+    # "loader": os.path.join(ICON_DIR, "loader.gif"),
+    # "icon": os.path.join(ICON_DIR, "icon.png"),
     "arrow": os.path.join(ICON_DIR, "arrow.png"),
-    "image": os.path.join(ICON_DIR, "image.png"),
+    # "image": os.path.join(ICON_DIR, "image.png"),
 }
 
 
@@ -371,8 +372,14 @@ class CTkTextview(ctk.CTkFrame):
         )
 
         # Enable hyperlinks if needed
-        if self.master.master.directory:
-            self.textview_hyperlink = CTkHyperlinkManager(self.textview_textbox)
+        self.textview_hyperlink = CTkHyperlinkManager(self.textview_textbox)
+
+        # Get the special fonts
+        self.bold_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], weight="bold", size=12)
+        self.italic_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], size=12, slant="italic")
+
+        # Defile a scollbar
+        self.scrollbar = ctk.CTkScrollbar(self)
 
         # Insert the text with our new message into the text box.
         # fmt: off
@@ -393,7 +400,7 @@ class CTkTextview(ctk.CTkFrame):
         the_data = None
 
         # Configure the textbox and add label.
-        self.textview_textbox.configure(state="disabled", wrap="none")  # configure textbox to be read-only
+        self.textview_textbox.configure(state="normal", wrap="none")  # configure textbox
         # Add label
         self.drag_label = add_label(
                 self,
@@ -405,7 +412,7 @@ class CTkTextview(ctk.CTkFrame):
                 0,
                 0,
                 10,
-                height,
+                10,
                 "n",
         )
 
@@ -586,12 +593,11 @@ class CTkTextview(ctk.CTkFrame):
         current_directory = current_value.get("directory", False)
 
         # If the previous value was a directory and the current one isn't, bump the line number
-        if (
-            previous_value == "directory"
-            and not current_directory
-            or current_text
-            and previous_value != current_text[0]
-        ):
+        if previous_value == "directory" and not current_directory:
+            # if (
+            #     previous_value == "directory" and not current_directory) or (current_text
+            #     and previous_value != current_text[0]
+            # ):
             line_num += 1
             char_position = 0
 
@@ -805,11 +811,11 @@ class CTkTextview(ctk.CTkFrame):
         It outputs each text line and color in the data 'value' entry. It also updates the line number,
         previous color, previous value, and tags accordingly.
         """
-        line_num += 1  # For a bump in line number since we are adding a '\n' to text
+        # line_num += 1  # For a bump in line number since we are adding a '\n' to text
 
         # Handle special case of Directory and "Projects....." etc. lines by adding ane xtra '\n'
         if value["text"][0] == "Directory\n":
-            value["text"] = ["\nDirectory    (entries are hotlinks)\n"]
+            value["text"] = ["Directory    (entries are hotlinks)\n"]
         # \nn indicates a directory header (e.g. Projects...........)
         elif value["text"][0].startswith("\nn"):
             save_text = value["text"][0][2:]
@@ -879,10 +885,17 @@ class CTkTextview(ctk.CTkFrame):
             link = [value["directory"][0], hotlink_name]
 
         # Add the text to the text box.  The tag is obtained from call to self.textview_hyperlink.add.
+        tag_id = self.textview_hyperlink.add(link)
         self.textview_textbox.insert(
             f"{line_num_str}.{char_position!s}",
             name_to_insert,
-            self.textview_hyperlink.add(link),
+            tag_id,
+        )
+
+        # Add color to the tag
+        self.textview_textbox.tag_config(
+            tag_id[1],
+            background=make_hex_color(self.master.master.color_lookup["background_color"]),
         )
 
         # Set up for next time through...
@@ -911,28 +924,41 @@ class CTkTextview(ctk.CTkFrame):
         char_position = 0
         line_num_str = str(line_num)
         previous_color = ""
+        go_to_top = False
 
         # Loop through all of the text strings.
         for num, message in enumerate(value["text"]):
-
-            # Add a couple more blanks to the beginning of each line if we are doing pretty.
-            if self.master.master.pretty and message[0:20] == spaces:
-                message = f"  {message}"  # noqa: PLW2901
+            # Get rid of double blank lines
+            new_message = message.replace("\n\n", "\n")
 
             # Ignore extra blank line after "[⛔ DISABLED]" text...it is following a disabled "Profile:"" line.
-            if message == "      ":
+            if new_message == "      ":
                 continue
 
-            char_position_str = str(char_position)
+            # Remove "Go to top" from the end of the message if it is there.  This is for "Go to top" hyperlink code below., which must follow the text insertion code.
+            if "Go to top" in new_message:
+                new_message = new_message.replace("Go to top", "")
+                go_to_top = True
+
+            # Add a couple more blanks to the beginning of each line if we are doing pretty.
+            if self.master.master.pretty and new_message[0:20] == spaces:
+                new_message = f"  {new_message}"
+
+            # Add line number to output message
+            # if self.master.master.debug:
+            #     new_message = f"{line_num_str} {new_message}"
 
             # Build the tag to use and make sure it is unique
+            char_position_str = str(char_position)
             tag_id = f"{line_num_str}{char_position_str}"
             while tag_id in tags:
                 tag_id = f"{tag_id}{random.randint(100, 999)}"  # noqa: S311
             tags.append(tag_id)
 
             # Determine if this is the last item in the list of text elements and add a new line if it is.
-            line_to_insert = f"{message}\n" if message == value["text"][-1] and "\n" not in message else message
+            line_to_insert = (
+                f"{new_message}\n" if new_message == value["text"][-1] and "\n" not in new_message else new_message
+            )
 
             # Insert the text to the text box.  The tag is obtained from call to self.textview_hyperlink.add.
             self.textview_textbox.insert(f"{line_num_str}.{char_position_str}", f"{line_to_insert}", tag_id)
@@ -944,6 +970,56 @@ class CTkTextview(ctk.CTkFrame):
             # fmt: on
             char_position += len(line_to_insert)  # Point to next position for text
 
+            # Go to top in the text line.  Add a hyperlink.
+            # Note: This must fall after the text is inserted into the text box.
+            if go_to_top:
+
+                # The following is debug code.
+                # Position just after the last character in the buffer.
+                # end_line_col = self.textview_textbox.index("end")
+                # Get contents of last line in text box.
+                # td = self.textview_textbox.get("end-1c linestart", "end-1c lineend")
+                # Get the entire contents of the text box into a list
+                # ty = self.textview_textbox.get("1.0", "end").rstrip()
+                # tz = ty.split("\n")
+
+                # Get the total number of lines in the text box
+                line_count = int(self.textview_textbox.index("end-1c").split(".")[0])
+                # Get the contents of the last line in the text box.
+                line_pos = str(line_count - 1)
+                tx = self.textview_textbox.get(f"{line_pos}.0", "end-1c")
+                # If "Go to top" is in the line, then start at position 1.  Otherwise, start at end of text.
+                gototop_char_position = 1 if "Go to top" in tx else len(tx)
+
+                # If the position is in the first character, then we need to rely on line_num ass the current line of text.
+                if gototop_char_position == 1:
+                    line_pos = line_num_str
+                    tx = self.textview_textbox.get(f"{line_num}.0", "end-1c")
+                    gototop_char_position = len(tx)
+
+                # Add the hyperlink.
+                # The tag is obtained from call to self.textview_hyperlink.add.
+                link = ["gototop", "Go to top"]
+                top_tag_id = self.textview_hyperlink.add(link)
+                # Add the text to the text box.
+                # For some reason, we have to back up 2 lines to get the right position.
+                self.textview_textbox.insert(
+                    f"{line_pos}.{gototop_char_position!s}",
+                    "Go to top",
+                    top_tag_id,
+                )
+                # Add color to the tag
+                self.textview_textbox.tag_config(
+                    top_tag_id[1],
+                    background=make_hex_color(self.master.master.color_lookup["background_color"]),
+                )
+                go_to_top = False
+
+                # Display the text
+                # inputvalue = self.textview_textbox.get("1.0", "end-1c")
+                # print(inputvalue)
+                # exit()
+
             # Do color and name highlighting (bold/italicize/underline/highlight).  Use previous color if it doesn't exist.
             # Have to handle background color separately
             color = previous_color
@@ -953,7 +1029,6 @@ class CTkTextview(ctk.CTkFrame):
             else:
                 color = self.output_map_colors_highlighting(
                     value,
-                    line_num_str,
                     tags,
                     previous_color,
                     num,
@@ -965,19 +1040,18 @@ class CTkTextview(ctk.CTkFrame):
             # Save previous color and text in case we need to use it.
             previous_color = color
 
-            # Add color to the tag
-            bg_color = self.master.master.color_lookup["background_color"]
-            if bg_color.isdigit():
-                bg_color = "#" + bg_color
+            # Set the foreground and background colors
+            self.textview_textbox.tag_config(
+                tag_id,
+                foreground=color,
+                background=make_hex_color(self.master.master.color_lookup["background_color"]),
+            )
 
-            # self.textview_textbox.tag_config(tag_id, foreground=color)
-            self.textview_textbox.tag_config(tag_id, foreground=color, background=bg_color)
         return previous_color
 
     def output_map_colors_highlighting(
         self,
         value: dict,
-        line_num_str: str,
         tags: list,
         previous_color: str,
         num: int,
@@ -991,7 +1065,6 @@ class CTkTextview(ctk.CTkFrame):
         Parameters:
             - self: the object instance
             - value: a dictionary containing the value to be highlighted
-            - line_num_str: a string representing the line number
             - tags: a list of tags to be applied
             - previous_color: a string representing the previous color used
             - num: an integer representing a specific number
@@ -1002,32 +1075,58 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             - color (string): the color to be applied
         """
-        bold_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], weight="bold", size=12)
-        italic_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], size=12, slant="italic")
+        # Set up the highlighting elements
         highlight_configurations = {
-            "bold": {"font": bold_font},
-            "italic": {"font": italic_font},
+            "bold": {"font": self.bold_font},
+            "italic": {"font": self.italic_font},
             "underline": {"underline": True},
             "mark": {"background": PrimeItems.colors_to_use["highlight_color"]},
         }
+
+        # Set the line number accordingly.  Push it back if there is a direclty due to extra '\n's
+        # line_num_str = str(line_num - 3) if PrimeItems.program_arguments["directory"] else str(line_num)
+
+        # Look for special string highlighting in value (bold, italic, underline, highlight)
         with contextlib.suppress(KeyError):
             if num == 0 and value["highlights"]:
                 for highlight in value["highlights"]:
+                    # Go through all highlights for this line/value
                     highlights = highlight.split(",")
                     start_position = message.find(highlights[1])
                     end_position = start_position + len(highlights[1])
-                    # Add the highlight tag
+                    # print(f"{line_num_str}.{start_position} - {line_num_str}.{end_position}")
                     highlight_type = highlights[0]
                     if highlight_type in highlight_configurations:
+
+                        # Found a highlight type.
                         new_tag = f"{tag_id}{highlight_type}"
-                        self.textview_textbox.tag_config(new_tag, **highlight_configurations[highlight_type])
+                        tags.append(new_tag)
+
+                        # Get the total number of lines in the text box
+                        line_count = int(self.textview_textbox.index("end-1c").split(".")[0])
+
+                        # If a new line proceeds the highlighted item, then use the current line.  Otherwise use the previous line.
+                        tx = self.textview_textbox.get(f"{line_count-1!s}.0", "end-1c")
+                        t1 = tx.find("\n   ")
+                        line_to_highlight = str(line_count) if tx[0:1] == "\n" or t1 != -1 else str(line_count - 1)
+
+                        # Add the tag
                         self.textview_textbox.tag_add(
                             new_tag,
-                            f"{line_num_str}.{start_position}",
-                            f"{line_num_str}.{end_position}",
+                            f"{line_to_highlight}.{start_position!s}",
+                            f"{line_to_highlight}.{end_position!s}",
                         )
+                        self.textview_textbox.tag_config(new_tag, **highlight_configurations[highlight_type])
 
-        # Color the text
+                        # Add a line number to the output for debugging purposes.
+                        # if self.master.master.debug:
+                        #     line_num = int(line_num_str) - 2
+                        #     print("line number", line_num, "start position", start_position, "end position", end_position)
+                        #     self.textview_textbox.insert(
+                        #         f"{line_num!s}.{end_position+1!s}", "<< Here is a highlight >>", tag_id,
+                        #     )
+
+        # Now color the text.
         try:
             color = self.master.master.color_lookup.get(f'{value["color"][num]}')
 
@@ -1270,9 +1369,14 @@ class CTkHyperlinkManager:
             if tag.startswith("hyper-"):
                 link = self.links[tag]
                 if isinstance(link, list):
-                    action, name = link
-                    guiself = event.widget.master.master.root.master
-                    self.remap_single_item(action, name, guiself)
+                    # Reset text to line 1?
+                    if link[0] == "gototop":
+                        self.text.master.textview_textbox.see("1.0")
+                    else:
+                        # Remap single Project/Profile/Task
+                        action, name = link
+                        guiself = event.widget.master.master.root.master
+                        self.remap_single_item(action, name, guiself)
                 else:
                     webbrowser.open(link)
                 return

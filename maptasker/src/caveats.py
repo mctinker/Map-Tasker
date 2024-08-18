@@ -70,9 +70,6 @@ def display_caveats() -> None:
             ),
         )
 
-    if PrimeItems.program_arguments["guiview"]:
-        caveats.append("- The background color setting is ignored in the GUI 'views'.\n")
-
     # Start the output
     PrimeItems.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)
 

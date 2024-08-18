@@ -19,6 +19,29 @@ from maptasker.src.xmldata import remove_html_tags
 glob_spacing = 15
 
 
+def handle_gototop(text_list: list) -> list:
+    """
+    This function handles the addition of a 'Go to top' string in a given text.
+
+    It checks for specific items in the text and replaces the newline character with 'Go to top' followed by a newline.
+
+    Parameters:
+        text_list (list): The input text list to be processed.
+
+    Returns:
+        text_list (list): The modified text with 'Go to top' added if the conditions are met.
+    """
+    gototop_items = ["CAVEATS:", "Profile:", "Task:"]
+    gototop = "          Go to top"
+
+    # Look for match and if found, add a "Go to top" string if not already in it..
+    for item in gototop_items:
+        # Make sure to add it to the last text element in the list.
+        if item in text_list[0] and "Task: Properties" not in text_list[0]:
+            text_list[-1] = text_list[-1].replace("\n", f"{gototop}\n")
+            break
+    return text_list
+
 def cleanup_text_elements(output_lines: dict, line_num: int) -> dict:
     r"""
     Cleanup all of the text elements in the line by fixing html and other stuff.
@@ -32,6 +55,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int) -> dict:
     """
     # Replace &nbsp. with " " and "\n\n" with "\n" in all text fields.
     text_list = output_lines[line_num]["text"]
+    text_list = handle_gototop(text_list)
     new_text_list = []
     for text in text_list:
         # Note: we can not replace text in-place since strings are immutable.  So we create a new list.
@@ -230,6 +254,7 @@ def process_line(output_lines: list, line: str, line_num: int, highlight_tags: l
     previous_line = ""
 
     for color_pos in color_list:
+
         # Break up line into color and text (temp)
         color_to_use, temp = process_color_string(line, color_pos)
 
@@ -256,6 +281,7 @@ def process_line(output_lines: list, line: str, line_num: int, highlight_tags: l
                     output_lines[line_num] = {"color": [], "text": [], "highlights": []}
                 output_lines[line_num]["color"].append(color)
 
+                # If this is the first color in the list, then extract highlights.
                 if color_pos == color_list[0]:
                     highlights = extract_highlights(working_text, highlight_tags)
                     if "highlights" in output_lines[line_num]:
@@ -309,57 +335,116 @@ def calculate_spacing(
     previous_line: str,
 ) -> int:
     """
-    Calculate initial spacer based on specific conditions.
+    Calculates the spacing for a given line of text in the output lines dictionary.
 
     Args:
         spacing (int): The initial spacing value.
-        output_lines (dict): Dictionary containing output lines.
-        line_num (int): The line number.
-        doing_global_variables (bool): Indicates if global variables are present.
-        previous_line (str): The previous line of text.
+        output_lines (dict): A dictionary of output lines, where each line is represented as a dictionary with keys "text" and other formatting information.
+        line_num (int): The line number of the line being processed.
+        doing_global_variables (bool): A flag indicating whether global variables are being processed.
+        previous_line (str): The text of the previous line.
 
     Returns:
-        int: The calculated spacing value.
+        int: The calculated spacing value for the given line of text.
     """
-
     text = output_lines[line_num]["text"][0]
 
-    if text.startswith(("Project:", "Scene:")) or doing_global_variables or "Project Global Variables" in text:
+    # Direct returns for quick decisions
+    if text.startswith(("Project:", "Scene:")) or doing_global_variables:
+        return 0
+
+    if any(kw in text for kw in ["Project Global Variables", "Unreferenced Global Variables"]):
         return 0
 
     if text.startswith(("Profile:", "TaskerNet")):
         return 5
 
-    if text.startswith(("Task:", "- Project '")) or "--Task:" in text[:7]:
-        return 10
+    if text.startswith(("Task:", "- Project '")) or "--Task:" in text[:7] or "The following Tasks in Project " in text:
+        return 7 if text.startswith("   The following Tasks in Project ") else 10
 
-    # Handle dangling Task action parameters
-    if ("Configuration Parameter(s):" in previous_line or "Timeout=" in text) and PrimeItems.program_arguments[
-        "pretty"
-    ]:
-        # Cleanup "Timeout=" parameter of Task action
+    if ("Configuration Parameter(s):" in previous_line or "Timeout=" in text) and PrimeItems.program_arguments.get(
+        "pretty", False,
+    ):
         if "Timeout=" in text:
-            temp = output_lines[line_num]["text"][0].replace(" Timeout=", "Timeout=")
-            output_lines[line_num]["text"][0] = temp
+            output_lines[line_num]["text"][0] = text.replace(" Timeout=", "Timeout=")
             return count_consecutive_substr(previous_line, "&nbsp;") + spacing
         return 61
-    # Add spacing for "Structure Output (JSON, etc)"
+
     if "Timeout=" in previous_line and "Structure Output (JSON, etc)" in text:
         output_lines[line_num]["text"][0] = "Structure Output (JSON, etc)\n"
         return spacing
-    # Add spacing for "[Continue Task After Error])"
+
     if "[Continue Task After Error]" in text:
         output_lines[line_num]["text"][0] = "[Continue Task After Error]\n"
-        previous_formatted_line = output_lines[line_num - 1]["text"][0]
-        return len(previous_formatted_line) - len(previous_formatted_line.lstrip())
+        return spacing
 
-    if spacing == 61:
-        return 15
-
-    if text[0].isdigit() or " continued >>>" in text:
+    if spacing == 61 or text[0].isdigit() or " continued >>>" in text:
         return 15
 
     return spacing
+
+
+def handle_disabled_objects(output_lines: list, line_num: int) -> list:
+    """
+    Handles disabled objects in the output lines.
+
+    This function checks for the presence of "[⛔ DISABLED]" in the output lines and moves it up to the profile line if found.
+    It also blanks out the original line.
+
+    Args:
+        output_lines (list): A list of output lines.
+        line_num (int): The current line number.
+
+    Returns:
+        list: The updated output lines.
+    """
+    # Find the previous output line in prep for checking disabled.
+    prev_line_num = line_num - 1
+    keep_going = True
+    while keep_going:
+        try:
+            if output_lines[prev_line_num]:
+                keep_going = False
+                break
+        except KeyError:
+            prev_line_num -= 1
+            if prev_line_num < 0:
+                prev_line_num = 0
+                break
+
+    # If [⛔ DISABLED] is in the line for a Profile, then move it up to the profile line and blank out the original.
+    if (
+        "[⛔ DISABLED]" in output_lines[line_num]["text"][0]
+        and output_lines[prev_line_num]["color"] == ["profile_color"]
+        and output_lines[prev_line_num]["text"][1] == "\n"
+    ):
+        output_lines[prev_line_num]["text"][1] = "  [⛔ DISABLED]\n"
+        # This blank line will be ignored by guiwins.py output_map_text_lines
+        output_lines[line_num]["text"][0] = " "
+        output_lines[line_num]["color"] = {}
+    return output_lines
+
+
+def capture_front_text(output_lines: list, line:str, line_num: int) -> list:
+    """
+    Captures the front text from a given line and updates the output lines with the extracted text and default color.
+
+    Parameters:
+        output_lines (list): A list of output lines.
+        line (str): The line from which to capture the front text.
+        line_num (int): The line number in the output lines.
+
+    Returns:
+        list: The updated output lines with the extracted text and default color.
+    """
+    color_location = line.find("<span class=")
+    output_lines[line_num]["text"] = [line[:color_location]]
+    # Assign the last color used as the default color
+    for output_line_num in reversed(output_lines):
+        if output_lines[output_line_num]["color"]:
+            output_lines[line_num]["color"] = [output_lines[output_line_num]["color"][-1]]
+            break
+    return output_lines
 
 
 def additional_formatting(
@@ -397,13 +482,7 @@ def additional_formatting(
     # Capture any text before the first color tags
     color_location = line.find("_color")
     if color_location != -1 and line.startswith("&nbsp;"):
-        color_location = line.find("<span class=")
-        output_lines[line_num]["text"] = [line[:color_location]]
-        # Assign the last color used as the default color
-        for output_line_num in reversed(output_lines):
-            if output_lines[output_line_num]["color"]:
-                output_lines[line_num]["color"] = [output_lines[output_line_num]["color"][-1]]
-                break
+        output_lines = capture_front_text(output_lines, line, line_num)
 
     # Build coloring
     if "<span class=" in line and "_color" in line:
@@ -426,33 +505,10 @@ def additional_formatting(
 
     output_lines = cleanup_text_elements(output_lines, line_num)
 
-    # Find the previous output line in prep for checking disabled.
-    prev_line_num = line_num - 1
-    keep_going = True
-    while keep_going:
-        try:
-            if output_lines[prev_line_num]:
-                keep_going = False
-                break
-        except KeyError:
-            prev_line_num -= 1
-            if prev_line_num < 0:
-                prev_line_num = 0
-                break
-
-    # If [⛔ DISABLED] is in the line for a Profile, then move it up to the profile line and blank out the original.
-    if (
-        "[⛔ DISABLED]" in output_lines[line_num]["text"][0]
-        and output_lines[prev_line_num]["color"] == ["profile_color"]
-        and output_lines[prev_line_num]["text"][1] == "\n"
-    ):
-        output_lines[prev_line_num]["text"][1] = "  [⛔ DISABLED]\n"
-        # This blank line will be ignored by guiwins.py output_map_text_lines
-        output_lines[line_num]["text"][0] = " "
-        output_lines[line_num]["color"] = {}
-
+    # Handle disabled objects
+    output_lines = handle_disabled_objects(output_lines, line_num)
+    # Determine how much spacing to add to the front of the line.
     spacing = calculate_spacing(spacing, output_lines, line_num, doing_global_variables, previous_line)
-
     output_lines[line_num]["text"][0] = f'{spacing * " "}{output_lines[line_num]["text"][0]}'
 
     return output_lines, spacing
@@ -550,6 +606,7 @@ def process_html_lines(lines: list, output_lines: list, spacing: int, iterate: b
 
     # Reformat the html by going through each line
     for line_num, line in enumerate(lines):
+
         # Ignore certain lines
         if ignore_line(line):
             continue

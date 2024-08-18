@@ -54,19 +54,13 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.0.3 and 5.0.4 - Change Log\n
+Version 5.0.5 - Change Log\n
 ### Added\n
-- Added: A message is printed indicating that the error "IMKClient Stall detected, *please Report*..." can be ignored on 'Map' and 'Diagram' views that take a long time to process.\n
-### Changed\n
-- Changed: The background color for the directory has been darkened for dark mode and lightened in light mode to improve readability.\n
+- Added: "Go to top" hotlinks have been added to the 'Map' view to jump to the top of the map.\n
 ### Fixed\n
-- Fixed: 'Diagram' view diagrams the entire project if a single Task is selected, rater than the Task's owning Profile.\n
-- Fixed: 'Timeout=' Task action parameter is improperly formatted in the 'Map' view.\n
-- Fixed: Notify Task action is incorrectly showing a zero value in the output.\n
-- Fixed: 'Map' view gets a program error if a particular color is missing.\n
-- Fixed: Saved color changes are being ignored if restoring the settings in the GUI.\n
-- Fixed: The background color is not recognized in the 'Map' view.\n
-- Fixed: Program error in 'Map' view.
+- Fixed: The 'Map' view directory entries have the wrong background color.\n
+- Fixed: Project, Profile, Task and Scene name highlighting is not working in the 'Map' view.\n
+- Fixed: Minor formatting changes in the 'Map' view.\n
 """
 
 default_font_size = 14
@@ -1720,3 +1714,19 @@ def create_new_textbox(self: object) -> None:
     self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
     self.textbox.configure(font=(self.font, 14), wrap="word", scrollbar_button_color="#6563ff")
     self.hyperlink = ctk.HyperlinkManager(self.textbox, text_color="blue")
+
+
+def make_hex_color(color: str) -> str:
+    """
+    Converts a given color string to a hex color string if it's a digit.
+
+    Args:
+        color (str): The color string to be converted.
+
+    Returns:
+        str: The hex color string if the input is a digit, otherwise the original color string.
+    """
+    # Add color to the tag
+    if color.isdigit():
+        return "#" + color
+    return color

@@ -926,8 +926,39 @@ class MyGui(customtkinter.CTk):
 
         return message
 
-    # We have read colors and runtime args from backup file.  Now extract them for use.
+
+    def extract_colors(self) -> None:
+        """
+        Extracts and displays the color settings from the color_lookup dictionary.
+        Reverses the TYPES_OF_COLOR_NAMES dictionary to map color names to their corresponding keys.
+        Displays each color setting using the display_message_box method, handling cases where the background color is set.
+        Ensures all colors are accounted for, setting any missing colors to turquoise.
+        """
     # @profile
+        # Display the restored color changes, using the reverse dictionary of
+        #   TYPES_OF_COLOR_NAMES (found in sysconst.py)
+        inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
+        for key, value in self.color_lookup.items():
+            text_out = value
+            if key is not None:
+                if key == "msg":
+                    inv_color_names[key] = ""
+                else:
+                    # Set the displayed color to that of the color name, unlessa it is the background color.
+                    color = value
+                    if inv_color_names[key] == "Background":
+                        color = "white"
+                        text_out = f"{value} (displayed as white)"
+                    with contextlib.suppress(KeyError):
+                        self.display_message_box(f"{inv_color_names[key]} color set to {text_out}\n", color)
+
+        # Make sure we have all of our colors.  If any are missing then just make them turquoise.
+        if self.color_lookup:
+            for key, color in TYPES_OF_COLOR_NAMES.items():
+                if color not in self.color_lookup:
+                    self.color_lookup[color] = "turquoise"
+                    self.display_message_box(f"{key} color missing.  It has been set to turquoise.\n", "turquoise")
+
     def extract_settings(self, temp_args: dict) -> None:
         """
         Extract settings from arguments dictionary
@@ -947,28 +978,9 @@ class MyGui(customtkinter.CTk):
                 setattr(self, key, value)
                 if new_message := self.restore_display(key, value):
                     self.display_message_box(f"{new_message}\n", "Green")
-        # Display the restored color changes, using the reverse dictionary of
-        #   TYPES_OF_COLOR_NAMES (found in sysconst.py)
-        inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
-        for key, value in self.color_lookup.items():
-            text_out = value
-            if key is not None:
-                if key == "msg":
-                    inv_color_names[key] = ""
-                else:
-                    # Set the displayed color to that of the color name, unlessa it is the background color.
-                    color = value
-                    if inv_color_names[key] == "Background":
-                        color = "white"
-                        text_out = f"{value} (displayed as white)"
-                    with contextlib.suppress(KeyError):
-                        self.display_message_box(f"{inv_color_names[key]} color set to {text_out}\n", color)
 
-        # Make sure we have all of our colors.  If any are missing then just make them turquoise.
-        for key, color in TYPES_OF_COLOR_NAMES.items():
-            if color not in self.color_lookup:
-                self.color_lookup[color] = "turquoise"
-                self.display_message_box(f"{key} color missing.  It has been set to turquoise.\n", "turquoise")
+        # We have read colors and runtime args from backup file.  Now extract them for use.
+        self.extract_colors()
 
         # Display completion
         self.display_message_box("Settings restored.\n", "Green")
