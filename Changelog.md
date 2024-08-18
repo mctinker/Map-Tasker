@@ -2,7 +2,21 @@
 
 All notable changes to this project will be documented in this file!
 
-## [5.0.3 and 5.0.4] 13-Aug-2024
+## [5.05] 19-Aug-2024
+
+### ADDED
+
+- Added: "Go to top" hotlinks have been added to the 'Map' view to jump to the top of the map.
+
+### FIXED
+
+- Fixed: The 'Map' view directory entries have the wrong background color.
+- Fixed: Project, Profile, Task and Scene name highlighting is not working in the 'Map' view.
+- Fixed: Minor formatting changes in the 'Map' view.
+
+## Older History Logs
+
+## [5.0.3 and 5.0.4]
 
 - Added: A message is printed indicating that the error "IMKClient Stall detected, *please Report*..." can be ignored on 'Map' and 'Diagram' views that take a long time to process.
 - Changed: The background color for the directory has been darkened for dark mode and lightened in light mode to improve readability.
@@ -13,8 +27,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Saved color changes are being ignored if restoring the settings in the GUI.
 - Fixed: The background color is not recognized in the 'Map' view.
 - Fixed: 'Program error in 'Map' view.
-
-## Older History Logs
 
 ## [5.0.2]
 

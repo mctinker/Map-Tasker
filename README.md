@@ -204,6 +204,8 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 
 - [x] Display progress bar for diagram view
 
+- [ ] Add 'Search' and 'Word Wrap' to the Map view.
+
 - [ ] Support additional plugins
 
 - [ ] Map remaining Tasker preferences
