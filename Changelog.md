@@ -1,8 +1,8 @@
-# MapTasker Change Log  # ruff: noqa
+# MapTasker Change Log
 
 All notable changes to this project will be documented in this file!
 
-## [5.05] 19-Aug-2024
+## [5.0.5] 19-Aug-2024
 
 ### ADDED
 
