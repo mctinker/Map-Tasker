@@ -256,8 +256,8 @@ def process_extended_arguments(args: list) -> None:
             program_arguments["file"] = file
 
     # Map view limit
-    if map_limit := get_arg_if_in_list(args, "map_limit"):
-        program_arguments["map_limit"] = map_limit
+    if view_limit := get_arg_if_in_list(args, "view_limit"):
+        program_arguments["view_limit"] = view_limit
 
 
 # Get our parsed program arguments and save them to PrimeItems.program_args"]
@@ -436,7 +436,7 @@ def unit_test() -> namedtuple:  # noqa: PYI024
         g=False,
         guiview=False,
         i=4,
-        map_limit=5000,
+        view_limit=5000,
         names=False,
         o=False,
         p=False,
@@ -518,12 +518,12 @@ def process_cli() -> None:
     except (TypeError, KeyError):
         save_guiview = False
     try:
-        save_diagram = PrimeItems.program_arguments["diagramview"]
+        save_diagram = PrimeItems.program_arguments["doing_diagram"]
     except (KeyError, TypeError):
         save_diagram = False
     PrimeItems.program_arguments = initialize_runtime_arguments()
     PrimeItems.program_arguments["guiview"] = save_guiview
-    PrimeItems.program_arguments["diagramview"] = save_diagram
+    PrimeItems.program_arguments["doing_diagram"] = save_diagram
 
     # Process unit tests if "-test" in arguments, else get normal runtime arguments via Parsearg.
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()

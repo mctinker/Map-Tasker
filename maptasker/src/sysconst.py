@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "5.0.5"
+VERSION = "5.1.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -127,7 +127,7 @@ ARGUMENT_NAMES = {
     "highlight": "Highlight Names",
     "indent": "Indentation Amount",
     "italicize": "Italicize Names",
-    "map_limit": "Map Limit",
+    "view_limit": "View Limit",
     "map_window_position": "Last Map Window Position",
     "outline": "Display Configuration Outline",
     "preferences": "Display Tasker Preferences",
@@ -153,7 +153,7 @@ SYSTEM_ARGUMENTS = [
     "ai_analysis_window_position",
     "map_window_position",
     "guiview",
-    "diagramview",
+    "doing_diagram",
     "rerun",
 ]
 

@@ -17,6 +17,7 @@ from tkinter import font
 from typing import TYPE_CHECKING, Callable
 
 import customtkinter as ctk
+import darkdetect
 from PIL import Image
 
 from maptasker.src.colrmode import set_color_mode
@@ -54,13 +55,23 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.0.5 - Change Log\n
-### Added\n
-- Added: "Go to top" hotlinks have been added to the 'Map' view to jump to the top of the map.\n
-### Fixed\n
-- Fixed: The 'Map' view directory entries have the wrong background color.\n
-- Fixed: Project, Profile, Task and Scene name highlighting is not working in the 'Map' view.\n
-- Fixed: Minor formatting changes in the 'Map' view.\n
+Version 5.1.0 - Change Log\n
+### ADDED\n
+- Added: 'Search' support added to Map, Diagram and Ai Analysis views.\n
+- Added: 'Toggle Word Wrap' added to Map, Diagram and Ai Analysis views.\n
+- Added: Copy and paste support added to Map, Diagram and Ai Analysis views.\n
+- Added: The Diagram view now respects the 'View Limit'.\n
+- Added: The 'View Limit' has additional increments of 15000 and 25000.\n
+### Changed\n
+- Changed: The GUI 'Map Limit' has been renamed to 'View Limit'.\n
+- Changed: The Ai Analysis default prompt has been changed from "how could this be improved:" to "suggest improvements for performance and readability:"\n
+### FIXED\n
+- Fixed: The Diagram view is printing '13' (old debug code).\n
+- Fixed: view windows resizing are not being restored.\n
+- Fixed: Hotlink colors are not correct in light mode.\n
+- Fixed: Recursive Diagram views results in duplicated connections.\n
+### Known Issues\n
+- A program error can occur in the external package 'cria' when performing an Ai Analysis with a local (e.g. llama) model.\n
 """
 
 default_font_size = 14
@@ -836,9 +847,10 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         (0, 0),
         "sw",
     )
-    # Display the Prompt..only first 25 chars.
-    maxlen = 25
-    display_prompt = self.ai_prompt[:maxlen] + "..." if len(self.ai_prompt) > maxlen else self.ai_prompt
+    # Display the Prompt..newline after every maxlen characters forces it to wrap.
+    maxlen = 35
+    # display_prompt = self.ai_prompt[:maxlen] + "..." if len(self.ai_prompt) > maxlen else self.ai_prompt
+    display_prompt = "\n".join(self.ai_prompt[i : i + maxlen] for i in range(0, len(self.ai_prompt), maxlen))
     self.ai_set_label5 = add_label(
         self,
         self.tabview.tab("Analyze"),
@@ -852,6 +864,7 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         (0, 30),
         "nw",
     )
+    # self.ai_set_label5.configure(wraplength=maxlen + 15, justify="left")
 
     # Display the label on 'Specific Name' tab.
     # First time through, self.specific_name_msg = ''
@@ -1408,6 +1421,7 @@ def display_messages_from_last_run(self) -> None:  # noqa: ANN001
                     self.display_message_box(message_line, "Red")
             else:
                 self.display_message_box(error_msg, "Red")
+            # Get rid of error message so we don't display it again.
             os.remove(ERROR_FILE)  # Get rid of error message so we don't display it again.
 
     # Display any error message from other rountines
@@ -1713,7 +1727,7 @@ def create_new_textbox(self: object) -> None:
     self.textbox = ctk.CTkTextbox(self, height=650, width=250)
     self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
     self.textbox.configure(font=(self.font, 14), wrap="word", scrollbar_button_color="#6563ff")
-    self.hyperlink = ctk.HyperlinkManager(self.textbox, text_color="blue")
+    self.hyperlink = ctk.HyperlinkManager(self.textbox, text_color=get_appropriate_color(self, "blue"))
 
 
 def make_hex_color(color: str) -> str:
@@ -1730,3 +1744,179 @@ def make_hex_color(color: str) -> str:
     if color.isdigit():
         return "#" + color
     return color
+
+
+def search_substring_in_list(strings: list, substring: str) -> list:
+    """
+    Searches for a given substring within a list of strings and returns a list of tuples containing the index of the string and the position of the substring.
+
+    Args:
+        strings (list): A list of strings to search within.
+        substring (str): The substring to search for.
+
+    Returns:
+        list: A list of tuples containing the index of the string and the position of the substring.
+    """
+    matches = []
+    lower_substring = substring.lower()
+    for i, string in enumerate(strings):
+        lower_string = string.lower()
+        start = 0
+        while start < len(lower_string):
+            pos = lower_string.find(lower_substring, start)
+            if pos == -1:
+                break
+            matches.append((i, pos))
+            start = pos + 1  # Move start index forward to continue searching
+    return matches
+
+
+def search_nextprev_string(self: object, textview: ctk.CTkTextbox, direction: str) -> None:
+    """
+    Searches for the next or previous occurrence of a string in a text box based on the given direction.
+
+    Args:
+        self (object): The object instance.
+        direction (str): The direction to search, either "next" or "previous".
+
+    Returns:
+        None
+    """
+    if not textview.search_string:
+        no_search_string(self, textview)
+        return
+
+    # Remove tag 'next' from index 1 to END
+    textview.textview_textbox.tag_remove("next", "1.0", "end")
+    try:
+        search_indices = textview.search_indecies
+    except:
+        no_search_string(self)
+        return
+
+    for num, idx in enumerate(search_indices):
+        if idx == textview.search_current_line:
+            if (direction == "next" and idx == search_indices[-1]) or (
+                direction == "previous" and idx == search_indices[0]
+            ):
+                # Add label for reaching the end or beginning of the text
+                message = (
+                    "The end of the text has been reached."
+                    if direction == "next"
+                    else "The beginning of the text has been reached."
+                )
+                # textview.message_label = add_label(
+                #     textview,
+                #     textview,
+                #     message,
+                #     "Orange",
+                #     12,
+                #     "bold",
+                #     0,
+                #     0,
+                #     10,
+                #     40,
+                #     "n",
+                # )
+                # textview.after(3000, textview.delay_event)  # 3-second timer
+                output_label(self, textview, message)
+            else:
+                # Determine the new current line based on direction
+                if direction == "next":
+                    textview.search_current_line = search_indices[num + 1]
+                elif direction == "previous":
+                    textview.search_current_line = search_indices[num - 1]
+
+                # Add tag to highlight the found text
+                temp = textview.search_current_line.split(".")
+                end_index = int(temp[1]) + len(textview.search_string)
+                textview.textview_textbox.tag_add("next", textview.search_current_line, f"{temp[0]!s}.{end_index}")
+                textview.textview_textbox.tag_config(
+                    "next",
+                    foreground=textview.search_color_text,
+                    background=textview.search_color_nextprev,
+                    relief="raised",
+                )
+
+                # Set the line at the first hit. "See" makes it visible.
+                textview.textview_textbox.see(textview.search_current_line)
+                textview.textview_textbox.focus_set()
+                break
+
+
+def no_search_string(self: object, textview: ctk.CTkTextbox) -> None:
+    """
+    Displays a message box indicating that no search string was found.
+
+    Args:
+        self (object): The object instance.
+
+    Returns:
+        None
+    """
+    output_label(self, textview, "No search string was entered.")
+
+
+def output_label(self: object, textview: ctk.CTkTextbox, message: str) -> None:
+    """
+    Displays a message label in the GUI.
+
+    Args:
+        self (object): The object instance.
+        message (str): The message to display.
+
+    Returns:
+        None
+    """
+    # Get the right view/textview
+    if "Analysis" in textview.title:
+        the_view = textview.master.master.analysisview
+    elif "Diagram" in textview.title:
+        the_view = textview.master.master.diagramview
+    else:
+        the_view = textview.master.master.mapview
+
+    the_view.text_message_label.destroy()
+    the_view.text_message_label = add_label(
+        textview,
+        textview,
+        message,
+        "Orange",
+        12,
+        "bold",
+        0,
+        0,
+        10,
+        40,
+        "n",
+    )
+
+    the_view.after(3000, textview.delay_event)  # 3-second timer
+    the_view.focus_set()
+
+
+def get_appropriate_color(self: object, color_to_use: str) -> str:
+    """Given a color to use, returns the appropriate color to use in the GUI for dark and light modes.
+
+    Args:
+        color_to_use (str): color to check against
+
+    Returns:
+        color_to_use (str): color to use based on dark or light mode
+    """
+    # Color matching dictionary: color_to_use: [dark-mode color, light-mode color], ...
+    color_match = {"blue": ["LightSkyBlue", "darkblue"], "green": ["lightgreen", "darkgreen"]}
+
+    if self.appearance_mode is None:
+        self.appearance_mode = "system"
+
+    for key, color in color_match.items():
+        if color_to_use == key and (
+            self.appearance_mode == "dark" or (self.appearance_mode == "system" and darkdetect.isDark())
+        ):
+            # Return the dark-mode color
+            return color[0]
+        if color_to_use == key:
+            # Return the light-mode color
+            return color[1]
+    return color_to_use

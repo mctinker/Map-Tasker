@@ -42,6 +42,7 @@ def handle_gototop(text_list: list) -> list:
             break
     return text_list
 
+
 def cleanup_text_elements(output_lines: dict, line_num: int) -> dict:
     r"""
     Cleanup all of the text elements in the line by fixing html and other stuff.
@@ -363,7 +364,8 @@ def calculate_spacing(
         return 7 if text.startswith("   The following Tasks in Project ") else 10
 
     if ("Configuration Parameter(s):" in previous_line or "Timeout=" in text) and PrimeItems.program_arguments.get(
-        "pretty", False,
+        "pretty",
+        False,
     ):
         if "Timeout=" in text:
             output_lines[line_num]["text"][0] = text.replace(" Timeout=", "Timeout=")
@@ -425,7 +427,7 @@ def handle_disabled_objects(output_lines: list, line_num: int) -> list:
     return output_lines
 
 
-def capture_front_text(output_lines: list, line:str, line_num: int) -> list:
+def capture_front_text(output_lines: list, line: str, line_num: int) -> list:
     """
     Captures the front text from a given line and updates the output lines with the extracted text and default color.
 

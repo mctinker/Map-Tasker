@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Callable
 
 import customtkinter
+import darkdetect
 import requests
 
 from maptasker.src.colrmode import set_color_mode
@@ -45,12 +46,16 @@ from maptasker.src.guiutils import (
     display_selected_object_labels,
     fresh_message_box,
     get_api_key,
+    get_appropriate_color,
     get_xml,
     is_new_version,
     list_tasker_objects,
+    no_search_string,
     ping_android_device,
     reload_gui,
     reset_primeitems_single_names,
+    search_nextprev_string,
+    search_substring_in_list,
     set_tasker_object_names,
     setup_name_error,
     update_tasker_object_menus,
@@ -121,7 +126,7 @@ INFO_TEXT = (
     "* Report Issue - This will bring up your browser to the issue reporting site, and you can use this to "
     "either report a bug or request a new feature ( [Feature Request] )\n\n"
     "* Appearance Mode: Dark, Light, or System default.\n\n"
-    "* Views: Display your configuration map, diagram, or tree view of your Projects, Profiles, Tasks and Scenes.\n\n"
+    "* Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n"
     "* Reset Options: Clear everything and start anew.\n\n"
     "* Clear Messages: Clear any messages in the textbox.\n\n"
     "* Font To Use: Change the monospace font used for the output.\n\n"
@@ -130,7 +135,7 @@ INFO_TEXT = (
     "XML file from Androiddevice.  You will be asked for the IP address and port number for your"
     " Android device, as well as the file location on the device.\n\n"
     "* Get Local XML: fetch the backup/exported XML file from your local drive.\n\n"
-    "* Run and Exit: Run the program with the settings provided and then exit.\n"
+    "* Run and Exit: Run the program with the settings provided, display the results in the web browser and then exit.\n"
     "* ReRun: Run multiple times (each time with new settings) without exiting.\n\n"
     "* Specific Name tab: enter a single, specific named item to display...\n"
     "   - Project Name: enter a specific Project to display.\n"
@@ -227,8 +232,8 @@ AI_HELP_TEXT = (
     "The 'Rerun' feature will be used to display the results of the analysis in a new window.\n\n"
 )
 
-MAPLIMIT_HELP_TEXT = (
-    "The 'Map Limit' is a means to control the amount of processing time used when mapping the configuration.\n\n"
+VIEWLIMIT_HELP_TEXT = (
+    "The 'View Limit' is a means to control the amount of processing time used when mapping the configuration.\n\n"
     "- The numbers represent the relative amount of output lines to be generated.\n\n"
     "- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n"
     "- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n"
@@ -236,6 +241,14 @@ MAPLIMIT_HELP_TEXT = (
     "- If the limit is hit when calculating the map, no output map will be generated.\n\n"
     "- You can experiment with this setting to see which setting is for your use case.\n\n"
     "- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
+)
+
+SEARCH_HELP_TEXT = (
+    "The 'Search' button will search for and highlight every instance of the string entered in the search box.\n\n"
+    "The 'Next' and 'Prev' buttons will try to make the next and previous occurrence of the search string visible in the text view box, and highlight them in a different color.\n\n"
+    "The accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\n"
+    "When the end or beginning of the text view box is reached, the search will stop and a message will be displayed for several seconds.\n\n"
+    "The 'Clear' button will clear the search results.\n\n"
 )
 
 HELP = f"MapTasker {VERSION} Help\n\n{INFO_TEXT}{CHANGELOG}"
@@ -682,12 +695,12 @@ class MyGui(customtkinter.CTk):
         self.textbox = customtkinter.CTkTextbox(self, height=650, width=250)
         self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
         self.textbox.configure(font=(self.font, 14), wrap="word", scrollbar_button_color="#6563ff")
-        self.hyperlink = CTkHyperlinkManager(self.textbox, text_color="blue")
+        self.hyperlink = CTkHyperlinkManager(self.textbox, text_color=get_appropriate_color(self, "blue"))
 
     # ################################################################################
     # Select or deselect a checkbox based on the value passed in
     # ################################################################################
-    def get_input_and_put_message(self, checkbox: customtkinter.CHECKBUTTON, title: str) -> bool:
+    def get_input_and_put_message(self, checkbox: customtkinter, title: str) -> bool:
         """
         Get checkbox value and display message
         Args:
@@ -780,7 +793,7 @@ class MyGui(customtkinter.CTk):
     # ################################################################################
     def select_deselect_checkbox(
         self,
-        checkbox: customtkinter.CHECKBUTTON,
+        checkbox: customtkinter,
         checked: bool,
         argument_name: str,
     ) -> str:
@@ -860,7 +873,7 @@ class MyGui(customtkinter.CTk):
                 value,
                 "Display Names Italicized",
             ),
-            "map_limit": lambda: self.event_handlers.maplimit_event(value),
+            "view_limit": lambda: self.event_handlers.viewlimit_event(value),
             "outline": lambda: self.select_deselect_checkbox(
                 self.outline_checkbox,
                 value,
@@ -926,7 +939,6 @@ class MyGui(customtkinter.CTk):
 
         return message
 
-
     def extract_colors(self) -> None:
         """
         Extracts and displays the color settings from the color_lookup dictionary.
@@ -934,7 +946,7 @@ class MyGui(customtkinter.CTk):
         Displays each color setting using the display_message_box method, handling cases where the background color is set.
         Ensures all colors are accounted for, setting any missing colors to turquoise.
         """
-    # @profile
+        # @profile
         # Display the restored color changes, using the reverse dictionary of
         #   TYPES_OF_COLOR_NAMES (found in sysconst.py)
         inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
@@ -1376,9 +1388,9 @@ class MyGui(customtkinter.CTk):
             map_data = get_the_map()
             # Check if too much data to display
             map_length = len(map_data)
-            if map_length > self.map_limit:
+            if map_length > self.view_limit:
                 self.display_message_box(
-                    f"Too much data to display (size={map_length}, map limit={self.map_limit}).  Select a larger 'Map Limit' or a single Project / Profile / Task and try again.",
+                    f"Too much data to display (Size={map_length}, View Limit={self.view_limit}).  Select a larger 'View Limit' or a single Project / Profile / Task and try again.",
                     "Orange",
                 )
                 if self.mapview_window is not None:
@@ -1434,9 +1446,9 @@ class MyGui(customtkinter.CTk):
             self.ai_analysis_window.focus()  # if window exists focus it
 
         # Display the analysis in the toplevel window.
-        analysis_view = CTkTextview(master=self.ai_analysis_window, title="Analysis View", the_data=error_msg)
-        analysis_view.pack(padx=10, pady=10, fill="both", expand=True)
-        analysis_view.after(10, self.ai_analysis_window.lift)  # Make window jump to the front
+        analysisview = CTkTextview(master=self.ai_analysis_window, title="Analysis View", the_data=error_msg)
+        analysisview.pack(padx=10, pady=10, fill="both", expand=True)
+        analysisview.after(10, self.ai_analysis_window.lift)  # Make window jump to the front
 
     # Set and display the file name.
     def display_and_set_file(self, filename: str) -> None:
@@ -1621,6 +1633,7 @@ class MyGui(customtkinter.CTk):
 
         # Now display the results.
         self.mapview = self.display_view("map")
+        self.textview = self.mapview
         if self.mapview is not None:
             self.display_message_box("Map View displayed.", "Green")
 
@@ -2035,8 +2048,8 @@ class EventHandlers:
         self.outline_checkbox.deselect()  # Display outline
         self.everything_checkbox.deselect()  # Display everything
         self.event_handlers.font_event(self.default_font)  # Set the font to the default font
-        self.map_limit = 10000
-        self.maplimit_optionmenu.set("10000")
+        self.view_limit = 10000
+        self.viewlimit_optionmenu.set("10000")
         if self.color_labels:  # is there any color text?
             for label in self.color_labels:
                 label.configure(text="")
@@ -2892,6 +2905,14 @@ class EventHandlers:
             self.display_message_box(f"Running analysis with model {self.ai_model}.", "Green")
             if self.ai_analysis_window is not None:
                 self.ai_analysis_window.destroy()  # Delete previous window before creating a new one.
+
+            # Do the analysis.  First save our windows and settings.
+            store_windows(self)
+            temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
+            _, _ = save_restore_args(temp_args, self.color_lookup, True)
+
+            # Ok, run the analysis by rerunning the program with our ai_analyze = True
+            # The analysis output file will be created and displayed upon reentry to MyGui.
             self.event_handlers.rerun_the_program_event()
         # Test if no XML data loaded
         elif (
@@ -2970,29 +2991,29 @@ class EventHandlers:
         Returns:
             None
         """
-        self = self.parent
+        the_view = self.parent
         try:
             changelog = requests.get(CHANGELOG_JSON_URL).json()  # noqa: S113
         except (json.decoder.JSONDecodeError, ConnectionError, Exception):
-            self.display_message_box("Failed to get changelog.", "Red")
+            the_view.display_message_box("Failed to get changelog.", "Red")
             return
-        self.event_handlers.clear_messages_event()  # Clear out all displayed messages.
+        the_view.event_handlers.clear_messages_event()  # Clear out all displayed messages.
         # Go through loaded dictionary and display each line
         for key, value in changelog.items():
             if "Older History" in value:  # Get out if we hit then of the the new version changes.
                 break
             if key == "version":
-                self.display_message_box(f"Changes in the new version {value}:", "Green")
-                self.display_message_box("", "Green")
+                the_view.display_message_box(f"Changes in the new version {value}:", "Green")
+                the_view.display_message_box("", "Green")
             elif "##" in value:
                 # Add spaces as needed to make it more readible
-                self.display_message_box("", "Green")
-                self.display_message_box(f"{value}", "Green")
-                self.display_message_box("", "Green")
+                the_view.display_message_box("", "Green")
+                the_view.display_message_box(f"{value}", "Green")
+                the_view.display_message_box("", "Green")
             else:
-                self.display_message_box(f"{value}", "Green")
+                the_view.display_message_box(f"{value}", "Green")
 
-        self.display_message_box("End of changelog.", "Green")
+        the_view.display_message_box("End of changelog.", "Green")
 
     # The 'Run' program button has been pressed.  Set the run flag and close the GUI
     def run_program_event(self) -> None:
@@ -3005,12 +3026,12 @@ class EventHandlers:
         - Sets the go_program attribute to True to start the program
         - Displays a message box with the text "Program running..." and blocks user interaction
         - Calls the quit() method to exit the program"""
-        self = self.parent
-        self.go_program = True
-        self.rerun = False
+        the_view = self.parent
+        the_view.go_program = True
+        the_view.rerun = False
 
         # Validate the XML and cleanup
-        self.cleanup_and_run(run_only=True)
+        the_view.cleanup_and_run(run_only=True)
 
     # The 'ReRun' program button has been pressed.  Set the run flag and close the GUI
     def rerun_the_program_event(self) -> None:
@@ -3023,11 +3044,11 @@ class EventHandlers:
         - Sets the rerun flag to True to restart the program on next run
         - Calls withdraw() to reset the program state
         - Calls quit() twice to ensure program exits"""
-        self = self.parent
+        the_view = self.parent
         # Reset the program state since it may have been previously set by the 'Map' view.
         reset_primeitems_single_names()
-        self.rerun = True
-        self.cleanup_and_run(run_only=False)
+        the_view.rerun = True
+        the_view.cleanup_and_run(run_only=False)
 
     # The 'Exit' program button has been pressed.  Call it quits
     def exit_program_event(self) -> None:
@@ -3041,18 +3062,18 @@ class EventHandlers:
         - Calls quit() twice to ensure program exits cleanly
         - Calling quit() twice is done as a precaution in case one call fails to exit for some reason
         """
-        self = self.parent
+        the_view = self.parent
         # Get and store the position of the windows.
-        store_windows(self)
+        store_windows(the_view)
 
         # Indicate that the user hit the 'Exit' button.
-        self.exit = True
+        the_view.exit = True
 
         # Save our last window position
-        self.window_position = self.winfo_geometry()
+        the_view.window_position = the_view.winfo_geometry()
         # Close it down
-        self.quit()
-        self.quit()
+        the_view.quit()
+        the_view.quit()
 
     # Diagram View event
     def diagram_event(self) -> None:
@@ -3074,46 +3095,56 @@ class EventHandlers:
 
         This method does not return any value.
         """
-        self = self.parent
+        guiview = self.parent
+
+        # Save windows and delete previous mapview window.
+        store_windows(self)
 
         # Check if we have a Project or Profile
         # If we don't already have Project, then get some XML.
         if PrimeItems.tasker_root_elements["all_projects"] or PrimeItems.tasker_root_elements["all_profiles"]:
             # Process the diagram: builds the 'network' and then draws it in the GUI
-            save_outline = self.outline
-            self.outline = True
+            save_outline = guiview.outline
+            guiview.outline = True
             # The following doesn't display
-            self.display_message_box(
+            guiview.display_message_box(
                 "The 'Diagram' view is running in the background.  Please stand by...",
                 "LimeGreen",
             )
-            self.textbox.focus_set()
+            guiview.textbox.focus_set()
 
             # Get rid of the previous window
-            if self.diagramview_window is not None:
-                self.diagramview_window.destroy()
+            if guiview.diagramview_window is not None:
+                guiview.diagramview_window.destroy()
 
             # Save the settings
-            temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
-            _, _ = save_restore_args(temp_args, self.color_lookup, True)
+            temp_args = {value: getattr(guiview, value) for value in ARGUMENT_NAMES}
+            _, _ = save_restore_args(temp_args, guiview.color_lookup, True)
 
             # Reset PrimItems
             reset_primeitems_single_names()
 
             # Now flag the fact that we are rerunning for the map view.
             # These flags are critical for the proper proceessing of the map.
-            self.guiview = True  # Set it for save_settings
+            guiview.guiview = True  # Set it for save_settings
             PrimeItems.program_arguments["guiview"] = True  # Set it for mapit_all
-            self.diagramview = True
-            PrimeItems.program_arguments["diagramview"] = True  # Set it for mapit_all
+            guiview.doing_diagram = True
+            PrimeItems.program_arguments["doing_diagram"] = True  # Set it for mapit_all
             # Set our target objects since mapit-all will bypass setting these values
-            PrimeItems.program_arguments["single_project_name"] = self.single_project_name
-            PrimeItems.program_arguments["single_profile_name"] = self.single_profile_name
-            PrimeItems.program_arguments["single_task_name"] = self.single_task_name
+            PrimeItems.program_arguments["single_project_name"] = guiview.single_project_name
+            PrimeItems.program_arguments["single_profile_name"] = guiview.single_profile_name
+            PrimeItems.program_arguments["single_task_name"] = guiview.single_task_name
 
             # outline_the_configuration()
             # Re-invoke ourselves to force the html to be written
             _ = mapit_all("")
+
+            # See if errors occurred
+            if PrimeItems.error_code == 1:
+                guiview.display_message_box(PrimeItems.error_msg, "Orange")
+                PrimeItems.error_code = 0
+                PrimeItems.error_msg = ""
+                return
 
             # Process the diagram file
             diagram_dir = (
@@ -3124,19 +3155,20 @@ class EventHandlers:
                 diagram_data = [line.rstrip() for line in diagram_file]  # Read file into a list
 
                 # Display the diagram
-                self.diagram_view = self.display_view("diagram", diagram_data)
-                self.display_message_box("Diagram View displayed.", "Green")
+                guiview.diagramview = guiview.display_view("diagram", diagram_data)
+                guiview.textview = guiview.diagramview
+                guiview.display_message_box("Diagram View displayed.", "Green")
                 diagram_file.close()
 
             # Cleanup
-            self.outline = save_outline
-            self.guiview = False
+            guiview.outline = save_outline
+            guiview.guiview = False
             PrimeItems.program_arguments["guiview"] = False
 
             # Save window.
-            store_windows(self)
+            store_windows(guiview)
         else:
-            display_no_xml_message(self)
+            display_no_xml_message(guiview)
 
     def map_event(self) -> None:
         """
@@ -3154,7 +3186,7 @@ class EventHandlers:
         Returns:
             None
         """
-        self = self.parent
+        guiview = self.parent
         # If we have some XML, then map it.
         if (
             PrimeItems.tasker_root_elements["all_projects"]
@@ -3163,25 +3195,25 @@ class EventHandlers:
             or PrimeItems.tasker_root_elements["all_scenes"]
         ):
             # In order for the map to work, we need to ensure that we have the colors defined.
-            if not self.color_lookup:
-                self.color_lookup = set_color_mode(self.appearance_mode)
+            if not guiview.color_lookup:
+                guiview.color_lookup = set_color_mode(guiview.appearance_mode)
 
             # Initiate the map view.
-            self.remapit(clear_names=True)
+            guiview.remapit(clear_names=True)
         # We don't have any XML.
         else:
-            display_no_xml_message(self)
+            display_no_xml_message(guiview)
 
-    def maplimit_event(self: object, map_limit: str) -> None:
+    def viewlimit_event(self: object, view_limit: str) -> None:
         """
-        Map Limit Event
+        View Limit Event
         """
-        self = self.parent
-        self.map_limit = 9999999 if map_limit == "Unlimited" else int(map_limit)
-        if map_limit == 9999999:
-            map_limit = "Unlimited"
-        self.maplimit_optionmenu.set(map_limit)
-        self.display_message_box(f"Map Limit set to {map_limit}.", "Green")
+        guiview = self.parent
+        guiview.view_limit = 9999999 if view_limit == "Unlimited" else int(view_limit)
+        if view_limit == 9999999:
+            view_limit = "Unlimited"
+        guiview.viewlimit_optionmenu.set(view_limit)
+        guiview.display_message_box(f"View Limit set to {view_limit}.", "Green")
 
     # Process the '?' List XML Files query button
     def query_event(self: object, query_name: str) -> None:
@@ -3196,18 +3228,365 @@ class EventHandlers:
             - Uses new_message_box method.
             - Help text is stored in {query_event.upper}_HELP_TEXT variable."""
 
-        self = self.parent
+        guiview = self.parent
 
         help_texts = {
-            "maplimit": ("Map Limit Help", MAPLIMIT_HELP_TEXT),
+            "viewlimit": ("View Limit Help", VIEWLIMIT_HELP_TEXT),
             "view": ("Views Help", VIEW_HELP_TEXT),
             "ai": ("Ai Analyze Help", AI_HELP_TEXT),
             "help": ("", HELP),
             "android": ("Get XML From Android Device Help", BACKUP_HELP_TEXT),
             "listfile": ("List Android Files Help", LISTFILES_HELP_TEXT),
+            "search": ("Search Help", SEARCH_HELP_TEXT),
         }
 
         title, help_text = help_texts.get(query_name, ("", "No help available for this query."))
 
-        self.new_message_box(f"{title}\n\n{help_text}")
-        self.clear_messages = True  # Flag to tell display_message_box to clear the message box
+        guiview.new_message_box(f"{title}\n\n{help_text}")
+        guiview.clear_messages = True  # Flag to tell display_message_box to clear the message box
+
+    def diagram_search_event(self: object) -> None:
+        """
+        Handles the search event for the diagram view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.search_event(self.parent.diagramview)
+
+    def map_search_event(self: object) -> None:
+        """
+        Handles the search event for the map view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.search_event(self.parent.mapview)
+
+    def analysis_search_event(self: object) -> None:
+        """
+        Handles the search event for the analysis view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.search_event(self.parent.analysisview)
+
+    def diagram_next_event(self: object) -> None:
+        """
+        Handles the next search event for the diagram view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.nextsearch_event(self.parent.diagramview)
+
+    def map_next_event(self: object) -> None:
+        """
+        Handles the search event for the map view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.nextsearch_event(self.parent.mapview)
+
+    def analysis_next_event(self: object) -> None:
+        """
+        Handles the search event for the analysis view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.nextsearch_event(self.parent.analysisview)
+
+    def diagram_previous_event(self: object) -> None:
+        """
+        Handles the previous search event for the diagram view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.prevsearch_event(self.parent.diagramview)
+
+    def map_previous_event(self: object) -> None:
+        """
+        Handles the previous search event for the map view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.prevsearch_event(self.parent.mapview)
+
+    def analysis_previous_event(self: object) -> None:
+        """
+        Handles the previous search event for the analysis view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.prevsearch_event(self.parent.analysisview)
+
+    def diagram_clear_event(self: object) -> None:
+        """
+        Handles the clear search event for the diagram view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.clear_event(self.parent.diagramview)
+
+    def map_clear_event(self: object) -> None:
+        """
+        Handles the clear search event for the map view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.clear_event(self.parent.mapview)
+
+    def analysis_clear_event(self: object) -> None:
+        """
+        Handles the clear search event for the analysis view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.clear_event(self.parent.analysisview)
+
+    def diagram_wordwrap_event(self: object) -> None:
+        """
+        Handles the wordwrap event for the diagram view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.wordwrap_event(self.parent.diagramview)
+
+    def map_wordwrap_event(self: object) -> None:
+        """
+        Handles the wordwrap search event for the map view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.wordwrap_event(self.parent.mapview)
+
+    def analysis_wordwrap_event(self: object) -> None:
+        """
+        Handles the wordwrap search event for the analysis view.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        self.wordwrap_event(self.parent.analysisview)
+
+    # Search textbox event
+    def search_event(self: object, textview: CTkTextview) -> None:
+        """
+        Handles the search event in the text view box.
+
+        This function retrieves the search input from the user, removes any existing 'found' tags,
+        and then searches for the input string in the text view box. If the string is found, it is
+        tagged as 'found' and highlighted in red. The function then sets the focus back to the text
+        view box.
+        Note: The tkinter search function is not used since it never returns when hitting the stopindex.
+
+        Parameters:
+            self (object): The instance of the class.
+            title (str): The title of the view to be searched:L diagram or map
+
+        Returns:
+            None
+        """
+
+        # Sstart search at beginning
+        textview.search_current_line = "1.0"
+        try:
+            textview.search_indecies = []
+        except AttributeError:
+            return
+
+        # Get the string to search for.
+        search_input = textview.search_input.get()
+
+        # remove tag 'found' from index 1 to END
+        textview.textview_textbox.tag_remove("found", "1.0", "end")
+
+        # Check if search_input is not empty
+        if search_input:
+            # Determine the color to highlight the next/previous string in.
+            if self.parent.appearance_mode == "dark" or (
+                self.parent.appearance_mode == "system" and darkdetect.isDark()
+            ):
+                textview.search_color_text = "darkblue"
+                textview.search_color_highlight = "yellow"
+                textview.search_color_nextprev = "white"
+            elif self.parent.appearance_mode == "light" or (
+                self.parent.appearance_mode == "system" and darkdetect.isLight()
+            ):
+                textview.search_color_text = "yellow"
+                textview.search_color_highlight = "orange"
+                textview.search_color_nextprev = "blue"
+
+            textview.search_string = search_input
+            # Get the entire textbox into a list, one item per line.
+            ty = textview.textview_textbox.get("1.0", "end").rstrip().split("\n")
+            # Find all matches.
+            search_hits = search_substring_in_list(ty, search_input)
+            number_of_hits = len(search_hits)
+
+            # Process the matches
+            first_time = True
+            if number_of_hits > 0:
+                for match in search_hits:
+                    text_line_num = match[0] + 1
+                    text_line_pos = match[1]
+
+                    idx = f"{text_line_num!s}.{text_line_pos!s}"
+                    lastidx = "%s+%dc" % (idx, len(search_input))
+                    textview.search_indecies.append(idx)
+                    if first_time:
+                        textview.search_current_line = idx
+                        first_time = False
+
+                    # text_widget.tag_add(tag_name, start_index, end_index)
+                    textview.textview_textbox.tag_add("found", idx, lastidx)
+
+            # This code never returns if stopindex is hit.
+            # # Start search at index 1...the beginning of the textbox.
+            # idx = "1.0"
+            # while 1:
+            #     # searches for desired string starting from index/last index.
+            #     idx = self.textview_textbox.search(
+            #         search_input, idx, nocase=1, count=found_counter, stopindex=end_line_col,
+            #     )
+            #     if not idx:
+            #         break
+
+            #     # Build a tag = index of found string + plus-sign + length of search string + 'c': eg. '14.0+3c'
+            #     lastidx = "%s+%dc" % (idx, len(search_input))
+
+            #     # overwrite 'Found' at idx
+            #     self.textview_textbox.tag_add("found", idx, lastidx)
+            #     idx = lastidx
+
+            # mark located string as red
+            textview.textview_textbox.tag_config(
+                "found",
+                foreground=textview.search_color_text,
+                background=textview.search_color_highlight,
+            )
+            # Set the line at the first hit.  "See" makes it visible (sometimes).
+            textview.textview_textbox.see(textview.search_current_line)
+            textview.textview_textbox.focus_set()
+
+        else:
+            no_search_string(self, textview)
+
+    def clear_event(self: object, textview: CTkTextview) -> None:
+        """
+        Handles the clear event in the text view box.
+
+        This function clears the search text (highl;ighted) from the text view box.
+
+        Parameters:
+            self (object): The instance of the class.
+            title (str): The title of the view to be searched: diagram or map
+
+        Returns:
+            None
+        """
+        # remove tag 'found' and "next" from index 1 to END
+        textview.textview_textbox.tag_remove("found", "1.0", "end")
+        textview.textview_textbox.tag_remove("next", "1.0", "end")
+
+    def wordwrap_event(self: object, textview: CTkTextview) -> None:
+        """
+        Handles the wordwrap event in the text view box.
+
+        This function toggles the wordwrap setting in the text view box.
+
+        Parameters:
+            self (object): The instance of the class.
+            title (str): The title of the view to be searched: diagram or map
+
+        Returns:
+            None
+        """
+        # Configure the textbox.
+        textview.wordwrap = not textview.wordwrap
+        if textview.wordwrap:
+            textview.textview_textbox.configure(state="normal", wrap="word")
+        else:
+            textview.textview_textbox.configure(state="normal", wrap="none")
+
+    def nextsearch_event(self, textview: CTkTextview) -> None:
+        """
+        Handles the next search event in the text view box.
+
+        This function searches the text view box for the next occurrence of the search string,
+        and positions the string so that it is within the visible area of the text view box.
+
+        Parameters:
+            self (object): The instance of the class.
+            title (str): The title of the view to be searched: diagram or map
+        """
+        search_nextprev_string(self, textview, "next")
+
+    def prevsearch_event(self, textview: CTkTextview) -> None:
+        """
+        Handles the previous search event in the text view box.
+
+        This function searches the text view box for the prevous occurrence of the search string,
+        and positions the string so that it is within the visible area of the text view box.
+
+        Parameters:
+            self (object): The instance of the class.
+            title (str): The title of the view to be searched: diagram or map
+        """
+        search_nextprev_string(self, textview, "previous")

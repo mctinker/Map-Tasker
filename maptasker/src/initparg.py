@@ -33,7 +33,7 @@ def initialize_runtime_arguments() -> dict:
         "color_window_position": "",  # Last-used color window position
         "conditions": False,  # Display Profile and Task conditions
         "debug": False,  # Run in debug mode (create log file)
-        "diagramview": False,  # Use the GUI to get the digaram view
+        "doing_diagram": False,  # Use the GUI to get the diagram view
         "diagram_window_position": "",  # Last-used diagram window position
         "directory": False,  # Display directory
         "display_detail_level": 4,  # Display detail level
@@ -45,7 +45,7 @@ def initialize_runtime_arguments() -> dict:
         "highlight": False,  # Highlight Project/Profile?Task/Scene names
         "indent": 4,  # Backup file was fetched from Android device
         "italicize": False,  # Italicise Project/Profile?Task/Scene names
-        "map_limit": 10000,  # Map view limit
+        "view_limit": 10000,  # Map view limit
         "map_window_position": "",  # Last-used map window position
         "outline": False,  # Outline Project/Profile?Task/Scene names
         "preferences": False,  # Display Tasker's preferences

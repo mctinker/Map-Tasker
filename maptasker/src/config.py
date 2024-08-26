@@ -50,6 +50,6 @@ ANDROID_FILE = ""
 DEFAULT_DISPLAY_DETAIL_LEVEL = 5
 
 # Ai Analysis prompt...This will be proceeded by 'Given the following (Project/Profile/Task) in Tasker, '
-AI_PROMPT = "how could it be improved:"
+AI_PROMPT = "suggest improvements for performance and readability:"
 
 #  END User-modifiable global constants

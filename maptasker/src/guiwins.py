@@ -26,8 +26,10 @@ from maptasker.src.guiutils import (
     add_logo,
     add_option_menu,
     display_analyze_button,
+    get_appropriate_color,
     get_monospace_fonts,
     make_hex_color,
+    output_label,
     reset_primeitems_single_names,
     update_tasker_object_menus,
 )
@@ -199,7 +201,7 @@ Click item and scroll mouse-wheel/trackpad\nas needed to go up or down.
         # Catch window resizing
         self.bind("<Configure>", self.on_resize)
 
-    # Text window was resized.
+    # Tree window was resized.
     def on_resize(self, event: dict) -> None:  # noqa: ARG002
         """
         Resizes the Diagram window based on the event width and height.
@@ -309,11 +311,10 @@ class TextWindow(ctk.CTkToplevel):
             self.master.tree_window_position = window_position
         elif "Map" in title:
             self.master.map_window_position = window_position
-
         self.destroy()
 
 
-# Display a Diagram structure
+# Display a Text structure: Used for 'Map', 'Diagram' and 'Tree' views.
 class CTkTextview(ctk.CTkFrame):
     """Class to handle the Treeview
 
@@ -358,7 +359,6 @@ class CTkTextview(ctk.CTkFrame):
         # Recreate text box
         width = getattr(master.master, "text_window_width")
         height = getattr(master.master, "text_window_height")
-        # height = str(int(getattr(master.master, "text_window_height")) - 100)
         font = getattr(master.master, "font")
         self.textview_textbox = ctk.CTkTextbox(
             self,
@@ -369,10 +369,15 @@ class CTkTextview(ctk.CTkFrame):
         self.textview_textbox.configure(
             height=height,
             width=width,
+            state="normal",
+            wrap="none",
         )
 
         # Enable hyperlinks if needed
-        self.textview_hyperlink = CTkHyperlinkManager(self.textview_textbox)
+        self.textview_hyperlink = CTkHyperlinkManager(
+            self.textview_textbox,
+            get_appropriate_color(master.master, "blue"),
+        )
 
         # Get the special fonts
         self.bold_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], weight="bold", size=12)
@@ -386,39 +391,239 @@ class CTkTextview(ctk.CTkFrame):
         if type(the_data) == str:
             the_data = the_data.split("\n")
 
-        # Process list data (list of lines)
+        # Process list data (list of lines): diagram view.
         if type(the_data) !=  dict:
             for num, line in enumerate(the_data):
                 text_line = num + 1
                 self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
+            # Add the CustomTkinter widgets
+            self.add_view_widgets("Diagram")
 
-        # Process the Map view (dictionary of lines)
         else:
+            # Process the Map view (dictionary of lines)
             self.output_map(the_data)
+            # Add the CustomTkinter widgets
+            self.add_view_widgets("Map")
 
         # Get rid of the data since we don't need it anymore
         the_data = None
 
-        # Configure the textbox and add label.
-        self.textview_textbox.configure(state="normal", wrap="none")  # configure textbox
-        # Add label
-        self.drag_label = add_label(
-                self,
-                self,
-                f"Drag window to desired position and rerun the {title} command.",
-                "Orange",
-                12,
-                "normal",
-                0,
-                0,
-                10,
-                10,
-                "n",
-        )
-
         # Set a timer so we can delete the label after a certain amount of time.
         self.after(3000, self.delay_event)  # 3 second timer
         self.textview_textbox.focus_set()
+
+    def add_view_widgets(self, title: str) -> None:
+        """
+        Adds CustomTkinter widgets to the map view, including a search input field and a search button.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
+        # Set up appropriate event handlers: diagram vs map
+        gui_view = self.master.master
+        if "Analysis" in self.textview_textbox.master.title:
+            search_event = gui_view.event_handlers.analysis_search_event
+            next_event = gui_view.event_handlers.analysis_next_event
+            previous_event = gui_view.event_handlers.analysis_previous_event
+            clear_event = gui_view.event_handlers.analysis_clear_event
+            wordwrap_event = gui_view.event_handlers.analysis_wordwrap_event
+        elif title == "Diagram":
+            search_event = gui_view.event_handlers.diagram_search_event
+            next_event = gui_view.event_handlers.diagram_next_event
+            previous_event = gui_view.event_handlers.diagram_previous_event
+            clear_event = gui_view.event_handlers.diagram_clear_event
+            wordwrap_event = gui_view.event_handlers.diagram_wordwrap_event
+        elif title == "Map":
+            search_event = gui_view.event_handlers.map_search_event
+            next_event = gui_view.event_handlers.map_next_event
+            previous_event = gui_view.event_handlers.map_previous_event
+            clear_event = gui_view.event_handlers.map_clear_event
+            wordwrap_event = gui_view.event_handlers.map_wordwrap_event
+
+        # Add label
+        self.text_message_label = add_label(
+            self,
+            self,
+            f"Drag window to desired position and rerun the {title} command.",
+            "Orange",
+            12,
+            "normal",
+            0,
+            0,
+            10,
+            40,
+            "n",
+        )
+        # Search input field# Search input field
+        search_input = ctk.CTkEntry(
+            self,
+            placeholder_text="",
+        )
+        search_input.configure(
+            # width=320,
+            # fg_color="#246FB6",
+            border_color="#1bc9ff",
+            text_color=("#0BF075", "#1AD63D"),
+        )
+        search_input.insert(0, "")
+        search_input.grid(
+            row=0,
+            column=0,
+            # columnspan=1,
+            padx=20,
+            pady=5,
+            sticky="nw",
+        )
+        # Search button
+        search_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            search_event,
+            1,
+            "Search",
+            1,
+            0,
+            0,
+            170,
+            5,
+            "nw",
+        )
+        search_button.configure(width=60)
+        # Next search button
+        next_search_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            next_event,
+            1,
+            "Next",
+            1,
+            0,
+            0,
+            240,
+            5,
+            "nw",
+        )
+        next_search_button.configure(width=40)
+        # Previous search button
+        prev_search_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            previous_event,
+            1,
+            "Prev",
+            1,
+            0,
+            0,
+            290,
+            5,
+            "nw",
+        )
+        prev_search_button.configure(width=40)
+        # Clear search button
+        clear_search_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            clear_event,
+            1,
+            "Clear",
+            1,
+            0,
+            0,
+            345,
+            5,
+            "nw",
+        )
+        clear_search_button.configure(width=50)
+        # Word wrap button
+        _ = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            wordwrap_event,
+            1,
+            "Toggle Word Wrap",
+            1,
+            0,
+            0,
+            440,
+            5,
+            "nw",
+        )
+        #  Query ? button
+        search_query_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            ("#0BF075", "#ffd941"),
+            "#1bc9ff",
+            lambda: self.master.master.event_handlers.query_event("search"),
+            1,
+            "?",
+            1,
+            0,
+            0,
+            400,
+            5,
+            "nw",
+        )
+        search_query_button.configure(width=20)
+
+        # Save the widgets to the correct view: diagram or map
+        if "Analysis" in self.textview_textbox.master.title:
+            gui_view.analysisview = self
+            gui_view.analysisview.message_label = self.text_message_label
+            gui_view.analysisview.search_input = search_input
+            # gui_view.analysisview.search_button = search_button
+            # gui_view.analysisview.next_search_button = next_search_button
+            # gui_view.analysisview.prev_search_button = prev_search_button
+            # gui_view.analysisview.clear_search_button = clear_search_button
+            # gui_view.analysisview.wordwrap_button = wrap_search_button
+            # gui_view.analysisview.query_button = search_query_button
+        elif title == "Diagram":
+            gui_view.diagramview = self  # Save our textview in the main Gui view.
+            gui_view.diagramview.message_label = self.text_message_label
+            gui_view.diagramview.search_input = search_input
+            # gui_view.diagramview.search_button = search_button
+            # gui_view.diagramview.next_search_button = next_search_button
+            # gui_view.diagramview.prev_search_button = prev_search_button
+            # gui_view.diagramview.clear_search_button = clear_search_button
+            # gui_view.diagramview.wordwrap_button = wrap_search_button
+            # gui_view.diagramview.query_button = search_query_button
+        elif title == "Map":
+            gui_view.mapview = self  # Save our textview in the main Gui view.
+            gui_view.mapview.message_label = self.text_message_label
+            gui_view.mapview.search_input = search_input
+            # gui_view.mapview.search_button = search_button
+            # gui_view.mapview.next_search_button = next_search_button
+            # gui_view.mapview.prev_search_button = prev_search_button
+            # gui_view.mapview.clear_search_button = clear_search_button
+            # gui_view.mapview.wordwrap_button = wrap_search_button
+            # gui_view.mapview.query_button = search_query_button
+
+        # Catch window resizing
+        self.bind("<Configure>", self.on_resize)
+        self.master.bind("<Key>", self.ctrlevent)
+
+        # Set up default variables
+        self.wordwrap = False
+        self.search_string = ""
 
     # Text window was resized.
     def on_resize(self, event: dict) -> None:  # noqa: ARG002
@@ -973,7 +1178,6 @@ class CTkTextview(ctk.CTkFrame):
             # Go to top in the text line.  Add a hyperlink.
             # Note: This must fall after the text is inserted into the text box.
             if go_to_top:
-
                 # The following is debug code.
                 # Position just after the last character in the buffer.
                 # end_line_col = self.textview_textbox.index("end")
@@ -1097,7 +1301,6 @@ class CTkTextview(ctk.CTkFrame):
                     # print(f"{line_num_str}.{start_position} - {line_num_str}.{end_position}")
                     highlight_type = highlights[0]
                     if highlight_type in highlight_configurations:
-
                         # Found a highlight type.
                         new_tag = f"{tag_id}{highlight_type}"
                         tags.append(new_tag)
@@ -1145,12 +1348,31 @@ class CTkTextview(ctk.CTkFrame):
             color = f"#{color}"
         return color
 
+    def ctrlevent(self, event: object) -> str:
+        """Event handler for Ctrl+C and Ctrl+V"""
+        # Ctrl+C ...copy
+        # if event.state == 4 and event.keysym == "c":
+        if event.keysym == "c":
+            try:
+                content = self.textview_textbox.selection_get()
+            except TclError:  # Copy with no sting selected
+                return ""
+            self.clipboard_clear()
+            self.clipboard_append(content)
+            output_label(self, self, f"Text '{content}' copied to clipboard.")
+            return "break"
+        # Ctrl+V ...paste
+        if event.state == 4 and event.keysym == "v":
+            self.textview_textbox.insert("end", self.selection_get(selection="CLIPBOARD"))
+            return "break"
+        return "break"
+
     def delay_event(self) -> None:
         """
         A method that handles the delay event for the various text views.
         It deletes the label after a certain amount of time.
         """
-        self.drag_label.destroy()
+        self.text_message_label.destroy()
         # Catch window resizing
         self.bind("<Configure>", self.on_resize)
 
@@ -1473,7 +1695,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.conditions = None
     self.debug = None
     self.default_font = ""
-    self.diagramview = False
+    self.doing_diagram = False
     self.diagram_window_position = ""
     self.diagramview_window = None
     self.display_detail_level = None
@@ -1491,7 +1713,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.indent = None
     self.italicize = None
     self.list_files = False
-    self.map_limit = 10000
+    self.view_limit = 10000
     self.map_window_position = ""
     self.mapview_window = None
     self.named_item = None
@@ -1905,12 +2127,11 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "s",
     )
     self.view_query_button.configure(width=20)
-
-    # View Map Limit
-    self.maplimit_label = add_label(
+    # View Limit
+    self.viewlimit_label = add_label(
         self,
         self.sidebar_frame,
-        "Map Limit:",
+        "View Limit:",
         "",
         0,
         "normal",
@@ -1920,11 +2141,11 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         20,
         "nw",
     )
-    self.maplimit_optionmenu = add_option_menu(
+    self.viewlimit_optionmenu = add_option_menu(
         self,
         self.sidebar_frame,
-        self.event_handlers.maplimit_event,
-        ["5000", "10000", "20000", "30000", "Unlimited"],
+        self.event_handlers.viewlimit_event,
+        ["5000", "10000", "15000", "20000", "25000", "30000", "Unlimited"],
         20,
         0,
         (20, 0),
@@ -1932,13 +2153,13 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "n",
     )
     #  Query ? button
-    self.maplimit_query_button = add_button(
+    self.viewlimit_query_button = add_button(
         self,
         self.sidebar_frame,
         "#246FB6",
         ("#0BF075", "#ffd941"),
         "#1bc9ff",
-        lambda: self.event_handlers.query_event("maplimit"),
+        lambda: self.event_handlers.query_event("viewlimit"),
         1,
         "?",
         1,
@@ -1948,7 +2169,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         20,
         "n",
     )
-    self.maplimit_query_button.configure(width=20)
+    self.viewlimit_query_button.configure(width=20)
 
     # 'Reset Settings' button definition
     self.reset_button = add_button(
@@ -2431,13 +2652,18 @@ def store_windows(self) -> None:  # noqa: ANN001
     Returns:
         None
     """
-    if window_pos := save_window_position(self.ai_analysis_window):
-        self.ai_analysis_window_position = window_pos
-    if window_pos := save_window_position(self.treeview_window):
-        self.tree_window_position = window_pos
-    if window_pos := save_window_position(self.diagramview_window):
-        self.diagram_window_position = window_pos
-    if window_pos := save_window_position(self.mapview_window):
-        self.map_window_position = window_pos
-    if window_pos := save_window_position(self):
-        self.window_position = window_pos
+    with contextlib.suppress(AttributeError):
+        if window_pos := save_window_position(self.ai_analysis_window):
+            self.ai_analysis_window_position = window_pos
+    with contextlib.suppress(AttributeError):
+        if window_pos := save_window_position(self.treeview_window):
+            self.tree_window_position = window_pos
+    with contextlib.suppress(AttributeError):
+        if window_pos := save_window_position(self.diagramview_window):
+            self.diagram_window_position = window_pos
+    with contextlib.suppress(AttributeError):
+        if window_pos := save_window_position(self.mapview_window):
+            self.map_window_position = window_pos
+    with contextlib.suppress(AttributeError):
+        if window_pos := save_window_position(self):
+            self.window_position = window_pos

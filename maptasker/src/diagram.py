@@ -14,9 +14,11 @@ diagram and graphviz.
 from __future__ import annotations
 
 import contextlib
+import gc
 import os
+import sys
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Set
 
 from maptasker.src.diagutil import (
     add_output_line,
@@ -33,7 +35,7 @@ from maptasker.src.diagutil import (
 from maptasker.src.getids import get_ids
 from maptasker.src.guiwins import ProgressbarWindow
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import DIAGRAM_FILE, MY_VERSION, NOW_TIME, FormatLine
+from maptasker.src.sysconst import DIAGRAM_FILE, MY_VERSION, NOW_TIME, FormatLine, logger
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -546,7 +548,61 @@ def mark_tasks_not_found(output_lines: list) -> None:
                     )
 
 
-# If Task line has a "Calls", fill it with arrows.
+def mysizeof(my_dict: list) -> int:
+    """
+    Calculate the total size of a list in bytes, including the size of all its elements.
+
+    Args:
+        my_dict (list): The dictionary to calculate the size of.
+
+    Returns:
+        int: The total size of the list in bytes.
+    """
+    total = 0
+    for _, _ in my_dict.items():
+        total += 1
+    return total
+
+
+def check_limit(call_table: dict, output_lines: list, progress_bar: ProgressbarWindow) -> None:
+    """
+    Checks if the size of the call table exceeds the maximum size limit.
+
+    Args:
+        call_table (dict): The dictionary to check the size of.
+        progress_bar (ProgressbarWindow): The progress bar to update.
+
+    Returns:
+        tuple: A tuple containing a boolean indicating whether the size limit was exceeded and the call table.
+    """
+    # Check if we have exceeded our maximum size limit.  The call table is the limiting factor.
+    if PrimeItems.program_arguments["guiview"]:
+        # size = mysizeof(call_table)
+        # size = getSize(call_table)
+        size = mysizeof(call_table) * 67
+        view_limit = PrimeItems.program_arguments["view_limit"]
+        # Exceeded size limit
+        if size > view_limit:
+            # Setup to disp[lay error message in GUI
+            PrimeItems.error_code = 1
+            PrimeItems.error_msg = f"Too much data to display (Size={size!s}, View Limit={view_limit}).  Select a larger 'View Limit' or a single Project / Profile / Task and try again."
+            # Kill the progressbar.
+            progress_bar.progressbar.stop()
+            progress_bar.destroy()
+            # Cleanup
+            PrimeItems.netmap_output = []
+            PrimeItems.output_lines.output_lines = []
+            call_table = {}
+            output_lines = []
+            # Tell python to collect the garbage
+            gc.collect()
+            # Bail out.
+            return True, call_table, output_lines
+
+    return False, call_table, output_lines
+
+
+# If Task line has any "Task Call" Task actions, fill it with arrows.
 def handle_calls(output_lines: list) -> None:
     """
     Handle calls in output lines from parsing
@@ -562,35 +618,31 @@ def handle_calls(output_lines: list) -> None:
     """
 
     # Display a progress bar if coming from the GUI.
-    if PrimeItems.program_arguments["gui"]:
-        # Make sure we have a geometry set for the progress bar
-        if not PrimeItems.program_arguments["map_window_position"]:
-            PrimeItems.program_arguments["map_window_position"] = "300x200+600+0"
-        # Create a progress bar widget
-        progress_bar = ProgressbarWindow()
-        progress_bar.progressbar.configure(width=300, height=30)
-        progress_bar.title("Diagram Progress")
-        progress_bar.progressbar.start()
-
-        # Setup for our progress bar.  Use the total number of Profiles as the metric.
-        max_data = len(output_lines)
-        tenth_increment = max_data // 10
-        if tenth_increment == 0:
-            tenth_increment = 1
+    progress_bar, tenth_increment, max_data = configure_progress_bar(output_lines)
 
     # Identify called Tasks that don't exist and add blank lines for called/caller Tasks.
     mark_tasks_not_found(output_lines)
 
     # Create the table of caller/called Tasks and their pointers.
-    call_table = build_call_table(output_lines)
+    dirty_call_table = build_call_table(output_lines)
+    call_table = {}
+    # Delete duplicates
+    for key, value in dirty_call_table.items():
+        if value not in call_table.values():
+            call_table[key] = value
+
+    # Check if we have exceeded our maximum size limit.
+    exceeded_limit, call_table, output_lines = check_limit(call_table, output_lines, progress_bar)
+    if exceeded_limit:
+        return []
 
     # Now traverse the call table and add arrows to the output lines.
     for up_down_location, value in call_table.items():
         draw_arrows_to_called_task(up_down_location, value, output_lines)
+    call_table = {}
 
     # Reduce lines with icons in the names to ensure arrow alignment.
     for line_num, line in enumerate(output_lines):
-
         # Update progress bar if needed.
         if PrimeItems.program_arguments["gui"] and line_num % tenth_increment == 0:
             display_progress_bar(
@@ -612,6 +664,36 @@ def handle_calls(output_lines: list) -> None:
 
     # Get rid of hanging "│" characters
     return delete_hanging_bars(output_lines)
+
+
+def configure_progress_bar(output_lines: list) -> tuple:
+    """
+    Configures and returns a progress bar for the GUI if the 'gui' argument is set in PrimeItems.program_arguments.
+
+    Args:
+        output_lines (list): The list of lines to process.
+
+    Returns:
+        tuple: A tuple containing a ProgressbarWindow: The configured progress bar widget; the tenth_increment: The increment value for each 10% of progress and max_data: The maximum value for the progress bar.
+    """
+    # Display a progress bar if coming from the GUI.
+    if PrimeItems.program_arguments["gui"]:
+        # Make sure we have a geometry set for the progress bar
+        if not PrimeItems.program_arguments["map_window_position"]:
+            PrimeItems.program_arguments["map_window_position"] = "300x200+600+0"
+        # Create a progress bar widget
+        progress_bar = ProgressbarWindow()
+        progress_bar.progressbar.configure(width=300, height=30)
+        progress_bar.title("Diagram Progress")
+        progress_bar.progressbar.start()
+        # Setup for our progress bar.  Use the total number of Profiles as the metric.
+        max_data = len(output_lines)
+
+        tenth_increment = max_data // 10
+        if tenth_increment == 0:
+            tenth_increment = 1
+        return progress_bar, tenth_increment, max_data
+    return None, 0, 0
 
 
 # Build the Profile box.
@@ -694,7 +776,6 @@ def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
 
     # Now output each Profile and it's Tasks.
     for profile, tasks in profiles.items():
-
         # Process the Profile
         if profile != "Scenes":
             (
@@ -787,7 +868,6 @@ def build_network_map(data: dict) -> None:
 
     # Go through each project
     for project, profiles in data.items():
-
         # Print Project as a box
         print_box(project, "Project:", 1)
         # Print all of the Project's Profiles and their Tasks
@@ -854,11 +934,15 @@ def network_map(network: dict) -> None:
     # Print the configuration
     build_network_map(network)
 
-    # Print it all out.
+    # Print it all out if we have output.
     # Redirect print to a file
-    output_dir = f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"  # Get the directory from which we are running.
-    with open(str(output_dir), "w", encoding="utf-8") as mapfile:
-        # PrimeItems.printfile = mapfile
-        for line in PrimeItems.netmap_output:
-            mapfile.write(f"{line}\n")
-        mapfile.close()
+    if PrimeItems.netmap_output:
+        output_dir = f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"  # Get the directory from which we are running.
+        with open(str(output_dir), "w", encoding="utf-8") as mapfile:
+            # PrimeItems.printfile = mapfile
+            for line in PrimeItems.netmap_output:
+                mapfile.write(f"{line}\n")
+            mapfile.close()
+
+        # Cleanup
+        PrimeItems.netmap_output = []

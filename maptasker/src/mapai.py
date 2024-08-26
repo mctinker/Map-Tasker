@@ -269,7 +269,7 @@ def map_ai() -> None:
     prompt = PrimeItems.program_arguments["ai_prompt"] if PrimeItems.program_arguments["ai_prompt"] else AI_PROMPT
     if not prompt.endswith(":"):
         prompt = f"{prompt}:"
-    query = f"Given the following {ai_object} in Tasker, {prompt}"
+    query = f"Given the following {ai_object} in Tasker, an Android automation tool, {prompt}"
     for line in temp_output:
         query += f"{line}\n"
 

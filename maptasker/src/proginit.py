@@ -361,7 +361,7 @@ def start_up() -> dict:
     PrimeItems.colors_to_use = setup_colors()
 
     # Display a popup window telling user we are analyzing
-    if PrimeItems.program_arguments["diagramview"]:
+    if PrimeItems.program_arguments["doing_diagram"]:
         popup = PopupWindow(
             title="MapTasker",
             message="The view is running in the background.  Please stand by...",
@@ -369,7 +369,7 @@ def start_up() -> dict:
             delay=600,
         )
         popup.mainloop()
-        PrimeItems.program_arguments["diagramview"] = False
+        PrimeItems.program_arguments["doing_diagram"] = False
 
     # Get the XML data and output the front matter
     _ = get_data_and_output_intro(True)

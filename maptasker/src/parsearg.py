@@ -379,9 +379,9 @@ def runtime_parser() -> None:
         action="store_true",
         default=False,
     )
-    # map_limit
+    # view_limit
     parser.add_argument(
-        "-map_limit",
+        "-view_limit",
         help=argparse.SUPPRESS,  # Don't display this in the help
         action="store_true",
         default=5000,

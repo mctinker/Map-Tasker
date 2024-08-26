@@ -350,8 +350,6 @@ def delete_hanging_bars(output_lines: list) -> list:
     line_num = len(output_lines) - 1
 
     while line_num > 0:
-        if line_num == 13:
-            print(line_num)
         indices = [i.start() for i in re.finditer(bar, output_lines[line_num])]
 
         # Go through list of bar positions in line.
