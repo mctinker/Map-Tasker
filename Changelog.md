@@ -2,19 +2,41 @@
 
 All notable changes to this project will be documented in this file!
 
-## [5.0.5] 19-Aug-2024
+## [5.0.6] 26-Aug-2024
 
 ### ADDED
 
-- Added: "Go to top" hotlinks have been added to the 'Map' view to jump to the top of the map.
+- Added: Search string support added to Map , Diagram and Ai Analysis views.
+- Added: 'Toggle Word Wrap' added to Map, Diagram and Ai Analysis views.
+- Added: Copy and paste support added to Map, Diagram and Ai Analysis views.
+- Added: The Diagram view now respects the 'View Limit'
+- Added: The 'View Limit' has additional increments of 15000 and 25000.
+
+### Changed
+
+- Changed: The GUI 'Map Limit' has been renamed to 'View Limit'.
+- Changed: The Ai Analysis default prompt has been changed from "how could this be improved:" to "suggest improvoments for performance and readability:"
 
 ### FIXED
 
+- Fixed: The Diagram view is printing '13' (old debug code).
+- Fixed: Program error if a window is not defined.
+- Fixed: view windows resizing are not being restored.
+- Fixed: Hotlink colors are not correct in light mode.
+- Fixed: Recursive Diagram views results in duplicated connections.
+
+### Known Issues
+
+- A program error can occur in the external package 'Cria' when performing an Ai Analysis with a local (e.g. llama) model.
+
+## Older History Logs
+
+## [5.0.5]
+
+- Added: "Go to top" hotlinks have been added to the 'Map' view to jump to the top of the map.
 - Fixed: The 'Map' view directory entries have the wrong background color.
 - Fixed: Project, Profile, Task and Scene name highlighting is not working in the 'Map' view.
 - Fixed: Minor formatting changes in the 'Map' view.
-
-## Older History Logs
 
 ## [5.0.3 and 5.0.4]
 

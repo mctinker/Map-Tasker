@@ -204,7 +204,9 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 
 - [x] Display progress bar for diagram view
 
-- [ ] Add 'Search' and 'Word Wrap' to the Map view.
+- [x] Add 'Search' and 'Word Wrap' to the Map view.
+
+- [x] Add 'Search' to the Diagram view.
 
 - [ ] Support additional plugins
 

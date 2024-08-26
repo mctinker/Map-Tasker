@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "maptasker"
 
-version = "5.0.5"
+version = "5.1.0"
 
 description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
@@ -27,8 +27,8 @@ darkdetect = "^0.8.0"  # Appearance mode detection
 defusedxml = "^0.7.1"  # More secure xml parser
 requests = "^2.32.3"  # HTTP Server function request
 tomli_w = "^1.0.0"  # Write toml file
-cria = "^1.6.5"  #  Ai Ollama support
-openai = "^1.35.9"  #  Ai OpenAi support
+cria = "^1.6.6"  #  Ai Ollama support
+openai = "^1.42.0"  #  Ai OpenAi support
 # ollama = "^0.2.1"  #  Ai Ollama support > cria rquires this
 # line-profiler = "^4.1.3"
 
