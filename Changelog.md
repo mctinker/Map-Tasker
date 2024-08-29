@@ -2,34 +2,47 @@
 
 All notable changes to this project will be documented in this file!
 
-## [5.1.0] 26-Aug-2024
+## [5.1.1] 29-Aug-2024
 
-### ADDED
+### Added
 
-- Added: Search string support added to Map , Diagram and Ai Analysis views.
-- Added: 'Toggle Word Wrap' added to Map, Diagram and Ai Analysis views.
-- Added: Copy and paste support added to Map, Diagram and Ai Analysis views.
-- Added: The Diagram view now respects the 'View Limit'
-- Added: The 'View Limit' has additional increments of 15000 and 25000.
+- Added: "Go to bottom" has been added to the Map view to jump to the bottom of the view.
+- Added: "Go to top" has been added to Profile, Task and Scene elements in the browser.
 
 ### Changed
 
-- Changed: The GUI 'Map Limit' has been renamed to 'View Limit'.
-- Changed: The Ai Analysis default prompt has been changed from "how could this be improved:" to "suggest improvoments for performance and readability:"
+- Changed: Don't display the message, "You can find 'MapTasker.html' in the current folder." if displaying the Map or Diagram views from the GUI.
 
-### FIXED
+### Fixed
 
-- Fixed: The Diagram view is printing '13' (old debug code).
-- Fixed: Program error if a window is not defined.
-- Fixed: view windows resizing are not being restored.
-- Fixed: Hotlink colors are not correct in light mode.
-- Fixed: Recursive Diagram views results in duplicated connections.
+- Fixed: Ai Analysis response window size and location are not being restored on recursive calls.
+- Fixed: Horizontal scrollbars are not being shown in the GUI views.
+- Fixed: Fetching xml from the Android device is not resetting the single Project/Profile/Task to none.
+- Fixed: Program error if displaying the directory in the Map view.
+- Fixed: Directory names in the Map view that exceeded 40 characters are not displaying correctly.  Now they are truncated with "..." at end.
+- Fixed: If working with a Scene-only XML file, specifying a single named item results in program exiting rather than issuing an error message.
 
 ### Known Issues
 
 - A program error can occur in the external package 'Cria' when performing an Ai Analysis with a local (e.g. llama) model.
 
 ## Older History Logs
+
+## [5.1.0]
+
+- Added: Search string support added to Map , Diagram and Ai Analysis views.
+- Added: 'Toggle Word Wrap' added to Map, Diagram and Ai Analysis views.
+- Added: Copy and paste support added to Map, Diagram and Ai Analysis views.
+- Added: The Diagram view now respects the 'View Limit'
+- Added: The 'View Limit' has additional increments of 15000 and 25000.
+- Changed: The GUI 'Map Limit' has been renamed to 'View Limit'.
+- Changed: The Ai Analysis default prompt has been changed from "how could this be improved:" to "suggest improvoments for performance and readability:"
+- Fixed: The Diagram view is printing '13' (old debug code).
+- Fixed: Program error if a window is not defined.
+- Fixed: view windows resizing are not being restored.
+- Fixed: Hotlink colors are not correct in light mode.
+- Fixed: Recursive Diagram views results in duplicated connections.
+- Issue: A program error can occur in the external package 'Cria' when performing an Ai Analysis with a local (e.g. llama) model.
 
 ## [5.0.5]
 
