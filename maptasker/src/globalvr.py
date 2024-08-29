@@ -186,17 +186,12 @@ def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> N
                         if variable_project["xml"] == project
                     ],
                 )
-                # for variable_project in PrimeItems.variables[key]["project"]:
-                #    if variable_project["xml"] == project:
-                #        variable_output_lines.append(
-                #            f"<tr>{table_definition}{key}</td>{table_definition}{value['value']}</td></tr>",
-                #        )
 
         # If this is a verified "tasker variable", and not a Project global var?
         elif PrimeItems.variables[key]["verified"] and not PrimeItems.variables[key]["project"]:
             # It is an unrefereenced variable.
             variable_output_lines.append(
-                f"<tr>{table_definition}{key}</td>{table_definition}{value['value']}</td></tr>"
+                f"<tr>{table_definition}{key}</td>{table_definition}{value['value']}</td></tr>",
             )
 
     return variable_output_lines

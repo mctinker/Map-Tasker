@@ -369,12 +369,13 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
             error_handler("Error: Failed to open output in browser: your browser is not supported.", 1)
 
     # If doing the outline, let 'em know about the map file.
-    map_text = (
-        "The Configuration Map was saved as MapTasker_Map.txt.  " if PrimeItems.program_arguments["outline"] else ""
-    )
-    print("")
-    print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}")
-    print("")
+    if not PrimeItems.program_arguments["guiview"]:
+        map_text = (
+            "The Configuration Map was saved as MapTasker_Map.txt.  " if PrimeItems.program_arguments["outline"] else ""
+        )
+        print("")
+        print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}")
+        print("")
 
 
 # Output the configuration outline and map
@@ -495,6 +496,10 @@ def display_back_matter(
         or (single_profile_name and not single_profile_found)
         or (single_project_name and not single_project_found)
     ):
+        if PrimeItems.program_arguments["guiview"]:
+            PrimeItems.error_code = 1
+            PrimeItems.error_msg = "Error: Single item specified but not found!  Try again."
+            return
         clean_up_and_exit("Task", single_task_name)
 
     # Display the program caveats
@@ -616,7 +621,7 @@ def special_handling(found_tasks: list, projects_without_profiles: list, project
     # Restore the directory setting for the final directory of Totals
     program_arguments["directory"] = temp_dir
 
-    # Display the trailer stuff, after Projects/Profiles/Tasks/Scenes
+    # Display the trailer stuff, after Projects/Profiles/Tasks/Scenes and print the output.
     display_back_matter(
         program_arguments,
         single_project_name,
@@ -694,7 +699,7 @@ def mapit_all(file_to_get: str) -> int:
         projects_without_profiles,
     )
 
-    # Do special handling
+    # Do special handling: swrqap up back matter and print the output.
     special_handling(found_tasks, projects_without_profiles, projects_with_no_tasks)
 
     # Handle Ai Analysis

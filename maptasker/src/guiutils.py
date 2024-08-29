@@ -13,6 +13,7 @@ import contextlib
 import json
 import os
 import sys
+import time
 from tkinter import font
 from typing import TYPE_CHECKING, Callable
 
@@ -55,23 +56,21 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.1.0 - Change Log\n
-### ADDED\n
-- Added: 'Search' support added to Map, Diagram and Ai Analysis views.\n
-- Added: 'Toggle Word Wrap' added to Map, Diagram and Ai Analysis views.\n
-- Added: Copy and paste support added to Map, Diagram and Ai Analysis views.\n
-- Added: The Diagram view now respects the 'View Limit'.\n
-- Added: The 'View Limit' has additional increments of 15000 and 25000.\n
+Version 5.1.1 - Change Log\n
+### Added\n
+- Added: "Go to bottom" has been added to the Map view to jump to the bottom of the view.\n
+- Added: "Go to top" has been added to Profile, Task and Scene elements in the browser.\n
 ### Changed\n
-- Changed: The GUI 'Map Limit' has been renamed to 'View Limit'.\n
-- Changed: The Ai Analysis default prompt has been changed from "how could this be improved:" to "suggest improvements for performance and readability:"\n
-### FIXED\n
-- Fixed: The Diagram view is printing '13' (old debug code).\n
-- Fixed: view windows resizing are not being restored.\n
-- Fixed: Hotlink colors are not correct in light mode.\n
-- Fixed: Recursive Diagram views results in duplicated connections.\n
+- Changed: Don't display the message, "You can find 'MapTasker.html' in the current folder." if displaying the Map or Diagram views from the GUI.\n
+### Fixed\n
+- Fixed: Ai Analysis response window size and location are not being restored on recursive calls.\n
+- Fixed: Horizontal scrollbars are not being shown in the GUI views.\n
+- Fixed: Fetching xml from the Android device is not resetting the single Project/Profile/Task to none.\n
+- Fixed: Program error if displaying the directory in the Map view.\n
+- Fixed: Directory names in the Map view that exceeded 40 characters are not displaying correctly.  Now they are truncated with "..." at end.\n
+- Fixed: If working with a Scene-only XML file, specifying a single named item results in program exiting rather than issuing an error message.\n
 ### Known Issues\n
-- A program error can occur in the external package 'cria' when performing an Ai Analysis with a local (e.g. llama) model.\n
+- A program error can occur in the external package 'Cria' when performing an Ai Analysis with a local (e.g. llama) model.\n
 """
 
 default_font_size = 14
@@ -772,6 +771,8 @@ def delete_ai_labels(self) -> None:  # noqa: ANN001
         self.ai_set_label4.destroy()
     with contextlib.suppress(AttributeError):
         self.ai_set_label5.destroy()
+    with contextlib.suppress(AttributeError):
+        self.single_label.destroy()  # Include the single name label
 
 
 # Display the current settings for Ai
@@ -888,28 +889,22 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
 
 # Update the Project/Profile/Task pulldown option menus.
 # @profile
-def update_tasker_object_menus(self, get_data: bool) -> None:  # noqa: ANN001
+def update_tasker_object_menus(self, get_data: bool, reset_single_names: bool) -> None:  # noqa: ANN001
     """
-    args:
-        get_data: bool = True if we should get the xml data tree and build the pulldown menus.
-    Updates the tasker object menus based on the current conditions.
-
-    This function determines the values to be displayed in the option menus for the tasker objects. The values are determined based on the following conditions:
-
-    - If a single project name is available, the project option menu is set to the project name, and the profile and task option menus are set to their default values.
-    - If a single profile name is available, the profile option menu is set to the profile name, and the project and task option menus are set to their default values.
-    - If a single task name is available and the list of tasker objects is not empty, the task option menu is set to the task name, and the project and profile option menus are set to their default values.
-    - If none of the above conditions are met, all option menus are set to their default values.
+    Update the Project/Profile/Task pulldown option menus. Only do this if we have the object name since it forces a read of XML.
 
     Parameters:
-        self (object): The current instance of the class.
+        get_data (bool): If True, then get the data tree, list and set the Project/Profile/Task list in 'Specific Name' and 'Analyze' tab. If False, then don't get the data.
+        reset_single_names (bool): If True, then reset the Project/Profile/Task name fields in 'Specific Name' tab. If False, then don't reset the fields.
 
     Returns:
-        None: This function does not return anything.
+        None
     """
-    # Get data tree, list and set the Project/Profile/Task list in 'Specific Name' and 'Analyze' tab.
-    # Only do this if we have the object name since it forces a read of XML.
     if get_data:
+        if reset_single_names:
+            self.single_project_name = ""
+            self.single_profile_name = ""
+            self.single_task_name = ""
         return_code = list_tasker_objects(self)
         if not return_code:
             return
@@ -1652,7 +1647,7 @@ def display_no_xml_message(self) -> None:  # noqa: ANN001
         None
     """
     self.display_message_box(
-        "View not possible.  No Projects, Profiles, Tasks or Scenes in the current XML file.\n",
+        "View not possible.  No Projects, Profiles Tasks (or Scenes) in the current XML file.\n",
         "Orange",
     )
     self.display_message_box(
@@ -1920,3 +1915,62 @@ def get_appropriate_color(self: object, color_to_use: str) -> str:
             # Return the light-mode color
             return color[1]
     return color_to_use
+
+
+def display_progress_bar(
+    progress_bar: object,
+    max_data: int,
+    num: int,
+    tenth_increment: int,
+    is_instance_method: bool = False,
+) -> None:
+    """
+    Update and display a progress bar with a specified color based on the progress percentage.
+
+    Args:
+        progress_bar (object): The instance of the progressbar window or the instance of the class containing the progress bar.
+        max_data (int): The maximum value for the progress bar.
+        num (int): The current value of the progress bar.
+        tenth_increment (int): The increment value for each 10% of progress.
+        is_instance_method (bool): Flag to determine if the function is used as a class instance method.
+
+    Returns:
+        None: This function does not return anything.
+    """
+    # If used as an instance method (Map), adjust the progress_bar reference.
+    if is_instance_method:
+        progress_bar = progress_bar.progress_bar
+        comp2 = 2
+        comp4 = 4
+        comp6 = 6
+        comp8 = 8
+        threshold = num / tenth_increment
+    else:
+        # Diagram view
+        comp2 = tenth_increment * 2
+        comp4 = tenth_increment * 4
+        comp6 = tenth_increment * 6
+        comp8 = tenth_increment * 8
+        threshold = num
+
+    # Determine the progress color based on the current value.
+    if threshold <= comp2:
+        progress_color = "red"
+    elif threshold <= comp4:
+        progress_color = "orangered"
+    elif threshold <= comp6:
+        progress_color = "orange"
+    elif threshold <= comp8:
+        progress_color = "limegreen"
+    else:
+        progress_color = "green"
+
+    # Update the progress bar with the current value and color.
+    progress_bar.progressbar.set(num / max_data)
+    progress_bar.progressbar.configure(progress_color=progress_color)
+    progress_bar.progressbar.update()
+
+    # Check if an alert needs to be printed.
+    if progress_bar.progressbar.print_alert and round(time.time() * 1000) - progress_bar.progressbar.start_time > 4000:
+        print("You can ignore the error message: IMKClient Stall detected, *please Report*...")
+        progress_bar.progressbar.print_alert = False

@@ -16,9 +16,9 @@ from __future__ import annotations
 import contextlib
 import gc
 import os
-import sys
+import time
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional, Set
+from typing import TYPE_CHECKING
 
 from maptasker.src.diagutil import (
     add_output_line,
@@ -33,9 +33,10 @@ from maptasker.src.diagutil import (
     remove_icon,
 )
 from maptasker.src.getids import get_ids
+from maptasker.src.guiutils import display_progress_bar
 from maptasker.src.guiwins import ProgressbarWindow
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import DIAGRAM_FILE, MY_VERSION, NOW_TIME, FormatLine, logger
+from maptasker.src.sysconst import DIAGRAM_FILE, MY_VERSION, NOW_TIME, FormatLine
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -645,12 +646,7 @@ def handle_calls(output_lines: list) -> None:
     for line_num, line in enumerate(output_lines):
         # Update progress bar if needed.
         if PrimeItems.program_arguments["gui"] and line_num % tenth_increment == 0:
-            display_progress_bar(
-                progress_bar,
-                max_data,
-                line_num,
-                tenth_increment,
-            )
+            display_progress_bar(progress_bar, max_data, line_num, tenth_increment, is_instance_method=False)
 
         # Get rid of icons in the names
         if any(char in line for char in arrows):
@@ -827,30 +823,6 @@ def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
 
     # Add a blank line
     add_output_line(" ")
-
-
-def display_progress_bar(progress_bar: object, max_data: int, num: int, tenth_increment: int) -> None:
-    """
-    Display a progress bar with a specified color based on the progress percentage.
-
-    Args:
-        self (object): The instance of the class.
-        max_data (int): The maximum value for the progress bar.
-        num (int): The current value of the progress bar.
-        tenth_increment (int): The increment value for each 10% of progress.
-
-    Returns:
-        None: This function does not return anything.
-    """
-    if num <= tenth_increment * 3:
-        progress_color = "red"
-    elif num <= tenth_increment * 6:
-        progress_color = "orange"
-    else:
-        progress_color = "green"
-    progress_bar.progressbar.set(num / max_data)
-    progress_bar.progressbar.configure(progress_color=progress_color)
-    progress_bar.progressbar.update()
 
 
 # Process all Projects

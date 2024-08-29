@@ -211,6 +211,19 @@ class LineOut:
         color_pos = element.find('_color"')
         return f'{element[0:color_pos]}_color {tab}"{element[(color_pos+7):]}'
 
+    # Add "Go to top" hyperlink to the element
+    def add_top_link(self, element: str) -> str:
+        """
+        Adds a "Go to top" link to the element if it's under 70 characters.
+        Otherwise, adds it after 5 blanks.
+        """
+        blank = "&nbsp;"
+        if len(element) < 70:
+            element = f"{element}{blank * 20}<a href='#'>Go to top</a><br>"
+        else:
+            element = f"{element}{blank * 5}<a href='#'>Go to top</a><br>"
+        return element
+
     # Given a text string to output, format it based on it's contents:
     #   Project/Profile/Task/Actrion/Scene
     def format_line_list_item(self, element: str) -> str:
@@ -254,6 +267,7 @@ class LineOut:
                 Returns:
                     _type_: output text with hyperlink target embedded
         """
+        element = self.add_top_link(element)
         element = self.add_tab("projtab", element)
         return self.add_directory_link("<br>", element, "\n")
 
@@ -267,6 +281,7 @@ class LineOut:
         - Adds opening and closing tags for list item
         - Calls method to add directory link
         - Returns formatted string"""
+        element = self.add_top_link(element)
         element = self.add_tab("proftab", element)
         # Add the directory link to the Profile line.
         # Add <div </div> to ensure line wrap breaks at proftab (Profile spacing)
@@ -285,13 +300,14 @@ class LineOut:
             - Set color to "unknown_task_color" if true else "task_color"
             - Add font and element details to style
             - Return styled element from add_style method"""
+
+        element = self.add_top_link(element)
         style_details = {
             "tab": "tasktab",
             "font": font,
             "element": element,
             "color": ("unknown_task_color" if UNKNOWN_TASK_NAME in element else "task_color"),
         }
-
         # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
         return self.add_style(style_details)
 
@@ -332,6 +348,7 @@ class LineOut:
                 scene_name = remove_html_tags(scene_name, "")
 
             directory = f'<a id="{scene_name.replace(" ","_")}"></a>\n'
+        element = self.add_top_link(element)
         style_details = {
             "tab": "scenetab",
             "color": "scene_color",

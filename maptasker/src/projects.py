@@ -304,7 +304,7 @@ def tasks_not_in_profiles(
 
 # Add extra info to Project output line as appropriate and then output it.
 def get_extra_and_output_project(
-    project: defusedxml.ElementTree.XML,
+    project: defusedxml.ElementTree,
     project_name: str,
     launcher_task_info: str,
 ) -> bool:
@@ -339,12 +339,8 @@ def get_extra_and_output_project(
         True,
     )
 
-    # Set up the final Project output line and add a "Go to top" hyperlink
+    # Set up the final Project output line.
     final_project_line = f"{project_name_details} {launcher_task_info}{priority}{kid_app_info}"
-    if len(final_project_line) < 70:
-        final_project_line = f"{final_project_line}{blank * 20}<a href='#'>Go to top</a><br>"
-    else:
-        final_project_line = f"{final_project_line}{blank * 5}<a href='#'>Go to top</a><br>"
 
     # Pretty it up?
     if PrimeItems.program_arguments["pretty"]:

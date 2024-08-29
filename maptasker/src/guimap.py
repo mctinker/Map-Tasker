@@ -538,9 +538,14 @@ def add_directory_entry(temp: list, output_lines: dict, line_num: int) -> dict:
     tasker_type = tasker_type.replace("<a href=#", "")
 
     # Get the object name
-    name = temp[1].split("<a href=#")[1]
-    name = name.split("</a")[0]
-    name = name.split(">")[1]
+    split_str = "<a href=#"
+    if split_str in temp[1]:
+        name = temp[1].split(split_str)[1]
+        name = name.split("</a")[0]
+        name = name.split(">")[1]
+    else:
+        return output_lines
+
     # If name is blank, then the name has ">>" in it (double ">")
     if name == "":
         newname = temp[1].split(">>")

@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "5.1.0"
+VERSION = "5.1.1"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"

@@ -26,6 +26,7 @@ from maptasker.src.guiutils import (
     add_logo,
     add_option_menu,
     display_analyze_button,
+    display_progress_bar,
     get_appropriate_color,
     get_monospace_fonts,
     make_hex_color,
@@ -284,13 +285,16 @@ class TextWindow(ctk.CTkToplevel):
             # window_ shouldn't be in here.  If it is, pickle file is corrupt.
             window_position = window_position.replace("window_", "")
             work_window_geometry = window_position.split("x")
-            self.master.text_window_width = int(work_window_geometry[0])
+            self.master.text_window_width = work_window_geometry[0]
             self.master.text_window_height = work_window_geometry[1].split("+")[0]
         except (AttributeError, TypeError):
             self.master.text_window_position = "600x800+600+0"
             self.master.text_window_width = "600"
             self.master.text_window_height = "800"
             self.geometry(self.master.text_window_position)
+
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
         # Display the title.
         self.title(f"{title} - Drag window to desired position and rerun the {title} command.")
@@ -359,6 +363,8 @@ class CTkTextview(ctk.CTkFrame):
         # Recreate text box
         width = getattr(master.master, "text_window_width")
         height = getattr(master.master, "text_window_height")
+        # Shorten the height so that the scrollbar is shown.
+        height = str(int(height) - 70)
         font = getattr(master.master, "font")
         self.textview_textbox = ctk.CTkTextbox(
             self,
@@ -366,6 +372,10 @@ class CTkTextview(ctk.CTkFrame):
         )
         self.textview_textbox.grid(row=0, column=0, padx=20, pady=40, sticky="nsew")
 
+        # Define a scrollbar
+        self.scrollbar = ctk.CTkScrollbar(self)
+
+        # Set the height and width
         self.textview_textbox.configure(
             height=height,
             width=width,
@@ -382,9 +392,6 @@ class CTkTextview(ctk.CTkFrame):
         # Get the special fonts
         self.bold_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], weight="bold", size=12)
         self.italic_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], size=12, slant="italic")
-
-        # Defile a scollbar
-        self.scrollbar = ctk.CTkScrollbar(self)
 
         # Insert the text with our new message into the text box.
         # fmt: off
@@ -735,7 +742,7 @@ class CTkTextview(ctk.CTkFrame):
         # Go through the data and format it accordingly.
         for num, (_, value) in enumerate(the_data.items()):
             if num % tenth_increment == 0:
-                self.display_progress_bar(max_data, num, tenth_increment)
+                display_progress_bar(self, max_data, num, tenth_increment, is_instance_method=True)
             # Ignore blank lines
             text = value.get("text", [])
             if text and text[0] == "  \n":
@@ -953,42 +960,6 @@ class CTkTextview(ctk.CTkFrame):
                     return profile_value["name"]
         return ""
 
-    def display_progress_bar(self: object, max_data: int, num: int, tenth_increment: int) -> None:
-        """
-        Display a progress bar with a specified color based on the progress percentage.
-
-        Args:
-            self (object): The instance of the class.
-            max_data (int): The maximum value for the progress bar.
-            num (int): The current value of the progress bar.
-            tenth_increment (int): The increment value for each 10% of progress.
-
-        Returns:
-            None: This function does not return anything.
-        """
-        threshold = num / tenth_increment
-        if threshold <= 2:
-            progress_color = "red"
-        elif threshold <= 4:
-            progress_color = "orangered"
-        elif threshold <= 6:
-            progress_color = "orange"
-        elif threshold <= 8:
-            progress_color = "limegreen"
-        else:
-            progress_color = "green"
-
-        self.progress_bar.progressbar.set(num / max_data)
-        self.progress_bar.progressbar.configure(progress_color=progress_color)
-        self.progress_bar.progressbar.update()
-        # Print alert if necessary.
-        if (
-            self.progress_bar.progressbar.print_alert
-            and round(time.time() * 1000) - self.progress_bar.progressbar.start_time > 4000
-        ):
-            print("You can ignore the error message: IMKClient Stall detected, *please Report*...")
-            self.progress_bar.progressbar.print_alert = False
-
     def process_colored_text(
         self: object,
         value: dict,
@@ -1085,8 +1056,11 @@ class CTkTextview(ctk.CTkFrame):
             link = [value["directory"][0], value["directory"][1]]
             spacer = ""
         else:
+            # Truncate name if it is beyond our default spacing.
+            insert_name = hotlink_name[: spacing - 3] + "..." if len(hotlink_name) > spacing else hotlink_name
+            # Determine additional space to add to liones if needed.
             spacer = "\n" if char_position == spacing * columns - spacing else ""
-            name_to_insert = f'{hotlink_name.ljust(spacing, " ")}{spacer}'
+            name_to_insert = f'{insert_name.ljust(spacing, " ")}{spacer}'
             link = [value["directory"][0], hotlink_name]
 
         # Add the text to the text box.  The tag is obtained from call to self.textview_hyperlink.add.
@@ -1209,7 +1183,25 @@ class CTkTextview(ctk.CTkFrame):
                 # For some reason, we have to back up 2 lines to get the right position.
                 self.textview_textbox.insert(
                     f"{line_pos}.{gototop_char_position!s}",
-                    "Go to top",
+                    "Go to top     ",
+                    top_tag_id,
+                )
+                # Add color to the tag
+                self.textview_textbox.tag_config(
+                    top_tag_id[1],
+                    background=make_hex_color(self.master.master.color_lookup["background_color"]),
+                )
+
+                # Go to bottom: Add the hyperlink.
+                # The tag is obtained from call to self.textview_hyperlink.add.
+                link = ["gotobot", "Go to bot"]
+                top_tag_id = self.textview_hyperlink.add(link)
+                gotobot_char_position = gototop_char_position + 16
+                # Add the text to the text box.
+                # For some reason, we have to back up 2 lines to get the right position.
+                self.textview_textbox.insert(
+                    f"{line_pos}.{gotobot_char_position!s}",
+                    "Go to bottom",
                     top_tag_id,
                 )
                 # Add color to the tag
@@ -1594,6 +1586,9 @@ class CTkHyperlinkManager:
                     # Reset text to line 1?
                     if link[0] == "gototop":
                         self.text.master.textview_textbox.see("1.0")
+                    elif link[0] == "gotobot":
+                        # Go to bottom
+                        self.text.master.textview_textbox.see("end")
                     else:
                         # Remap single Project/Profile/Task
                         action, name = link
@@ -1631,7 +1626,7 @@ class CTkHyperlinkManager:
             # Update self.single_xxx_name
             setattr(guiself, f"single_{single_name_parm}_name", name)
             # Reset single item menus
-            update_tasker_object_menus(guiself, get_data=False)
+            update_tasker_object_menus(guiself, get_data=False, reset_single_names=False)
             # Remap it.
             guiself.remapit(clear_names=False)
 
@@ -1815,7 +1810,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     )
 
     # Display 'Condition' checkbox
-    self.condition_checkbox = add_checkbox(
+    self.conditions_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
         self.event_handlers.condition_event,
@@ -2373,7 +2368,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "#246FB6",
         ("#0BF075", "#1AD63D"),
         "",
-        self.event_handlers.rerun_the_program_event,
+        self.event_handlers.rerun_event,
         2,
         "ReRun",
         1,
