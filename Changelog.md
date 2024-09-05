@@ -16,10 +16,10 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Project/Profile/Task/Scene name highlighting is incomplete in the Map view.
-- Fixed: Project/Profile/Task/Scene names with the any of the special characters '_,>[(' in it are not displaying correctly.
+- Fixed: Project/Profile/Task/Scene names with special characters in it are not displaying correctly.
 - Fixed: 'Go to bottom' hotlink in Map view goes beyond the last entry in the list.
 - Fixed: If no XML is loaded, the single name pulldowns are still incorrectly loaded with the prior XML names.
-- Fixed: No inidation is given that the search string was not found in the Map and Diagram views.
+- Fixed: No indication is given that the search string was not found in the Map and Diagram views.
 - Fixed: Unnamed Profiles have a blank name rather than 'None or unnamed!' as the name in certain situations.
 
 ### Known Issues
