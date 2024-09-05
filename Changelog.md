@@ -2,31 +2,43 @@
 
 All notable changes to this project will be documented in this file!
 
-## [5.1.1] 29-Aug-2024
+## [5.1.2] 05-Sep-2024
 
 ### Added
 
-- Added: "Go to bottom" has been added to the Map view to jump to the bottom of the view.
-- Added: "Go to top" has been added to Profile, Task and Scene elements in the browser.
+- Added: 'Up Two Levels' has been added to the Map view.
 
 ### Changed
 
-- Changed: Don't display the message, "You can find 'MapTasker.html' in the current folder." if displaying the Map or Diagram views from the GUI.
+- Changed: Map view performance has been improved when using the directory hyperlinks for single names that are already in the view.  It goes directly to the single named item in the current view rather than remapping the nnmed item and redrawing the view.
+- Changed: To remap a single named item in the Map view, the single named item must be selected from the GUI and the 'Map' view button must be reselected.  Otherwise, it will simply display the single named item in the existing Map view.
 
 ### Fixed
 
-- Fixed: Ai Analysis response window size and location are not being restored on recursive calls.
-- Fixed: Horizontal scrollbars are not being shown in the GUI views.
-- Fixed: Fetching xml from the Android device is not resetting the single Project/Profile/Task to none.
-- Fixed: Program error if displaying the directory in the Map view.
-- Fixed: Directory names in the Map view that exceeded 40 characters are not displaying correctly.  Now they are truncated with "..." at end.
-- Fixed: If working with a Scene-only XML file, specifying a single named item results in program exiting rather than issuing an error message.
+- Fixed: Project/Profile/Task/Scene name highlighting is incomplete in the Map view.
+- Fixed: Project/Profile/Task/Scene names with the any of the special characters '_,>[(' in it are not displaying correctly.
+- Fixed: 'Go to bottom' hotlink in Map view goes beyond the last entry in the list.
+- Fixed: If no XML is loaded, the single name pulldowns are still incorrectly loaded with the prior XML names.
+- Fixed: No inidation is given that the search string was not found in the Map and Diagram views.
+- Fixed: Unnamed Profiles have a blank name rather than 'None or unnamed!' as the name in certain situations.
 
 ### Known Issues
 
 - A program error can occur in the external package 'Cria' when performing an Ai Analysis with a local (e.g. llama) model.
 
 ## Older History Logs
+
+## [5.1.1]
+
+- Added: "Go to bottom" has been added to the Map view to jump to the bottom of the view.
+- Added: "Go to top" has been added to Profile, Task and Scene elements in the browser.
+- Changed: Don't display the message, "You can find 'MapTasker.html' in the current folder." if displaying the Map or Diagram views from the GUI.
+- Fixed: Ai Analysis response window size and location are not being restored on recursive calls.
+- Fixed: Horizontal scrollbars are not being shown in the GUI views.
+- Fixed: Fetching xml from the Android device is not resetting the single Project/Profile/Task to none.
+- Fixed: Program error if displaying the directory in the Map view.
+- Fixed: Directory names in the Map view that exceeded 40 characters are not displaying correctly.  Now they are truncated with "..." at end.
+- Fixed: If working with a Scene-only XML file, specifying a single named item results in program exiting rather than issuing an error message.
 
 ## [5.1.0]
 
