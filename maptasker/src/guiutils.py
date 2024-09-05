@@ -56,19 +56,19 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.1.1 - Change Log\n
+Version 5.1.2 - Change Log\n
 ### Added\n
-- Added: "Go to bottom" has been added to the Map view to jump to the bottom of the view.\n
-- Added: "Go to top" has been added to Profile, Task and Scene elements in the browser.\n
+- Added: 'Up Two Levels' has been added to the Map view.\n\n
 ### Changed\n
-- Changed: Don't display the message, "You can find 'MapTasker.html' in the current folder." if displaying the Map or Diagram views from the GUI.\n
+- Changed: Map view performance has been improved when using the directory hyperlinks for single names that are already in the view.  It goes directly to the single named item in the current view rather than remapping the nnmed item and redrawing the view.\n
+- Changed: To remap a single named item in the Map view, the single named item must be selected from the GUI and the 'Map' view button must be reselected.  Otherwise, it will simply display the single named item in the existing Map view.\n\n
 ### Fixed\n
-- Fixed: Ai Analysis response window size and location are not being restored on recursive calls.\n
-- Fixed: Horizontal scrollbars are not being shown in the GUI views.\n
-- Fixed: Fetching xml from the Android device is not resetting the single Project/Profile/Task to none.\n
-- Fixed: Program error if displaying the directory in the Map view.\n
-- Fixed: Directory names in the Map view that exceeded 40 characters are not displaying correctly.  Now they are truncated with "..." at end.\n
-- Fixed: If working with a Scene-only XML file, specifying a single named item results in program exiting rather than issuing an error message.\n
+- Fixed: Project/Profile/Task/Scene name highlighting is incomplete in the Map view.\n
+- Fixed: Project/Profile/Task/Scene names with the any of the special characters '_,>[(' in it are not displaying correctly.\n
+- Fixed: 'Go to bottom' hotlink in Map view goes beyond the last entry in the list.\n
+- Fixed: If no XML is loaded, the single name pulldowns are still incorrectly loaded with the prior XML names.\n
+- Fixed: No inidation is given that the search string was not found in the Map and Diagram views.\n
+- Fixed: Unnamed Profiles have a blank name rather than 'None or unnamed!' as the name in certain situations.\n\n
 ### Known Issues\n
 - A program error can occur in the external package 'Cria' when performing an Ai Analysis with a local (e.g. llama) model.\n
 """
@@ -1456,6 +1456,9 @@ def display_current_file(self, file_name: str) -> None:  # noqa: ANN001
         (20, 0),
         "w",
     )
+    # Update UI elements
+    update_tasker_object_menus(self, get_data=False, reset_single_names=False)
+    display_analyze_button(self, 13, first_time=False)
 
 
 # Set up error message for single Project/Profile/Task name that was entered.  Called by check_name in userintr.
@@ -1534,6 +1537,15 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
         self.specific_name_msg = ""
         try:  # If it works on the first one, then all others will work as well.
             self.specific_project_optionmenu.set(default_project)
+            if not PrimeItems.tasker_root_elements["all_projects"]:
+                self.specific_project_optionmenu.configure(values=["None"])
+                self.ai_project_optionmenu.configure(values=["None"])
+            if not PrimeItems.tasker_root_elements["all_profiles"]:
+                self.specific_profile_optionmenu.configure(values=["None"])
+                self.ai_profile_optionmenu.configure(values=["None"])
+            if not PrimeItems.tasker_root_elements["all_tasks"]:
+                self.specific_task_optionmenu.configure(values=["None"])
+                self.ai_task_optionmenu.configure(values=["None"])
             self.specific_profile_optionmenu.set(default_profile)
             self.ai_project_optionmenu.set(default_project)
             self.ai_profile_optionmenu.set(default_profile)
@@ -1654,6 +1666,8 @@ def display_no_xml_message(self) -> None:  # noqa: ANN001
         "Click the 'Get Local XML' or 'Get XML From Android' button to load some XML first.",
         "Orange",
     )
+    # Clear everything out.
+    update_tasker_object_menus(self, get_data=False, reset_single_names=True)
 
 
 def reset_primeitems_single_names() -> None:
@@ -1741,13 +1755,14 @@ def make_hex_color(color: str) -> str:
     return color
 
 
-def search_substring_in_list(strings: list, substring: str) -> list:
+def search_substring_in_list(strings: list, substring: str, stop_on_first_match: bool) -> list:
     """
     Searches for a given substring within a list of strings and returns a list of tuples containing the index of the string and the position of the substring.
 
     Args:
         strings (list): A list of strings to search within.
         substring (str): The substring to search for.
+        stop_on_first_match (bool): Whether to stop searching after the first match is found.
 
     Returns:
         list: A list of tuples containing the index of the string and the position of the substring.
@@ -1759,9 +1774,11 @@ def search_substring_in_list(strings: list, substring: str) -> list:
         start = 0
         while start < len(lower_string):
             pos = lower_string.find(lower_substring, start)
-            if pos == -1:
+            if pos == -1 or "up one level" in lower_string:
                 break
             matches.append((i, pos))
+            if stop_on_first_match:
+                return matches
             start = pos + 1  # Move start index forward to continue searching
     return matches
 

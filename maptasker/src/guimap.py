@@ -226,15 +226,17 @@ def extract_highlights(working_text: str, highlight_tags: list) -> list:
     Returns:
         list: A list of strings representing the extracted highlights
     """
-    name_end_position = working_text.find("</")
-    temp_string = working_text[:name_end_position]
-    name_start_position = temp_string.rfind(">")
-    highlight_name = temp_string[name_start_position + 1 :]
-
     highlights = []
+    # Seacrh for highlight ion string, and if found, get the highlight object's name and return it.
     for tag, style in highlight_tags.items():
-        if tag in working_text[:name_end_position]:
+        if tag in working_text:
+            tag_name = tag.split(">")[0]
+            end_tag = f"</{tag_name[1:]}>"
+            work_name = working_text.split(tag)
+            highlight_name = work_name[1].split(end_tag)[0]
             highlights.append(f"{style},{highlight_name}")
+            break
+
     return highlights
 
 
@@ -516,6 +518,35 @@ def additional_formatting(
     return output_lines, spacing
 
 
+def parse_name(input_string: str) -> str:
+    """
+    Parses out the desired name from the input string by splitting based on '>'.
+
+    Parameters:
+        input_string (str): The string to parse.
+
+    Returns:
+        str or None: The extracted name if found, else None.
+    """
+    # Split the string by '>'
+    parts = input_string.split(">")
+
+    # Debug: Show the split parts
+    # print(f"Split parts: {parts}")
+
+    # Check if there are enough parts to extract the name
+    if len(parts) < 3:
+        print("Not enough parts to extract the name.")
+        return None
+
+    if parts[2] == "</td":
+        return parts[1].split("</a")[0]
+
+    # The desired name is after the second '>'
+    # Join the remaining parts in case there are multiple '>' in the name
+    return ">".join(parts[2:]).strip()
+
+
 def add_directory_entry(temp: list, output_lines: dict, line_num: int) -> dict:
     """
     Adds a directory entry to the output lines dictionary.
@@ -533,26 +564,15 @@ def add_directory_entry(temp: list, output_lines: dict, line_num: int) -> dict:
     if temp[1] == "</td>\n":
         return output_lines
 
-    # Get the tasker object type (projects, profiles, tasks, scenes)
-    tasker_type = temp[1].split("_")[0]
-    tasker_type = tasker_type.replace("<a href=#", "")
-
-    # Get the object name
-    split_str = "<a href=#"
-    if split_str in temp[1]:
-        name = temp[1].split(split_str)[1]
-        name = name.split("</a")[0]
-        name = name.split(">")[1]
-    else:
-        return output_lines
-
-    # If name is blank, then the name has ">>" in it (double ">")
-    if name == "":
-        newname = temp[1].split(">>")
-        name = newname[2].split("</a>")[0].lstrip()
+    # Get the tasker object name and type (projects, profiles, tasks, scenes)
+    name = parse_name(temp[1]).replace("</a></td>", "")
+    start_pos = temp[1].find("#")
+    end_pos = temp[1].find("_", 1)
+    tasker_type = temp[1][start_pos+1:end_pos]
 
     # Add the directory entry
-    output_lines[line_num] = {"directory": [tasker_type, name], "text": [], "color": []}
+    if name is not None:
+        output_lines[line_num] = {"directory": [tasker_type, name], "text": [], "color": []}
     return output_lines
 
 

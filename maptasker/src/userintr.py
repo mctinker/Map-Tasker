@@ -202,15 +202,12 @@ LISTFILES_HELP_TEXT = (
 VIEW_HELP_TEXT = (
     "XML must first be obtained from the either local drive or Android device for the views to work.\n\n"
     "All view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\n"
-    "If the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data."
-    " In otherwords, the view will remain the same until either the 'Reset' button is hit, or a new XML file is fetched from the"
-    " local drive or Android device.\n\n"
+    "If the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data.\n\n"
+    "Very large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\n"
     "\nThe Map View has the following behavior:\n\n"
-    " - The name highlighting/italicizin/etc. of names in the Map View is targeted for a future release.\n\n"
-    " - While the browser is not invoked directly, the map can be displayed in the browser by opening the 'MapTasker.html' file.\n\n"
-    " - The display 'Directory', 'Outline' and name highlighting settings are ignored since they do not work in the Map view.\n\n"
-    " - Very large configuration maps will incur high CPU usage.  For best p[erformance, select a single Project to map.\n\n"
-    " - If both 'Italicize' and 'Bold' are selected, 'Italicize' will take precedence for an unknown reason.\n\n"
+    " - While the browser is not invoked directly, the map can be displayed in the browser by opening the local 'MapTasker.html' file.\n\n"
+    " - The 'Display Configuration Outline' setting is ignored since it does not work in the Map view.\n\n"
+    " - Going up one or two levels using the directory hyperlink will result in the generation of a new map view.\n\n"
     "\nThe Diagram View has the following behavior:\n\n"
     " - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n"
     "\nThe Tree View has the following behavior:\n\n"
@@ -235,13 +232,13 @@ AI_HELP_TEXT = (
 )
 
 VIEWLIMIT_HELP_TEXT = (
-    "The 'View Limit' is a means to control the amount of processing time used when mapping the configuration.\n\n"
+    "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n"
     "- The numbers represent the relative amount of output lines to be generated.\n\n"
     "- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n"
     "- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n"
     "- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n"
     "- If the limit is hit when calculating the map, no output map will be generated.\n\n"
-    "- You can experiment with this setting to see which setting is for your use case.\n\n"
+    "- You can experiment with this setting to see which setting is best for your use case.\n\n"
     "- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
 )
 
@@ -2122,9 +2119,7 @@ class EventHandlers:
             with contextlib.suppress(AttributeError):
                 menu.set("None")
 
-        # Update UI elements
-        update_tasker_object_menus(the_view, get_data=False, reset_single_names=False)
-        display_analyze_button(the_view, 13, first_time=False)
+        # Display current file as "None"
         display_current_file(the_view, "None")
 
         # Display reset message
@@ -2465,6 +2460,9 @@ class EventHandlers:
             - This associates the given color with the given selected item"""
         the_view = self.parent
         the_view.color_lookup[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
+            color  # Add color for the selected item to our dictionary
+        )
+        PrimeItems.colors_to_use[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
             color  # Add color for the selected item to our dictionary
         )
 
@@ -3072,22 +3070,15 @@ class EventHandlers:
     # Diagram View event
     def diagram_event(self) -> None:
         """
-        Event handler for the diagram event.
-
-        This method is responsible for processing the diagram when the diagram event is triggered. It performs the following steps:
-        1. It assigns the parent object to the current object.
-        2. It checks if there is already a Project.
-            - If there is a Project, it performs the following steps:
-                - It calls the `outline_the_configuration` function to process the diagram and build the 'network'.
-                - It clears the `PrimeItems.output_lines.output_lines` list.
-                - It retrieves the directory from which the diagram file is being run.
-                - It opens the diagram file in read mode using UTF-8 encoding.
-                - It reads the contents of the file into a list called `diagram_data` by stripping the trailing newline characters.
-                - It calls the `display_diagram` method of the current object, passing `diagram_data` as an argument.
-            - If there is no Project, it displays a message box indicating that the diagram is not possible due to no Projects in the current XML file.
-        3. If there is no XML file loaded, it displays a message box indicating that the diagram is not possible due to no XML file loaded.
-
-        This method does not return any value.
+        The 'Diagram' view button has been pressed.  Process the diagram file and display it in the GUI.
+        Args:
+            self: The object instance
+        Returns:
+            None: Does not return anything
+        - Saves the current window positions
+        - Checks if there is a Project or Profile
+        - If a Project or Profile, it processes the diagram file and displays it in the GUI
+        - If not a Project or Profile, it displays a message box indicating that no XML file is loaded.
         """
         guiview = self.parent
 
@@ -3124,6 +3115,7 @@ class EventHandlers:
             PrimeItems.program_arguments["guiview"] = True  # Set it for mapit_all
             guiview.doing_diagram = True
             PrimeItems.program_arguments["doing_diagram"] = True  # Set it for mapit_all
+
             # Set our target objects since mapit-all will bypass setting these values
             PrimeItems.program_arguments["single_project_name"] = guiview.single_project_name
             PrimeItems.program_arguments["single_profile_name"] = guiview.single_profile_name
@@ -3291,7 +3283,7 @@ class EventHandlers:
             # Get the entire textbox into a list, one item per line.
             ty = textview.textview_textbox.get("1.0", "end").rstrip().split("\n")
             # Find all matches.
-            search_hits = search_substring_in_list(ty, search_input)
+            search_hits = search_substring_in_list(ty, search_input, stop_on_first_match=False)
             number_of_hits = len(search_hits)
 
             # Process the matches
@@ -3329,15 +3321,19 @@ class EventHandlers:
             #     self.textview_textbox.tag_add("found", idx, lastidx)
             #     idx = lastidx
 
-            # mark located string as red
-            textview.textview_textbox.tag_config(
-                "found",
-                foreground=textview.search_color_text,
-                background=textview.search_color_highlight,
-            )
-            # Set the line at the first hit.  "See" makes it visible (sometimes).
-            textview.textview_textbox.see(textview.search_current_line)
-            textview.textview_textbox.focus_set()
+                # mark located string as red
+                textview.textview_textbox.tag_config(
+                    "found",
+                    foreground=textview.search_color_text,
+                    background=textview.search_color_highlight,
+                )
+                # Set the line at the first hit.  "See" makes it visible (sometimes).
+                textview.textview_textbox.see(textview.search_current_line)
+                textview.textview_textbox.focus_set()
+
+            # Search string not found.
+            else:
+                output_label(self, textview, "Search string not found.")
 
         else:
             no_search_string(self, textview)
@@ -3358,6 +3354,7 @@ class EventHandlers:
         # remove tag 'found' and "next" from index 1 to END
         textview.textview_textbox.tag_remove("found", "1.0", "end")
         textview.textview_textbox.tag_remove("next", "1.0", "end")
+        textview.textview_textbox.tag_remove("inlist", "1.0", "end")
 
     def wordwrap_event(self: object, textview: CTkTextview) -> None:
         """
@@ -3379,7 +3376,7 @@ class EventHandlers:
             wrap_msg = "on"
         else:
             textview.textview_textbox.configure(state="normal", wrap="none")
-            wrap_msg = 'off'
+            wrap_msg = "off"
 
         # Let the user know.
         output_label(self, textview, f"Word wrap is {wrap_msg}")

@@ -615,7 +615,7 @@ def process_project_profiles(
     found_tasks: list,
     our_task_element: defusedxml.ElementTree,
     profile_count: int,
-) -> tuple[bool, defusedxml.ElementTree.XML, int]:
+) -> tuple:
     """
     Process all of the Profiles for this Project
         Args:
@@ -653,7 +653,7 @@ def process_project_profiles(
 def process_projects(
     projects_without_profiles: list,
     found_tasks: list,
-    our_task_element: defusedxml.ElementTree.XML,
+    our_task_element: defusedxml.ElementTree,
 ) -> list:
     """
     Go through all the Projects, get their detail and output it

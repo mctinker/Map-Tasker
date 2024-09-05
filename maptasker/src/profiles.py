@@ -128,8 +128,8 @@ def get_profile_name(
 
 # Get the Profile's key attributes: limit, launcher task, run conditions
 def build_profile_line(
-    project: defusedxml.ElementTree.XML,
-    profile: defusedxml.ElementTree.XML,
+    project: defusedxml.ElementTree,
+    profile: defusedxml.ElementTree,
 ) -> str:
     """
     Get the Profile's key attributes: limit, launcher task, run conditions and output it
@@ -209,18 +209,19 @@ def build_profile_line(
                 True,
             )
 
-    # Okay, string it all together
-    profile_info = f"{profile_name_with_html} {condition_text} {launcher}{disabled} {flags}"
-
     # Break it up into separate lines if we are doing pretty output
+    temp = f"{condition_text} {launcher}{disabled} {flags}"
     if PrimeItems.program_arguments["pretty"]:
         indentation = len(profile_name) + 4
         # Break at comma
-        profile_info = profile_info.replace(", ", f"<br>{blank*indentation}")
+        profile_info = temp.replace(", ", f"<br>{blank*indentation}")
         # Break at paren
-        profile_info = profile_info.replace(" (", f"<br>{blank*indentation}  (")
+        profile_info = temp.replace(" (", f"<br>{blank*indentation}  (")
         # Break at bracket
-        profile_info = profile_info.replace(" [", f"<br>{blank*indentation}  [")
+        profile_info = temp.replace(" [", f"<br>{blank*indentation}  [")
+
+    # Okay, string it all together
+    profile_info = f"{profile_name_with_html} {temp}"
 
     # Output the Profile line
     PrimeItems.output_lines.add_line_to_output(
@@ -233,10 +234,10 @@ def build_profile_line(
 
 # Process the Profile passed in.
 def do_profile(
-    item: defusedxml.ElementTree.XML,
-    project: defusedxml.ElementTree.XML,
+    item: defusedxml.ElementTree,
+    project: defusedxml.ElementTree,
     project_name: str,
-    profile: defusedxml.ElementTree.XML,
+    profile: defusedxml.ElementTree,
     list_of_found_tasks: list,
 ) -> bool:
     """Function:
@@ -265,8 +266,6 @@ def do_profile(
             return False  # Not our Profile...go to next Profile ID
 
         if PrimeItems.program_arguments["single_profile_name"] != profile_name:
-            return False  # Not our Profile...go to next Profile ID
-
             return False  # Not our Profile...go to next Profile ID
 
         # BINGO! We found the Profile we were looking for!

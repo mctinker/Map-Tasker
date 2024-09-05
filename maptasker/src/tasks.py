@@ -319,6 +319,10 @@ def do_single_task(
         save_profile = PrimeItems.program_arguments["single_profile_name"]
         PrimeItems.program_arguments["single_profile_name"] = profile_name
 
+        # Deal with no name for Profile
+        if not profile_name:
+            profile_name = "None or unnamed!"
+
         # Clear output list
         PrimeItems.output_lines.refresh_our_output(
             True,

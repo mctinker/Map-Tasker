@@ -32,6 +32,7 @@ from maptasker.src.guiutils import (
     make_hex_color,
     output_label,
     reset_primeitems_single_names,
+    search_substring_in_list,
     update_tasker_object_menus,
 )
 from maptasker.src.primitem import PrimeItems
@@ -727,7 +728,7 @@ class CTkTextview(ctk.CTkFrame):
         """
         Process the given map data and output the text lines and colors to a text box.
 
-        Args:
+        Parameters:
             line_num (int): The current line number.
             tags (list): The list of tags.
             char_position (int): The current character position.
@@ -735,27 +736,31 @@ class CTkTextview(ctk.CTkFrame):
             previous_directory (str): The previous directory.
             previous_value (str): The previous value.
             the_data (dict): The dictionary containing the map data.
+
+        Returns:
+            None
         """
         max_data = len(the_data)
-        tenth_increment = max_data // 10 or 1  # Avoid division by zero
-
+        tenth_increment = max_data // 10 or 1
         # Go through the data and format it accordingly.
         for num, (_, value) in enumerate(the_data.items()):
             if num % tenth_increment == 0:
                 display_progress_bar(self, max_data, num, tenth_increment, is_instance_method=True)
-            # Ignore blank lines
+
+            # Get the text of the value and ignore blank lines.
             text = value.get("text", [])
             if text and text[0] == "  \n":
                 continue
 
-            # Check if we need to bump the line number
+            # Check to see if we need to bump the line number.
             line_num, char_position = self.check_bump(line_num, char_position, previous_value, value)
 
             # Check if we need to change the color
             if not value["color"] and value["text"]:
                 value["color"] = [previous_color]
 
-            if value["color"]:
+            # Go through all of the text/color combinations
+            if value.get("color"):
                 line_num, previous_color, previous_value, tags = self.process_colored_text(
                     value,
                     line_num,
@@ -763,58 +768,57 @@ class CTkTextview(ctk.CTkFrame):
                     previous_value,
                     tags,
                 )
-                # Check if we need to go one level up
-                if "Directory    (entries are hotlinks)" in value["text"][0]:
+                if text[0] == "Directory\n":
                     line_num, previous_directory, previous_value, char_position = self.one_level_up(
                         line_num,
                         previous_directory,
                         previous_value,
                         char_position,
                     )
-
-            # Process the directory
             elif value.get("directory"):
-                if previous_value != "directory":
-                    char_position = 0
                 char_position, previous_directory, line_num = self.process_directory(
                     value,
                     line_num,
                     previous_directory,
-                    char_position,
+                    0 if previous_value != "directory" else char_position,
                 )
                 previous_value = "directory"
 
             if self.master.master.debug:
                 logger.info(f"Map View Value: {value}")
 
-    def check_bump(self: object, line_num: int, char_position: int, previous_value: str, current_value: dict) -> tuple:
+    def check_bump(
+        self: object,
+        line_num: int,
+        char_position: int,
+        previous_value: str,
+        current_value: dict,
+    ) -> tuple:
         """
-        Check if there is a need to bump the line number and reset the character position based on the previous value and the current value.
+        Check if we need to bump the line number based on the current and previous value.
+
+        If the current value is not a directory and the previous value was a directory, then
+        bump the line number and set the character position to 0.
+        If the current value is a directory and the previous value was also a directory, then
+        add the length of the current text to the character position.
 
         Args:
-            line_num (int): The current line number.
-            char_position (int): The current character position.
-            previous_value (str): The previous value.
-            current_value (dict): The current value.
+            self: The instance of the class.
+            line_num: The current line number.
+            char_position: The current character position.
+            previous_value: The previous value.
+            current_value: The current value.
 
         Returns:
-            tuple: Updated line number and character position.
+            tuple: A tuple containing the line number and character position.
         """
-        # Extract relevant fields from the current value dictionary
-        current_text = current_value.get("text", [])
         current_directory = current_value.get("directory", False)
 
-        # If the previous value was a directory and the current one isn't, bump the line number
         if previous_value == "directory" and not current_directory:
-            # if (
-            #     previous_value == "directory" and not current_directory) or (current_text
-            #     and previous_value != current_text[0]
-            # ):
             line_num += 1
             char_position = 0
-
-        # If we are still within the same directory, increase the character position
-        if current_directory and previous_value == "directory":
+        elif current_directory and previous_value == "directory":
+            current_text = current_value.get("text", [])
             char_position += len(current_text[0]) if current_text else 0
 
         return line_num, char_position
@@ -827,33 +831,38 @@ class CTkTextview(ctk.CTkFrame):
         char_position: int,
     ) -> tuple:
         """
-        Moves one level up in the directory hierarchy.
+        Process a single item (project, profile, or task) differently than normal items.
+
+        If a single item is specified, then we need to process it differently than normal items.
+        This function will return the line number, previous directory, previous value, and character
+        position for the single item.
+
+        The logic is as follows:
+        - If the single item is a project, then set the value to the project name.
+        - If the single item is a profile, then set the value to the profile name and the owning project.
+        - If the single item is a task, then set the value to the task name and the owning project.
 
         Args:
-            self (object): The instance of the class.
-            line_num (int): The current line number.
-            previous_directory (str): The previous directory.
-            previous_value (str): The previous value.
-            char_position (int): The current character position.
+            self: The instance of the class.
+            line_num: The current line number.
+            previous_directory: The previous directory.
+            previous_value: The previous value.
+            char_position: The current character position.
 
         Returns:
-            tuple: A tuple containing the updated line number, previous directory, previous value, and character position.
+            tuple: A tuple containing the line number, previous directory, previous value, and character position.
         """
-        single_project = PrimeItems.program_arguments["single_project_name"]
-        single_profile = PrimeItems.program_arguments["single_profile_name"]
-        single_task = PrimeItems.program_arguments["single_task_name"]
+        single_project = PrimeItems.program_arguments.get("single_project_name")
+        single_profile = PrimeItems.program_arguments.get("single_profile_name")
+        single_task = PrimeItems.program_arguments.get("single_task_name")
         # Don't do anything if we are not doing a single item.
-        if not single_project and not single_profile and not single_task:
+        if not any([single_project, single_profile, single_task]):
             return line_num, previous_directory, previous_value, char_position
 
-        value = {}
-        # Doing single Project
         if single_project:
             value = {"directory": ["%%", ""]}
-        # Doing single Profile
         elif single_profile:
             value = {"directory": ["%%projects", self.find_owning_project(single_profile)]}
-        # Doing single Task
         elif single_task:
             single_profile_name = self.find_owning_profile(single_task)
             if not single_profile_name:
@@ -861,15 +870,13 @@ class CTkTextview(ctk.CTkFrame):
             else:
                 value = {"directory": ["%%profiles", single_profile_name]}
 
-        # Build the direcetory entry
         char_position, previous_directory, line_num = self.process_directory(
             value,
             line_num,
             previous_directory,
             char_position,
         )
-        previous_value = "directory"
-        return line_num, previous_directory, previous_value, char_position
+        return line_num, previous_directory, "directory", char_position
 
     # Find owning Project given a Profile name
     def find_owning_project(self: object, profile_name: str) -> str:
@@ -877,27 +884,18 @@ class CTkTextview(ctk.CTkFrame):
         Find the owning Project given a Profile name.
 
         Args:
-            self (object): The instance of the class.
-            profile_name (str): The name of the Profile.
+            self: The instance of the class.
+            profile_name (str): The Profile name.
 
         Returns:
-            str: The owning Project name.
+            str: The owning Project name, or an empty string if not found.
         """
-        # Get this Profile's pid
         profile_dict = PrimeItems.tasker_root_elements["all_profiles"]
-        profile_ids = {value["name"]: key for key, value in profile_dict.items()}
-        pid = profile_ids.get(profile_name)
+        profile_id = {v["name"]: k for k, v in profile_dict.items()}.get(profile_name)
 
-        # Find the owning Project
-        if pid:
-            projects_dict = PrimeItems.tasker_root_elements["all_projects"]
-            for project_name, project_value in projects_dict.items():
-                if pid in get_ids(
-                    True,
-                    project_value["xml"],
-                    project_name,
-                    [],
-                ):
+        if profile_id:
+            for project_name, project_value in PrimeItems.tasker_root_elements["all_projects"].items():
+                if profile_id in get_ids(True, project_value["xml"], project_name, []):
                     return project_name
         return ""
 
@@ -907,24 +905,17 @@ class CTkTextview(ctk.CTkFrame):
         Find the owning project of a task given its name.
 
         Args:
-            self (object): The instance of the class.
+            self: The instance of the class.
             task_name (str): The name of the task.
 
         Returns:
-            str: The name of the owning project, or an empty string if not found.
+            str: The owning project name, or an empty string if not found.
         """
-        all_projects = PrimeItems.tasker_root_elements["all_projects"]
         all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
 
-        for project_key, project_value in all_projects.items():
-            project_xml = project_value["xml"]
-            task_ids = get_ids(False, project_xml, project_key, [])
-
-            for task_id in task_ids:
-                task = all_tasks.get(task_id)
-                if task and task["name"] == task_name:
-                    return project_value["name"]
-
+        for project_value in PrimeItems.tasker_root_elements["all_projects"].values():
+            if any(all_tasks[task_id]["name"] == task_name for task_id in get_ids(False, project_value["xml"], "", [])):
+                return project_value["name"]
         return ""
 
     # Find the owning Profile given a Task name
@@ -932,7 +923,7 @@ class CTkTextview(ctk.CTkFrame):
         """
         Find the owning Profile given a Task name.
 
-        This function takes a Task name as input and searches for the corresponding Task ID in the `PrimeItems.tasker_root_elements["all_tasks"]` dictionary. It then iterates over the `PrimeItems.tasker_root_elements["all_projects"]` dictionary to find the Project that contains the Task ID. If a matching Project is found, its name is returned. If no matching Project is found, an empty string is returned.
+        This function takes a Task name as input and searches for the corresponding Task ID in the `PrimeItems.tasker_root_elements["all_tasks"]` dictionary. It then iterates over the `PrimeItems.tasker_root_elements["all_profiles"]` dictionary to find the Profile that contains the Task ID. If a matching Profile is found, its name is returned. If no matching Profile is found, an empty string is returned.
 
         Parameters:
             task_name (str): The name of the Task.
@@ -940,24 +931,16 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             str: The name of the owning Profile, or an empty string if no matching Profile is found.
         """
-        # Get this Task's tid
-        tid = ""
-        for key, value in PrimeItems.tasker_root_elements["all_tasks"].items():
-            if value["name"] == task_name:
-                tid = key
-                break
+        tid = next((k for k, v in PrimeItems.tasker_root_elements["all_tasks"].items() if v["name"] == task_name), "")
 
         # Find the owning Profile
-        # Go through all Profiles looking for "mid0" or "mid1" that matches our Task
         if tid:
-            for profile in PrimeItems.tasker_root_elements["all_profiles"]:
-                profile_value = PrimeItems.tasker_root_elements["all_profiles"][profile]
-                mid = profile_value["xml"].find("mid0")
-                if mid is not None and mid.text == tid:
-                    return profile_value["name"]
-                mid = profile_value["xml"].find("mid1")
-                if mid is not None and mid.text == tid:
-                    return profile_value["name"]
+            for profile_value in PrimeItems.tasker_root_elements["all_profiles"].values():
+                for mid_key in ["mid0", "mid1"]:
+                    mid = profile_value["xml"].find(mid_key)
+                    if mid is not None and mid.text == tid:
+                        return profile_value["name"]
+
         return ""
 
     def process_colored_text(
@@ -969,167 +952,189 @@ class CTkTextview(ctk.CTkFrame):
         tags: list,
     ) -> tuple:
         """
-        Process colored text and output the text lines and colors to a text box.
+        Process a single colored text element.
 
-        Args:
-            self (object): The instance of the class.
-            value (dict): A dictionary containing the text and color information.
-            line_num (int): The current line number.
-            previous_color (str): The previous color.
-            previous_value (str): The previous value.
-            tags (list): The list of tags.
-
-        Returns:
-            tuple: A tuple containing the updated line number, previous color, previous value, and tags.
-
-        This function processes colored text and outputs the text lines and colors to a text box.
-        It handles special cases of directory and "Projects..." lines by adding extra newlines.
-        It outputs each text line and color in the data 'value' entry. It also updates the line number,
-        previous color, previous value, and tags accordingly.
-        """
-        # line_num += 1  # For a bump in line number since we are adding a '\n' to text
-
-        # Handle special case of Directory and "Projects....." etc. lines by adding ane xtra '\n'
-        if value["text"][0] == "Directory\n":
-            value["text"] = ["Directory    (entries are hotlinks)\n"]
-        # \nn indicates a directory header (e.g. Projects...........)
-        elif value["text"][0].startswith("\nn"):
-            save_text = value["text"][0][2:]
-            save_color = value["color"]
-            value["text"] = "\n\n"
-            previous_color = self.output_map_text_lines(value, line_num, tags, previous_color)
-            line_num += 1
-            value["text"] = save_text
-            value["color"] = save_color
-
-        # Output the each text line and color in the data 'value' entry.
-        previous_color = self.output_map_text_lines(value, line_num, tags, previous_color)
-        line_num += 1
-        previous_value = "color"
-
-        return line_num, previous_color, previous_value, tags
-
-    def process_directory(self, value: dict, line_num: int, previous_directory: str, char_position: int) -> tuple:
-        """
-        A function that processes a directory based on the given values.
+        This function takes a single colored text element from a list of colored text elements and processes it. It
+        updates the input dictionary with the new text and color, and returns the updated line number, the color of the
+        previous element, and the tag for the color of the previous element.
 
         Parameters:
-            - self: The object itself.
-            - value: A dictionary containing information about the directory.
-            - line_num: An integer representing the line number.
-            - previous_directory: The previous Tasker type ("projects", "profiles", etc.) that was processed.
-            - char_position: An integer representing the character position in the text line.
+            value (dict): The colored text element to process. It should have the keys "text" and "color".
+            line_num (int): The current line number.
+            previous_color (str): The color of the previous element.
+            previous_value (str): The value of the previous element.
+            tags (list): A list of tags for the colors of the elements.
 
         Returns:
-            char_position: An integer representing the updated character position in the text line.
-            previous_directory: The previous Tasker type ("projects", "profiles", etc.) that was processed.
-            line_num: An integer representing the updated line number.
-
-        Note: Clicking on a hotlink will open the corresponding Tasker object via a call to self.remap_single_item.
-                In effect, mapit is re-invoked for the corresponding Tasker object that was clicked on.
+            tuple: A tuple containing the updated line number, the color of the previous element, the tag for the color
+            of the previous element, and the list of tags.
         """
-        spacing = 40
-        columns = 3
+        text = value["text"][0]
 
+        if text == "Directory\n":
+            value["text"] = ["Directory    (blue entries are hotlinks)\n"]
+        elif text.startswith("\nn"):
+            save_text, save_color = text[2:], value["color"]
+            value["text"] = "\n\n"
+            previous_color = self.output_map_text_lines(value, line_num, tags, previous_color, previous_value)
+            line_num += 1
+            value.update(text=save_text, color=save_color)
+
+        previous_color = self.output_map_text_lines(value, line_num, tags, previous_color, previous_value)
+        return line_num + 1, previous_color, "color", tags
+
+    def process_directory(
+        self: object,
+        value: dict,
+        line_num: int,
+        previous_directory: str,
+        char_position: int,
+    ) -> tuple:
+        """
+        Process a single directory entry.
+
+        This function takes a single directory entry from a list of directory entries and processes it. It
+        updates the input dictionary with the new text and color, and returns the updated character position,
+        the previous directory, and the line number.
+
+        Parameters:
+            value (dict): The directory entry to process. It should have the keys "text" and "color".
+            line_num (int): The current line number.
+            previous_directory (str): The previous directory.
+            char_position (int): The current character position.
+
+        Returns:
+            tuple: A tuple containing the updated character position, the previous directory, and the line number.
+        """
+        spacing, columns = 40, 3
+        directory_type = value["directory"][0]
         # We dont't support Scenes or Grand Totals hotlinks (yet)
-        if value["directory"][0] in ("scenes", "grand", "</td"):
-            char_position = 0
-            return char_position, previous_directory, line_num
+        if directory_type in {"scenes", "grand", "</td"}:
+            return 0, previous_directory, line_num
 
-        # If we have a change in directory Tasker object, reset positon to 0.
-        if previous_directory != value["directory"][0]:
+        if previous_directory != directory_type:
             char_position = 0
 
-        # Setup the info to insert into the text box.
         line_num_str = str(line_num)
         hotlink_name = value["directory"][1]
 
+        # Determine the name to go up to, which will be used for the tag id.
+        name_to_go_up = hotlink_name if hotlink_name else "entire configuration"
+
         # Check for special "Up One Level" hotlink and modify the text to be displayed if it is.
-        if value["directory"][0][:2] == "%%":
-            value["directory"][0] = value["directory"][0][2:]
-
-            name_to_go_up = "entire configuration" if value["directory"][1] == "" else value["directory"][1]
-            object_name = "" if value["directory"][1] == "" else value["directory"][0][:-1].capitalize()
-
+        up_one_level = False
+        if directory_type.startswith("%%"):
+            up_one_level = True
+            directory_type = f"{directory_type[2:]}_up"
+            object_name = directory_type[:-3].capitalize() if hotlink_name else ""
             hotlink_name = f"Up One Level to {object_name}: {name_to_go_up}"
-            name_to_insert = hotlink_name
-            link = [value["directory"][0], value["directory"][1]]
-            spacer = ""
+            name_to_insert, spacer = hotlink_name, ""
         else:
-            # Truncate name if it is beyond our default spacing.
-            insert_name = hotlink_name[: spacing - 3] + "..." if len(hotlink_name) > spacing else hotlink_name
-            # Determine additional space to add to liones if needed.
+            name_to_insert = (hotlink_name[: spacing - 3] + "...") if len(hotlink_name) > spacing else hotlink_name
+
+            # Determine additional space to add to lines if needed.
             spacer = "\n" if char_position == spacing * columns - spacing else ""
-            name_to_insert = f'{insert_name.ljust(spacing, " ")}{spacer}'
-            link = [value["directory"][0], hotlink_name]
+            name_to_insert = f'{name_to_insert.ljust(spacing, " ")}{spacer}'
 
-        # Add the text to the text box.  The tag is obtained from call to self.textview_hyperlink.add.
-        tag_id = self.textview_hyperlink.add(link)
-        self.textview_textbox.insert(
-            f"{line_num_str}.{char_position!s}",
-            name_to_insert,
-            tag_id,
-        )
-
-        # Add color to the tag
+        tag_id = self.textview_hyperlink.add([directory_type, name_to_go_up])
+        self.textview_textbox.insert(f"{line_num_str}.{char_position}", name_to_insert, tag_id)
         self.textview_textbox.tag_config(
             tag_id[1],
             background=make_hex_color(self.master.master.color_lookup["background_color"]),
         )
 
-        # Set up for next time through...
-        char_position += spacing
-        if char_position == spacing * columns:
-            line_num += 1
-            char_position = 0
+        char_position = 0 if char_position == spacing * columns else char_position + spacing
+        previous_directory = directory_type
 
-        previous_directory = value["directory"][0]
+        # Add a second "up one more level" hotlink
+        if up_one_level and name_to_go_up != "entire configuration":
+            new_char_pos = len(hotlink_name) + 10
+            # self.textview_textbox.insert(f"{line_num_str}.{new_char_pos}", "%%%%", "up_two_levels")
+            if directory_type:
+                if directory_type == "profiles_up":
+                    name_to_go_up = self.find_owning_project(name_to_go_up)
+                    go_up_type = "projects_up"
+                    name_object = "Project:"
+                elif directory_type == "tasks_up":
+                    name_to_go_up = self.find_owning_profile(name_to_go_up)
+                    go_up_type = "profiles_up"
+                    name_object = "Profile:"
+                else:
+                    # We're at the Project level.  Do nothing.
+                    go_up_type = "all"
+                    name_to_go_up = "entire configuration"
+                    name_object = ""
+            else:
+                go_up_type = directory_type
 
-        return char_position, previous_directory, line_num
+            # If we are going up a second level, we need to insert the second "up one more level" hotlink
+            if go_up_type:
+                hotlink_name = f"Up Two Levels to {name_object} {name_to_go_up}"
+                tag_id = self.textview_hyperlink.add([f"{go_up_type}", name_to_go_up])
+                self.textview_textbox.insert(f"{line_num_str}.{new_char_pos}", f"     {hotlink_name}", tag_id)
+                self.textview_textbox.tag_config(
+                    tag_id[1],
+                    background=make_hex_color(self.master.master.color_lookup["background_color"]),
+                )
+            up_one_level = False
 
-    def output_map_text_lines(self, value: dict, line_num: int, tags: list, previous_color: str) -> str:
+        return char_position, previous_directory, line_num + (char_position == 0)
+
+    def output_map_text_lines(
+        self,
+        value: dict,
+        line_num: int,
+        tags: set,
+        previous_color: str,
+        previous_value: str,
+    ) -> str:
         """
         A function that outputs text lines with specified colors and formatting to a text box for the value passed in.
         Parameters:
             - value: A dictionary 'value' containing text, color, and highlights information.
             - line_num: An integer representing the line number.
-            - tags: A list of tags for text formatting.
+            - tags: A set of tags for text formatting.
             - previous_color: A string representing the previous color used.
+            - previous_value: A string representing the previous value used.
         Returns:
             previous_color: A string representing the previous color used.
         """
+
         spaces = " " * 20  # Approximate amount of spacing prior to a Task parameter.
-        # Go through all of the text/color combinations
         char_position = 0
         line_num_str = str(line_num)
-        previous_color = ""
         go_to_top = False
+
+        # Precompute the background color once.
+        background_color = make_hex_color(self.master.master.color_lookup["background_color"])
 
         # Loop through all of the text strings.
         for num, message in enumerate(value["text"]):
-            # Get rid of double blank lines
             new_message = message.replace("\n\n", "\n")
 
+            # Force a newline if this is the very first Project.
+            if previous_value == "directory" and "Project:" in new_message:
+                new_message = f"\n{new_message}"
             # Ignore extra blank line after "[⛔ DISABLED]" text...it is following a disabled "Profile:"" line.
             if new_message == "      ":
                 continue
-
-            # Remove "Go to top" from the end of the message if it is there.  This is for "Go to top" hyperlink code below., which must follow the text insertion code.
+            # Remove "Go to top" from the end of the message if it is there.
+            # This is for "Go to top" hyperlink code below., which must follow the text insertion code.
             if "Go to top" in new_message:
                 new_message = new_message.replace("Go to top", "")
                 go_to_top = True
 
-            # Add a couple more blanks to the beginning of each line if we are doing pretty.
-            if self.master.master.pretty and new_message[0:20] == spaces:
+            if self.master.master.pretty and new_message.startswith(spaces):
                 new_message = f"  {new_message}"
 
             # Add line number to output message
             # if self.master.master.debug:
             #     new_message = f"{line_num_str} {new_message}"
 
-            # Build the tag to use and make sure it is unique
             char_position_str = str(char_position)
             tag_id = f"{line_num_str}{char_position_str}"
+
+            # Ensure unique tag_id by appending random numbers until unique
             while tag_id in tags:
                 tag_id = f"{tag_id}{random.randint(100, 999)}"  # noqa: S311
             tags.append(tag_id)
@@ -1139,100 +1144,77 @@ class CTkTextview(ctk.CTkFrame):
                 f"{new_message}\n" if new_message == value["text"][-1] and "\n" not in new_message else new_message
             )
 
-            # Insert the text to the text box.  The tag is obtained from call to self.textview_hyperlink.add.
-            self.textview_textbox.insert(f"{line_num_str}.{char_position_str}", f"{line_to_insert}", tag_id)
+            # Insert the text to the text box.
+            # The tag is obtained from call to self.textview_hyperlink.add.
+            self.textview_textbox.insert(f"{line_num_str}.{char_position_str}", line_to_insert, tag_id)
             self.textview_textbox.tag_add(
                 tag_id,
                 f"{line_num_str}.{char_position_str}",
-                f"{line_num_str}.{len(line_to_insert)!s}",
+                f"{line_num_str}.{char_position + len(line_to_insert)}",
             )
-            # fmt: on
-            char_position += len(line_to_insert)  # Point to next position for text
+            # Bump the character position beyond the text we just inserted..
+            char_position += len(line_to_insert)
 
-            # Go to top in the text line.  Add a hyperlink.
-            # Note: This must fall after the text is inserted into the text box.
             if go_to_top:
-                # The following is debug code.
-                # Position just after the last character in the buffer.
-                # end_line_col = self.textview_textbox.index("end")
-                # Get contents of last line in text box.
-                # td = self.textview_textbox.get("end-1c linestart", "end-1c lineend")
-                # Get the entire contents of the text box into a list
-                # ty = self.textview_textbox.get("1.0", "end").rstrip()
-                # tz = ty.split("\n")
-
-                # Get the total number of lines in the text box
                 line_count = int(self.textview_textbox.index("end-1c").split(".")[0])
-                # Get the contents of the last line in the text box.
                 line_pos = str(line_count - 1)
                 tx = self.textview_textbox.get(f"{line_pos}.0", "end-1c")
                 # If "Go to top" is in the line, then start at position 1.  Otherwise, start at end of text.
                 gototop_char_position = 1 if "Go to top" in tx else len(tx)
-
                 # If the position is in the first character, then we need to rely on line_num ass the current line of text.
                 if gototop_char_position == 1:
                     line_pos = line_num_str
                     tx = self.textview_textbox.get(f"{line_num}.0", "end-1c")
                     gototop_char_position = len(tx)
-
                 # Add the hyperlink.
-                # The tag is obtained from call to self.textview_hyperlink.add.
                 link = ["gototop", "Go to top"]
-                top_tag_id = self.textview_hyperlink.add(link)
                 # Add the text to the text box.
-                # For some reason, we have to back up 2 lines to get the right position.
+                top_tag_id = self.textview_hyperlink.add(link)
                 self.textview_textbox.insert(
-                    f"{line_pos}.{gototop_char_position!s}",
+                    f"{line_pos}.{gototop_char_position}",
                     "Go to top     ",
                     top_tag_id,
                 )
                 # Add color to the tag
                 self.textview_textbox.tag_config(
                     top_tag_id[1],
-                    background=make_hex_color(self.master.master.color_lookup["background_color"]),
+                    background=background_color,
                 )
-
                 # Go to bottom: Add the hyperlink.
                 # The tag is obtained from call to self.textview_hyperlink.add.
                 link = ["gotobot", "Go to bot"]
                 top_tag_id = self.textview_hyperlink.add(link)
-                gotobot_char_position = gototop_char_position + 16
                 # Add the text to the text box.
                 # For some reason, we have to back up 2 lines to get the right position.
                 self.textview_textbox.insert(
-                    f"{line_pos}.{gotobot_char_position!s}",
+                    f"{line_pos}.{gototop_char_position + 16}",
                     "Go to bottom",
                     top_tag_id,
                 )
-                # Add color to the tag
+                # Add background color to the tag
                 self.textview_textbox.tag_config(
                     top_tag_id[1],
-                    background=make_hex_color(self.master.master.color_lookup["background_color"]),
+                    background=background_color,
                 )
                 go_to_top = False
 
-                # Display the text
-                # inputvalue = self.textview_textbox.get("1.0", "end-1c")
-                # print(inputvalue)
-                # exit()
-
-            # Do color and name highlighting (bold/italicize/underline/highlight).  Use previous color if it doesn't exist.
+            # Do color and name highlighting (bold/italicize/underline/highlight).
+            # Use previous color if it doesn't exist.
             # Have to handle background color separately
             color = previous_color
             if "Color for Background set to" in line_to_insert or "highlighted for visibility" in line_to_insert:
                 color = "White"
-            # Determine the proper color and highlighting to use.
             else:
-                color = self.output_map_colors_highlighting(
+                color, tags = self.output_map_colors_highlighting(
                     value,
                     tags,
                     previous_color,
+                    previous_value,
                     num,
                     line_to_insert,
                     tag_id,
                     color,
                 )
-
             # Save previous color and text in case we need to use it.
             previous_color = color
 
@@ -1240,7 +1222,7 @@ class CTkTextview(ctk.CTkFrame):
             self.textview_textbox.tag_config(
                 tag_id,
                 foreground=color,
-                background=make_hex_color(self.master.master.color_lookup["background_color"]),
+                background=background_color,
             )
 
         return previous_color
@@ -1250,11 +1232,12 @@ class CTkTextview(ctk.CTkFrame):
         value: dict,
         tags: list,
         previous_color: str,
+        previous_value: str,
         num: int,
         message: str,
         tag_id: str,
         color: str,
-    ) -> str:
+    ) -> tuple:
         """
         A function to apply color highlighting to text based on the specified configurations.
 
@@ -1263,63 +1246,22 @@ class CTkTextview(ctk.CTkFrame):
             - value: a dictionary containing the value to be highlighted
             - tags: a list of tags to be applied
             - previous_color: a string representing the previous color used
-            - num: an integer representing a specific number
+            - previous_value: a string representing the previous value
+            - num: an integer representing a specific number of the value
             - message: a string containing the message to be highlighted
             - tag_id: a string representing the tag ID
             - color: a string representing the color
 
         Returns:
             - color (string): the color to be applied
+            - tags (list): the list of tags to be applied
         """
-        # Set up the highlighting elements
-        highlight_configurations = {
-            "bold": {"font": self.bold_font},
-            "italic": {"font": self.italic_font},
-            "underline": {"underline": True},
-            "mark": {"background": PrimeItems.colors_to_use["highlight_color"]},
-        }
-
-        # Set the line number accordingly.  Push it back if there is a direclty due to extra '\n's
-        # line_num_str = str(line_num - 3) if PrimeItems.program_arguments["directory"] else str(line_num)
 
         # Look for special string highlighting in value (bold, italic, underline, highlight)
+        # starting_line_to_search = 1
         with contextlib.suppress(KeyError):
             if num == 0 and value["highlights"]:
-                for highlight in value["highlights"]:
-                    # Go through all highlights for this line/value
-                    highlights = highlight.split(",")
-                    start_position = message.find(highlights[1])
-                    end_position = start_position + len(highlights[1])
-                    # print(f"{line_num_str}.{start_position} - {line_num_str}.{end_position}")
-                    highlight_type = highlights[0]
-                    if highlight_type in highlight_configurations:
-                        # Found a highlight type.
-                        new_tag = f"{tag_id}{highlight_type}"
-                        tags.append(new_tag)
-
-                        # Get the total number of lines in the text box
-                        line_count = int(self.textview_textbox.index("end-1c").split(".")[0])
-
-                        # If a new line proceeds the highlighted item, then use the current line.  Otherwise use the previous line.
-                        tx = self.textview_textbox.get(f"{line_count-1!s}.0", "end-1c")
-                        t1 = tx.find("\n   ")
-                        line_to_highlight = str(line_count) if tx[0:1] == "\n" or t1 != -1 else str(line_count - 1)
-
-                        # Add the tag
-                        self.textview_textbox.tag_add(
-                            new_tag,
-                            f"{line_to_highlight}.{start_position!s}",
-                            f"{line_to_highlight}.{end_position!s}",
-                        )
-                        self.textview_textbox.tag_config(new_tag, **highlight_configurations[highlight_type])
-
-                        # Add a line number to the output for debugging purposes.
-                        # if self.master.master.debug:
-                        #     line_num = int(line_num_str) - 2
-                        #     print("line number", line_num, "start position", start_position, "end position", end_position)
-                        #     self.textview_textbox.insert(
-                        #         f"{line_num!s}.{end_position+1!s}", "<< Here is a highlight >>", tag_id,
-                        #     )
+                tags = self.add_highlights(message, value, previous_value, tag_id, tags)
 
         # Now color the text.
         try:
@@ -1338,7 +1280,92 @@ class CTkTextview(ctk.CTkFrame):
         # Deal with a hex value for color
         if color and color.isdigit():
             color = f"#{color}"
-        return color
+        return color, tags
+
+    def add_highlights(self, message: str, value: dict, previous_value: str, tag_id: str, tags: list) -> list:
+        # Set up the highlighting elements
+        """
+        Add highlights to the text box.
+
+        This function takes a message, a dictionary of values, a previous value, a tag ID, and a list of tags.
+        It adds highlighting to the text box based on the highlights in the value dictionary.
+
+        The highlights are specified as a list of strings in the value dictionary, where each string
+        is in the format "highlight_type,highlight_text".  The highlight_type is one of "bold", "italic",
+        "underline", or "mark".  The highlight_text is the text to be highlighted.
+
+        The function returns the updated list of tags.
+
+        Parameters:
+            - message (str): the message to be highlighted
+            - value (dict): the dictionary containing the highlights
+            - previous_value (str): the previous value
+            - tag_id (str): the tag ID
+            - tags (list): the list of tags
+
+        Returns:
+            - list: the updated list of tags
+        """
+        highlight_configurations = {
+            "bold": {"font": self.bold_font},
+            "italic": {"font": self.italic_font},
+            "underline": {"underline": True},
+            "mark": {"background": PrimeItems.colors_to_use["highlight_color"]},
+        }
+
+        for highlight in value["highlights"]:
+            # Go through all highlights for this line/value
+            highlights = highlight.split(",")
+            start_position = message.find(highlights[1])
+            end_position = start_position + len(highlights[1])
+            highlight_type = highlights[0]
+            if highlight_type in highlight_configurations:
+                # Found a highlight type.
+                # If this is the first Project, then we need to backup one since we added a "\n"
+                if previous_value == "directory":
+                    start_position -= 1
+                    end_position -= 1
+                new_tag = f"{tag_id}{highlight_type}"
+                tags.append(new_tag)
+
+                # Figure out exactly what we are looking for.
+                if "Task: " in message:
+                    search_word = "Task: "
+                elif "Profile: " in message:
+                    search_word = "Profile: "
+                elif "Project: " in message:
+                    search_word = "Project: "
+                else:
+                    search_word = "Scene: "
+
+                # Get the total number of lines in the text box
+                line_count = int(self.textview_textbox.index("end-1c").split(".")[0])
+                # Now find the line we want to highlight based on our search word. Search from the bottom up.
+                while line_count:
+                    # Get just the line.
+                    # 'lineend' is end of line without the newline.  'lineend+1c' includes newline.
+                    tx = self.textview_textbox.get(f"{line_count!s}.0", f"{line_count!s}.0 lineend")
+                    if search_word in tx:
+                        break
+                    line_count -= 1
+                line_to_highlight = str(line_count)
+
+                # Add the tag
+                self.textview_textbox.tag_add(
+                    new_tag,
+                    f"{line_to_highlight}.{start_position!s}",
+                    f"{line_to_highlight}.{end_position!s}",
+                )
+                self.textview_textbox.tag_config(new_tag, **highlight_configurations[highlight_type])
+
+                # Add a line number to the output for debugging purposes.
+                # if self.master.master.debug:
+                #     line_num = int(line_num_str) - 2
+                #     print("line number", line_num, "start position", start_position, "end position", end_position)
+                #     self.textview_textbox.insert(
+                #         f"{line_num!s}.{end_position+1!s}", "<< Here is a highlight >>", tag_id,
+                #     )
+        return tags
 
     def ctrlevent(self, event: object) -> str:
         """Event handler for Ctrl+C and Ctrl+V"""
@@ -1561,6 +1588,8 @@ class CTkHyperlinkManager:
             None
         """
         self.text.configure(cursor="xterm")
+        # TODO self.text.master.textview_textbox not correct
+        # output_label(self, self.text.master.textview_textbox, "ahah")
 
     def _click(self, event: object) -> None:
         """
@@ -1587,8 +1616,15 @@ class CTkHyperlinkManager:
                     if link[0] == "gototop":
                         self.text.master.textview_textbox.see("1.0")
                     elif link[0] == "gotobot":
-                        # Go to bottom
-                        self.text.master.textview_textbox.see("end")
+                        # Go to bottom (first valid non-blank line)
+                        line_count = int(self.text.master.textview_textbox.index("end-1c").split(".")[0])
+                        line_pos = line_count - 1
+                        while line_pos:
+                            line = self.text.master.textview_textbox.get(f"{line_pos!s}.0", f"{line_pos!s}.end")
+                            if "CAVEATS:" in line:
+                                break
+                            line_pos -= 1
+                        self.text.master.textview_textbox.see(f"{line_pos!s}.0")
                     else:
                         # Remap single Project/Profile/Task
                         action, name = link
@@ -1598,8 +1634,44 @@ class CTkHyperlinkManager:
                     webbrowser.open(link)
                 return
 
+
     # The user has clicked on a hotlink.  Get the item clicked and remap using only that single item.
     def remap_single_item(self, action: str, name: str, guiself: ctk) -> None:
+        """
+        Remap with single item based on action type.
+
+        Args:
+            action (str): The type of action to perform (e.g., 'projects', 'profiles', 'tasks').
+            name (str): The name of the item to remap.
+            guiself (ctk): The GUI self reference.
+
+        Returns:
+            None: This function does not return anything.
+        """
+        # Don't yet support scenee or grand total hotlinks
+        if action in ("scenes", "grand"):
+            nogo_name = "Grand Totals" if action == "grand" else "Scene"
+            guiself.display_message_box(f"'{nogo_name}' hotlinks are not working yet.", "Orange")
+        # Handle single Project/Profile/Task going up a level
+        elif action in ("projects_up", "profiles_up", "projects_up"):
+            action = action.replace("_up", "")
+            self.rebuildmap_single_item(action, name, guiself)
+        # Regular directory hotlink.  See ifd it is already in the view.
+        elif (
+            (action == "tasks" and self.name_in_list(name, PrimeItems.tasker_root_elements["all_tasks"]))
+            or (action == "profiles" and self.name_in_list(name, PrimeItems.tasker_root_elements["all_profiles"]))
+            or (action == "projects" and self.name_in_list(name, PrimeItems.tasker_root_elements["all_projects"]))
+        ):
+            # Find and point to the item in the map view.
+            self.find_and_point_to_item(action, name, guiself)
+
+        # Drop here if the item was not found in the map/list
+        else:
+            # Item not found.  We'll have to rebuild the map.
+            self.rebuildmap_single_item(action, name, guiself)
+
+    # The user has clicked on a hotlink.  Get the item clicked and remap using only that single item.
+    def rebuildmap_single_item(self, action: str, name: str, guiself: ctk) -> None:
         """
         Remap with single item based on action type.
 
@@ -1629,6 +1701,65 @@ class CTkHyperlinkManager:
             update_tasker_object_menus(guiself, get_data=False, reset_single_names=False)
             # Remap it.
             guiself.remapit(clear_names=False)
+
+    def name_in_list(self: object, name: str, tasker_items: dict) -> bool:
+        """
+        Determine if a specific name is in a dictionary of items.
+
+        Args:
+            name (str): The name to search for.
+            tasker_items (dict): The dictionary of tasker items (Project/Profiles/Tasksto search in.
+
+        Returns:
+            bool: True if the name is found, False otherwise.
+        """
+        return any(tasker_items[key]["name"] == name for key in tasker_items)
+
+    # Search for and point to the specific item in the textbox.
+    def find_and_point_to_item(self, action: str, name: str, guiself: ctk) -> None:
+        # Build the srach string
+        """
+        Search for and point to the specific item in the textbox.
+
+        Args:
+            action (str): The type of action to perform (e.g., 'projects', 'profiles', 'tasks').
+            name (str): The name of the item to point to.
+            guiself (ctk): The GUI self reference.
+
+        Returns:
+            None: This function does not return anything.
+        """
+        our_view = guiself.mapview
+        search_string = f"{action[:-1].capitalize()}: {name}"
+        # Get the entire textbox into a list, one item per line.
+        search_list = our_view.textview_textbox.get("1.0", "end").rstrip().split("\n")
+
+        # Search for all hits for our search string.
+        search_hits = search_substring_in_list(search_list, search_string, stop_on_first_match=True)
+        if not search_hits:
+            guiself.display_message_box(f"Could not find '{search_string}' in the list.", "Orange")
+            return
+        first_hit = search_hits[0]
+        line_num = first_hit[0] + 1
+        line_pos = first_hit[1]
+        # Point to the first hit
+        our_view.textview_textbox.see(f"{line_num!s}.{line_pos!s}")
+        # Highlight the match
+        value = {}
+        value["highlights"] = [f"mark,{search_string}"]
+
+        # Highlight the string so it is easy to find.
+        # Delete old tag and add new tag.
+        our_view.textview_textbox.tag_remove("inlist", "1.0", "end")
+        our_view.textview_textbox.tag_add(
+            "inlist",
+            f"{line_num}.{line_pos!s}",
+            f"{line_num}.{(line_pos+len(search_string))!s}",
+        )
+        highlight_configurations = {
+            "mark": {"background": PrimeItems.colors_to_use["highlight_color"]},
+        }
+        our_view.textview_textbox.tag_config("inlist", **highlight_configurations["mark"])
 
 
 # Save the positition of a window

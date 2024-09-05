@@ -431,10 +431,18 @@ def check_single_item(
     """
     # If only doing a single named Project and didn't find it, clean up and exit
     if single_project_name and not single_project_found:
+        if PrimeItems.program_arguments["gui"]:
+            PrimeItems.error_code = 1
+            PrimeItems.error_msg = f"Projecte {single_project_name} was not found."
+            return
         clean_up_and_exit("Project", single_project_name)
 
     # If only doing a single named Profile and didn't find it, clean up and exit
     if single_profile_name and not single_profile_found:
+        if PrimeItems.program_arguments["gui"]:
+            PrimeItems.error_code = 1
+            PrimeItems.error_msg = f"Profile {single_profile_name} was not found."
+            return
         print(f"The Profile '{single_profile_name}' was not found.")
         clean_up_and_exit("Profile", single_profile_name)
 
