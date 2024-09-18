@@ -12,6 +12,7 @@ import contextlib
 import os
 import random
 import time
+import warnings
 import webbrowser
 from tkinter import TclError, ttk
 
@@ -406,15 +407,15 @@ class CTkTextview(ctk.CTkFrame):
                 self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
             # Add the CustomTkinter widgets
             self.add_view_widgets("Diagram")
+            # Force courier new for diagram view if just Courier...perfect character alignment.
+            if master.master.font == "Courier":
+                self.textview_textbox.configure(self, font=("Courier New", 12))
 
         else:
             # Process the Map view (dictionary of lines)
             self.output_map(the_data)
             # Add the CustomTkinter widgets
             self.add_view_widgets("Map")
-
-        # Get rid of the data since we don't need it anymore
-        the_data = None
 
         # Set a timer so we can delete the label after a certain amount of time.
         self.after(3000, self.delay_event)  # 3 second timer
@@ -598,32 +599,16 @@ class CTkTextview(ctk.CTkFrame):
             gui_view.analysisview = self
             gui_view.analysisview.message_label = self.text_message_label
             gui_view.analysisview.search_input = search_input
-            # gui_view.analysisview.search_button = search_button
-            # gui_view.analysisview.next_search_button = next_search_button
-            # gui_view.analysisview.prev_search_button = prev_search_button
-            # gui_view.analysisview.clear_search_button = clear_search_button
-            # gui_view.analysisview.wordwrap_button = wrap_search_button
-            # gui_view.analysisview.query_button = search_query_button
+
         elif title == "Diagram":
             gui_view.diagramview = self  # Save our textview in the main Gui view.
             gui_view.diagramview.message_label = self.text_message_label
             gui_view.diagramview.search_input = search_input
-            # gui_view.diagramview.search_button = search_button
-            # gui_view.diagramview.next_search_button = next_search_button
-            # gui_view.diagramview.prev_search_button = prev_search_button
-            # gui_view.diagramview.clear_search_button = clear_search_button
-            # gui_view.diagramview.wordwrap_button = wrap_search_button
-            # gui_view.diagramview.query_button = search_query_button
+
         elif title == "Map":
             gui_view.mapview = self  # Save our textview in the main Gui view.
             gui_view.mapview.message_label = self.text_message_label
             gui_view.mapview.search_input = search_input
-            # gui_view.mapview.search_button = search_button
-            # gui_view.mapview.next_search_button = next_search_button
-            # gui_view.mapview.prev_search_button = prev_search_button
-            # gui_view.mapview.clear_search_button = clear_search_button
-            # gui_view.mapview.wordwrap_button = wrap_search_button
-            # gui_view.mapview.query_button = search_query_button
 
         # Catch window resizing
         self.bind("<Configure>", self.on_resize)
@@ -1030,11 +1015,16 @@ class CTkTextview(ctk.CTkFrame):
             hotlink_name = f"Up One Level to {object_name}: {name_to_go_up}"
             name_to_insert, spacer = hotlink_name, ""
         else:
+            # Normal direectory entry
             name_to_insert = (hotlink_name[: spacing - 3] + "...") if len(hotlink_name) > spacing else hotlink_name
 
             # Determine additional space to add to lines if needed.
             spacer = "\n" if char_position == spacing * columns - spacing else ""
+            # Take care of special characters.
+            name_to_insert = name_to_insert.replace("&gt;", ">").replace("&lt;", "<")
             name_to_insert = f'{name_to_insert.ljust(spacing, " ")}{spacer}'
+
+        name_to_go_up = name_to_go_up.replace("&gt;", ">").replace("&lt;", "<")
 
         tag_id = self.textview_hyperlink.add([directory_type, name_to_go_up])
         self.textview_textbox.insert(f"{line_num_str}.{char_position}", name_to_insert, tag_id)
@@ -1378,7 +1368,7 @@ class CTkTextview(ctk.CTkFrame):
                 return ""
             self.clipboard_clear()
             self.clipboard_append(content)
-            output_label(self, self, f"Text '{content}' copied to clipboard.")
+            output_label(self, f"Text '{content}' copied to clipboard.")
             return "break"
         # Ctrl+V ...paste
         if event.state == 4 and event.keysym == "v":
@@ -1589,7 +1579,7 @@ class CTkHyperlinkManager:
         """
         self.text.configure(cursor="xterm")
         # TODO self.text.master.textview_textbox not correct
-        # output_label(self, self.text.master.textview_textbox, "ahah")
+        # output_label(self.text.master.textview_textbox, "ahah")
 
     def _click(self, event: object) -> None:
         """
@@ -1633,7 +1623,6 @@ class CTkHyperlinkManager:
                 else:
                     webbrowser.open(link)
                 return
-
 
     # The user has clicked on a hotlink.  Get the item clicked and remap using only that single item.
     def remap_single_item(self, action: str, name: str, guiself: ctk) -> None:

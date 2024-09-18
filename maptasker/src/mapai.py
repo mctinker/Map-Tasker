@@ -10,9 +10,10 @@ import importlib.util
 import os
 import sys
 
-import cria
+# import cria
 from openai import OpenAI, OpenAIError
 
+from maptasker.src import cria
 from maptasker.src.config import AI_PROMPT
 from maptasker.src.error import error_handler
 from maptasker.src.guiutils import get_api_key
@@ -94,32 +95,44 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
         local_ai("What is the capital of France?")
         # Output: "Paris"
     """
-    if PrimeItems.program_arguments["ai_analyze"] and not module_is_available("cria"):
-        error_handler("Module 'cria' not found.  Please install the 'cria' module and the Ollama app.", 12)
-        return
+    # if PrimeItems.program_arguments["ai_analyze"] and not module_is_available("cria"):
+    #     error_handler("Module 'cria' not found.  Please install the 'cria' module and the Ollama app.", 12)
+    #     return
 
     # Fix the model name
     if PrimeItems.program_arguments["ai_model"] == "None":
         error_handler("No model selected.", 12)
         return
 
+    print(f"Model: {PrimeItems.program_arguments['ai_model']}")
+    # print(f"Query: {query}")
+
+    # Prep the querey for the model.
+    prompt = query.split(":")[0]  # Skip the first character, which is a colon.
+    context = query.replace(prompt[1:], "")  # All of the Project/Profile/Task data
+    messages = [
+        {
+            "role": "system",
+            "content": f"You are a programmer using Tasker, and Android task management tool. The program code follows, with each line separated by '\n'. {prompt}:{context}",
+        },
+        {"role": "user", "content": context},
+    ]
+    response = ""
+    ai = cria.Cria()
+
     # Open the model and get the response
     try:
-        print(f"Model: {PrimeItems.program_arguments['ai_model']}")
         with cria.Model(PrimeItems.program_arguments["ai_model"]) as ai:
-            response = ai.chat(query, stream=False)
+            for chunk in ai.chat(messages=messages, prompt=prompt):
+                response = f"{response}{chunk}"
+            ai.clear()
 
         # Open error file, since we're going to queue up the response in this file for display back to the GUI.
         record_response(response, ai_object, item)
 
-        # for chunk in response:
-        #    print(chunk, end="")
-
-        ai.close()  # Not required, but best practice.
-
-    except (FileNotFoundError, ValueError):
+    except (FileNotFoundError, ValueError, TypeError, UnboundLocalError) as e:
         error_handler(
-            f"Model {PrimeItems.program_arguments['ai_model']} not found.  Make sure 'Ollama' is installed and run once for the initial setup.  Then try again.",
+            f"Ai analysis error: {e}.  Try again.",
             12,
         )
 
@@ -167,7 +180,7 @@ def server_openai(query: str, ai_object: str, item: str) -> None:
     """
     # Make sure openai is available.
     if PrimeItems.program_arguments["ai_analyze"] and not module_is_available("openai"):
-        error_handler("Module 'cria' not found.  Please install the 'cria' module and Ollama.", 12)
+        error_handler("Module 'openai' not found.  Please install the 'openai'a.", 12)
         return
 
     # Get the api key
@@ -214,11 +227,11 @@ def cleanup_output() -> list:
     """
     # Delete everything up to the Profile.
     temp_output = []
-    got_profile = False
+    got_it = False
     for line in PrimeItems.ai["output_lines"]:
-        if "Profile:" in line:
-            got_profile = True
-        if got_profile:
+        if "Profile:" in line or "Project:" in line or "Task:" in line:
+            got_it = True
+        if got_it:
             # Ignore blank lines.
             if not line:
                 continue

@@ -330,6 +330,20 @@ def count_consecutive_substr(main_str: str, substr: str) -> int:
             i += 1
 
     # Check the last count
-    max_count = max(max_count, count)
+    return max(max_count, count)
 
-    return max_count
+
+def pretty(d: dict, indent: int = 0) -> None:
+    """
+    Print out a dictionary in a human-readable format.
+
+    Args:
+        d: The dictionary to print.
+        indent: The number of tabs to indent the output with.
+    """
+    for key, value in d.items():
+        print("\t" * indent + str(key))
+        if isinstance(value, dict):
+            pretty(value, indent + 1)
+        else:
+            print("\t" * (indent + 1) + str(value))

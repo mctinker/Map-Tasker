@@ -400,8 +400,8 @@ def do_tasker_element(name: str) -> None:
             if check_item(name, item):
                 # Directory item is valid for this name.
                 # Get the name and display name for this item
-                hyperlink_name = item[0]
-                display_name = item[1]
+                hyperlink_name = item[0].replace(">", "&gt;").replace("<", "&lt;")
+                display_name = item[1].replace(">", "&gt;").replace("<", "&lt;")
                 # Append our hyperlink to this Project to the list
                 directory_hyperlinks.append(f"<a href=#{name}_{hyperlink_name}>{display_name}</a>")
 

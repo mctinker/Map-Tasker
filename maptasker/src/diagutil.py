@@ -13,24 +13,24 @@ import string
 from string import printable
 from tkinter import font
 
+from maptasker.src.guiutils import display_progress_bar
 from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 
 bar = "│"
 blank = " "
 box_line = "═"
-down_arrow = "↓"
-up_arrow = "↑"
-left_arrow = "←"
-right_arrow = "→"
-
+down_arrow = "▼"
+up_arrow = "▲"
+left_arrow = "◄"
+right_arrow = "►"
 straight_line = "─"
 line_right_arrow = f"{straight_line*2}▶"
 line_left_arrow = f"◄{straight_line*2}"
-right_arrow_corner_down = "↘"
-right_arrow_corner_up = "↗"
-left_arrow_corner_down = "↙"
-left_arrow_corner_up = "↖"
+right_arrow_corner_down = "╰"
+right_arrow_corner_up = "╯"
+left_arrow_corner_down = "╭"
+left_arrow_corner_up = "╮"
 
 arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}"
 directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
@@ -182,7 +182,7 @@ def fix_icon(name: str) -> str:
         if char.strip() and set(char).difference(printable):
             # tkframe = PrimeItems.tkroot.frame()  # Initialize Tkinter
             # We have the icon.
-            char_dimension = width_and_height_calculator_in_pixel(char, "Courier", 12)
+            char_dimension = width_and_height_calculator_in_pixel(char, "Courier New", 12)
             trailer = "" if char_dimension[0] > char_dimension[1] else blank
             break
     return trailer
@@ -233,7 +233,7 @@ def remove_icon(text: str) -> str:
     """
 
     # If no arrow found in text, just return the line as is.
-    arrow_position: int = next((text.index(char) for char in arrows if char in text), 0)
+    arrow_position: int = next((text.index(char) for char in arrows + bar if char in text), 0)
     if arrow_position == 0:
         return text
 
@@ -244,12 +244,11 @@ def remove_icon(text: str) -> str:
     icon_count = count_icons(text)
     if icon_count > 0:
         # Drop here if there is at least one icon.
-        for find_arrow in directional_arrows:
+        for find_arrow in directional_arrows + bar:
             found_arrow = text.find(find_arrow)
             if found_arrow != -1:
-                # Remove the icon and any blanks
-                output = remove_char(text, found_arrow - 1)
-                return output + blank * icon_count
+                # Remove the icon return the modified string
+                return remove_char(text, found_arrow - 1)
 
         # No icon found
         output = text[: arrow_position - icon_count] + text[arrow_position:]
@@ -298,7 +297,7 @@ def build_box(name: str, output_lines: list) -> tuple:
     return output_lines, position_for_anchor
 
 
-# Trace backwards in the output, inserting a barb (|) through right arrows.
+# Trace backwards in the output, inserting a bar (|) through right arrows.
 def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_position: int) -> list:
     """
     Adds a bar above the specified line in the output lines.
@@ -318,7 +317,7 @@ def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_pos
     while check_line:
         if len(output_lines[line_num]) >= called_task_position:
             # Only insert bar if previous line character is a right arrow or two blanks.
-            if output_lines[line_num][called_task_position] == right_arrow or (
+            if output_lines[line_num][called_task_position] in (right_arrow, straight_line) or (
                 output_lines[line_num][called_task_position] == " "
                 and output_lines[line_num][called_task_position - 1] == " "
             ):
@@ -332,40 +331,78 @@ def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_pos
             break
 
 
-# Go through output and delete all occurances of hanging bars |
-def delete_hanging_bars(output_lines: list) -> list:
+def replace_diff_char(strings: list, char: str, replacement_char: str) -> list:
     """
-    Go through output and delete all occurances of hanging bars |.
+    Replace all occurrences of a character in a list of strings with the character from the next string in the list.
     Args:
-        output_lines: List of strings representing each line of output.
+        strings (list): List of strings to replace character in
+        char (str): Character to replace
+        replacement_char (str): Character to replace with
     Returns:
-        output_lines: List of strings with hanging bars removed.
-    Processing Logic:
-        - Iterate through lines from bottom to top
-        - Find indices of bar characters
-        - Check if character above is empty space or missing
-        - Replace bar with space if hanging
+        list: Modified list of strings
     """
+    if not strings:
+        return strings
 
+    # Traverse the list backwards, starting from the second-to-last string
+    for i in range(len(strings) - 2, -1, -1):
+        for j in range(len(strings[i])):
+            if j < len(strings[i + 1]):  # Ensure we are within the bounds of both strings
+                # Check if the character at the position has something at that position in the next string
+                if strings[i][j] == char and strings[i + 1][j] in (" ", box_line, right_arrow_corner_down):
+                    # Replace the character in the current string
+                    strings[i] = strings[i][:j] + replacement_char + strings[i][j + 1 :]
+            # The line+1 is shorter than line.  Just replace the bars in the line.
+            elif strings[i][j] == char:
+                # Replace the character in the current string
+                strings[i] = strings[i][:j] + replacement_char + strings[i][j + 1 :]
+    return strings
+
+
+# Go through output and delete all occurances of hanging bars |
+def delete_hanging_bars(
+    output_lines: list,
+    progress_bar: object,
+    progress_counter: int,
+    max_data: int,
+    tenth_increment: int,
+) -> list:
+    """
+    Go through output and delete all occurances of hanging bars |
+
+    Args:
+        output_lines (list): List of strings, where each string is a line of output.
+        progress_bar (object): The progress bar object.
+        progress_counter (int): Counter for progress bar.
+        max_data (int): The maximum amount of data for the progress bar.
+        tenth_increment (int): The increment for updating the progress bar.
+
+    Returns:
+        list: The modified list of strings.
+    """
+    # Go through output and delete all occurances of hanging bars |
+    output_lines = replace_diff_char(output_lines, bar, " ")
+
+    # Now let's make sure there is a bar connecting right down arrow to Task.
     line_num = len(output_lines) - 1
-
     while line_num > 0:
-        indices = [i.start() for i in re.finditer(bar, output_lines[line_num])]
-
-        # Go through list of bar positions in line.
-        for position_bar in indices:
-            if len(output_lines[line_num + 1]) < position_bar or output_lines[line_num + 1][position_bar] == " ":
-                output_lines[line_num] = (
-                    f"{output_lines[line_num][:position_bar]} {output_lines[line_num][position_bar + 1:]}"
-                )
-
-        # Now let's make sure there is a bar connecting right down arrow to Task.
         # Add bar(s) (|) above right-down arrow as necessary.
         arrow_position = output_lines[line_num].find(right_arrow_corner_down)
         if arrow_position != -1:
             add_bar_above_lines(output_lines, line_num, arrow_position)
 
         line_num -= 1
+
+        # Update progress bar if needed.
+        if PrimeItems.program_arguments["gui"] and progress_counter % tenth_increment == 0:
+            display_progress_bar(
+                progress_bar,
+                max_data,
+                progress_counter,
+                tenth_increment,
+                is_instance_method=False,
+            )
+        progress_counter += 1
 
     return output_lines
 
@@ -381,9 +418,7 @@ def get_index(line_num: int, output_lines: list, task_to_find: str, search_for: 
         search_for: The string to search for in the line
     Returns:
         index: The index of the task if found
-    - Splits the line on the search string to get list of tasks
-    - Cleans up the task name
-    - Loops through tasks and returns index if match found
+    - Returns the index of the task in the line (Called by or Calls)
     """
 
     # Clean up task name
@@ -392,6 +427,12 @@ def get_index(line_num: int, output_lines: list, task_to_find: str, search_for: 
     # Get list of Tasks
     call_tasks = output_lines[line_num].split(search_for)[1].split("]")[0].split(",")
 
+    # Each entry in list has a blank in front, so we need to remove that.
+    # for position, line in enumerate(call_tasks):
+    #     if line.lstrip() == task_to_find:
+    #         return position + 1
+    # return ""
+    # Each entry in list has a blank in front, so we need to remove that.
     return next(
         (position + 1 for position, line in enumerate(call_tasks) if line.lstrip() == task_to_find),
         "",
@@ -420,7 +461,7 @@ def get_indices_of_line(
         Returns: Tuple[caller_line_index (int), called_line_index (int)]: Index of the
                     line to start the arrows for caller and called Tasks.
     """
-
+    # Return 1 if it is the first caller/called Task, return 2 if it is the second, ...etc.
     return get_index(caller_line_num, output_lines, called_task_name, "[Calls ──▶"), get_index(
         called_line_num,
         output_lines,
@@ -448,6 +489,7 @@ def build_call_table(output_lines: list) -> list:
     for caller_line_num, line in enumerate(output_lines):
         # Do we have a "Calls" line (caller Task)?
         if line_right_arrow in line:
+
             # Handle all of the caller and called Tasks.
             call_table = process_callers_and_called_tasks(output_lines, call_table, caller_line_num, line)
 
@@ -485,20 +527,19 @@ def get_task_details_and_save(
         3. Find range of lines for call
         4. Add new task call details to call table
     """
-
     # Determine if the called Task is below or above the calling Task and set
     # the arrow location accordingly.
     if called_line_num > caller_line_num:
         # Going down.
         arrow = down_arrow
-        upper_corner_arrow = right_arrow_corner_down
-        lower_corner_arrow = left_arrow_corner_down
+        upper_corner_arrow = left_arrow_corner_up
+        lower_corner_arrow = right_arrow_corner_up
         fill_arrow = right_arrow
         start_line = caller_line_num
         line_count = called_line_num - caller_line_num
         up_down_start = start_line + 1
         line_range = line_count - 1
-        up_down_location = called_task_position
+        up_down_location = max(caller_task_position, called_task_position)
     else:
         # Going up.
         arrow = up_arrow
@@ -509,23 +550,23 @@ def get_task_details_and_save(
         line_count = caller_line_num - called_line_num
         up_down_start = start_line
         line_range = line_count + 1
-        up_down_location = called_task_position
 
-    # Find the outside boundary for the range of lines to traverse.
-    # up_down_location = 0
+    # Find the outside boundary for the range of lines to traverse between "caller" and "called".
+    # Up_down location is the pos of the "called" Task name "calls ..."
+    up_down_location = max(caller_task_position, called_task_position)  # Starting outer position (col)
     for x in range(line_range):
-        up_down_location = max(up_down_location, len(output_lines[up_down_start + x]))
-    up_down_location = up_down_location + 3
+        line_to_compare = output_lines[up_down_start + x].rstrip()
+        up_down_location = max(up_down_location, len(line_to_compare))
+    up_down_location = up_down_location + 1  # Bump it by a small increment so as not to croud bars.
 
-    # If this up_down value is already in our table, increment it until
-    # it isn't.
+    # If this up_down value is already in our table, increment it until it isn't.
     if call_table is not None:
         while up_down_location in call_table:
             up_down_location += 2
 
     # Clean up the names
-    caller_task_name = caller_task_name.replace(" (entry)", "")
-    caller_task_name = caller_task_name.replace(" (exit)", "")
+    # caller_task_name = caller_task_name.replace(" (entry)", "")
+    # caller_task_name = caller_task_name.replace(" (exit)", "")
 
     # Okay, we have everything we need.  Add it all to our call table.
     call_table[up_down_location] = [
@@ -562,24 +603,33 @@ def process_callers_and_called_tasks(output_lines: list, call_table: dict, calle
         - Gets called task name(s) from line
         - Searches for called task line in output_lines
         - If called task found, saves details to call_table
+    "└─" = caller_task  and "[call -->" = called_task
     """
 
     # Get this Task's name
     caller_task_name = line.split("└─")
     caller_task_name = caller_task_name[1].split("[")[0].lstrip()
     caller_task_name = caller_task_name.rstrip()
+    # Get the position in the line of of the caller Task name.
     caller_task_position = output_lines[caller_line_num].index(caller_task_name) + (len(caller_task_name) // 2)
 
     # Get the called Task name.
     start_position = line.index(line_right_arrow) + 4
     called_task_names = line[start_position:].split(",")
+    processed_tasks = []
 
-    # Go through list of calls to Tasks from this caller Task.
+    # Go through list of calls to Tasks from this caller Task (e.g. after ""[Calls ──▶").
+    called_names = []  # Keep track of called task names.
     for called_task_name in called_task_names:
+
         # Get the called Task name.
         called_task_name = called_task_name.lstrip()  # noqa: PLW2901
         called_task_name = called_task_name.split("]")  # noqa: PLW2901
         called_task_name = called_task_name[0]  # noqa: PLW2901
+
+        # Get the index of the called Task name.
+        called_task_index = 1 if called_task_name not in called_names else called_names.count(called_task_name) + 1
+        called_names.append(called_task_name)
 
         #  Find the "Called" Task line for the caller Task.
         search_name = f"└─ {called_task_name}"
@@ -587,25 +637,46 @@ def process_callers_and_called_tasks(output_lines: list, call_table: dict, calle
         # Make sure the called Task exists.
         found_called_task = False
         for called_line_num, check_line in enumerate(output_lines):  # noqa: B007
-            # See if the task name is in the line
+            # See if the task name is in the line: "└─ {called_task_name}".
             if search_name in check_line:
                 # Make certain that this is the exact string we want and not a substr match.
                 # If search_name as a substr of the task name we are looking for, then erroneously gets a match and we
                 # must continue the search!
                 str_pos = check_line.find(search_name)
-                bracket = check_line[str_pos + len(search_name) + 1]
-                if bracket != "[":  # If not a bracket, then it is a substring of a larger task name.
+
+                # Find the "[" bracket and make sure it is the next valid character after the name.
+                temp_line = check_line.replace("(entry)", "").replace("(exit)", "")
+                bracket_found = False
+                string_position = str_pos + len(search_name) + 1
+                while not bracket_found:
+                    if temp_line[string_position] == "[":
+                        bracket_found = True
+                        break
+                    if temp_line[string_position] != " ":
+                        break
+                    string_position += 1
+                if not bracket_found:
                     continue
+
+                # Find the position of the "[Calls -->" task name on the called line immediately after "└─ ".
                 found_called_task = True
-                # Find the position of the "Calls -->" task name on the called line
                 caller_task_position = check_line.index(called_task_name) + (len(called_task_name) // 2)
                 # Find the position of the "Called by" task name on the caller by line
-                called_task_position = output_lines[caller_line_num].index(called_task_name) + (
-                    len(called_task_name) // 2
+                start_find_nth = output_lines[caller_line_num].find("[Calls ──▶")
+                called_task_position = (
+                    find_nth(
+                        output_lines[caller_line_num],
+                        called_task_name,
+                        called_task_index,
+                        start_find_nth,
+                    )
+                    + len(called_task_name) // 2
                 )
+                # called_task_line_num = called_line_num + (called_task_index - 1)
                 break
 
-        # If called Task found, then save everything.
+        # If called Task found, then save everything (only do it once) in the call table.
+        # if found_called_task and called_task_name not in processed_tasks:
         if found_called_task:
             call_table = get_task_details_and_save(
                 output_lines,
@@ -616,6 +687,51 @@ def process_callers_and_called_tasks(output_lines: list, call_table: dict, calle
                 called_task_name,
                 called_line_num,
                 called_task_position,
+                # called_task_line_num,
             )
+            processed_tasks.append(called_task_name)
 
     return call_table
+
+
+def find_nth(haystack: str, needle: str, n: int, starting_position: int = 0) -> int:
+    """
+    Finds the nth occurrence of a substring in a string.
+
+    Args:
+        haystack (str): The string to search in.
+        needle (str): The substring to search for.
+        n (int): The occurrence to find. 1 is the first occurrence.
+        starting_position: The starting position to search from.
+
+    Returns:
+        int: The index of the nth occurrence of the substring. -1 if not found.
+    """
+    start = haystack.find(needle, starting_position)
+    while start >= 0 and n > 1:
+        start = haystack.find(needle, start + len(needle))
+        n -= 1
+    return start
+
+
+def replace_blanks_before_char(string_list: list, target_char: str, replacement_char: str) -> list:
+    """
+    Replace spaces before target_char in each string of a list.
+
+    Args:
+        string_list (list): List of strings to process
+        target_char (str): Character to target
+        replacement_char (str): Character to replace before target_char
+
+    Returns:
+        list: List of strings with spaces before target_char replaced
+    """
+    updated_list = []
+    for line in string_list:
+        # Create a list from the string to easily modify characters
+        new_string = list(line)
+        for i in range(1, len(new_string)):  # Start from index 1 to check previous char
+            if new_string[i] == target_char and new_string[i - 1] == " ":
+                new_string[i - 1] = replacement_char
+        updated_list.append("".join(new_string))
+    return updated_list

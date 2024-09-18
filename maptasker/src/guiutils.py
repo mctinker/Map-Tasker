@@ -12,6 +12,7 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import platform
 import sys
 import time
 from tkinter import font
@@ -56,21 +57,23 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.1.2 - Change Log\n
-### Added\n
-- Added: 'Up Two Levels' has been added to the Map view.\n\n
-### Changed\n
-- Changed: Map view performance has been improved when using the directory hyperlinks for single names that are already in the view.  It goes directly to the single named item in the current view rather than remapping the nnmed item and redrawing the view.\n
-- Changed: To remap a single named item in the Map view, the single named item must be selected from the GUI and the 'Map' view button must be reselected.  Otherwise, it will simply display the single named item in the existing Map view.\n\n
-### Fixed\n
-- Fixed: Project/Profile/Task/Scene name highlighting is incomplete in the Map view.\n
-- Fixed: Project/Profile/Task/Scene names with the any of the special characters '_,>[(' in it are not displaying correctly.\n
-- Fixed: 'Go to bottom' hotlink in Map view goes beyond the last entry in the list.\n
-- Fixed: If no XML is loaded, the single name pulldowns are still incorrectly loaded with the prior XML names.\n
-- Fixed: No inidation is given that the search string was not found in the Map and Diagram views.\n
-- Fixed: Unnamed Profiles have a blank name rather than 'None or unnamed!' as the name in certain situations.\n\n
-### Known Issues\n
-- A program error can occur in the external package 'Cria' when performing an Ai Analysis with a local (e.g. llama) model.\n
+Version 5.2.0 - Change Log
+### Added
+- Added: 'Up Two Levels' has been added to the Map view.
+- Added: Ai analysis OpenAi models 'o1-preview' and 'o1-mini' have been added.
+- Added: Ai analysis local models 'qwen2' and 'gemma2' have been added.
+### Changed
+- Changed: Diagram rewrite to improve readibility and performance.
+### Fixed
+- Fixed: Diagram displaying too much filler between tasks.
+- Fixed: Tasks not found in the diagram are not all being identified.
+- Fixed: Diagram is displaying duplicate tasks in the '[Calls -> list of tasks'.
+- Fixed: Directory entries are incorrect if there is one or more ">" or "<" in the object name.
+- Fixed: Ai-Analysis using a local model (e.g. llama3.1) is not working.
+### Known Issues
+- Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
+- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly if using highlighting (underline, etc.).
+- Open Issue: Projects, Profiles and Tasks with a comma in the name may not display correctly.
 """
 
 default_font_size = 14
@@ -442,12 +445,16 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
         - None: The function does not return anything, but updates the message attribute of the object.
     Processing Logic:
         - Check if the changelog file exists.
-        - If it exists, prepare to display changes and remove the file so we only display the changes once."""
+        - If it exists, prepare to display changes and remove the file so we only display the changes once.
+    Note: The changelog file is created immdiately after the program is updated (userintr upgrade_event)
+    """
     # TODO Test changelog before posting to PyPi.  Comment it out after testing.
     # self.message = CHANGELOG
 
     if os.path.isfile(CHANGELOG_FILE):
-        self.message = CHANGELOG
+        with open(CHANGELOG_FILE) as changelog_file:
+            for line in changelog_file:
+                self.message += f"{line}\n"
         os.remove(CHANGELOG_FILE)
 
     # Write changelog out as json file if in debug mode.
@@ -662,7 +669,6 @@ def add_button(
         text=text,
     )
     button_name.grid(row=row, column=column, columnspan=columnspan, padx=padx, pady=pady, sticky=sticky)
-    # print(button_name.cget("fg_color"), " ", button_name.cget("text_color"))
     return button_name
 
 
@@ -1613,7 +1619,7 @@ def add_cancel_button(self, row: int, delta_y: int) -> None:  # noqa: ANN001
 
 
 # Reload the program
-def reload_gui(self, *args: list) -> None:  # noqa: ANN001
+def reload_gui(self: object) -> None:
     """
     Reload the GUI by running a new process with the new program/version.
 
@@ -1795,7 +1801,7 @@ def search_nextprev_string(self: object, textview: ctk.CTkTextbox, direction: st
         None
     """
     if not textview.search_string:
-        no_search_string(self, textview)
+        no_search_string(textview)
         return
 
     # Remove tag 'next' from index 1 to END
@@ -1831,7 +1837,7 @@ def search_nextprev_string(self: object, textview: ctk.CTkTextbox, direction: st
                 #     "n",
                 # )
                 # textview.after(3000, textview.delay_event)  # 3-second timer
-                output_label(self, textview, message)
+                output_label(textview, message)
             else:
                 # Determine the new current line based on direction
                 if direction == "next":
@@ -1856,7 +1862,7 @@ def search_nextprev_string(self: object, textview: ctk.CTkTextbox, direction: st
                 break
 
 
-def no_search_string(self: object, textview: ctk.CTkTextbox) -> None:
+def no_search_string(textview: ctk.CTkTextbox) -> None:
     """
     Displays a message box indicating that no search string was found.
 
@@ -1866,10 +1872,10 @@ def no_search_string(self: object, textview: ctk.CTkTextbox) -> None:
     Returns:
         None
     """
-    output_label(self, textview, "No search string was entered.")
+    output_label(textview, "No search string was entered.")
 
 
-def output_label(self: object, textview: ctk.CTkTextbox, message: str) -> None:
+def output_label(textview: ctk.CTkTextbox, message: str) -> None:
     """
     Displays a message label in the GUI.
 
@@ -1937,7 +1943,7 @@ def get_appropriate_color(self: object, color_to_use: str) -> str:
 def display_progress_bar(
     progress_bar: object,
     max_data: int,
-    num: int,
+    progress_counter: int,
     tenth_increment: int,
     is_instance_method: bool = False,
 ) -> None:
@@ -1947,7 +1953,7 @@ def display_progress_bar(
     Args:
         progress_bar (object): The instance of the progressbar window or the instance of the class containing the progress bar.
         max_data (int): The maximum value for the progress bar.
-        num (int): The current value of the progress bar.
+        progress_counter (int): The current value of the progress bar.
         tenth_increment (int): The increment value for each 10% of progress.
         is_instance_method (bool): Flag to determine if the function is used as a class instance method.
 
@@ -1961,14 +1967,17 @@ def display_progress_bar(
         comp4 = 4
         comp6 = 6
         comp8 = 8
-        threshold = num / tenth_increment
+        threshold = progress_counter / tenth_increment
     else:
         # Diagram view
         comp2 = tenth_increment * 2
         comp4 = tenth_increment * 4
         comp6 = tenth_increment * 6
         comp8 = tenth_increment * 8
-        threshold = num
+        threshold = progress_counter
+
+    # Calculate our progress value based on the maximum value and current value.
+    progress_value = round((progress_counter / max_data), 2)
 
     # Determine the progress color based on the current value.
     if threshold <= comp2:
@@ -1981,13 +1990,21 @@ def display_progress_bar(
         progress_color = "limegreen"
     else:
         progress_color = "green"
+        # If value is over .99, for some reason the progress bar users a value of .02 ratherr than 1.
+        # So we have to force it to something just short of 1.
+        if progress_counter / max_data >= 0.99:
+            progress_value = 0.97
 
     # Update the progress bar with the current value and color.
-    progress_bar.progressbar.set(num / max_data)
+    progress_bar.progressbar.set(progress_value)
     progress_bar.progressbar.configure(progress_color=progress_color)
     progress_bar.progressbar.update()
 
-    # Check if an alert needs to be printed.
-    if progress_bar.progressbar.print_alert and round(time.time() * 1000) - progress_bar.progressbar.start_time > 4000:
-        print("You can ignore the error message: IMKClient Stall detected, *please Report*...")
+    # Check if an alert needs to be printed (OS X only).
+    if (
+        platform.system() == "Darwin"
+        and progress_bar.progressbar.print_alert
+        and round(time.time() * 1000) - progress_bar.progressbar.start_time > 4000
+    ):
+        print("You can ignore the error message: 'IMKClient Stall detected, *please Report*...'")
         progress_bar.progressbar.print_alert = False

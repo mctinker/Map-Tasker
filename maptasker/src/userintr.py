@@ -12,7 +12,6 @@ from __future__ import annotations
 import contextlib
 import json
 import os
-import sys
 import webbrowser
 from pathlib import Path
 from typing import Callable
@@ -137,7 +136,7 @@ INFO_TEXT = (
     " Android device, as well as the file location on the device.\n\n"
     "* Get Local XML: fetch the backup/exported XML file from your local drive.\n\n"
     "* Run and Exit: Run the program with the settings provided, display the results in the web browser and then exit.\n"
-    "* ReRun: Run multiple times (each time with new settings) without exiting.\n\n"
+    "* ReRun: Run multiple times (each time with new settings) without exiting, displaying the results in the browser.\n\n"
     "* Specific Name tab: enter a single, specific named item to display...\n"
     "   - Project Name: enter a specific Project to display.\n"
     "   - Profile Name: enter a specific Profile to display.\n"
@@ -227,7 +226,7 @@ AI_HELP_TEXT = (
     "   o If you have not yet selected a model, prompt or single Project, Profile or Task, then you will be prompted to do so first.\n\n"
     "   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n"
     "Your designated api-key (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\n"
-    "Models that start with 'gpt' are server-based models.  All others are local models.\n\n"
+    "Models that start with 'gpt' and 'o' are server-based models.  All others are local models.\n\n"
     "The 'Rerun' feature will be used to display the results of the analysis in a new window.\n\n"
 )
 
@@ -316,7 +315,8 @@ class MyGui(customtkinter.CTk):
         self.deiconify()
         # The following line is equivelent to a call to update_tasker_object_menus but only when the Analysis tab is clicked.
         self.tabview.configure(
-            "Analyze", command=update_tasker_object_menus(self, get_data=True, reset_single_names=False)
+            "Analyze",
+            command=update_tasker_object_menus(self, get_data=True, reset_single_names=False),
         )
 
         # Update the analysis button
@@ -2189,7 +2189,7 @@ class EventHandlers:
         create_changelog()
 
         # Reload the GUI by running a new process with the new program/version.
-        reload_gui(the_view, sys.argv)
+        reload_gui(the_view)
 
     # The Upgrade Version button has been pressed.
     def report_issue_event(self) -> None:
@@ -2212,7 +2212,8 @@ class EventHandlers:
             webbrowser.open(f"https:{PrimeItems.slash*2}{url}", new=2)
         except webbrowser.Error:
             the_view.display_message_box(
-                "Error: Failed to open output in browser: your browser is not supported.", "Red"
+                "Error: Failed to open output in browser: your browser is not supported.",
+                "Red",
             )
             return
         the_view.display_message_box("Report an Issue or Request a Feature\n\n" + issue_text)
@@ -2651,7 +2652,8 @@ class EventHandlers:
         """
         the_view = self.parent
         the_view.highlight = the_view.get_input_and_put_message(
-            the_view.highlight_checkbox, "Display Names Highlighted"
+            the_view.highlight_checkbox,
+            "Display Names Highlighted",
         )
 
     # Process the 'Italicize Names' checkbox
@@ -2698,7 +2700,8 @@ class EventHandlers:
         """
         the_view = self.parent
         the_view.taskernet = the_view.get_input_and_put_message(
-            the_view.taskernet_checkbox, "Display TaskerNet Information"
+            the_view.taskernet_checkbox,
+            "Display TaskerNet Information",
         )
 
     # Process the 'Runtime' checkbox
@@ -2923,7 +2926,6 @@ class EventHandlers:
                 "Orange",
             )
             # Get the Profile or Task to analyze
-            # the_view.ai_analyze_button.destroy()
             # If there are no Profiles or Tasks, redisplay the Analyze button
             if not list_tasker_objects(the_view):
                 # Drop here if we don't have any XML loaded yet.
@@ -3303,23 +3305,23 @@ class EventHandlers:
                     # text_widget.tag_add(tag_name, start_index, end_index)
                     textview.textview_textbox.tag_add("found", idx, lastidx)
 
-            # This code never returns if stopindex is hit.
-            # # Start search at index 1...the beginning of the textbox.
-            # idx = "1.0"
-            # while 1:
-            #     # searches for desired string starting from index/last index.
-            #     idx = self.textview_textbox.search(
-            #         search_input, idx, nocase=1, count=found_counter, stopindex=end_line_col,
-            #     )
-            #     if not idx:
-            #         break
+                # This code never returns if stopindex is hit.
+                # # Start search at index 1...the beginning of the textbox.
+                # idx = "1.0"
+                # while 1:
+                #     # searches for desired string starting from index/last index.
+                #     idx = self.textview_textbox.search(
+                #         search_input, idx, nocase=1, count=found_counter, stopindex=end_line_col,
+                #     )
+                #     if not idx:
+                #         break
 
-            #     # Build a tag = index of found string + plus-sign + length of search string + 'c': eg. '14.0+3c'
-            #     lastidx = "%s+%dc" % (idx, len(search_input))
+                #     # Build a tag = index of found string + plus-sign + length of search string + 'c': eg. '14.0+3c'
+                #     lastidx = "%s+%dc" % (idx, len(search_input))
 
-            #     # overwrite 'Found' at idx
-            #     self.textview_textbox.tag_add("found", idx, lastidx)
-            #     idx = lastidx
+                #     # overwrite 'Found' at idx
+                #     self.textview_textbox.tag_add("found", idx, lastidx)
+                #     idx = lastidx
 
                 # mark located string as red
                 textview.textview_textbox.tag_config(
@@ -3333,10 +3335,10 @@ class EventHandlers:
 
             # Search string not found.
             else:
-                output_label(self, textview, "Search string not found.")
+                output_label(textview, "Search string not found.")
 
         else:
-            no_search_string(self, textview)
+            no_search_string(textview)
 
     def clear_event(self: object, textview: CTkTextview) -> None:
         """
@@ -3379,7 +3381,7 @@ class EventHandlers:
             wrap_msg = "off"
 
         # Let the user know.
-        output_label(self, textview, f"Word wrap is {wrap_msg}")
+        output_label(textview, f"Word wrap is {wrap_msg}")
 
     def nextsearch_event(self, textview: CTkTextview) -> None:
         """

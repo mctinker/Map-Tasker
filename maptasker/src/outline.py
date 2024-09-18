@@ -109,7 +109,7 @@ def do_task_actions(task_actions: defusedxml.ElementTree, task: defusedxml.Eleme
         # Have action: go through it looking for a "Perform Task"
         for child in action:
             if child.tag == "code" and child.text == "130":
-                # We have a Perform Task.  Get the Task name to be performed.
+                # We have a Perform Task.  Get the Task name to be performed, which is in the first string encountered.
                 all_strings = action.findall("Str")
                 perform_task_name = all_strings[0].text
 
@@ -129,15 +129,19 @@ def get_perform_task_actions(the_tasks: list) -> None:
     """
     # Go through each Task to find out if this Task is calling other Tasks.
     for task in the_tasks:
-        # Get Task's Actions
-        try:
-            task_actions = task["xml"].findall("Action")
-        except defusedxml.DefusedXmlException:
-            task_actions = ""
-            continue
-        # Go through Actions and see if any are "Perform Task"
-        if task_actions:
-            do_task_actions(task_actions, task)
+        # Only do this if we haven't already processed this task
+        if task["name"] not in PrimeItems.outline_tasks_mapped:
+            # Get Task's Actions
+            try:
+                task_actions = task["xml"].findall("Action")
+            except defusedxml.DefusedXmlException:
+                task_actions = ""
+                continue
+            # Go through Actions and see if any are "Perform Task"
+            if task_actions:
+                do_task_actions(task_actions, task)
+            # Keep track of the processed task
+            PrimeItems.outline_tasks_mapped.append(task["name"])
 
 
 # Output the Tasks that are not in any Profile
@@ -162,6 +166,7 @@ def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list) -> No
     all_profiles_tasks = list(dict.fromkeys(all_profiles_tasks))  # Remove dups
     no_profile_tasks = []
     no_profile_task_lines = []
+
     # Go through all Tasks in the Project
     for task in tasks_in_project:
         profile_task = f"task{task}"
@@ -174,6 +179,7 @@ def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list) -> No
             if no_profile_task not in no_profile_tasks:
                 no_profile_tasks.append(no_profile_task)
                 no_profile_task_lines.append({"xml": no_profile_task["xml"], "name": no_profile_task["name"]})
+
     # Format the output line
     if no_profile_tasks:
         task_line = f"{blank*5}÷{line*5}▶ Tasks not in any Profile:"
@@ -282,6 +288,7 @@ def do_profile_tasks(
         call_task = ""
         prime_task = ""
 
+        # Go through all "calls task" tasks and add them to the call_task.
         with contextlib.suppress(KeyError):
             if PrimeItems.tasks_by_name[task["name"]]:
                 prime_task = PrimeItems.tasks_by_name[task["name"]]
@@ -410,6 +417,15 @@ def do_the_outline(network: dict) -> None:
     """
     # Name anonymous Tasks as "anonymous#1", "anonymous#2", etc.
     assign_names_to_anonymous_tasks()
+    # Make sure we start clean by deleteing all prexisting call_tasks and called_by lists.
+    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    for task_num in all_tasks:
+        task = PrimeItems.tasker_root_elements["all_tasks"][task_num]
+        with contextlib.suppress(KeyError):
+            del PrimeItems.tasks_by_name[task["name"]]["call_tasks"]
+        with contextlib.suppress(KeyError):
+            del PrimeItems.tasks_by_name[task["name"]]["called_by"]
+    PrimeItems.outline_tasks_mapped = []  # Keep track of tasks that have been mapped.
 
     # If no projects and a profile or task, just display profile or task rather than going through this loop.
     if not PrimeItems.tasker_root_elements["all_projects"] and (

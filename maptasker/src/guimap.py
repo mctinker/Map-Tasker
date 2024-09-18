@@ -568,7 +568,7 @@ def add_directory_entry(temp: list, output_lines: dict, line_num: int) -> dict:
     name = parse_name(temp[1]).replace("</a></td>", "")
     start_pos = temp[1].find("#")
     end_pos = temp[1].find("_", 1)
-    tasker_type = temp[1][start_pos+1:end_pos]
+    tasker_type = temp[1][start_pos + 1 : end_pos]
 
     # Add the directory entry
     if name is not None:
