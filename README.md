@@ -243,6 +243,6 @@ Network traffic is as follows:
 
 [Ollama](https://ollama.com/) and [OpenAi](https://openai.com/)
 
-
+[Anonyo Noor for cria](https://github.com/leftmove/cria)
 
 <a href="https://www.buymeacoffee.com/mctinker"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=mctinker&button_colour=FFDD00&font_colour=000000&font_family=Poppins&outline_colour=000000&coffee_colour=ffffff" /></a>

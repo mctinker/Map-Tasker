@@ -2,31 +2,45 @@
 
 All notable changes to this project will be documented in this file!
 
-## [5.1.2] 05-Sep-2024
+## [5.2.0] 19-Sep-2024
 
 ### Added
 
 - Added: 'Up Two Levels' has been added to the Map view.
+- Added: Ai analysis OpenAi models 'o1-preview' and 'o1-mini' have been added.
+- Added: Ai analysis local models 'qwen2' and 'gemma2' have been added.
 
 ### Changed
 
-- Changed: Map view performance has been improved when using the directory hyperlinks for single names that are already in the view.  It goes directly to the single named item in the current view rather than remapping the nnmed item and redrawing the view.
-- Changed: To remap a single named item in the Map view, the single named item must be selected from the GUI and the 'Map' view button must be reselected.  Otherwise, it will simply display the single named item in the existing Map view.
+- Changed: Diagram rewrite to improve readibility and performance.
 
 ### Fixed
 
+- Fixed: Diagram displaying too much filler between tasks.
+- Fixed: Tasks not found in the diagram are not all being identified.
+- Fixed: Diagram is displaying duplicate tasks in the '[Calls -> list of tasks'.
+- Fixed: Directory entries are incorrect if there is one or more ">" or "<" in the object name.
+- Fixed: Ai-Analysis using a local model (e.g. llama3.1) is not working.
+
+### Known Issues
+
+- Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
+- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly if using highlighting (underline, etc.).
+- Open Issue: Projects, Profiles and Tasks with a comma in the name may not display correctly.
+
+## Older History Logs
+
+## [5.1.2]
+
+- Added: 'Up Two Levels' has been added to the Map view.
+- Changed: Map view performance has been improved when using the directory hyperlinks for single names that are already in the view.  It goes directly to the single named item in the current view rather than remapping the nnmed item and redrawing the view.
+- Changed: To remap a single named item in the Map view, the single named item must be selected from the GUI and the 'Map' view button must be reselected.  Otherwise, it will simply display the single named item in the existing Map view.
 - Fixed: Project/Profile/Task/Scene name highlighting is incomplete in the Map view.
 - Fixed: Project/Profile/Task/Scene names with special characters in it are not displaying correctly.
 - Fixed: 'Go to bottom' hotlink in Map view goes beyond the last entry in the list.
 - Fixed: If no XML is loaded, the single name pulldowns are still incorrectly loaded with the prior XML names.
 - Fixed: No indication is given that the search string was not found in the Map and Diagram views.
 - Fixed: Unnamed Profiles have a blank name rather than 'None or unnamed!' as the name in certain situations.
-
-### Known Issues
-
-- A program error can occur in the external package 'Cria' when performing an Ai Analysis with a local (e.g. llama) model.
-
-## Older History Logs
 
 ## [5.1.1]
 
