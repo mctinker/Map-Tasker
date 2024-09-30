@@ -12,7 +12,6 @@ import contextlib
 import os
 import random
 import time
-import warnings
 import webbrowser
 from tkinter import TclError, ttk
 
@@ -402,9 +401,20 @@ class CTkTextview(ctk.CTkFrame):
 
         # Process list data (list of lines): diagram view.
         if type(the_data) !=  dict:
+            diagram = "Diagram" in self.title
             for num, line in enumerate(the_data):
                 text_line = num + 1
                 self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
+                # Highlight the Tasker names if doing a diagram.
+                if diagram:
+                    self.highlight_text(line, text_line)
+            # Configure tag colors once if a highlight was applied
+            if diagram:
+                self.textview_textbox.tag_config("project", foreground=self.master.master.color_lookup["project_color"])
+                self.textview_textbox.tag_config("profile", foreground=self.master.master.color_lookup["profile_color"])
+                self.textview_textbox.tag_config("task", foreground=self.master.master.color_lookup["task_color"])
+                self.textview_textbox.tag_config("scene", foreground=self.master.master.color_lookup["scene_color"])
+
             # Add the CustomTkinter widgets
             self.add_view_widgets("Diagram")
             # Force courier new for diagram view if just Courier...perfect character alignment.
@@ -654,6 +664,173 @@ class CTkTextview(ctk.CTkFrame):
         window_position = self.root.wm_geometry()
         # Set the 'view' new window position in our GUI self.
         setattr(self.master.master, position_key, window_position)
+
+    def click_text(self, event: object) -> None:
+        """
+        Gets the index of the mouse click on the text box.
+
+        Args:
+            event: The event object containing the coordinates of the mouse click.
+
+        Returns:
+            None: This function does not return anything.
+
+        Raises:
+            None: This function does not raise any exceptions.
+
+        This function is called when the text box is clicked. It uses the event object to get the coordinates of the mouse click and then gets the index of the text box at those coordinates. The index is then used to get the text between the start and end indices of the tag "adj" at the mouse click location.
+        """
+        # get the index of the mouse click
+        index = event.widget.index(f"@{event.x},{event.y}")
+
+        # # get the indices of all "adj" tags
+        # tag_indices = list(event.widget.tag_ranges("tag"))
+
+        # # iterate them pairwise (start and end index)
+        # for start, end in zip(tag_indices[0::2], tag_indices[1::2]):
+        #     # check if the tag matches the mouse click index
+        #     if event.widget.compare(start, "<=", index) and event.widget.compare(index, "<", end):
+        #         # return string between tag start and end
+        #         print(start, end, event.widget.get(start, end))
+
+    def add_highlight(self, tagid: str, line_num: int, highlight_start: int, highlight_end: int) -> None:
+        """
+        Adds a tag to the text box for the given highlight range.
+
+        Args:
+            tagid (str): The tag ID to add.
+            line_num (int): The line number to add the highlight to.
+            highlight_start (int): The start column of the highlight.
+            highlight_end (int): The end column of the highlight.
+
+        Returns:
+            None: This function does not return anything.
+        """
+        self.textview_textbox.tag_add(
+            tagid,
+            f"{line_num}.{highlight_start!s}",
+            f"{line_num}.{highlight_end!s}",
+        )
+        # self.textview_textbox.tag_bind(tagid, "<Button-1>", self.click_text)
+
+    def highlight_item_names(self, tagid: str, line: str, line_num: int) -> None:
+        """
+        Highlights item names in the line.
+
+        Args:
+            tagid (str): The tag ID to add.
+            line (str): The line to highlight.
+            line_num (int): The line number to add the highlight to.
+
+        Returns:
+            None: This function does not return anything.
+
+        This function highlights the item names in the line by getting the occurances of the left_arrow_corner_up "║" character in the line.
+        It then adds a tag to the text box for the given highlight range.
+        """
+        # Get the occurances of left_arrow_corner_up "║" in the line and use it to determine start and end.
+        occurences = [i for i, c in enumerate(line) if c == "║"]
+        # Get the locations of all icons in the names.
+        icons = [i for i, char in enumerate(line) if ord(char) > 1000 and char not in ("│", "║")]
+        for num, occurence in enumerate(occurences):
+            if num % 2 == 0:  # Even?
+                highlight_start = occurence + 2
+                highlight_end = ""
+            else:  # Odd?
+                highlight_end = occurence - 1
+            # We have the name if odd (e.g. we have highlight_end).
+            if highlight_end:
+                # If icon in name, push out by number of icon positions.
+                for num_icon, icon in enumerate(icons):
+                    if highlight_start >= icon <= highlight_end:
+                        highlight_end += num_icon + 1
+                        highlight_start += num_icon + 2
+                        break
+                # Finally, add the highlighting.
+                self.add_highlight(tagid, line_num, highlight_start, highlight_end)
+
+    def highlight_text(self, line: str, line_num: int) -> None:
+        """
+        Main function to check the line of text for specific items to highlight
+        and adds the corresponding tag to the text box for the given highlight range.
+        """
+        project_index, have_profile, have_task, have_scene = self.identify_items(line)
+
+        if project_index != -1:
+            self.handle_project_highlight(line, line_num, project_index)
+        elif have_profile:
+            self.highlight_item_names("profile", line, line_num)
+        elif have_task:
+            self.handle_task_highlight(line, line_num)
+        elif have_scene:
+            self.highlight_item_names("scene", line, line_num)
+
+    def identify_items(self, line: str) -> tuple:
+        """
+        Identifies if the line contains 'Project:', 'Profile', 'Task', or 'Scene'.
+
+        Returns:
+            Tuple of:
+            - project_index (int): Position of 'Project:' in the line (-1 if not found).
+            - have_profile (bool): True if profile is found.
+            - have_task (bool): True if task is found.
+            - have_scene (bool): True if scene is found.
+        """
+        have_profile = have_task = have_scene = False
+
+        # Check for Project
+        project_index = line.find("Project:")
+        if project_index != -1:
+            return project_index, False, False, False
+
+        # Check for Task or Profile/Scene
+        if "└─" in line:
+            have_task = True
+        elif "║" in line:
+            if "Scenes:" in line:
+                have_scene = True
+            else:
+                have_profile = True
+
+        return project_index, have_profile, have_task, have_scene
+
+    def handle_project_highlight(self, line: str, line_num: int, project_index: int) -> None:
+        """
+        Handles highlighting for a project item.
+        """
+        highlight_start = project_index + 9
+        highlight_end = line.find("║", highlight_start) - 1
+        self.add_highlight("project", line_num, highlight_start, highlight_end)
+
+    def handle_task_highlight(self, line: str, line_num: int) -> None:
+        """
+        Handles highlighting for a task item.
+        """
+        hits = ["[Called by ", "[Calls ", "(entry)", "(exit)", "  "]
+        highlight_start = line.find("└─") + 3
+        highlight_end = self.find_task_end(line, highlight_start, hits)
+
+        self.add_highlight("task", line_num, highlight_start, highlight_end)
+
+    def find_task_end(self, line: str, highlight_start: int, hits: list) -> int:
+        """
+        Determines the end position of a task based on specific delimiters.
+
+        Returns:
+            int: The end position for the highlight.
+        """
+        have_end = False
+        for deliminator in hits:
+            position = line.find(deliminator, highlight_start)
+            if position != -1:
+                have_end = True
+                break
+
+        highlight_end = position - 1 if have_end else len(line)
+        if deliminator == "  ":
+            highlight_end += 1
+
+        return highlight_end
 
     # Output the map view data to the text window.
     def output_map(self, the_data: dict) -> None:
@@ -1578,7 +1755,7 @@ class CTkHyperlinkManager:
             None
         """
         self.text.configure(cursor="xterm")
-        # TODO self.text.master.textview_textbox not correct
+        # TODO Try to put a label on clicked directory entry: self.text.master.textview_textbox not correct
         # output_label(self.text.master.textview_textbox, "ahah")
 
     def _click(self, event: object) -> None:
@@ -2200,11 +2377,29 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         1,
         19,
         0,
+        85,
         0,
-        0,
-        "s",
+        "sw",
     )
     self.diagramview_button.configure(width=120)
+    #  "I" icon button
+    self.view_query_button = add_button(
+        self,
+        self.sidebar_frame,
+        "#246FB6",
+        "",
+        "",
+        self.event_handlers.icon_event,
+        1,
+        "IA",
+        1,
+        19,
+        0,
+        (210, 0),
+        0,
+        "sw",
+    )
+    self.view_query_button.configure(width=20)
 
     # 'Tree View' button definition
     self.treeview_button = add_button(

@@ -104,6 +104,7 @@ class PrimeItems:
     tkroot = None
     last_run = NOW_TIME
     slash = "/"
+    display_icon = True
 
 
 # Reset all values
@@ -172,3 +173,4 @@ class PrimeItemsReset:
             "response": [],
             "api_key": "",
         }
+        PrimeItems.display_icon = True

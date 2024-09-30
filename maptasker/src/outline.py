@@ -294,7 +294,7 @@ def do_profile_tasks(
                 prime_task = PrimeItems.tasks_by_name[task["name"]]
                 try:
                     for perform_task in prime_task["call_tasks"]:
-                        call_task = f"{call_task} {perform_task},"
+                        call_task = f"{call_task} '{perform_task}',"
                 except KeyError:
                     call_task = ""
         if call_task:

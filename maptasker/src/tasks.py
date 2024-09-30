@@ -133,6 +133,7 @@ def extry_or_exit_task(
     line_left_arrow = "&#11013;"
     # Determine if this is an "Entry" or "Exit" Task
     if task_name:
+
         # Don't add the entry/exit text if display level = 0
         if PrimeItems.program_arguments["display_detail_level"] > 0:
             if task_type == "Exit":
@@ -360,7 +361,7 @@ def do_single_task(
         PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
         # Make the line pretty
-        if PrimeItems.program_arguments["pretty"]:
+        if PrimeItems.program_arguments["pretty"] and "[" not in our_task_name:
             blanks = f'{"&nbsp;" * len(our_task_name)}'
             task_list[0] = task_list[0].replace("[", f"<br>{blanks}[")
 

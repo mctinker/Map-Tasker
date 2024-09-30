@@ -9,11 +9,9 @@
 from __future__ import annotations
 
 import re
-import string
 from string import printable
 from tkinter import font
 
-from maptasker.src.guiutils import display_progress_bar
 from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 
@@ -25,6 +23,7 @@ up_arrow = "▲"
 left_arrow = "◄"
 right_arrow = "►"
 straight_line = "─"
+task_delimeter = "¥"
 line_right_arrow = f"{straight_line*2}▶"
 line_left_arrow = f"◄{straight_line*2}"
 right_arrow_corner_down = "╰"
@@ -36,10 +35,11 @@ arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_do
 directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
 
 # Define additional "printable" characters to allow.
-extra_cars: set[str] = set(f"│└─╔═║╚╝╗▶◄{arrows}")
+# extra_cars: set[str] = set(f"│└─╔═║╚╝╗▶◄{arrows}")
 # List of printable ASCII characters
-printable_chars: set[str] = set(string.printable)
-printable_chars = printable_chars.union(extra_cars)
+# printable_chars: set[str] = set(string.printable)
+# printable_chars = printable_chars.union(extra_cars)
+icon_regex = re.compile(r"\s*[\U0001F300-\U0001F7FF]\s*")
 
 
 # Add line to our output queue.
@@ -190,18 +190,18 @@ def fix_icon(name: str) -> str:
 
 # Remove a character from a string at a specific location and return the modified
 # string.
-def remove_char(string: str, index: int) -> str:
+def remove_char(text: str, index: int) -> str:
     """
     Remove character from string at given index and return modified string
 
     Args:
-        string (str): The input string
+        text (str): The input string
         index (int): The index to remove the character at
 
     Returns:
         str: String with character removed at given index
     """
-    return string[:index] + string[index + 1 :]
+    return text[:index] + text[index + 1 :]
 
 
 # Count the number of icons (non-alphanumeric chars) in the line of text
@@ -214,8 +214,6 @@ def count_icons(text: str) -> int:
     Returns:
       An integer representing the number of icons in the text string.
     """
-
-    icon_regex = re.compile(r"\s*[\U0001F300-\U0001F7FF]\s*")
     matches = icon_regex.findall(text)
     return len(matches)
 
@@ -332,40 +330,47 @@ def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_pos
 
 
 def replace_diff_char(strings: list, char: str, replacement_char: str) -> list:
+    # Looping backwards through the list of strings
     """
     Replace all occurrences of a character in a list of strings with the character from the next string in the list.
+
     Args:
         strings (list): List of strings to replace character in
         char (str): Character to replace
         replacement_char (str): Character to replace with
+
     Returns:
         list: Modified list of strings
     """
-    if not strings:
-        return strings
-
-    # Traverse the list backwards, starting from the second-to-last string
     for i in range(len(strings) - 2, -1, -1):
-        for j in range(len(strings[i])):
-            if j < len(strings[i + 1]):  # Ensure we are within the bounds of both strings
-                # Check if the character at the position has something at that position in the next string
-                if strings[i][j] == char and strings[i + 1][j] in (" ", box_line, right_arrow_corner_down):
-                    # Replace the character in the current string
-                    strings[i] = strings[i][:j] + replacement_char + strings[i][j + 1 :]
-            # The line+1 is shorter than line.  Just replace the bars in the line.
-            elif strings[i][j] == char:
-                # Replace the character in the current string
-                strings[i] = strings[i][:j] + replacement_char + strings[i][j + 1 :]
+        # Cache the next string to avoid repeated access
+        next_string = strings[i + 1]
+        next_string_len = len(next_string)
+
+        # Find all occurrences of 'char' in the current string
+        num_chars = [i for i, c in enumerate(strings[i]) if c == char]
+
+        # Process each character position found
+        for char_position in num_chars:
+            # Check if char_position is within bounds of the next string
+            if char_position < next_string_len:
+                next_char = next_string[char_position]
+                # Check if the next string has the right pattern (" ", box_line, right_arrow_corner_down)
+                if next_char in (" ", box_line, right_arrow_corner_down):  # noqa: SIM102
+                    if char_position + 1 < next_string_len and next_string[char_position + 1] in (
+                        " ",
+                        box_line,
+                        right_arrow_corner_down,
+                    ):
+                        # Perform the string replacement
+                        strings[i] = strings[i][:char_position] + replacement_char + strings[i][char_position + 1 :]
     return strings
 
 
 # Go through output and delete all occurances of hanging bars |
 def delete_hanging_bars(
     output_lines: list,
-    progress_bar: object,
     progress_counter: int,
-    max_data: int,
-    tenth_increment: int,
 ) -> list:
     """
     Go through output and delete all occurances of hanging bars |
@@ -393,18 +398,7 @@ def delete_hanging_bars(
 
         line_num -= 1
 
-        # Update progress bar if needed.
-        if PrimeItems.program_arguments["gui"] and progress_counter % tenth_increment == 0:
-            display_progress_bar(
-                progress_bar,
-                max_data,
-                progress_counter,
-                tenth_increment,
-                is_instance_method=False,
-            )
-        progress_counter += 1
-
-    return output_lines
+    return output_lines, progress_counter
 
 
 # Return the index of a caller/called Task name in a specific output line.
@@ -425,18 +419,17 @@ def get_index(line_num: int, output_lines: list, task_to_find: str, search_for: 
     task_to_find = task_to_find.replace(" (entry)", "").replace(" (exit)", "")
 
     # Get list of Tasks
-    call_tasks = output_lines[line_num].split(search_for)[1].split("]")[0].split(",")
+    call_tasks = output_lines[line_num].split(search_for)[1].split("]")[0].split(task_delimeter)
 
     # Each entry in list has a blank in front, so we need to remove that.
-    # for position, line in enumerate(call_tasks):
-    #     if line.lstrip() == task_to_find:
-    #         return position + 1
-    # return ""
-    # Each entry in list has a blank in front, so we need to remove that.
-    return next(
-        (position + 1 for position, line in enumerate(call_tasks) if line.lstrip() == task_to_find),
-        "",
-    )
+    position = 0
+    for task_name in call_tasks:
+        if task_name not in (" ", " (Not Found!), ", ", "):  # Only look at real task names.
+            position += 1
+            if task_name == task_to_find:
+                return position
+    return 0
+    # return next(
 
 
 # Get the index of the caller/called Task from all caller/called Tasks in line.
@@ -487,9 +480,9 @@ def build_call_table(output_lines: list) -> list:
     # Go through all output lines looking for caller Tasks.
     call_table = {}
     for caller_line_num, line in enumerate(output_lines):
+
         # Do we have a "Calls" line (caller Task)?
         if line_right_arrow in line:
-
             # Handle all of the caller and called Tasks.
             call_table = process_callers_and_called_tasks(output_lines, call_table, caller_line_num, line)
 
@@ -557,16 +550,11 @@ def get_task_details_and_save(
     for x in range(line_range):
         line_to_compare = output_lines[up_down_start + x].rstrip()
         up_down_location = max(up_down_location, len(line_to_compare))
-    up_down_location = up_down_location + 1  # Bump it by a small increment so as not to croud bars.
 
     # If this up_down value is already in our table, increment it until it isn't.
     if call_table is not None:
         while up_down_location in call_table:
             up_down_location += 2
-
-    # Clean up the names
-    # caller_task_name = caller_task_name.replace(" (entry)", "")
-    # caller_task_name = caller_task_name.replace(" (exit)", "")
 
     # Okay, we have everything we need.  Add it all to our call table.
     call_table[up_down_location] = [
@@ -590,7 +578,7 @@ def get_task_details_and_save(
 # input line passed in.
 def process_callers_and_called_tasks(output_lines: list, call_table: dict, caller_line_num: int, line: str) -> dict:
     """
-    Processes caller and called tasks
+    Processes caller and called tasks by parsing the diagram line from the output lines.
     Args:
         output_lines: List of output lines from profiler
         call_table: Table to store caller and called task details
@@ -610,22 +598,27 @@ def process_callers_and_called_tasks(output_lines: list, call_table: dict, calle
     caller_task_name = line.split("└─")
     caller_task_name = caller_task_name[1].split("[")[0].lstrip()
     caller_task_name = caller_task_name.rstrip()
+
     # Get the position in the line of of the caller Task name.
     caller_task_position = output_lines[caller_line_num].index(caller_task_name) + (len(caller_task_name) // 2)
 
     # Get the called Task name.
     start_position = line.index(line_right_arrow) + 4
-    called_task_names = line[start_position:].split(",")
+    called_task_names = line[start_position:].split(task_delimeter)
     processed_tasks = []
 
     # Go through list of calls to Tasks from this caller Task (e.g. after ""[Calls ──▶").
     called_names = []  # Keep track of called task names.
-    for called_task_name in called_task_names:
 
-        # Get the called Task name.
-        called_task_name = called_task_name.lstrip()  # noqa: PLW2901
-        called_task_name = called_task_name.split("]")  # noqa: PLW2901
-        called_task_name = called_task_name[0]  # noqa: PLW2901
+    for called_task_name in called_task_names:
+        if not called_task_name or called_task_name in (", ", "]"):
+            continue
+
+        # # Get the called Task name.
+        # called_task_name = called_task_name.rstrip(task_delimeter).lstrip(task_delimeter)
+        # called_task_name = called_task_name.lstrip()
+        # called_task_name = called_task_name.split("]")
+        # called_task_name = called_task_name[0]
 
         # Get the index of the called Task name.
         called_task_index = 1 if called_task_name not in called_names else called_names.count(called_task_name) + 1
@@ -639,40 +632,34 @@ def process_callers_and_called_tasks(output_lines: list, call_table: dict, calle
         for called_line_num, check_line in enumerate(output_lines):  # noqa: B007
             # See if the task name is in the line: "└─ {called_task_name}".
             if search_name in check_line:
+
                 # Make certain that this is the exact string we want and not a substr match.
                 # If search_name as a substr of the task name we are looking for, then erroneously gets a match and we
                 # must continue the search!
                 str_pos = check_line.find(search_name)
 
                 # Find the "[" bracket and make sure it is the next valid character after the name.
-                temp_line = check_line.replace("(entry)", "").replace("(exit)", "")
-                bracket_found = False
-                string_position = str_pos + len(search_name) + 1
-                while not bracket_found:
-                    if temp_line[string_position] == "[":
-                        bracket_found = True
-                        break
-                    if temp_line[string_position] != " ":
-                        break
-                    string_position += 1
-                if not bracket_found:
+                string_position = check_line.find(f"{search_name} [", str_pos)
+                # Keep searching if this is not the valid caller Task name.
+                if string_position == -1:
                     continue
 
                 # Find the position of the "[Calls -->" task name on the called line immediately after "└─ ".
                 found_called_task = True
-                caller_task_position = check_line.index(called_task_name) + (len(called_task_name) // 2)
+                # caller_task_position = check_line.index(called_task_name) + (len(called_task_name) // 2)
+                caller_task_position = str_pos + (len(called_task_name) // 2)
                 # Find the position of the "Called by" task name on the caller by line
-                start_find_nth = output_lines[caller_line_num].find("[Calls ──▶")
+                temp_line = output_lines[caller_line_num].replace(task_delimeter, "")
+                start_find_nth = temp_line.find("[Calls ──▶")
                 called_task_position = (
                     find_nth(
-                        output_lines[caller_line_num],
+                        temp_line,
                         called_task_name,
                         called_task_index,
                         start_find_nth,
                     )
                     + len(called_task_name) // 2
                 )
-                # called_task_line_num = called_line_num + (called_task_index - 1)
                 break
 
         # If called Task found, then save everything (only do it once) in the call table.
@@ -712,26 +699,3 @@ def find_nth(haystack: str, needle: str, n: int, starting_position: int = 0) -> 
         start = haystack.find(needle, start + len(needle))
         n -= 1
     return start
-
-
-def replace_blanks_before_char(string_list: list, target_char: str, replacement_char: str) -> list:
-    """
-    Replace spaces before target_char in each string of a list.
-
-    Args:
-        string_list (list): List of strings to process
-        target_char (str): Character to target
-        replacement_char (str): Character to replace before target_char
-
-    Returns:
-        list: List of strings with spaces before target_char replaced
-    """
-    updated_list = []
-    for line in string_list:
-        # Create a list from the string to easily modify characters
-        new_string = list(line)
-        for i in range(1, len(new_string)):  # Start from index 1 to check previous char
-            if new_string[i] == target_char and new_string[i - 1] == " ":
-                new_string[i - 1] = replacement_char
-        updated_list.append("".join(new_string))
-    return updated_list

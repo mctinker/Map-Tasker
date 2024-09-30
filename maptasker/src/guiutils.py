@@ -46,6 +46,7 @@ from maptasker.src.sysconst import (
     NOW_TIME,
     OPENAI_MODELS,
     VERSION,
+    Colors,
 )
 
 if TYPE_CHECKING:
@@ -57,23 +58,17 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.2.0 - Change Log
+Version 5.2.1 - Change Log
 ### Added
-- Added: 'Up Two Levels' has been added to the Map view.
-- Added: Ai analysis OpenAi models 'o1-preview' and 'o1-mini' have been added.
-- Added: Ai analysis local models 'qwen2' and 'gemma2' have been added.
-### Changed
-- Changed: Diagram rewrite to improve readibility and performance.
+- Added: Added the 'IA' (Icon Alignment) button next to the 'Diagram' view to enable/disable connector alignment if icons are in Task names for better performance with very complex diagrams.  Refer to the view '?' (help) in the GUI for details.
+- Added: Tasker object names are colored in the Diagram view.
 ### Fixed
-- Fixed: Diagram displaying too much filler between tasks.
-- Fixed: Tasks not found in the diagram are not all being identified.
-- Fixed: Diagram is displaying duplicate tasks in the '[Calls -> list of tasks'.
-- Fixed: Directory entries are incorrect if there is one or more ">" or "<" in the object name.
-- Fixed: Ai-Analysis using a local model (e.g. llama3.1) is not working.
+- Fixed: Taks with commas in their names do not display correctly in the Diagram view.
+- Fixed: Task names with "[" embedded in can not be found when clicking on it's directory hotlink.
+- Fixed: Diagram is missing bars (|) in some instances.  Bars ares misaligned if the Task is not found.
 ### Known Issues
 - Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
-- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly if using highlighting (underline, etc.).
-- Open Issue: Projects, Profiles and Tasks with a comma in the name may not display correctly.
+- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).
 """
 
 default_font_size = 14
@@ -2006,5 +2001,5 @@ def display_progress_bar(
         and progress_bar.progressbar.print_alert
         and round(time.time() * 1000) - progress_bar.progressbar.start_time > 4000
     ):
-        print("You can ignore the error message: 'IMKClient Stall detected, *please Report*...'")
+        print(f"{Colors.Green}You can ignore the error message: 'IMKClient Stall detected, *please Report*...'")
         progress_bar.progressbar.print_alert = False

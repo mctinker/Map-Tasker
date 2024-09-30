@@ -199,10 +199,12 @@ LISTFILES_HELP_TEXT = (
 )
 
 VIEW_HELP_TEXT = (
+    "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\n"
     "XML must first be obtained from the either local drive or Android device for the views to work.\n\n"
     "All view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\n"
     "If the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data.\n\n"
     "Very large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\n"
+    "The 'IA' button next top the 'Diagram' button is for toggling on/off the alingnment of connectors when icons are in the Task names.  Disabling this will result in much faster diagrams, but connector alighnment may be slightly off if icons are in the names.  Enabling this will result in slower diagrams, but connector alighnment will be correct.\n\n"
     "\nThe Map View has the following behavior:\n\n"
     " - While the browser is not invoked directly, the map can be displayed in the browser by opening the local 'MapTasker.html' file.\n\n"
     " - The 'Display Configuration Outline' setting is ignored since it does not work in the Map view.\n\n"
@@ -3232,6 +3234,26 @@ class EventHandlers:
 
         guiview.new_message_box(f"{title}\n\n{help_text}")
         guiview.clear_messages = True  # Flag to tell display_message_box to clear the message box
+
+    def icon_event(self: object) -> None:
+        """
+        Handles the icon alignment event for the diagram.
+
+        This function toggles the icon alignment setting in the text view box.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        the_view = self.parent
+        # Toggle the flag.
+        PrimeItems.display_icon = not PrimeItems.display_icon
+        wrap_msg = "on" if PrimeItems.display_icon else "off"
+
+        # Let the user know.
+        the_view.display_message_box(f"Icon alignment is {wrap_msg}", "green")
 
     # Search textbox event
     def search_event(self: object, textview: CTkTextview) -> None:
