@@ -2,33 +2,44 @@
 
 All notable changes to this project will be documented in this file!
 
-## [5.2.0] 19-Sep-2024
+## [5.2.1] ??-Sep-2024  # Fix
 
 ### Added
+
+- Added: Added the 'IA' (Icon Alignment) button next to the 'Diagram' view to enable/disable connector alignment if icons are in Task names for better performance with very complex diagrams.  Refer to the view '?' (help) in the GUI for details.
+- Added: Tasker object names are colored in the Diagram view.
+
+### Changed
+
+- Changed:
+
+### Fixed
+
+- Fixed: Taks with commas in their names do not display correctly in the Diagram view.
+- Fixed: Task names with "[" embedded in can not be found when clicking on it's directory hotlink.
+- Fixed: Diagram is missing bars (|) in some instances.  Bars ares misaligned if the Task is not found.
+
+### Known Issues
+
+- Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
+- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).
+
+## Older History Logs
+
+## [5.2.0]
 
 - Added: 'Up Two Levels' has been added to the Map view.
 - Added: Ai analysis OpenAi models 'o1-preview' and 'o1-mini' have been added.
 - Added: Ai analysis local models 'qwen2' and 'gemma2' have been added.
-
-### Changed
-
 - Changed: Diagram rewrite to improve readibility and performance.
-
-### Fixed
-
 - Fixed: Diagram displaying too much filler between tasks.
 - Fixed: Tasks not found in the diagram are not all being identified.
 - Fixed: Diagram is displaying duplicate tasks in the '[Calls -> list of tasks'.
 - Fixed: Directory entries are incorrect if there is one or more ">" or "<" in the object name.
 - Fixed: Ai-Analysis using a local model (e.g. llama3.1) is not working.
-
-### Known Issues
-
 - Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
 - Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly if using highlighting (underline, etc.).
 - Open Issue: Projects, Profiles and Tasks with a comma in the name may not display correctly.
-
-## Older History Logs
 
 ## [5.1.2]
 
