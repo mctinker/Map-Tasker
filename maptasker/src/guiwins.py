@@ -18,6 +18,7 @@ from tkinter import TclError, ttk
 import customtkinter as ctk
 from PIL import Image, ImageTk
 
+from maptasker.src.colrmode import set_color_mode
 from maptasker.src.getids import get_ids
 from maptasker.src.guiutils import (
     add_button,
@@ -410,10 +411,14 @@ class CTkTextview(ctk.CTkFrame):
                     self.highlight_text(line, text_line)
             # Configure tag colors once if a highlight was applied
             if diagram:
-                self.textview_textbox.tag_config("project", foreground=self.master.master.color_lookup["project_color"])
-                self.textview_textbox.tag_config("profile", foreground=self.master.master.color_lookup["profile_color"])
-                self.textview_textbox.tag_config("task", foreground=self.master.master.color_lookup["task_color"])
-                self.textview_textbox.tag_config("scene", foreground=self.master.master.color_lookup["scene_color"])
+                guiview = self.master.master
+                # In order for the map to work, we need to ensure that we have the colors defined.
+                if not guiview.color_lookup:
+                    guiview.color_lookup = set_color_mode(guiview.appearance_mode)
+                self.textview_textbox.tag_config("project", foreground=guiview.color_lookup["project_color"])
+                self.textview_textbox.tag_config("profile", foreground=guiview.color_lookup["profile_color"])
+                self.textview_textbox.tag_config("task", foreground=guiview.color_lookup["task_color"])
+                self.textview_textbox.tag_config("scene", foreground=guiview.color_lookup["scene_color"])
 
             # Add the CustomTkinter widgets
             self.add_view_widgets("Diagram")

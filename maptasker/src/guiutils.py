@@ -58,7 +58,7 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.2.1 - Change Log
+Version 5.2.1/5.2.2 - Change Log
 ### Added
 - Added: Added the 'IA' (Icon Alignment) button next to the 'Diagram' view to enable/disable connector alignment if icons are in Task names for better performance with very complex diagrams.  Refer to the view '?' (help) in the GUI for details.
 - Added: Tasker object names are colored in the Diagram view.
