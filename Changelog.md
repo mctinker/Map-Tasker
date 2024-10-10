@@ -2,22 +2,21 @@
 
 All notable changes to this project will be documented in this file!
 
-## [5.2.2] 30-Sep-2024
+## [5.3.0] 10-Oct-2024
 
 ### Added
 
-- Added: Added the 'IA' (Icon Alignment) button next to the 'Diagram' view to enable/disable connector alignment if icons are in Task names for better performance with very complex diagrams.  Refer to the view '?' (help) in the GUI for details.
-- Added: Tasker object names are colored in the Diagram view.
+- Added: Diagram view's Task connectors can now be clicked, with the mouse, to highlight the entire connection.
+- Added: The "IA" button setting for the Diagram view is saved and restored between sessions.
 
 ### Changed
 
-- Changed:
+- Changed: The Diagram view now includes all individual connectors to and from a Task, rather than a single connector for connections to/from the same Task.
 
 ### Fixed
 
-- Fixed: Taks with commas in their names do not display correctly in the Diagram view.
-- Fixed: Task names with "[" embedded in can not be found when clicking on it's directory hotlink.
-- Fixed: Diagram is missing bars (|) in some instances.  Bars ares misaligned if the Task is not found.
+- Fixed: Some conections in the Diagramn view are not displaying correctly.
+- Fixed: Hitting the 'Cancel' button on the file prompt is not clearing out the current file.
 
 ### Known Issues
 
@@ -25,6 +24,14 @@ All notable changes to this project will be documented in this file!
 - Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).
 
 ## Older History Logs
+
+## [5.2.2]
+
+- Added: Added the 'IA' (Icon Alignment) button next to the 'Diagram' view to enable/disable connector alignment if icons are in Task names for better performance with very complex diagrams.  Refer to the view '?' (help) in the GUI for details.
+- Added: Tasker object names are colored in the Diagram view.
+- Fixed: Taks with commas in their names do not display correctly in the Diagram view.
+- Fixed: Task names with '[' embedded in can not be found when clicking on it's directory hotlink.
+- Fixed: Diagram is missing bars (|) in some instances.  Bars ares misaligned if the Task is not found.
 
 ## [5.2.0]
 
