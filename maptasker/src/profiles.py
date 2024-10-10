@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 # Get a specific Profile's Tasks (maximum of two:entry and exit)
 def get_profile_tasks(
-    the_profile: defusedxml.ElementTree.XML,
+    the_profile: defusedxml.ElementTree,
     found_tasks_list: list,
     task_output_line: list,
 ) -> list:
@@ -268,7 +268,7 @@ def do_profile(
         if PrimeItems.program_arguments["single_profile_name"] != profile_name:
             return False  # Not our Profile...go to next Profile ID
 
-        # BINGO! We found the Profile we were looking for!
+        # Oh, Yeah! We found the Profile we were looking for!
         # Identify items found.
         PrimeItems.found_named_items["single_profile_found"] = True
         PrimeItems.program_arguments["single_project_name"] = project_name
@@ -323,7 +323,7 @@ def do_profile(
 
 # Go through all Projects Profiles...and output them
 def process_profiles(
-    project: defusedxml.ElementTree.XML,
+    project: defusedxml.ElementTree,
     project_name: str,
     profile_ids: list,
     list_of_found_tasks: list,

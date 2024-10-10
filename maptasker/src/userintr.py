@@ -49,10 +49,12 @@ from maptasker.src.guiutils import (
     get_xml,
     is_new_version,
     list_tasker_objects,
+    make_hex_color,
     no_search_string,
     output_label,
     ping_android_device,
     reload_gui,
+    remove_tags_from_bars_and_names,
     reset_primeitems_single_names,
     search_nextprev_string,
     search_substring_in_list,
@@ -211,6 +213,7 @@ VIEW_HELP_TEXT = (
     " - Going up one or two levels using the directory hyperlink will result in the generation of a new map view.\n\n"
     "\nThe Diagram View has the following behavior:\n\n"
     " - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n"
+    " - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n"
     "\nThe Tree View has the following behavior:\n\n"
     "- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n"
     "- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n"
@@ -1244,6 +1247,7 @@ class MyGui(customtkinter.CTk):
         if return_code > 0:
             if return_code == 6:
                 self.display_message_box("Cancel button pressed.\n", "Orange")
+                display_current_file(self, "None")
             else:
                 self.display_multiple_messages(
                     [f"{PrimeItems.error_msg}\n", "Click 'Get Local XML' to try a different XML file."],
@@ -3249,11 +3253,11 @@ class EventHandlers:
         """
         the_view = self.parent
         # Toggle the flag.
-        PrimeItems.display_icon = not PrimeItems.display_icon
-        wrap_msg = "on" if PrimeItems.display_icon else "off"
+        the_view.display_icon = not the_view.display_icon
+        wrap_msg = "on" if the_view.display_icon else "off"
 
         # Let the user know.
-        the_view.display_message_box(f"Icon alignment is {wrap_msg}", "green")
+        the_view.display_message_box(f"Icon alignment in the Diagram view is {wrap_msg}", "green")
 
     # Search textbox event
     def search_event(self: object, textview: CTkTextview) -> None:
@@ -3379,6 +3383,13 @@ class EventHandlers:
         textview.textview_textbox.tag_remove("found", "1.0", "end")
         textview.textview_textbox.tag_remove("next", "1.0", "end")
         textview.textview_textbox.tag_remove("inlist", "1.0", "end")
+        if textview.textview_textbox.diagram_highlighted_connector:
+            remove_tags_from_bars_and_names(textview)
+            textview.textview_textbox.tag_config(
+                textview.textview_textbox.diagram_highlighted_connector,
+                background=make_hex_color(textview.master.master.color_lookup["background_color"]),
+            )
+            textview.textview_textbox.diagram_highlighted_connector = ""
 
     def wordwrap_event(self: object, textview: CTkTextview) -> None:
         """

@@ -26,16 +26,19 @@ from maptasker.src.guiutils import (
     add_label,
     add_logo,
     add_option_menu,
+    build_connectors,
     display_analyze_button,
     display_progress_bar,
     get_appropriate_color,
     get_monospace_fonts,
     make_hex_color,
     output_label,
+    remove_tags_from_bars_and_names,
     reset_primeitems_single_names,
     search_substring_in_list,
     update_tasker_object_menus,
 )
+from maptasker.src.maputils import find_all_positions
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import LLAMA_MODELS, OPENAI_MODELS, logger
 
@@ -58,6 +61,30 @@ ICON_PATH = {
     "arrow": os.path.join(ICON_DIR, "arrow.png"),
     # "image": os.path.join(ICON_DIR, "image.png"),
 }
+bar = "│"
+box_line = "═"
+straight_line = "─"
+down_arrow = "▼"
+up_arrow = "▲"
+left_arrow = "◄"
+right_arrow = "►"
+right_arrow_corner_down = "╰"
+right_arrow_corner_up = "╯"
+left_arrow_corner_down = "╭"
+left_arrow_corner_up = "╮"
+angle = "└─ "
+# connector_chars = [
+#     bar,
+#     straight_line,
+#     down_arrow,
+#     up_arrow,
+#     left_arrow,
+#     right_arrow,
+#     right_arrow_corner_down,
+#     right_arrow_corner_up,
+#     left_arrow_corner_down,
+#     left_arrow_corner_up,
+# ]
 
 
 class CTkTreeview(ctk.CTkFrame):
@@ -395,6 +422,9 @@ class CTkTextview(ctk.CTkFrame):
         self.bold_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], weight="bold", size=12)
         self.italic_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], size=12, slant="italic")
 
+        # Initalize variables
+        self.textview_textbox.diagram_highlighted_connector = ""
+
         # Insert the text with our new message into the text box.
         # fmt: off
         if type(the_data) == str:
@@ -403,12 +433,21 @@ class CTkTextview(ctk.CTkFrame):
         # Process list data (list of lines): diagram view.
         if type(the_data) !=  dict:
             diagram = "Diagram" in self.title
+            self.diagram_connectors = {}
             for num, line in enumerate(the_data):
                 text_line = num + 1
-                self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
+                if PrimeItems.program_arguments["debug"]:  # Add line number if debug mode.
+                    self.textview_textbox.insert(f"{text_line!s}.0", f"{text_line!s}{line}\n")
+                else:
+                    self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
+
                 # Highlight the Tasker names if doing a diagram.
                 if diagram:
                     self.highlight_text(line, text_line)
+
+                    # Build our wire connectors.
+                    self.diagram_connectors = build_connectors(the_data, num, self.diagram_connectors)
+
             # Configure tag colors once if a highlight was applied
             if diagram:
                 guiview = self.master.master
@@ -420,11 +459,17 @@ class CTkTextview(ctk.CTkFrame):
                 self.textview_textbox.tag_config("task", foreground=guiview.color_lookup["task_color"])
                 self.textview_textbox.tag_config("scene", foreground=guiview.color_lookup["scene_color"])
 
+                # Add connector tags.
+                self.add_connector_tags(self.diagram_connectors)
+
             # Add the CustomTkinter widgets
             self.add_view_widgets("Diagram")
             # Force courier new for diagram view if just Courier...perfect character alignment.
             if master.master.font == "Courier":
                 self.textview_textbox.configure(self, font=("Courier New", 12))
+
+            # Save a pointer to the data.
+            self.data = the_data
 
         else:
             # Process the Map view (dictionary of lines)
@@ -685,18 +730,137 @@ class CTkTextview(ctk.CTkFrame):
 
         This function is called when the text box is clicked. It uses the event object to get the coordinates of the mouse click and then gets the index of the text box at those coordinates. The index is then used to get the text between the start and end indices of the tag "adj" at the mouse click location.
         """
+        text_widget = event.widget
+        # print(f"Widget: {event.widget}")
+        # print(f"Event type: {event.type}")
+        # print(f"Mouse position (widget): {event.x}, {event.y}")
+        # print(f"Mouse position (root): {event.x_root}, {event.y_root}")
+        # print(f"Key symbol (if key event): {event.keysym}")
+        # print(f"Key character (if key event): {event.char}")
+        # print(f"Button number (if mouse event): {event.num}")
+        # print(f"State (modifier keys/mouse buttons): {event.state}")
+        # print(f"Timestamp: {event.time}")
+        # print(f"Widget under pointer: {event.widget.winfo_containing(event.x_root, event.y_root)}")
+
         # get the index of the mouse click
-        index = event.widget.index(f"@{event.x},{event.y}")
+        index = text_widget.index(f"@{event.x},{event.y}")
 
-        # # get the indices of all "adj" tags
-        # tag_indices = list(event.widget.tag_ranges("tag"))
+        # Get the tags at that index
+        tags_at_index = text_widget.tag_names(index)
+        connector_tagid = self.textview_textbox.diagram_highlighted_connector
 
-        # # iterate them pairwise (start and end index)
-        # for start, end in zip(tag_indices[0::2], tag_indices[1::2]):
-        #     # check if the tag matches the mouse click index
-        #     if event.widget.compare(start, "<=", index) and event.widget.compare(index, "<", end):
-        #         # return string between tag start and end
-        #         print(start, end, event.widget.get(start, end))
+        # Go through the tags for the character clicked.
+        for tag in tags_at_index:
+            # If it is a connector, then highlight it.
+            if "wire_" in tag:
+                # Find and delete our previous hightlighted up/down bars.  We do this for performance.
+                remove_tags_from_bars_and_names(self)
+
+                # Now turn the highlighting off.
+                self.textview_textbox.tag_config(
+                    connector_tagid,
+                    background=make_hex_color(self.master.master.color_lookup["background_color"]),
+                )
+                connector_tagid = ""
+
+                # Add tags for up/down bars.
+                connector_key = tag[5:]
+                connector = self.diagram_connectors[connector_key]
+                line_num = connector["start_top"][0]
+                number_of_lines_to_highlight = connector["start_bottom"][0] - connector["start_top"][0] + 1
+                for _ in range(number_of_lines_to_highlight):
+                    self.textview_textbox.tag_add(
+                        tag,
+                        f"{line_num}.{connector["end_top"][1]!s}",
+                        f"{line_num}.{connector["end_top"][1]+1!s}",
+                    )
+                    connector["extra_bars"].append((line_num, connector["end_top"][1]))
+                    line_num += 1
+
+                # See if there are bars directly above top left elbow, and highlight if there are.
+                self.highlight_bars_above(connector, connector["start_top"], tag, bar)
+
+                # See if there are bars directly above bottom left elbow, and highlight if there are.
+                self.highlight_bars_above(connector, connector["start_bottom"], tag, bar)
+
+                # See if there are bars directly above top left elbow, and highlight if there are.
+                self.highlight_bars_below(connector, connector["start_top"], tag, left_arrow_corner_down)
+
+                # See if there are bars directly above bottom left elbow, and highlight if there are.
+                self.highlight_bars_below(connector, connector["start_bottom"], tag, left_arrow_corner_down)
+
+                # Identify this connector aas the active tag.
+                connector["tag"] = tag
+
+                # Now highlight the selected connector.
+                self.textview_textbox.tag_config(
+                    tag,
+                    background=make_hex_color("blue"),
+                )
+                self.textview_textbox.diagram_highlighted_connector = tag
+
+    def highlight_bars(self, connector: dict, start_position: tuple, tag: str, char: str, direction: str) -> None:
+        """
+        Highlights bars in the specified direction from the given starting position in the Text widget.
+
+        :param connector: The connector to highlight.
+        :param start_position: Tuple indicating the row and column to start checking from.
+        :param tag: The tag to apply to the highlighted text.
+        :param char: The character to check for.
+        :param direction: Direction to check, 'up' for above and 'down' for below.
+        """
+        line_num, col_num = start_position
+        step = -1 if direction == "up" else 1
+
+        # Adjust the starting line for the 'up' direction
+        if direction == "up":
+            line_num -= 2
+
+        while (
+            0 <= line_num < len(self.data)
+            and len(self.data[line_num]) > col_num
+            and self.data[line_num][col_num] == char
+        ):
+            line_to_highlight = line_num + 1
+            self.textview_textbox.tag_add(
+                tag,
+                f"{line_to_highlight}.{col_num}",
+                f"{line_to_highlight}.{col_num+1}",
+            )
+            connector["extra_bars"].append((line_to_highlight, col_num))
+            line_num += step
+
+        # Adjust line number if at end of file.
+        if line_num == len(self.data):
+            line_num = len(self.data) - 1
+
+        # Highlight the task name.
+        if connector["task_upper"] and angle in self.data[line_num]:
+            task_name = connector["task_upper"][0]
+            # Make sure to point to the correct task if it is called multiple times on the same line.
+            matches = find_all_positions(self.data[line_num], task_name)
+            for match in matches:
+                if match < col_num < match + len(task_name):
+                    task_location = match
+                    task_end = (task_location + len(task_name)) - 1
+                    connector["task_upper"] = (task_name, line_num + 1, task_location, task_end)
+                    self.textview_textbox.tag_add(
+                        tag,
+                        f"{line_num+1}.{task_location}",
+                        f"{line_num+1}.{task_end+1}",
+                    )
+
+    def highlight_bars_above(self, connector: dict, start_position: tuple, tag: str, char: str) -> None:
+        """
+        Highlights bars directly above the given starting position in the Text widget.
+        """
+        self.highlight_bars(connector, start_position, tag, char, direction="up")
+
+    def highlight_bars_below(self, connector: dict, start_position: tuple, tag: str, char: str) -> None:
+        """
+        Highlights bars directly below the given starting position in the Text widget.
+        """
+        self.highlight_bars(connector, start_position, tag, char, direction="down")
 
     def add_highlight(self, tagid: str, line_num: int, highlight_start: int, highlight_end: int) -> None:
         """
@@ -716,7 +880,7 @@ class CTkTextview(ctk.CTkFrame):
             f"{line_num}.{highlight_start!s}",
             f"{line_num}.{highlight_end!s}",
         )
-        # self.textview_textbox.tag_bind(tagid, "<Button-1>", self.click_text)
+        self.textview_textbox.tag_bind(tagid, "<Button-1>", self.click_text)
 
     def highlight_item_names(self, tagid: str, line: str, line_num: int) -> None:
         """
@@ -754,6 +918,26 @@ class CTkTextview(ctk.CTkFrame):
                 # Finally, add the highlighting.
                 self.add_highlight(tagid, line_num, highlight_start, highlight_end)
 
+    def find_all_matches(self, s: str, char_list: list) -> list:
+        """
+        Searches for all occurrences of any character from char_list in the string s.
+
+        Args:
+            s (str): The string to search.
+            char_list (list): A list of characters to search for.
+
+        Returns:
+            list: A list of tuples of the form (character, index) for each match found,
+                or an empty list if no match is found.
+        """
+        matches = []
+
+        for index, char in enumerate(s):
+            if char in char_list:
+                matches.append((char, index))
+
+        return matches
+
     def highlight_text(self, line: str, line_num: int) -> None:
         """
         Main function to check the line of text for specific items to highlight
@@ -769,6 +953,39 @@ class CTkTextview(ctk.CTkFrame):
             self.handle_task_highlight(line, line_num)
         elif have_scene:
             self.highlight_item_names("scene", line, line_num)
+
+    def add_connector_tags(self, diagram_connectors: dict) -> None:
+        """
+        This function adds tags to the text box for the given connector range for each connector.
+
+        It loops through the PrimeItems.diagram_connectors dictionary and for each key (line number),
+        it adds a tag to the text box for the given highlight range.
+        It also adds a tag for each bar in the list of bars.
+
+        Args:
+            diagram_connectors: Disctionary of connectors in the diagram.
+
+        Returns:
+            None
+        """
+        # Go through all of the connectors.
+        for key, value in diagram_connectors.items():
+            tagid = f"wire_{key!s}"
+            # Add the tag for the top line
+            self.textview_textbox.tag_add(
+                tagid,
+                f"{key}.{value["start_top"][1]!s}",
+                f"{key}.{value["end_top"][1]+1!s}",
+            )
+            # Add the tag for the bottom line.
+            self.textview_textbox.tag_add(
+                tagid,
+                f"{value["start_bottom"][0]!s}.{value["start_bottom"][1]!s}",
+                f"{value["end_bottom"][0]!s}.{value["end_bottom"][1]+1!s}",
+            )
+
+            # Make them clickable.
+            self.textview_textbox.tag_bind(tagid, "<Button-1>", self.click_text)
 
     def identify_items(self, line: str) -> tuple:
         """
@@ -1888,7 +2105,6 @@ class CTkHyperlinkManager:
 
     # Search for and point to the specific item in the textbox.
     def find_and_point_to_item(self, action: str, name: str, guiself: ctk) -> None:
-        # Build the srach string
         """
         Search for and point to the specific item in the textbox.
 
@@ -1996,6 +2212,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.diagram_window_position = ""
     self.diagramview_window = None
     self.display_detail_level = None
+    self.display_icon = True
     self.everything = None
     self.extract_in_progress = False
     self.exit = None

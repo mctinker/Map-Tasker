@@ -30,6 +30,7 @@ right_arrow_corner_down = "╰"
 right_arrow_corner_up = "╯"
 left_arrow_corner_down = "╭"
 left_arrow_corner_up = "╮"
+angle = "└─ "
 
 arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}"
 directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
@@ -401,68 +402,6 @@ def delete_hanging_bars(
     return output_lines, progress_counter
 
 
-# Return the index of a caller/called Task name in a specific output line.
-def get_index(line_num: int, output_lines: list, task_to_find: str, search_for: str) -> int:
-    """
-    Finds the index of a task in a list of tasks
-    Args:
-        line_num: The line number to search in
-        output_lines: The list of output lines
-        task_to_find: The task name to find
-        search_for: The string to search for in the line
-    Returns:
-        index: The index of the task if found
-    - Returns the index of the task in the line (Called by or Calls)
-    """
-
-    # Clean up task name
-    task_to_find = task_to_find.replace(" (entry)", "").replace(" (exit)", "")
-
-    # Get list of Tasks
-    call_tasks = output_lines[line_num].split(search_for)[1].split("]")[0].split(task_delimeter)
-
-    # Each entry in list has a blank in front, so we need to remove that.
-    position = 0
-    for task_name in call_tasks:
-        if task_name not in (" ", " (Not Found!), ", ", "):  # Only look at real task names.
-            position += 1
-            if task_name == task_to_find:
-                return position
-    return 0
-    # return next(
-
-
-# Get the index of the caller/called Task from all caller/called Tasks in line.
-# We want the position of the called Task in the caller Task line, and the
-# position of the caller Task in the called Task line.
-def get_indices_of_line(
-    caller_task_name: str,
-    caller_line_num: int,
-    called_task_name: str,
-    called_line_num: int,
-    output_lines: list,
-) -> tuple:
-    """
-    Get the index of the caller/called Task from all caller/called Tasks in line.
-        Args:
-            caller_task_name (str): Name of the caller task.
-            caller_line_num (int): Line number in output contained the called Task.
-            called_task_name (str): Name of the called task.
-            called_line_num (int): Line number in output contained the called Task.
-            output_lines (list): List of all output lines.
-            True (bool): True if we are doing caller, False if doing called.
-        Returns: Tuple[caller_line_index (int), called_line_index (int)]: Index of the
-                    line to start the arrows for caller and called Tasks.
-    """
-    # Return 1 if it is the first caller/called Task, return 2 if it is the second, ...etc.
-    return get_index(caller_line_num, output_lines, called_task_name, "[Calls ──▶"), get_index(
-        called_line_num,
-        output_lines,
-        caller_task_name,
-        "[Called by ◄──",
-    )
-
-
 # Build a sorted list of all caller Tasks and their called Tasks.
 def build_call_table(output_lines: list) -> list:
     """
@@ -480,7 +419,6 @@ def build_call_table(output_lines: list) -> list:
     # Go through all output lines looking for caller Tasks.
     call_table = {}
     for caller_line_num, line in enumerate(output_lines):
-
         # Do we have a "Calls" line (caller Task)?
         if line_right_arrow in line:
             # Handle all of the caller and called Tasks.
@@ -532,7 +470,6 @@ def get_task_details_and_save(
         line_count = called_line_num - caller_line_num
         up_down_start = start_line + 1
         line_range = line_count - 1
-        up_down_location = max(caller_task_position, called_task_position)
     else:
         # Going up.
         arrow = up_arrow
@@ -546,6 +483,7 @@ def get_task_details_and_save(
 
     # Find the outside boundary for the range of lines to traverse between "caller" and "called".
     # Up_down location is the pos of the "called" Task name "calls ..."
+    # Note: The task_delimeter pushes the position to the right by the number of delimeters / 2
     up_down_location = max(caller_task_position, called_task_position)  # Starting outer position (col)
     for x in range(line_range):
         line_to_compare = output_lines[up_down_start + x].rstrip()
@@ -614,25 +552,18 @@ def process_callers_and_called_tasks(output_lines: list, call_table: dict, calle
         if not called_task_name or called_task_name in (", ", "]"):
             continue
 
-        # # Get the called Task name.
-        # called_task_name = called_task_name.rstrip(task_delimeter).lstrip(task_delimeter)
-        # called_task_name = called_task_name.lstrip()
-        # called_task_name = called_task_name.split("]")
-        # called_task_name = called_task_name[0]
-
         # Get the index of the called Task name.
         called_task_index = 1 if called_task_name not in called_names else called_names.count(called_task_name) + 1
         called_names.append(called_task_name)
 
         #  Find the "Called" Task line for the caller Task.
-        search_name = f"└─ {called_task_name}"
+        search_name = f"{angle}{called_task_name}"
 
         # Make sure the called Task exists.
         found_called_task = False
         for called_line_num, check_line in enumerate(output_lines):  # noqa: B007
             # See if the task name is in the line: "└─ {called_task_name}".
             if search_name in check_line:
-
                 # Make certain that this is the exact string we want and not a substr match.
                 # If search_name as a substr of the task name we are looking for, then erroneously gets a match and we
                 # must continue the search!

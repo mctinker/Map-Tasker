@@ -26,6 +26,7 @@ from maptasker.src.colrmode import set_color_mode
 from maptasker.src.getids import get_ids
 from maptasker.src.lineout import LineOut
 from maptasker.src.maputils import (
+    append_item_to_list,
     get_pypi_version,
     http_request,
     validate_ip_address,
@@ -54,21 +55,31 @@ if TYPE_CHECKING:
 
     import defusedxml
 
+bar = "│"
+right_arrow_corner_down = "╰"
+right_arrow_corner_up = "╯"
+left_arrow_corner_down = "╭"
+left_arrow_corner_up = "╮"
+right_arrow = "►"
+left_arrow = "◄"
+straight_line = "─"
+angle = "└─ "
 all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.2.1/5.2.2 - Change Log
-### Added
-- Added: Added the 'IA' (Icon Alignment) button next to the 'Diagram' view to enable/disable connector alignment if icons are in Task names for better performance with very complex diagrams.  Refer to the view '?' (help) in the GUI for details.
-- Added: Tasker object names are colored in the Diagram view.
-### Fixed
-- Fixed: Taks with commas in their names do not display correctly in the Diagram view.
-- Fixed: Task names with "[" embedded in can not be found when clicking on it's directory hotlink.
-- Fixed: Diagram is missing bars (|) in some instances.  Bars ares misaligned if the Task is not found.
-### Known Issues
-- Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
-- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).
+Version 5.3.0 - Change Log\n
+### Added\n
+- Added: Diagram view's Task connectors can now be clicked, with the mouse, to highlight the entire connection.\n
+- Added: The "IA" button setting for the Diagram view is saved and restored between sessions.\n
+### Changed\n
+- Changed: The Diagram view now includes all individual connectors to and from a Task, rather than a single connector for connections to/from the same Task.\n
+### Fixed\n
+- Fixed: Some conections in the Diagramn view are not displaying correctly.\n
+- Fixed: Hitting the 'Cancel' button on the file prompt is not clearing out the current file.\n
+### Known Issues\n
+- Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.\n
+- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).\n
 """
 
 default_font_size = 14
@@ -911,7 +922,6 @@ def update_tasker_object_menus(self, get_data: bool, reset_single_names: bool) -
             return
 
     # Update the Project/Profile/Task pulldown option menus.
-    set_tasker_object_names(self)
 
     # Update the text labels
     display_selected_object_labels(self)
@@ -1818,20 +1828,6 @@ def search_nextprev_string(self: object, textview: ctk.CTkTextbox, direction: st
                     if direction == "next"
                     else "The beginning of the text has been reached."
                 )
-                # textview.message_label = add_label(
-                #     textview,
-                #     textview,
-                #     message,
-                #     "Orange",
-                #     12,
-                #     "bold",
-                #     0,
-                #     0,
-                #     10,
-                #     40,
-                #     "n",
-                # )
-                # textview.after(3000, textview.delay_event)  # 3-second timer
                 output_label(textview, message)
             else:
                 # Determine the new current line based on direction
@@ -2003,3 +1999,226 @@ def display_progress_bar(
     ):
         print(f"{Colors.Green}You can ignore the error message: 'IMKClient Stall detected, *please Report*...'")
         progress_bar.progressbar.print_alert = False
+
+
+def find_connector(output_lines: list, line_num: int, start_symbol: str, end_symbol: str) -> tuple:
+    """
+    Finds the start and end positions for a connector within a line of the diagram.
+
+    Args:
+        output_lines (list): The list of strings representing the diagram.
+        line_num (int): The line number to search within.
+        start_symbol (str): The symbol indicating the start of the connector.
+        end_symbol (str): The symbol indicating the end of the connector.
+
+    Returns:
+        tuple: (start_position, end_position) if found, otherwise (None, None).
+    """
+    start_pos = output_lines[line_num].find(start_symbol)
+    if start_pos != -1:
+        end_pos = output_lines[line_num].find(end_symbol)
+        if end_pos != -1:
+            return start_pos, end_pos
+    return None, None
+
+
+def find_lower_elbows(
+    output_lines: list,
+    line_num: int,
+    end_elbow: str,
+    right_corner_up: str,
+    left_corner_down: str,
+) -> tuple:
+    """
+    Finds the positions of the lower elbows in the connector.
+
+    Args:
+        output_lines (list): The list of strings representing the diagram.
+        line_num (int): The starting line number for the search.
+        end_elbow (int): The column position of the end elbow.
+        right_corner_up (str): The symbol for the right lower elbow.
+        left_corner_down (str): The symbol for the left lower elbow.
+
+    Returns:
+        tuple: (next_line, right_lower_elbow, left_lower_elbow)
+    """
+    found_arrow = False
+    while not found_arrow:
+        line_num += 1
+        right_lower_elbow = output_lines[line_num].find(right_corner_up, end_elbow, end_elbow + 1)
+        if right_lower_elbow != -1:
+            found_arrow = True
+            left_lower_elbow = output_lines[line_num].find(left_corner_down)
+            if left_lower_elbow == -1:
+                print(
+                    "Rutroh! Missing lower elbow in line",
+                    line_num,
+                    "(guiutils.py:build_connectors):",
+                    output_lines[line_num],
+                )
+            return line_num, right_lower_elbow, left_lower_elbow
+    return None, None, None
+
+
+def get_connected_task(output_lines: list, line_num: int, elbow: int, top: bool) -> tuple:
+    """
+    Finds the connected task in the connector.
+
+    Args:
+        output_lines (list): The list of strings representing the diagram.
+        line_num (int): The line number to search within.
+        elbow (int): The column position of the lower elbow.
+        top (bool): True if the tasak is up, False if the task is below.
+
+    Returns:
+        tuple: (connected_task, left_position, right_position)
+    """
+    # Get the line with the task name in it.
+    if top:
+        while angle not in output_lines[line_num]:
+            line_num -= 1
+    else:
+        while angle not in output_lines[line_num]:
+            line_num += 1
+    line = output_lines[line_num]
+
+    # Get the left position of the name
+    comma_found = False
+    search_position = elbow
+    while not comma_found:
+        if line[search_position] in (",", right_arrow, straight_line, "[", "]"):
+            break
+        search_position -= 1
+    left_position = search_position + 3
+
+    # Get the right position of the name
+    comma_found = False
+    search_position = left_position
+    while not comma_found:
+        if (
+            len(line) == search_position
+            or line[search_position] in (",", "]", "[", "(", bar)
+            or line[search_position][0:3] == "    "
+        ):
+            break
+        search_position += 1
+    right_position = search_position
+
+    return line[left_position - 1 : right_position].strip(), left_position, right_position
+
+
+def build_connectors(output_lines: list, line_num: int, diagram_connectors: dict) -> dict:
+    """
+    Build the connectors for a given line number.
+
+    Args:
+        output_lines (list): The list of strings representing the diagram.
+        line_num (int): The line number to build the connectors for.
+        diagram_connectors (dict): The dictionary to store the connectors information.
+
+    Returns:
+        dict: Updated dictionary of connectors.
+    """
+    # Handle top-down connectors
+    start_elbow, end_elbow = find_connector(output_lines, line_num, right_arrow_corner_down, left_arrow_corner_up)
+    if start_elbow is not None:
+        next_line, right_lower_elbow, left_lower_elbow = find_lower_elbows(
+            output_lines,
+            line_num,
+            end_elbow,
+            right_arrow_corner_up,
+            left_arrow_corner_down,
+        )
+
+        # Build the connector
+        diagram_connectors[f"{line_num+1}"] = {
+            "start_top": (line_num + 1, start_elbow),
+            "end_top": (line_num + 1, end_elbow),
+            "start_bottom": (next_line + 1, left_lower_elbow),
+            "end_bottom": (next_line + 1, right_lower_elbow),
+            "tag": "",
+            "extra_bars": [],
+            "task_upper": [],
+        }
+
+        # Get the connecting task name at above the elbow.
+        task_to_highlight, left_position, right_position = get_connected_task(
+            output_lines,
+            line_num,
+            start_elbow,
+            True,
+        )
+        diagram_connectors[f"{line_num+1}"]["task_upper"] = append_item_to_list(
+            (task_to_highlight),
+            diagram_connectors[f"{line_num+1}"]["task_upper"],
+        )
+
+    # Handle bottom-up connectors
+    else:
+        start_elbow, end_elbow = find_connector(output_lines, line_num, left_arrow_corner_down, left_arrow_corner_up)
+        if start_elbow is not None:
+            next_line, right_lower_elbow, left_lower_elbow = find_lower_elbows(
+                output_lines,
+                line_num,
+                end_elbow,
+                right_arrow_corner_up,
+                right_arrow_corner_down,
+            )
+
+            # Build the connector
+            diagram_connectors[f"{line_num+1}"] = {
+                "start_top": (line_num + 1, start_elbow),
+                "end_top": (line_num + 1, end_elbow),
+                "start_bottom": (next_line + 1, left_lower_elbow),
+                "end_bottom": (next_line + 1, right_lower_elbow),
+                "tag": "",
+                "extra_bars": [],
+                "task_upper": [],
+            }
+
+            # Get the connecting task name at above the elbow.
+            task_to_highlight, left_position, right_position = get_connected_task(
+                output_lines,
+                line_num,
+                start_elbow,
+                False,
+            )
+            diagram_connectors[f"{line_num+1}"]["task_upper"] = append_item_to_list(
+                (task_to_highlight),
+                diagram_connectors[f"{line_num+1}"]["task_upper"],
+            )
+
+    return diagram_connectors
+
+
+def remove_tags_from_bars_and_names(self: object) -> None:
+    """
+    Remove the tags from the bars in the diagram.
+
+    This function loops through all of the connectors and Task names in the diagram and removes the tags from each.
+    The tags are removed from the bars in the connectors, and the "tag" key in the connector dictionary is set to an empty string.
+    """
+    for values in self.diagram_connectors.values():
+        # Remove the bars from the text widget.
+        if values["tag"]:
+            line_num = values["start_top"][0]
+            number_of_lines_to_highlight = values["start_bottom"][0] - values["start_top"][0] + 1
+            for _ in range(number_of_lines_to_highlight):
+                self.textview_textbox.tag_remove(
+                    values["tag"],
+                    f"{line_num}.{values["end_top"][1]!s}",
+                    f"{line_num}.{values["end_top"][1]+1!s}",
+                )
+                line_num += 1
+            for bar in values["extra_bars"]:
+                self.textview_textbox.tag_remove(values["tag"], f"{bar[0]!s}.{bar[1]!s}", f"{bar[0]!s}.{bar[1]+1!s}")
+            values["tag"] = ""
+
+        # Remove the tags in the Task names.
+        if values["task_upper"] and len(values["task_upper"]) > 1:
+            task = values["task_upper"]
+            self.textview_textbox.tag_remove(
+                values["tag"],
+                f"{task[1]}.{task[2]!s}",
+                f"{task[1]}.{task[3]!s}",
+            )

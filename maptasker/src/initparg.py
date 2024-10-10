@@ -37,12 +37,14 @@ def initialize_runtime_arguments() -> dict:
         "diagram_window_position": "",  # Last-used diagram window position
         "directory": False,  # Display directory
         "display_detail_level": 4,  # Display detail level
+        "display_icon": True,  # Display icon alignement in Diagram view
         "fetched_backup_from_android": False,  # Backup file was fetched from Android device
         "file": "",  # If we are re-running, then this is the file to re-use
         "font": OUTPUT_FONT,  # Font to use in the output
         "gui": False,  # Use the GUI to get the runtime and color options
         "guiview": False,  # Use the GUI to get the view (Map, Diagram, Tree)
         "highlight": False,  # Highlight Project/Profile?Task/Scene names
+        "icon_alignement": True,  # Align Diagram view with icons
         "indent": 4,  # Backup file was fetched from Android device
         "italicize": False,  # Italicise Project/Profile?Task/Scene names
         "view_limit": 10000,  # Map view limit

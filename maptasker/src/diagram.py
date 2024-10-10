@@ -25,7 +25,6 @@ from maptasker.src.diagutil import (
     build_call_table,
     delete_hanging_bars,
     find_nth,
-    get_indices_of_line,
     include_heading,
     print_3_lines,
     print_all,
@@ -41,6 +40,7 @@ from maptasker.src.sysconst import DIAGRAM_FILE, MY_VERSION, NOW_TIME, FormatLin
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
+bar = "│"
 box_line = "═"
 blank = " "
 straight_line = "─"
@@ -51,15 +51,16 @@ up_arrow = "▲"
 left_arrow = "◄"
 right_arrow = "►"
 task_delimeter = "¥"
+angle = "└─ "
+angle_elbow = "└"
 
 right_arrow_corner_down = "╰"
 right_arrow_corner_up = "╯"
 left_arrow_corner_down = "╭"
 left_arrow_corner_up = "╮"
 
-arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}"
-directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
-bar = "│"
+# arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}"
+# directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
 
 
 def flatten_with_quotes(string_list: list) -> str:
@@ -79,23 +80,18 @@ def flatten_with_quotes(string_list: list) -> str:
 
 def add_blank_lines(output_task_lines: list, called_by_tasks: list) -> list:
     """
-    For each called task, add a blank line to the output lines.
+    For each called task, add a blank line to the output lines after the called tasks.
     Args:
         output_task_lines (list): List of output lines to add to.
         called_by_tasks (list): List of Tasks this Task is called by.
     Returns:
         list: List of called task names.
+    Called by: output_the_task()
     """
     called_tasks = called_by_tasks.split(f"[Called by {line_left_arrow} ")
     called_tasks = called_tasks[1].split(task_delimeter)
     # Add a space for each called-by so we have room for the arrows.
-    track_task = []
-    for called_task in called_tasks:
-        if called_task and called_task != "]":
-            called_task_name = called_task[:-1] if called_task[-1] == "]" else called_task  # Remove a trailing "]"
-            if called_task_name not in track_task:
-                track_task.append(called_task_name)
-                output_task_lines.append("")
+    output_task_lines.extend(["" for called_task in called_tasks if called_task and called_task != "]"])
 
     return output_task_lines
 
@@ -131,26 +127,35 @@ def add_quotes(
     prime_task = PrimeItems.tasks_by_name[task_name]
     with contextlib.suppress(KeyError):
         if prime_task["call_tasks"] is not None:
+
             # Flatten list of called tasks and surround each with a quote.
             call_tasks = f" [Calls {line_right_arrow} {flatten_with_quotes(prime_task['call_tasks'])}]"
 
+            # Add a blank line for each called task.
+            # for len(prime_task["call_tasks"]):
+
     # We are still accumulating outlines for Profiles.
     # Build lines for the Profile's Tasks as well.
-    line = f"{blank*position_for_anchor}└─ {task_name}{task_type}{called_by_tasks}{call_tasks}"
+    line = f"{blank*position_for_anchor}{angle}{task_name}{task_type}{called_by_tasks}{call_tasks}"
     last_upward_bar.append(position_for_anchor)
     output_task_lines.append(line)
     if task_name not in found_tasks:
         found_tasks.append(task_name)
 
     # Add a blank line afterwards for each called Task (one per task name) for yet-to-be-populated connectors.
-    track_task = []
     with contextlib.suppress(KeyError):
         for calls_task in prime_task["call_tasks"]:
-            if calls_task not in track_task:
-                track_task.append(calls_task)
-                output_task_lines.append("")
-                # Include this for less-compressed output
-                track_task = []
+            output_task_lines.append("")
+
+            # Keep track of all Tasks being called
+            the_task = calls_task
+            if PrimeItems.called_task_tracker:
+                if the_task in PrimeItems.called_task_tracker:
+                    PrimeItems.called_task_tracker[the_task]["total_number"] += 1
+                else:
+                    PrimeItems.called_task_tracker[the_task] = {"total_number": 1, "counter": 0}
+            else:
+                PrimeItems.called_task_tracker[the_task] = {"total_number": 1, "counter": 0}
 
     # Interject the "|" for previous Tasks under Profile
     for bar in last_upward_bar:
@@ -189,21 +194,23 @@ def output_the_task(
         Returns:
             tuple[bool, int]: found_tasks, last_upward_bar
     """
-    # If Task is called by another Task, add a blank line for each called-by (one per task).
-    if called_by_tasks:
-        output_task_lines = add_blank_lines(output_task_lines, called_by_tasks)
-
     # We have a full row of Profiles.  Print the Tasks out.
     if print_tasks:
         if output_task_lines:
             print_all(output_task_lines)
         output_task_lines = []
         last_upward_bar = []
-    else:
-        # Add quotes to called Tasks.
-        found_tasks, last_upward_bar = add_quotes(
-            output_task_lines, last_upward_bar, task, task_type, called_by_tasks, position_for_anchor, found_tasks,
-        )
+
+    # Add quotes to called Tasks.
+    found_tasks, last_upward_bar = add_quotes(
+        output_task_lines,
+        last_upward_bar,
+        task,
+        task_type,
+        called_by_tasks,
+        position_for_anchor,
+        found_tasks,
+    )
 
     return found_tasks, last_upward_bar
 
@@ -242,7 +249,7 @@ def print_all_tasks(
         called_by_tasks = ""
 
         # First we must find our real Task element that matches this "task".
-        # Is it in the master list of all Task names?
+        # Is it in the master list of all Task names in the XML?
         if PrimeItems.tasks_by_name[task["name"]]:
             prime_task = PrimeItems.tasks_by_name[task["name"]]
             # Now see if this Task has any "called_by" Tasks.
@@ -462,9 +469,10 @@ def add_down_and_up_arrows(
         - Add left arrows to called Task line
         - Add an up arrow
     """
+    # Fix this should be caller_line_num + the count - 1 for each time
     line_to_modify = caller_line_num + caller_line_index
 
-    # Add right arrows to caller Task line (e.g. fill the line with blanks to the start position).
+    # Add right arrows to caller Task line (e.g. fill the line with blanks/straight-line to the start position).
     output_lines[line_to_modify] = fill_line_with_arrows(
         output_lines[line_to_modify],
         right_arrow,
@@ -472,15 +480,22 @@ def add_down_and_up_arrows(
         called_task_position,
     )
 
-    # Add a down to right elbow.
+    # Add a down to right elbow under the task being called ([Calls --> ...]).
     output_lines[line_to_modify] = (
         output_lines[line_to_modify][:called_task_position]
         + right_arrow_corner_down
         + output_lines[line_to_modify][called_task_position:]
     )
 
-    # Add left arrows to called Task line.
+    # Add left arrows to called Task line.  First find next available blank line.
     line_to_modify1 = called_line_num - called_line_index
+    line_count = 0
+    while output_lines[line_to_modify1] and output_lines[line_to_modify1][caller_task_position] != " ":
+        line_to_modify1 -= 1
+        line_count += 1
+        if line_count > 20:
+            print("Rutroh", line_to_modify1, len(output_lines), output_lines[line_to_modify1])
+    # line_to_modify1 = called_line_num - called_line_index
     output_lines[line_to_modify1] = fill_line_with_arrows(
         output_lines[line_to_modify1],
         left_arrow,
@@ -495,7 +510,7 @@ def add_down_and_up_arrows(
     )
 
     # Return the top-most modified output line hnumber.
-    return line_to_modify
+    return line_to_modify, line_to_modify1
 
 
 # Draw arrows to called Task from Task doing the calling.
@@ -503,6 +518,7 @@ def draw_arrows_to_called_task(
     up_down_location: int,
     value: list,
     output_lines: list,
+    called_task_lookup: dict,
 ) -> None:
     """
     Draw arrows to called Task from Task doing the calling.
@@ -510,9 +526,10 @@ def draw_arrows_to_called_task(
             up_down_location (int): Position on line where the up or down arrow should be drawn.
             value (list): List of all call table values.
             output_task_lines (list): List of all output lines.
+            called_task_lookup (dict): Dictionary of called task tracker.
 
         Returns:
-            None: None
+            None: called_task_lookup
     """
     # Get values for caller and called Task.
     caller_task_name = value[0]
@@ -528,53 +545,60 @@ def draw_arrows_to_called_task(
     start_line = value[10]
     line_count = value[11]
 
-    # Get the position of the line below/above based on the caller and called Task's index.
-    # We want the relative position of the called Task in the caller Task line, and the
-    # position of the caller Task in the called Task line.
-    caller_line_index, called_line_index = get_indices_of_line(
-        caller_task_name,
-        caller_line_num,
-        called_task_name,
-        called_line_num,
-        output_lines,
-    )
+    # Keep track of the number of called tasks for each task caller.
+    if caller_task_name not in called_task_lookup:
+        called_task_lookup[caller_task_name] = {"called": [called_task_name]}
+    else:
+        called_task_lookup[caller_task_name]["called"].append(called_task_name)
+
+    # Get a list of the counts of the called Task (e.g. the number of times it was called).
+    # NOTE: The bug is in here.  In a blue moon, an extra entry is in this dictionary for a called task.
+    found_names_in_list = [
+        index
+        for index, string in enumerate(called_task_lookup[caller_task_name]["called"])
+        if string == called_task_name
+    ]
+    caller_line_index = found_names_in_list[-1] + 1  # We only want the last one = true count.
+    # NOTE: This is the fix for the above bug.
+    if angle in output_lines[caller_line_num + caller_line_index]:
+        caller_line_index -= 1
 
     # If indice coming back is blank, then it wasn't found since it is named "Anonymous"
     if caller_line_index == "":
-        return
-    # If called_line_index comes back as not found, we have a problem.
-    if called_line_index == "":
-        called_line_index = 1
+        return called_task_lookup
+
+    # Bump the count of the calls to this task.  This is used to determine the displacement of the bottom connector line number.
+    PrimeItems.called_task_tracker[called_task_name]["counter"] += 1
 
     # Add up and down arrows to the connection points.
-    line_to_modify = add_down_and_up_arrows(
+    line_to_modify, line_to_modify1 = add_down_and_up_arrows(
         caller_line_index,
         caller_line_num,
         caller_task_position,
-        called_line_index,
+        PrimeItems.called_task_tracker[called_task_name]["counter"],
         called_line_num,
         called_task_position,
         up_down_location,
         output_lines,
     )
 
-    # Fill called line with left arrows.
-    # Determine if we are starting with the blank line above or below the current line.
+    # Fill called line with left arrows.  Figure out if we are top-down or bottom-up,
+    # and assign start_line and line_count accordingly.
     if called_line_num > caller_line_num:
-        # start_line += caller_line_index
         start_line = line_to_modify
         # Take into account the index of the current "calls ->" called Task
-        line_count -= line_to_modify - (caller_line_num - called_line_index)
+        line_count -= line_to_modify - (caller_line_num - PrimeItems.called_task_tracker[called_task_name]["counter"])
     else:
-        start_line -= called_line_index
+        # Find the first free line above the called Task
+        start_line = line_to_modify1
         line_count = line_to_modify - start_line
 
     # Now traverse the output list from the calling/called Task to the called/calling Task,
     # inserting a up/down/corner arrow along the way.
     for x in range(line_count + 1):
+        # Determine which arrow to use.
         if x == 0:
             use_arrow = upper_corner_arrow
-
         elif x == line_count:
             use_arrow = lower_corner_arrow
         else:
@@ -588,7 +612,8 @@ def draw_arrows_to_called_task(
         temp_line = temp_line.ljust(up_down_location)
         new_line = f"{temp_line[:up_down_location]}{use_arrow}{temp_line[up_down_location+1:]}"
         output_lines[start_line + x] = new_line
-    return
+
+    return called_task_lookup
 
 
 # Find and flag in the output those called Tasks that don't exist.
@@ -605,7 +630,6 @@ def mark_tasks_not_found(output_lines: list) -> None:
     """
     for caller_line_num, line in enumerate(output_lines):
         if line_right_arrow in line:
-
             # Get the called Task name.
             start_position = line.index(line_right_arrow) + 4
             called_task_names = line[start_position:].split(", ")
@@ -628,7 +652,7 @@ def mark_tasks_not_found(output_lines: list) -> None:
                     continue
 
                 #  Find the "Called" Task line for the caller Task.
-                search_name = f"└─ {called_name_no_delimeter}"
+                search_name = f"{angle}{called_name_no_delimeter}"
 
                 # Make sure the called Task exists.
                 found_called_task = False
@@ -757,6 +781,182 @@ def reconnect_missing_bars(output_lines: list, num: int) -> list:
     return output_lines
 
 
+def cleanup_task_names(output_lines: list, num: int, line: str) -> list:
+    """
+    Handle special character around Task names.  Remove all quotes and add equivelent spaces after last '].
+
+    Args:
+        output_lines (list): List of strings representing the output lines.
+        num (int): The current line number.
+        line (str): The current line.
+
+    Returns:
+        list: The modified list of strings.
+    """
+    occurences = [i for i, c in enumerate(line) if c == task_delimeter]
+
+    # Add a space beyond last ] for each occurenceof the task delimiter.
+    if occurences:
+        # Replace task_delimeter only if there are occurrences
+        output_lines[num] = output_lines[num].replace(task_delimeter, "")
+
+        # Find call position more efficiently
+        call_position = output_lines[num].find(f" [Calls {line_right_arrow}")
+        if call_position == -1:
+            call_position = output_lines[num].find(f" [Called by {line_left_arrow}")
+
+        if call_position != -1:
+            # Find the position of the closing bracket efficiently
+            brackets_position = output_lines[num].find("]", call_position + 8)
+
+            if brackets_position != -1:
+                # Calculate the number of occurrences and construct the new line
+                num_occurences = len(occurences)
+                output_lines[num] = (
+                    output_lines[num][: brackets_position + 1]
+                    + (blank * num_occurences)
+                    + output_lines[num][brackets_position + 1 :]
+                )
+        else:
+            print("Rutroh!  Diagram: No call position found in line", num, line)
+    return output_lines
+
+
+def cleanup_dangling_elbows(output_lines: list, num: int) -> list:
+    """
+    Check for dangling elbows and fix them.
+
+    Args:
+        output_lines (list): List of strings representing the output lines.
+        num (int): The current line number.
+
+    Returns:
+        list: The modified list of strings.
+    """
+    elbow = output_lines[num].find(left_arrow_corner_up)
+    if elbow != -1 and output_lines[num][elbow - 1] == " ":  # Check for dangling elbows
+        output_lines[num] = output_lines[num][: elbow - 1] + right_arrow_corner_down + output_lines[num][elbow:]
+
+    elbow = output_lines[num].find(" ───╯")
+    if elbow != -1:  # Check for dangling elbows
+        output_lines[num] = output_lines[num][:elbow] + left_arrow_corner_down + output_lines[num][elbow + 1 :]
+    return output_lines
+
+
+def cleanup_missing_straight_lines(output_lines: list, num: str, line: str) -> list:
+    # Add missing straight lines in which there is one or more blanks before "╯".
+    """
+    Add missing straight lines in which there is one or more blanks before "╯" or missing bars: "straight_line space straight_line".
+    Replace the space with a straight line and replace all single-quotes with a blank.
+    If last position is a bracket, just continue.
+    Args:
+        output_lines (list): List of strings representing the output lines.
+        num (str): The current line number.
+        line (str): The current line string.
+    Returns:
+        list: The modified list of strings.
+    """
+    new_string = list(line)
+    length = len(new_string)
+
+    i = 1  # Start at 1 to check the previous character
+    while i < length:
+        # Check for right_arrow_corner_up and preceding space, replace if found
+        if new_string[i] == right_arrow_corner_up and new_string[i - 1] == " ":
+            new_string[i - 1] = straight_line
+
+        # Check for missing bars: "straight_line space straight_line"
+        if (
+            i + 2 < length
+            and new_string[i] == straight_line
+            and new_string[i + 1] == " "
+            and new_string[i + 2] == straight_line
+        ):
+            new_string[i + 1] = straight_line
+            i += 2  # Skip ahead to avoid rechecking parts of the pattern
+
+        i += 1
+
+    # Join once at the end
+    output_lines[num] = "".join(new_string)
+
+    # Likewise for " ──╯".  Replace the space with a straight line and replace all single-quotes with a blank.
+    output_lines[num] = output_lines[num].replace("  ─╯", "───╯")
+
+    # If last position is a bracket, just continue.
+    if output_lines[num] and output_lines[num][-1] == "]":
+        output_lines[num] = output_lines[num].replace(task_delimeter, "")
+
+    return output_lines
+
+
+def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
+    """
+    Cleanup missing bars in the diagram.
+
+    Args:
+        output_lines (list): List of strings representing the output lines.
+        num (int): The current line number.
+        position (int): The current position in the substring.
+
+    Returns:
+        list: The modified list of strings.
+    """
+
+    def adjust_position_for_arrow(position: int) -> int:
+        """Adjust position if there's a right arrow corner down to the left."""
+        if output_lines[num][position - 1] == right_arrow_corner_down:
+            return position - 1
+        return position
+
+    def insert_bar_if_blank(new_line: str, position: int) -> str:
+        """Insert a bar at the position if there are two blank spaces."""
+        if new_line[position - 1] == " " and new_line[position] == " ":
+            return new_line[:position] + bar + new_line[position + 1 :]
+        return new_line
+
+    def process_elbows(previous_line_num: int, position: int) -> int:
+        """Handle cases where the current character is an elbow."""
+        new_line = output_lines[previous_line_num]
+        while output_lines[num][position] == angle_elbow:
+            if len(new_line) < position:
+                new_line = new_line.ljust(position + 1, " ")
+            if new_line[position] == straight_line or new_line[position] == " ":
+                output_lines[previous_line_num] = insert_bar_if_blank(new_line, position)
+                previous_line_num -= 1
+                new_line = output_lines[previous_line_num]
+            elif new_line[position] == box_line:
+                return -1
+            else:
+                previous_line_num -= 1
+                new_line = output_lines[previous_line_num]
+        return previous_line_num
+
+    previous_line_num = num - 1
+    position = adjust_position_for_arrow(position)
+
+    while previous_line_num >= 0:
+        new_line = output_lines[previous_line_num]
+
+        # Pad line if necessary
+        if len(new_line) < position:
+            new_line = new_line.ljust(position + 1, " ")
+            # output_lines[previous_line_num] = new_line
+
+        # Check for blank spaces to insert bar
+        if new_line[position - 1] == " " and new_line[position] == " ":
+            output_lines[previous_line_num] = insert_bar_if_blank(new_line, position)
+            previous_line_num -= 1
+        elif output_lines[num][position] == angle_elbow:
+            previous_line_num = process_elbows(previous_line_num, position)
+            if previous_line_num == -1:
+                break
+        else:
+            break
+
+    return output_lines
+
+
 # Go through the diagram looking for and fixing misc. screwed-up stuff.
 def cleanup_diagram(
     output_lines: list,
@@ -778,67 +978,70 @@ def cleanup_diagram(
         tuple: The modified list of strings representing the cleaned-up diagram, and the progress bar counter.
     """
     for num, line in enumerate(output_lines):
+
         # Add missing straight lines in which there is one or more blanks before "╯".
-        new_string = list(line)
-        length = len(new_string)
+        output_lines = cleanup_missing_straight_lines(output_lines, num, line)
 
-        i = 1  # Start at 1 to check the previous character
-        while i < length:
-            # Check for right_arrow_corner_up and preceding space, replace if found
-            if new_string[i] == right_arrow_corner_up and new_string[i - 1] == " ":
-                new_string[i - 1] = straight_line
+        # Cleanup Task names.
+        output_lines = cleanup_task_names(output_lines, num, line)
+        # Cleanup dangling elbow " ╮"
+        output_lines = cleanup_dangling_elbows(output_lines, num)
 
-            # Check for missing bars: "straight_line space straight_line"
-            if i + 2 < length and new_string[i] == straight_line and new_string[i + 1] == " " and new_string[i + 2] == straight_line:
-                new_string[i + 1] = straight_line
-                i += 2  # Skip ahead to avoid rechecking parts of the pattern
-
-            i += 1
-
-        # Join once at the end
-        output_lines[num] = "".join(new_string)
-
-        # Likewise for " ──╯".  Replace the space with a straight line and replace all single-quotes with a blank.
-        output_lines[num] = output_lines[num].replace("  ─╯", "───╯")
-
-        # If last position is a bracket, just continue.
-        if output_lines[num][-1] == "]":
-            output_lines[num] = output_lines[num].replace(task_delimeter, "")
-            continue
-
-        # Handle special character around Task names.  Remove all quotes and add equivelent spaces after last ']'.
-        occurences = [i for i, c in enumerate(line) if c == task_delimeter]
-
-        # Add a space beyond last ] for each occurenceof the task delimiter.
-        if occurences:
-            # Replace task_delimeter only if there are occurrences
-            output_lines[num] = output_lines[num].replace(task_delimeter, "")
-
-            # Find call position more efficiently
-            call_position = output_lines[num].find(f" [Calls {line_right_arrow}")
-            if call_position == -1:
-                call_position = output_lines[num].find(f" [Called by {line_left_arrow}")
-
-            if call_position != -1:
-                # Find the position of the closing bracket efficiently
-                brackets_position = output_lines[num].find("]", call_position + 8)
-
-                if brackets_position != -1:
-                    # Calculate the number of occurrences and construct the new line
-                    num_occurences = len(occurences)
-                    output_lines[num] = (
-                        output_lines[num][: brackets_position + 1]
-                        + (blank * num_occurences)
-                        + output_lines[num][brackets_position + 1 :]
-                    )
-            else:
-                print("Rutroh!  Diagram: No call position found in line", num, line)
-
-        # Find and fix the missing bars in the diagram.
-        output_lines = reconnect_missing_bars(output_lines, num)
+        # Cleanup missing bars above Task angles.
+        special_deliminaters = [angle_elbow, right_arrow_corner_down, left_arrow_corner_up]
+        substr, position = find_first_substring_position(line, special_deliminaters)
+        if position != -1 and line[position - 1][0] == " ":
+            output_lines = cleanup_missing_bars(output_lines, num, position)
 
     # Delete hanging bars "│" and substitute every arrow with beginning and end arrows only.
     return delete_hanging_bars(output_lines, progress_counter)
+
+
+def find_first_substring_position(string: str, substrings: list) -> tuple:
+    """
+    Finds the first occurrence of a substring in a string from a list of substrings.
+
+    Args:
+        string (str): The string to search in.
+        substrings (list): A list of substrings to search for.
+
+    Returns:
+        tuple: A tuple where the first item is the substring found and the second item is the index of the substring found.
+        If no substrings are found, the first item is None and the second item is -1.
+    """
+    for substr in substrings:
+        index = string.find(substr)
+        if index != -1:  # If the substring is found
+            return substr, index
+    return None, -1
+
+
+def add_blanks_above_called_tasks(output_lines: list) -> None:
+    # Go through and add blanks above called tasks, one for each caller.
+    """
+    Goes through the output lines and adds a blank line above each called task line
+    for each caller task.  The number of blank lines added is determined by the
+    number of times each Task is called.  The new output lines are returned.
+    """
+    name_stoppers = ["(entry)", "(exit)", "[Called by ", "[Calls "]
+    new_output_lines = []
+    for line in output_lines:
+        task_line = line.find(angle)
+        if task_line != -1:
+            # We have a task line.  Now get the Task name.
+            _, end_name = find_first_substring_position(line, name_stoppers)
+            task_name = line[task_line + 3 : end_name - 1] if end_name != -1 else line[task_line + 3 : len(line) - 1]
+            # Do we have a task that has been called by another task?
+            if task_name in PrimeItems.called_task_tracker:
+                new_output_lines.extend(
+                    ["" for _ in range(PrimeItems.called_task_tracker[task_name]["total_number"] + 1)],
+                )
+
+        # Add the original line to the new output lines.
+        new_output_lines.append(line)
+
+    output_lines.clear()
+    return new_output_lines
 
 
 # If Task line has any "Task Call" Task actions, fill it with arrows.
@@ -858,6 +1061,10 @@ def handle_calls(output_lines: list) -> None:
     # Display a progress bar if coming from the GUI.
     progress_bar, tenth_increment, max_data = configure_progress_bar(output_lines)
     progress_counter = 0
+
+    # Go through the output and add blanks above the called tasks, one for each caller.
+    output_lines = add_blanks_above_called_tasks(output_lines)
+
     # Identify called Tasks that don't exist and add blank lines for called/caller Tasks.
     mark_tasks_not_found(output_lines)
 
@@ -875,8 +1082,9 @@ def handle_calls(output_lines: list) -> None:
         return []
 
     # Now traverse the call table and add arrows to the output lines.
+    called_task_lookup = {}
     for up_down_location, value in call_table.items():
-        draw_arrows_to_called_task(up_down_location, value, output_lines)
+        called_task_lookup = draw_arrows_to_called_task(up_down_location, value, output_lines, called_task_lookup)
     call_table = {}  # Done with call table.
 
     # Now clean up the mess we made.
@@ -897,7 +1105,7 @@ def handle_calls(output_lines: list) -> None:
 
         # If icon in name, shift bars (|) left for each icon to ensure proper alignment of bars.
         # This can be very time consuming for more complex configurations!
-        if PrimeItems.display_icon:
+        if PrimeItems.program_arguments["display_icon"]:
             output_lines[line_num] = remove_icon(line)
 
     # We're done.  Kill the progressbar.
@@ -1148,6 +1356,7 @@ def network_map(network: dict) -> None:
     PrimeItems.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
 
     PrimeItems.netmap_output = []
+    PrimeItems.called_task_tracker = {}
 
     # Print a heading
 

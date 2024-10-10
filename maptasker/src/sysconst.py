@@ -11,14 +11,13 @@ import logging
 import re
 from datetime import datetime
 from enum import Enum
-from typing import ClassVar
 
 import darkdetect
 
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "5.2.2"
+VERSION = "5.3.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -120,6 +119,7 @@ ARGUMENT_NAMES = {
     "diagram_window_position": "Last Diagram Window Position",
     "directory": "Display Directory",
     "display_detail_level": "Display Level",
+    "display_icon": "Display Icon",
     "file": "Get backup file named",
     "font": "Font To Use",
     "gui": "GUI Mode",
@@ -198,7 +198,7 @@ class Colors:
 class FormatLine(Enum):
     """Definitions for creating an output line in the output list."""
 
-    dont_format_line: ClassVar[list] = []
+    dont_format_line = []  # noqa: RUF012
     add_end_span = True
     dont_add_end_span = False
 

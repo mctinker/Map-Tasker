@@ -347,3 +347,41 @@ def pretty(d: dict, indent: int = 0) -> None:
             pretty(value, indent + 1)
         else:
             print("\t" * (indent + 1) + str(value))
+
+
+def append_item_to_list(item: str, lst: list = []) -> list:  # noqa: B006
+    """
+    Append the given item to the list and return the list.
+
+    Args:
+        item: The item to append to the list.
+        lst: The list to append to. Defaults to an empty list.
+
+    Returns:
+        The list with the item appended.
+    """
+    lst.append(item)
+    return lst
+
+
+def find_all_positions(string: str, substring: str) -> list:
+    """
+    Finds all positions of a substring in a string.
+
+    Args:
+        string (str): The string to search in.
+        substring (str): The substring to search for.
+
+    Returns:
+        list: A list of all positions of the substring in the string.
+    """
+
+    positions = []
+    start = 0
+    while True:
+        pos = string.find(substring, start)
+        if pos == -1:
+            break
+        positions.append(pos)
+        start = pos + 1  # Continue search from the next character
+    return positions
