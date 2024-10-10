@@ -492,7 +492,8 @@ class MyGui(customtkinter.CTk):
         self.textbox.tag_config(line_num_str, foreground=self.all_messages[line_num]["color"])
 
         # If current message is a setting ("set On/Off/True/False"), then color it
-        self.check_message_for_special_highlighting(message, line_num_str)
+        if self.check_message_for_special_highlighting(message, line_num_str):
+            ...
 
         # self.textbox.focus_set()
         # Set the font
@@ -508,7 +509,7 @@ class MyGui(customtkinter.CTk):
             line_num_str (str): The line number of the message.
 
         Returns:
-            None
+            bool: True if we highlighted the text, false if we didn't.
         """
         keywords = {
             "set Off": "Red",
@@ -540,6 +541,8 @@ class MyGui(customtkinter.CTk):
         # Do we have a highlight color?  If so, highlight the string.
         if highlight_color:
             self.highlight_string(message, line_num_str, final_position, highlight_color)
+            return True
+        return False
 
     # Highlight a string in the textbox.
     def highlight_string(self, message: str, line_num_str: str, highlight_position: int, highlight_color: str) -> None:
@@ -798,6 +801,7 @@ class MyGui(customtkinter.CTk):
     # ################################################################################
     # Select or deselect a checkbox based on the value passed in
     # ################################################################################
+    # FIX Add boolean argument (display=True or False)
     def select_deselect_checkbox(
         self,
         checkbox: customtkinter,
@@ -815,8 +819,8 @@ class MyGui(customtkinter.CTk):
         - Check if checked is False, call checkbox.deselect() to deselect it
         - Return a string with the argument name and checked status"""
         checkbox.select() if checked else checkbox.deselect()
-        onoff = "On" if checked else "Off"
-        self.display_message_box(f"{argument_name} set {onoff}.", "Green")
+        # onoff = "On" if checked else "Off"
+        # self.display_message_box(f"{argument_name} set {onoff}.", "Green")
         return f"{argument_name} set to {checked}.\n"
 
     # Given a setting key and value, set the attribute for the key to the value and return the setting as a message.
@@ -867,6 +871,7 @@ class MyGui(customtkinter.CTk):
             "debug": lambda: self.select_deselect_checkbox(self.debug_checkbox, value, "Debug Mode"),
             "directory": lambda: self.select_deselect_checkbox(self.directory_checkbox, value, "Display Directory"),
             "display_detail_level": lambda: self.event_handlers.detail_selected_event(value),
+            "display_icon": lambda: self.event_handlers.icon_event(),
             # "fetched_backup_from_android": lambda: f"Fetched XML From Android:{value}.\n",
             "file": lambda: self.display_and_set_file(value),
             "font": lambda: self.event_handlers.font_event(value),
@@ -3254,10 +3259,10 @@ class EventHandlers:
         the_view = self.parent
         # Toggle the flag.
         the_view.display_icon = not the_view.display_icon
-        wrap_msg = "on" if the_view.display_icon else "off"
+        wrap_msg = "On" if the_view.display_icon else "Off"
 
         # Let the user know.
-        the_view.display_message_box(f"Icon alignment in the Diagram view is {wrap_msg}", "green")
+        the_view.display_message_box(f"Icon alignment in the Diagram view is set {wrap_msg}", "green")
 
     # Search textbox event
     def search_event(self: object, textview: CTkTextview) -> None:
