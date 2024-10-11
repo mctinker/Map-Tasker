@@ -1524,7 +1524,7 @@ class MyGui(customtkinter.CTk):
                 "w",
             )
             #  Query ? button
-            self.list_files_query_button = add_button(
+            self.whats_new_button = add_button(
                 self,
                 self,
                 "#246FB6",

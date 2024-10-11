@@ -68,7 +68,7 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.3.1 - Change Log\n
+Version 5.3.2 - Change Log\n
 ### Added\n
 - Added: Diagram view's Task connectors can now be clicked, with the mouse, to highlight the entire connection.\n
 - Added: The "IA" button setting for the Diagram view is saved and restored between sessions.\n
@@ -78,6 +78,7 @@ Version 5.3.1 - Change Log\n
 - Fixed: Some conections in the Diagramn view are not displaying correctly.\n
 - Fixed: Hitting the 'Cancel' button on the file prompt is not clearing out the current file.\n
 - Fixed: Settings are being displayed twice on initialization of the GUI.\n
+- Fixed: Program abends on start up of GUI.\n
 ### Known Issues\n
 - Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.\n
 - Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).\n
@@ -2207,8 +2208,8 @@ def remove_tags_from_bars_and_names(self: object) -> None:
             for _ in range(number_of_lines_to_highlight):
                 self.textview_textbox.tag_remove(
                     values["tag"],
-                    f"{line_num}.{values["end_top"][1]!s}",
-                    f"{line_num}.{values["end_top"][1]+1!s}",
+                    f"{line_num}.{values['end_top'][1]!s}",
+                    f"{line_num}.{values['end_top'][1]+1!s}",
                 )
                 line_num += 1
             for bar in values["extra_bars"]:

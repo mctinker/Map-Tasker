@@ -771,8 +771,8 @@ class CTkTextview(ctk.CTkFrame):
                 for _ in range(number_of_lines_to_highlight):
                     self.textview_textbox.tag_add(
                         tag,
-                        f"{line_num}.{connector["end_top"][1]!s}",
-                        f"{line_num}.{connector["end_top"][1]+1!s}",
+                        f"{line_num}.{connector['end_top'][1]!s}",
+                        f"{line_num}.{connector['end_top'][1]+1!s}",
                     )
                     connector["extra_bars"].append((line_num, connector["end_top"][1]))
                     line_num += 1
@@ -974,14 +974,14 @@ class CTkTextview(ctk.CTkFrame):
             # Add the tag for the top line
             self.textview_textbox.tag_add(
                 tagid,
-                f"{key}.{value["start_top"][1]!s}",
-                f"{key}.{value["end_top"][1]+1!s}",
+                f"{key}.{value['start_top'][1]!s}",
+                f"{key}.{value['end_top'][1]+1!s}",
             )
             # Add the tag for the bottom line.
             self.textview_textbox.tag_add(
                 tagid,
-                f"{value["start_bottom"][0]!s}.{value["start_bottom"][1]!s}",
-                f"{value["end_bottom"][0]!s}.{value["end_bottom"][1]+1!s}",
+                f"{value['start_bottom'][0]!s}.{value['start_bottom'][1]!s}",
+                f"{value['end_bottom'][0]!s}.{value['end_bottom'][1]+1!s}",
             )
 
             # Make them clickable.
