@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [5.3.1] 10-Oct-2024
+## [5.3.2] 11-Oct-2024
 
 ### Added
 
@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Some conections in the Diagramn view are not displaying correctly.
 - Fixed: Hitting the 'Cancel' button on the file prompt is not clearing out the current file.
 - Fixed: Settings are being displayed twice on initialization of the GUI.
+- Fixed: Program abends on start up of GUI.
 
 ### Known Issues
 
