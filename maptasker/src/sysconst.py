@@ -17,7 +17,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "5.3.2"
+VERSION = "6.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -237,6 +237,7 @@ LLAMA_MODELS = [
     "llama2",
     "llama3",
     "llama3.1",
+    "llama3.2",
     "mistral",
     "phi3",
     "qwen",

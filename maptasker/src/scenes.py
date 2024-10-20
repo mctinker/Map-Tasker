@@ -132,9 +132,9 @@ def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> Non
         # Handle Properties KEY Tab
         elif subchild.tag == "LinkClickFilter":
             line_out = ""
-            stop_event_element = subchild.find("stopEvent")
-            if stop_event_element is not None:
-                line_out = f"Stop Event={stop_event_element.text},"
+            stopbottom_event_element = subchild.find("stopEvent")
+            if stopbottom_event_element is not None:
+                line_out = f"Stop Event={stopbottom_event_element.text},"
             url_match_element = subchild.find("urlMatch")
             if url_match_element is not None:
                 line_out = f"{line_out} URL Match={url_match_element.text}"

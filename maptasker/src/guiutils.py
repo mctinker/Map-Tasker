@@ -48,6 +48,7 @@ from maptasker.src.sysconst import (
     OPENAI_MODELS,
     VERSION,
     Colors,
+    logger,
 )
 
 if TYPE_CHECKING:
@@ -68,17 +69,16 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 5.3.2 - Change Log\n
+Version 6.0 - Change Log\n
 ### Added\n
-- Added: Diagram view's Task connectors can now be clicked, with the mouse, to highlight the entire connection.\n
-- Added: The "IA" button setting for the Diagram view is saved and restored between sessions.\n
+- Added: The GUI 'views' now have a 'Top' and 'Bottom' button for quick navigation within the GUI views.\n
+- Added: Allow the runtime option '-debug' to be carried into the GUI.\n
+- Added: Ai analysis model 'llama3.2' has been added.\n
+- Added: Python 3.13 fully supported.\n
 ### Changed\n
-- Changed: The Diagram view now includes all individual connectors to and from a Task, rather than a single connector for connections to/from the same Task.\n
+- Changed: The Diagram view connectors have been shifted to the left as much as possible so that more can be seen within the view window.\n
 ### Fixed\n
-- Fixed: Some conections in the Diagramn view are not displaying correctly.\n
-- Fixed: Hitting the 'Cancel' button on the file prompt is not clearing out the current file.\n
-- Fixed: Settings are being displayed twice on initialization of the GUI.\n
-- Fixed: Program abends on start up of GUI.\n
+- Fixed: The 'IA' Diagram button setting is being reversed (off rather than on, and vice versa) when restored during GUI initialization.\n
 ### Known Issues\n
 - Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.\n
 - Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).\n
@@ -1934,28 +1934,27 @@ def get_appropriate_color(self: object, color_to_use: str) -> str:
 
 
 def display_progress_bar(
-    progress_bar: object,
-    max_data: int,
-    progress_counter: int,
-    tenth_increment: int,
+    progress: dict,
     is_instance_method: bool = False,
 ) -> None:
     """
     Update and display a progress bar with a specified color based on the progress percentage.
 
     Args:
-        progress_bar (object): The instance of the progressbar window or the instance of the class containing the progress bar.
-        max_data (int): The maximum value for the progress bar.
-        progress_counter (int): The current value of the progress bar.
-        tenth_increment (int): The increment value for each 10% of progress.
+        progress (dict): The dictionary containing the progress bar details.
         is_instance_method (bool): Flag to determine if the function is used as a class instance method.
 
     Returns:
         None: This function does not return anything.
     """
+    progress_bar = progress["progress_bar"]
+    tenth_increment = progress["tenth_increment"]
+    progress_counter = progress["progress_counter"]
+    max_data = progress["max_data"]
+
     # If used as an instance method (Map), adjust the progress_bar reference.
     if is_instance_method:
-        progress_bar = progress_bar.progress_bar
+        progress_bar = progress["progress_bar"].progress_bar
         comp2 = 2
         comp4 = 4
         comp6 = 6
@@ -2047,18 +2046,24 @@ def find_lower_elbows(
     found_arrow = False
     while not found_arrow:
         line_num += 1
-        right_lower_elbow = output_lines[line_num].find(right_corner_up, end_elbow, end_elbow + 1)
-        if right_lower_elbow != -1:
-            found_arrow = True
-            left_lower_elbow = output_lines[line_num].find(left_corner_down)
-            if left_lower_elbow == -1:
-                print(
-                    "Rutroh! Missing lower elbow in line",
-                    line_num,
-                    "(guiutils.py:build_connectors):",
-                    output_lines[line_num],
-                )
-            return line_num, right_lower_elbow, left_lower_elbow
+        if line_num < len(output_lines):
+            right_lower_elbow = output_lines[line_num].find(right_corner_up, end_elbow, end_elbow + 1)
+            if right_lower_elbow != -1:
+                found_arrow = True
+                left_lower_elbow = output_lines[line_num].find(left_corner_down)
+                if left_lower_elbow == -1:
+                    if PrimeItems.program_arguments["debug"]:
+                        print(
+                            "Rutroh! Missing lower elbow in line",
+                            line_num,
+                            "(guiutils.py:build_connectors):",
+                            output_lines[line_num],
+                        )
+                    else:
+                        logger.error("Missing lower elbow in line %s %s", line_num, output_lines[line_num])
+                return line_num, right_lower_elbow, left_lower_elbow
+        else:
+            return line_num, -1, -1
     return None, None, None
 
 

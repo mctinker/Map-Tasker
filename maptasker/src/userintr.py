@@ -295,6 +295,11 @@ class MyGui(customtkinter.CTk):
         else:
             self.display_message_box("GUI started with the '-reset' option.\n", "Green")
 
+        # If debug set as runtime option, then set it in the GUI aswell.
+        if PrimeItems.program_arguments["debug"]:
+            self.debug = True
+            self.debug_checkbox.select()
+
         # Set the window's geometry
         self.set_main_window_geometry()
 
@@ -801,26 +806,28 @@ class MyGui(customtkinter.CTk):
     # ################################################################################
     # Select or deselect a checkbox based on the value passed in
     # ################################################################################
-    # FIX Add boolean argument (display=True or False)
     def select_deselect_checkbox(
         self,
         checkbox: customtkinter,
         checked: bool,
         argument_name: str,
+        display: bool,
     ) -> str:
         """Select or deselect a checkbox widget
         Args:
             checkbox: The checkbox widget to select or deselect
             checked: Whether to select or deselect the checkbox
             argument_name: The name of the argument being checked/unchecked
+            display: True if we are to display the message, false if not.
         Returns:
             status: A string indicating if the checkbox was selected or deselected
         - Check if checked is True, call checkbox.select() to select it
         - Check if checked is False, call checkbox.deselect() to deselect it
         - Return a string with the argument name and checked status"""
         checkbox.select() if checked else checkbox.deselect()
-        # onoff = "On" if checked else "Off"
-        # self.display_message_box(f"{argument_name} set {onoff}.", "Green")
+        if display:
+            onoff = "On" if checked else "Off"
+            self.display_message_box(f"{argument_name} set {onoff}.", "Green")
         return f"{argument_name} set to {checked}.\n"
 
     # Given a setting key and value, set the attribute for the key to the value and return the setting as a message.
@@ -862,16 +869,27 @@ class MyGui(customtkinter.CTk):
             "android_port": lambda: f"Android Get XML Port Number set to {value}\n",
             "android_file": lambda: f"Android Get XML File Location set to {value}\n",
             "appearance_mode": lambda: self.event_handlers.change_appearance_mode_event(value),
-            "bold": lambda: self.select_deselect_checkbox(self.bold_checkbox, value, "Display Names in Bold"),
+            "bold": lambda: self.select_deselect_checkbox(
+                self.bold_checkbox,
+                value,
+                "Display Names in Bold",
+                display=False,
+            ),
             "conditions": lambda: self.select_deselect_checkbox(
                 self.conditions_checkbox,
                 value,
                 "Display Profile/Task Conditions",
+                display=False,
             ),
-            "debug": lambda: self.select_deselect_checkbox(self.debug_checkbox, value, "Debug Mode"),
-            "directory": lambda: self.select_deselect_checkbox(self.directory_checkbox, value, "Display Directory"),
+            "debug": lambda: self.select_deselect_checkbox(self.debug_checkbox, value, "Debug Mode", display=False),
+            "directory": lambda: self.select_deselect_checkbox(
+                self.directory_checkbox,
+                value,
+                "Display Directory",
+                display=False,
+            ),
             "display_detail_level": lambda: self.event_handlers.detail_selected_event(value),
-            "display_icon": lambda: self.event_handlers.icon_event(),
+            "display_icon": lambda: self.event_handlers.icon_event(toggle=False),
             # "fetched_backup_from_android": lambda: f"Fetched XML From Android:{value}.\n",
             "file": lambda: self.display_and_set_file(value),
             "font": lambda: self.event_handlers.font_event(value),
@@ -880,30 +898,40 @@ class MyGui(customtkinter.CTk):
                 self.highlight_checkbox,
                 value,
                 "Display Names Highlighted",
+                display=False,
             ),
             "indent": lambda: self.event_handlers.indent_selected_event(value),
             "italicize": lambda: self.select_deselect_checkbox(
                 self.italicize_checkbox,
                 value,
                 "Display Names Italicized",
+                display=False,
             ),
             "view_limit": lambda: self.event_handlers.viewlimit_event(value),
             "outline": lambda: self.select_deselect_checkbox(
                 self.outline_checkbox,
                 value,
                 "Display Configuration Outline",
+                display=False,
             ),
             "preferences": lambda: self.select_deselect_checkbox(
                 self.preferences_checkbox,
                 value,
                 "Display Tasker Preferences",
+                display=False,
             ),
             "pretty": lambda: self.select_deselect_checkbox(
                 self.pretty_checkbox,
                 value,
                 "Display Prettier",
+                display=False,
             ),
-            "runtime": lambda: self.select_deselect_checkbox(self.runtime_checkbox, value, "Display Runtime Settings"),
+            "runtime": lambda: self.select_deselect_checkbox(
+                self.runtime_checkbox,
+                value,
+                "Display Runtime Settings",
+                display=False,
+            ),
             "single_profile_name": lambda: self.process_single_name_restore("Profile", value),
             "single_project_name": lambda: self.process_single_name_restore("Project", value),
             "single_task_name": lambda: self.process_single_name_restore("Task", value),
@@ -911,16 +939,19 @@ class MyGui(customtkinter.CTk):
                 self.taskernet_checkbox,
                 value,
                 "Display TaskerNet Information",
+                display=False,
             ),
             "twisty": lambda: self.select_deselect_checkbox(
                 self.twisty_checkbox,
                 value,
                 "Hide Task Details Under Twisty",
+                display=False,
             ),
             "underline": lambda: self.select_deselect_checkbox(
                 self.underline_checkbox,
                 value,
                 "Display Names Underlined",
+                display=False,
             ),
         }
 
@@ -2558,7 +2589,7 @@ class EventHandlers:
         for attr_name, display_message in checkbox_map.items():
             checkbox = getattr(the_view, attr_name, None)
             if checkbox:
-                the_view.select_deselect_checkbox(checkbox, value, display_message)
+                the_view.select_deselect_checkbox(checkbox, value, display_message, display=True)
                 setattr(the_view, attr_name.replace("_checkbox", ""), value)
 
         # Handle Display Detail Level separately
@@ -3244,7 +3275,7 @@ class EventHandlers:
         guiview.new_message_box(f"{title}\n\n{help_text}")
         guiview.clear_messages = True  # Flag to tell display_message_box to clear the message box
 
-    def icon_event(self: object) -> None:
+    def icon_event(self: object, toggle: bool) -> None:
         """
         Handles the icon alignment event for the diagram.
 
@@ -3258,7 +3289,8 @@ class EventHandlers:
         """
         the_view = self.parent
         # Toggle the flag.
-        the_view.display_icon = not the_view.display_icon
+        if toggle:
+            the_view.display_icon = not the_view.display_icon
         wrap_msg = "On" if the_view.display_icon else "Off"
 
         # Let the user know.
@@ -3447,22 +3479,44 @@ class EventHandlers:
         """
         search_nextprev_string(self, textview, "previous")
 
-    def _handle_event(self, event_method: str, view_name: str) -> None:
+    def topbottom_event(self: object, textview: CTkTextview, top: bool) -> None:
+        """
+        Handles going to top/bottom of text view.
+
+        This function toggles the wordwrap setting in the text view box.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        # Go to the top of the textbox.
+        if top:
+            textview.textview_textbox.see("1.0")
+        else:
+            textview.textview_textbox.see("end-1c")
+
+        # Let the user know.
+        output_label(textview, "Top of text view displayed.")
+
+    def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:
         """
         Internal method to handle events based on event method and view name.
 
         Parameters:
             event_method (str): The name of the event method to call.
             view_name (str): The name of the view to apply the event to.
+            *args (str): Additional arguments to pass to the event method.
 
         Returns:
             None
         """
         method = getattr(self, event_method)
         view = getattr(self.parent, view_name)
-        method(view)
+        method(view, *args)
 
-    # Handlers for Search/Next/Prev/Clear and Toglle Word Wrap for all views.
+    # Handlers for Search/Next/Prev/Clear and Toglle Word Wrap for each view.
     def diagram_search_event(self) -> None:  # noqa: D102
         self._handle_event("search_event", "diagramview")
 
@@ -3507,3 +3561,12 @@ class EventHandlers:
 
     def analysis_wordwrap_event(self) -> None:  # noqa: D102
         self._handle_event("wordwrap_event", "analysisview")
+
+    def analysis_topbottom_event(self, top: bool) -> None:  # noqa: D102
+        self._handle_event("topbottom_event", "analysisview", top)
+
+    def map_topbottom_event(self, top: bool) -> None:  # noqa: D102
+        self._handle_event("topbottom_event", "mapview", top)
+
+    def diagram_topbottom_event(self, top: bool) -> None:  # noqa: D102
+        self._handle_event("topbottom_event", "diagramview", top)

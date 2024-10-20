@@ -437,7 +437,9 @@ class CTkTextview(ctk.CTkFrame):
             for num, line in enumerate(the_data):
                 text_line = num + 1
                 if PrimeItems.program_arguments["debug"]:  # Add line number if debug mode.
-                    self.textview_textbox.insert(f"{text_line!s}.0", f"{text_line!s}{line}\n")
+                    # NOTE: Uncomment next line and comment out the line afterwards to see line numbers on debug mode.
+                    # self.textview_textbox.insert(f"{text_line!s}.0", f"{text_line!s}{line}\n")
+                    self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
                 else:
                     self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
 
@@ -491,26 +493,43 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None
         """
-        # Set up appropriate event handlers: diagram vs map
+        # Define the event handlers based on the specific 'view'.
         gui_view = self.master.master
-        if "Analysis" in self.textview_textbox.master.title:
-            search_event = gui_view.event_handlers.analysis_search_event
-            next_event = gui_view.event_handlers.analysis_next_event
-            previous_event = gui_view.event_handlers.analysis_previous_event
-            clear_event = gui_view.event_handlers.analysis_clear_event
-            wordwrap_event = gui_view.event_handlers.analysis_wordwrap_event
-        elif title == "Diagram":
-            search_event = gui_view.event_handlers.diagram_search_event
-            next_event = gui_view.event_handlers.diagram_next_event
-            previous_event = gui_view.event_handlers.diagram_previous_event
-            clear_event = gui_view.event_handlers.diagram_clear_event
-            wordwrap_event = gui_view.event_handlers.diagram_wordwrap_event
-        elif title == "Map":
-            search_event = gui_view.event_handlers.map_search_event
-            next_event = gui_view.event_handlers.map_next_event
-            previous_event = gui_view.event_handlers.map_previous_event
-            clear_event = gui_view.event_handlers.map_clear_event
-            wordwrap_event = gui_view.event_handlers.map_wordwrap_event
+
+        # Dictionary mapping titles to lambdas that assign the events
+        gui_view = self.master.master
+        event_assignments = {
+            "Analysis": lambda: (
+                gui_view.event_handlers.analysis_search_event,
+                gui_view.event_handlers.analysis_next_event,
+                gui_view.event_handlers.analysis_previous_event,
+                gui_view.event_handlers.analysis_clear_event,
+                gui_view.event_handlers.analysis_wordwrap_event,
+                gui_view.event_handlers.analysis_topbottom_event,
+            ),
+            "Diagram": lambda: (
+                gui_view.event_handlers.diagram_search_event,
+                gui_view.event_handlers.diagram_next_event,
+                gui_view.event_handlers.diagram_previous_event,
+                gui_view.event_handlers.diagram_clear_event,
+                gui_view.event_handlers.diagram_wordwrap_event,
+                gui_view.event_handlers.diagram_topbottom_event,
+            ),
+            "Map": lambda: (
+                gui_view.event_handlers.map_search_event,
+                gui_view.event_handlers.map_next_event,
+                gui_view.event_handlers.map_previous_event,
+                gui_view.event_handlers.map_clear_event,
+                gui_view.event_handlers.map_wordwrap_event,
+                gui_view.event_handlers.map_topbottom_event,
+            ),
+        }
+
+        # Retrieve and assign the events based on the title
+        if title in event_assignments:
+            search_event, next_event, previous_event, clear_event, wordwrap_event, topbottom_event = event_assignments[
+                title
+            ]()
 
         # Add label
         self.text_message_label = add_label(
@@ -618,23 +637,7 @@ class CTkTextview(ctk.CTkFrame):
             "nw",
         )
         clear_search_button.configure(width=50)
-        # Word wrap button
-        _ = add_button(
-            self,
-            self,
-            "#246FB6",
-            "",
-            "",
-            wordwrap_event,
-            1,
-            "Toggle Word Wrap",
-            1,
-            0,
-            0,
-            440,
-            5,
-            "nw",
-        )
+
         #  Query ? button
         search_query_button = add_button(
             self,
@@ -653,6 +656,62 @@ class CTkTextview(ctk.CTkFrame):
             "nw",
         )
         search_query_button.configure(width=20)
+
+        # Word wrap button
+        _ = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            wordwrap_event,
+            1,
+            "Toggle Word Wrap",
+            1,
+            0,
+            0,
+            440,
+            5,
+            "nw",
+        )
+
+        # Top button
+        top_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            lambda: topbottom_event(True),
+            1,
+            "Top",
+            1,
+            0,
+            0,
+            600,
+            5,
+            "nw",
+        )
+        top_button.configure(width=40)
+
+        # Bottom button
+        top_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            lambda: topbottom_event(False),
+            1,
+            "Bottom",
+            1,
+            0,
+            0,
+            650,
+            5,
+            "nw",
+        )
+        top_button.configure(width=50)
 
         # Save the widgets to the correct view: diagram or map
         if "Analysis" in self.textview_textbox.master.title:
@@ -1126,10 +1185,17 @@ class CTkTextview(ctk.CTkFrame):
         """
         max_data = len(the_data)
         tenth_increment = max_data // 10 or 1
+        progress = {
+            "progress_bar": self,
+            "tenth_increment": tenth_increment,
+            "max_data": max_data,
+            "progress_counter": 0,
+        }
         # Go through the data and format it accordingly.
         for num, (_, value) in enumerate(the_data.items()):
             if num % tenth_increment == 0:
-                display_progress_bar(self, max_data, num, tenth_increment, is_instance_method=True)
+                progress["progress_counter"] = num
+                display_progress_bar(progress, is_instance_method=True)
 
             # Get the text of the value and ignore blank lines.
             text = value.get("text", [])
@@ -2604,14 +2670,14 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "sw",
     )
     self.diagramview_button.configure(width=120)
-    #  "I" icon button
+    #  "IA" icon button
     self.view_query_button = add_button(
         self,
         self.sidebar_frame,
         "#246FB6",
         "",
         "",
-        self.event_handlers.icon_event,
+        lambda: self.event_handlers.icon_event(toggle=True),
         1,
         "IA",
         1,
@@ -2816,7 +2882,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         5,
         1,
         0,
-        0,
+        10,
         "s",
     )
     # 'Get Backup Settings' button definition
@@ -2837,10 +2903,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         2,
         "Get Local XML",
         1,
-        6,
+        5,
         2,
         (20, 20),
-        (0, 0),
+        (10, 0),
         "ne",
     )
 
@@ -2855,10 +2921,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         2,
         "Display Help",
         1,
-        7,
+        6,
         2,
         (0, 20),
-        (10, 0),
+        (20, 0),
         "ne",
     )
 
@@ -2873,13 +2939,27 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         2,
         "Get Android Help",
         1,
-        7,
+        6,
         2,
         (0, 20),
-        (48, 0),
+        (58, 0),
         "ne",
     )
 
+    # Add "Browser" label
+    self.text_message_label = add_label(
+        self,
+        self,
+        "Browser Options",
+        "",
+        14,
+        "normal",
+        7,
+        2,
+        (0, 35),
+        (50, 0),
+        "ne",
+    )
     # 'Run' button definition
     self.run_button = add_button(
         self,
@@ -2894,7 +2974,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         7,
         2,
         (0, 20),
-        (100, 0),
+        (80, 0),
         "ne",
     )
 
@@ -2912,7 +2992,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         7,
         2,
         (0, 20),
-        (138, 10),
+        (118, 10),
         "ne",
     )
 

@@ -28,7 +28,9 @@ executes the key steps to take the Tasker backup and produce the visual map outp
 # Reference: https://github.com/Taskomater/Tasker-XML-Info                             #
 #                                                                                      #
 import contextlib
+import functools
 import gc
+import inspect
 import os
 import platform
 import sys
@@ -71,7 +73,6 @@ from maptasker.src.sysconst import (
 #   print("Python version ", sys.version)  # Which Python are we using today?
 # import tkinter as tk
 # print("Tkinter version ", tk.TkVersion)  # Which Tkinter?
-
 
 crash_debug = False
 

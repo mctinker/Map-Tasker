@@ -35,7 +35,7 @@ from maptasker.src.getids import get_ids
 from maptasker.src.guiutils import display_progress_bar
 from maptasker.src.guiwins import ProgressbarWindow
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import DIAGRAM_FILE, MY_VERSION, NOW_TIME, FormatLine
+from maptasker.src.sysconst import DIAGRAM_FILE, MY_VERSION, NOW_TIME, FormatLine, logger
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -127,7 +127,6 @@ def add_quotes(
     prime_task = PrimeItems.tasks_by_name[task_name]
     with contextlib.suppress(KeyError):
         if prime_task["call_tasks"] is not None:
-
             # Flatten list of called tasks and surround each with a quote.
             call_tasks = f" [Calls {line_right_arrow} {flatten_with_quotes(prime_task['call_tasks'])}]"
 
@@ -469,7 +468,6 @@ def add_down_and_up_arrows(
         - Add left arrows to called Task line
         - Add an up arrow
     """
-    # Fix this should be caller_line_num + the count - 1 for each time
     line_to_modify = caller_line_num + caller_line_index
 
     # Add right arrows to caller Task line (e.g. fill the line with blanks/straight-line to the start position).
@@ -494,7 +492,13 @@ def add_down_and_up_arrows(
         line_to_modify1 -= 1
         line_count += 1
         if line_count > 20:
-            print("Rutroh", line_to_modify1, len(output_lines), output_lines[line_to_modify1])
+            if PrimeItems.program_arguments["debug"]:
+                print("Rutroh", line_to_modify1, len(output_lines), output_lines[line_to_modify1])
+            else:
+                logger.error(
+                    f"Unable to find next blank line to modify.  Line to modify: {line_to_modify1}  Line: {output_lines[line_to_modify1]}",
+                )
+            break
     # line_to_modify1 = called_line_num - called_line_index
     output_lines[line_to_modify1] = fill_line_with_arrows(
         output_lines[line_to_modify1],
@@ -817,8 +821,10 @@ def cleanup_task_names(output_lines: list, num: int, line: str) -> list:
                     + (blank * num_occurences)
                     + output_lines[num][brackets_position + 1 :]
                 )
-        else:
+        elif PrimeItems.program_arguments["debug"]:
             print("Rutroh!  Diagram: No call position found in line", num, line)
+        else:
+            logger.error("Rutroh!  Diagram: No call position found in line %s %s", num, line)
     return output_lines
 
 
@@ -890,7 +896,7 @@ def cleanup_missing_straight_lines(output_lines: list, num: str, line: str) -> l
     return output_lines
 
 
-def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
+def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:  # noqa: C901
     """
     Cleanup missing bars in the diagram.
 
@@ -933,15 +939,16 @@ def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
         return previous_line_num
 
     previous_line_num = num - 1
+    # Backup a position if "╰" is found just before position.
     position = adjust_position_for_arrow(position)
 
+    # Now go through and insert a bars as necessary
     while previous_line_num >= 0:
         new_line = output_lines[previous_line_num]
 
         # Pad line if necessary
         if len(new_line) < position:
             new_line = new_line.ljust(position + 1, " ")
-            # output_lines[previous_line_num] = new_line
 
         # Check for blank spaces to insert bar
         if new_line[position - 1] == " " and new_line[position] == " ":
@@ -957,11 +964,253 @@ def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
     return output_lines
 
 
+def find_last_alnum_or_bracket(text: str, start_index: int | None = None) -> tuple:
+    # Set the starting index to the last character if not provided
+    """
+    Finds the last alphanumeric character or bracket in the given string, starting from the specified index.
+
+    Args:
+        text (str): The string to search
+        start_index (int | None): The starting index for the search. If None, the last character is used.
+
+    Returns:
+        tuple: The index of the found character and the character itself. If no match is found, (-1, "")
+    """
+    if start_index is None:
+        start_index = len(text) - 1
+
+    # Traverse the string in reverse from the specified index
+    for i in range(start_index, -1, -1):
+        if text[i].isalnum() or text[i] in ("]", ")", bar):
+            return i, text[i]
+    return -1, ""  # Return -1 if no match is found
+
+
+def find_substring_positions(lines: list, substring: str) -> list:
+    # List to store (line_number, position) for each occurrence of the substring
+    """
+    Finds all occurrences of a substring in a list of strings and returns a list of tuples,
+    where each tuple contains the line number and position of the substring.
+
+    Args:
+        lines (list): A list of strings to search in.
+        substring (str): The substring to search for.
+
+    Returns:
+        list: A list of tuples, where each tuple contains the line number and position of an occurrence of the substring.
+    """
+    results = []
+
+    # Iterate over each line in the list
+    for line_number, line in enumerate(lines):
+        # Find the first occurrence of the substring in the current line
+        pos = line.find(substring)
+        if pos != -1:
+            # Append the line number and position of the first occurrence to the results list
+            results.append((line_number, pos))
+
+    # Sort results by position, then by line number for cases with same position
+    results.sort(key=lambda x: (x[1], x[0]))
+
+    return results
+
+
+def adjust_max_length(
+    output_lines: list,
+    line_number: list,
+    bottom_line: int,
+    max_line_length: int,
+    position: int,
+) -> tuple:
+    """
+    Adjust max_line_length by checking all lines in the range of [line_number, bottom_line)
+    for any characters that are not spaces or straight lines.  If any are found, increment
+    max_line_length and restart checking from the beginning of the range.  This is done
+    to ensure that the max line length is the longest possible length that doesn't
+    include any characters that are not spaces or straight lines in the horizontal path of the conneector.
+
+    Args:
+        output_lines (list): List of strings representing the diagram lines.
+        line_number (list): The starting line number to check.
+        bottom_line (int): The ending line number to check.
+        max_line_length (int): The maximum line length of the lines to check.
+        position (int): The position of the connector to check.
+
+    Returns:
+        tuple: max_line_length and 1 if max_line_length is greater than or equal to position,
+        else max_line_length and 0.
+    """
+    restart = True
+    while restart:
+        for i in range(line_number, bottom_line):
+            restart = False
+            for j in range(max_line_length, position):
+                if output_lines[i][j] not in (" ", straight_line):
+                    max_line_length += 1
+                    restart = True
+                    break
+                restart = False
+            if restart:
+                break
+    if max_line_length >= position:
+        return max_line_length, 1
+    return max_line_length, 0
+
+
+def shift_connector(
+    output_lines: list,
+    line_number: int,
+    bottom_line: int,
+    max_line_length: int,
+    position: int,
+) -> None:
+    """
+    Shift the contents of the given lines to the left by the given amount.
+
+    Args:
+        output_lines (list): List of strings representing the diagram lines.
+        line_number (int): The starting line number to shift.
+        bottom_line (int): The ending line number to shift.
+        max_line_length (int): The maximum line length of the lines to shift.
+        position (int): The position of the connector to shift.
+
+    Returns:
+        None
+    """
+    bottom_line += 1
+
+    # Bail out if max_line_length is same as position -1
+    if max_line_length == position - 1:
+        return
+
+    # Adjust max line length outwards if there are other connectors in the path.
+    max_line_length, return_code = adjust_max_length(output_lines, line_number, bottom_line, max_line_length, position)
+    if return_code == 1:
+        return
+
+    # Shift contents of line left by max_line_length, and add a space after
+    # the last character for each max_line_length.
+    shift_left_count = max_line_length + 1
+    shift_delta = position - shift_left_count
+
+    # Shift everything from the top line to the bottom line to the left.
+    for i in range(line_number, bottom_line):
+        # Handle filler based on specific conditions
+        if position + 1 >= len(output_lines[i]):
+            filler = ""
+        else:
+            next_char = output_lines[i][position + 1]
+            first_cond = next_char in (straight_line, left_arrow_corner_up)
+            second_cond = i == line_number or output_lines[i][position] == right_arrow_corner_up
+            third_cond = next_char == bar and output_lines[i][max_line_length] == straight_line
+
+            # Set filler based on conditions
+            if first_cond or third_cond:
+                filler = f"{straight_line * shift_delta}"
+            elif second_cond:
+                filler = f"{blank * shift_delta}"
+            else:
+                filler = f"{blank * shift_delta}"
+
+        # Update the line with shifted content
+        trailer = "" if position + 1 >= len(output_lines[i]) else output_lines[i][position + 1 :]
+        output_lines[i] = output_lines[i][:shift_left_count] + output_lines[i][position] + filler + trailer
+
+
+def shift_rightmost_lines_left(output_lines: list, progress: dict) -> list:
+    """
+    Shift the rightmost lines to the left in the diagram.
+    Args:
+        output_lines (list): List of strings representing the output lines.
+        progress (dict): The progress bar dictionary.
+    Returns:
+        list: The modified list of strings.
+    """
+    our_elbows = find_substring_positions(output_lines, left_arrow_corner_up)
+
+    for line_number, _ in our_elbows:
+        if (
+            PrimeItems.program_arguments["gui"]
+            and progress["progress_counter"] > 0
+            and progress["progress_counter"] % progress["tenth_increment"] == 0
+        ):
+            display_progress_bar(progress, is_instance_method=False)
+        progress["progress_counter"] += 1
+
+        position = output_lines[line_number].find(left_arrow_corner_up)
+
+        if should_ignore_elbow(output_lines, line_number, position):
+            continue
+
+        bottom_line, max_line_length = chase_down_to_bottom_elbow(output_lines, line_number, position)
+
+        if bottom_line != 0 and max_line_length > 0:
+            shift_connector(output_lines, line_number, bottom_line, max_line_length, position)
+
+    return output_lines
+
+
+def should_ignore_elbow(output_lines: list, line_number: int, position: int) -> bool:
+    """
+    Determine if an elbow should be ignored based on its position.
+    """
+    return len(output_lines[line_number - 1]) > position and output_lines[line_number - 1][position - 1] == bar
+
+
+def chase_down_to_bottom_elbow(output_lines: list, line_number: int, position: int) -> tuple:
+    """
+    Find the bottom connector and calculate the max line length.
+    """
+    next_line = line_number + 1
+    bottom_line = 0
+    max_line_length = 0
+
+    while next_line < len(output_lines) and len(output_lines[next_line]) > position:
+        if output_lines[next_line][position] == right_arrow_corner_up:
+            bottom_line = next_line
+            break
+
+        last_char_position, last_char = find_last_alnum_or_bracket(output_lines[next_line], position - 2)
+
+        if last_char == bar and process_bar_connector(output_lines, next_line, last_char_position):
+            max_line_length = max(max_line_length, last_char_position + 1)
+            next_line += 1
+            continue
+
+        max_line_length = max(max_line_length, last_char_position + 1)
+        next_line += 1
+
+    return bottom_line, max_line_length
+
+
+def process_bar_connector(output_lines: list, next_line: int, last_char_position: int) -> bool:
+    """
+    Process a bar connector to determine if it terminates or is an inner bar.
+    """
+    line_down = next_line + 1
+
+    while line_down < len(output_lines):
+        line_len = len(output_lines[line_down])
+
+        if line_len > last_char_position:
+            char_at_position = output_lines[line_down][last_char_position]
+
+            if char_at_position == angle_elbow:
+                return False
+
+            if char_at_position in (right_arrow_corner_up, right_arrow_corner_down, down_arrow, up_arrow):
+                return True
+
+        line_down += 1
+
+    return False
+
+
 # Go through the diagram looking for and fixing misc. screwed-up stuff.
 def cleanup_diagram(
     output_lines: list,
-    progress_counter: int,
-) -> tuple:
+    progress: dict,
+) -> list:
     # Go thru each line of the diagram.
     """
     Cleanup the diagram by adding missing straight lines, replacing spaces with straight lines,
@@ -969,16 +1218,12 @@ def cleanup_diagram(
 
     Args:
         output_lines (list): The list of strings representing the diagram.
-        progress_bar (object): The progress bar object.
-        progress_counter (int): Counter for progress bar.
-        max_data (int): The maximum amount of data for the progress bar.
-        tenth_increment (int): The increment for updating the progress bar.
+        progress (dict): The progress bar dictionary.
 
     Returns:
-        tuple: The modified list of strings representing the cleaned-up diagram, and the progress bar counter.
+        output_lines (list): The modified list of strings.
     """
     for num, line in enumerate(output_lines):
-
         # Add missing straight lines in which there is one or more blanks before "╯".
         output_lines = cleanup_missing_straight_lines(output_lines, num, line)
 
@@ -993,8 +1238,11 @@ def cleanup_diagram(
         if position != -1 and line[position - 1][0] == " ":
             output_lines = cleanup_missing_bars(output_lines, num, position)
 
+    # Shift connectors to the left.
+    output_lines = shift_rightmost_lines_left(output_lines, progress)
+
     # Delete hanging bars "│" and substitute every arrow with beginning and end arrows only.
-    return delete_hanging_bars(output_lines, progress_counter)
+    return delete_hanging_bars(output_lines)
 
 
 def find_first_substring_position(string: str, substrings: list) -> tuple:
@@ -1059,8 +1307,7 @@ def handle_calls(output_lines: list) -> None:
     - Remove all icons from the names to ensure arrow alignment
     """
     # Display a progress bar if coming from the GUI.
-    progress_bar, tenth_increment, max_data = configure_progress_bar(output_lines)
-    progress_counter = 0
+    progress = configure_progress_bar(output_lines)
 
     # Go through the output and add blanks above the called tasks, one for each caller.
     output_lines = add_blanks_above_called_tasks(output_lines)
@@ -1077,7 +1324,7 @@ def handle_calls(output_lines: list) -> None:
             call_table[key] = value
 
     # Check if we have exceeded our maximum size limit.
-    exceeded_limit, call_table, output_lines = check_limit(call_table, output_lines, progress_bar)
+    exceeded_limit, call_table, output_lines = check_limit(call_table, output_lines, progress["progress_bar"])
     if exceeded_limit:
         return []
 
@@ -1087,21 +1334,19 @@ def handle_calls(output_lines: list) -> None:
         called_task_lookup = draw_arrows_to_called_task(up_down_location, value, output_lines, called_task_lookup)
     call_table = {}  # Done with call table.
 
-    # Now clean up the mess we made.
-    output_lines, progress_counter = cleanup_diagram(output_lines, progress_counter)
-
     # Force progress bar to 10% to represent time to clean and display it if coming from the GUI.
     if PrimeItems.program_arguments["gui"]:
-        progress_counter = 0
-        display_progress_bar(progress_bar, max_data, progress_counter, tenth_increment, is_instance_method=False)
-        # progress_counter = 0  # Force it to beginning again.
+        display_progress_bar(progress, is_instance_method=False)
+
+    # Now clean up the mess we made.
+    output_lines = cleanup_diagram(output_lines, progress)
 
     # Reduce line length by removing icons in the names to ensure arrow alignment.
     for line_num, line in enumerate(output_lines):
         # Update progress bar if needed.
-        if PrimeItems.program_arguments["gui"] and progress_counter % tenth_increment == 0:
-            display_progress_bar(progress_bar, max_data, progress_counter, tenth_increment, is_instance_method=False)
-        progress_counter += 1
+        if PrimeItems.program_arguments["gui"] and progress["progress_counter"] % progress["tenth_increment"] == 0:
+            display_progress_bar(progress, is_instance_method=False)
+        progress["progress_counter"] += 1
 
         # If icon in name, shift bars (|) left for each icon to ensure proper alignment of bars.
         # This can be very time consuming for more complex configurations!
@@ -1110,8 +1355,8 @@ def handle_calls(output_lines: list) -> None:
 
     # We're done.  Kill the progressbar.
     if PrimeItems.program_arguments["gui"]:
-        progress_bar.progressbar.stop()
-        progress_bar.destroy()
+        progress["progress_bar"].progressbar.stop()
+        progress["progress_bar"].destroy()
 
     return output_lines
 
@@ -1124,9 +1369,7 @@ def configure_progress_bar(output_lines: list) -> tuple:
         output_lines (list): The list of lines to process.
 
     Returns:
-        tuple: A tuple containing a ProgressbarWindow: The configured progress bar widget;
-               the tenth_increment: The increment value for each 10% of progress
-               and max_data: The maximum value for the progress bar.
+        progress (dict): The progress bar dictionary.
     """
     # Display a progress bar if coming from the GUI.
     if PrimeItems.program_arguments["gui"]:
@@ -1141,7 +1384,7 @@ def configure_progress_bar(output_lines: list) -> tuple:
         # Setup for our progress bar.  Use the total number of output lines as the metric.
         # 4 times since we go thru output lines 4 times in a majore way...
         # 1st: the diagram, 2nd: delete_hanging_bars
-        max_data = len(output_lines) * 1
+        max_data = len(output_lines) * 2
 
         # Calculate the increment value for each 10% of progress (tenth_increment) based on the maximum value of the
         # progress bar (max_data). If the calculated increment is 0 (which would happen if max_data is less than 10),
@@ -1149,8 +1392,13 @@ def configure_progress_bar(output_lines: list) -> tuple:
         tenth_increment = max_data // 10
         if tenth_increment == 0:
             tenth_increment = 1
-        return progress_bar, tenth_increment, max_data
-    return None, 0, 0
+        return {
+            "progress_bar": progress_bar,
+            "tenth_increment": tenth_increment,
+            "max_data": max_data,
+            "progress_counter": 0,
+        }
+    return None
 
 
 # Build the Profile box.

@@ -371,17 +371,13 @@ def replace_diff_char(strings: list, char: str, replacement_char: str) -> list:
 # Go through output and delete all occurances of hanging bars |
 def delete_hanging_bars(
     output_lines: list,
-    progress_counter: int,
 ) -> list:
     """
     Go through output and delete all occurances of hanging bars |
 
     Args:
         output_lines (list): List of strings, where each string is a line of output.
-        progress_bar (object): The progress bar object.
         progress_counter (int): Counter for progress bar.
-        max_data (int): The maximum amount of data for the progress bar.
-        tenth_increment (int): The increment for updating the progress bar.
 
     Returns:
         list: The modified list of strings.
@@ -399,7 +395,7 @@ def delete_hanging_bars(
 
         line_num -= 1
 
-    return output_lines, progress_counter
+    return output_lines
 
 
 # Build a sorted list of all caller Tasks and their called Tasks.

@@ -511,6 +511,7 @@ def process_cli() -> None:
     gui_flag = "g"
     reset_flag = "reset"
     version_flag = "v"
+    debug_flag = "debug"
 
     # Intialize runtime arguments.
     try:  # Save map and diagram view flags in case we are coming from the GUI.
@@ -548,6 +549,9 @@ def process_cli() -> None:
         PrimeItems.program_arguments["guiview"] = save_map  # Restore GUI Map View flag from runtime options,
 
         PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.
+
+    # If runtime argument 'debug' is set, set the debug flag
+    PrimeItems.program_arguments["debug"] = getattr(args, debug_flag)
 
     # If using the GUI and not doing a map view or version, them process the GUI.
     do_version = getattr(args, version_flag)  # See if doing version (-v)
