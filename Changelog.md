@@ -2,23 +2,22 @@
 
 All notable changes to this project will be documented in this file!
 
-## [5.3.2] 11-Oct-2024
+## [6.0] 20-Oct-2024
 
 ### Added
 
-- Added: Diagram view's Task connectors can now be clicked, with the mouse, to highlight the entire connection.
-- Added: The "IA" button setting for the Diagram view is saved and restored between sessions.
+- Added: The GUI 'views' now have a 'Top' and 'Bottom' button for quick navigation within the GUI views.
+- Added: Allow the runtime option '-debug' to be carried into the GUI.
+- Added: Ai analysis model 'llama3.2' has been added.
+- Added: Python 3.13 fully supported.
 
 ### Changed
 
-- Changed: The Diagram view now includes all individual connectors to and from a Task, rather than a single connector for connections to/from the same Task.
+- Changed: The Diagram view connectors have been shifted to the left as much as possible so that more can be seen within the view window.
 
 ### Fixed
 
-- Fixed: Some conections in the Diagramn view are not displaying correctly.
-- Fixed: Hitting the 'Cancel' button on the file prompt is not clearing out the current file.
-- Fixed: Settings are being displayed twice on initialization of the GUI.
-- Fixed: Program abends on start up of GUI.
+- Fixed: The 'IA' Diagram button setting is being reversed (off rather than on, and vice versa) when restored during GUI initialization.
 
 ### Known Issues
 
@@ -26,6 +25,16 @@ All notable changes to this project will be documented in this file!
 - Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).
 
 ## Older History Logs
+
+## [5.3.2]
+
+- Added: Diagram view's Task connectors can now be clicked, with the mouse, to highlight the entire connection.
+- Added: The "IA" button setting for the Diagram view is saved and restored between sessions.
+- Changed: The Diagram view now includes all individual connectors to and from a Task, rather than a single connector for connections to/from the same Task.
+- Fixed: Some conections in the Diagramn view are not displaying correctly.
+- Fixed: Hitting the 'Cancel' button on the file prompt is not clearing out the current file.
+- Fixed: Settings are being displayed twice on initialization of the GUI.
+- Fixed: Program abends on start up of GUI.
 
 ## [5.2.2]
 

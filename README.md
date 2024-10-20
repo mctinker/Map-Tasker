@@ -229,7 +229,7 @@ Network traffic is as follows:
 
 ## Known Issues
 
-- Firefox doesn't recognize a light background (appearance is 'light').  Themes and the Firefox "Manage Colors" settings can mess this up.
+- Firefox doesn't recognize a light background (e.g. when 'Appearance' is changed from 'dark' to 'light').  Themes and the Firefox "Manage Colors" settings can mess this up.
 
 ## Contributions
 
