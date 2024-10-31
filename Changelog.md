@@ -2,22 +2,22 @@
 
 All notable changes to this project will be documented in this file!
 
-## [6.0] 20-Oct-2024
+## [6.0.1] 01-Nov-2024
 
 ### Added
 
-- Added: The GUI 'views' now have a 'Top' and 'Bottom' button for quick navigation within the GUI views.
-- Added: Allow the runtime option '-debug' to be carried into the GUI.
-- Added: Ai analysis model 'llama3.2' has been added.
-- Added: Python 3.13 fully supported.
+- Added: Support for the latest 'Tasker 6.4.1 beta': new 'Widget V2' task action and other task action changes.
+- Added: For task action elements that are either selected or not, display '(selected)' along with the element name (e.g. 'Continue Task Immediately (selected)').
 
 ### Changed
 
-- Changed: The Diagram view connectors have been shifted to the left as much as possible so that more can be seen within the view window.
+- Changed: Improved the Diagram view performance.
 
 ### Fixed
 
-- Fixed: The 'IA' Diagram button setting is being reversed (off rather than on, and vice versa) when restored during GUI initialization.
+- Fixed: Outer horizontal connectors in the Diagram view are too far to the right.
+- Fixed: Program abend during GUI initialization if previous run was for a single named item.
+- Fixed: Output lines with 'Structure Output (JSON, etc)' are incorrectly displaying '&nbsp' string in front.
 
 ### Known Issues
 
@@ -25,6 +25,15 @@ All notable changes to this project will be documented in this file!
 - Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).
 
 ## Older History Logs
+
+## [6.0]
+
+- Added: The GUI 'views' now have a 'Top' and 'Bottom' button for quick navigation within the GUI views.
+- Added: Allow the runtime option '-debug' to be carried into the GUI.
+- Added: Ai analysis model 'llama3.2' has been added.
+- Added: Python 3.13 fully supported.
+- Changed: The Diagram view connectors have been shifted to the left as much as possible so that more can be seen within the view window.
+- Fixed: The 'IA' Diagram button setting is being reversed (off rather than on, and vice versa) when restored during GUI initialization.
 
 ## [5.3.2]
 
