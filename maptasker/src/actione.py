@@ -154,7 +154,7 @@ def fix_json(line_to_fix: str, text_to_match: str) -> str:
     json_location = line_to_fix.find(f"{text_to_match} (JSON")
     if json_location != -1:
         etc_location = line_to_fix.find("etc", json_location)
-        temp_line = f"{line_to_fix[:json_location-1]}{text_to_match} (JSON, {line_to_fix[etc_location:]}"
+        temp_line = f"{line_to_fix[:json_location]}{text_to_match} (JSON, {line_to_fix[etc_location:]}"
         line_to_fix = temp_line
     return line_to_fix
 

@@ -126,8 +126,8 @@ def get_variables(result: str) -> None:
 # Then evaluate the data against the master dictionary of actions.
 def get_action_results(
     the_action_code_plus: str,
-    lookup_code_entry: defusedxml.ElementTree.XML,
-    code_action: defusedxml.ElementTree.XML,
+    lookup_code_entry: defusedxml.Element,
+    code_action: defusedxml.Element,
     action_type: bool,
     arg_list: list[str],
     evaluate_list: list[str],

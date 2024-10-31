@@ -385,3 +385,35 @@ def find_all_positions(string: str, substring: str) -> list:
         positions.append(pos)
         start = pos + 1  # Continue search from the next character
     return positions
+
+
+def rutroh_error(message: str) -> None:
+    """
+    Prints or logs an error message.
+    Args:
+        message (str): The error message to print
+    Returns:
+        None: Does not return anything
+    """
+    if PrimeItems.program_arguments["debug"]:
+        print(f"Rutroh! {message}")
+    else:
+        logger.error(f"Rutroh! {message}")
+
+
+def find_substring_in_list(strings, substring):
+    """
+    Finds the index of the first occurrence of a substring in a list of strings.
+
+    Args:
+        strings (list): A list of strings to search in.
+        substring (str): The substring to search for.
+
+    Returns:
+        int: The index of the first occurrence of the substring in the list,
+            or -1 if the substring is not found.
+    """
+    for index, string in enumerate(strings):
+        if substring in string:
+            return index
+    return -1  # Return -1 if the substring is not found

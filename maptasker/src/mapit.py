@@ -28,9 +28,7 @@ executes the key steps to take the Tasker backup and produce the visual map outp
 # Reference: https://github.com/Taskomater/Tasker-XML-Info                             #
 #                                                                                      #
 import contextlib
-import functools
 import gc
-import inspect
 import os
 import platform
 import sys

@@ -12,25 +12,26 @@ import re
 from string import printable
 from tkinter import font
 
+from maptasker.src.diagcnst import (
+    angle,
+    bar,
+    blank,
+    box_line,
+    down_arrow,
+    left_arrow,
+    left_arrow_corner_down,
+    left_arrow_corner_up,
+    line_right_arrow,
+    right_arrow,
+    right_arrow_corner_down,
+    right_arrow_corner_up,
+    straight_line,
+    task_delimeter,
+    up_arrow,
+)
 from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
-
-bar = "│"
-blank = " "
-box_line = "═"
-down_arrow = "▼"
-up_arrow = "▲"
-left_arrow = "◄"
-right_arrow = "►"
-straight_line = "─"
-task_delimeter = "¥"
-line_right_arrow = f"{straight_line*2}▶"
-line_left_arrow = f"◄{straight_line*2}"
-right_arrow_corner_down = "╰"
-right_arrow_corner_up = "╯"
-left_arrow_corner_down = "╭"
-left_arrow_corner_up = "╮"
-angle = "└─ "
+from maptasker.src.sysconst import icon_pattern
 
 arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}"
 directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
@@ -205,18 +206,33 @@ def remove_char(text: str, index: int) -> str:
     return text[:index] + text[index + 1 :]
 
 
-# Count the number of icons (non-alphanumeric chars) in the line of text
 def count_icons(text: str) -> int:
-    """Returns the number of icons in the text string.
+    # Define a regex pattern for icons (emojis and symbols)
+    """
+    Count the number of icons in the text string.
 
     Args:
-      text: A string.
+        text (str): The input string
 
     Returns:
-      An integer representing the number of icons in the text string.
+        int: The number of icons in the text string
+
+    Icons are defined as any character in the following Unicode ranges:
+
+    - Emoticons, Transport & Map Symbols (U0001F300-U0001F5FF)
+    - Emoticons (U0001F600-U0001F64F)
+    - Transport & Map Symbols (U0001F680-U0001F6FF)
+    - Alchemical Symbols (U0001F700-U0001F77F)
+    - Geometric Shapes Extended (U0001F780-U0001F7FF)
+    - Supplemental Arrows-C (U0001F800-U0001F8FF)
+    - Supplemental Symbols and Pictographs (U0001F900-U0001F9FF)
+    - Chess Symbols (U0001FA00-U0001FA6F)
+    - Symbols and Pictographs Extended-A (U0001FA70-U0001FAFF)
+
+    This function returns the count of all characters in the input string
+    that match any of these ranges.
     """
-    matches = icon_regex.findall(text)
-    return len(matches)
+    return len(icon_pattern.findall(text))
 
 
 # If an icon is found in the string passed in, remove it and return modified string.
@@ -346,6 +362,9 @@ def replace_diff_char(strings: list, char: str, replacement_char: str) -> list:
     for i in range(len(strings) - 2, -1, -1):
         # Cache the next string to avoid repeated access
         next_string = strings[i + 1]
+        # Ignore lines with icons
+        # icon_count = len(icon_pattern.findall(next_string))
+
         next_string_len = len(next_string)
 
         # Find all occurrences of 'char' in the current string
@@ -356,12 +375,18 @@ def replace_diff_char(strings: list, char: str, replacement_char: str) -> list:
             # Check if char_position is within bounds of the next string
             if char_position < next_string_len:
                 next_char = next_string[char_position]
+
                 # Check if the next string has the right pattern (" ", box_line, right_arrow_corner_down)
                 if next_char in (" ", box_line, right_arrow_corner_down):  # noqa: SIM102
-                    if char_position + 1 < next_string_len and next_string[char_position + 1] in (
-                        " ",
-                        box_line,
-                        right_arrow_corner_down,
+                    if (
+                        char_position + 1 < next_string_len
+                        and next_string[char_position + 1]
+                        in (
+                            " ",
+                            box_line,
+                            right_arrow_corner_down,
+                        )
+                        and next_string[char_position - 1] != up_arrow
                     ):
                         # Perform the string replacement
                         strings[i] = strings[i][:char_position] + replacement_char + strings[i][char_position + 1 :]

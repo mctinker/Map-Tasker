@@ -47,7 +47,7 @@ def adjust_name(list_type: str, the_item: str) -> str:
 # ################################################################################
 # Given an item, build output line for Task or Scene
 # ################################################################################
-def format_task_or_scene(list_type: list, the_item: str) -> tuple[str, str]:
+def format_task_or_scene(list_type: list, the_item: str) -> tuple:
     """
     Given an item, build output line for Task or Scene
     Args:
@@ -203,7 +203,6 @@ def process_item(
     Args:
         the_item (str): The text item to process.
         list_type (str): The type of the list.
-        the_list (list): The list to process.
         the_task (xml element): The task to process.
         tasks_found (list): The list of tasks found.
 

@@ -402,7 +402,7 @@ class CTkTextview(ctk.CTkFrame):
         self.textview_textbox.grid(row=0, column=0, padx=20, pady=40, sticky="nsew")
 
         # Define a scrollbar
-        self.scrollbar = ctk.CTkScrollbar(self)
+        _ = ctk.CTkScrollbar(self)
 
         # Set the height and width
         self.textview_textbox.configure(
@@ -501,7 +501,7 @@ class CTkTextview(ctk.CTkFrame):
         event_assignments = {
             "Analysis": lambda: (
                 gui_view.event_handlers.analysis_search_event,
-                gui_view.event_handlers.analysis_next_event,
+                gui_view.event_handlers.analysis_nextprev_event,
                 gui_view.event_handlers.analysis_previous_event,
                 gui_view.event_handlers.analysis_clear_event,
                 gui_view.event_handlers.analysis_wordwrap_event,
@@ -509,16 +509,14 @@ class CTkTextview(ctk.CTkFrame):
             ),
             "Diagram": lambda: (
                 gui_view.event_handlers.diagram_search_event,
-                gui_view.event_handlers.diagram_next_event,
-                gui_view.event_handlers.diagram_previous_event,
+                gui_view.event_handlers.diagram_nextprev_event,
                 gui_view.event_handlers.diagram_clear_event,
                 gui_view.event_handlers.diagram_wordwrap_event,
                 gui_view.event_handlers.diagram_topbottom_event,
             ),
             "Map": lambda: (
                 gui_view.event_handlers.map_search_event,
-                gui_view.event_handlers.map_next_event,
-                gui_view.event_handlers.map_previous_event,
+                gui_view.event_handlers.map_nextprev_event,
                 gui_view.event_handlers.map_clear_event,
                 gui_view.event_handlers.map_wordwrap_event,
                 gui_view.event_handlers.map_topbottom_event,
@@ -527,9 +525,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Retrieve and assign the events based on the title
         if title in event_assignments:
-            search_event, next_event, previous_event, clear_event, wordwrap_event, topbottom_event = event_assignments[
-                title
-            ]()
+            search_event, nextprev_event, clear_event, wordwrap_event, topbottom_event = event_assignments[title]()
 
         # Add label
         self.text_message_label = add_label(
@@ -590,7 +586,7 @@ class CTkTextview(ctk.CTkFrame):
             "#246FB6",
             "",
             "",
-            next_event,
+            lambda: nextprev_event(search_next=True),
             1,
             "Next",
             1,
@@ -608,7 +604,7 @@ class CTkTextview(ctk.CTkFrame):
             "#246FB6",
             "",
             "",
-            previous_event,
+            lambda: nextprev_event(search_next=False),
             1,
             "Prev",
             1,
@@ -2269,7 +2265,6 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.clear_messages = False
     self.color_labels = None
     self.color_lookup = None
-    self.color_text_row = None
     self.color_window_position = ""
     self.conditions = None
     self.debug = None

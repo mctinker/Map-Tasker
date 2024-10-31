@@ -150,6 +150,7 @@ lookup_values = {
         "Lock Code",
         "App Check Method",
         "Use Motion Detection",
+        "ADB Wifi Logcat",
     ],
     "135": ["Action Number", "Action Label", "Top of Loop", "End of Loop", "End of If"],
     "147": ["UI", "Monitor", "Action", "Misc"],

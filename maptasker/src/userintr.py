@@ -206,7 +206,7 @@ VIEW_HELP_TEXT = (
     "All view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\n"
     "If the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data.\n\n"
     "Very large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\n"
-    "The 'IA' button next top the 'Diagram' button is for toggling on/off the alingnment of connectors when icons are in the Task names.  Disabling this will result in much faster diagrams, but connector alighnment may be slightly off if icons are in the names.  Enabling this will result in slower diagrams, but connector alighnment will be correct.\n\n"
+    "The 'IA' button next top the 'Diagram' button is for toggling on/off the alingnment of connectors to the left-most position.  Disabling this will result in much faster diagrams, but horizontal connectors may appear too far to the right.  Enabling this will result in slower diagrams, but horizontal connectors will be shifted to the left-most position for better visibility.  This setting is only effective for very large and complex configurations.\n\n"
     "\nThe Map View has the following behavior:\n\n"
     " - While the browser is not invoked directly, the map can be displayed in the browser by opening the local 'MapTasker.html' file.\n\n"
     " - The 'Display Configuration Outline' setting is ignored since it does not work in the Map view.\n\n"
@@ -374,7 +374,6 @@ class MyGui(customtkinter.CTk):
         self.single_profile_name = ""
         self.single_task_name = ""
         self.file = ""
-        self.color_text_row = 2
         self.appearance_mode_optionmenu.set("System")
         self.appearance_mode = "system"
         self.indent_option.set(DEFAULT_DISPLAY_DETAIL_LEVEL)
@@ -3453,7 +3452,7 @@ class EventHandlers:
         # Let the user know.
         output_label(textview, f"Word wrap is {wrap_msg}")
 
-    def nextsearch_event(self, textview: CTkTextview) -> None:
+    def nextprev_search_event(self, textview: CTkTextview, search_next: bool) -> None:
         """
         Handles the next search event in the text view box.
 
@@ -3463,21 +3462,12 @@ class EventHandlers:
         Parameters:
             self (object): The instance of the class.
             title (str): The title of the view to be searched: diagram or map
+            next (bool): Whether to search next or previous.
         """
-        search_nextprev_string(self, textview, "next")
-
-    def prevsearch_event(self, textview: CTkTextview) -> None:
-        """
-        Handles the previous search event in the text view box.
-
-        This function searches the text view box for the prevous occurrence of the search string,
-        and positions the string so that it is within the visible area of the text view box.
-
-        Parameters:
-            self (object): The instance of the class.
-            title (str): The title of the view to be searched: diagram or map
-        """
-        search_nextprev_string(self, textview, "previous")
+        if search_next:
+            search_nextprev_string(self, textview, "next")
+        else:
+            search_nextprev_string(self, textview, "previous")
 
     def topbottom_event(self: object, textview: CTkTextview, top: bool) -> None:
         """
@@ -3526,23 +3516,14 @@ class EventHandlers:
     def analysis_search_event(self) -> None:  # noqa: D102
         self._handle_event("search_event", "analysisview")
 
-    def diagram_next_event(self) -> None:  # noqa: D102
-        self._handle_event("nextsearch_event", "diagramview")
+    def diagram_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
+        self._handle_event("nextprev_search_event", "diagramview", search_next)
 
-    def map_next_event(self) -> None:  # noqa: D102
-        self._handle_event("nextsearch_event", "mapview")
+    def map_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
+        self._handle_event("nextprev_search_event", "mapview", search_next)
 
-    def analysis_next_event(self) -> None:  # noqa: D102
-        self._handle_event("nextsearch_event", "analysisview")
-
-    def diagram_previous_event(self) -> None:  # noqa: D102
-        self._handle_event("prevsearch_event", "diagramview")
-
-    def map_previous_event(self) -> None:  # noqa: D102
-        self._handle_event("prevsearch_event", "mapview")
-
-    def analysis_previous_event(self) -> None:  # noqa: D102
-        self._handle_event("prevsearch_event", "analysisview")
+    def analysis_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
+        self._handle_event("nextprev_search_event", "analysisview", search_next)
 
     def diagram_clear_event(self) -> None:  # noqa: D102
         self._handle_event("clear_event", "diagramview")

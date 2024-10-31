@@ -5,8 +5,7 @@
 
 import math
 import os
-import pathlib
-import tkinter
+import tkinter as tk
 
 import customtkinter
 from PIL import Image, ImageTk
@@ -89,7 +88,7 @@ class AskColor(customtkinter.CTkToplevel):
         self.frame = customtkinter.CTkFrame(master=self, fg_color=self.fg_color, bg_color=self.bg_color)
         self.frame.grid(padx=20, pady=20, sticky="nswe")
 
-        self.canvas = tkinter.Canvas(
+        self.canvas = tk.Canvas(
             self.frame,
             height=self.image_dimension,
             width=self.image_dimension,

@@ -77,23 +77,6 @@ def cleanup_text_elements(output_lines: dict, line_num: int) -> dict:
     return output_lines
 
 
-def next_key(my_dict: dict, key: int) -> any | bool:
-    """
-    A function that returns the next key from a dictionary iterator, or False if no key is available.
-
-    Args:
-        my_dict: The dictionary to iterate over.
-        key: The current key to check for the next key.
-
-    Returns:
-        any | bool: The next key from the iterator or False if no key is available.
-    """
-    keys = iter(my_dict)
-    # The following line is flagged as a noop but actually does something.
-    key in keys  # noqa: B015
-    return next(keys, False)
-
-
 def eliminate_blanks(output_lines: dict) -> dict:
     """Eliminate consequtive blanks from the output.
 

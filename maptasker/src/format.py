@@ -8,15 +8,10 @@
 
 from maptasker.src.sysconst import (
     pattern2,
-    # pattern5,
-    # pattern6,
-    # pattern7,
     pattern8,
     pattern9,
     pattern10,
 )
-
-THREE_LINES = 3
 
 
 # Given a line in the output queue, reformat it before writing to file
@@ -58,10 +53,7 @@ def format_line(item: str) -> str:
     output_line = pattern2.sub("", output_line)  # Get space-commas: " ,"
 
     # Get rid of extraneous html code that somehow got in to the output
-    # replace("</span></span>" with "</span>"
     output_line = pattern9.sub("</span>", output_line)
-    # replace("</p></p>" with "</p>"
-    # output_line = pattern10.sub("</p>", output_line)
 
     return pattern10.sub("</p>", output_line)
 

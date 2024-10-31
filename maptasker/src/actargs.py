@@ -239,7 +239,7 @@ def action_args(
     the_action_code_plus: str,
     lookup_code_entry: dict,
     evaluate_list: list,
-    code_action: defusedxml.ElementTree.XML,
+    code_action: defusedxml,
     evaluated_results: dict,
 ) -> object:
     """
@@ -261,6 +261,7 @@ def action_args(
 
     # Go through each <arg> in list of args
     for num, arg in enumerate(arg_list):
+
         # Find the location for this arg in dictionary key "types' since they can be
         # non-sequential (e.g. '1', '3', '4', '6')
         index = num if arg == "if" else our_action_args.index(arg)

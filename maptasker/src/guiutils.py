@@ -23,12 +23,23 @@ import darkdetect
 from PIL import Image
 
 from maptasker.src.colrmode import set_color_mode
+from maptasker.src.diagcnst import (
+    angle,
+    bar,
+    left_arrow_corner_down,
+    left_arrow_corner_up,
+    right_arrow,
+    right_arrow_corner_down,
+    right_arrow_corner_up,
+    straight_line,
+)
 from maptasker.src.getids import get_ids
 from maptasker.src.lineout import LineOut
 from maptasker.src.maputils import (
     append_item_to_list,
     get_pypi_version,
     http_request,
+    rutroh_error,
     validate_ip_address,
     validate_port,
     validate_xml_file,
@@ -48,37 +59,25 @@ from maptasker.src.sysconst import (
     OPENAI_MODELS,
     VERSION,
     Colors,
-    logger,
 )
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     import defusedxml
 
-bar = "│"
-right_arrow_corner_down = "╰"
-right_arrow_corner_up = "╯"
-left_arrow_corner_down = "╭"
-left_arrow_corner_up = "╮"
-right_arrow = "►"
-left_arrow = "◄"
-straight_line = "─"
-angle = "└─ "
 all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 6.0 - Change Log\n
+Version 6.0.1 - Change Log\n
 ### Added\n
-- Added: The GUI 'views' now have a 'Top' and 'Bottom' button for quick navigation within the GUI views.\n
-- Added: Allow the runtime option '-debug' to be carried into the GUI.\n
-- Added: Ai analysis model 'llama3.2' has been added.\n
-- Added: Python 3.13 fully supported.\n
+- Added: Support for the latest 'Tasker 6.4.1 beta': new 'Widget V2' task action and other task action changes.\n
+- Added: For task action elements that are either selected or not, display '(selected)' along with the element name (e.g. 'Continue Task Immediately (selected)').\n
 ### Changed\n
-- Changed: The Diagram view connectors have been shifted to the left as much as possible so that more can be seen within the view window.\n
+- Changed: Improved the Diagram view performance.\n
 ### Fixed\n
-- Fixed: The 'IA' Diagram button setting is being reversed (off rather than on, and vice versa) when restored during GUI initialization.\n
+- Fixed: Outer horizontal connectors in the Diagram view are too far to the right.\n
+- Fixed: Program abend during GUI initialization if previous run was for a single named item.\n
+- Fixed: Output lines with 'Structure Output (JSON, etc)' are incorrectly displaying '&nbsp' string in front.\n
 ### Known Issues\n
 - Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.\n
 - Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).\n
@@ -335,22 +334,6 @@ def is_version_greater(version1: str, version2: str) -> bool:
     return len(v2_parts) > len(v1_parts)
 
 
-# Checks if 24 hours have passed since the given previous date.
-def is_more_than_24hrs(input_datetime: datetime) -> bool:
-    """Checks if the input datetime is more than 24 hours ago.
-    Arguments:
-        input_datetime (datetime): The datetime to be checked.
-    Returns:
-        bool: True if input datetime is more than 24 hours ago, False otherwise.
-    Processing Logic:
-        - Calculate seconds in 24 hours.
-        - Get current datetime.
-        - Check if difference between current datetime and input datetime is greater than 24 hours.
-        - Return result as boolean."""
-    twenty_four_hours = 86400  # seconds in 24 hours
-    return (NOW_TIME - input_datetime).total_seconds() > twenty_four_hours
-
-
 # Get Pypi version and return True if it is newer than our current version.
 def is_new_version() -> bool:
     """
@@ -360,7 +343,6 @@ def is_new_version() -> bool:
     Returns:
         bool: True if new version is available, False if not"""
     # Check if newer version of our code is available on Pypi.
-    # if is_more_than_24hrs(PrimeItems.last_run):  # Only check every 24 hours.
     pypi_version_code = get_pypi_version()
     if pypi_version_code:
         pypi_version = pypi_version_code.split("==")[1]
@@ -864,7 +846,6 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
     )
     # Display the Prompt..newline after every maxlen characters forces it to wrap.
     maxlen = 35
-    # display_prompt = self.ai_prompt[:maxlen] + "..." if len(self.ai_prompt) > maxlen else self.ai_prompt
     display_prompt = "\n".join(self.ai_prompt[i : i + maxlen] for i in range(0, len(self.ai_prompt), maxlen))
     self.ai_set_label5 = add_label(
         self,
@@ -1064,7 +1045,7 @@ def display_object_pulldowns(
 
     # Make sure there is something to display
     if not projects_to_display and not profiles_to_display and not tasks_to_display:
-        self.project_label = add_label(
+        _ = add_label(
             self,
             frame,
             "No Projects, Profiles or Tasks to display!",
@@ -1080,7 +1061,7 @@ def display_object_pulldowns(
 
     # Okay, we have some actual data to display
     else:
-        self.project_label = add_label(
+        _ = add_label(
             self,
             frame,
             "Select Project to process:",
@@ -1106,7 +1087,7 @@ def display_object_pulldowns(
         )
 
         # Display all of the Profiles for selection.
-        self.profile_label = add_label(
+        _ = add_label(
             self,
             frame,
             "Select Profile to process:",
@@ -1524,7 +1505,10 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
     # Update the Project/Profile/Task pulldown option menus.
     if self.single_project_name:
         self.specific_name_msg = f"{default_display_only}Project '{self.single_project_name}'"
-        self.specific_project_optionmenu.set(self.single_project_name)
+        try:
+            self.specific_project_optionmenu.set(self.single_project_name)
+        except AttributeError:
+            return
         self.ai_project_optionmenu.set(self.single_project_name)
         self.specific_profile_optionmenu.set(default_profile)
         self.ai_profile_optionmenu.set(default_profile)
@@ -1532,7 +1516,10 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
         self.ai_task_optionmenu.set(default_task)
     elif self.single_profile_name:
         self.specific_name_msg = f"{default_display_only}Profile '{self.single_profile_name}'"
-        self.specific_profile_optionmenu.set(self.single_profile_name)
+        try:
+            self.specific_profile_optionmenu.set(self.single_profile_name)
+        except AttributeError:
+            return
         self.ai_profile_optionmenu.set(self.single_profile_name)
         self.ai_project_optionmenu.set(default_project)
         self.specific_project_optionmenu.set(default_project)
@@ -1540,7 +1527,10 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
         self.ai_task_optionmenu.set(default_task)
     elif self.single_task_name:
         self.specific_name_msg = f"{default_display_only}Task '{self.single_task_name}'"
-        self.specific_task_optionmenu.set(self.single_task_name)
+        try:
+            self.specific_task_optionmenu.set(self.single_task_name)
+        except AttributeError:
+            return
         self.ai_task_optionmenu.set(self.single_task_name)
         self.specific_project_optionmenu.set(default_project)
         self.specific_profile_optionmenu.set(default_profile)
@@ -2052,15 +2042,9 @@ def find_lower_elbows(
                 found_arrow = True
                 left_lower_elbow = output_lines[line_num].find(left_corner_down)
                 if left_lower_elbow == -1:
-                    if PrimeItems.program_arguments["debug"]:
-                        print(
-                            "Rutroh! Missing lower elbow in line",
-                            line_num,
-                            "(guiutils.py:build_connectors):",
-                            output_lines[line_num],
-                        )
-                    else:
-                        logger.error("Missing lower elbow in line %s %s", line_num, output_lines[line_num])
+                    rutroh_error(
+                        f"Missing left lower elbow in line {line_num} guiutils.py:build_connectors line:\n{output_lines[line_num]}",
+                    )
                 return line_num, right_lower_elbow, left_lower_elbow
         else:
             return line_num, -1, -1

@@ -417,7 +417,7 @@ def do_the_outline(network: dict) -> None:
     """
     # Name anonymous Tasks as "anonymous#1", "anonymous#2", etc.
     assign_names_to_anonymous_tasks()
-    # Make sure we start clean by deleteing all prexisting call_tasks and called_by lists.
+    # Make sure we start clean by delteing all prexisting call_tasks and called_by lists.
     all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
     for task_num in all_tasks:
         task = PrimeItems.tasker_root_elements["all_tasks"][task_num]
