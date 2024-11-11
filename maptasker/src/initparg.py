@@ -37,7 +37,6 @@ def initialize_runtime_arguments() -> dict:
         "diagram_window_position": "",  # Last-used diagram window position
         "directory": False,  # Display directory
         "display_detail_level": 4,  # Display detail level
-        "display_icon": True,  # Display icon alignement in Diagram view
         "fetched_backup_from_android": False,  # Backup file was fetched from Android device
         "file": "",  # If we are re-running, then this is the file to re-use
         "font": OUTPUT_FONT,  # Font to use in the output

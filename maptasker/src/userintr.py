@@ -206,7 +206,6 @@ VIEW_HELP_TEXT = (
     "All view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\n"
     "If the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data.\n\n"
     "Very large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\n"
-    "The 'IA' button next top the 'Diagram' button is for toggling on/off the alingnment of connectors to the left-most position.  Disabling this will result in much faster diagrams, but horizontal connectors may appear too far to the right.  Enabling this will result in slower diagrams, but horizontal connectors will be shifted to the left-most position for better visibility.  This setting is only effective for very large and complex configurations.\n\n"
     "\nThe Map View has the following behavior:\n\n"
     " - While the browser is not invoked directly, the map can be displayed in the browser by opening the local 'MapTasker.html' file.\n\n"
     " - The 'Display Configuration Outline' setting is ignored since it does not work in the Map view.\n\n"
@@ -341,6 +340,9 @@ class MyGui(customtkinter.CTk):
 
         # Turn off first time
         self.first_time = False
+
+        # TODO Tthe following line is for testing only.
+        # self.event_handlers.diagram_event()
 
     # Establish all of the default values used
     def set_defaults(self) -> None:
@@ -888,8 +890,6 @@ class MyGui(customtkinter.CTk):
                 display=False,
             ),
             "display_detail_level": lambda: self.event_handlers.detail_selected_event(value),
-            "display_icon": lambda: self.event_handlers.icon_event(toggle=False),
-            # "fetched_backup_from_android": lambda: f"Fetched XML From Android:{value}.\n",
             "file": lambda: self.display_and_set_file(value),
             "font": lambda: self.event_handlers.font_event(value),
             # "font": lambda: f"Font set to {value}.\n",
@@ -1533,7 +1533,7 @@ class MyGui(customtkinter.CTk):
             None"""
         # If so, add a button to enable user to update.
         # TODO For testing only = True.  False for production
-        test_button = False
+        test_button = True
         if is_new_version() or test_button:
             self.new_version = True
             # We have a new version.  Let user upgrade.
@@ -3274,27 +3274,6 @@ class EventHandlers:
         guiview.new_message_box(f"{title}\n\n{help_text}")
         guiview.clear_messages = True  # Flag to tell display_message_box to clear the message box
 
-    def icon_event(self: object, toggle: bool) -> None:
-        """
-        Handles the icon alignment event for the diagram.
-
-        This function toggles the icon alignment setting in the text view box.
-
-        Parameters:
-            self (object): The instance of the class.
-
-        Returns:
-            None
-        """
-        the_view = self.parent
-        # Toggle the flag.
-        if toggle:
-            the_view.display_icon = not the_view.display_icon
-        wrap_msg = "On" if the_view.display_icon else "Off"
-
-        # Let the user know.
-        the_view.display_message_box(f"Icon alignment in the Diagram view is set {wrap_msg}", "green")
-
     # Search textbox event
     def search_event(self: object, textview: CTkTextview) -> None:
         """
@@ -3426,6 +3405,14 @@ class EventHandlers:
                 background=make_hex_color(textview.master.master.color_lookup["background_color"]),
             )
             textview.textview_textbox.diagram_highlighted_connector = ""
+        # Clear the search input field.
+        kaka = textview.search_input.get()
+        textview.search_input.delete(0, len(kaka) + 1)
+        # Remove the jump-to buttons
+        with contextlib.suppress(AttributeError):
+            textview.jump_top.destroy()
+        with contextlib.suppress(AttributeError):
+            textview.jump_bottom.destroy()
 
     def wordwrap_event(self: object, textview: CTkTextview) -> None:
         """
@@ -3490,6 +3477,33 @@ class EventHandlers:
         # Let the user know.
         output_label(textview, "Top of text view displayed.")
 
+    def jump_topbottom_event(self: object, textview: CTkTextview, top: bool, connector: int) -> None:
+        """
+        Handles going to jump-to top/bottom of text view.
+
+        This function toggles the wordwrap setting in the text view box.
+
+        Parameters:
+            self (object): The instance of the class
+
+        Returns:
+            None
+        """
+        # Calculate half the length of the task name.   We have to subntract half the length
+        # because we want the line to be in thebeginning of the task name rather than the middle.
+        task_half_length = len(connector["task_upper"][0]) // 2
+        # Get the correct line/position based on top or bottom.
+        if top:
+            seek_line = f"{connector["start_top"][0]!s}.{connector["start_top"][1] - task_half_length!s}"
+            modifier = "top"
+        else:
+            seek_line = f"{connector["end_bottom"][0]!s}.{connector["start_bottom"][1] - task_half_length!s}"
+            modifier = "bottom"
+        # Display the Task
+        textview.textview_textbox.see(seek_line)
+
+        output_label(textview, f"Showing {modifier} of connection to {connector['task_upper'][0]}")
+
     def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:
         """
         Internal method to handle events based on event method and view name.
@@ -3551,3 +3565,6 @@ class EventHandlers:
 
     def diagram_topbottom_event(self, top: bool) -> None:  # noqa: D102
         self._handle_event("topbottom_event", "diagramview", top)
+
+    def diagram_jump_topbottom_event(self, top: bool, connector: int) -> None:  # noqa: D102
+        self._handle_event("jump_topbottom_event", "diagramview", top, connector)

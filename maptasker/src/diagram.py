@@ -16,6 +16,7 @@ from __future__ import annotations
 import contextlib
 import gc
 import os
+from bisect import bisect_left
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -25,7 +26,6 @@ from maptasker.src.diagcnst import (
     bar,
     blank,
     box_line,
-    down_arrow,
     left_arrow,
     left_arrow_corner_down,
     left_arrow_corner_up,
@@ -36,7 +36,6 @@ from maptasker.src.diagcnst import (
     right_arrow_corner_up,
     straight_line,
     task_delimeter,
-    up_arrow,
 )
 from maptasker.src.diagutil import (
     add_output_line,
@@ -44,6 +43,7 @@ from maptasker.src.diagutil import (
     build_call_table,
     delete_hanging_bars,
     find_nth,
+    fix_duplicate_up_down_locations,
     include_heading,
     print_3_lines,
     print_all,
@@ -53,8 +53,9 @@ from maptasker.src.diagutil import (
 from maptasker.src.getids import get_ids
 from maptasker.src.guiutils import display_progress_bar
 from maptasker.src.guiwins import ProgressbarWindow
+from maptasker.src.maputils import find_all_positions, rutroh_error
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import DIAGRAM_FILE, MY_VERSION, NOW_TIME, FormatLine, icon_pattern, logger
+from maptasker.src.sysconst import DIAGRAM_FILE, DIAGRAM_PROFILES_PER_LINE, MY_VERSION, NOW_TIME, FormatLine, logger
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -418,6 +419,151 @@ def fill_line_with_arrows(line: str, arrow: str, line_length: int, call_task_pos
     return output
 
 
+def extract_with_subset(str1: str, str2: str) -> list:
+    # Split both strings by commas
+    """
+    Extracts parts from str2 that are also in str1 (split by commas).
+    If a part of str2 matches a subset of str1, add the full subset as one element.
+    Otherwise, add the current part of str2.
+    Args:
+        str1 (str): String with parts to subset
+        str2 (str): String with parts to extract
+    Returns:
+        list: List of parts extracted from str2 with subsets of str1
+    Processing Logic:
+        - Split both strings by commas
+        - Iterate through the parts of str2
+        - Check if a slice from the current position matches the subset parts
+        - If a match, add the full subset as one element
+        - Otherwise, add the current part
+    """
+    parts = str2.split(",")
+    parts = [item[1:] if item.startswith(" ") else item for item in parts]  # Remove leading spaces
+    subset_parts = str1.split(",")
+    subset_parts = [item[1:] if item.startswith(" ") else item for item in subset_parts]  # Remove leading spaces
+
+    # Initialize an empty list for the result
+    result = []
+    i = 0
+
+    # Iterate through the parts of str2
+    while i < len(parts):
+        # Check if a slice from the current position matches the subset parts
+        if parts[i : i + len(subset_parts)] == subset_parts:
+            # Add the full subset as one element
+            result.append(str1)
+            # Skip over the matched subset parts
+            i += len(subset_parts)
+        else:
+            # Otherwise, just add the current part
+            result.append(parts[i])
+            i += 1
+
+    return result
+
+
+def get_index_setup(s: str, called_task_name: str) -> tuple:
+    """
+    Parse the 'calls' string and return a tuple of substrings and positions
+
+    Args:
+        s (str): The string to parse
+        called_task_name (str): The name of the task being called
+
+    Returns:
+        tuple: A tuple of two values. The first value is a list of substrings
+            extracted from the string, and the second value is a list of positions
+            of the called task name in the string.
+
+    Processing Logic:
+        - Split the string into substrings based on the task delimeter
+        - Cleanup the results
+        - Find all positions of the called task name beyond the "Calls -->"
+    """
+    comma = ","
+    search_marker = "Calls ──▶ "
+    # Get a list of called tasks from the string
+    start_search = s.find(search_marker) + 9
+    # Early exit if the marker is not found
+    if start_search == -1 + len(search_marker):
+        return -1
+
+    # Extract the relevant substring after "Calls ──▶ "
+    temp_line = s[start_search:].split("]")[0].strip()
+    close_bracket_pos = temp_line.find("]")
+    if close_bracket_pos != -1:
+        temp_line = temp_line[:close_bracket_pos]
+
+    # Figure out how we are going to parse the 'calls' string
+    delimiter = task_delimeter if task_delimeter in s else comma
+    # Deal with commas in the called task name
+    if delimiter == comma and comma in called_task_name:
+        substrings = extract_with_subset(called_task_name, temp_line)
+    else:
+        # Split the string into substrings based on the task delimeter.
+        temp_list = temp_line.split(delimiter)
+        # Cleanup the results.
+        temp_list = [item[1:] if item.startswith(" ") else item for item in temp_list]  # Remove leading spaces
+        substrings = []
+        for item in temp_list:
+            item_to_add = item[1:] if item.startswith(" ") else item
+            if item_to_add and item_to_add not in ("]", ", "):
+                substrings.append(item_to_add)
+
+    # Find all positions of the called task name beyond the "Calls -->".
+    string_without_delimiters = s.replace(task_delimeter, "") if delimiter == task_delimeter else s
+    start_search = string_without_delimiters.find("Calls ──▶ ") + 9
+    positions = find_all_positions(string_without_delimiters, called_task_name, start_search)
+
+    return substrings, positions
+
+
+def get_index_by_middle_char_position(s: str, middle_char_position: int, called_task_name: str) -> int:
+    # Split the string into substrings based on commas
+    """
+    Finds and returns the index of a called task based on its middle character position.
+
+    Args:
+        s (str): The string containing the task call information.
+        middle_char_position (int): The position of the middle character of the called task name.
+        called_task_name (str): The name of the called task to find.
+
+    Returns:
+        int: The index of the called task if found, otherwise -1.
+
+    In the following example, we need to come up with the index '3', for the third line/index below the 'called_task_name'
+    in the 's' string based on the middle_char_position.
+    caller_task_name [Called by <-- ..., ...] [Calls --> called_task_name1, called_task_name, called_task_name4]
+
+
+                                                                                 ╰ (this '3rd' line) result = 3
+    """
+    # Setup for getting the index.
+    substrings, positions = get_index_setup(s, called_task_name)
+
+    # Now get the index of this specific, called task based on it's middle character position...
+    # bisect.bisect_left(sorted_list, number) returns the index at which number should be inserted in sorted_list to maintain its order.
+    item_index = bisect_left(positions, middle_char_position)
+    task_tracker = 0
+    # Iterate over the positions found for the called task name.
+    for current_position in positions:
+        # Iterate through the substrings with their indices
+        for index, substring in enumerate(substrings):
+            if substring != called_task_name or substring == ", ":
+                continue
+            # Calculate the ending position for this substring
+            end_position = current_position + len(substring)
+
+            # Check if the middle character position falls within this substring's range
+            if current_position <= middle_char_position < end_position:
+                task_tracker += 1
+                if task_tracker == item_index:
+                    return index + 1  # Return the index if the position is within the range
+
+    # If the position is out of range, return -1
+    return -1
+
+
 # Add up and down arrows to the connection points.
 def add_down_and_up_arrows(
     caller_line_index: int,
@@ -500,7 +646,7 @@ def add_down_and_up_arrows(
 # Draw arrows to called Task from Task doing the calling.
 def draw_arrows_to_called_task(
     up_down_location: int,
-    value: list,
+    connector: list,
     output_lines: list,
     called_task_lookup: dict,
 ) -> None:
@@ -508,48 +654,36 @@ def draw_arrows_to_called_task(
     Draw arrows to called Task from Task doing the calling.
         Args:
             up_down_location (int): Position on line where the up or down arrow should be drawn.
-            value (list): List of all call table values.
+            connector (list): List of all call table connectors.
             output_task_lines (list): List of all output lines.
             called_task_lookup (dict): Dictionary of called task tracker.
 
         Returns:
             None: called_task_lookup
     """
-    # Get values for caller and called Task.
-    caller_task_name = value[0]
-    caller_line_num = value[1]
-    caller_task_position = value[2]
-    called_task_name = value[3]
-    called_line_num = value[4]
-    called_task_position = value[5]
-    arrow = value[6]
-    upper_corner_arrow = value[7]
-    lower_corner_arrow = value[8]
-    # fill_arrow = value[9]
-    start_line = value[10]
-    line_count = value[11]
+    # Get connectors for caller and called Task.
+    # caller_task_name = connector["caller_task_name"]
+    caller_line_num = connector["caller_line_num"]
+    caller_task_position = connector["caller_task_position"]
+    called_task_name = connector["called_task_name"]
+    called_line_num = connector["called_line_num"]
+    called_task_position = connector["called_task_position"]
+    arrow = connector["arrow"]
+    upper_corner_arrow = connector["upper_corner_arrow"]
+    lower_corner_arrow = connector["lower_corner_arrow"]
+    # fill_arrow = connector["fill_arrow"]
+    start_line = connector["start_line"]
+    line_count = connector["line_count"]
 
-    # Keep track of the number of called tasks for each task caller.
-    if caller_task_name not in called_task_lookup:
-        called_task_lookup[caller_task_name] = {"called": [called_task_name]}
-    else:
-        called_task_lookup[caller_task_name]["called"].append(called_task_name)
-
-    # Get a list of the counts of the called Task (e.g. the number of times it was called).
-    # NOTE: The bug is in here.  In a blue moon, an extra entry is in this dictionary for a called task.
-    found_names_in_list = [
-        index
-        for index, string in enumerate(called_task_lookup[caller_task_name]["called"])
-        if string == called_task_name
-    ]
-    caller_line_index = found_names_in_list[-1] + 1  # We only want the last one = true count.
-    # NOTE: This is the fix for the above bug.
-    if angle in output_lines[caller_line_num + caller_line_index]:
-        caller_line_index -= 1
-
-    # If indice coming back is blank, then it wasn't found since it is named "Anonymous"
-    if caller_line_index == "":
-        return called_task_lookup
+    caller_line_index = get_index_by_middle_char_position(
+        output_lines[caller_line_num],
+        called_task_position,
+        called_task_name,
+    )
+    if caller_line_index == -1:
+        rutroh_error(
+            f"Unable to find line index for {called_task_name} in {output_lines[caller_line_num]}",
+        )
 
     # Bump the count of the calls to this task.  This is used to determine the displacement of the bottom connector line number.
     PrimeItems.called_task_tracker[called_task_name]["counter"] += 1
@@ -592,9 +726,29 @@ def draw_arrows_to_called_task(
                 use_arrow = straight_line if arrow in (left_arrow, right_arrow) else bar
 
         # Add initial/ending up/down arrow or bar/straight line.
-        temp_line = output_lines[start_line + x]
+
+        # If there are bars inside of up_down_location, then we need to leave them there.
+        temp_line = output_lines[start_line + x].replace(task_delimeter, "")
         temp_line = temp_line.ljust(up_down_location)
-        new_line = f"{temp_line[:up_down_location]}{use_arrow}{temp_line[up_down_location+1:]}"
+        front_line = temp_line[:up_down_location]
+        # Adjust bars if there are task delimteres in the line.
+        # Some lines still have delimeters.  We need to fix the bars beyond the delimeters so they align properly
+        # ith the bars above them.
+        delimeters = find_all_positions(output_lines[start_line + x], task_delimeter)
+        if delimeters:
+            bars = find_all_positions(temp_line, bar)
+            for bar_position in bars:
+                if bar_position > delimeters[-1]:  # Only if the bar is beyond the last delimiter.
+                    delimeter_length = len(delimeters)
+                    temp_line = front_line
+                    front_line = (
+                        temp_line[:bar_position]
+                        + f"{blank*delimeter_length}{bar}"
+                        + temp_line[bar_position + delimeter_length + 1 :]
+                    )
+        # Put it all together.
+        back_line = temp_line[up_down_location + 1 :]
+        new_line = f"{front_line}{use_arrow}{back_line}"
         output_lines[start_line + x] = new_line
 
     return called_task_lookup
@@ -663,9 +817,9 @@ def mark_tasks_not_found(output_lines: list) -> None:
                         output_lines[caller_line_num][:called_task_position]
                         + called_task_name[0]
                         + not_found
-                        # + line[end_of_called_task_position:]
                         + output_lines[caller_line_num][end_of_called_task_position:]
                     )
+                    line = output_lines[caller_line_num]  # noqa: PLW2901
 
 
 def mysizeof(my_dict: list) -> int:
@@ -901,280 +1055,10 @@ def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:  
     return output_lines
 
 
-def find_last_alnum_or_bracket(text: str, start_index: int | None = None) -> tuple:
-    # Set the starting index to the last character if not provided
-    """
-    Finds the last alphanumeric character or bracket in the given string, starting from the specified index.
-
-    Args:
-        text (str): The string to search
-        start_index (int | None): The starting index for the search. If None, the last character is used.
-
-    Returns:
-        tuple: The index of the found character and the character itself. If no match is found, (-1, "")
-    """
-    if start_index is None:
-        start_index = len(text) - 1
-
-    # Traverse the string in reverse from the specified index
-    for i in range(start_index, -1, -1):
-        if text[i].isalnum() or text[i] in ("]", ")", bar):
-            # Make sure it is not the very first bar.
-            if text[i] == bar:
-                first_bar = text.find(bar)
-                if first_bar != -1 and first_bar == i:
-                    return -2, ""
-            return i, text[i]
-    return -1, ""  # Return -1 if no match is found
-
-
-def find_substring_positions(lines: list, substring: str) -> list:
-    # List to store (line_number, position) for each occurrence of the substring
-    """
-    Finds all occurrences of a substring in a list of strings and returns a list of tuples,
-    where each tuple contains the line number and position of the substring.
-
-    Args:
-        lines (list): A list of strings to search in.
-        substring (str): The substring to search for.
-
-    Returns:
-        list: A list of tuples, where each tuple contains the line number and position of an occurrence of the substring.
-    """
-    results = []
-
-    # Iterate over each line in the list
-    for line_number, line in enumerate(lines):
-        # Find the first occurrence of the substring in the current line
-        pos = line.find(substring)
-        if pos != -1:
-            # Append the line number and position of the first occurrence to the results list
-            results.append((line_number, pos))
-
-    # Sort results by position, then by line number for cases with same position
-    results.sort(key=lambda x: (x[1], x[0]))
-
-    return results
-
-
-def adjust_max_length(
-    output_lines: list,
-    line_number: int,
-    bottom_line: int,
-    max_line_length: int,
-    position: int,
-) -> tuple:
-    """
-    Adjust max_line_length by checking all lines in the range of [line_number, bottom_line)
-    for any characters that are not spaces or straight lines. If any are found, increment
-    max_line_length and continue checking from the current line. This ensures that the max
-    line length is the longest possible length without non-space or non-straight-line characters
-    in the horizontal path of the connector.
-
-    Args:
-        output_lines (list): List of strings representing the diagram lines.
-        line_number (int): The starting line number to check.
-        bottom_line (int): The ending line number to check.
-        max_line_length (int): The maximum line length of the lines to check.
-        position (int): The position of the connector to check.
-
-    Returns:
-        tuple: max_line_length and 1 if max_line_length is greater than or equal to position,
-        else max_line_length and 0.
-    """
-    while True:
-        line_modified = False
-        for i in range(line_number, bottom_line):
-            line = output_lines[i]
-
-            # Ignore line if there is an icon in it
-            if icon_pattern.search(line):
-                continue
-
-            # Check characters in the current line from max_line_length to position
-            for j in range(max_line_length, position):
-                if line[j] not in (" ", straight_line):
-                    max_line_length += 1
-                    line_modified = True
-                    break  # Stop checking current line and move to the next
-
-            if line_modified:
-                break  # Restart checking from current line, not from the top
-
-        if not line_modified:
-            break
-
-    return (max_line_length, 1) if max_line_length >= position else (max_line_length, 0)
-
-
-def shift_connector(
-    output_lines: list,
-    line_number: int,
-    bottom_line: int,
-    max_line_length: int,
-    position: int,
-) -> None:
-    """
-    Shift the contents of the given lines to the left by the given amount.
-
-    Args:
-        output_lines (list): List of strings representing the diagram lines.
-        line_number (int): The starting line number to shift.
-        bottom_line (int): The ending line number to shift.
-        max_line_length (int): The maximum line length of the lines to shift.
-        position (int): The position of the connector to shift.
-
-    Returns:
-        None
-    """
-    bottom_line += 1
-
-    # Bail out if max_line_length is same as position -1
-    if max_line_length == position - 1:
-        return
-
-    # Adjust max line length outwards if there are other connectors in the path.
-    max_line_length, return_code = adjust_max_length(output_lines, line_number, bottom_line, max_line_length, position)
-    if return_code == 1:
-        return
-
-    # Shift contents of line left by max_line_length, and add a space after
-    # the last character for each max_line_length.
-    shift_left_count = max_line_length + 1
-    shift_delta = position - shift_left_count
-
-    # Shift everything from the top line to the bottom line to the left.
-    for i in range(line_number, bottom_line):
-        line = output_lines[i]
-        line_len = len(line)
-        curr_char = line[position]
-
-        # Handle filler based on specific conditions
-        if position + 1 >= line_len:
-            filler = ""
-        else:
-            next_char = line[position + 1]
-            # Condition 1: next character is a "─" or "╮"
-            first_cond = next_char in (straight_line, left_arrow_corner_up)
-            # Condition 2: next character is first line or next character is a "╯"
-            # second_cond = i == line_number or curr_char == right_arrow_corner_up
-            # Condition 3: next character is a "│" and last character is a "─"
-            third_cond = next_char == bar and line[max_line_length] == straight_line
-
-            # Set filler based on conditions
-            filler = straight_line * shift_delta if first_cond or third_cond else blank * shift_delta
-
-        # Update the line with shifted content
-        trailer = "" if position + 1 >= line_len else line[position + 1 :]
-        output_lines[i] = line[:shift_left_count] + curr_char + filler + trailer
-
-
-def shift_rightmost_lines_left(output_lines: list, progress: dict, call_table: dict) -> list:
-    """
-    Shift the rightmost lines to the left in the diagram.
-    Args:
-        output_lines (list): List of strings representing the output lines.
-        progress (dict): The progress bar dictionary.
-        call_table (dict): The call table dictionary of called and caller task linakages.
-    Returns:
-        list: The modified list of strings.
-    """
-    our_elbows = find_substring_positions(output_lines, left_arrow_corner_up)
-
-    # Reecalculate our progress bar metrics.
-    progress["max_data"] += len(our_elbows)
-    progress["tenth_increment"] = progress["max_data"] // 10 if len(our_elbows) > 0 else 1
-
-    for line_number, position in our_elbows:
-        # Update progress bar if needed.
-        if (
-            PrimeItems.program_arguments["gui"]
-            and progress["progress_counter"] > 0
-            and progress["progress_counter"] % progress["tenth_increment"] == 0
-        ):
-            display_progress_bar(progress, is_instance_method=False)
-        progress["progress_counter"] += 4
-
-        if should_ignore_elbow(output_lines, line_number, position):
-            continue
-        # Get tha max line length down to the boottom oof the connector.
-        bottom_line, max_line_length = chase_down_to_bottom_elbow(output_lines, line_number, position)
-
-        # Don't shift if we are at or below the connection points: called_task_position or caller_task_position
-        if max_line_length <= call_table[position][5] or max_line_length <= call_table[position][2]:
-            continue
-
-        if bottom_line != 0 and max_line_length > 0:
-            # Shift the connector
-            shift_connector(output_lines, line_number, bottom_line, max_line_length + 1, position)
-
-    return output_lines
-
-
-def should_ignore_elbow(output_lines: list, line_number: int, position: int) -> bool:
-    """
-    Determine if the line above the current line and one position to the left is a bar.  If so, return true.
-    """
-    return len(output_lines[line_number - 1]) > position and output_lines[line_number - 1][position - 1] == bar
-
-
-def chase_down_to_bottom_elbow(output_lines: list, line_number: int, position: int) -> tuple:
-    """
-    Find the bottom connector and calculate the max line length.
-    """
-    next_line = line_number + 1
-    bottom_line = 0
-    max_line_length = 0
-
-    while next_line < len(output_lines) and len(output_lines[next_line]) > position:
-        if output_lines[next_line][position] == right_arrow_corner_up:
-            bottom_line = next_line
-            break
-        # Find the last alphanumeric character or bracket
-        last_char_position, last_char = find_last_alnum_or_bracket(output_lines[next_line], position - 2)
-
-        # Process a bar connector to determine if it terminates or is an inner bar.
-        if last_char == bar and process_bar_connector(output_lines, next_line, last_char_position):
-            max_line_length = max(max_line_length, last_char_position + 1)
-            next_line += 1
-            continue
-
-        max_line_length = max(max_line_length, last_char_position + 1)
-
-        # Queue up the next line to evaluate.
-        next_line += 1
-
-    return bottom_line, max_line_length
-
-
-def process_bar_connector(output_lines: list, next_line: int, last_char_position: int) -> bool:
-    """
-    Process a bar connector to determine if it terminates or is an inner bar.
-    """
-    line_down = next_line + 1
-
-    while line_down < len(output_lines):
-        line_len = len(output_lines[line_down])
-
-        if line_len > last_char_position:
-            char_at_position = output_lines[line_down][last_char_position]
-
-            if char_at_position == angle_elbow:
-                return False
-
-            if char_at_position in (right_arrow_corner_up, right_arrow_corner_down, down_arrow, up_arrow):
-                return True
-
-        line_down += 1
-
-    return False
-
-
 # Go through the diagram looking for and fixing misc. screwed-up stuff.
 def cleanup_diagram(
     output_lines: list,
     progress: dict,
-    call_table: dict,
 ) -> list:
     # Go thru each line of the diagram.
     """
@@ -1189,6 +1073,7 @@ def cleanup_diagram(
     Returns:
         output_lines (list): The modified list of strings.
     """
+
     for num, line in enumerate(output_lines):
         # Add missing straight lines in which there is one or more blanks before "╯".
         output_lines = cleanup_missing_straight_lines(output_lines, num, line)
@@ -1209,10 +1094,6 @@ def cleanup_diagram(
         if PrimeItems.program_arguments["gui"] and progress["progress_counter"] % progress["tenth_increment"] == 0:
             display_progress_bar(progress, is_instance_method=False)
         progress["progress_counter"] += 1
-
-    # Shift connectors to the left.
-    if PrimeItems.program_arguments["display_icon"]:
-        output_lines = shift_rightmost_lines_left(output_lines, progress, call_table)
 
     # Delete hanging bars "│" and substitute every arrow with beginning and end arrows only.
     return delete_hanging_bars(output_lines)
@@ -1290,30 +1171,38 @@ def handle_calls(output_lines: list) -> None:
     mark_tasks_not_found(output_lines)
 
     # Create the table of caller/called Tasks and their pointers.
-    dirty_call_table = build_call_table(output_lines)
-    call_table = {}
-    # Delete duplicates
-    for key, value in dirty_call_table.items():
-        if value not in call_table.values():
-            call_table[key] = value
+    call_table = build_call_table(output_lines)
 
     # Check if we have exceeded our maximum size limit.
     exceeded_limit, call_table, output_lines = check_limit(call_table, output_lines, progress["progress_bar"])
     if exceeded_limit:
         return []
 
+    # Drop here if we are okay with the limit.
+
+    # Fix overlapping connectors that have the same up/down locations.
+    call_table = fix_duplicate_up_down_locations(call_table)
+    # bingo delete following line
+    call_table = dict(sorted(call_table.items(), key=lambda item: item[1]["caller_line_num"]))
+    # Finally, sort it by up/down location (inner locations before outer).
+    call_table = dict(sorted(call_table.items(), key=lambda item: item[1]["up_down_location"]))
+
     # Now traverse the call table and add arrows to the output lines.
     called_task_lookup = {}
-    for up_down_location, value in call_table.items():
-        called_task_lookup = draw_arrows_to_called_task(up_down_location, value, output_lines, called_task_lookup)
-    # call_table = {}  # Done with call table.
+    for connector in call_table.values():
+        called_task_lookup = draw_arrows_to_called_task(
+            connector["up_down_location"],
+            connector,
+            output_lines,
+            called_task_lookup,
+        )
 
     # Force progress bar to 10% to represent time to clean and display it if coming from the GUI.
     if PrimeItems.program_arguments["gui"]:
         display_progress_bar(progress, is_instance_method=False)
 
     # Now clean up the mess we made.
-    output_lines = cleanup_diagram(output_lines, progress, call_table)
+    output_lines = cleanup_diagram(output_lines, progress)
 
     # We're done.  Kill the progressbar.
     if PrimeItems.program_arguments["gui"]:
@@ -1390,7 +1279,7 @@ def build_profile_box(
 
     filler = f"{blank*8}"
     profile_counter += 1
-    if profile_counter > 6:
+    if profile_counter > DIAGRAM_PROFILES_PER_LINE:
         # We have 6 columns.  Print them
         print_3_lines(output_profile_lines)
         profile_counter = 1
@@ -1502,7 +1391,7 @@ def remove_empty_strings(lst: list) -> list:
     Remove empty strings from a list of strings.
     An empty string is a string that either consists entirely of whitespace or is a single bar character.
     """
-    return [s for s in lst if not all(char in (bar, " ") for char in s)]
+    return [s for s in lst if not all(char in (bar, " ", "\\") for char in s)]
 
 
 # Process all Projects
@@ -1599,13 +1488,28 @@ def network_map(network: dict) -> None:
         with open(str(output_dir), "w", encoding="utf-8") as mapfile:
             # PrimeItems.printfile = mapfile
             for num, line in enumerate(PrimeItems.netmap_output):
-                # Add some separation for the profiles.
-                if not first_project and box_line in line and "Project:" in PrimeItems.netmap_output[num + 1]:
-                    mapfile.write("\n\n")
-                    first_project = False
+                # Add spacer if we have hit a Project.
+                if (
+                    not first_project
+                    and box_line in line
+                    and num + 1 < len(PrimeItems.netmap_output)
+                    and "Project:" in PrimeItems.netmap_output[num + 1]
+                ):
+                    # Create a spacer line with just bars
+                    if bar in PrimeItems.netmap_output[num - 1]:
+                        spacer = (
+                            "".join(char if char == bar else " " for char in PrimeItems.netmap_output[num + 1]) + "\n"
+                        )
+                    else:
+                        spacer = "\n"
+                    mapfile.write(spacer)
+                    mapfile.write(spacer)
+                first_project = False
+
                 # Remove any icons from the line
                 line = remove_icon(line)  # noqa: PLW2901
                 mapfile.write(f"{line}\n")
+
             mapfile.close()
 
         # Cleanup

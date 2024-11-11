@@ -436,12 +436,10 @@ class CTkTextview(ctk.CTkFrame):
             self.diagram_connectors = {}
             for num, line in enumerate(the_data):
                 text_line = num + 1
-                if PrimeItems.program_arguments["debug"]:  # Add line number if debug mode.
-                    # NOTE: Uncomment next line and comment out the line afterwards to see line numbers on debug mode.
-                    # self.textview_textbox.insert(f"{text_line!s}.0", f"{text_line!s}{line}\n")
-                    self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
-                else:
-                    self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
+                # NOTE: Uncomment next two lines and comment out the line afterwards to see line numbers on debug mode.
+                self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
+                # if self.master.master.debug:  # Add line number if debug mode.
+                #     self.textview_textbox.insert(f"{text_line!s}.0", f"{text_line!s}{line}\n")
 
                 # Highlight the Tasker names if doing a diagram.
                 if diagram:
@@ -465,9 +463,12 @@ class CTkTextview(ctk.CTkFrame):
                 self.add_connector_tags(self.diagram_connectors)
 
             # Add the CustomTkinter widgets
-            self.add_view_widgets("Diagram")
+            if "Analysis" in self.title:
+                self.add_view_widgets("Analysis")
+            else:
+                self.add_view_widgets("Diagram")
             # Force courier new for diagram view if just Courier...perfect character alignment.
-            if master.master.font == "Courier":
+            if self.master.master.font == "Courier":
                 self.textview_textbox.configure(self, font=("Courier New", 12))
 
             # Save a pointer to the data.
@@ -497,12 +498,11 @@ class CTkTextview(ctk.CTkFrame):
         gui_view = self.master.master
 
         # Dictionary mapping titles to lambdas that assign the events
-        gui_view = self.master.master
         event_assignments = {
             "Analysis": lambda: (
                 gui_view.event_handlers.analysis_search_event,
                 gui_view.event_handlers.analysis_nextprev_event,
-                gui_view.event_handlers.analysis_previous_event,
+                # gui_view.event_handlers.analysis_previous_event,
                 gui_view.event_handlers.analysis_clear_event,
                 gui_view.event_handlers.analysis_wordwrap_event,
                 gui_view.event_handlers.analysis_topbottom_event,
@@ -541,7 +541,7 @@ class CTkTextview(ctk.CTkFrame):
             40,
             "n",
         )
-        # Search input field# Search input field
+        # Search input field
         search_input = ctk.CTkEntry(
             self,
             placeholder_text="",
@@ -574,7 +574,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            170,
+            (170, 0),
             5,
             "nw",
         )
@@ -592,7 +592,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            240,
+            (240, 0),
             5,
             "nw",
         )
@@ -610,7 +610,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            290,
+            (290, 0),
             5,
             "nw",
         )
@@ -628,7 +628,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            345,
+            (345, 0),
             5,
             "nw",
         )
@@ -647,7 +647,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            400,
+            (400, 0),
             5,
             "nw",
         )
@@ -666,7 +666,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            440,
+            (440, 0),
             5,
             "nw",
         )
@@ -684,7 +684,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            600,
+            (600, 0),
             5,
             "nw",
         )
@@ -703,7 +703,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            650,
+            (650, 0),
             5,
             "nw",
         )
@@ -733,6 +733,63 @@ class CTkTextview(ctk.CTkFrame):
         self.wordwrap = False
         self.search_string = ""
 
+    def add_jumpto_buttons(self, connector: dict) -> None:
+        """
+        Adds jump-to-top and jump-to-bottom buttons to the GUI.
+
+        This function creates two buttons that allow users to quickly jump to
+        the top or bottom of a diagram view, based on the start and end positions
+        provided in the connector dictionary. The buttons are styled and positioned
+        using specific parameters and are connected to event handlers for navigation.
+
+        Args:
+            connector (dict): A dictionary containing the start and end positions
+                            for the top and bottom jump actions.
+
+        Returns:
+            None
+        """
+        # Point to the GUI self.
+        gui_view = self.master.master
+
+        # Jump-to Top button
+        self.jump_top = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            lambda: gui_view.event_handlers.diagram_jump_topbottom_event(True, connector),
+            1,
+            "Top Task",
+            1,
+            0,
+            0,
+            (730, 0),
+            5,
+            "nw",
+        )
+        self.jump_top.configure(width=60)
+
+        # Jump-to Bottom button
+        self.jump_bottom = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            lambda: gui_view.event_handlers.diagram_jump_topbottom_event(False, connector),
+            1,
+            "Bottom Task",
+            1,
+            0,
+            0,
+            (815, 0),
+            5,
+            "nw",
+        )
+        self.jump_bottom.configure(width=60)
+
     # Text window was resized.
     def on_resize(self, event: dict) -> None:  # noqa: ARG002
         """
@@ -747,8 +804,10 @@ class CTkTextview(ctk.CTkFrame):
         Raises:
             None: This function does not raise any exceptions.
 
-        This function is called when the window is resized. It retrieves the current window position from `self.master.master.{view}_window_position`,
-        splits it into width, height, and x and y coordinates. It then updates the window geometry with the new width, height, and x and y coordinates
+        This function is called when the window is resized. It retrieves the current window position from
+        `self.master.master.{view}_window_position`,
+        splits it into width, height, and x and y coordinates. It then updates the window geometry with the new width,
+        height, and x and y coordinates
         based on the event width and height.
 
         Note: The code snippet provided is incomplete and does not contain the implementation of the function.
@@ -853,6 +912,9 @@ class CTkTextview(ctk.CTkFrame):
                     background=make_hex_color("blue"),
                 )
                 self.textview_textbox.diagram_highlighted_connector = tag
+
+        # Add 'Jump to' buttons.
+        self.add_jumpto_buttons(connector)
 
     def highlight_bars(self, connector: dict, start_position: tuple, tag: str, char: str, direction: str) -> None:
         """
@@ -972,26 +1034,6 @@ class CTkTextview(ctk.CTkFrame):
                         break
                 # Finally, add the highlighting.
                 self.add_highlight(tagid, line_num, highlight_start, highlight_end)
-
-    def find_all_matches(self, s: str, char_list: list) -> list:
-        """
-        Searches for all occurrences of any character from char_list in the string s.
-
-        Args:
-            s (str): The string to search.
-            char_list (list): A list of characters to search for.
-
-        Returns:
-            list: A list of tuples of the form (character, index) for each match found,
-                or an empty list if no match is found.
-        """
-        matches = []
-
-        for index, char in enumerate(s):
-            if char in char_list:
-                matches.append((char, index))
-
-        return matches
 
     def highlight_text(self, line: str, line_num: int) -> None:
         """
@@ -1579,8 +1621,8 @@ class CTkTextview(ctk.CTkFrame):
                 new_message = f"  {new_message}"
 
             # Add line number to output message
-            # if self.master.master.debug:
-            #     new_message = f"{line_num_str} {new_message}"
+            if self.master.master.debug:
+                new_message = f"{line_num_str} {new_message}"
 
             char_position_str = str(char_position)
             tag_id = f"{line_num_str}{char_position_str}"
@@ -2252,7 +2294,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.ai_analysis_window = None
     self.ai_analysis_window_position = ""
     self.ai_apikey = None
-    self.ai_missing_module = None
+    # self.ai_missing_module = None
     self.ai_model = ""
     self.ai_popup_window_position = ""
     self.ai_prompt = None
@@ -2273,7 +2315,6 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.diagram_window_position = ""
     self.diagramview_window = None
     self.display_detail_level = None
-    self.display_icon = True
     self.everything = None
     self.extract_in_progress = False
     self.exit = None
@@ -2660,29 +2701,11 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         1,
         19,
         0,
-        85,
+        105,
         0,
         "sw",
     )
     self.diagramview_button.configure(width=120)
-    #  "IA" icon button
-    self.view_query_button = add_button(
-        self,
-        self.sidebar_frame,
-        "#246FB6",
-        "",
-        "",
-        lambda: self.event_handlers.icon_event(toggle=True),
-        1,
-        "IA",
-        1,
-        19,
-        0,
-        (210, 0),
-        0,
-        "sw",
-    )
-    self.view_query_button.configure(width=20)
 
     # 'Tree View' button definition
     self.treeview_button = add_button(

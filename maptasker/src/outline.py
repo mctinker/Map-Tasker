@@ -51,8 +51,8 @@ def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_na
     """
     Updates the caller and called tasks lists
     Args:
-        task: {Task xml element}: Task xml element
-        perform_task_name: {str}: Name of the task being performed
+        task: {Task xml element}: Task xml element of the caller
+        perform_task_name: {str}: Name of the task being performed/called
     Returns:
         None
     Processing Logic:
@@ -61,8 +61,9 @@ def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_na
         - Finds the task element for the perform_task_name
         - Adds the caller task's name to the performed task's called_by list
     """
+    # Get the Task element referred to by perform_task_name.
     if PrimeItems.tasks_by_name[task["name"]]:
-        task_called = PrimeItems.tasks_by_name[task["name"]]
+        task_called = PrimeItems.tasks_by_name[task["name"]]  # Get the Task element referred to by perform_task_name
 
         # Add it to the list of Tasks this Task calls.
         try:
@@ -72,6 +73,7 @@ def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_na
             task_called["call_tasks"] = [perform_task_name]
         except AttributeError:
             task_called["call_tasks"] = [perform_task_name]
+        PrimeItems.tasks_by_name[task["name"]]["call_tasks"] = task_called["call_tasks"]
 
     # Find the Task xml element to which this Perform Task refers.  Set up the called by Task list.
     with contextlib.suppress(KeyError):
@@ -86,6 +88,7 @@ def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_na
                     task_called["called_by"] = [task["name"]]
             except KeyError:
                 task_called["called_by"] = [task["name"]]
+            PrimeItems.tasks_by_name[perform_task_name]["called_by"] = task_called["called_by"]
 
 
 # Go through the Task's Actions looking for any Perform Task actions.

@@ -8,7 +8,6 @@
 #                                                                                      #
 from __future__ import annotations
 
-import re
 from string import printable
 from tkinter import font
 
@@ -41,7 +40,7 @@ directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arr
 # List of printable ASCII characters
 # printable_chars: set[str] = set(string.printable)
 # printable_chars = printable_chars.union(extra_cars)
-icon_regex = re.compile(r"\s*[\U0001F300-\U0001F7FF]\s*")
+# icon_regex = re.compile(r"\s*[\U0001F300-\U0001F7FF]\s*")
 
 
 # Add line to our output queue.
@@ -166,7 +165,7 @@ def width_and_height_calculator_in_pixel(txt: str, fontname: str, fontsize: int)
     return [the_font.measure(txt), the_font.metrics("linespace")]
 
 
-# Wew have an icon in our name.  Remove any padding as necessary
+# We have an icon in our name.  Remove any padding as necessary
 def fix_icon(name: str) -> str:
     """
     Fixes icon characters in a name string.
@@ -423,6 +422,77 @@ def delete_hanging_bars(
     return output_lines
 
 
+def fix_duplicate_up_down_locations(call_table: dict) -> dict:
+    # Get a list of duplicate up-down locations
+    """
+    Fixes duplicate up-down locations in the call table by adjusting connectors to avoid overlaps.
+
+    Args:
+        call_table (dict): A dictionary containing caller and called task connections with their line numbers
+                           and up_down_locations.
+
+    Returns:
+        dict: The modified call table with unique up_down_locations for each connection.
+
+    Processing Logic:
+    - Identify duplicate up_down_locations in the call table.
+    - For each pair of duplicates, determine the top and bottom line numbers for both connectors.
+    - Check for overlap situations between the connectors, including complete, lower boundary, inner, or upper boundary overlaps.
+    - Adjust the up_down_location of the second connector if an overlap is detected.
+    - Recursively process the call table until all duplicates are resolved.
+    """
+    # Get a list of duplicate up-down locations
+    duplicates = find_duplicate_up_down_locations(call_table)
+    up_down_modified = False
+
+    # Go through duplicates, two elements at a time: 1st = first up_down_location, 2nd = the duplicate up_down_location.
+    for i in range(0, len(duplicates), 2):
+        first_connector = duplicates[i]
+        second_connector = duplicates[i + 1] if i + 1 < len(duplicates) else None
+        if second_connector is None:
+            break
+
+        # Get the first connector's top and bottom line numbers.
+        if first_connector[1]["caller_line_num"] > first_connector[1]["called_line_num"]:
+            first_connector_top_line = first_connector[1]["called_line_num"]
+            first_connector_bottom_line = first_connector[1]["caller_line_num"]
+        else:
+            first_connector_top_line = first_connector[1]["caller_line_num"]
+            first_connector_bottom_line = first_connector[1]["called_line_num"]
+
+        # Get the second connector's top and bottom line numbers.
+        if second_connector[1]["caller_line_num"] > second_connector[1]["called_line_num"]:
+            second_connector_top_line = second_connector[1]["called_line_num"]
+            second_connector_bottom_line = second_connector[1]["caller_line_num"]
+        else:
+            second_connector_top_line = second_connector[1]["caller_line_num"]
+            second_connector_bottom_line = second_connector[1]["called_line_num"]
+
+        # Test for overlap situations: complete, lower boundary, inner or upper boundary overlap.
+        if (
+            (
+                second_connector_top_line <= first_connector_top_line
+                and second_connector_bottom_line >= first_connector_bottom_line
+            )
+            or (
+                second_connector_top_line >= first_connector_top_line
+                and second_connector_top_line <= first_connector_bottom_line
+            )
+            or (
+                second_connector_bottom_line <= first_connector_bottom_line
+                and second_connector_bottom_line >= first_connector_top_line
+            )
+        ):
+            second_connector[1]["up_down_location"] += 2
+            up_down_modified = True
+
+    # Recurse until they have all been processed.
+    if up_down_modified:
+        call_table = fix_duplicate_up_down_locations(call_table)
+
+    return call_table
+
+
 # Build a sorted list of all caller Tasks and their called Tasks.
 def build_call_table(output_lines: list) -> list:
     """
@@ -440,13 +510,89 @@ def build_call_table(output_lines: list) -> list:
     # Go through all output lines looking for caller Tasks.
     call_table = {}
     for caller_line_num, line in enumerate(output_lines):
-        # Do we have a "Calls" line (caller Task)?
-        if line_right_arrow in line:
-            # Handle all of the caller and called Tasks.
-            call_table = process_callers_and_called_tasks(output_lines, call_table, caller_line_num, line)
+        # Get the Project name if we have one
+        project_name_start = line.find("║ Project: ")
+        if project_name_start != -1:
+            project_name = line[project_name_start + 11 : len(line) - 2]
 
-    # Return the call table sorted by up_down_location ((inner locations before outer))
-    return dict(sorted(call_table.items()))
+        # Do we have a "Calls" line (caller Task)?
+        elif line_right_arrow in line:
+            # Handle all of the caller and called Tasks.
+            call_table = process_callers_and_called_tasks(output_lines, call_table, caller_line_num, line, project_name)
+
+    return call_table
+
+
+def unique_up_down_location_by_project(call_table: dict, up_down_location: int) -> int:
+    # Collect all existing up_down_location values in the call_table
+    """
+    Ensure that the given up_down_location is not already in use in the call_table by
+    incrementing or decrementing it until it is unique for the given project.
+
+    Args:
+        call_table (dict): The dictionary of caller/called Task connections.
+        up_down_location (int): The up_down_location to check for uniqueness.
+
+    Returns:
+        int: A unique up_down_location value.
+    """
+    existing_locations = {entry["up_down_location"] for entry in call_table.values()}
+
+    # Check if the given up_down_location is already in use
+    while up_down_location in existing_locations:
+        # Increment or decrement to find a unique value
+        up_down_location += 2  # You could change to -1 if decrementing is preferred
+
+    # Return a unique up_down_location value
+    return up_down_location
+
+
+def ensure_unique_up_down_location(call_table: dict, up_down_location: int, project_name: str) -> int:
+    """
+    Ensure that the given up_down_location is not already in use in the call_table by
+    incrementing or decrementing it until it is unique for the given project.  If the
+    called Task is not in this project, then make sure the up_down_location is not in use
+    in any Project.  If the called Task is in this project, then make sure the
+    up_down_location is not in use in this project.
+
+    Args:
+        call_table (dict): The dictionary of caller/called Task connections.
+        up_down_location (int): The up_down_location to check for uniqueness.
+        project_name (str): The name of the current Project.
+
+    Returns:
+        int: A unique up_down_location value.
+    """
+    project_keys_values = [
+        (key, details) for key, details in call_table.items() if details.get("project_name") == project_name
+    ]
+
+    # Make sure this called Task is in this Project.
+    for key_value in project_keys_values:
+        task_to_find = key_value[1]["caller_task_name"]
+        caller_keys_values = [
+            (key, details) for key, details in call_table.items() if details.get("caller_task_name") == task_to_find
+        ]
+
+        # If the caller task's project is not this called task project, then the called task project is outside this project.
+        if caller_keys_values and caller_keys_values[0][1]["project_name"] != project_name:
+            restart = True
+            while restart:
+                restart = False
+                for value in call_table.values():
+                    if value["up_down_location"] == up_down_location:
+                        up_down_location += 2
+                        restart = True
+                        break
+
+        # Caller and called tasks are in same project.  Just make sure up_down_location is unique for this project.
+        else:
+            mini_call_table = {}
+            for key_value in project_keys_values:  # noqa: PLW2901
+                mini_call_table[key_value[0]] = call_table[key_value[0]]
+            up_down_location = unique_up_down_location_by_project(mini_call_table, up_down_location)
+
+    return up_down_location
 
 
 # Complete Task details and save them in call_table
@@ -459,6 +605,7 @@ def get_task_details_and_save(
     called_task_name: str,
     called_line_num: int,
     called_task_position: int,
+    project_name: str,
 ) -> dict:
     """
     Saves task call details and returns updated call table
@@ -504,45 +651,60 @@ def get_task_details_and_save(
 
     # Find the outside boundary for the range of lines to traverse between "caller" and "called".
     # Up_down location is the pos of the "called" Task name "calls ..."
-    # Note: The task_delimeter pushes the position to the right by the number of delimeters / 2
     up_down_location = max(caller_task_position, called_task_position)  # Starting outer position (col)
     for x in range(line_range):
-        line_to_compare = output_lines[up_down_start + x].rstrip()
+        line_to_compare = output_lines[up_down_start + x].rstrip().replace(task_delimeter, "")
         up_down_location = max(up_down_location, len(line_to_compare))
+    up_down_location += 2
 
-    # If this up_down value is already in our table, increment it until it isn't.
+    # The key is insignificant, but must be unique.
+    call_table_key = caller_task_position + called_task_position
     if call_table is not None:
-        while up_down_location in call_table:
-            up_down_location += 2
+        while call_table_key in call_table:
+            call_table_key += 1
+
+    # Ensure a unique up_down_location for the given project.
+    up_down_location = ensure_unique_up_down_location(call_table, up_down_location, project_name)
 
     # Okay, we have everything we need.  Add it all to our call table.
-    call_table[up_down_location] = [
-        caller_task_name,
-        caller_line_num,
-        caller_task_position,
-        called_task_name,
-        called_line_num,
-        called_task_position,
-        arrow,
-        upper_corner_arrow,
-        lower_corner_arrow,
-        fill_arrow,
-        start_line,
-        line_count,
-    ]
+    call_table[call_table_key] = {
+        "caller_task_name": caller_task_name,
+        "caller_line_num": caller_line_num,
+        "caller_task_position": caller_task_position,
+        "called_task_name": called_task_name,
+        "called_line_num": called_line_num,
+        "called_task_position": called_task_position,
+        "arrow": arrow,
+        "upper_corner_arrow": upper_corner_arrow,
+        "lower_corner_arrow": lower_corner_arrow,
+        "fill_arrow": fill_arrow,
+        "start_line": start_line,
+        "line_count": line_count,
+        "up_down_location": up_down_location,
+        "project_name": project_name,
+    }
+
     return call_table
 
 
 # Go through all caller and called Tasks and build the call table based on the
 # input line passed in.
-def process_callers_and_called_tasks(output_lines: list, call_table: dict, caller_line_num: int, line: str) -> dict:
+def process_callers_and_called_tasks(
+    output_lines: list,
+    call_table: dict,
+    caller_line_num: int,
+    line: str,
+    project_name: str,
+) -> dict:
     """
-    Processes caller and called tasks by parsing the diagram line from the output lines.
+    Processes caller and called tasks by parsing the diagram line from the output lines and saving the call details
+    in the call table.
     Args:
         output_lines: List of output lines from profiler
         call_table: Table to store caller and called task details
         caller_line_num: Line number of caller task
         line: Line containing call information
+        project_name: Name of project
     Returns:
         call_table: Updated call table with caller and called task details
     Processes Logic:
@@ -591,7 +753,8 @@ def process_callers_and_called_tasks(output_lines: list, call_table: dict, calle
                 str_pos = check_line.find(search_name)
 
                 # Find the "[" bracket and make sure it is the next valid character after the name.
-                string_position = check_line.find(f"{search_name} [", str_pos)
+                modified_check_line = check_line.replace("(entry) ", "").replace("(exit) ", "")
+                string_position = modified_check_line.find(f"{search_name} [", str_pos)
                 # Keep searching if this is not the valid caller Task name.
                 if string_position == -1:
                     continue
@@ -626,11 +789,11 @@ def process_callers_and_called_tasks(output_lines: list, call_table: dict, calle
                 called_task_name,
                 called_line_num,
                 called_task_position,
-                # called_task_line_num,
+                project_name,
             )
             processed_tasks.append(called_task_name)
 
-    return call_table
+    return call_table  # Return call table with new entry.
 
 
 def find_nth(haystack: str, needle: str, n: int, starting_position: int = 0) -> int:
@@ -651,3 +814,29 @@ def find_nth(haystack: str, needle: str, n: int, starting_position: int = 0) -> 
         start = haystack.find(needle, start + len(needle))
         n -= 1
     return start
+
+
+from collections import defaultdict
+
+
+def find_duplicate_up_down_locations(call_table: dict) -> list:
+    # Dictionary to collect items by their 'up_down_location' values
+    """
+    Finds items in the given data dictionary with duplicate 'up_down_location' values.
+
+    Args:
+        call_table (dict): The dictionary of connectors.
+
+    Returns:
+        list: A list of tuples, where each tuple contains the key and value of an item with a duplicate 'up_down_location'.
+    """
+    location_map = defaultdict(list)
+
+    # Populate the location_map with items indexed by 'up_down_location'
+    for key, value in call_table.items():
+        location = value.get("up_down_location")
+        if location is not None:
+            location_map[location].append((key, value))
+
+    # Extract and return only the items with duplicate 'up_down_location'
+    return [item for items in location_map.values() if len(items) > 1 for item in items]

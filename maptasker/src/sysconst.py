@@ -17,7 +17,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "6.0.1"
+VERSION = "6.0.2"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -119,7 +119,6 @@ ARGUMENT_NAMES = {
     "diagram_window_position": "Last Diagram Window Position",
     "directory": "Display Directory",
     "display_detail_level": "Display Level",
-    "display_icon": "Display Icon",
     "file": "Get backup file named",
     "font": "Font To Use",
     "gui": "GUI Mode",
@@ -255,3 +254,6 @@ LLAMA_MODELS = [
     "qwen",
     "qwen2",
 ]
+
+# DFefine the number of Profiles per line in the Diagram view.  Default = 6.
+DIAGRAM_PROFILES_PER_LINE = 6

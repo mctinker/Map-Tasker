@@ -68,17 +68,22 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 6.0.1 - Change Log\n
+Version 6.0.2 - Change Log\n
 ### Added\n
-- Added: Support for the latest 'Tasker 6.4.1 beta': new 'Widget V2' task action and other task action changes.\n
-- Added: For task action elements that are either selected or not, display '(selected)' along with the element name (e.g. 'Continue Task Immediately (selected)').\n
+- Added: 'Top Task' and 'Bottom Task' buttons added to the Diagram view when highlighting Task connectors, to jump to the top/bottom of the Task connector.\n
 ### Changed\n
-- Changed: Improved the Diagram view performance.\n
+- Changed: The 'IA' Diagram view button has been removed since it is no longer needed.\n
+- Changed: The progress bar in the Map and Diagram views has been removed temporarily due to a bug in some core python code.\n
 ### Fixed\n
-- Fixed: Outer horizontal connectors in the Diagram view are too far to the right.\n
-- Fixed: Program abend during GUI initialization if previous run was for a single named item.\n
-- Fixed: Output lines with 'Structure Output (JSON, etc)' are incorrectly displaying '&nbsp' string in front.\n
+- Fixed: Tasks identified as 'entry' or 'exit' in the Diagram view are not displaying any connectors.\n
+- Fixed: Multiple Tasks on the same line in the Diagram view that are not found are not displaying '(not found)!' in the correct position.\n
+- Fixed: Optimize the connector alignment in the Diagram view (performance enhancement).\n
+- Fixed: The Diagram view has overlapping horizontal connectors in certain situations.\n
+- Fixed: Diagram buttons dissapear if the right side of window is shifted/resized to the left.\n
+- Fixed: Clicking on 'Toggle Word Wrap' in the Ai Analysis results window causes a program error.\n
 ### Known Issues\n
+- An upgrade to Tcl-tk verison 9 (brew install tcl-tk) may cause an error when importing tkinter during program startup.  If this occurs, upgrade to the latest available verion of Python: e.g. if running python 3.12.4, upgrade to 3.12.7 (the latest as of 11/2024).\n
+- Task actions that are specific to Android 15 have not yet been mapped, and will display as such.\n
 - Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.\n
 - Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).\n
 """
@@ -1391,10 +1396,10 @@ def display_messages_from_last_run(self) -> None:  # noqa: ANN001
         with open(ERROR_FILE) as error_file:
             error_msg = error_file.read()
             # Handle potential mssing modules
-            if "cria" in error_msg:
-                self.ai_missing_module = "cria"
-            elif "openai" in error_msg:
-                self.ai_missing_module = "openai"
+            # if "cria" in error_msg:
+            #     self.ai_missing_module = "cria"
+            # elif "openai" in error_msg:
+            #     self.ai_missing_module = "openai"
 
             # Handle Ai Response and display it in a new toplevel window
             if "Ai Response" in error_msg:
@@ -1978,9 +1983,10 @@ def display_progress_bar(
             progress_value = 0.97
 
     # Update the progress bar with the current value and color.
-    progress_bar.progressbar.set(progress_value)
-    progress_bar.progressbar.configure(progress_color=progress_color)
-    progress_bar.progressbar.update()
+    # TODO The following is commented out due to a bug in custominter's ctk_progressbar with the intro of Tcl-tk 9.0.0.1.
+    # progress_bar.progressbar.set(progress_value)
+    # progress_bar.progressbar.configure(progress_color=progress_color)
+    # progress_bar.progressbar.update()
 
     # Check if an alert needs to be printed (OS X only).
     if (

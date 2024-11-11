@@ -153,7 +153,7 @@ def http_request(
             error_message = f"Request failed for url: {url} .  Connection error! Unable to get XML from Android device."
         except Timeout:
             error_message = f"Request failed for url: {url} .  Timeout error.  Or perhaps the profile 'MapTasker List' has not been imported into Tasker on the Android device!"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             error_message = f"Request failed for url: {url}, error: {e} ."
 
     # If we have an error message, return as error.
@@ -364,20 +364,21 @@ def append_item_to_list(item: str, lst: list = []) -> list:  # noqa: B006
     return lst
 
 
-def find_all_positions(string: str, substring: str) -> list:
+def find_all_positions(string: str, substring: str, start_position: int = 0) -> list:
     """
     Finds all positions of a substring in a string.
 
     Args:
         string (str): The string to search in.
         substring (str): The substring to search for.
+        start_position (int, optional): The position to start the search from. Defaults to 0.
 
     Returns:
         list: A list of all positions of the substring in the string.
     """
 
     positions = []
-    start = 0
+    start = start_position
     while True:
         pos = string.find(substring, start)
         if pos == -1:
@@ -401,9 +402,9 @@ def rutroh_error(message: str) -> None:
         logger.error(f"Rutroh! {message}")
 
 
-def find_substring_in_list(strings, substring):
+def find_substring_in_list(strings: str, substring: str) -> int:
     """
-    Finds the index of the first occurrence of a substring in a list of strings.
+    Finds the index of the first occurrence/line of a substring in a list of strings.
 
     Args:
         strings (list): A list of strings to search in.
