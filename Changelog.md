@@ -2,29 +2,43 @@
 
 All notable changes to this project will be documented in this file!
 
-## [6.0.1] 01-Nov-2024
+## [6.0.2] 12-Nov-2024
 
 ### Added
 
-- Added: Support for the latest 'Tasker 6.4.1 beta': new 'Widget V2' task action and other task action changes.
-- Added: For task action elements that are either selected or not, display '(selected)' along with the element name (e.g. 'Continue Task Immediately (selected)').
+- Added: 'Top Task' and 'Bottom Task' buttons added to the Diagram view when highlighting Task connectors, to jump to the top/bottom of the Task connector.
 
 ### Changed
 
-- Changed: Improved the Diagram view performance.
+- Changed: The 'IA' Diagram view button has been removed since it is no longer needed.
+- Changed: The progress bar in the Map and Diagram views has been removed temporarily due to a bug in some core python code.
 
 ### Fixed
 
-- Fixed: Outer horizontal connectors in the Diagram view are too far to the right.
-- Fixed: Program abend during GUI initialization if previous run was for a single named item.
-- Fixed: Output lines with 'Structure Output (JSON, etc)' are incorrectly displaying '&nbsp' string in front.
+- Fixed: Tasks identified as 'entry' or 'exit' in the Diagram view are not displaying any connectors.
+- Fixed: Multiple Tasks on the same line in the Diagram view that are not found are not displaying '(not found)!' in the correct position.
+- Fixed: Optimize the connector alignment in the Diagram view (performance enhancement).
+- Fixed: The Diagram view has overlapping horizontal connectors in certain situations.
+- Fixed: Diagram buttons dissapear if the right side of window is shifted/resized to the left.
+- Fixed: Clicking on 'Toggle Word Wrap' in the Ai Analysis resultsa window causes a program error.
 
 ### Known Issues
 
+- An upgrade to Tcl-tk verison 9 (brew install tcl-tk) may cause an error when importing tkinter.  If this occurs, upgrade to the latest available verion of Python: e.g. if running python 3.12.4, upgrade to 3.12.7 (the latest).
+- Task actions that are specific to Android 15 have not yet been mapped, and will display as such.
 - Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
 - Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).
 
 ## Older History Logs
+
+## [6.0.1]
+
+- Added: Support for the latest 'Tasker 6.4.1 beta': new 'Widget V2' task action and other task action changes.
+- Added: For task action elements that are either selected or not, display '(selected)' along with the element name (e.g. 'Continue Task Immediately (selected)').
+- Changed: Improved the Diagram view performance.
+- Fixed: Outer horizontal connectors in the Diagram view are too far to the right.
+- Fixed: Program abend during GUI initialization if previous run was for a single named item.
+- Fixed: Output lines with 'Structure Output (JSON, etc)' are incorrectly displaying '&nbsp' string in front.
 
 ## [6.0]
 
