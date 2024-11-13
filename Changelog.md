@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [6.0.2] 12-Nov-2024
+## [6.0.2/6.0.3] 12-Nov-2024
 
 ### Added
 
@@ -12,11 +12,20 @@ All notable changes to this project will be documented in this file!
 
 - Changed: The 'IA' Diagram view button has been removed since it is no longer needed.
 - Changed: The progress bar in the Map and Diagram views has been removed temporarily due to a bug in some core python code.
+- Changed: Python installations that use 'pyenv' version manaageement, take note: tcl-tk has been upgraded to version 9 (brew install tcl-tk), which may cause an error when importing tkinter.  If this error occurs:
+
+  - if running python 3.11.10 or lower, then the new tcl-tk is not recognized and you will get an import error for 'tkinter'.  Issue the commands (in the order specified):
+    - 'brew uninstall tcl-tk',
+    - 'pyenv uninstall 3.11.xx'
+    - 'brew install tcl-tk8'
+    - 'pyenv install 3.11:latest'
+  - if running python 3.12.4, upgrade to 3.12.7 (the latest): 'pyenv install 3.12:latest'
+  - Python version 3.13.0 works fine with the new tcl-tk.
 
 ### Fixed
 
 - Fixed: Tasks identified as 'entry' or 'exit' in the Diagram view are not displaying any connectors.
-- Fixed: Multiple Tasks on the same line in the Diagram view that are not found are not displaying '(not found)!' in the correct position.
+- Fixed: Multiple Task6.0.2 on the same line in the Diagram view that are not found are not displaying '(not found)!' in the correct position.
 - Fixed: Optimize the connector alignment in the Diagram view (performance enhancement).
 - Fixed: The Diagram view has overlapping horizontal connectors in certain situations.
 - Fixed: Diagram buttons dissapear if the right side of window is shifted/resized to the left.

@@ -24,11 +24,11 @@ customtkinter = "^5.2.2"  # GUI
 # ctkcolorpicker = "^0.9.0"  # Color picker in GUI. Using local version to fix a bug
 pillow = "^11.0.0"  # Image support in GUI
 darkdetect = "^0.8.0"  # Appearance mode detection
-defusedxml = "^0.7.1"  # More secure xml parser
+defusedxml = "0.7.1"  # More secure xml parser
 requests = "^2.32.3"  # HTTP Server function request
 tomli_w = "^1.1.0"  # Write toml file
 # cria = "^1.6.6"  #  Ai Ollama support (using local copy with fix)
-openai = "^1.52.0"  #  Ai OpenAi support
+openai = "^1.54.4"  #  Ai OpenAi support
 ollama = "^0.3.3"  #  Ai Ollama support > cria rquires this
 psutil = "^6.1.0"  #  System monitoring
 

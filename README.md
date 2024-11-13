@@ -172,6 +172,15 @@ If having problems getting Tkinter to version 8.6, try the following:
 
 If still having Tkinter version problems, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
 
+Python installations that use 'pyenv' version management, take note: tcl-tk has been upgraded to version 9 (brew install tcl-tk), which may cause an error when importing tkinter.  If this error occurs:
+- If running python 3.11.10 or lower, then the new tcl-tk is not recognized and you will get an import error for 'tkinter'.  Issue the commands (in the order specified):\n
+    - 'brew uninstall tcl-tk',\n
+    - 'pyenv uninstall 3.11.xx'\n
+    - 'brew install tcl-tk8'\n
+    - 'pyenv install 3.11:latest'\n
+- if running python 3.12.4, upgrade to 3.12.7 (the latest): 'pyenv install 3.12:latest'\n
+- Python version 3.13.0 works fine with the new tcl-tk.\n
+
 ### 4
 
 If you are unable to upgrade to Python version 3.11 or higher, an older version of MapTasker is still available for Python version 3.10, via the command:
@@ -229,7 +238,10 @@ Network traffic is as follows:
 
 ## Known Issues
 
-- Firefox doesn't recognize a light background (e.g. when 'Appearance' is changed from 'dark' to 'light').  Themes and the Firefox "Manage Colors" settings can mess this up.
+- An upgrade to Tcl-tk verison 9 (brew install tcl-tk) may cause an error when importing tkinter.  If this occurs, upgrade to the latest available verion of Python: e.g. if running python 3.12.4, upgrade to 3.12.7 (the latest).
+- Task actions that are specific to Android 15 have not yet been mapped, and will display as such.
+- Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
+- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).
 
 ## Contributions
 
