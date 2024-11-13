@@ -71,6 +71,8 @@ from maptasker.src.sysconst import (
 #   print("Python version ", sys.version)  # Which Python are we using today?
 # import tkinter as tk
 # print("Tkinter version ", tk.TkVersion)  # Which Tkinter?
+# print(tk.Tcl().call("info", "library"))
+# print(tk.Tcl().call("info", "patchlevel"))
 
 crash_debug = False
 

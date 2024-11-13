@@ -1533,7 +1533,7 @@ class MyGui(customtkinter.CTk):
             None"""
         # If so, add a button to enable user to update.
         # TODO For testing only = True.  False for production
-        test_button = True
+        test_button = False
         if is_new_version() or test_button:
             self.new_version = True
             # We have a new version.  Let user upgrade.
@@ -3494,10 +3494,10 @@ class EventHandlers:
         task_half_length = len(connector["task_upper"][0]) // 2
         # Get the correct line/position based on top or bottom.
         if top:
-            seek_line = f"{connector["start_top"][0]!s}.{connector["start_top"][1] - task_half_length!s}"
+            seek_line = f"{connector['start_top'][0]!s}.{connector['start_top'][1] - task_half_length!s}"
             modifier = "top"
         else:
-            seek_line = f"{connector["end_bottom"][0]!s}.{connector["start_bottom"][1] - task_half_length!s}"
+            seek_line = f"{connector['end_bottom'][0]!s}.{connector['start_bottom'][1] - task_half_length!s}"
             modifier = "bottom"
         # Display the Task
         textview.textview_textbox.see(seek_line)

@@ -68,12 +68,21 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 6.0.2 - Change Log\n
+Version 6.0.2/6.0.3 - Change Log\n
 ### Added\n
 - Added: 'Top Task' and 'Bottom Task' buttons added to the Diagram view when highlighting Task connectors, to jump to the top/bottom of the Task connector.\n
 ### Changed\n
 - Changed: The 'IA' Diagram view button has been removed since it is no longer needed.\n
 - Changed: The progress bar in the Map and Diagram views has been removed temporarily due to a bug in some core python code.\n
+- Changed: Python installations that use 'pyenv' version manaageement, take note: tcl-tk has been upgraded to version 9 (brew install tcl-tk), which may cause an error when importing tkinter.  If this error occurs:\nn
+\n
+  - if running python 3.11.10 or lower, then the new tcl-tk is not recognized and you will get an import error for 'tkinter'.  Issue the commands (in the order specified):\n
+    - 'brew uninstall tcl-tk',\n
+    - 'pyenv uninstall 3.11.xx'\n
+    - 'brew install tcl-tk8'\n
+    - 'pyenv install 3.11:latest'\n
+  - if running python 3.12.4, upgrade to 3.12.7 (the latest): 'pyenv install 3.12:latest'\n
+  - Python version 3.13.0 works fine with the new tcl-tk.\n
 ### Fixed\n
 - Fixed: Tasks identified as 'entry' or 'exit' in the Diagram view are not displaying any connectors.\n
 - Fixed: Multiple Tasks on the same line in the Diagram view that are not found are not displaying '(not found)!' in the correct position.\n
@@ -1983,7 +1992,7 @@ def display_progress_bar(
             progress_value = 0.97
 
     # Update the progress bar with the current value and color.
-    # TODO The following is commented out due to a bug in custominter's ctk_progressbar with the intro of Tcl-tk 9.0.0.1.
+    # TODO The following is commented out due tyo asn error in CustomTkinter
     # progress_bar.progressbar.set(progress_value)
     # progress_bar.progressbar.configure(progress_color=progress_color)
     # progress_bar.progressbar.update()
