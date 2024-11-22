@@ -51,7 +51,7 @@ from maptasker.src.diagutil import (
     remove_icon,
 )
 from maptasker.src.getids import get_ids
-from maptasker.src.guiutils import display_progress_bar
+from maptasker.src.guiutils import display_progress_bar, kill_the_progress_bar
 from maptasker.src.guiwins import ProgressbarWindow
 from maptasker.src.maputils import find_all_positions, rutroh_error
 from maptasker.src.primitem import PrimeItems
@@ -59,6 +59,11 @@ from maptasker.src.sysconst import DIAGRAM_FILE, DIAGRAM_PROFILES_PER_LINE, MY_V
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
+
+try:
+    profiles_per_line = PrimeItems.profiles_per_line
+except (AttributeError, KeyError):
+    PrimeItems.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
 
 
 def flatten_with_quotes(string_list: list) -> str:
@@ -144,7 +149,7 @@ def add_quotes(
             if len(line) <= bar_char:
                 output_task_lines[line_num] = f"{line.ljust(bar_char)}│"
 
-    return found_tasks, last_upward_bar
+    return found_tasks, last_upward_bar, output_task_lines
 
 
 # Print the specific Task.
@@ -177,11 +182,11 @@ def output_the_task(
     if print_tasks:
         if output_task_lines:
             print_all(output_task_lines)
-        output_task_lines = []
+            output_task_lines = []
         last_upward_bar = []
 
     # Add quotes to called Tasks.
-    found_tasks, last_upward_bar = add_quotes(
+    found_tasks, last_upward_bar, output_task_lines = add_quotes(
         output_task_lines,
         last_upward_bar,
         task,
@@ -191,7 +196,7 @@ def output_the_task(
         found_tasks,
     )
 
-    return found_tasks, last_upward_bar
+    return found_tasks, last_upward_bar, output_task_lines
 
 
 # Process all Tasks in the Profile
@@ -237,7 +242,7 @@ def print_all_tasks(
                 called_by_tasks = f" [Called by {line_left_arrow} {flatten_with_quotes(prime_task['called_by'])}]"
 
         # We have a full row of Profiles.  Print the Tasks out.
-        found_tasks, last_upward_bar = output_the_task(
+        found_tasks, last_upward_bar, output_task_lines = output_the_task(
             print_tasks,
             found_tasks,
             task,
@@ -731,7 +736,7 @@ def draw_arrows_to_called_task(
         temp_line = output_lines[start_line + x].replace(task_delimeter, "")
         temp_line = temp_line.ljust(up_down_location)
         front_line = temp_line[:up_down_location]
-        # Adjust bars if there are task delimteres in the line.
+        # Adjust bars if there are task delimeters in the line.
         # Some lines still have delimeters.  We need to fix the bars beyond the delimeters so they align properly
         # ith the bars above them.
         delimeters = find_all_positions(output_lines[start_line + x], task_delimeter)
@@ -838,13 +843,13 @@ def mysizeof(my_dict: list) -> int:
     return total
 
 
-def check_limit(call_table: dict, output_lines: list, progress_bar: ProgressbarWindow) -> None:
+def check_limit(call_table: dict, output_lines: list, progress_bar: dict) -> None:
     """
     Checks if the size of the call table exceeds the maximum size limit.
 
     Args:
         call_table (dict): The dictionary to check the size of.
-        progress_bar (ProgressbarWindow): The progress bar to update.
+        progress_bar (dict): The progress bar to update.
 
     Returns:
         tuple: A tuple containing a boolean indicating whether the size limit was exceeded and the call table.
@@ -861,8 +866,8 @@ def check_limit(call_table: dict, output_lines: list, progress_bar: ProgressbarW
             PrimeItems.error_code = 1
             PrimeItems.error_msg = f"Too much data to display (Size={size!s}, View Limit={view_limit}).  Select a larger 'View Limit' or a single Project / Profile / Task and try again."
             # Kill the progressbar.
-            progress_bar.progressbar.stop()
-            progress_bar.destroy()
+            kill_the_progress_bar(progress_bar)
+
             # Cleanup
             PrimeItems.netmap_output = []
             PrimeItems.output_lines.output_lines = []
@@ -1162,10 +1167,14 @@ def handle_calls(output_lines: list) -> None:
     - Remove all icons from the names to ensure arrow alignment
     """
     # Display a progress bar if coming from the GUI.
-    progress = configure_progress_bar(output_lines)
+    progress = configure_progress_bar(output_lines, "Diagram")
 
     # Go through the output and add blanks above the called tasks, one for each caller.
     output_lines = add_blanks_above_called_tasks(output_lines)
+
+    # Recaluate progress bar size.
+    progress["max_data"] = len(output_lines)
+    progress["tenth_increment"] = progress["max_data"] // 10
 
     # Identify called Tasks that don't exist and add blank lines for called/caller Tasks.
     mark_tasks_not_found(output_lines)
@@ -1182,8 +1191,6 @@ def handle_calls(output_lines: list) -> None:
 
     # Fix overlapping connectors that have the same up/down locations.
     call_table = fix_duplicate_up_down_locations(call_table)
-    # bingo delete following line
-    call_table = dict(sorted(call_table.items(), key=lambda item: item[1]["caller_line_num"]))
     # Finally, sort it by up/down location (inner locations before outer).
     call_table = dict(sorted(call_table.items(), key=lambda item: item[1]["up_down_location"]))
 
@@ -1197,27 +1204,23 @@ def handle_calls(output_lines: list) -> None:
             called_task_lookup,
         )
 
-    # Force progress bar to 10% to represent time to clean and display it if coming from the GUI.
-    if PrimeItems.program_arguments["gui"]:
-        display_progress_bar(progress, is_instance_method=False)
-
     # Now clean up the mess we made.
     output_lines = cleanup_diagram(output_lines, progress)
 
     # We're done.  Kill the progressbar.
     if PrimeItems.program_arguments["gui"]:
-        progress["progress_bar"].progressbar.stop()
-        progress["progress_bar"].destroy()
+        kill_the_progress_bar(progress)
 
     return output_lines
 
 
-def configure_progress_bar(output_lines: list) -> tuple:
+def configure_progress_bar(output_lines: list, title: str) -> tuple:
     """
     Configures and returns a progress bar for the GUI if the 'gui' argument is set in PrimeItems.program_arguments.
 
     Args:
         output_lines (list): The list of lines to process.
+        titele (str): The title of the progress bar.
 
     Returns:
         progress (dict): The progress bar dictionary.
@@ -1228,14 +1231,21 @@ def configure_progress_bar(output_lines: list) -> tuple:
         if not PrimeItems.program_arguments["map_window_position"]:
             PrimeItems.program_arguments["map_window_position"] = "300x200+600+0"
         # Create a progress bar widget
+        # The progress_bar will point to the ProgressbarWindow object, and progress_bar.progressbar will point to the
+        # CTkProgressBar object
         progress_bar = ProgressbarWindow()
-        progress_bar.progressbar.configure(width=300, height=30)
-        progress_bar.title("Diagram Progress")
+        progress_bar.title(f"{title} Progress")
+        progress_bar.progressbar.set(0.0)
         progress_bar.progressbar.start()
+
+        # Set the geometry of the progress bar
+        if PrimeItems.program_arguments["progressbar_window_position"]:
+            progress_bar.geometry(PrimeItems.program_arguments["progressbar_window_position"])
+
         # Setup for our progress bar.  Use the total number of output lines as the metric.
         # 4 times since we go thru output lines 4 times in a majore way...
         # 1st: the Diagram, 2nd: delete_hanging_bars
-        max_data = len(output_lines) * 3
+        max_data = len(output_lines) * 8
 
         # Calculate the increment value for each 10% of progress (tenth_increment) based on the maximum value of the
         # progress bar (max_data). If the calculated increment is 0 (which would happen if max_data is less than 10),
@@ -1248,6 +1258,7 @@ def configure_progress_bar(output_lines: list) -> tuple:
             "tenth_increment": tenth_increment,
             "max_data": max_data,
             "progress_counter": 0,
+            "self": None,
         }
     return None
 
@@ -1279,8 +1290,8 @@ def build_profile_box(
 
     filler = f"{blank*8}"
     profile_counter += 1
-    if profile_counter > DIAGRAM_PROFILES_PER_LINE:
-        # We have 6 columns.  Print them
+    # Only print the lines if we are at the profiles-per-line value.
+    if profile_counter > PrimeItems.profiles_per_line:  # profiles_per_line defined as global variable
         print_3_lines(output_profile_lines)
         profile_counter = 1
         print_tasks = True
@@ -1294,7 +1305,7 @@ def build_profile_box(
     else:
         print_tasks = False
 
-    # Start/continue building our outlines
+    # Start/continue building our Profile outlines
     output_profile_lines, position_for_anchor = build_box(profile, output_profile_lines)
     return (
         output_profile_lines,

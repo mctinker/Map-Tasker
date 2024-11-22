@@ -265,6 +265,7 @@ def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
     task_label = ""
     task_conditions = ""
     remote_execution = ""
+    remote_timeout = ""
 
     # If no code found, bail.
     if child.find("code") is not None:
@@ -298,10 +299,16 @@ def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
 
     # See if this is a remote action
     if child.find("remoteDevice") is not None:
-        remote_execution = format_html("action_condition_color", "", ", Remote Device/Execution", True)
+        # remote_execution = format_html("action_condition_color", "", ", Remote Device/Execution", True)
+        remote_execution = ", Remote Device/Execution"
+
+    # See if this is a remote timeout value
+    if child.find("remoteTimeout") is not None:
+        timout = child.find("remoteTimeout").text
+        remote_timeout = ", Remote Timeout (Seconds): " + timout + "\n"
 
     # Return the lot
-    return f"{task_conditions}{action_disabled}{task_label}{remote_execution}"
+    return f"{task_conditions}{action_disabled}{task_label}{remote_execution}{remote_timeout}"
 
 
 # Get any/all conditions associated wwith this Task.

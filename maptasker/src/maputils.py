@@ -399,7 +399,7 @@ def rutroh_error(message: str) -> None:
     if PrimeItems.program_arguments["debug"]:
         print(f"Rutroh! {message}")
     else:
-        logger.error(f"Rutroh! {message}")
+        logger.debug(f"Rutroh! Error...{message}")
 
 
 def find_substring_in_list(strings: str, substring: str) -> int:

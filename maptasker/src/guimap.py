@@ -363,6 +363,8 @@ def calculate_spacing(
 
     if "[Continue Task After Error]" in text:
         output_lines[line_num]["text"][0] = "[Continue Task After Error]\n"
+        if PrimeItems.program_arguments.get("gui", True):
+            return spacing + 18
         return spacing
 
     if spacing == 61 or text[0].isdigit() or " continued >>>" in text:

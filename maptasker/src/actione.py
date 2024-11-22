@@ -182,13 +182,14 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     # Break at newline and comma if not a config param.
     # NOTE: There may be one or more double '\n' strings, which is ok.
     if "Configuration Parameter(s):" not in task_code_line:
-        # Replace all commas followed by a nonblank with a break
+        # Replace all commas followed by a non-blank with a break
         task_code_line = re.sub(pattern13, f"<br>{indent_amt}{blank*(extra_blanks+7)}", task_code_line)
         # Now handle newlines
         task_code_line = task_code_line.replace("\n", f"<br>{indent_amt}{blank*(extra_blanks+7)}")  # 7 for "Values="
 
     # Break at bracket
-    task_code_line = task_code_line.replace("[", f"<br>{indent_amt}{blank*extra_blanks}[")
+    a_bit_more = 9 if "DISABLED" not in task_code_line else 0
+    task_code_line = task_code_line.replace("[", f"<br>{indent_amt}{blank*(extra_blanks+a_bit_more)}[")
     # Break at (If condition
     task_code_line = task_code_line.replace("(<em>IF", f"<br>{indent_amt}{blank*extra_blanks}(<em>IF")
     # Break at label

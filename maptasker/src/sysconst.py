@@ -17,7 +17,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "6.0.2"
+VERSION = "6.0.4"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -131,6 +131,7 @@ ARGUMENT_NAMES = {
     "outline": "Display Configuration Outline",
     "preferences": "Display Tasker Preferences",
     "pretty": "Display Prettier Output",
+    "progressbar_window_position": "Last Progressbar Window Position",
     "rerun": "ReRun Program",
     "runtime": "Display Runtime Arguments/Settings",
     "single_profile_name": "Single Profile Name",
@@ -151,6 +152,7 @@ SYSTEM_ARGUMENTS = [
     "ai_popup_window_position",
     "ai_analysis_window_position",
     "map_window_position",
+    "progressbar_window_position",
     "guiview",
     "doing_diagram",
     "rerun",
@@ -174,7 +176,9 @@ pattern9 = re.compile("</span></span>")
 pattern10 = re.compile("</p></p>")
 pattern11 = re.compile(".*[A-Z].*")
 pattern12 = re.compile(r"[%]\w+")  # matches any word-constituent character.
-pattern13 = r",(?=\S)"  # matches any comma folowed by a nonblank charatcer.  e.g. now is,the time, for (catches is,the)
+pattern13 = (
+    r",(?=\S)"  # matches any comma followed by a non-blank character.  e.g. now is,the time, for (catches is,the)
+)
 RE_FONT = re.compile(r"</font>")
 
 clean = re.compile("<.*?>")
@@ -253,6 +257,8 @@ LLAMA_MODELS = [
     "phi3",
     "qwen",
     "qwen2",
+    "qwen2.5-coder",
+    "qwen2.5",
 ]
 
 # DFefine the number of Profiles per line in the Diagram view.  Default = 6.

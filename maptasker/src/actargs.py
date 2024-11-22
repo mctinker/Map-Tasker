@@ -60,7 +60,7 @@ def get_action_arguments(
     arg: object,
     argeval: list,
     argtype: list,
-    code_action: defusedxml.ElementTree.XML,
+    code_action: defusedxml.ElementTree,
 ) -> dict:
     """
     Gets action arguments from XML code action

@@ -31,6 +31,7 @@ from maptasker.src.guiutils import (
     display_progress_bar,
     get_appropriate_color,
     get_monospace_fonts,
+    kill_the_progress_bar,
     make_hex_color,
     output_label,
     remove_tags_from_bars_and_names,
@@ -40,7 +41,7 @@ from maptasker.src.guiutils import (
 )
 from maptasker.src.maputils import find_all_positions
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import LLAMA_MODELS, OPENAI_MODELS, logger
+from maptasker.src.sysconst import DIAGRAM_PROFILES_PER_LINE, LLAMA_MODELS, OPENAI_MODELS, logger
 
 # Set up for access to icons
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -338,6 +339,8 @@ class TextWindow(ctk.CTkToplevel):
         title = self.wm_title()
         if "Diagram" in title:
             self.master.diagram_window_position = window_position
+        elif "Progress" in title:
+            self.master.progressbar_window_position = window_position
         elif "Analysis" in title:
             self.master.ai_analysis_window_position = window_position
         elif "Tree" in title:
@@ -437,9 +440,10 @@ class CTkTextview(ctk.CTkFrame):
             for num, line in enumerate(the_data):
                 text_line = num + 1
                 # NOTE: Uncomment next two lines and comment out the line afterwards to see line numbers on debug mode.
-                self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
-                # if self.master.master.debug:  # Add line number if debug mode.
-                #     self.textview_textbox.insert(f"{text_line!s}.0", f"{text_line!s}{line}\n")
+                if self.master.master.debug:  # Add line number if debug mode.
+                    self.textview_textbox.insert(f"{text_line!s}.0", f"{text_line!s}{line}\n")
+                else:
+                    self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
 
                 # Highlight the Tasker names if doing a diagram.
                 if diagram:
@@ -502,7 +506,6 @@ class CTkTextview(ctk.CTkFrame):
             "Analysis": lambda: (
                 gui_view.event_handlers.analysis_search_event,
                 gui_view.event_handlers.analysis_nextprev_event,
-                # gui_view.event_handlers.analysis_previous_event,
                 gui_view.event_handlers.analysis_clear_event,
                 gui_view.event_handlers.analysis_wordwrap_event,
                 gui_view.event_handlers.analysis_topbottom_event,
@@ -542,10 +545,14 @@ class CTkTextview(ctk.CTkFrame):
             "n",
         )
         # Search input field
-        search_input = ctk.CTkEntry(
-            self,
-            placeholder_text="",
-        )
+        # Note: The following will capture a double click, in which case the second click will be ignored
+        try:
+            search_input = ctk.CTkEntry(
+                self,
+                placeholder_text="",
+            )
+        except TclError:
+            return
         search_input.configure(
             # width=320,
             # fg_color="#246FB6",
@@ -719,6 +726,52 @@ class CTkTextview(ctk.CTkFrame):
             gui_view.diagramview = self  # Save our textview in the main Gui view.
             gui_view.diagramview.message_label = self.text_message_label
             gui_view.diagramview.search_input = search_input
+            # Add label
+            _ = add_label(
+                self,
+                self,
+                "Profiles Per Line:",
+                "Orange",
+                "",
+                "normal",
+                0,
+                0,
+                (930, 0),
+                5,
+                "nw",
+            )
+            # Add Profile Level pulldown
+            self.profiles_per_line_option = add_option_menu(
+                self,
+                self,
+                gui_view.event_handlers.profiles_per_line_event,
+                ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+                0,
+                0,
+                (1050, 0),
+                5,
+                "nw",
+            )
+            self.profiles_per_line_option.configure(width=50)
+            self.profiles_per_line_option.set("6")
+            #  Query ? button
+            ppp_query_button = add_button(
+                self,
+                self,
+                "#246FB6",
+                ("#0BF075", "#ffd941"),
+                "#1bc9ff",
+                lambda: self.master.master.event_handlers.query_event("ppp"),
+                1,
+                "?",
+                1,
+                0,
+                0,
+                (1110, 0),
+                5,
+                "nw",
+            )
+            ppp_query_button.configure(width=20)
 
         elif title == "Map":
             gui_view.mapview = self  # Save our textview in the main Gui view.
@@ -862,6 +915,7 @@ class CTkTextview(ctk.CTkFrame):
         # Get the tags at that index
         tags_at_index = text_widget.tag_names(index)
         connector_tagid = self.textview_textbox.diagram_highlighted_connector
+        connector = ""
 
         # Go through the tags for the character clicked.
         for tag in tags_at_index:
@@ -914,7 +968,8 @@ class CTkTextview(ctk.CTkFrame):
                 self.textview_textbox.diagram_highlighted_connector = tag
 
         # Add 'Jump to' buttons.
-        self.add_jumpto_buttons(connector)
+        if connector:
+            self.add_jumpto_buttons(connector)
 
     def highlight_bars(self, connector: dict, start_position: tuple, tag: str, char: str, direction: str) -> None:
         """
@@ -1174,11 +1229,6 @@ class CTkTextview(ctk.CTkFrame):
         if not PrimeItems.program_arguments["map_window_position"]:
             PrimeItems.program_arguments["map_window_position"] = self.master.master.window_position
 
-        # Create a progress bar widget
-        self.progress_bar = ProgressbarWindow()
-        self.progress_bar.progressbar.configure(width=300, height=30)
-        self.progress_bar.progressbar.start()
-
         # Go through all of the map data and format it accordingly.
         self.process_map_data(
             line_num,
@@ -1189,11 +1239,6 @@ class CTkTextview(ctk.CTkFrame):
             previous_value,
             the_data,
         )
-
-        # Stop the progress bar and destroy the widget
-        self.progress_bar.progressbar.stop()
-        self.progress_bar.progressbar.destroy()
-        self.progress_bar.destroy()
 
     # Go through all of the map data and format it accordingly.
     def process_map_data(
@@ -1221,17 +1266,18 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None
         """
-        max_data = len(the_data)
-        tenth_increment = max_data // 10 or 1
-        progress = {
-            "progress_bar": self,
-            "tenth_increment": tenth_increment,
-            "max_data": max_data,
-            "progress_counter": 0,
-        }
+        # Define the progress bar.  Import must stay here to avoid circular import.
+        from maptasker.src.diagram import configure_progress_bar
+
+        progress = configure_progress_bar(the_data, "Map")
+        progress["max_data"] = len(the_data)
+        progress["tenth_increment"] = progress["max_data"] // 10
+        progress["self"] = self.master.master
+        self.master.master.progress_bar = progress
+
         # Go through the data and format it accordingly.
         for num, (_, value) in enumerate(the_data.items()):
-            if num % tenth_increment == 0:
+            if num % progress["tenth_increment"] == 0:
                 progress["progress_counter"] = num
                 display_progress_bar(progress, is_instance_method=True)
 
@@ -1274,6 +1320,9 @@ class CTkTextview(ctk.CTkFrame):
 
             if self.master.master.debug:
                 logger.info(f"Map View Value: {value}")
+
+        # Stop the progress bar and destroy the widget
+        kill_the_progress_bar(progress)
 
     def check_bump(
         self: object,
@@ -1518,7 +1567,7 @@ class CTkTextview(ctk.CTkFrame):
             hotlink_name = f"Up One Level to {object_name}: {name_to_go_up}"
             name_to_insert, spacer = hotlink_name, ""
         else:
-            # Normal direectory entry
+            # Normal directory entry
             name_to_insert = (hotlink_name[: spacing - 3] + "...") if len(hotlink_name) > spacing else hotlink_name
 
             # Determine additional space to add to lines if needed.
@@ -1530,7 +1579,12 @@ class CTkTextview(ctk.CTkFrame):
         name_to_go_up = name_to_go_up.replace("&gt;", ">").replace("&lt;", "<")
 
         tag_id = self.textview_hyperlink.add([directory_type, name_to_go_up])
-        self.textview_textbox.insert(f"{line_num_str}.{char_position}", name_to_insert, tag_id)
+        # Note: If user double-clicks a button, the textbox is not valid on the second click.
+        try:
+            self.textview_textbox.insert(f"{line_num_str}.{char_position}", name_to_insert, tag_id)
+        except TclError:
+            return char_position, previous_directory, line_num + (char_position == 0)
+
         self.textview_textbox.tag_config(
             tag_id[1],
             background=make_hex_color(self.master.master.color_lookup["background_color"]),
@@ -1573,6 +1627,8 @@ class CTkTextview(ctk.CTkFrame):
 
         return char_position, previous_directory, line_num + (char_position == 0)
 
+        # return previous_color
+
     def output_map_text_lines(
         self,
         value: dict,
@@ -1582,120 +1638,81 @@ class CTkTextview(ctk.CTkFrame):
         previous_value: str,
     ) -> str:
         """
-        A function that outputs text lines with specified colors and formatting to a text box for the value passed in.
-        Parameters:
-            - value: A dictionary 'value' containing text, color, and highlights information.
-            - line_num: An integer representing the line number.
-            - tags: A set of tags for text formatting.
-            - previous_color: A string representing the previous color used.
-            - previous_value: A string representing the previous value used.
-        Returns:
-            previous_color: A string representing the previous color used.
-        """
+        Outputs the given map data to a text box.
 
-        spaces = " " * 20  # Approximate amount of spacing prior to a Task parameter.
+        This function takes a dictionary of map data, a line number, a set of tags, a previous color,
+        and a previous value and outputs the formatted map data to the text box.
+
+        It determines the color and highlight settings for each line of text and configures the tag colors
+        accordingly.
+
+        It also handles specific cases such as pretty output and debug line numbers.
+
+        It returns the color of the last element.
+
+        Parameters:
+            value (dict): The dictionary containing the map data.
+            line_num (int): The current line number.
+            tags (set): The set of tags.
+            previous_color (str): The color of the previous element.
+            previous_value (str): The value of the previous element.
+
+        Returns:
+            str: The color of the last element.
+        """
+        spaces = " " * 20
         char_position = 0
         line_num_str = str(line_num)
-        go_to_top = False
+        # go_to_top = False
 
         # Precompute the background color once.
         background_color = make_hex_color(self.master.master.color_lookup["background_color"])
 
-        # Loop through all of the text strings.
-        for num, message in enumerate(value["text"]):
-            new_message = message.replace("\n\n", "\n")
+        pretty = self.master.master.pretty
+        debug = self.master.master.debug
 
-            # Force a newline if this is the very first Project.
+        # Loop through all text strings.
+        for num, message in enumerate(value["text"]):
+            new_message = message.replace("\n\n", "\n").replace("Go to top", "")
+
+            # Handle specific cases
             if previous_value == "directory" and "Project:" in new_message:
                 new_message = f"\n{new_message}"
-            # Ignore extra blank line after "[⛔ DISABLED]" text...it is following a disabled "Profile:"" line.
             if new_message == "      ":
                 continue
-            # Remove "Go to top" from the end of the message if it is there.
-            # This is for "Go to top" hyperlink code below., which must follow the text insertion code.
-            if "Go to top" in new_message:
-                new_message = new_message.replace("Go to top", "")
-                go_to_top = True
 
-            if self.master.master.pretty and new_message.startswith(spaces):
+            # Adjust formatting for pretty output and debug line numbers
+            if pretty and message.startswith(spaces):
                 new_message = f"  {new_message}"
-
-            # Add line number to output message
-            if self.master.master.debug:
+            if debug:
                 new_message = f"{line_num_str} {new_message}"
 
             char_position_str = str(char_position)
             tag_id = f"{line_num_str}{char_position_str}"
 
-            # Ensure unique tag_id by appending random numbers until unique
+            # Ensure unique tag_id
             while tag_id in tags:
                 tag_id = f"{tag_id}{random.randint(100, 999)}"  # noqa: S311
             tags.append(tag_id)
 
-            # Determine if this is the last item in the list of text elements and add a new line if it is.
-            line_to_insert = (
-                f"{new_message}\n" if new_message == value["text"][-1] and "\n" not in new_message else new_message
-            )
+            # Determine if this is the last item and add a newline if necessary
+            if new_message == value["text"][-1] and "\n" not in new_message:
+                new_message += "\n"
 
-            # Insert the text to the text box.
-            # The tag is obtained from call to self.textview_hyperlink.add.
-            self.textview_textbox.insert(f"{line_num_str}.{char_position_str}", line_to_insert, tag_id)
-            self.textview_textbox.tag_add(
-                tag_id,
-                f"{line_num_str}.{char_position_str}",
-                f"{line_num_str}.{char_position + len(line_to_insert)}",
-            )
-            # Bump the character position beyond the text we just inserted..
-            char_position += len(line_to_insert)
+            # Insert text and tags into the textbox
+            start_idx = f"{line_num_str}.{char_position_str}"
+            end_idx = f"{line_num_str}.{char_position + len(new_message)}"
+            # Note: If user double-clicks a button, the textbox is not valid on the second click.
+            try:
+                self.textview_textbox.insert(start_idx, new_message, tag_id)
+            except TclError:
+                return previous_color
+            self.textview_textbox.tag_add(tag_id, start_idx, end_idx)
 
-            if go_to_top:
-                line_count = int(self.textview_textbox.index("end-1c").split(".")[0])
-                line_pos = str(line_count - 1)
-                tx = self.textview_textbox.get(f"{line_pos}.0", "end-1c")
-                # If "Go to top" is in the line, then start at position 1.  Otherwise, start at end of text.
-                gototop_char_position = 1 if "Go to top" in tx else len(tx)
-                # If the position is in the first character, then we need to rely on line_num ass the current line of text.
-                if gototop_char_position == 1:
-                    line_pos = line_num_str
-                    tx = self.textview_textbox.get(f"{line_num}.0", "end-1c")
-                    gototop_char_position = len(tx)
-                # Add the hyperlink.
-                link = ["gototop", "Go to top"]
-                # Add the text to the text box.
-                top_tag_id = self.textview_hyperlink.add(link)
-                self.textview_textbox.insert(
-                    f"{line_pos}.{gototop_char_position}",
-                    "Go to top     ",
-                    top_tag_id,
-                )
-                # Add color to the tag
-                self.textview_textbox.tag_config(
-                    top_tag_id[1],
-                    background=background_color,
-                )
-                # Go to bottom: Add the hyperlink.
-                # The tag is obtained from call to self.textview_hyperlink.add.
-                link = ["gotobot", "Go to bot"]
-                top_tag_id = self.textview_hyperlink.add(link)
-                # Add the text to the text box.
-                # For some reason, we have to back up 2 lines to get the right position.
-                self.textview_textbox.insert(
-                    f"{line_pos}.{gototop_char_position + 16}",
-                    "Go to bottom",
-                    top_tag_id,
-                )
-                # Add background color to the tag
-                self.textview_textbox.tag_config(
-                    top_tag_id[1],
-                    background=background_color,
-                )
-                go_to_top = False
+            char_position += len(new_message)
 
-            # Do color and name highlighting (bold/italicize/underline/highlight).
-            # Use previous color if it doesn't exist.
-            # Have to handle background color separately
-            color = previous_color
-            if "Color for Background set to" in line_to_insert or "highlighted for visibility" in line_to_insert:
+            # Determine color and highlight settings
+            if "Color for Background set to" in new_message or "highlighted for visibility" in new_message:
                 color = "White"
             else:
                 color, tags = self.output_map_colors_highlighting(
@@ -1704,19 +1721,14 @@ class CTkTextview(ctk.CTkFrame):
                     previous_color,
                     previous_value,
                     num,
-                    line_to_insert,
+                    new_message,
                     tag_id,
-                    color,
+                    previous_color,
                 )
-            # Save previous color and text in case we need to use it.
-            previous_color = color
 
-            # Set the foreground and background colors
-            self.textview_textbox.tag_config(
-                tag_id,
-                foreground=color,
-                background=background_color,
-            )
+            # Configure tag colors
+            self.textview_textbox.tag_config(tag_id, foreground=color, background=background_color)
+            previous_color = color
 
         return previous_color
 
@@ -1884,7 +1896,11 @@ class CTkTextview(ctk.CTkFrame):
         A method that handles the delay event for the various text views.
         It deletes the label after a certain amount of time.
         """
-        self.text_message_label.destroy()
+        # Catch error caused bvy a possible double-click.
+        try:
+            self.text_message_label.destroy()
+        except AttributeError:
+            return
         # Catch window resizing
         self.bind("<Configure>", self.on_resize)
 
@@ -1906,22 +1922,49 @@ class CTkTextview(ctk.CTkFrame):
 
 
 # Define the Progressbar window
+# Create a custom application class "App" that inherits from CTk (Custom Tkinter)
 class ProgressbarWindow(ctk.CTk):
     """Define our top level window for the Progressbar view."""
 
     def __init__(self) -> None:
         """Intialize our top level window for the Progressbar view."""
+        # Call the constructor of the parent class (CTk) using super()
         super().__init__()
 
-        # Position the widget over our main GUI
-        self.geometry(PrimeItems.program_arguments["map_window_position"])
-        self.value = 0
-        self.progressbar = ctk.CTkProgressBar(self)
-        self.title("Map Progress")
-        self.progressbar.pack(pady=20)
-        self.progressbar.set(self.value)
+        # Get the map window position
+        # window_position = PrimeItems.program_arguments["map_window_position"].split("+")
+        # dimensions = window_position[0].split("x")
+
+        # Create the progress bar...
+        # Like any other widget in CTk, a button is first created and then it is pushed to the window.
+        # It takes a compulsory argument master. This will specify where the CTkProgressBar will stay.
+        self.progressbar = ctk.CTkProgressBar(
+            self,
+            width=300,
+            height=50,
+            corner_radius=20,
+            border_width=2,
+            border_color="turquoise",
+            # fg_color="green",
+        )
+        # self now points to the ProgressbarWindow.
+
+        # Save the window position on closure
+        self.protocol("WM_DELETE_WINDOW", self.on_closing_progressbar_window)
+
+        # self.progressbar.set(0.0)  # Start with progress of 0.
+        self.progressbar.pack(padx=20, pady=20)
+        # Setup values so we can determine the amount of time before we issue an IMKClient message.
         self.progressbar.start_time = round(time.time() * 1000)
         self.progressbar.print_alert = True
+
+    def on_closing_progressbar_window(self: object) -> None:
+        """Save the window position and close the window."""
+        window_position = self.wm_geometry()
+        title = self.wm_title()
+        if "Progress" in title and self.master.progressbar_window_position is not None:
+            self.master.progressbar_window_position = window_position
+        kill_the_progress_bar(self.master.progress_bar)
 
 
 # Define the Ai Popup window
@@ -2082,7 +2125,7 @@ class CTkHyperlinkManager:
         """
         self.text.configure(cursor="xterm")
         # TODO Try to put a label on clicked directory entry: self.text.master.textview_textbox not correct
-        # output_label(self.text.master.textview_textbox, "ahah")
+        # output_label(self.text.master.textview_textbox.master, "ahah")
 
     def _click(self, event: object) -> None:
         """
@@ -2105,24 +2148,10 @@ class CTkHyperlinkManager:
             if tag.startswith("hyper-"):
                 link = self.links[tag]
                 if isinstance(link, list):
-                    # Reset text to line 1?
-                    if link[0] == "gototop":
-                        self.text.master.textview_textbox.see("1.0")
-                    elif link[0] == "gotobot":
-                        # Go to bottom (first valid non-blank line)
-                        line_count = int(self.text.master.textview_textbox.index("end-1c").split(".")[0])
-                        line_pos = line_count - 1
-                        while line_pos:
-                            line = self.text.master.textview_textbox.get(f"{line_pos!s}.0", f"{line_pos!s}.end")
-                            if "CAVEATS:" in line:
-                                break
-                            line_pos -= 1
-                        self.text.master.textview_textbox.see(f"{line_pos!s}.0")
-                    else:
-                        # Remap single Project/Profile/Task
-                        action, name = link
-                        guiself = event.widget.master.master.root.master
-                        self.remap_single_item(action, name, guiself)
+                    # Go up one level: Remap single Project/Profile/Task
+                    action, name = link
+                    guiself = event.widget.master.master.root.master
+                    self.remap_single_item(action, name, guiself)
                 else:
                     webbrowser.open(link)
                 return
@@ -2335,6 +2364,8 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.named_item = None
     self.outline = False
     self.preferences = None
+    self.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
+    self.progressbar_window_position = ""
     self.pretty = False
     self.rerun = None
     self.reset = None
@@ -3272,7 +3303,7 @@ def get_rid_of_window(self, delete_all: bool = True) -> None:  # noqa: ANN001
 # Store our various window positions
 def store_windows(self) -> None:  # noqa: ANN001
     """
-    Stores the positions of the AI analysis and treeview windows.
+    Stores the positions of al of our windows.
 
     This function saves the positions of the various windows using the `save_window_position()` function.
 
@@ -3297,3 +3328,6 @@ def store_windows(self) -> None:  # noqa: ANN001
     with contextlib.suppress(AttributeError):
         if window_pos := save_window_position(self):
             self.window_position = window_pos
+    with contextlib.suppress(AttributeError):
+        if window_pos := save_window_position(self.progressbar_window):
+            self.progressbar_window_position = window_pos

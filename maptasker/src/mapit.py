@@ -59,6 +59,7 @@ from maptasker.src.sysconst import (
     logger,
 )
 
+# The following is for debug only.
 # print('Path:', os.getcwd())
 # print(
 #     "__file__={0:<35} | __name__={1:<25} | __package__={2:<25}".format(
@@ -69,6 +70,7 @@ from maptasker.src.sysconst import (
 # This is the one-and-only global variable needed for a special circumstance:
 #   ...program crash
 #   print("Python version ", sys.version)  # Which Python are we using today?
+#
 # import tkinter as tk
 # print("Tkinter version ", tk.TkVersion)  # Which Tkinter?
 # print(tk.Tcl().call("info", "library"))

@@ -8,24 +8,72 @@
 import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.actione import fix_json
+from maptasker.src.maputils import rutroh_error
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
 
 
 # Parse Property's variable and output it
-def parse_variable(property_tag: str, css_attribute: str, variable_header: defusedxml.ElementTree) -> None:
+def parse_variable(
+    property_tag: str,
+    css_attribute: str,
+    variable_header: defusedxml.ElementTree,
+    cooldown: int,
+    limit: int,
+) -> None:
     """
     Parses the variable header of a property tag and outputs the properties of the variable.
+    Properties are identied in the XML with the tag: <xxxxVariable>, where xxxx is Project/Profile/Task
 
     Args:
         property_tag (str): The property tag of the variable.
         css_attribute (str): The CSS attribute of the variable.
         variable_header (defusedxml.ElementTree): The XML element representing the variable header.
+        cooldown (int): The cooldown time in seconds.
+        limit (int): Limit repeats.
 
     Returns:
         None
     """
-    # Get the various property
+    # Variable type definitions
+    variable_type_lookup = {
+        "yn": "Yes or No",
+        "t": "Text",
+        "b": "True or False",
+        "f": "File",
+        "n": "Number",
+        "onoff": "On or Off",
+        "fs": "File (System)",
+        "fss": "Files (System)",
+        "i": "Image",
+        "is": "Images",
+        "d": "Directory",
+        "ds": "Directory (System)",
+        "ws": "WiFi SSID",
+        "wm": "WiFi MAC",
+        "bn": "Bluetooth device's name",
+        "bm": "Bluetooth device's MAC",
+        "c": "Contact",
+        "cn": "Contact Number",
+        "cg": "Contact or Contact Group",
+        "ti": "Time",
+        "da": "Date",
+        "a": "App",
+        "as": "Apps",
+        "la": "Launcher",
+        "cl": "Color",
+        "ln": "Language",
+        "ttsv": "Text to Speech voice",
+        "can": "Calendar",
+        "cae": "Calendar Entry",
+        "tz": "Time Zone",
+        "ta": "Task",
+        "prf": "Profile",
+        "prj": "Project",
+        "scn": "Scene",
+        "cac": "User Certificate",
+    }
+    # Get the various property. TBD: pvid (int), pvit (str), pvt
     clearout = variable_header.find("clearout").text
     immutable = variable_header.find("immutable").text
     configure_on_import = variable_header.find("pvci").text
@@ -39,9 +87,18 @@ def parse_variable(property_tag: str, css_attribute: str, variable_header: defus
         exported_value = "Same as Value"
     else:
         exported_value = variable_header.find("exportval").text
+    # Get the variable type
+    variable_type_code = variable_header.find("pvt").text
+    try:
+        variable_type = variable_type_lookup[variable_type_code]
+    except KeyError:
+        variable_type = variable_type_code
+        rutroh_error(f"Unknown variable type: {variable_type_code}")
+    limit_repeats = f"Limiit Repeats:{limit}, " if limit else ""
+    cooldown = f"Cooldown Time (seconds):{cooldown}, " if cooldown else ""
 
     # Put together everything
-    out_string = f"<br>{property_tag} Properties.... Variable Title:{display_name}, Variable:{variable_name}, clear-out:{clearout}, Configure on Import:{configure_on_import}, Structured Variable (JSON, etc.):{structured_variable}, Immutable:{immutable}, Value:{value}, Display Name:{display_name}, Prompt:{prompt}, Exported Value:{exported_value}<br>\n"
+    out_string = f"<br>{property_tag} Properties...{cooldown}, {limit_repeats}Variable Title:{display_name}, Variable:{variable_name}, type: {variable_type}, clear-out:{clearout}, Configure on Import:{configure_on_import}, Structured Variable (JSON, etc.):{structured_variable}, Immutable:{immutable}, Value:{value}, Display Name:{display_name}, Prompt:{prompt}, Exported Value:{exported_value}<br>\n"
 
     # Make it pretty
     blank = "&nbsp;"
@@ -115,9 +172,15 @@ def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
         have_property = True
 
     # Look for variables in the head XML object (Projectc/Profile/Task).
+    cooldown = ""
+    limit = ""
     for item in header:
+        if item.tag == "cldm":
+            cooldown = item.text
+        if item.tag == "limit":
+            limit = item.text
         if item.tag == "ProfileVariable":
-            parse_variable(property_tag, css_attribute, item)
+            parse_variable(property_tag, css_attribute, item, cooldown, limit)
             have_property = True
 
     # Force a new line if we output any properties.

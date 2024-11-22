@@ -209,7 +209,7 @@ def setup_logging() -> None:
         filename="maptasker.log",
         filemode="w",
         format="%(asctime)s,%(msecs)d %(levelname)s %(name)s %(funcName)s %(message)s",
-        datefmt="%H:%M:%S",
+        datefmt="%Y-%m-%d %H:%M:%S",
         level=logging.DEBUG,
     )
     logger.info(sys.version_info)
@@ -357,25 +357,25 @@ def start_up() -> dict:
     # Get our list of fonts
     # _ = get_fonts(True)
 
+    # If debug mode, log the arguments
+    if PrimeItems.program_arguments["debug"]:
+        log_startup_values()
+
     # Get our map of colors
     PrimeItems.colors_to_use = setup_colors()
 
     # Display a popup window telling user we are analyzing
     if PrimeItems.program_arguments["doing_diagram"]:
-        popup = PopupWindow(
-            title="MapTasker",
-            message="The view is running in the background.  Please stand by...",
-            exit_when_done=True,
-            delay=600,
-        )
-        popup.mainloop()
+        # popup = PopupWindow(
+        #     title="MapTasker",
+        #     message="The view is running in the background.  Please stand by...",
+        #     exit_when_done=True,
+        #     delay=700,
+        # )
+        # popup.mainloop()
         PrimeItems.program_arguments["doing_diagram"] = False
 
     # Get the XML data and output the front matter
     _ = get_data_and_output_intro(True)
-
-    # If debug mode, log the arguments
-    if PrimeItems.program_arguments["debug"]:
-        log_startup_values()
 
     return

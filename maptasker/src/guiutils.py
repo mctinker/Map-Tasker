@@ -15,7 +15,7 @@ import os
 import platform
 import sys
 import time
-from tkinter import font
+from tkinter import TclError, font
 from typing import TYPE_CHECKING, Callable
 
 import customtkinter as ctk
@@ -64,37 +64,29 @@ from maptasker.src.sysconst import (
 if TYPE_CHECKING:
     import defusedxml
 
+
 all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 6.0.2/6.0.3 - Change Log\n
+Version 6.0.4 - Change Log\n
 ### Added\n
-- Added: 'Top Task' and 'Bottom Task' buttons added to the Diagram view when highlighting Task connectors, to jump to the top/bottom of the Task connector.\n
+- Added: Tasker 6.4.6 Beta is now fully supported (i.e. Widget V2 support).\n
+- Added: Additional Profile Properties added to the output: Limit Repeats, Cooldown Time, Profile Variable Type.\n
+- Added: Re-instituted the progress bar in the Map and Diagram views.\n
+- Added: 'Profiles Per Line' option added to the Diagram view.  Click on the '?' next to it for details.\n
+- Added: Ollama models 'qwen2.5' and 'qwen2.5-coder' have been added.\n
 ### Changed\n
-- Changed: The 'IA' Diagram view button has been removed since it is no longer needed.\n
-- Changed: The progress bar in the Map and Diagram views has been removed temporarily due to a bug in some core python code.\n
-- Changed: Python installations that use 'pyenv' version manaageement, take note: tcl-tk has been upgraded to version 9 (brew install tcl-tk), which may cause an error when importing tkinter.  If this error occurs:\nn
-\n
-  - if running python 3.11.10 or lower, then the new tcl-tk is not recognized and you will get an import error for 'tkinter'.  Issue the commands (in the order specified):\n
-    - 'brew uninstall tcl-tk',\n
-    - 'pyenv uninstall 3.11.xx'\n
-    - 'brew install tcl-tk8'\n
-    - 'pyenv install 3.11:latest'\n
-  - if running python 3.12.4, upgrade to 3.12.7 (the latest): 'pyenv install 3.12:latest'\n
-  - Python version 3.13.0 works fine with the new tcl-tk.\n
+- Changed: 'Go to top' and 'Go to bottom' hotlinks have been removed from the Map view in preference to the 'Top' and 'Bottom' buttons.  'Go to top' is still in the browser output.\n
+- Changed: The popup window displaying 'The view is running in the background.  Please stand by...' has been eliminated for improved performance.\n
 ### Fixed\n
-- Fixed: Tasks identified as 'entry' or 'exit' in the Diagram view are not displaying any connectors.\n
-- Fixed: Multiple Tasks on the same line in the Diagram view that are not found are not displaying '(not found)!' in the correct position.\n
-- Fixed: Optimize the connector alignment in the Diagram view (performance enhancement).\n
-- Fixed: The Diagram view has overlapping horizontal connectors in certain situations.\n
-- Fixed: Diagram buttons dissapear if the right side of window is shifted/resized to the left.\n
-- Fixed: Clicking on 'Toggle Word Wrap' in the Ai Analysis results window causes a program error.\n
-### Known Issues\n
-- An upgrade to Tcl-tk verison 9 (brew install tcl-tk) may cause an error when importing tkinter during program startup.  If this occurs, upgrade to the latest available verion of Python: e.g. if running python 3.12.4, upgrade to 3.12.7 (the latest as of 11/2024).\n
-- Task actions that are specific to Android 15 have not yet been mapped, and will display as such.\n
-- Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.\n
-- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).\n
+- Fixed: Spacing for '[Continue Task After Error]' is incorrect in the Map view.\n
+- Fixed: Diagram view is missing an occasional Task underneath it's Profile.\n
+- Fixed: Eliminated potential 'Rutroh!...' output in the terminal.\n
+- Fixed: The log file is not being generated if 'Debug' is turned on in the GUI.\n
+- Fixed: Selecting a single named item in the GUI doesn't clear out the other single named items in the pulldown selection menus.\n
+- Fixed: Program terminates abnormally if the Map or Diagram buttons are double-clicked.\n
+- Fixed: 'Bottom Task' button points to the bottom Task's arrow rather than to the Task itself.\n
 """
 
 default_font_size = 14
@@ -417,20 +409,23 @@ def save_changelog_as_json(self) -> None:  # noqa: ANN001
     Returns:
         None
     """
-    if os.path.isfile("changelog.md"):
+    version_indicator = "## ["
+    if os.path.isfile("Changelog.md"):
         changelog_dict = {}
         have_first_bracket = False
         change_count = 0
-        with open("changelog.md") as changelog:
+        with open("Changelog.md") as changelog:
             lines = changelog.readlines()
             for line in lines:
-                if "[" in line:
+                if version_indicator in line:
                     if have_first_bracket:  # If we already have the bracket and encounter another, stop reading
                         break
                     have_first_bracket = True
-                    bracket_start_pos = line.find("[")
-                    bracket_end_pos = line.find("]")
-                    changelog_dict["version"] = line[bracket_start_pos + 1 : bracket_end_pos]
+                    bracket_start_pos = line.find(version_indicator)
+                    if bracket_start_pos == -1:
+                        continue
+                    bracket_end_pos = line.find("]", bracket_start_pos + 4)
+                    changelog_dict["version"] = line[bracket_start_pos + 4 : bracket_end_pos]
                 elif line != "\n" and have_first_bracket:
                     changelog_dict[f"change{change_count!s}"] = line
                     change_count += 1
@@ -450,7 +445,7 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
     Processing Logic:
         - Check if the changelog file exists.
         - If it exists, prepare to display changes and remove the file so we only display the changes once.
-    Note: The changelog file is created immdiately after the program is updated (userintr upgrade_event)
+    Note: The changelog file is created immediately after the program is updated (userintr upgrade_event)
     """
     # TODO Test changelog before posting to PyPi.  Comment it out after testing.
     # self.message = CHANGELOG
@@ -561,12 +556,16 @@ def add_label(
             font=ctk.CTkFont(size=font_size, weight=font_weight),
         )
     else:
-        label_name = ctk.CTkLabel(
-            frame,
-            text=text,
-            text_color=text_color,
-            font=ctk.CTkFont(size=font_size, weight=font_weight),
-        )
+        # Note: If user double-clicks a button, the textbox is not valid on the second click.
+        try:
+            label_name = ctk.CTkLabel(
+                frame,
+                text=text,
+                text_color=text_color,
+                font=ctk.CTkFont(size=font_size, weight=font_weight),
+            )
+        except TclError:
+            return None
     label_name.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
     return label_name
 
@@ -1951,14 +1950,12 @@ def display_progress_bar(
     Returns:
         None: This function does not return anything.
     """
-    progress_bar = progress["progress_bar"]
     tenth_increment = progress["tenth_increment"]
     progress_counter = progress["progress_counter"]
     max_data = progress["max_data"]
 
     # If used as an instance method (Map), adjust the progress_bar reference.
     if is_instance_method:
-        progress_bar = progress["progress_bar"].progress_bar
         comp2 = 2
         comp4 = 4
         comp6 = 6
@@ -1992,19 +1989,18 @@ def display_progress_bar(
             progress_value = 0.97
 
     # Update the progress bar with the current value and color.
-    # TODO The following is commented out due tyo asn error in CustomTkinter
-    # progress_bar.progressbar.set(progress_value)
-    # progress_bar.progressbar.configure(progress_color=progress_color)
-    # progress_bar.progressbar.update()
+    progress["progress_bar"].progressbar.set(progress_value)
+    progress["progress_bar"].progressbar.configure(progress_color=progress_color)
+    progress["progress_bar"].progressbar.update()
 
     # Check if an alert needs to be printed (OS X only).
     if (
         platform.system() == "Darwin"
-        and progress_bar.progressbar.print_alert
-        and round(time.time() * 1000) - progress_bar.progressbar.start_time > 4000
+        and progress["progress_bar"].progressbar.print_alert
+        and round(time.time() * 1000) - progress["progress_bar"].progressbar.start_time > 4000
     ):
         print(f"{Colors.Green}You can ignore the error message: 'IMKClient Stall detected, *please Report*...'")
-        progress_bar.progressbar.print_alert = False
+        progress["progress_bar"].progressbar.print_alert = False
 
 
 def find_connector(output_lines: list, line_num: int, start_symbol: str, end_symbol: str) -> tuple:
@@ -2228,3 +2224,23 @@ def remove_tags_from_bars_and_names(self: object) -> None:
                 f"{task[1]}.{task[2]!s}",
                 f"{task[1]}.{task[3]!s}",
             )
+
+
+def kill_the_progress_bar(progress_bar: dict) -> None:
+    """
+    Stop and destroy the progress bar.
+
+    Args:
+        progress_bar (dict): The dictionary containing the progress bar information.
+
+    Returns:
+        None
+    """
+    # Keep import here to avoid ccircular import
+    from maptasker.src.guiwins import save_window_position
+
+    # Save the window position in our main window (self=MyGui).
+    PrimeItems.mygui.progressbar_window_position = save_window_position(progress_bar["progress_bar"])
+    progress_bar["progress_bar"].progressbar.stop()
+    progress_bar["progress_bar"].progressbar.destroy()
+    progress_bar["progress_bar"].destroy()

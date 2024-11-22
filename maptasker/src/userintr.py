@@ -14,6 +14,7 @@ import json
 import os
 import webbrowser
 from pathlib import Path
+from tkinter import TclError
 from typing import Callable
 
 import customtkinter
@@ -29,7 +30,6 @@ from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guimap import get_the_map
 from maptasker.src.guiutils import (
-    CHANGELOG,
     add_button,
     add_cancel_button,
     add_label,
@@ -80,6 +80,7 @@ from maptasker.src.lineout import LineOut
 from maptasker.src.mapit import clean_up_memory, mapit_all
 from maptasker.src.maputils import update, validate_xml_file
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.proginit import log_startup_values
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     CHANGELOG_JSON_URL,
@@ -87,173 +88,27 @@ from maptasker.src.sysconst import (
     KEYFILE,
     OPENAI_MODELS,
     TYPES_OF_COLOR_NAMES,
-    VERSION,
     DISPLAY_DETAIL_LEVEL_all_parameters,
     logger,
 )
 from maptasker.src.taskerd import get_the_xml_data
+from maptasker.src.userhelp import (
+    AI_HELP_TEXT,
+    BACKUP_HELP_TEXT,
+    HELP,
+    LISTFILES_HELP_TEXT,
+    PPP_HELP_TEXT,
+    SEARCH_HELP_TEXT,
+    VIEW_HELP_TEXT,
+    VIEWLIMIT_HELP_TEXT,
+)
 
 # Color Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_appearance_mode("System")
 # Themes: "blue" (standard), "green", "dark-blue"
 customtkinter.set_default_color_theme("blue")
 
-# NOTE: The textbox is used for help information via new_message_box, normal one-liner messages via display_message_box
-#       and multi-line messages via display_multiple_message.
-# Help Text
-INFO_TEXT = (
-    "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML "
-    "file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks "
-    "and their actions, Profile/Task conditions and other Profile/Task related information.\n\n"
-    "* Display options are:\n"
-    "    Level 0: display first Task action only, for unnamed Tasks only (silent).\n"
-    "    Level 1 = display all Task action details for unknown Tasks only (default).\n"
-    "    Level 2 = display full Task action name on every Task.\n"
-    "    Level 3 = display full Task action details on every Task with action details.\n"
-    "    Level 4 = display level of 3 plus Project's global variables.\n\n"
-    "    Level 5 = display level of 4 plus Scene argument details.\n\n"
-    "* Just Display Everything: Turns on the display of "
-    "conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n"
-    "* Display Conditions: Turn on the display of Profile and Task conditions.\n\n"
-    "* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n"
-    "* Display Tasker Preferences - display Tasker's system Preferences.\n\n"
-    "* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n"
-    "* Display Directory of hyperlinks at beginning.\n\n"
-    "* Display Configuration Outline and Map of your Projects/Profiles/Tasks/Scenes.\n\n"
-    "* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n"
-    "* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n"
-    "* Indentation amount for If/Then/Else Task Actions.\n\n"
-    "* Save Settings - Save these settings for later use.\n\n"
-    "* Restore Settings - Restore the settings from a previously saved session.\n\n"
-    "* Report Issue - This will bring up your browser to the issue reporting site, and you can use this to "
-    "either report a bug or request a new feature ( [Feature Request] )\n\n"
-    "* Appearance Mode: Dark, Light, or System default.\n\n"
-    "* Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n"
-    "* Reset Options: Clear everything and start anew.\n\n"
-    "* Clear Messages: Clear any messages in the textbox.\n\n"
-    "* Font To Use: Change the monospace font used for the output.\n\n"
-    "* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n"
-    "* Get XML from Android Device: fetch the backup/exported "
-    "XML file from Androiddevice.  You will be asked for the IP address and port number for your"
-    " Android device, as well as the file location on the device.\n\n"
-    "* Get Local XML: fetch the backup/exported XML file from your local drive.\n\n"
-    "* Run and Exit: Run the program with the settings provided, display the results in the web browser and then exit.\n"
-    "* ReRun: Run multiple times (each time with new settings) without exiting, displaying the results in the browser.\n\n"
-    "* Specific Name tab: enter a single, specific named item to display...\n"
-    "   - Project Name: enter a specific Project to display.\n"
-    "   - Profile Name: enter a specific Profile to display.\n"
-    "   - Task Name: enter a specific Task to display.\n"
-    "   (These three are exclusive: enter one only)\n\n"
-    "* Colors tab: select colors for various elements of the display.\n"
-    "              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n"
-    "* Analyze tab: Run the analysis for a Project, Profile or Task against an Ai model.\n\n"
-    "* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n"
-    "* Exit: Exit the program (quit).\n\n"
-    "Notes:\n\n"
-    "- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n"
-    "- If you receive any of the following the runtime errors, you can ignore them:\n"
-    "      '[CATransaction synchronize] called within transaction'.\n"
-    "      'IMKClient Stall detected...'.\n\n"
-    "- Drag the window to expand the text as desired.\n\n"
-    "- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n"
-    "- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-)
-BACKUP_HELP_TEXT = (
-    "The following steps are required in order to fetch a Tasker XML file directly"
-    " from your Android device.\n\n"
-    "1- Both this device and the Android device must be on the same named network.\n\n"
-    "2- The Tasker Project 'HTTP Server Example' or identical function must be"
-    " installed and active on the Android device (the server must be running):\n\n"
-    "    https://shorturl.at/bwCD4\n\n"
-    "3- If you want to use the 'List XML Files' option, then you must also import the following profile "
-    "into the Android device and make sure the imported profile 'MapTasker List' is enabled:\n\n"
-    "    https://shorturl.at/sGS08\n\n"
-    "You will be asked for the IP address, the port number for your Android device,"
-    " as well as the file location on the Android device.  Default values are supplied, where...\n\n"
-    "'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP"
-    " Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  "
-    "If you don't know the file location and have already entered your IP address and port, then you can select "
-    "the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\n"
-    "Usage Notes:\n\n"
-    "The IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL "
-    "on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\n"
-    "HTTP Server Info\n"
-    'Server info updated {"device name":"http://192.168.0.49:1821"}\n\n'
-    "- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\n"
-    "Then modify the default values presented in the input fields below this button, and then"
-    " click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n"
-    "- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after"
-    " 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\n"
-    "Click on the 'Cancel Entry' button to back out of this fetch process.\n\n"
-)
-LISTFILES_HELP_TEXT = (
-    "Clicking this button will result in the following actions:\n\n"
-    "- The IP Address will be used to ping the Android device.\n\n"
-    "- The IP Address and port number will be used to query the Android device and get a list of available XML files "
-    "found in the Tasker folder.\n\n"
-    "- The list of found XML files will be presented in a pulldown menu from which you can select the one you want "
-    "to use.\n\n"
-    "- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as "
-    "input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\n"
-    "In order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running "
-    "on your Android device.  This profile can be found at the following URL:\n\n"
-    "    https://t.ly/8vI1f\n\n"
-)
 
-VIEW_HELP_TEXT = (
-    "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\n"
-    "XML must first be obtained from the either local drive or Android device for the views to work.\n\n"
-    "All view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\n"
-    "If the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data.\n\n"
-    "Very large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\n"
-    "\nThe Map View has the following behavior:\n\n"
-    " - While the browser is not invoked directly, the map can be displayed in the browser by opening the local 'MapTasker.html' file.\n\n"
-    " - The 'Display Configuration Outline' setting is ignored since it does not work in the Map view.\n\n"
-    " - Going up one or two levels using the directory hyperlink will result in the generation of a new map view.\n\n"
-    "\nThe Diagram View has the following behavior:\n\n"
-    " - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n"
-    " - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n"
-    "\nThe Tree View has the following behavior:\n\n"
-    "- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n"
-    "- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n"
-    "- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
-)
-
-AI_HELP_TEXT = (
-    "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open Ai model.\n\n"
-    "The following steps are required in order to run Ai against your Profile.\n\n"
-    "1- If using Open Ai, you must have a valid Open Ai API key.  You can use the 'Show/Edit Open AI key' button to enter your key.\n\n"
-    "2- The default prompt is:'how could it be improved:', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'how could it be improved:' portion.\n\n"
-    "3- If you select a local model that has not yet been loaded, Ollama will be loaded in the background once the analysis begins.\n\n"
-    "4- Select the model you want to use.\n\n"
-    "5- Click the 'Run Analysis' button.  It will turn pink when all of the necessary data has been entered.\n\n"
-    "   o If you have not yet selected a model, prompt or single Project, Profile or Task, then you will be prompted to do so first.\n\n"
-    "   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n"
-    "Your designated api-key (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\n"
-    "Models that start with 'gpt' and 'o' are server-based models.  All others are local models.\n\n"
-    "The 'Rerun' feature will be used to display the results of the analysis in a new window.\n\n"
-)
-
-VIEWLIMIT_HELP_TEXT = (
-    "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n"
-    "- The numbers represent the relative amount of output lines to be generated.\n\n"
-    "- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n"
-    "- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n"
-    "- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n"
-    "- If the limit is hit when calculating the map, no output map will be generated.\n\n"
-    "- You can experiment with this setting to see which setting is best for your use case.\n\n"
-    "- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
-)
-
-SEARCH_HELP_TEXT = (
-    "The 'Search' button will search for and highlight every instance of the string entered in the search box.\n\n"
-    "The 'Next' and 'Prev' buttons will try to make the next and previous occurrence of the search string visible in the text view box, and highlight them in a different color.\n\n"
-    "The accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\n"
-    "When the end or beginning of the text view box is reached, the search will stop and a message will be displayed for several seconds.\n\n"
-    "The 'Clear' button will clear the search results.\n\n"
-)
-
-HELP = f"MapTasker {VERSION} Help\n\n{INFO_TEXT}{CHANGELOG}"
 all_objects = "Display all Projects, Profiles, and Tasks."
 
 
@@ -322,7 +177,7 @@ class MyGui(customtkinter.CTk):
 
         # Finally, show the window. It was hidden in initialize_screen.
         self.deiconify()
-        # The following line is equivelent to a call to update_tasker_object_menus but only when the Analysis tab is clicked.
+        # The following line is equivalent to a call to update_tasker_object_menus but only when the Analysis tab is clicked.
         self.tabview.configure(
             "Analyze",
             command=update_tasker_object_menus(self, get_data=True, reset_single_names=False),
@@ -340,9 +195,12 @@ class MyGui(customtkinter.CTk):
 
         # Turn off first time
         self.first_time = False
+        # Save ourself
+        PrimeItems.mygui = self
 
-        # TODO Tthe following line is for testing only.
+        # The following lines are for testing only.
         # self.event_handlers.diagram_event()
+        # self.event_handlers.map_event()
 
     # Establish all of the default values used
     def set_defaults(self) -> None:
@@ -861,6 +719,7 @@ class MyGui(customtkinter.CTk):
             "color_window_position",
             "diagram_window_position",
             "map_window_position",
+            "progressbar_window_position",
             "tree_window_position",
             "guiview",
             "fetched_backup_from_android",
@@ -2181,15 +2040,17 @@ class EventHandlers:
         """
         the_view = self.parent
         the_view.debug = the_view.debug_checkbox.get()
-        if the_view.debug and not Path("backup.xml").is_file():
-            the_view.debug = False
-            the_view.display_message_box(
-                (
-                    "Debug mode requires Tasker XML file to be named: 'backup.xml', which is missing.  Debug mode disabled."
-                ),
-                "Red",
-            )
-        elif the_view.debug:
+        if the_view.debug:
+            # Make sure we're logging freom now on.
+            log_startup_values()
+            if not Path("backup.xml").is_file():
+                the_view.debug = False
+                the_view.display_message_box(
+                    (
+                        "Debug mode requires Tasker XML file to be named: 'backup.xml', which is missing.  Debug mode disabled."
+                    ),
+                    "Red",
+                )
             the_view.display_message_box("Debug mode enabled.", "Green")
         else:
             the_view.display_message_box("Debug mode disabled.", "Green")
@@ -2289,14 +2150,19 @@ class EventHandlers:
             name_entered = "None"
         else:
             if the_view.check_name(name_entered, my_name):
-                the_view.single_project_name = the_view.single_profile_name = the_view.single_task_name = ""
+                # First set the names all to 'empty
+                the_view.single_project_name = ""
+                the_view.single_profile_name = ""
+                the_view.single_task_name = ""
+                # Save the name in mygui signle_xxx_name
                 name_entered = "" if name_entered == "None" else name_entered
                 setattr(the_view, f"single_{my_name.lower()}_name", name_entered)
                 if name_entered:
                     the_view.specific_name_msg = f"Display only {my_name} '{name_entered}'."
             else:
                 the_view.single_name_msg = all_objects
-
+            # Set the names in the pulldown menus and update the pulldown menus.
+            set_tasker_object_names(the_view)
             update_tasker_object_menus(the_view, get_data=False, reset_single_names=False)
             display_analyze_button(the_view, 13, first_time=False)
 
@@ -3228,8 +3094,10 @@ class EventHandlers:
                 guiview.color_lookup = set_color_mode(guiview.appearance_mode)
 
             # Initiate the map view.
-            guiview.remapit(clear_names=True)
-        # We don't have any XML.
+            try:
+                guiview.remapit(clear_names=True)
+            except TclError:
+                return
         else:
             display_no_xml_message(guiview)
 
@@ -3267,6 +3135,7 @@ class EventHandlers:
             "android": ("Get XML From Android Device Help", BACKUP_HELP_TEXT),
             "listfile": ("List Android Files Help", LISTFILES_HELP_TEXT),
             "search": ("Search Help", SEARCH_HELP_TEXT),
+            "ppp": ("Profiles Per Line Help", PPP_HELP_TEXT),
         }
 
         title, help_text = help_texts.get(query_name, ("", "No help available for this query."))
@@ -3471,11 +3340,25 @@ class EventHandlers:
         # Go to the top of the textbox.
         if top:
             textview.textview_textbox.see("1.0")
+            display_msg = "Top"
         else:
-            textview.textview_textbox.see("end-1c")
+            # Go to bottom
+            if "Diagram" in textview.title:
+                textview.textview_textbox.see("end-1c")
+            else:
+                # Go to bottom (first valid non-blank line)
+                line_count = int(textview.textview_textbox.index("end-1c").split(".")[0])
+                line_pos = line_count - 1
+                while line_pos:
+                    line = textview.textview_textbox.get(f"{line_pos!s}.0", f"{line_pos!s}.end")
+                    if "CAVEATS:" in line:
+                        break
+                    line_pos -= 1
+                textview.textview_textbox.see(f"{line_pos!s}.0")
+            display_msg = "Bottom"
 
         # Let the user know.
-        output_label(textview, "Top of text view displayed.")
+        output_label(textview, f"{display_msg} of text view displayed.")
 
     def jump_topbottom_event(self: object, textview: CTkTextview, top: bool, connector: int) -> None:
         """
@@ -3490,19 +3373,47 @@ class EventHandlers:
             None
         """
         # Calculate half the length of the task name.   We have to subntract half the length
-        # because we want the line to be in thebeginning of the task name rather than the middle.
+        # because we want the line to be in the beginning of the task name rather than the middle.
         task_half_length = len(connector["task_upper"][0]) // 2
         # Get the correct line/position based on top or bottom.
         if top:
             seek_line = f"{connector['start_top'][0]!s}.{connector['start_top'][1] - task_half_length!s}"
             modifier = "top"
         else:
-            seek_line = f"{connector['end_bottom'][0]!s}.{connector['start_bottom'][1] - task_half_length!s}"
+            # Bottom: Find the max bottom value.
+            bottom_line = connector["end_bottom"][0]
+            for extra_bar in connector["extra_bars"]:
+                bottom_line = max(bottom_line, extra_bar[0])
+            seek_line = f"{bottom_line!s}.{connector['start_bottom'][1] - task_half_length!s}"
             modifier = "bottom"
         # Display the Task
         textview.textview_textbox.see(seek_line)
 
         output_label(textview, f"Showing {modifier} of connection to {connector['task_upper'][0]}")
+
+    def profiles_level_event(self: object, textview: CTkTextview, profiles_per_line: str) -> None:  # noqa: ARG002
+        """
+        Handles the profile level event in the text view box.
+
+        This function toggles the profile level setting in the text view box.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        # Get thhe number of Profiles per line
+        PrimeItems.profiles_per_line = int(profiles_per_line)
+
+        # Relaunch the diagram
+        self.diagram_event()
+
+        # Reset the default for this diagram only.
+        self.parent.textview.profiles_per_line_option.set(profiles_per_line)
+
+        # Let the user know.
+        output_label(self.parent.textview, f"Profile Per Line is {profiles_per_line}.")
 
     def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:
         """
@@ -3568,3 +3479,6 @@ class EventHandlers:
 
     def diagram_jump_topbottom_event(self, top: bool, connector: int) -> None:  # noqa: D102
         self._handle_event("jump_topbottom_event", "diagramview", top, connector)
+
+    def profiles_per_line_event(self, profiles_per_line: str) -> None:  # noqa: D102
+        self._handle_event("profiles_level_event", "diagramview", profiles_per_line)

@@ -51,6 +51,7 @@ def initialize_runtime_arguments() -> dict:
         "outline": False,  # Outline Project/Profile?Task/Scene names
         "preferences": False,  # Display Tasker's preferences
         "pretty": False,  # Pretty up the output (takes many more output lines)
+        "progressbar_window_position": "",  # Last-used progressbar window position
         "rerun": False,  # Is this a GUI re-run?
         "reset": False,  # Reset settings to default values
         "runtime": False,  # Display the runtime arguments/settings
