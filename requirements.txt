@@ -2,8 +2,9 @@ customtkinter==5.2.2
 darkdetect==0.8.0
 defusedxml==0.7.1
 ollama==0.3.3
-openai==1.45.1
-pillow==10.4.0
-psutil==6.0.0
+openai==1.55.0
+packaging==24.2
+pillow==11.0.0
+psutil==6.1.0
 requests==2.32.3
-tomli_w==1.0.0
+tomli_w==1.1.0
