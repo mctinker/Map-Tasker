@@ -2,17 +2,46 @@
 
 All notable changes to this project will be documented in this file!
 
-## [6.0.2/6.0.3] 12-Nov-2024
+## [6.0.4] 22-Nov-2024
 
 ### Added
 
-- Added: 'Top Task' and 'Bottom Task' buttons added to the Diagram view when highlighting Task connectors, to jump to the top/bottom of the Task connector.
+- Added: Tasker 6.4.6 Beta is now fully supported (i.e. Widget V2 support).
+- Added: Additional Profile Properties added to the output: Limit Repeats, Cooldown Time, Profile Variable Type.
+- Added: Re-instituted the progress bar in the Map and Diagram views.
+- Added: 'Profiles Per Line' option added to the Diagram view.  Click on the '?' next to it for details.
+- Added: Ollama models 'qwen2.5' and 'qwen2.5-coder' have been added.
 
 ### Changed
 
+- Changed: 'Go to top' and 'Go to bottom' hotlinks have been removed from the Map view in preference to the 'Top' and 'Bottom' buttons.  'Go to top' is still in the browser output.
+- Changed: The popup window displaying 'The view is running in the background.  Please stand by...' has been eliminated for improved performance.
+
+### Fixed
+
+- Fixed: Spacing for '[Continue Task After Error]' is incorrect in the Map view.
+- Fixed: Diagram view is missing an occasional Task underneath it's Profile.
+- Fixed: Eliminated potential 'Rutroh!...' output in the terminal.
+- Fixed: The log file is not being generated if 'Debug' is turned on in the GUI.
+- Fixed: Selecting a single named item in the GUI doesn't clear out the other single named items in the pulldown selection menus.
+- Fixed: Program terminates abnormally if the Map or Diagram buttons are double-clicked.
+- Fixed: 'Bottom Task' button points to the bottom Task's arrow rather than to the Task itself.
+
+### Known Issues
+
+- An upgrade to Tcl-tk version 9 (brew install tcl-tk) may cause an error when importing tkinter.  If this occurs, refer to the README.
+- Task actions that are specific to Android 15 have not yet been mapped, and will display as such.
+- Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
+- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).
+
+## Older History Logs
+
+## [6.0.2/6.0.3]
+
+- Added: 'Top Task' and 'Bottom Task' buttons added to the Diagram view when highlighting Task connectors, to jump to the top/bottom of the Task connector.
 - Changed: The 'IA' Diagram view button has been removed since it is no longer needed.
 - Changed: The progress bar in the Map and Diagram views has been removed temporarily due to a bug in some core python code.
-- Changed: Python installations that use 'pyenv' version manaageement, take note: tcl-tk has been upgraded to version 9 (brew install tcl-tk), which may cause an error when importing tkinter.  If this error occurs:
+- Changed: Python installations that use 'pyenv' version management, take note: tcl-tk has been upgraded to version 9 (brew install tcl-tk), which may cause an error when importing tkinter.  If this error occurs:
 
   - if running python 3.11.10 or lower, then the new tcl-tk is not recognized and you will get an import error for 'tkinter'.  Issue the commands (in the order specified):
     - 'brew uninstall tcl-tk',
@@ -22,23 +51,12 @@ All notable changes to this project will be documented in this file!
   - if running python 3.12.4, upgrade to 3.12.7 (the latest): 'pyenv install 3.12:latest'
   - Python version 3.13.0 works fine with the new tcl-tk.
 
-### Fixed
-
 - Fixed: Tasks identified as 'entry' or 'exit' in the Diagram view are not displaying any connectors.
 - Fixed: Multiple Task6.0.2 on the same line in the Diagram view that are not found are not displaying '(not found)!' in the correct position.
 - Fixed: Optimize the connector alignment in the Diagram view (performance enhancement).
 - Fixed: The Diagram view has overlapping horizontal connectors in certain situations.
-- Fixed: Diagram buttons dissapear if the right side of window is shifted/resized to the left.
-- Fixed: Clicking on 'Toggle Word Wrap' in the Ai Analysis resultsa window causes a program error.
-
-### Known Issues
-
-- An upgrade to Tcl-tk verison 9 (brew install tcl-tk) may cause an error when importing tkinter.  If this occurs, upgrade to the latest available verion of Python: e.g. if running python 3.12.4, upgrade to 3.12.7 (the latest).
-- Task actions that are specific to Android 15 have not yet been mapped, and will display as such.
-- Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
-- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).
-
-## Older History Logs
+- Fixed: Diagram buttons disappear if the right side of window is shifted/resized to the left.
+- Fixed: Clicking on 'Toggle Word Wrap' in the Ai Analysis results window causes a program error.
 
 ## [6.0.1]
 
@@ -63,7 +81,7 @@ All notable changes to this project will be documented in this file!
 - Added: Diagram view's Task connectors can now be clicked, with the mouse, to highlight the entire connection.
 - Added: The "IA" button setting for the Diagram view is saved and restored between sessions.
 - Changed: The Diagram view now includes all individual connectors to and from a Task, rather than a single connector for connections to/from the same Task.
-- Fixed: Some conections in the Diagramn view are not displaying correctly.
+- Fixed: Some connections in the Diagram view are not displaying correctly.
 - Fixed: Hitting the 'Cancel' button on the file prompt is not clearing out the current file.
 - Fixed: Settings are being displayed twice on initialization of the GUI.
 - Fixed: Program abends on start up of GUI.
@@ -72,7 +90,7 @@ All notable changes to this project will be documented in this file!
 
 - Added: Added the 'IA' (Icon Alignment) button next to the 'Diagram' view to enable/disable connector alignment if icons are in Task names for better performance with very complex diagrams.  Refer to the view '?' (help) in the GUI for details.
 - Added: Tasker object names are colored in the Diagram view.
-- Fixed: Taks with commas in their names do not display correctly in the Diagram view.
+- Fixed: Task with commas in their names do not display correctly in the Diagram view.
 - Fixed: Task names with '[' embedded in can not be found when clicking on it's directory hotlink.
 - Fixed: Diagram is missing bars (|) in some instances.  Bars ares misaligned if the Task is not found.
 
@@ -81,7 +99,7 @@ All notable changes to this project will be documented in this file!
 - Added: 'Up Two Levels' has been added to the Map view.
 - Added: Ai analysis OpenAi models 'o1-preview' and 'o1-mini' have been added.
 - Added: Ai analysis local models 'qwen2' and 'gemma2' have been added.
-- Changed: Diagram rewrite to improve readibility and performance.
+- Changed: Diagram rewrite to improve readability and performance.
 - Fixed: Diagram displaying too much filler between tasks.
 - Fixed: Tasks not found in the diagram are not all being identified.
 - Fixed: Diagram is displaying duplicate tasks in the '[Calls -> list of tasks'.
@@ -99,7 +117,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Project/Profile/Task/Scene name highlighting is incomplete in the Map view.
 - Fixed: Project/Profile/Task/Scene names with special characters in it are not displaying correctly.
 - Fixed: 'Go to bottom' hotlink in Map view goes beyond the last entry in the list.
-- Fixed: If no XML is loaded, the single name pulldowns are still incorrectly loaded with the prior XML names.
+- Fixed: If no XML is loaded, the single name pulldown are still incorrectly loaded with the prior XML names.
 - Fixed: No indication is given that the search string was not found in the Map and Diagram views.
 - Fixed: Unnamed Profiles have a blank name rather than 'None or unnamed!' as the name in certain situations.
 
@@ -123,7 +141,7 @@ All notable changes to this project will be documented in this file!
 - Added: The Diagram view now respects the 'View Limit'
 - Added: The 'View Limit' has additional increments of 15000 and 25000.
 - Changed: The GUI 'Map Limit' has been renamed to 'View Limit'.
-- Changed: The Ai Analysis default prompt has been changed from "how could this be improved:" to "suggest improvoments for performance and readability:"
+- Changed: The Ai Analysis default prompt has been changed from "how could this be improved:" to "suggest improvements for performance and readability:"
 - Fixed: The Diagram view is printing '13' (old debug code).
 - Fixed: Program error if a window is not defined.
 - Fixed: view windows resizing are not being restored.
@@ -157,14 +175,14 @@ All notable changes to this project will be documented in this file!
 - Added: A progress bar has been added to the GUI to show the progress of the 'Diagram' view.
 - Added: Tasker beta 6.14 'Remote Execution' Task action and associated preferences are now recognized.
 - Changed: The 'Map' view directory hotlink for a Task unassociated with a Profile will now point up to the owning Project rather than the entire configuration.
-- Changed: The GUI progress batr now shows a smoother color scheme transition (red through to green).
+- Changed: The GUI progress bar now shows a smoother color scheme transition (red through to green).
 - Fixed: If Profile has no name, say so in the 'Map' view output.
 - Fixed: The GUI list of Tasks incorrectly showed some Tasks names that were not proceeded by "Task:".
 - Fixed: Program error if changing the indentation amount and then display the 'Map' or 'Diagram' view.
-- Fixed: Moving a 'Map', 'Diagram' or 'Tree' view window will not change the window position on conseuqtive displays of the same view.
+- Fixed: Moving a 'Map', 'Diagram' or 'Tree' view window will not change the window position on consultive displays of the same view.
 - Fixed: 'Map' view does not work if colors have not yet been defined.
 - Fixed: Task action 'Browse URL' is missing the detailed parameters.
-- Fixed: Performing a 'ReRun' proeeded by a 'Map' view with a single Task selected results in output not related to the single Task.
+- Fixed: Performing a 'ReRun' proceeded by a 'Map' view with a single Task selected results in output not related to the single Task.
 - Fixed: 'Map' view output spacing for Projects and Scenes is incorrect.
 
 ## [5.0.1]
@@ -173,14 +191,14 @@ All notable changes to this project will be documented in this file!
 - Added: The new 'llama3.1' Ai model added to the 'Analysis' tab.
 - Added: A progress bar has been added to show the progress of the 'Map' view.
 - Fixed: Invalid spacing appears in the Map view directory list.
-- Fixed: Spacing for parameters with "Pretty" enabled is slightly off in ther Map view.
+- Fixed: Spacing for parameters with "Pretty" enabled is slightly off in the Map view.
 
 ## [5.0.0]
 
 - Added: Support for Tasker Release 6.3.12.
 - Added: 'Intensity Pattern' is now included with the "Notify" Task action.
 - Added: Open Ai model 'cpt-40-mini' added to the 'Analysis' tab.
-- Added: Direcory (hotlinks) are now supported in the 'Map' view within the GUI.
+- Added: Directory (hotlinks) are now supported in the 'Map' view within the GUI.
 - Changed: Nothing has changed.
 - Fixed: The 'Map' and 'Tree' views are not including Tasks that are not part of a Profile.
 - Fixed: 'Map' view global variables are not displaying properly.
