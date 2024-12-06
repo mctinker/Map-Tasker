@@ -1,9 +1,9 @@
 [tool.poetry]
 name = "maptasker"
 
-version = "6.0.4"
+version = "6.0.5"
 
-description = "Utility to display your entire Android 'Tasker' configuration on your MAC."
+description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
 readme = "README_PyPl.md"
 license = "MIT License (MIT)"
@@ -202,3 +202,5 @@ black = "^24.4.2"
 # +black = { version = "*", allows-prereleases = true }
 line-profiler = "^4.1.3"
 vulture = "^2.13"
+bumpversion = "0.6.0"
+pyinstrument = "^5.0.0"

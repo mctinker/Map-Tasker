@@ -2,23 +2,41 @@
 
 All notable changes to this project will be documented in this file!
 
-## [6.0.4] 22-Nov-2024
+## [6.0.5] 06-Dec-2024
 
 ### Added
+
+- Added: Added a 'Buy Me A Coffee' button to the Debug tab in the GUI. :o)
+- Added Tooltips to the GUI: hover over a button/checkbox/pulldown to get information about the command.
+- Added: Hover over a Project/Profile/Task name in the Map view to get a description of the Project/Profile/Task.  The information provided will be expanded over time.
+- Added: New llama Ai models added: mistrel-nemo and tinyllama.
+
+### Changed
+
+- Changed:
+
+### Fixed
+
+- Fixed: Highlighting (bold, underline, etc.) in the Map view is broken.
+- Fixed: The program can get into a never-ending loop if the Ai analysis fails.
+
+### Known Issues
+
+- An upgrade to Tcl-tk version 9 (brew install tcl-tk) may cause an error when importing tkinter.  If this occurs, refer to the README.
+- Task actions that are specific to Android 15 have not yet been mapped, and will display as such.
+- Open Issue: The browser output background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
+
+## Older History Logs
+
+## [6.0.4]
 
 - Added: Tasker 6.4.6 Beta is now fully supported (i.e. Widget V2 support).
 - Added: Additional Profile Properties added to the output: Limit Repeats, Cooldown Time, Profile Variable Type.
 - Added: Re-instituted the progress bar in the Map and Diagram views.
 - Added: 'Profiles Per Line' option added to the Diagram view.  Click on the '?' next to it for details.
 - Added: Ollama models 'qwen2.5' and 'qwen2.5-coder' have been added.
-
-### Changed
-
 - Changed: 'Go to top' and 'Go to bottom' hotlinks have been removed from the Map view in preference to the 'Top' and 'Bottom' buttons.  'Go to top' is still in the browser output.
 - Changed: The popup window displaying 'The view is running in the background.  Please stand by...' has been eliminated for improved performance.
-
-### Fixed
-
 - Fixed: Spacing for '[Continue Task After Error]' is incorrect in the Map view.
 - Fixed: Diagram view is missing an occasional Task underneath it's Profile.
 - Fixed: Eliminated potential 'Rutroh!...' output in the terminal.
@@ -26,15 +44,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Selecting a single named item in the GUI doesn't clear out the other single named items in the pulldown selection menus.
 - Fixed: Program terminates abnormally if the Map or Diagram buttons are double-clicked.
 - Fixed: 'Bottom Task' button points to the bottom Task's arrow rather than to the Task itself.
-
-### Known Issues
-
-- An upgrade to Tcl-tk version 9 (brew install tcl-tk) may cause an error when importing tkinter.  If this occurs, refer to the README.
-- Task actions that are specific to Android 15 have not yet been mapped, and will display as such.
-- Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
-- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).
-
-## Older History Logs
 
 ## [6.0.2/6.0.3]
 
