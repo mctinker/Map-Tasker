@@ -509,12 +509,16 @@ def add_logo(self, what: str) -> None:  # noqa: ANN001
     elif what == "coffee":
         dark_path = "bmc-button.png"
         light_path = "bmc-button.png"
-        return ctk.CTkImage(open_img(light_path), open_img(dark_path), (130, 40))
+        my_image = ctk.CTkImage(open_img(light_path), open_img(dark_path), (130, 40))
+
+    # Invalid logo
+    else:
+        my_image = None
 
     # Switch back to proper directory
     os.chdir(current_dir)
 
-    return None
+    return my_image
 
 
 # Create a label general routine
@@ -535,7 +539,7 @@ def add_label(
     Parameters:
         - frame (ctk.CTkFrame): The frame to add the label to.
         - name (ctk.CTkLabel): The label to be added.
-        - text (str): The text to be displayed on the label.
+            - text (str): The text to be displayed on the label.
         - text_color (str): color for the text
         - font_size (int): The font size of the label.
         - font_weight (str): The font weight of the label.
