@@ -1176,8 +1176,7 @@ class MyGui(customtkinter.CTk):
             not PrimeItems.tasker_root_elements["all_projects"]
             and not PrimeItems.tasker_root_elements["all_profiles"]
             and not PrimeItems.tasker_root_elements["all_tasks"]
-            or self.android_ipaddr
-        ):
+        ) or self.android_ipaddr:
             if self.android_ipaddr == "" or self.android_file == "":
                 if not self.prompt_and_get_file(self.debug, self.appearance_mode):
                     return False
@@ -1435,7 +1434,7 @@ class MyGui(customtkinter.CTk):
         else:
             self.new_version = False
 
-    # Display any meesaagaes we may currently have..
+    # Display any messages we may currently have..
     def process_current_messages(self) -> None:
         """
         Process any messages we may currently have.
@@ -2879,6 +2878,23 @@ class EventHandlers:
             the_view.display_message_box(f"Prompt changed to '{the_view.ai_prompt}'.", "Green")
             display_selected_object_labels(the_view)
 
+    def coffee_event(self) -> None:
+        """
+        Opens a web browser to the 'Buy Me a Coffee' page for support.
+
+        This function uses the webbrowser module to open a URL link
+        that directs the user to a page where they can support the
+        developer by buying a coffee.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        coffee_link = "https://www.buymeacoffee.com/mctinker"
+        webbrowser.open(coffee_link)
+
     # Display what is in the changelog for the new release.
     def whatsnew_event(self) -> None:
         """
@@ -3206,7 +3222,7 @@ class EventHandlers:
                     text_line_pos = match[1]
 
                     idx = f"{text_line_num!s}.{text_line_pos!s}"
-                    lastidx = "%s+%dc" % (idx, len(search_input))
+                    lastidx = f"{idx}+{len(search_input)}c"
                     textview.search_indecies.append(idx)
                     if first_time:
                         textview.search_current_line = idx

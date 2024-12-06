@@ -113,7 +113,7 @@ def process_solo_task_with_no_profile(
     unknown_task, specific_task = False, False
 
     # Get the Project this Task is under.
-    project_name, the_project = get_project_for_solo_task(
+    project_name, _ = get_project_for_solo_task(
         task_id,
         projects_with_no_tasks,
     )

@@ -210,7 +210,7 @@ def extract_highlights(working_text: str, highlight_tags: list) -> list:
         list: A list of strings representing the extracted highlights
     """
     highlights = []
-    # Seacrh for highlight ion string, and if found, get the highlight object's name and return it.
+    # Seacrh for highlight in string, and if found, get the highlight object's name and return it.
     for tag, style in highlight_tags.items():
         if tag in working_text:
             tag_name = tag.split(">")[0]
@@ -218,7 +218,6 @@ def extract_highlights(working_text: str, highlight_tags: list) -> list:
             work_name = working_text.split(tag)
             highlight_name = work_name[1].split(end_tag)[0]
             highlights.append(f"{style},{highlight_name}")
-            break
 
     return highlights
 
@@ -325,29 +324,30 @@ def calculate_spacing(
 
     Args:
         spacing (int): The initial spacing value.
-        output_lines (dict): A dictionary of output lines, where each line is represented as a dictionary with keys "text" and other formatting information.
+        output_lines (dict): A dictionary of output lines.
         line_num (int): The line number of the line being processed.
-        doing_global_variables (bool): A flag indicating whether global variables are being processed.
+        doing_global_variables (bool): A flag indicating if global variables are being processed.
         previous_line (str): The text of the previous line.
 
     Returns:
-        int: The calculated spacing value for the given line of text.
+        int: The calculated spacing value.
     """
     text = output_lines[line_num]["text"][0]
 
-    # Direct returns for quick decisions
-    if text.startswith(("Project:", "Scene:")) or doing_global_variables:
+    # Direct returns for common conditions
+    if doing_global_variables or text.startswith(("Project:", "Scene:")):
         return 0
 
-    if any(kw in text for kw in ["Project Global Variables", "Unreferenced Global Variables"]):
+    if any(keyword in text for keyword in ("Project Global Variables", "Unreferenced Global Variables")):
         return 0
 
     if text.startswith(("Profile:", "TaskerNet")):
         return 5
 
-    if text.startswith(("Task:", "- Project '")) or "--Task:" in text[:7] or "The following Tasks in Project " in text:
+    if text.startswith(("Task:", "- Project '", "   The following Tasks in Project ")) or "--Task:" in text[:7]:
         return 7 if text.startswith("   The following Tasks in Project ") else 10
 
+    # Special handling for Timeout and Configuration Parameters
     if ("Configuration Parameter(s):" in previous_line or "Timeout=" in text) and PrimeItems.program_arguments.get(
         "pretty",
         False,
@@ -361,15 +361,16 @@ def calculate_spacing(
         output_lines[line_num]["text"][0] = "Structure Output (JSON, etc)\n"
         return spacing
 
+    # Special handling for error continuation
     if "[Continue Task After Error]" in text:
         output_lines[line_num]["text"][0] = "[Continue Task After Error]\n"
-        if PrimeItems.program_arguments.get("gui", True):
-            return spacing + 18
-        return spacing
+        return spacing + 18 if PrimeItems.program_arguments.get("gui", True) else spacing
 
+    # General spacing conditions
     if spacing == 61 or text[0].isdigit() or " continued >>>" in text:
         return 15
 
+    # Default spacing
     return spacing
 
 
@@ -602,41 +603,28 @@ def process_html_lines(lines: list, output_lines: list, spacing: int, iterate: b
 
     Returns:
         list: The updated output_lines list.
-
-    Description:
-        This function processes a list of HTML lines and adds them to the output_lines list. It performs the following tasks:
-        - Ignores certain lines.
-        - Processes directory entries.
-        - Ignores non-text data.
-        - Handles special formatting.
-        - Validates the profile name.
-
-        The function modifies the output_lines list in place.
     """
     doing_global_variables = False
     previous_line = ""
 
-    # Reformat the html by going through each line
     for line_num, line in enumerate(lines):
-
-        # Ignore certain lines
+        # Ignore lines that match the criteria
         if ignore_line(line):
             continue
 
         # Process directory entries
         if "<td>" in line:
-            temp = line.split("<td>")
-            output_lines = add_directory_entry(temp, output_lines, line_num)
+            output_lines = add_directory_entry(line.split("<td>"), output_lines, line_num)
             iterate = True
+            continue
 
-        # If we are to skip the next line, then skip it.
+        # Skip processing if flagged
         if iterate:
             iterate = False
             continue
 
-        # Check if the line is a table definition for Unreferenced Global Variables: Name and Value
-        if line == "<th>Name</th>\n" and lines[line_num + 1] == "<th>Value</th>\n":
-            iterate = True
+        # Handle Unreferenced Global Variables table
+        if line == "<th>Name</th>\n" and line_num + 1 < len(lines) and lines[line_num + 1] == "<th>Value</th>\n":
             output_lines[line_num] = {
                 "text": ["Variable Name...............Variable Value"],
                 "color": ["turquoise1"],
@@ -645,15 +633,16 @@ def process_html_lines(lines: list, output_lines: list, spacing: int, iterate: b
                 "directory": [],
             }
             doing_global_variables = True
+            iterate = True
             continue
 
-        # End of global variables if we hit the end of the table.
+        # End of global variables table
         if doing_global_variables and line == "</table><br>\n":
             doing_global_variables = False
             spacing = 0
             continue
 
-        # Handle special formatting
+        # Apply additional formatting
         output_lines, spacing = additional_formatting(
             doing_global_variables,
             line,
@@ -664,9 +653,11 @@ def process_html_lines(lines: list, output_lines: list, spacing: int, iterate: b
         )
         previous_line = line
 
-        # Validate Profile name.  If no name then say so.
-        if "Profile:" in line and output_lines[line_num]["text"][0] == "     Profile: \n":
-            output_lines[line_num]["text"][0] = "     Profile: (no name)\n"
+        # Validate and update profile name if missing
+        if "Profile:" in line:
+            current_text = output_lines[line_num].get("text", [""])[0]
+            if current_text == "     Profile: \n":
+                output_lines[line_num]["text"][0] = "     Profile: (no name)\n"
 
     return output_lines
 

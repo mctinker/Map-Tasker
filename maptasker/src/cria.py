@@ -5,6 +5,7 @@ if process_name.lower() in proc.name().lower() and proc.info["cmdline"] is not N
 """
 
 import atexit
+import contextlib
 import subprocess
 import time
 from contextlib import ContextDecorator
@@ -27,15 +28,20 @@ class Client(OllamaClient):
         response = ""
         self.running = True
 
-        for chunk in ai.chat(model=model, messages=messages, stream=True, **kwargs):
-            if self.stop_stream:
-                if self.allow_interruption:
-                    messages.append({"role": "assistant", "content": response})
-                self.running = False
-                return
-            content = chunk["message"]["content"]
-            response += content
-            yield content
+        try:
+            for chunk in ai.chat(model=model, messages=messages, stream=True, **kwargs):
+                if self.stop_stream:
+                    if self.allow_interruption:
+                        messages.append({"role": "assistant", "content": response})
+                    self.running = False
+                    return
+                content = chunk["message"]["content"]
+                response += content
+                yield content
+        except ollama.ResponseError as e:
+            error_msg = f"Error in chat_stream: {e.error}"
+            self.messages = [{"role": "assistant", "content": error_msg}]
+            return
 
         self.running = False
 

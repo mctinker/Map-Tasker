@@ -97,6 +97,10 @@ def on_crash(exctype: str, value: str, traceback: list) -> None:
         - Redirect print/stderr to log for detailed crash information
     """
     if crash_debug:
+        if "does not support chat" in value.error:
+            PrimeItems.program_arguments["ai_analysis"] = False
+            print(value.error)
+            return
         # sys.__excepthook__ is the default excepthook that prints the stack trace
         # So we use it directly if we want to see it
         sys.__excepthook__(exctype, value, traceback)

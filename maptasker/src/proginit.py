@@ -303,7 +303,7 @@ def check_versions() -> None:
     msg = ""
     version = sys.version
     version = version.split(" ")
-    major, minor, patch = (int(x, 10) for x in version[0].split("."))
+    major, minor, _ = (int(x, 10) for x in version[0].split("."))
     if major < 3 or (major == 3 and minor < 11):
         msg = f"Python version {sys.version} is not supported.  Please use Python 3.11 or greater."
     version = str(TkVersion)

@@ -118,6 +118,10 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
         {"role": "user", "content": context},
     ]
     response = ""
+    # Make sure we don't come back if cria fails.
+    PrimeItems.program_arguments["ai_analyze"] = False
+
+    # Call Cria
     ai = cria.Cria()
 
     # Open the model and get the response

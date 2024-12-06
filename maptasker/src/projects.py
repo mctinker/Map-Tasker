@@ -677,7 +677,7 @@ def process_projects(
 
         # Get the Project line item details and output them
         (
-            single_task_or_profile_found,
+            _,
             profile_count,
             have_project_wanted,
         ) = get_profile_details_and_output(project, project_name)
@@ -689,7 +689,7 @@ def process_projects(
 
         # Process all of the Profiles for this Project
         (
-            single_profile_not_found,
+            _,
             our_task_element,
             profile_count,
         ) = process_project_profiles(

@@ -11,9 +11,11 @@ from __future__ import annotations
 import contextlib
 import os
 import random
+import re
 import time
+import tkinter as tk
 import webbrowser
-from tkinter import TclError, ttk
+from tkinter import Label, TclError, Toplevel, ttk
 
 import customtkinter as ctk
 from PIL import Image, ImageTk
@@ -39,9 +41,11 @@ from maptasker.src.guiutils import (
     search_substring_in_list,
     update_tasker_object_menus,
 )
-from maptasker.src.maputils import find_all_positions
+from maptasker.src.lineout import LineOut
+from maptasker.src.maputils import find_all_positions, rutroh_error
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import DIAGRAM_PROFILES_PER_LINE, LLAMA_MODELS, OPENAI_MODELS, logger
+from maptasker.src.property import get_properties
+from maptasker.src.sysconst import DIAGRAM_PROFILES_PER_LINE, LLAMA_MODELS, OPENAI_MODELS, clean, logger
 
 # Set up for access to icons
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -425,7 +429,7 @@ class CTkTextview(ctk.CTkFrame):
         self.bold_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], weight="bold", size=12)
         self.italic_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], size=12, slant="italic")
 
-        # Initalize variables
+        # Initialize variables
         self.textview_textbox.diagram_highlighted_connector = ""
 
         # Insert the text with our new message into the text box.
@@ -435,48 +439,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Process list data (list of lines): diagram view.
         if type(the_data) !=  dict:
-            diagram = "Diagram" in self.title
-            self.diagram_connectors = {}
-            for num, line in enumerate(the_data):
-                text_line = num + 1
-                # NOTE: Uncomment next two lines and comment out the line afterwards to see line numbers on debug mode.
-                if self.master.master.debug:  # Add line number if debug mode.
-                    self.textview_textbox.insert(f"{text_line!s}.0", f"{text_line!s}{line}\n")
-                else:
-                    self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
-
-                # Highlight the Tasker names if doing a diagram.
-                if diagram:
-                    self.highlight_text(line, text_line)
-
-                    # Build our wire connectors.
-                    self.diagram_connectors = build_connectors(the_data, num, self.diagram_connectors)
-
-            # Configure tag colors once if a highlight was applied
-            if diagram:
-                guiview = self.master.master
-                # In order for the map to work, we need to ensure that we have the colors defined.
-                if not guiview.color_lookup:
-                    guiview.color_lookup = set_color_mode(guiview.appearance_mode)
-                self.textview_textbox.tag_config("project", foreground=guiview.color_lookup["project_color"])
-                self.textview_textbox.tag_config("profile", foreground=guiview.color_lookup["profile_color"])
-                self.textview_textbox.tag_config("task", foreground=guiview.color_lookup["task_color"])
-                self.textview_textbox.tag_config("scene", foreground=guiview.color_lookup["scene_color"])
-
-                # Add connector tags.
-                self.add_connector_tags(self.diagram_connectors)
-
-            # Add the CustomTkinter widgets
-            if "Analysis" in self.title:
-                self.add_view_widgets("Analysis")
-            else:
-                self.add_view_widgets("Diagram")
-            # Force courier new for diagram view if just Courier...perfect character alignment.
-            if self.master.master.font == "Courier":
-                self.textview_textbox.configure(self, font=("Courier New", 12))
-
-            # Save a pointer to the data.
-            self.data = the_data
+            self.output_list(the_data)
 
         else:
             # Process the Map view (dictionary of lines)
@@ -487,6 +450,58 @@ class CTkTextview(ctk.CTkFrame):
         # Set a timer so we can delete the label after a certain amount of time.
         self.after(3000, self.delay_event)  # 3 second timer
         self.textview_textbox.focus_set()
+
+    def output_list(self, the_data: list) -> None:
+        """
+        Output the text data to the text box, adding line numbers if in debug mode.
+        If the title contains 'Diagram', then color the text, and if the title contains
+        'Analysis', then add the analysis CustomTkinter widgets.
+
+        Args:
+            the_data (list): List of lines to insert into the text box.
+        """
+        diagram = "Diagram" in self.title
+        self.diagram_connectors = {}
+        for num, line in enumerate(the_data):
+            text_line = num + 1
+            # NOTE: debug mode displays line numbers, and colors/highlighting is offset by the line number length.
+            if self.master.master.debug:  # Add line number if debug mode.
+                self.textview_textbox.insert(f"{text_line!s}.0", f"{text_line!s}{line}\n")
+            else:
+                self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
+
+            # Highlight the Tasker names if doing a diagram.
+            if diagram:
+                self.highlight_text(line, text_line)
+
+                # Build our wire connectors.
+                self.diagram_connectors = build_connectors(the_data, num, self.diagram_connectors)
+
+        # Configure tag colors once if a highlight was applied
+        if diagram:
+            guiview = self.master.master
+            # In order for the map to work, we need to ensure that we have the colors defined.
+            if not guiview.color_lookup:
+                guiview.color_lookup = set_color_mode(guiview.appearance_mode)
+            self.textview_textbox.tag_config("project", foreground=guiview.color_lookup["project_color"])
+            self.textview_textbox.tag_config("profile", foreground=guiview.color_lookup["profile_color"])
+            self.textview_textbox.tag_config("task", foreground=guiview.color_lookup["task_color"])
+            self.textview_textbox.tag_config("scene", foreground=guiview.color_lookup["scene_color"])
+
+            # Add connector tags.
+            self.add_connector_tags(self.diagram_connectors)
+
+        # Add the CustomTkinter widgets
+        if "Analysis" in self.title:
+            self.add_view_widgets("Analysis")
+        else:
+            self.add_view_widgets("Diagram")
+        # Force courier new for diagram view if just Courier...perfect character alignment.
+        if self.master.master.font == "Courier":
+            self.textview_textbox.configure(self, font=("Courier New", 12))
+
+        # Save a pointer to the data.
+        self.data = the_data
 
     def add_view_widgets(self, title: str) -> None:
         """
@@ -563,7 +578,6 @@ class CTkTextview(ctk.CTkFrame):
         search_input.grid(
             row=0,
             column=0,
-            # columnspan=1,
             padx=20,
             pady=5,
             sticky="nw",
@@ -586,6 +600,10 @@ class CTkTextview(ctk.CTkFrame):
             "nw",
         )
         search_button.configure(width=60)
+        create_tooltip(
+            search_button,
+            text="Click this button to initiate a search for the string you have entered to the left.\n\nClick the ? to get more info.",
+        )
         # Next search button
         next_search_button = add_button(
             self,
@@ -604,6 +622,10 @@ class CTkTextview(ctk.CTkFrame):
             "nw",
         )
         next_search_button.configure(width=40)
+        create_tooltip(
+            next_search_button,
+            text="Make the next matched string visible.\n\nClick the ? to get more info.",
+        )
         # Previous search button
         prev_search_button = add_button(
             self,
@@ -622,6 +644,10 @@ class CTkTextview(ctk.CTkFrame):
             "nw",
         )
         prev_search_button.configure(width=40)
+        create_tooltip(
+            prev_search_button,
+            text="Make the previous matched string visible.\n\nClick the ? to get more info.",
+        )
         # Clear search button
         clear_search_button = add_button(
             self,
@@ -772,6 +798,10 @@ class CTkTextview(ctk.CTkFrame):
                 "nw",
             )
             ppp_query_button.configure(width=20)
+            create_tooltip(
+                self.profiles_per_line_option,
+                text="Select how many Profiles\nto display per line.  The default is 6.\n\nClick the ? to get more info.",
+            )
 
         elif title == "Map":
             gui_view.mapview = self  # Save our textview in the main Gui view.
@@ -823,6 +853,10 @@ class CTkTextview(ctk.CTkFrame):
             "nw",
         )
         self.jump_top.configure(width=60)
+        create_tooltip(
+            self.jump_top,
+            text="Make the Task at the top of the highlighted connection visible.",
+        )
 
         # Jump-to Bottom button
         self.jump_bottom = add_button(
@@ -842,6 +876,10 @@ class CTkTextview(ctk.CTkFrame):
             "nw",
         )
         self.jump_bottom.configure(width=60)
+        create_tooltip(
+            self.jump_bottom,
+            text="Make the Task at the bottom of the highlighted connection visible.",
+        )
 
     # Text window was resized.
     def on_resize(self, event: dict) -> None:  # noqa: ARG002
@@ -884,7 +922,7 @@ class CTkTextview(ctk.CTkFrame):
 
     def click_text(self, event: object) -> None:
         """
-        Gets the index of the mouse click on the text box.
+        Gets the index of the mouse click on the text box and processed it based on its tag.
 
         Args:
             event: The event object containing the coordinates of the mouse click.
@@ -917,59 +955,212 @@ class CTkTextview(ctk.CTkFrame):
         connector_tagid = self.textview_textbox.diagram_highlighted_connector
         connector = ""
 
-        # Go through the tags for the character clicked.
+        # Go through the tags for the character clicked.  There should only be one.
         for tag in tags_at_index:
             # If it is a connector, then highlight it.
             if "wire_" in tag:
-                # Find and delete our previous hightlighted up/down bars.  We do this for performance.
-                remove_tags_from_bars_and_names(self)
+                connector = self.display_connector_details(tag, connector, connector_tagid)
 
-                # Now turn the highlighting off.
-                self.textview_textbox.tag_config(
-                    connector_tagid,
-                    background=make_hex_color(self.master.master.color_lookup["background_color"]),
-                )
-                connector_tagid = ""
-
-                # Add tags for up/down bars.
-                connector_key = tag[5:]
-                connector = self.diagram_connectors[connector_key]
-                line_num = connector["start_top"][0]
-                number_of_lines_to_highlight = connector["start_bottom"][0] - connector["start_top"][0] + 1
-                for _ in range(number_of_lines_to_highlight):
-                    self.textview_textbox.tag_add(
-                        tag,
-                        f"{line_num}.{connector['end_top'][1]!s}",
-                        f"{line_num}.{connector['end_top'][1]+1!s}",
-                    )
-                    connector["extra_bars"].append((line_num, connector["end_top"][1]))
-                    line_num += 1
-
-                # See if there are bars directly above top left elbow, and highlight if there are.
-                self.highlight_bars_above(connector, connector["start_top"], tag, bar)
-
-                # See if there are bars directly above bottom left elbow, and highlight if there are.
-                self.highlight_bars_above(connector, connector["start_bottom"], tag, bar)
-
-                # See if there are bars directly above top left elbow, and highlight if there are.
-                self.highlight_bars_below(connector, connector["start_top"], tag, left_arrow_corner_down)
-
-                # See if there are bars directly above bottom left elbow, and highlight if there are.
-                self.highlight_bars_below(connector, connector["start_bottom"], tag, left_arrow_corner_down)
-
-                # Identify this connector aas the active tag.
-                connector["tag"] = tag
-
-                # Now highlight the selected connector.
-                self.textview_textbox.tag_config(
-                    tag,
-                    background=make_hex_color("blue"),
-                )
-                self.textview_textbox.diagram_highlighted_connector = tag
+            # Handle item name (Project, Profile, Task, Scene name tags)
+            elif "." in tag:
+                # Add the info to the hover tooltip.
+                self.display_hover_info(tag, event)
 
         # Add 'Jump to' buttons.
         if connector:
             self.add_jumpto_buttons(connector)
+
+    def display_connector_details(self, tag: str, connector: dict, connector_tagid: str) -> dict:
+        """
+        Given a tag, the tag of the connector, and the tagid of the previously highlighted connector,
+        remove the previous highlighting, and highlight the new connector.
+
+        Args:
+        tag (str): The tag of the new connector to be highlighted.
+        connector (dict): The dictionary of the connector to be highlighted.
+        connector_tagid (str): The tagid of the previously highlighted connector.
+
+        Returns:
+        dict: The updated dictionary of the connector to be highlighted.
+        """
+        # Find and delete our previous highlighted up/down bars.  We do this for performance.
+        remove_tags_from_bars_and_names(self)
+
+        # Now turn the highlighting off.
+        self.textview_textbox.tag_config(
+            connector_tagid,
+            background=make_hex_color(self.master.master.color_lookup["background_color"]),
+        )
+        connector_tagid = ""
+
+        # Add tags for up/down bars.
+        connector_key = tag[5:]
+        connector = self.diagram_connectors[connector_key]
+        line_num = connector["start_top"][0]
+        number_of_lines_to_highlight = connector["start_bottom"][0] - connector["start_top"][0] + 1
+        for _ in range(number_of_lines_to_highlight):
+            self.textview_textbox.tag_add(
+                tag,
+                f"{line_num}.{connector['end_top'][1]!s}",
+                f"{line_num}.{connector['end_top'][1]+1!s}",
+            )
+            connector["extra_bars"].append((line_num, connector["end_top"][1]))
+            line_num += 1
+
+        # See if there are bars directly above top left elbow, and highlight if there are.
+        self.highlight_bars_above(connector, connector["start_top"], tag, bar)
+
+        # See if there are bars directly above bottom left elbow, and highlight if there are.
+        self.highlight_bars_above(connector, connector["start_bottom"], tag, bar)
+
+        # See if there are bars directly above top left elbow, and highlight if there are.
+        self.highlight_bars_below(connector, connector["start_top"], tag, left_arrow_corner_down)
+
+        # See if there are bars directly above bottom left elbow, and highlight if there are.
+        self.highlight_bars_below(connector, connector["start_bottom"], tag, left_arrow_corner_down)
+
+        # Identify this connector aas the active tag.
+        connector["tag"] = tag
+
+        # Now highlight the selected connector.
+        self.textview_textbox.tag_config(
+            tag,
+            background=make_hex_color("blue"),
+        )
+        self.textview_textbox.diagram_highlighted_connector = tag
+
+        return connector
+
+    def display_hover_info(self, tag: str, event: object) -> None:
+        """
+        Displays a hover tooltip with information about the item associated with the given tag.
+
+        Args:
+            tag (str): The tag identifier for the selected item.
+            event (object): The event object containing information about the mouse event.
+
+        Description:
+            This method retrieves and formats information about the item associated with the given tag
+            and displays it as a tooltip near the mouse cursor. The information displayed depends on the
+            type of item (task, profile, or project), and includes the item's name and related context
+            such as the owning profile or project. Task-related information includes profile and project
+            associations, while project-related information includes project properties.
+
+        """
+        # Point to our gui self.
+        mygui = self.master.master
+        # start_position = mygui.items_for_selection[tag]["start_position"]
+        # end_position = mygui.items_for_selection[tag]["end_position"]
+        # Make sure it is a good tag.
+        try:
+            name = mygui.items_for_selection[tag]["name"]
+        except KeyError:
+            return
+        mygui.items_for_selection[tag]["name"] = name
+        item_type = mygui.items_for_selection[tag]["item"]
+        text = f"{item_type.capitalize()}: {name}"
+
+        # Get Task related info and add it.
+        if item_type == "task":
+            profile = self.find_owning_profile(name)
+            if not profile:
+                profile = "None"
+            project = self.find_task_owning_project(name)
+            if not project:
+                project = "None"
+            properties = self.get_properties("Task", name)
+            text = text + f"\nIn Profile: {profile}\nIn Project: {project}{properties}"
+        # Get the Profile related info.
+        elif item_type == "profile":
+            project = self.find_owning_project(name)
+            text = text + f"\nIn Project: {project}"
+        # Project related info.
+        else:
+            # Get the Project's properties
+            properties = self.get_properties("Project", name)
+            text = f"Project: {name}{properties}"
+
+        # Create the label.
+        label = tk.Label(self, text=text, bg="#092944", justify="left", padx=5, pady=5)
+
+        # Place the label at the mouse position
+        label.place(x=event.x + 100, y=event.y)
+        self.hover_tooltip = label
+
+    def click_name_leave(self, event: object) -> None:  # noqa: ARG002
+        """
+        Deletes the hover label.
+
+        Args:
+            event: The event object containing the coordinates of the mouse click.
+
+        Returns:
+            None: This function does not return anything.
+
+        Raises:
+            None: This function does not raise any exceptions.
+        # Get the tags at that index
+        tags_at_index = text_widget.tag_names(index)
+        """
+        with contextlib.suppress(AttributeError):
+            self.hover_tooltip.destroy()
+
+    def get_properties(self, item_type: str, item_name: str) -> str:
+        """
+        Retrieves and formats the properties of a specified item type.
+
+        Args:
+            item_type (str): The type of the item (e.g., "Project", "Task").
+            item_name (str): The name of the item whose properties are to be retrieved.
+
+        Returns:
+            str: A formatted string containing the properties of the item, or an empty
+            string if no properties are found.
+
+        Processing Logic:
+            - Intializes a LineOut object to store output lines.
+            - Retrieves the XML representation of the project's properties.
+            - Searches the output lines for property information related to the specified
+            item type.
+            - Cleans and formats the properties for output.
+        """
+        # Get the item's XML
+        if item_name == "Unnamed/Anonymous.":
+            return ""
+        if item_type == "Task":
+            try:
+                result = next(
+                    (k, v) for k, v in PrimeItems.tasker_root_elements["all_tasks"].items() if v["name"] == item_name
+                )
+                xml = result[1]["xml"]
+            except StopIteration:
+                if PrimeItems.program_arguments["debug"]:
+                    logger.debug(f"Error in guiwins: task {item_name} Not Found!!!!")
+                return ""
+
+        else:
+            xml = PrimeItems.tasker_root_elements["all_projects"][item_name]["xml"]
+
+        # Clear out the output and get the Project's properties
+        PrimeItems.output_lines = LineOut()
+        with contextlib.suppress(KeyError):
+            get_properties(item_type, xml)
+
+        # Get the properties from the properties output.
+        properties = []
+        search_key = f"{item_type} Properties"
+        for line in PrimeItems.output_lines.output_lines:
+            property_leadup = line.find(search_key)
+            if property_leadup != -1:
+                properties_with_html = line[property_leadup + len(search_key) + 1 :].replace("<br>", "\n")
+                # Get rid of html
+                properties_layed_out = re.sub(clean, "", properties_with_html)
+                properties.append(
+                    properties_layed_out.replace(",", "\n").replace("&nbsp;", ""),
+                )
+        if properties:
+            return f"\n\nProperties: {' '.join(properties)}"
+        return ""
 
     def highlight_bars(self, connector: dict, start_position: tuple, tag: str, char: str, direction: str) -> None:
         """
@@ -1034,7 +1225,7 @@ class CTkTextview(ctk.CTkFrame):
         """
         self.highlight_bars(connector, start_position, tag, char, direction="down")
 
-    def add_highlight(self, tagid: str, line_num: int, highlight_start: int, highlight_end: int) -> None:
+    def add_highlight(self, tagid: str, line_num: int, highlight_start: int, highlight_end: int, _: str) -> None:
         """
         Adds a tag to the text box for the given highlight range.
 
@@ -1043,6 +1234,7 @@ class CTkTextview(ctk.CTkFrame):
             line_num (int): The line number to add the highlight to.
             highlight_start (int): The start column of the highlight.
             highlight_end (int): The end column of the highlight.
+            name (str): The name of the item being highlighted.
 
         Returns:
             None: This function does not return anything.
@@ -1066,19 +1258,19 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None: This function does not return anything.
 
-        This function highlights the item names in the line by getting the occurances of the left_arrow_corner_up "║" character in the line.
+        This function highlights the item names in the line by getting the occurrences of the left_arrow_corner_up "║" character in the line.
         It then adds a tag to the text box for the given highlight range.
         """
-        # Get the occurances of left_arrow_corner_up "║" in the line and use it to determine start and end.
-        occurences = [i for i, c in enumerate(line) if c == "║"]
+        # Get the occurrences of left_arrow_corner_up "║" in the line and use it to determine start and end.
+        occurrences = [i for i, c in enumerate(line) if c == "║"]
         # Get the locations of all icons in the names.
         icons = [i for i, char in enumerate(line) if ord(char) > 1000 and char not in ("│", "║")]
-        for num, occurence in enumerate(occurences):
+        for num, occurrence in enumerate(occurrences):
             if num % 2 == 0:  # Even?
-                highlight_start = occurence + 2
+                highlight_start = occurrence + 2
                 highlight_end = ""
             else:  # Odd?
-                highlight_end = occurence - 1
+                highlight_end = occurrence - 1
             # We have the name if odd (e.g. we have highlight_end).
             if highlight_end:
                 # If icon in name, push out by number of icon positions.
@@ -1086,9 +1278,11 @@ class CTkTextview(ctk.CTkFrame):
                     if highlight_start >= icon <= highlight_end:
                         highlight_end += num_icon + 1
                         highlight_start += num_icon + 2
-                        break
+                    break
+
                 # Finally, add the highlighting.
-                self.add_highlight(tagid, line_num, highlight_start, highlight_end)
+                item_name = line[highlight_start:highlight_end]
+                self.add_highlight(tagid, line_num, highlight_start, highlight_end, item_name)
 
     def highlight_text(self, line: str, line_num: int) -> None:
         """
@@ -1115,7 +1309,7 @@ class CTkTextview(ctk.CTkFrame):
         It also adds a tag for each bar in the list of bars.
 
         Args:
-            diagram_connectors: Disctionary of connectors in the diagram.
+            diagram_connectors: Dictionary of connectors in the diagram.
 
         Returns:
             None
@@ -1174,7 +1368,8 @@ class CTkTextview(ctk.CTkFrame):
         """
         highlight_start = project_index + 9
         highlight_end = line.find("║", highlight_start) - 1
-        self.add_highlight("project", line_num, highlight_start, highlight_end)
+        project_name = line[highlight_start:highlight_end]
+        self.add_highlight("project", line_num, highlight_start, highlight_end, project_name)
 
     def handle_task_highlight(self, line: str, line_num: int) -> None:
         """
@@ -1183,8 +1378,9 @@ class CTkTextview(ctk.CTkFrame):
         hits = ["[Called by ", "[Calls ", "(entry)", "(exit)", "  "]
         highlight_start = line.find("└─") + 3
         highlight_end = self.find_task_end(line, highlight_start, hits)
+        task_name = line[highlight_start:highlight_end]
 
-        self.add_highlight("task", line_num, highlight_start, highlight_end)
+        self.add_highlight("task", line_num, highlight_start, highlight_end, task_name)
 
     def find_task_end(self, line: str, highlight_start: int, hits: list) -> int:
         """
@@ -1229,6 +1425,9 @@ class CTkTextview(ctk.CTkFrame):
         if not PrimeItems.program_arguments["map_window_position"]:
             PrimeItems.program_arguments["map_window_position"] = self.master.master.window_position
 
+        # Setup to save items (Projects, Profiles, Tasks, and Scenes)
+        self.master.master.items_for_selection = {}  # MyGui
+
         # Go through all of the map data and format it accordingly.
         self.process_map_data(
             line_num,
@@ -1270,10 +1469,19 @@ class CTkTextview(ctk.CTkFrame):
         from maptasker.src.diagram import configure_progress_bar
 
         progress = configure_progress_bar(the_data, "Map")
-        progress["max_data"] = len(the_data)
-        progress["tenth_increment"] = progress["max_data"] // 10
-        progress["self"] = self.master.master
+        progress.update(
+            {
+                "max_data": len(the_data),
+                "tenth_increment": max(1, len(the_data) // 10),  # Avoid division by zero
+                "self": self.master.master,
+            },
+        )
         self.master.master.progress_bar = progress
+        check_bump = self.check_bump
+        master_debug = self.master.master.debug
+        log_info = logger.info if master_debug else lambda *_: None  # No-op if debug is off
+        process_directory = self.process_directory
+        process_colored_text = self.process_colored_text
 
         # Go through the data and format it accordingly.
         for num, (_, value) in enumerate(the_data.items()):
@@ -1287,7 +1495,7 @@ class CTkTextview(ctk.CTkFrame):
                 continue
 
             # Check to see if we need to bump the line number.
-            line_num, char_position = self.check_bump(line_num, char_position, previous_value, value)
+            line_num, char_position = check_bump(line_num, char_position, previous_value, value)
 
             # Check if we need to change the color
             if not value["color"] and value["text"]:
@@ -1295,7 +1503,7 @@ class CTkTextview(ctk.CTkFrame):
 
             # Go through all of the text/color combinations
             if value.get("color"):
-                line_num, previous_color, previous_value, tags = self.process_colored_text(
+                line_num, previous_color, previous_value, tags = process_colored_text(
                     value,
                     line_num,
                     previous_color,
@@ -1309,8 +1517,8 @@ class CTkTextview(ctk.CTkFrame):
                         previous_value,
                         char_position,
                     )
-            elif value.get("directory"):
-                char_position, previous_directory, line_num = self.process_directory(
+            elif "directory" in value:
+                char_position, previous_directory, line_num = process_directory(
                     value,
                     line_num,
                     previous_directory,
@@ -1318,8 +1526,8 @@ class CTkTextview(ctk.CTkFrame):
                 )
                 previous_value = "directory"
 
-            if self.master.master.debug:
-                logger.info(f"Map View Value: {value}")
+            # Log debug information if enabled
+            log_info(f"Map View Value: {value}")
 
         # Stop the progress bar and destroy the widget
         kill_the_progress_bar(progress)
@@ -1491,33 +1699,40 @@ class CTkTextview(ctk.CTkFrame):
         """
         Process a single colored text element.
 
-        This function takes a single colored text element from a list of colored text elements and processes it. It
-        updates the input dictionary with the new text and color, and returns the updated line number, the color of the
-        previous element, and the tag for the color of the previous element.
-
         Parameters:
-            value (dict): The colored text element to process. It should have the keys "text" and "color".
+            value (dict): The colored text element to process.
             line_num (int): The current line number.
             previous_color (str): The color of the previous element.
             previous_value (str): The value of the previous element.
             tags (list): A list of tags for the colors of the elements.
 
         Returns:
-            tuple: A tuple containing the updated line number, the color of the previous element, the tag for the color
-            of the previous element, and the list of tags.
+            tuple: Updated line number, the previous color, the tag for the color, and the list of tags.
         """
         text = value["text"][0]
 
         if text == "Directory\n":
+            # Replace text with the formatted directory description
             value["text"] = ["Directory    (blue entries are hotlinks)\n"]
+
         elif text.startswith("\nn"):
-            save_text, save_color = text[2:], value["color"]
+            # Save and temporarily update text and color
+            save_text = text[2:]
+            save_color = value["color"]
             value["text"] = "\n\n"
+
+            # Output current text and increment line number
             previous_color = self.output_map_text_lines(value, line_num, tags, previous_color, previous_value)
             line_num += 1
-            value.update(text=save_text, color=save_color)
 
+            # Restore original text and color
+            value["text"] = save_text
+            value["color"] = save_color
+
+        # Output the updated text and color
         previous_color = self.output_map_text_lines(value, line_num, tags, previous_color, previous_value)
+
+        # Return updated parameters
         return line_num + 1, previous_color, "color", tags
 
     def process_directory(
@@ -1596,7 +1811,7 @@ class CTkTextview(ctk.CTkFrame):
         # Add a second "up one more level" hotlink
         if up_one_level and name_to_go_up != "entire configuration":
             new_char_pos = len(hotlink_name) + 10
-            # self.textview_textbox.insert(f"{line_num_str}.{new_char_pos}", "%%%%", "up_two_levels")
+
             if directory_type:
                 if directory_type == "profiles_up":
                     name_to_go_up = self.find_owning_project(name_to_go_up)
@@ -1627,8 +1842,6 @@ class CTkTextview(ctk.CTkFrame):
 
         return char_position, previous_directory, line_num + (char_position == 0)
 
-        # return previous_color
-
     def output_map_text_lines(
         self,
         value: dict,
@@ -1638,99 +1851,192 @@ class CTkTextview(ctk.CTkFrame):
         previous_value: str,
     ) -> str:
         """
-        Outputs the given map data to a text box.
-
-        This function takes a dictionary of map data, a line number, a set of tags, a previous color,
-        and a previous value and outputs the formatted map data to the text box.
-
-        It determines the color and highlight settings for each line of text and configures the tag colors
-        accordingly.
-
-        It also handles specific cases such as pretty output and debug line numbers.
-
-        It returns the color of the last element.
-
-        Parameters:
-            value (dict): The dictionary containing the map data.
-            line_num (int): The current line number.
-            tags (set): The set of tags.
-            previous_color (str): The color of the previous element.
-            previous_value (str): The value of the previous element.
-
-        Returns:
-            str: The color of the last element.
+        Outputs the given map data to a text box, determining colors, highlights, and formatting.
         """
         spaces = " " * 20
-        char_position = 0
         line_num_str = str(line_num)
-        # go_to_top = False
+        char_position = 0
 
-        # Precompute the background color once.
+        # Precompute the background color
         background_color = make_hex_color(self.master.master.color_lookup["background_color"])
-
         pretty = self.master.master.pretty
         debug = self.master.master.debug
 
-        # Loop through all text strings.
         for num, message in enumerate(value["text"]):
-            new_message = message.replace("\n\n", "\n").replace("Go to top", "")
-
-            # Handle specific cases
-            if previous_value == "directory" and "Project:" in new_message:
-                new_message = f"\n{new_message}"
-            if new_message == "      ":
+            formatted_message = self._format_message(
+                message,
+                line_num_str,
+                previous_value,
+                spaces,
+                pretty,
+                debug,
+            )
+            if not formatted_message:
                 continue
 
-            # Adjust formatting for pretty output and debug line numbers
-            if pretty and message.startswith(spaces):
-                new_message = f"  {new_message}"
-            if debug:
-                new_message = f"{line_num_str} {new_message}"
-
-            char_position_str = str(char_position)
-            tag_id = f"{line_num_str}{char_position_str}"
-
-            # Ensure unique tag_id
-            while tag_id in tags:
-                tag_id = f"{tag_id}{random.randint(100, 999)}"  # noqa: S311
-            tags.append(tag_id)
-
             # Determine if this is the last item and add a newline if necessary
-            if new_message == value["text"][-1] and "\n" not in new_message:
-                new_message += "\n"
+            if formatted_message == value["text"][-1] and "\n" not in formatted_message:
+                formatted_message += "\n"
 
-            # Insert text and tags into the textbox
-            start_idx = f"{line_num_str}.{char_position_str}"
-            end_idx = f"{line_num_str}.{char_position + len(new_message)}"
-            # Note: If user double-clicks a button, the textbox is not valid on the second click.
-            try:
-                self.textview_textbox.insert(start_idx, new_message, tag_id)
-            except TclError:
-                return previous_color
-            self.textview_textbox.tag_add(tag_id, start_idx, end_idx)
-
-            char_position += len(new_message)
-
-            # Determine color and highlight settings
-            if "Color for Background set to" in new_message or "highlighted for visibility" in new_message:
-                color = "White"
-            else:
-                color, tags = self.output_map_colors_highlighting(
-                    value,
-                    tags,
-                    previous_color,
-                    previous_value,
-                    num,
-                    new_message,
-                    tag_id,
-                    previous_color,
-                )
-
-            # Configure tag colors
-            self.textview_textbox.tag_config(tag_id, foreground=color, background=background_color)
-            previous_color = color
+            tag_id = self._generate_unique_tag_id(line_num_str, char_position, tags)
+            char_position = self._insert_message(
+                line_num_str,
+                char_position,
+                formatted_message,
+                tag_id,
+                background_color,
+            )
+            previous_color = self._handle_color_and_highlighting(
+                value,
+                tags,
+                previous_color,
+                previous_value,
+                num,
+                formatted_message,
+                tag_id,
+            )
 
         return previous_color
+
+    def _format_message(
+        self,
+        message: str,
+        line_num_str: str,
+        previous_value: str,
+        spaces: str,
+        pretty: bool,
+        debug: bool,
+    ) -> str:
+        """Formats the message for pretty output, debug, and specific cases."""
+        # Clean up the message content
+        message = message.replace("\n\n", "\n").replace("Go to top", "")
+
+        # Handle special case for 'directory'
+        if previous_value == "directory" and "Project:" in message:
+            message = f"\n{message}"
+
+        # Short-circuit for empty messages
+        if message.strip() == "      ":
+            return ""
+
+        # Format for pretty output
+        if pretty and message.startswith(spaces):
+            message = f"  {message}"
+
+        # Add debug information
+        if debug:
+            message = f"{line_num_str} {message}"
+
+        return message
+
+    def _generate_unique_tag_id(self, line_num_str: str, char_position: int, tags: set) -> str:
+        """Generates a unique tag ID for the text box."""
+        tag_id = f"{line_num_str}.{char_position}"
+        while tag_id in tags:
+            tag_id = f"{tag_id}{random.randint(100, 999)}"  # noqa: S311
+        tags.append(tag_id)
+        return tag_id
+
+    def _insert_message(
+        self,
+        line_num_str: str,
+        char_position: int,
+        message: str,
+        tag_id: str,
+        background_color: str,
+    ) -> int:
+        """Inserts the formatted message into the text box and applies the necessary tags."""
+        start_idx = f"{line_num_str}.{char_position}"
+        end_idx = f"{line_num_str}.{char_position + len(message)}"
+
+        # Insert the message into the text box
+        try:
+            self.textview_textbox.insert(start_idx, message, tag_id)
+        except TclError:
+            return char_position
+        self.textview_textbox.tag_add(tag_id, start_idx, end_idx)
+
+        # Tag items for hover and background highlight
+        if ": Properties" not in message and any(
+            keyword in message for keyword in ("Task: ", "Profile: ", "Project: ")
+        ):
+            self.tag_items(tag_id, message)
+            self.textview_textbox.tag_config(tag_id, background=background_color)
+
+        return char_position + len(message)
+
+    def _handle_color_and_highlighting(
+        self,
+        value: dict,
+        tags: set,
+        previous_color: str,
+        previous_value: str,
+        num: int,
+        message: str,
+        tag_id: str,
+    ) -> str:
+        """Determines the color and highlighting settings for the current message."""
+        if "Color for Background set to" in message or "highlighted for visibility" in message:
+            color = "White"
+        else:
+            color, tags = self.output_map_colors_highlighting(
+                value,
+                tags,
+                previous_color,
+                previous_value,
+                num,
+                message,
+                tag_id,
+                previous_color,
+            )
+
+        # Apply color settings to the tag
+        background_color = make_hex_color(self.master.master.color_lookup["background_color"])
+        self.textview_textbox.tag_config(tag_id, foreground=color, background=background_color)
+        return color
+
+    def tag_items(self, tag_id: str, message: str) -> None:
+        """
+        Tag items in the message with their item type (task, profile, or project)
+        and bind the <Enter> and <Leave> events to the click_name function.
+        Save the items in MyGui.items_for_selection
+
+        Parameters:
+            tag_id (str): The tag id to assign to the item.
+            message (str): The message to parse.
+
+        Returns:
+            None
+        """
+        keywords = {"Task: ": "task", "Profile: ": "profile", "Project: ": "project", "Scene: ": "scene"}
+        # Find the first matching keyword and corresponding item type
+        item, start_position = next(
+            (
+                (value, message.find(keyword) + len(keyword))
+                for keyword, value in keywords.items()
+                if keyword in message
+            ),
+            (None, None),
+        )
+        # If we have a valid Tasker item and it isn't a Launcher name.
+        if item and not item.startswith(" [Lauincher Task: "):
+            self.textview_textbox.tag_bind(tag_id, "<Enter>", self.click_text)
+            self.textview_textbox.tag_bind(tag_id, "<Leave>", self.click_name_leave)
+
+            end_position = message.find("   ", start_position)
+            # Get the name of the item
+            name = message[start_position:end_position]
+            not_referenced = name.find("(Not referenced by")
+            if not_referenced != -1:
+                name = name[: not_referenced - 1]
+            name = name.strip()
+
+            self.master.master.items_for_selection[tag_id] = {
+                "item": item,
+                "name": name,
+                "start_position": start_position,
+                "end_position": end_position,
+            }
 
     def output_map_colors_highlighting(
         self,
@@ -1775,7 +2081,7 @@ class CTkTextview(ctk.CTkFrame):
             # If color is None, then it wasn't found in the lookup table.  It is a raw color name.
             if color is None and value["color"][num] != "n/a":
                 color = value["color"][num]
-            elif color is None and value["color"][num] == "n/a" or "-" in color:
+            elif (color is None and value["color"][num] == "n/a") or "-" in color:
                 color = previous_color
             else:
                 previous_color = color
@@ -1788,28 +2094,8 @@ class CTkTextview(ctk.CTkFrame):
         return color, tags
 
     def add_highlights(self, message: str, value: dict, previous_value: str, tag_id: str, tags: list) -> list:
-        # Set up the highlighting elements
         """
-        Add highlights to the text box.
-
-        This function takes a message, a dictionary of values, a previous value, a tag ID, and a list of tags.
-        It adds highlighting to the text box based on the highlights in the value dictionary.
-
-        The highlights are specified as a list of strings in the value dictionary, where each string
-        is in the format "highlight_type,highlight_text".  The highlight_type is one of "bold", "italic",
-        "underline", or "mark".  The highlight_text is the text to be highlighted.
-
-        The function returns the updated list of tags.
-
-        Parameters:
-            - message (str): the message to be highlighted
-            - value (dict): the dictionary containing the highlights
-            - previous_value (str): the previous value
-            - tag_id (str): the tag ID
-            - tags (list): the list of tags
-
-        Returns:
-            - list: the updated list of tags
+        Add highlights to the text box based on a dictionary of highlight configurations.
         """
         highlight_configurations = {
             "bold": {"font": self.bold_font},
@@ -1818,59 +2104,111 @@ class CTkTextview(ctk.CTkFrame):
             "mark": {"background": PrimeItems.colors_to_use["highlight_color"]},
         }
 
-        for highlight in value["highlights"]:
-            # Go through all highlights for this line/value
-            highlights = highlight.split(",")
-            start_position = message.find(highlights[1])
-            end_position = start_position + len(highlights[1])
-            highlight_type = highlights[0]
-            if highlight_type in highlight_configurations:
-                # Found a highlight type.
-                # If this is the first Project, then we need to backup one since we added a "\n"
-                if previous_value == "directory":
-                    start_position -= 1
-                    end_position -= 1
-                new_tag = f"{tag_id}{highlight_type}"
-                tags.append(new_tag)
+        search_word_mapping = {
+            "Task: ": "Task: ",
+            "Profile: ": "Profile: ",
+            "Project: ": "Project: ",
+            "Scene: ": "Scene: ",
+        }
 
-                # Figure out exactly what we are looking for.
-                if "Task: " in message:
-                    search_word = "Task: "
-                elif "Profile: " in message:
-                    search_word = "Profile: "
-                elif "Project: " in message:
-                    search_word = "Project: "
-                else:
-                    search_word = "Scene: "
+        # Find the search word context
+        search_word = next((word for word in search_word_mapping if word in message), None)
+        if not search_word:
+            return tags  # No valid highlight context found
 
-                # Get the total number of lines in the text box
-                line_count = int(self.textview_textbox.index("end-1c").split(".")[0])
-                # Now find the line we want to highlight based on our search word. Search from the bottom up.
-                while line_count:
-                    # Get just the line.
-                    # 'lineend' is end of line without the newline.  'lineend+1c' includes newline.
-                    tx = self.textview_textbox.get(f"{line_count!s}.0", f"{line_count!s}.0 lineend")
-                    if search_word in tx:
-                        break
-                    line_count -= 1
-                line_to_highlight = str(line_count)
+        for highlight in value.get("highlights", []):
+            highlight_type, highlight_text = self._parse_highlight(highlight)
 
-                # Add the tag
-                self.textview_textbox.tag_add(
-                    new_tag,
-                    f"{line_to_highlight}.{start_position!s}",
-                    f"{line_to_highlight}.{end_position!s}",
+            if not highlight_type or highlight_type not in highlight_configurations:
+                rutroh_error(
+                    f"gywin parse failed {highlight_type} {highlight_text}  '{message}'",
                 )
-                self.textview_textbox.tag_config(new_tag, **highlight_configurations[highlight_type])
+                continue
 
-                # Add a line number to the output for debugging purposes.
-                # if self.master.master.debug:
-                #     line_num = int(line_num_str) - 2
-                #     print("line number", line_num, "start position", start_position, "end position", end_position)
-                #     self.textview_textbox.insert(
-                #         f"{line_num!s}.{end_position+1!s}", "<< Here is a highlight >>", tag_id,
-                #     )
+            start_pos, end_pos = self._get_highlight_positions(message.rstrip(), highlight_text, previous_value)
+            if start_pos == -1:
+                rutroh_error(
+                    f"gywin position not found {highlight_type} {highlight_text}  '{message}'",
+                )
+                continue
+
+            line_to_highlight = self._find_highlight_line(search_word)
+            if line_to_highlight is None:
+                rutroh_error(
+                    f"gywin find line failed {highlight_type} {highlight_text}  '{message}'",
+                )
+                continue
+
+            new_tag = f"{tag_id}{highlight_type}"
+            tags.append(new_tag)
+            self._apply_highlight(
+                new_tag,
+                line_to_highlight,
+                start_pos,
+                end_pos,
+                highlight_configurations[highlight_type],
+            )
+            # Do highlighting as well, if needed.
+            if "<mark>" in highlight_text:
+                new_tag = f"{tag_id}highlight"
+                tags.append(new_tag)
+                self._apply_highlight(
+                    new_tag,
+                    line_to_highlight,
+                    start_pos,
+                    end_pos,
+                    {"background": PrimeItems.colors_to_use["highlight_color"]},
+                )
+
+            if self.master.master.debug:
+                self._debug_highlight(line_to_highlight, start_pos, end_pos, tag_id)
+
         return tags
+
+    def _parse_highlight(self, highlight: str) -> tuple:
+        """Parse a highlight string into type and text."""
+        try:
+            return highlight.split(",", 1)
+        except ValueError:
+            return None, None
+
+    def _get_highlight_positions(self, message: str, highlight_text: str, previous_value: str) -> tuple:
+        """Determine the start and end positions of the highlight text."""
+        tags_to_remove = ["<mark>", "</mark>", "<em>", "</em>", "<b>", "</b>"]
+        for tag in tags_to_remove:
+            highlight_text = highlight_text.replace(tag, "")
+        start_pos = message.find(highlight_text)
+        if start_pos == -1:
+            return -1, -1
+
+        end_pos = len(highlight_text) + start_pos
+
+        # Adjust positions for "directory" case
+        if previous_value == "directory":
+            start_pos = max(0, start_pos - 1)
+            end_pos = max(0, end_pos - 1)
+
+        return start_pos, end_pos
+
+    def _find_highlight_line(self, search_word: str) -> str:
+        """Find the line number containing the search word."""
+        line_count = int(self.textview_textbox.index("end-1c").split(".")[0])
+        for line_num in range(line_count, 0, -1):
+            line_text = self.textview_textbox.get(f"{line_num}.0", f"{line_num}.0 lineend")
+            if search_word in line_text:
+                return str(line_num)
+        return None
+
+    def _apply_highlight(self, tag: str, line: str, start: int, end: int, config: dict) -> None:
+        """Apply a highlight to the specified range."""
+        self.textview_textbox.tag_add(tag, f"{line}.{start}", f"{line}.{end}")
+        self.textview_textbox.tag_config(tag, **config)
+
+    def _debug_highlight(self, line: str, start: int, end: int, tag_id: str) -> None:
+        """Output debug information for the highlight."""
+        line_num = int(line) - 2
+        print(f"Debug: Line {line_num}, Start {start}, End {end}")
+        self.textview_textbox.insert(f"{line_num}.{end + 1}", "<< Here is a highlight >>", tag_id)
 
     def ctrlevent(self, event: object) -> str:
         """Event handler for Ctrl+C and Ctrl+V"""
@@ -1927,7 +2265,7 @@ class ProgressbarWindow(ctk.CTk):
     """Define our top level window for the Progressbar view."""
 
     def __init__(self) -> None:
-        """Intialize our top level window for the Progressbar view."""
+        """Initialize our top level window for the Progressbar view."""
         # Call the constructor of the parent class (CTk) using super()
         super().__init__()
 
@@ -1936,8 +2274,6 @@ class ProgressbarWindow(ctk.CTk):
         # dimensions = window_position[0].split("x")
 
         # Create the progress bar...
-        # Like any other widget in CTk, a button is first created and then it is pushed to the window.
-        # It takes a compulsory argument master. This will specify where the CTkProgressBar will stay.
         self.progressbar = ctk.CTkProgressBar(
             self,
             width=300,
@@ -2084,6 +2420,7 @@ class CTkHyperlinkManager:
         self.text.tag_bind("hyper", "<Enter>", self._enter)
         self.text.tag_bind("hyper", "<Leave>", self._leave)
         self.text.tag_bind("hyper", "<Button-1>", self._click)
+        self.text.tag_bind("hyper", "<Motion>", self._enter)
         self.links = {}
 
     def add(self, link: str) -> tuple:
@@ -2097,11 +2434,11 @@ class CTkHyperlinkManager:
         Returns:
             tuple: A tuple containing the type of link ("hyper") and the tag of the link.
         """
-        tag = "hyper-%d" % len(self.links)
+        tag = f"hyper-{len(self.links)}"
         self.links[tag] = link
         return "hyper", tag
 
-    def _enter(self, event: object) -> None:  # noqa: ARG002
+    def _enter(self, event: object) -> None:
         """
         Set the cursor to a hand pointer when the mouse enters the text widget.
 
@@ -2111,7 +2448,29 @@ class CTkHyperlinkManager:
         Returns:
             None
         """
+        tasker_object = {"_up": "Up", "tasks": "Task", "profiles": "Profile", "projects": "Project"}
+        # Set the cursor to a hand pointer.
         self.text.configure(cursor="hand2")
+
+        # Find the tag associated with the item entered so we can add hover text.
+        for tag in self.text.tag_names(ctk.CURRENT):
+            # Delete any previous hover tooltip.
+            with contextlib.suppress(AttributeError):
+                self.hover_tooltip.destroy()
+            if tag.startswith("hyper-"):
+                link = self.links[tag]
+                # Add a hover text to the link entered of the name of the link.
+                label = tk.Label(
+                    event.widget.master,
+                    text=f"{tasker_object[link[0]]}: {link[1]}",
+                    bg="#092944",
+                    justify="left",
+                    padx=5,
+                    pady=5,
+                )
+                # Place the label at the mouse position
+                label.place(x=event.x + 100, y=event.y)
+                self.hover_tooltip = label
 
     def _leave(self, event: object) -> None:  # noqa: ARG002
         """
@@ -2124,8 +2483,9 @@ class CTkHyperlinkManager:
             None
         """
         self.text.configure(cursor="xterm")
-        # TODO Try to put a label on clicked directory entry: self.text.master.textview_textbox not correct
-        # output_label(self.text.master.textview_textbox.master, "ahah")
+        # Delete any previous hover tooltip.
+        with contextlib.suppress(AttributeError):
+            self.hover_tooltip.destroy()
 
     def _click(self, event: object) -> None:
         """
@@ -2156,40 +2516,44 @@ class CTkHyperlinkManager:
                     webbrowser.open(link)
                 return
 
-    # The user has clicked on a hotlink.  Get the item clicked and remap using only that single item.
     def remap_single_item(self, action: str, name: str, guiself: ctk) -> None:
         """
-        Remap with single item based on action type.
+        Remap with a single item based on action type.
 
         Args:
             action (str): The type of action to perform (e.g., 'projects', 'profiles', 'tasks').
             name (str): The name of the item to remap.
-            guiself (ctk): The GUI self reference.
+            guiself (ctk): The GUI self-reference.
 
         Returns:
             None: This function does not return anything.
         """
-        # Don't yet support scenee or grand total hotlinks
+        # Unsupported hotlinks
         if action in ("scenes", "grand"):
             nogo_name = "Grand Totals" if action == "grand" else "Scene"
             guiself.display_message_box(f"'{nogo_name}' hotlinks are not working yet.", "Orange")
-        # Handle single Project/Profile/Task going up a level
-        elif action in ("projects_up", "profiles_up", "projects_up"):
-            action = action.replace("_up", "")
-            self.rebuildmap_single_item(action, name, guiself)
-        # Regular directory hotlink.  See ifd it is already in the view.
-        elif (
-            (action == "tasks" and self.name_in_list(name, PrimeItems.tasker_root_elements["all_tasks"]))
-            or (action == "profiles" and self.name_in_list(name, PrimeItems.tasker_root_elements["all_profiles"]))
-            or (action == "projects" and self.name_in_list(name, PrimeItems.tasker_root_elements["all_projects"]))
-        ):
-            # Find and point to the item in the map view.
-            self.find_and_point_to_item(action, name, guiself)
+            return
 
-        # Drop here if the item was not found in the map/list
-        else:
-            # Item not found.  We'll have to rebuild the map.
+        # Handle "up" actions
+        if action.endswith("_up"):
+            action = action.removesuffix("_up")
             self.rebuildmap_single_item(action, name, guiself)
+            return
+
+        # Map action to corresponding root elements
+        action_map = {
+            "tasks": PrimeItems.tasker_root_elements["all_tasks"],
+            "profiles": PrimeItems.tasker_root_elements["all_profiles"],
+            "projects": PrimeItems.tasker_root_elements["all_projects"],
+        }
+
+        if action in action_map and self.name_in_list(name, action_map[action]):
+            # Find and point to the item in the map view
+            self.find_and_point_to_item(action, name, guiself)
+            return
+
+        # Rebuild the map if item not found
+        self.rebuildmap_single_item(action, name, guiself)
 
     # The user has clicked on a hotlink.  Get the item clicked and remap using only that single item.
     def rebuildmap_single_item(self, action: str, name: str, guiself: ctk) -> None:
@@ -2310,7 +2674,7 @@ def initialize_gui(self) -> None:  # noqa: ANN001
         - Calls initialize_variables function.
         - Calls add_logo function."""
     initialize_variables(self)
-    add_logo(self)
+    _ = add_logo(self, "maptasker")
 
 
 # Initialize the GUI varliables (e..g _init_ method)
@@ -2573,6 +2937,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         10,
         "s",
     )
+    create_tooltip(
+        self.display_names_label,
+        text="Add highlighting to Project, Profile and Task names in the output.",
+    )
 
     # Bold
     self.bold_checkbox = add_checkbox(
@@ -2587,6 +2955,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "ne",
         "",
     )
+    create_tooltip(
+        self.bold_checkbox,
+        text="Bold and Italicize are mutually exclusive in the Map view.",
+    )
 
     # Italicize
     self.italicize_checkbox = add_checkbox(
@@ -2600,6 +2972,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         0,
         "nw",
         "",
+    )
+    create_tooltip(
+        self.italicize_checkbox,
+        text="Italicize and Bold are mutually exclusive in the Map view.",
     )
 
     # Highlight
@@ -2656,6 +3032,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         0,
         (0, 10),
         "n",
+    )
+    create_tooltip(
+        self.indent_option,
+        text="Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.",
     )
 
     # Screen Appearance: Light / Dark / System
@@ -2718,6 +3098,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "sw",
     )
     self.mapview_button.configure(width=50)
+    create_tooltip(
+        self.mapview_button,
+        text="Show a detailed view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button, but the output is displayed inside another window rather than in a browser.",
+    )
 
     # 'Diagram View' button definition
     self.diagramview_button = add_button(
@@ -2737,6 +3121,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "sw",
     )
     self.diagramview_button.configure(width=120)
+    create_tooltip(
+        self.diagramview_button,
+        text="Show a diagrammatic view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button combined with the 'Display Configuration Outline' checkbox selected, but the output is displayed inside another window rather than in a text editor.",
+    )
 
     # 'Tree View' button definition
     self.treeview_button = add_button(
@@ -2756,6 +3144,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "se",
     )
     self.treeview_button.configure(width=50)
+    create_tooltip(
+        self.treeview_button,
+        text="Show a simple hierarchical tree view of your configuration.",
+    )
     #  Query ? button
     self.view_query_button = add_button(
         self,
@@ -2799,6 +3191,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         20,
         "n",
     )
+    create_tooltip(
+        self.viewlimit_optionmenu,
+        text="Select the maximum number of items to display in the view to be allowed.\n\nAnything over this amount will stop the generation of the view as a means to throttle the program.\n\nNote: This is only for the 'Map' and 'Diagram' views, not the tree view.",
+    )
     #  Query ? button
     self.viewlimit_query_button = add_button(
         self,
@@ -2835,6 +3231,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         (20, 10),
         "",
     )
+    create_tooltip(
+        self.reset_button,
+        text="Reset all of the options to their default values, including colors, font used, and other settings.\n\nThe currently loaded XML will be cleared out.",
+    )
 
     # Start second grid / column definitions
 
@@ -2862,6 +3262,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "nw",
     )
     self.font_optionmenu.set(res[0])
+    create_tooltip(
+        self.font_optionmenu,
+        text="This is a list of all of the monospaced fonts available on your system.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment.",
+    )
 
     # Save settings button
     self.save_settings_button = add_button(
@@ -2916,6 +3320,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         (150, 0),
         "nw",
     )
+    create_tooltip(
+        self.report_issue_button,
+        text="Report any issues and/or suggestions to the developer.\n\nThis will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue.",
+    )
 
     # 'Clear Messages' button definition
     self.reset_button = add_button(
@@ -2941,6 +3349,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "#6563ff",
         self.event_handlers.get_xml_from_android_event,
     )
+    create_tooltip(
+        self.get_backup_button,
+        text="Fetch XML from an Android device.\n\nClick on the 'Get Android Help' button for more info.",
+    )
     # 'Get local XML' button
     self.getxml_button = add_button(
         self,
@@ -2957,6 +3369,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         (20, 20),
         (10, 0),
         "ne",
+    )
+    create_tooltip(
+        self.getxml_button,
+        text="Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands.",
     )
 
     # 'Display Help' button definition
@@ -3026,6 +3442,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         (80, 0),
         "ne",
     )
+    create_tooltip(
+        self.run_button,
+        text="Generate a map of the current XML, save the results as an html file and display the map in the default browser.\n\nThe program terminates when done.",
+    )
 
     # 'ReRun' button definition
     self.rerun_button = add_button(
@@ -3043,6 +3463,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         (0, 20),
         (118, 10),
         "ne",
+    )
+    create_tooltip(
+        self.rerun_button,
+        text="Same as the 'Run' button, but the program does not terminate when done.",
     )
 
     # 'Exit' button definition
@@ -3272,6 +3696,17 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "w",
         "#6563ff",
     )
+    # Buy Me A Coffee button
+    self._dict_icon = add_logo(self, "coffee")
+    # For some reason, Tkinter can fail on the following call if doing a 'ReRun'.
+    with contextlib.suppress(TclError):
+        self.coffee_button = ctk.CTkButton(
+            self.tabview.tab("Debug"),
+            text="",
+            image=self._dict_icon,
+            command=self.event_handlers.coffee_event,
+        )
+        self.coffee_button.grid(row=5, column=3, padx=20, pady=30, sticky="w")
 
 
 # Delete the windows
@@ -3331,3 +3766,117 @@ def store_windows(self) -> None:  # noqa: ANN001
     with contextlib.suppress(AttributeError):
         if window_pos := save_window_position(self.progressbar_window):
             self.progressbar_window_position = window_pos
+
+
+class ToolTip(object):  # noqa: UP004
+    """ToolTip class to display info as a popup box of text on cursor hover."""
+
+    def __init__(self, widget: object) -> None:
+        """
+        Initialize the ToolTip object.
+
+        Parameters:
+            widget (Widget): The widget on which the tooltip will appear.
+
+        Returns:
+            None
+        """
+        self.widget = widget
+        self.tipwindow = None
+        self.id = None
+        self.x = self.y = 0
+
+    def showtip(self, text: str) -> None:
+        """
+        Show ToolTip text in a popup window.
+
+        Parameters:
+            text (str): The text to be displayed in the tooltip popup.
+
+        Returns:
+            None
+        """
+        self.text = text
+        if self.tipwindow or not self.text:
+            return
+        x, y, _, cy = self.widget.bbox("insert")
+        x = x + self.widget.winfo_rootx() + 57
+        y = y + cy + self.widget.winfo_rooty() + 27
+        self.tipwindow = tw = Toplevel(self.widget)
+        tw.wm_overrideredirect(1)
+        tw.wm_geometry(f"+{x}+{y}")
+        label = Label(
+            tw,
+            text=self.text,
+            justify="left",
+            # background="#ffffe0",
+            background="#143a39",
+            relief="solid",
+            borderwidth=1,
+            font=("tahoma", "10", "normal"),
+        )
+
+        label.pack(ipadx=1)
+
+    def hidetip(self) -> None:
+        """
+        Hides the tooltip.
+
+        This function sets the `tipwindow` attribute to None and then calls the `destroy()` method on the tooltip window if it exists.
+
+        Returns:
+            None
+        """
+        tw = self.tipwindow
+        self.tipwindow = None
+        if tw:
+            tw.destroy()
+
+
+def create_tooltip(widget: object, text: str) -> None:
+    """
+    Create a tooltip for a given widget.
+
+    This function creates a ToolTip object, then binds the widget to the enter and leave events.
+    When the mouse enters the widget, it calls the showtip method of the tooltip object with the given text.
+    When the mouse leaves the widget, it calls the hidetip method of the tooltip object.
+
+    Parameters:
+        widget (Widget): The widget on which the tooltip will appear.
+        text (str): The text to be displayed in the tooltip popup.
+
+    Returns:
+        None
+    """
+    tooltip = ToolTip(widget)
+
+    def enter(event: object) -> None:  # noqa: ARG001
+        """
+        Event handler for when the mouse enters the widget.
+
+        This function calls the showtip() method of the tooltip object with the text given when the tooltip was created.
+
+        Parameters:
+            event (object): The event object.
+
+        Returns:
+            None
+        """
+        tooltip.showtip(text)
+
+    def leave(event: object) -> None:  # noqa: ARG001
+        """
+        Event handler for when the mouse leaves the widget.
+
+        This function calls the hidetip() method of the tooltip object.
+
+        Parameters:
+            event (object): The event object.
+
+        Returns:
+            None
+        """
+        tooltip.hidetip()
+
+    widget.bind("<Enter>", enter)
+    widget.bind("<Leave>", leave)

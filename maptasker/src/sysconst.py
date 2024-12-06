@@ -17,7 +17,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "6.0.4"
+VERSION = "6.0.5"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -254,11 +254,13 @@ LLAMA_MODELS = [
     "llama3.1",
     "llama3.2",
     "mistral",
+    "mistral-nemo",
     "phi3",
     "qwen",
     "qwen2",
     "qwen2.5-coder",
     "qwen2.5",
+    "tinyllama",
 ]
 
 # DFefine the number of Profiles per line in the Diagram view.  Default = 6.

@@ -171,7 +171,7 @@ def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
         PrimeItems.output_lines.add_line_to_output(2, out_string, ["", css_attribute, FormatLine.add_end_span])
         have_property = True
 
-    # Look for variables in the head XML object (Projectc/Profile/Task).
+    # Look for variables in the head XML object (Project/Profile/Task).
     cooldown = ""
     limit = ""
     for item in header:

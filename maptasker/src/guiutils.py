@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Callable
 import customtkinter as ctk
 import darkdetect
 from PIL import Image
+from PIL.Image import open as open_img
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.diagcnst import (
@@ -69,24 +70,17 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 6.0.4 - Change Log\n
+Version 6.0.5 - Change Log\n
 ### Added\n
-- Added: Tasker 6.4.6 Beta is now fully supported (i.e. Widget V2 support).\n
-- Added: Additional Profile Properties added to the output: Limit Repeats, Cooldown Time, Profile Variable Type.\n
-- Added: Re-instituted the progress bar in the Map and Diagram views.\n
-- Added: 'Profiles Per Line' option added to the Diagram view.  Click on the '?' next to it for details.\n
-- Added: Ollama models 'qwen2.5' and 'qwen2.5-coder' have been added.\n
+- Added: Added a 'Buy Me A Coffee' button to the Debug tab in the GUI. :o)\n
+- Added Tooltips to the GUI: hover over a button/checkbox/pulldown to get information about the command.\n
+- Added: Hover over a Project/Profile/Task name in the Map view to get a description of the Project/Profile/Task.  The information provided will be expanded over time.\n
+- Added: New llama Ai models added: mistrel-nemo and tinyllama.\n
 ### Changed\n
-- Changed: 'Go to top' and 'Go to bottom' hotlinks have been removed from the Map view in preference to the 'Top' and 'Bottom' buttons.  'Go to top' is still in the browser output.\n
-- Changed: The popup window displaying 'The view is running in the background.  Please stand by...' has been eliminated for improved performance.\n
+- No changes.\n
 ### Fixed\n
-- Fixed: Spacing for '[Continue Task After Error]' is incorrect in the Map view.\n
-- Fixed: Diagram view is missing an occasional Task underneath it's Profile.\n
-- Fixed: Eliminated potential 'Rutroh!...' output in the terminal.\n
-- Fixed: The log file is not being generated if 'Debug' is turned on in the GUI.\n
-- Fixed: Selecting a single named item in the GUI doesn't clear out the other single named items in the pulldown selection menus.\n
-- Fixed: Program terminates abnormally if the Map or Diagram buttons are double-clicked.\n
-- Fixed: 'Bottom Task' button points to the bottom Task's arrow rather than to the Task itself.\n
+- Fixed: Highlighting (bold, underline, etc.) in the Map view is broken.\n
+- Fixed: The program can get into a never-ending loop if the Ai analysis fails.\n
 """
 
 default_font_size = 14
@@ -417,7 +411,7 @@ def save_changelog_as_json(self) -> None:  # noqa: ANN001
         with open("Changelog.md") as changelog:
             lines = changelog.readlines()
             for line in lines:
-                if version_indicator in line:
+                if version_indicator in line or "## Older History Logs" in line:
                     if have_first_bracket:  # If we already have the bracket and encounter another, stop reading
                         break
                     have_first_bracket = True
@@ -463,11 +457,12 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
 
 
 # Add the MapTasker icon to the screen
-def add_logo(self) -> None:  # noqa: ANN001
+def add_logo(self, what: str) -> None:  # noqa: ANN001
     """Function:
-        add_logo
+        Get the icon/png file and return the image.
     Parameters:
         - self (object): The object that the function is being called on.
+        - what (str): The name of the object that the function is being called on.
     Returns:
         - None: The function does not return anything.
     Processing Logic:
@@ -476,7 +471,6 @@ def add_logo(self) -> None:  # noqa: ANN001
         - Create a CTkImage object to display the logo.
         - Try to display the logo with a CTkLabel.
         - Switch back to proper directory."""
-    # Add our logo
     # Get the path to our logos:
     # current_dir = directory from which we are running.
     # abspath = path of this source code (userintr.py).
@@ -486,31 +480,41 @@ def add_logo(self) -> None:  # noqa: ANN001
     abspath = os.path.abspath(__file__)
     # cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
     dname = os.path.dirname(abspath)
-    temp_dir = dname.replace("src", "assets")
+    assets_dir = dname.replace("src", "assets")
     # Switch to our temp directory (assets)
-    os.chdir(temp_dir)
+    os.chdir(assets_dir)
 
-    # Create a CTkImage object to display the logo
-    my_image = ctk.CTkImage(
-        light_image=Image.open("maptasker_logo_light.png"),
-        dark_image=Image.open("maptasker_logo_dark.png"),
-        size=(190, 50),
-    )
-    try:
-        self.logo_label = ctk.CTkLabel(
-            self.sidebar_frame,
-            image=my_image,
-            text="",
-            compound="left",
-            font=ctk.CTkFont(size=1, weight="bold"),
-        )  # display image with a CTkLabel
-        self.logo_label.grid(row=0, column=0, padx=0, pady=0, sticky="n")
-    except:  # noqa: S110
-        pass
-    # del my_image  # Done with image...get rid of it.
+    # MapTasker logo
+    if what == "maptasker":
+        # Create a CTkImage object to display the logo
+        my_image = ctk.CTkImage(
+            light_image=Image.open("maptasker_logo_light.png"),
+            dark_image=Image.open("maptasker_logo_dark.png"),
+            size=(190, 50),
+        )
+        try:
+            self.logo_label = ctk.CTkLabel(
+                self.sidebar_frame,
+                image=my_image,
+                text="",
+                compound="left",
+                font=ctk.CTkFont(size=1, weight="bold"),
+            )  # display image with a CTkLabel
+            self.logo_label.grid(row=0, column=0, padx=0, pady=0, sticky="n")
+        except:  # noqa: S110
+            pass
+        # del my_image  # Done with image...get rid of it.
+
+    # Buy Me A Coffee logo
+    elif what == "coffee":
+        dark_path = "bmc-button.png"
+        light_path = "bmc-button.png"
+        return ctk.CTkImage(open_img(light_path), open_img(dark_path), (130, 40))
 
     # Switch back to proper directory
     os.chdir(current_dir)
+
+    return None
 
 
 # Create a label general routine
@@ -1490,85 +1494,91 @@ def setup_name_error(object1_name: str, object2_name: str, single_name1: str, si
     ]
 
 
-# Set the current Project/Profile/Task names in the pulldown menus
 def set_tasker_object_names(self) -> None:  # noqa: ANN001
     """
     Sets the names to display in the pulldown menus based on the current tasker object names.
-
-    This function determines the values to be displayed in the option menus for the tasker objects. The values are determined based on the following conditions:
-
-    - If a single project name is available, the project option menu is set to the project name, and the profile and task option menus are set to their default values.
-    - If a single profile name is available, the profile option menu is set to the profile name, and the project and task option menus are set to their default values.
-    - If a single task name is available and the list of tasker objects is not empty, the task option menu is set to the task name, and the project and profile option menus are set to their default values.
-    - If none of the above conditions are met, all option menus are set to their default values.
-
-    Parameters:
-    - self (object): The current instance of the class.
-
-    Returns:
-    - None: This function does not return anything.
     """
     # Define defaults
-    default_project = "None"
-    default_profile = "None"
-    default_task = "None"
-    default_display_only = "Display only "
+    defaults = {
+        "project": "None",
+        "profile": "None",
+        "task": "None",
+        "display_only": "Display only ",
+    }
 
-    # Determine values based on conditions
-    # Update the Project/Profile/Task pulldown option menus.
     if self.single_project_name:
-        self.specific_name_msg = f"{default_display_only}Project '{self.single_project_name}'"
-        try:
-            self.specific_project_optionmenu.set(self.single_project_name)
-        except AttributeError:
-            return
-        self.ai_project_optionmenu.set(self.single_project_name)
-        self.specific_profile_optionmenu.set(default_profile)
-        self.ai_profile_optionmenu.set(default_profile)
-        self.specific_task_optionmenu.set(default_task)
-        self.ai_task_optionmenu.set(default_task)
+        _set_single_project_name(self, defaults)
     elif self.single_profile_name:
-        self.specific_name_msg = f"{default_display_only}Profile '{self.single_profile_name}'"
-        try:
-            self.specific_profile_optionmenu.set(self.single_profile_name)
-        except AttributeError:
-            return
-        self.ai_profile_optionmenu.set(self.single_profile_name)
-        self.ai_project_optionmenu.set(default_project)
-        self.specific_project_optionmenu.set(default_project)
-        self.specific_task_optionmenu.set(default_task)
-        self.ai_task_optionmenu.set(default_task)
+        _set_single_profile_name(self, defaults)
     elif self.single_task_name:
-        self.specific_name_msg = f"{default_display_only}Task '{self.single_task_name}'"
-        try:
-            self.specific_task_optionmenu.set(self.single_task_name)
-        except AttributeError:
-            return
-        self.ai_task_optionmenu.set(self.single_task_name)
-        self.specific_project_optionmenu.set(default_project)
-        self.specific_profile_optionmenu.set(default_profile)
-        self.ai_project_optionmenu.set(default_project)
-        self.ai_profile_optionmenu.set(default_profile)
+        _set_single_task_name(self, defaults)
     else:
-        self.specific_name_msg = ""
-        try:  # If it works on the first one, then all others will work as well.
-            self.specific_project_optionmenu.set(default_project)
-            if not PrimeItems.tasker_root_elements["all_projects"]:
-                self.specific_project_optionmenu.configure(values=["None"])
-                self.ai_project_optionmenu.configure(values=["None"])
-            if not PrimeItems.tasker_root_elements["all_profiles"]:
-                self.specific_profile_optionmenu.configure(values=["None"])
-                self.ai_profile_optionmenu.configure(values=["None"])
-            if not PrimeItems.tasker_root_elements["all_tasks"]:
-                self.specific_task_optionmenu.configure(values=["None"])
-                self.ai_task_optionmenu.configure(values=["None"])
-            self.specific_profile_optionmenu.set(default_profile)
-            self.ai_project_optionmenu.set(default_project)
-            self.ai_profile_optionmenu.set(default_profile)
-            self.specific_task_optionmenu.set(default_task)
-            self.ai_task_optionmenu.set(default_task)
-        except AttributeError:
-            pass
+        _set_default_names(self, defaults)
+
+
+def _set_single_project_name(self: object, defaults: dict) -> None:
+    """Handles setting names when a single project name is available."""
+    self.specific_name_msg = f"{defaults['display_only']}Project '{self.single_project_name}'"
+    try:
+        self.specific_project_optionmenu.set(self.single_project_name)
+    except AttributeError:
+        return
+    self.ai_project_optionmenu.set(self.single_project_name)
+    self.specific_profile_optionmenu.set(defaults["profile"])
+    self.ai_profile_optionmenu.set(defaults["profile"])
+    self.specific_task_optionmenu.set(defaults["task"])
+    self.ai_task_optionmenu.set(defaults["task"])
+
+
+def _set_single_profile_name(self: object, defaults: dict) -> None:
+    """Handles setting names when a single profile name is available."""
+    self.specific_name_msg = f"{defaults['display_only']}Profile '{self.single_profile_name}'"
+    try:
+        self.specific_profile_optionmenu.set(self.single_profile_name)
+    except AttributeError:
+        return
+    self.ai_profile_optionmenu.set(self.single_profile_name)
+    self.ai_project_optionmenu.set(defaults["project"])
+    self.specific_project_optionmenu.set(defaults["project"])
+    self.specific_task_optionmenu.set(defaults["task"])
+    self.ai_task_optionmenu.set(defaults["task"])
+
+
+def _set_single_task_name(self: object, defaults: dict) -> None:
+    """Handles setting names when a single task name is available."""
+    self.specific_name_msg = f"{defaults['display_only']}Task '{self.single_task_name}'"
+    try:
+        self.specific_task_optionmenu.set(self.single_task_name)
+    except AttributeError:
+        return
+    self.ai_task_optionmenu.set(self.single_task_name)
+    self.specific_project_optionmenu.set(defaults["project"])
+    self.specific_profile_optionmenu.set(defaults["profile"])
+    self.ai_project_optionmenu.set(defaults["project"])
+    self.ai_profile_optionmenu.set(defaults["profile"])
+
+
+def _set_default_names(self: object, defaults: dict) -> None:
+    """Handles setting names when no specific name is available."""
+    self.specific_name_msg = ""
+    try:
+        self.specific_project_optionmenu.set(defaults["project"])
+        if not PrimeItems.tasker_root_elements["all_projects"]:
+            self.specific_project_optionmenu.configure(values=["None"])
+            self.ai_project_optionmenu.configure(values=["None"])
+        if not PrimeItems.tasker_root_elements["all_profiles"]:
+            self.specific_profile_optionmenu.configure(values=["None"])
+            self.ai_profile_optionmenu.configure(values=["None"])
+        if not PrimeItems.tasker_root_elements["all_tasks"]:
+            self.specific_task_optionmenu.configure(values=["None"])
+            self.ai_task_optionmenu.configure(values=["None"])
+        self.specific_profile_optionmenu.set(defaults["profile"])
+        self.ai_project_optionmenu.set(defaults["project"])
+        self.ai_profile_optionmenu.set(defaults["profile"])
+        self.specific_task_optionmenu.set(defaults["task"])
+        self.ai_task_optionmenu.set(defaults["task"])
+    except AttributeError:
+        pass
 
 
 # Clear all Tasker XML data from memory so we start anew.

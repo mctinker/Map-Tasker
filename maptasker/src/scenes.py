@@ -324,7 +324,7 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
                 # Start a list
                 PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
                 # Get the name of Task
-                task_element, name_of_task = tasks.get_task_name(
+                task_element, _ = tasks.get_task_name(
                     sub_child.text,
                     tasks_found,
                     temp_task_list,
