@@ -2,23 +2,27 @@
 
 All notable changes to this project will be documented in this file!
 
-## [6.0.5] 06-Dec-2024
+## [6.0.6] 21-Dec-2024
 
 ### Added
 
-- Added: Added a 'Buy Me A Coffee' button to the Debug tab in the GUI. :o)
-- Added Tooltips to the GUI: hover over a button/checkbox/pulldown to get information about the command.
-- Added: Hover over a Project/Profile/Task name in the Map view to get a description of the Project/Profile/Task.  The information provided will be expanded over time.
-- Added: New llama Ai models added: mistrel-nemo and tinyllama.
+- Added: Scenes have been added to the directory in the Map view.
+- Added: Open AI's 'chatgpt-4o-latest', and 'o1' models have been added.
+- Added: Ollama 'llama3.3' model has been added.
 
 ### Changed
 
-- Changed:
+- Changed: Hover text in the Map view for Projects and Tasks now display additional details.
+- Changed: Unnamed/Anonymous Tasks are now displayed with an ID so that they can properly be parsed.
 
 ### Fixed
 
-- Fixed: Highlighting (bold, underline, etc.) in the Map view is broken.
-- Fixed: The program can get into a never-ending loop if the Ai analysis fails.
+- Fixed: GUI Menu hover tooltips are displaying in a very small font.
+- Fixed: Program error due to bad font name.
+- Fixed: Projects with a trailing blank character are not properly recognized.
+- Fixed: Numerous hover text issues.
+- Fixed: Issue running AI Analysis with '01-preview' model.
+- Fixed: When searching for the next or previous string in the Map or Diagram view, using the 'Top' button to navigate to the top does not restart the search from the beginning.
 
 ### Known Issues
 
@@ -27,6 +31,15 @@ All notable changes to this project will be documented in this file!
 - Open Issue: The browser output background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
 
 ## Older History Logs
+
+## [6.0.5]
+
+- Added: Added a 'Buy Me A Coffee' button to the Debug tab in the GUI. :o)
+- Added Tooltips to the GUI: hover over a button/checkbox/pulldown to get information about the command.
+- Added: Hover over a Project/Profile/Task name in the Map view to get a description of the Project/Profile/Task.  The information provided will be expanded over time.
+- Added: New llama Ai models added: mistrel-nemo and tinyllama.
+- Fixed: Highlighting (bold, underline, etc.) in the Map view is broken.
+- Fixed: The program can get into a never-ending loop if the Ai analysis fails.
 
 ## [6.0.4]
 
