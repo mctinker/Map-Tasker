@@ -1,3 +1,5 @@
+"""Get Profile or Task IDs from XML"""
+
 #! /usr/bin/env python3
 
 #                                                                                      #
@@ -10,7 +12,7 @@ import defusedxml.ElementTree  # Need for type hints
 
 def get_ids(
     doing_head_xml_element: bool,
-    head_xml_element: defusedxml.ElementTree.XML,
+    head_xml_element: defusedxml.ElementTree,
     head_xml_element_name: str,
     head_xml_elements_without_profiles: list,
 ) -> list:

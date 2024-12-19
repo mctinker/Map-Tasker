@@ -16,10 +16,12 @@ import time
 import tkinter as tk
 import webbrowser
 from tkinter import Label, TclError, Toplevel, ttk
+from typing import TYPE_CHECKING
 
 import customtkinter as ctk
 from PIL import Image, ImageTk
 
+from maptasker.src.actione import get_action_code
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.getids import get_ids
 from maptasker.src.guiutils import (
@@ -31,11 +33,17 @@ from maptasker.src.guiutils import (
     build_connectors,
     display_analyze_button,
     display_progress_bar,
+    extract_usage_profile,
+    find_string_from_text_bottom,
     get_appropriate_color,
     get_monospace_fonts,
+    get_profiles_in_project,
+    get_tasks_in_profile,
     kill_the_progress_bar,
     make_hex_color,
+    merge_lists,
     output_label,
+    parse_pairs_to_columns,
     remove_tags_from_bars_and_names,
     reset_primeitems_single_names,
     search_substring_in_list,
@@ -45,7 +53,18 @@ from maptasker.src.lineout import LineOut
 from maptasker.src.maputils import find_all_positions, rutroh_error
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
-from maptasker.src.sysconst import DIAGRAM_PROFILES_PER_LINE, LLAMA_MODELS, OPENAI_MODELS, clean, logger
+from maptasker.src.shelsort import shell_sort
+from maptasker.src.sysconst import (
+    DIAGRAM_PROFILES_PER_LINE,
+    LLAMA_MODELS,
+    OPENAI_MODELS,
+    UNKNOWN_TASK_NAME,
+    clean,
+    logger,
+)
+
+if TYPE_CHECKING:
+    import defusedxml.ElementTree
 
 # Set up for access to icons
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -395,6 +414,7 @@ class CTkTextview(ctk.CTkFrame):
         self.textview_style = ttk.Style(self)
         self.textview_style.theme_use("default")
         self.title = f"{title} - Drag window to desired position and rerun the {title} command."
+        self.top = False  # Used by Next / Prev buttons
 
         # Recreate text box
         width = getattr(master.master, "text_window_width")
@@ -1062,30 +1082,186 @@ class CTkTextview(ctk.CTkFrame):
 
         # Get Task related info and add it.
         if item_type == "task":
-            profile = self.find_owning_profile(name)
-            if not profile:
-                profile = "None"
-            project = self.find_task_owning_project(name)
-            if not project:
-                project = "None"
-            properties = self.get_properties("Task", name)
-            text = text + f"\nIn Profile: {profile}\nIn Project: {project}{properties}"
+            text = self.hover_task(tag, name, text)
         # Get the Profile related info.
         elif item_type == "profile":
-            project = self.find_owning_project(name)
-            text = text + f"\nIn Project: {project}"
+            text = self.hover_profile(name, text)
         # Project related info.
         else:
-            # Get the Project's properties
-            properties = self.get_properties("Project", name)
-            text = f"Project: {name}{properties}"
+            text = self.hover_project(name, text)
 
         # Create the label.
-        label = tk.Label(self, text=text, bg="#092944", justify="left", padx=5, pady=5)
+        label = tk.Label(self, text=text, bg="#092944", justify="left", font=("Courier", 12), padx=5, pady=5)
 
         # Place the label at the mouse position
         label.place(x=event.x + 100, y=event.y)
         self.hover_tooltip = label
+
+    def hover_project(self, name: str, text: str) -> str:
+        """
+        Retrieves project-related information and appends it to the tooltip text.
+
+        This method finds the list of profiles in the project and appends this
+        information to the provided tooltip text.
+
+        Args:
+            name (str): The name of the project.
+            text (str): The initial text to append the project information to.
+
+        Returns:
+            str: The updated tooltip text including the list of profiles.
+        """
+        # Get the Project's properties (temporarily commented out for now).
+        # properties = self.get_properties("Project", name)
+        properties = ""
+        # Get a list of the Profiles and Tasks in the Project.
+        profiles = get_profiles_in_project(name)
+        tasks = get_tasks_in_profile(name)
+        # Merge the Profiles and Tasks lists.
+        profiles_and_tasks = merge_lists(profiles, tasks)
+        # Add column headings.
+        profiles_and_tasks.insert(0, ["\n\nProfiles", "Tasks"])
+        results_in_columns = parse_pairs_to_columns(profiles_and_tasks)
+        return f"{text} {properties}{results_in_columns}"
+
+    def hover_profile(self, name: str, text: str) -> str:
+        """
+        Retrieves profile-related information and appends it to the tooltip text.
+
+        This method finds the project associated with the given profile name and
+        retrieves the list of tasks in the profile. It appends this information to
+        the provided tooltip text.
+
+        Args:
+            name (str): The name of the profile.
+            text (str): The initial text to append the profile information to.
+
+        Returns:
+            str: The updated tooltip text including the project and task list.
+        """
+        project = self.find_owning_project(name)
+        return text + f"\n  In Project: {project}"
+
+    def hover_task(self, tag: str, name: str, text: str) -> str:
+        """
+        Get the Task related info and add it to the tooltip.
+
+        Finds the Profile and Project associated with the Task and adds
+        it to the tooltip.  Also, gets and adds the Task's properties.
+
+        Parameters:
+            self: The instance of the class.
+            tag (str): The tag name of the item.
+            name (str): The name of the item.
+            text (str): The initial text to add to the tooltip.
+
+        Returns:
+            str: The updated tooltip text.
+        """
+        if profile := self.check_no_name("Profile: ", name, tag):
+            pass
+        else:
+            profile = self.find_owning_profile(name)
+        if not profile:
+            profile = "None"
+
+        # Get the owning Project name.
+        if project := self.check_no_name("Project: ", name, tag):
+            pass
+        else:
+            project = self.find_task_owning_project(name)
+        if not project:
+            project = "None"
+
+        # Get the Properties
+        properties = self.get_properties("Task", name)
+
+        # Get the list of Task actions.
+        if UNKNOWN_TASK_NAME in name:
+            task_id = name.split(".")[1]
+            task_xml = PrimeItems.tasker_root_elements["all_tasks"][task_id]["xml"]
+            task_item = self.get_list_of_actions("", task_xml)
+        elif name:
+            task_item = self.get_list_of_actions(name, None)
+        else:
+            task_item = ""
+
+        return text + f"\n  In Profile: {profile}\n  In Project: {project}{properties}{task_item}"
+
+    def get_list_of_actions(self, name: str, task_xml: defusedxml) -> str:
+        """
+        Retrieves the list of Actions for a given Task and appends them to a string.
+
+        Finds the Task in the dictionary of all Tasks and retrieves the list of Actions.
+        It then iterates through each Action, gets the 'code' element and appends it to
+        the string in the format: "  <code>".
+
+        Args:
+            name (str): The name of the Task.
+
+        Returns:
+            str: The updated string with the list of Actions.
+        """
+        blank = " "
+        task_item = "\n\nActions:"
+        spacer = 0
+        # Get the Task xml element
+        if name:
+            for task in PrimeItems.tasker_root_elements["all_tasks"].values():
+                if task["name"] == name:
+                    task_element = task["xml"]
+                    break
+        else:
+            task_element = task_xml
+
+        # Get the Task actions.
+        try:
+            task_actions = task_element.findall("Action")
+        # Handle situations in which "Task:" appears elsewhere.
+        except (AttributeError, UnboundLocalError):
+            return ""
+        if len(task_actions) > 0:
+            shell_sort(task_actions, True, False)
+
+        # Now go through each Action to start processing it.  They are in "argn" "n" order.
+        for action in task_actions:
+            child = action.find("code")  # Get the <code> element
+            action_code = child.text
+            display_level = PrimeItems.program_arguments["display_detail_level"]
+            PrimeItems.program_arguments["display_detail_level"] = 2
+            action_line = get_action_code(child, action_code, "", "t")
+            PrimeItems.program_arguments["display_detail_level"] = display_level
+            # Backup indentation if needed.
+            if action_line in ("End", "Else", "Else/Else If", "End If", "End For"):
+                spacer -= 3
+            indentation = f"{blank*spacer}"
+            # Format the action line
+            task_item += f"\n    {indentation}{action_line}"
+            # Calculate indentation
+            if action_line in ("If", "Else", "Else/Else If", "For"):
+                spacer += 3
+
+        return task_item
+
+    def check_no_name(self, title: str, name: str, tag: str) -> str:
+        """
+        If the name is "Unnamed/Anonymous.", then search for the usage profile starting at the
+        tag line number.  If found, return the extracted profile name.
+
+        Parameters:
+            title (str): The string to search for in the text.
+            name (str): The name of the item.
+            tag (str): The tag name of the item.
+
+        Returns:
+            str: The extracted profile name if found, otherwise an empty string.
+        """
+        if name == "Unnamed/Anonymous.":
+            start_line_num = int(tag.split(".")[0]) - 1
+            profile_line = find_string_from_text_bottom(self, title, start_line_num)
+            if profile_line is not None:
+                return extract_usage_profile(profile_line, title)
+        return ""
 
     def click_name_leave(self, event: object) -> None:  # noqa: ARG002
         """
@@ -1760,8 +1936,8 @@ class CTkTextview(ctk.CTkFrame):
         """
         spacing, columns = 40, 3
         directory_type = value["directory"][0]
-        # We dont't support Scenes or Grand Totals hotlinks (yet)
-        if directory_type in {"scenes", "grand", "</td"}:
+        # We dont't support Grand Totals hotlinks (yet)
+        if directory_type in {"grand", "</td"}:
             return 0, previous_directory, line_num
 
         if previous_directory != directory_type:
@@ -1792,7 +1968,7 @@ class CTkTextview(ctk.CTkFrame):
             name_to_insert = f'{name_to_insert.ljust(spacing, " ")}{spacer}'
 
         name_to_go_up = name_to_go_up.replace("&gt;", ">").replace("&lt;", "<")
-
+        # Add hyperlink directory entry
         tag_id = self.textview_hyperlink.add([directory_type, name_to_go_up])
         # Note: If user double-clicks a button, the textbox is not valid on the second click.
         try:
@@ -2448,7 +2624,7 @@ class CTkHyperlinkManager:
         Returns:
             None
         """
-        tasker_object = {"_up": "Up", "tasks": "Task", "profiles": "Profile", "projects": "Project"}
+        tasker_object = {"_up": "Up", "tasks": "Task", "profiles": "Profile", "projects": "Project", "scenes": "Scene"}
         # Set the cursor to a hand pointer.
         self.text.configure(cursor="hand2")
 
@@ -2459,18 +2635,19 @@ class CTkHyperlinkManager:
                 self.hover_tooltip.destroy()
             if tag.startswith("hyper-"):
                 link = self.links[tag]
-                # Add a hover text to the link entered of the name of the link.
-                label = tk.Label(
-                    event.widget.master,
-                    text=f"{tasker_object[link[0]]}: {link[1]}",
-                    bg="#092944",
-                    justify="left",
-                    padx=5,
-                    pady=5,
-                )
-                # Place the label at the mouse position
-                label.place(x=event.x + 100, y=event.y)
-                self.hover_tooltip = label
+                if link[0] in tasker_object:
+                    # Add a hover text to the link entered of the name of the link.
+                    label = tk.Label(
+                        event.widget.master,
+                        text=f"{tasker_object[link[0]]}: {link[1]}",
+                        bg="#092944",
+                        justify="left",
+                        padx=5,
+                        pady=5,
+                    )
+                    # Place the label at the mouse position
+                    label.place(x=event.x + 100, y=event.y)
+                    self.hover_tooltip = label
 
     def _leave(self, event: object) -> None:  # noqa: ARG002
         """
@@ -2529,8 +2706,8 @@ class CTkHyperlinkManager:
             None: This function does not return anything.
         """
         # Unsupported hotlinks
-        if action in ("scenes", "grand"):
-            nogo_name = "Grand Totals" if action == "grand" else "Scene"
+        if action == "grand":
+            nogo_name = "Grand Totals"
             guiself.display_message_box(f"'{nogo_name}' hotlinks are not working yet.", "Orange")
             return
 
@@ -2545,6 +2722,7 @@ class CTkHyperlinkManager:
             "tasks": PrimeItems.tasker_root_elements["all_tasks"],
             "profiles": PrimeItems.tasker_root_elements["all_profiles"],
             "projects": PrimeItems.tasker_root_elements["all_projects"],
+            "scenes": PrimeItems.tasker_root_elements["all_scenes"],
         }
 
         if action in action_map and self.name_in_list(name, action_map[action]):
@@ -2568,8 +2746,8 @@ class CTkHyperlinkManager:
         Returns:
             None: This function does not return anything.
         """
-        if action in ("scenes", "grand"):
-            nogo_name = "Grand Totals" if action == "grand" else "Scene"
+        if action == "grand":
+            nogo_name = "Grand Totals"
             guiself.display_message_box(f"'{nogo_name}' hotlinks are not working yet.", "Orange")
         else:
             # Reset all names
@@ -3123,7 +3301,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     self.diagramview_button.configure(width=120)
     create_tooltip(
         self.diagramview_button,
-        text="Show a diagrammatic view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button combined with the 'Display Configuration Outline' checkbox selected, but the output is displayed inside another window rather than in a text editor.",
+        text="Show a diagrammatic view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button combined with the 'Display Configuration Outline' checkbox selected,\nbut the output is displayed inside another window rather than in a text editor.",
     )
 
     # 'Tree View' button definition
@@ -3805,6 +3983,14 @@ class ToolTip(object):  # noqa: UP004
         self.tipwindow = tw = Toplevel(self.widget)
         tw.wm_overrideredirect(1)
         tw.wm_geometry(f"+{x}+{y}")
+        # Get the font the userr has selected.
+        try:
+            font = tw.master.master.font
+        except AttributeError:
+            try:
+                font = tw.master.master.master.font
+            except AttributeError:
+                font = "Courier"
         label = Label(
             tw,
             text=self.text,
@@ -3813,7 +3999,7 @@ class ToolTip(object):  # noqa: UP004
             background="#143a39",
             relief="solid",
             borderwidth=1,
-            font=("tahoma", "10", "normal"),
+            font=(font, "10", "normal"),
         )
 
         label.pack(ipadx=1)

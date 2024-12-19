@@ -110,12 +110,13 @@ def get_actions(
 
 
 # Determine if the Task is an Entry or Exit Task.
-def extry_or_exit_task(
+def entry_or_exit_task(
     task_output_lines: list,
     task_name: str,
     task_type: str,
     extra: str,
     duplicate_task: bool,
+    the_task_id: str,
 ) -> tuple[list, str]:
     """
     Determine if this is an "Entry" or "Exit" Task and add the appropriate text to the
@@ -126,6 +127,7 @@ def extry_or_exit_task(
             task_type (str): Type of this Task: Entry or Exit
             extra (str): Extra text to add to the end of the Task's output line
             duplicate_task (bool): Is this a duplicate Task? True if it is.
+            the_task_id (str): The Task's ID
 
         Returns:
             tuple: task_output_lines and task_name
@@ -133,7 +135,6 @@ def extry_or_exit_task(
     line_left_arrow = "&#11013;"
     # Determine if this is an "Entry" or "Exit" Task
     if task_name:
-
         # Don't add the entry/exit text if display level = 0
         if PrimeItems.program_arguments["display_detail_level"] > 0:
             if task_type == "Exit":
@@ -144,7 +145,7 @@ def extry_or_exit_task(
         else:
             task_output_lines.append(f"{task_name}{blank*4}")
     else:
-        task_name = UNKNOWN_TASK_NAME
+        task_name = f"{UNKNOWN_TASK_NAME}{the_task_id}"
         # Count this as an unnamed Task if it hasn't yet been counted and it
         # is a normal Task
         if not duplicate_task and task_type in {"Entry", "Exit"}:
@@ -153,12 +154,12 @@ def extry_or_exit_task(
         # Don't add the entry/exit text if display level = 0
         if PrimeItems.program_arguments["display_detail_level"] > 0:
             if task_type == "Exit":
-                task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}{line_left_arrow} Exit Task{extra}")
+                task_output_lines.append(f"{task_name}{blanks}{line_left_arrow} Exit Task{extra}")
 
             else:
-                task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}{line_left_arrow} Entry Task{extra}")
+                task_output_lines.append(f"{task_name}{blanks}{line_left_arrow} Entry Task{extra}")
         else:
-            task_output_lines.append(f"{UNKNOWN_TASK_NAME}{blanks}")
+            task_output_lines.append(f"{task_name}{blanks}")
 
     return task_output_lines, task_name
 
@@ -170,7 +171,7 @@ def get_task_name(
     tasks_that_have_been_found: list,
     task_output_lines: list,
     task_type: str,
-) -> tuple[defusedxml.ElementTree, str]:
+) -> tuple:
     """
     Get the name of the task given the Task ID.
     Add to the output line if this is an Entry or xit Task.
@@ -193,12 +194,13 @@ def get_task_name(
         extra = f"&nbsp;&nbsp;Task ID: {the_task_id}" if PrimeItems.program_arguments["debug"] else ""
 
         # Determine if this is an "Entry" or "Exit" Task
-        task_output_lines, task_name = extry_or_exit_task(
+        task_output_lines, task_name = entry_or_exit_task(
             task_output_lines,
             task_name,
             task_type,
             extra,
             duplicate_task,
+            the_task_id,
         )
 
     else:

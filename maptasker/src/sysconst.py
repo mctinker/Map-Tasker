@@ -17,7 +17,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "6.0.5"
+VERSION = "6.0.6"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -240,7 +240,17 @@ TABLE_BORDER = f"\n<style> table, td, th {{ padding: 5px; border: 2px solid {TAB
 
 NOW_TIME = datetime.now()  # noqa: DTZ005
 
-OPENAI_MODELS = ["gpt-3.5-turbo", "gpt-4o", "gpt-4", "gpt-4-turbo", "gpt-4o-mini", "o1-preview", "o1-mini"]
+OPENAI_MODELS = [
+    "gpt-3.5-turbo",
+    "gpt-4o",
+    "gpt-4",
+    "gpt-4-turbo",
+    "chatgpt-4o-latest",
+    "gpt-4o-mini",
+    "o1",
+    "o1-mini",
+    "o1-preview",
+]
 LLAMA_MODELS = [
     "aya",
     "codegemma",
@@ -253,6 +263,7 @@ LLAMA_MODELS = [
     "llama3",
     "llama3.1",
     "llama3.2",
+    "llama3.3",
     "mistral",
     "mistral-nemo",
     "phi3",

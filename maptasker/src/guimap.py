@@ -579,7 +579,6 @@ def ignore_line(line: str) -> bool:
         "<td></td>",
         "<a id=",
         "Trailing Information...",
-        "Scenes",
         "mark {",
         "background-color: ",
         "{color: ",

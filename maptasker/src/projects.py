@@ -505,7 +505,7 @@ def is_single_task_or_profile_found() -> bool:
 
 # Retrieves profile IDs for a given project and project name, excluding projects without profiles.
 def get_profile_ids(
-    project: defusedxml.ElementTree.XML,
+    project: defusedxml.ElementTree,
     project_name: str,
     projects_without_profiles: list,
 ) -> list:

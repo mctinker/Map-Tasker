@@ -70,17 +70,21 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 6.0.5 - Change Log\n
+Version 6.0.6 - Change Log\n
 ### Added\n
-- Added: Added a 'Buy Me A Coffee' button to the Debug tab in the GUI. :o)\n
-- Added Tooltips to the GUI: hover over a button/checkbox/pulldown to get information about the command.\n
-- Added: Hover over a Project/Profile/Task name in the Map view to get a description of the Project/Profile/Task.  The information provided will be expanded over time.\n
-- Added: New llama Ai models added: mistrel-nemo and tinyllama.\n
+- Added: Scenes have been added to the directory in the Map view.\n
+- Added: Open AI's 'chatgpt-4o-latest', and 'o1' models have been added.\n
+- Added: Ollama 'llama3.3' model has been added.\n
 ### Changed\n
-- No changes.\n
+- Changed: Hover text in the Map view for Projects and Tasks now display additional details.\n
+- Changed: Unnamed/Anonymous Tasks are now displayed with an ID so that they can properly be parsed.\n
 ### Fixed\n
-- Fixed: Highlighting (bold, underline, etc.) in the Map view is broken.\n
-- Fixed: The program can get into a never-ending loop if the Ai analysis fails.\n
+- Fixed: GUI Menu hover tooltips are displaying in a very small font.\n
+- Fixed: Program error due to bad font name.\n
+- Fixed: Projects with a trailing blank character are not properly recognized.\n
+- Fixed: Numerous hover text issues.\n
+- Fixed: Issue running AI Analysis with '01-preview' model.\n
+- Fixed: When searching for the next or previous string in the Map or Diagram view, using the 'Top' button to navigate to the top does not restart the search from the beginning.\n
 """
 
 default_font_size = 14
@@ -442,7 +446,7 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
     Note: The changelog file is created immediately after the program is updated (userintr upgrade_event)
     """
     # TODO Test changelog before posting to PyPi.  Comment it out after testing.
-    # self.message = CHANGELOG
+    #self.message = CHANGELOG
 
     if os.path.isfile(CHANGELOG_FILE):
         with open(CHANGELOG_FILE) as changelog_file:
@@ -1838,6 +1842,7 @@ def search_nextprev_string(self: object, textview: ctk.CTkTextbox, direction: st
 
     for num, idx in enumerate(search_indices):
         if idx == textview.search_current_line:
+            # End of search?
             if (direction == "next" and idx == search_indices[-1]) or (
                 direction == "previous" and idx == search_indices[0]
             ):
@@ -1851,7 +1856,11 @@ def search_nextprev_string(self: object, textview: ctk.CTkTextbox, direction: st
             else:
                 # Determine the new current line based on direction
                 if direction == "next":
-                    textview.search_current_line = search_indices[num + 1]
+                    # Point to next search if we didn't just do a 'Top' button.
+                    if not textview.top:
+                        textview.search_current_line = search_indices[num + 1]
+                    else:
+                        textview.top = False
                 elif direction == "previous":
                     textview.search_current_line = search_indices[num - 1]
 
@@ -2258,3 +2267,137 @@ def kill_the_progress_bar(progress_bar: dict) -> None:
     progress_bar["progress_bar"].progressbar.stop()
     progress_bar["progress_bar"].progressbar.destroy()
     progress_bar["progress_bar"].destroy()
+
+
+def get_profiles_in_project(project_name: str) -> str:
+    r"""
+    Retrieves and returns a string of profile names for a given project.
+
+    Args:
+        project_name (str): The name of the project for which to retrieve profile names.
+
+    Returns:
+        str: A string containing the list of profile names associated with the project,
+             formatted as "Profiles:\n" followed by a comma-separated list of names.
+             Returns an empty string if no profiles are found.
+    """
+    # Get the Project's profile Ids.
+    pids = get_ids(True, PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"], project_name, [])
+    # Get all of the Profiles in the Project
+    profile_names = [PrimeItems.tasker_root_elements["all_profiles"][pid]["name"] for pid in pids]
+    if pids:
+        return profile_names
+    return ""
+
+
+def get_tasks_in_profile(project_name: str) -> str:
+    r"""
+    Retrieves and returns a string of task names for a given profile.
+
+    Args:
+        profile_name (str): The name of the profile for which to retrieve task names.
+        project_name (str): The name of the project associated with the profile.
+
+    Returns:
+        str: A string containing the list of task names associated with the profile,
+             formatted as "Tasks:\n" followed by a comma-separated list of names.
+             Returns an empty string if no tasks are found.
+    """
+    # Get the Profile's Task Ids.
+    tids = get_ids(False, PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"], project_name, [])
+    # Get all of the Tasks in the Profile
+    task_names = [PrimeItems.tasker_root_elements["all_tasks"][tid]["name"] for tid in tids]
+    if tids:
+        return task_names
+    return ""
+
+
+def find_string_from_text_bottom(self: object, target: str, start_index: int) -> str | None:
+    """
+    Searches for the target string in a list of strings, starting from the end of the list,
+    and returns the first string containing the target.
+
+    Args:
+        self (object): The text widget.
+        target (str): The target string to search for within the list.
+        start_index (int): The index to start the search from.
+
+    Returns:
+        str or None: The first string from the end of the list that contains the target string,
+                     or None if the target string is not found in any of the strings.
+    """
+    # Loop through the list in reverse order
+    for i in range(start_index, -1, -1):
+        string = self.textview_textbox.get(f"{i!s}.0", f"{i!s}.end")
+        if target in string:  # Check if the target string is in the current string
+            return string
+    return None  # Return None if the target string is not found
+
+
+def extract_usage_profile(text: str, title: str) -> str:
+    """
+    Extract the profile name from the given text, if the pattern "Profile: <profile name>   " is found.
+
+    Args:
+        text (str): The text to search for the pattern.
+        title (str): The title to find.
+
+    Returns:
+        str or "": The profile name if found, otherwise "".
+    """
+    start_temp = text.find(title)
+    start = start_temp + 9
+    end = text.find("   ", start)
+    if start and end:
+        return text[start:end]  # Return the captured string, stripped of extra spaces
+    return ""  # Return None if the pattern is not found
+
+
+def merge_lists(list1: list, list2: list) -> tuple:
+    """
+    Merge two lists into a single list of pairs.
+
+    Args:
+        list1 (list): The first list to merge.
+        list2 (list): The second list to merge.
+
+    Returns:
+        list: A list of pairs, where each pair is a tuple containing one element from
+            each of the two input lists, in order. The lists are extended with None
+            to the maximum length of the two lists.
+    """
+    # Find the maximum length of the two lists
+    max_length = max(len(list1), len(list2))
+
+    # Make sure we have a valid list
+    if not list1:
+        list1 = [" "]
+    if not list2:
+        list2 = [" "]
+
+    # Extend both lists to the same length with None (or any placeholder)
+    list1.extend([""] * (max_length - len(list1)))
+    list2.extend([""] * (max_length - len(list2)))
+
+    # Merge the lists into pairs and return it.
+    return [(list1[i], list2[i]) for i in range(max_length)]
+
+
+def parse_pairs_to_columns(pairs: list) -> str:
+    """
+    Parses a list of string pairs into two aligned columns.
+
+    Args:
+        pairs (list of tuples): A list of (string1, string2) pairs.
+
+    Returns:
+        str: A string representing the two-column formatted text.
+    """
+    # Find the maximum width of the first column
+    max_width_col1 = max(len(pair[0]) for pair in pairs) + 2  # Add padding
+
+    # Format each pair into two columns
+    formatted_lines = [f"{pair[0].ljust(max_width_col1)}{pair[1]}" for pair in pairs]
+
+    # Join all lines with a newline character
+    return "\n  ".join(formatted_lines)

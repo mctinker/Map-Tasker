@@ -3357,6 +3357,9 @@ class EventHandlers:
         if top:
             textview.textview_textbox.see("1.0")
             display_msg = "Top"
+            with contextlib.suppress(AttributeError, IndexError):
+                textview.search_current_line = textview.search_indecies[0]  # Point to first search hit.
+            textview.top = True
         else:
             # Go to bottom
             if "Diagram" in textview.title:

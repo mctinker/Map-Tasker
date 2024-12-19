@@ -5,6 +5,7 @@
 #                                                                                      #
 # mapai: Ai support                                                                    #
 #                                                                                      #
+import base64
 import contextlib
 import importlib.util
 import os
@@ -110,6 +111,7 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
     # Prep the querey for the model.
     prompt = query.split(":")[0]  # Skip the first character, which is a colon.
     context = query.replace(prompt[1:], "")  # All of the Project/Profile/Task data
+    # Set up the query
     messages = [
         {
             "role": "system",
@@ -196,11 +198,24 @@ def server_openai(query: str, ai_object: str, item: str) -> None:
     # Set up the OpenAI client and send the query
     client = OpenAI(api_key=apikey)
 
+    # Format the message specifics
+    role = "user" if "o1" in PrimeItems.program_arguments["ai_model"] else "system"
+
     try:
         stream_feed = client.chat.completions.create(
             model=PrimeItems.program_arguments["ai_model"],
-            messages=[{"role": "system", "content": "You are a Tasker programmer"}, {"role": "user", "content": query}],
+            messages=[
+                {"role": role, "content": "You are a Tasker programmer"},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": query},
+                    ],
+                },
+            ],
+            # max_completion_tokens=1000,
             stream=True,
+            response_format={"type": "text"},
         )
 
         response = ""

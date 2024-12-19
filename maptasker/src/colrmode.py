@@ -1,3 +1,5 @@
+"""Assign Default Colors"""
+
 #! /usr/bin/env python3
 
 #                                                                                      #

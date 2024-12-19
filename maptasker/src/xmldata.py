@@ -63,11 +63,11 @@ def tag_in_type(tag: str, flag: bool) -> bool:
         "itemlongclickTask",
     ]
     # Return a boolean: True if tag found in the appropriate list, False otherwise
-    return flag and tag in scene_task_element_types or not flag and tag in scene_task_click_types  # Boolean
+    return (flag and tag in scene_task_element_types) or (not flag and tag in scene_task_click_types)  # Boolean
 
 
 # We have an integer.  Evaluaate it's value based oon the code's evaluation parameters.
-def extract_integer(action: defusedxml.ElementTree.XML, arg: str, argeval: str) -> str:
+def extract_integer(action: defusedxml.ElementTree, arg: str, argeval: str) -> str:
     # Don't move import to avoid cirtcular import
     """
     Extract an integer value from an XML action element
@@ -126,7 +126,7 @@ def extract_integer(action: defusedxml.ElementTree.XML, arg: str, argeval: str) 
 
 
 # Extracts and returns the text from the given argument as a string.
-def extract_string(action: defusedxml.ElementTree.XML, arg: str, argeval: str) -> str:
+def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> str:
     """
     Extracts a string from an XML action element.
     Args:
@@ -176,7 +176,7 @@ def remove_html_tags(text: str, replacement: str) -> str:
 
 
 # Find Task by name in PrimeItems.tasker_root_elements["all_tasks"]
-def find_task_by_name(task_name: str) -> defusedxml.ElementTree.XML:
+def find_task_by_name(task_name: str) -> defusedxml.ElementTree:
     """
     Find a task by name in the tasker_root_elements["all_tasks"] list
     :param task_name: name of task to find
@@ -200,7 +200,7 @@ def append_files(file1_path: str, file2_path: str) -> None:
         - Open file1 in read mode.
         - Open file2 in append mode.
         - Copy contents of file1 to file2."""
-    with open(file1_path, "r") as file1, open(file2_path, "a") as file2:
+    with open(file1_path) as file1, open(file2_path, "a") as file2:
         shutil.copyfileobj(file1, file2)
 
 

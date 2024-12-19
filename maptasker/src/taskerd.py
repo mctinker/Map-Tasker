@@ -26,7 +26,7 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
     for item in all_xml:
         # Get the element name
         try:
-            name = item.find(name_qualifier).text
+            name = item.find(name_qualifier).text.strip()
         except AttributeError:
             name = ""
         # Get the Profile/Task identifier: id=number for Profiles and Tasks,
