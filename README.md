@@ -217,6 +217,8 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 
 - [x] Add 'Search' to the Diagram view.
 
+- [x] Identify Tasks with too many actions. 
+
 - [ ] Support additional plugins
 
 - [ ] Map remaining Tasker preferences
@@ -234,14 +236,14 @@ Network traffic is as follows:
 - Update the program from pypi.com (via 'pip) if 'Upgrade' is selected in the GUI.
 - Read file 'maptasker_changelog.json' from 'https://github.com/mctinker/Map-Tasker' if "What's New" is selected in the GUI.
 - Use chatgpt.com when using AI analysis with any of the OpenAi models.
-- New local Ai models will be loaded from 'https://ollama.com/library'.
+- New and updated local Ai models will be loaded from 'https://ollama.com/library'.
 
 ## Known Issues
 
 - An upgrade to Tcl-tk verison 9 (brew install tcl-tk) may cause an error when importing tkinter.  If this occurs, upgrade to the latest available version of Python: e.g. if running python 3.12.4, upgrade to 3.12.7 (the latest).  Otherwise, 'brew uninstall tcl-tk' and 'brew install tcl-tk@8' to revert back to Tcl-tk version 8 for Python version 3.11.
 - Task actions that are specific to Android 15 have not yet been mapped, and will display as such.
-- Open Issue: The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
-- Open Issue: The Map view Project/Profile/Task/Scene names with icons are not displaying correctly in the Map view if using highlighting (underline, etc.).
+- The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
+- Diagram connectors are misaligned if names are in Chinese, Korean or Japanese.
 
 ## Contributions
 

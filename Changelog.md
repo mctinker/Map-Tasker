@@ -2,35 +2,42 @@
 
 All notable changes to this project will be documented in this file!
 
-## [6.0.6] 19-Dec-2024
+## [6.1.0] 07-Jan-2025
 
 ### Added
+
+- Added: Open AI new models 'o3' and '03-mini' have been added.
+- Added: List Tasks with 'too many actions' warning at the bottom of the output with hotlinks to the Task.
+- Added: The GUI has a slider to define the limit for 'too many Task actions' warning.
+- Added: Additional tooltips have been added to the user interface.
+
+### Changed
+
+- Changed: Updated the GUI help information.
+
+### Fixed
+
+- Fixed: Alignment of column heading in Project hover text is not correct.
+- Fixed: Hover text for "Unnamed/Anonymous" Tasks is not correct.
+- Fixed: Tooltips are too small to read.
+- Fixed: Changing the Single Project, Profile or Task name uses the prior data in the Map view.
+- Fixed: Task action arguments are not all aligned if 'Pretty' is selected.
+
+## Older History Logs
+
+## [6.0.6]
 
 - Added: Scenes have been added to the directory in the Map view.
 - Added: Open AI's 'chatgpt-4o-latest', and 'o1' models have been added.
 - Added: Ollama 'llama3.3' model has been added.
-
-### Changed
-
 - Changed: Hover text in the Map view for Projects and Tasks now display additional details.
 - Changed: Unnamed/Anonymous Tasks are now displayed with an ID so that they can properly be parsed.
-
-### Fixed
-
 - Fixed: GUI Menu hover tooltips are displaying in a very small font.
 - Fixed: Program error due to bad font name.
 - Fixed: Projects with a trailing blank character are not properly recognized.
 - Fixed: Numerous hover text issues.
 - Fixed: Issue running AI Analysis with '01-preview' model.
 - Fixed: When searching for the next or previous string in the Map or Diagram view, using the 'Top' button to navigate to the top does not restart the search from the beginning.
-
-### Known Issues
-
-- An upgrade to Tcl-tk version 9 (brew install tcl-tk) may cause an error when importing tkinter.  If this occurs, refer to the README.
-- Task actions that are specific to Android 15 have not yet been mapped, and will display as such.
-- Open Issue: The browser output background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
-
-## Older History Logs
 
 ## [6.0.5]
 
