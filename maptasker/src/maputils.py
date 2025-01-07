@@ -447,7 +447,7 @@ def display_task_warnings() -> None:
         href = f"<a href=#tasks_{href_name}>{task_name}</a>"
 
         # Add the warning to the list.
-        warnings.append(f"Task {href} has {value["count"]} actions")
+        warnings.append(f"Task {href} has {value['count']} actions")
 
     # Start the output
     PrimeItems.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)
