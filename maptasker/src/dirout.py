@@ -1,4 +1,9 @@
 #! /usr/bin/env python3
+"""
+dirout: Add the directory to the output queue
+
+This module contains functions to create and manage the directory output queue.
+"""
 
 #                                                                                      #
 # dirout: Add the directory to the output queue                                        #

@@ -1,4 +1,9 @@
 #! /usr/bin/env python3
+"""
+taskactn: deal with Task Actions
+
+MIT License   Refer to https://opensource.org/license/mit
+"""
 
 #                                                                                      #
 # taskactn: deal with Task Actions                                                     #
@@ -8,20 +13,44 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import maptasker.src.tasks as tasks
+import maptasker.src.tasks as tasks  # noqa: PLR0402
 from maptasker.src.error import error_handler
+from maptasker.src.maputils import count_consecutive_substr
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine
+from maptasker.src.xmldata import remove_html_tags
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
+
+
+def ensure_argument_alignment(taction: str) -> str:
+    """
+    Ensure that the arguments of the action are aligned correctly.
+    Args:
+        taction: {str}: Action text
+    Returns:
+        str: Correctly aligned action text
+    """
+    action_breakdown = taction.split("<br>")
+    if len(action_breakdown) > 1:
+        count_of_spaces = count_consecutive_substr(action_breakdown[1], "&nbsp;")
+        correct_spacing = "&nbsp;" * count_of_spaces
+        for index, arg in enumerate(action_breakdown[2:]):
+            action_breakdown[index + 2] = remove_html_tags(arg.strip(), "")
+            if count_consecutive_substr(arg, "&nbsp;") != count_of_spaces:
+                action_breakdown[index + 2] = action_breakdown[index + 2].replace("&nbsp;", "")
+                action_breakdown[index + 2] = f"{correct_spacing}{action_breakdown[index+2]}"
+        # Put it all back together.
+        taction = "<br>".join(action_breakdown)
+    return taction
 
 
 # Go through list of actions and output them
 def output_list_of_actions(
     action_count: int,
     alist: list,
-    the_item: defusedxml.ElementTree.XML,
+    the_item: defusedxml.ElementTree,
 ) -> None:
     """
     Output the list of Task Actions
@@ -36,21 +65,34 @@ def output_list_of_actions(
 
     # Go through all Actions in Task Action list
     for taction in alist:
+        # 'taction' has the Action text, including all of it's arguments.
         if taction is not None:
+
+            # Optimize spacing if 'pretty' is enabled
+            if PrimeItems.program_arguments.get("pretty"):
+                updated_action = ensure_argument_alignment(taction)
+            else:
+                updated_action = taction
+
             # If Action continued ("...continued"), output it
-            if taction[:3] == "...":
+            if updated_action[:3] == "...":
                 PrimeItems.output_lines.add_line_to_output(
                     2,
-                    f"Action: {taction}",
+                    f"Action: {updated_action}",
                     ["", "action_color", FormatLine.dont_add_end_span],
                 )
             else:
-                # First remove one blank if line number is > 99 and < 1000
-                temp_action = taction.replace("&nbsp;", "", 1) if action_count > 99 and action_count < 1000 else taction
+                # First remove one blank from action number if line number is > 99 and < 1000
+                updated_action = (
+                    updated_action.replace("&nbsp;", "", 1)
+                    if action_count > 99 and action_count < 1000
+                    else updated_action
+                )
+
                 #  Output the Action count = line number of action (fill to 2 leading zeros)
                 PrimeItems.output_lines.add_line_to_output(
                     2,
-                    f"Action: {str(action_count).zfill(2)}</span> {temp_action}",
+                    f"Action: {str(action_count).zfill(2)}</span> {updated_action}",
                     ["", "action_color", FormatLine.dont_add_end_span],
                 )
                 action_count += 1
@@ -70,7 +112,7 @@ def output_list_of_actions(
 
 # For this specific Task, get its Actions and output the Task and Actions
 def get_task_actions_and_output(
-    the_task: defusedxml.ElementTree.XML,
+    the_task: defusedxml.ElementTree,
     list_type: str,
     the_item: str,
     tasks_found: list[str],
@@ -107,11 +149,26 @@ def get_task_actions_and_output(
                 "",  # Task type
             )
 
+        # Get the Task name.
+        attr = the_task.attrib.get("sr")
+        task_id = attr[4:]
+        task_name = PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
+
         # Get Task actions
         if the_task is not None:
             # If we have Task Actions, then output them.  The action list is a list of the Action output lines already
             # formatted.
             if alist := tasks.get_actions(the_task):
+                # Track the task and action count if too many actions.
+                action_count = len(alist)
+                # Add the Task to our warning limit dictionary.
+                if (
+                    PrimeItems.program_arguments["task_action_warning_limit"] < 100
+                    and action_count > PrimeItems.program_arguments["task_action_warning_limit"]
+                    and task_name not in PrimeItems.task_action_warnings
+                ):
+                    PrimeItems.task_action_warnings[task_name] = {"count": action_count, "id": task_id}
+
                 # Start a list of Actions
                 PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
                 action_count = 1

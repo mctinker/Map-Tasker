@@ -1,5 +1,11 @@
 #! /usr/bin/env python3
 
+"""
+twisty: add special twisty to output
+
+MIT License   Refer to https://opensource.org/license/mit
+"""
+
 #                                                                                      #
 # twisty: add special twisty to output                                                 #
 #                                                                                      #

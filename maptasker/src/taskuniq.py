@@ -126,8 +126,6 @@ def process_solo_task_with_no_profile(
         if task_in_scene(task_id, PrimeItems.tasker_root_elements["all_scenes"]):
             return have_heading, specific_task, task_count
         unknown_task = True
-    # else:
-    #     the_task_name = task_name
     task_count += 1
 
     # At this point, we've found the Project this Task belongs to,

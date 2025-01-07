@@ -8,7 +8,7 @@
 import contextlib
 
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import FONT_FAMILY, FormatLine
+from maptasker.src.sysconst import FONT_FAMILY, SPACE_COUNT1, SPACE_COUNT2, SPACE_COUNT3, FormatLine
 
 
 def add_css() -> None:
@@ -40,21 +40,6 @@ def add_css() -> None:
                         FormatLine.dont_format_line,
                     )
 
-    #     # Add CSS for Bullet color
-    #     bullet_color = PrimeItems.colors_to_use["bullet_color"]
-    #     bullet_css = """ul {list-style: none;}
-
-    # ul li::before {
-    #     content: "\\2756";
-    #     color: red;
-    #     font-weight: bold;
-    #     display: inline-block;
-    #     width: 1em;
-    #     margin-left: -1em;
-    # }"""
-    #     bullet_css = bullet_css.replace("red", bullet_color)
-    #     PrimeItems.output_lines.add_line_to_output(5, bullet_css, FormatLine.dont_format_line)
-
     # Add css for Tasker Project/Profile/Task/Scene/SceneTask tabs
     tabs = """
 .resettab {display: inline-block; margin-left: 0;}
@@ -65,7 +50,13 @@ def add_css() -> None:
 .actiontab {display: inline-block; margin-left: 80;}
 .scenetab {display: inline-block; margin-left: 20;}
 .scenetasktab {display: inline-block; margin-left: 30;}
+.blanktab1 {display: inline-block; margin-right: xxx;}
+.blanktab2 {display: inline-block; margin-right: yyy;}
+.blanktab3 {display: inline-block; margin-right: zzz;}
     """
+    tabs = tabs.replace("xxx", SPACE_COUNT1[1])
+    tabs = tabs.replace("yyy", SPACE_COUNT2[1])
+    tabs = tabs.replace("zzz", SPACE_COUNT3[1])
     PrimeItems.output_lines.add_line_to_output(5, tabs, FormatLine.dont_format_line)
 
     # End the style css

@@ -64,7 +64,7 @@ action_codes = {
         ["Bundle", "Str", "Str", "Int", "Int"],
         "AutoInput UI Query",
         ["0", "3", "4"],
-        ["", "Timeout=", ["", "e", ", Structure Output (JSON, etc)"]],
+        ["", "Timeout=", ["", "e", ",Structure Output (JSON, etc)"]],
     ),
     "105s": ActionCode(0, "", [], [], "Media Button", [], []),
     "105t": ActionCode(

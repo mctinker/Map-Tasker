@@ -47,11 +47,13 @@ from maptasker.src.globalvr import get_variables, output_variables
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapai import map_ai
+from maptasker.src.maputils import display_task_warnings
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
     NORMAL_TAB,
     Colors,
+    DISPLAY_DETAIL_LEVEL_all_tasks,
     DISPLAY_DETAIL_LEVEL_all_variables,
     FormatLine,
     debug_file,
@@ -517,6 +519,13 @@ def display_back_matter(
             return
         clean_up_and_exit("Task", single_task_name)
 
+    # Display warning for Task with too many actions
+    if (
+        PrimeItems.program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_tasks
+        and PrimeItems.task_action_warnings
+    ):
+        display_task_warnings()
+
     # Display the program caveats
     display_caveats()
 
@@ -582,7 +591,7 @@ def do_rerun() -> None:
 
 # Do the cleanup stuff: check for single name, do unique situations, and display
 # back matter.
-def special_handling(found_tasks: list, projects_without_profiles: list, projects_with_no_tasks: list) -> None:
+def final_processing(found_tasks: list, projects_without_profiles: list, projects_with_no_tasks: list) -> None:
     # Store single item details in local variables
     """
     Processes special handling of found tasks, projects without profiles, and projects with no tasks.
@@ -694,6 +703,10 @@ def mapit_all(file_to_get: str) -> int:
         projects_with_no_tasks,
     ) = initialize_everything()
 
+    # Let the userr know we are in debug mode.
+    if PrimeItems.program_arguments["debug"]:
+        print(">>>  MapTasker is in debug mode.  <<<")
+
     PrimeItems.program_arguments["guiview"] = save_map
     PrimeItems.program_arguments["doing_diagram"] = save_diagram
 
@@ -715,7 +728,7 @@ def mapit_all(file_to_get: str) -> int:
     )
 
     # Do special handling: swrqap up back matter and print the output.
-    special_handling(found_tasks, projects_without_profiles, projects_with_no_tasks)
+    final_processing(found_tasks, projects_without_profiles, projects_with_no_tasks)
 
     # Handle Ai Analysis
     if PrimeItems.program_arguments["ai_analyze"]:

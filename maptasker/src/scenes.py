@@ -52,7 +52,7 @@ blank = "&nbsp;"
 
 
 # Get the Scene's geometry
-def get_geometry(scene_element: defusedxml.ElementTree.XML) -> tuple[str, str]:
+def get_geometry(scene_element: defusedxml.ElementTree) -> tuple[str, str]:
     """
     Get the Scene's geometry
         :param scene_element: xml element of the Scene <Scene sr="scene...

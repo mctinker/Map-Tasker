@@ -13,7 +13,7 @@ import re
 
 from maptasker.src.maputils import count_consecutive_substr
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import pattern8
+from maptasker.src.sysconst import SPACE_COUNT1, SPACE_COUNT2, SPACE_COUNT3, pattern8
 from maptasker.src.xmldata import remove_html_tags
 
 glob_spacing = 15
@@ -54,6 +54,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int) -> dict:
     Returns:
         dict: The updated output_lines dictionary.
     """
+    # blank = " "
     # Replace &nbsp. with " " and "\n\n" with "\n" in all text fields.
     text_list = output_lines[line_num]["text"]
     text_list = handle_gototop(text_list)
@@ -78,7 +79,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int) -> dict:
 
 
 def eliminate_blanks(output_lines: dict) -> dict:
-    """Eliminate consequtive blanks from the output.
+    """Eliminate consequtive blank lines from the output.
 
     Args:
         output_lines (dict): dictionary of output lines
@@ -210,7 +211,7 @@ def extract_highlights(working_text: str, highlight_tags: list) -> list:
         list: A list of strings representing the extracted highlights
     """
     highlights = []
-    # Seacrh for highlight in string, and if found, get the highlight object's name and return it.
+    # Search for highlight in string, and if found, get the highlight object's name and return it.
     for tag, style in highlight_tags.items():
         if tag in working_text:
             tag_name = tag.split(">")[0]
@@ -239,7 +240,6 @@ def process_line(output_lines: list, line: str, line_num: int, highlight_tags: l
     previous_line = ""
 
     for color_pos in color_list:
-
         # Break up line into color and text (temp)
         color_to_use, temp = process_color_string(line, color_pos)
 
@@ -347,25 +347,6 @@ def calculate_spacing(
     if text.startswith(("Task:", "- Project '", "   The following Tasks in Project ")) or "--Task:" in text[:7]:
         return 7 if text.startswith("   The following Tasks in Project ") else 10
 
-    # Special handling for Timeout and Configuration Parameters
-    if ("Configuration Parameter(s):" in previous_line or "Timeout=" in text) and PrimeItems.program_arguments.get(
-        "pretty",
-        False,
-    ):
-        if "Timeout=" in text:
-            output_lines[line_num]["text"][0] = text.replace(" Timeout=", "Timeout=")
-            return count_consecutive_substr(previous_line, "&nbsp;") + spacing
-        return 61
-
-    if "Timeout=" in previous_line and "Structure Output (JSON, etc)" in text:
-        output_lines[line_num]["text"][0] = "Structure Output (JSON, etc)\n"
-        return spacing
-
-    # Special handling for error continuation
-    if "[Continue Task After Error]" in text:
-        output_lines[line_num]["text"][0] = "[Continue Task After Error]\n"
-        return spacing + 18 if PrimeItems.program_arguments.get("gui", True) else spacing
-
     # General spacing conditions
     if spacing == 61 or text[0].isdigit() or " continued >>>" in text:
         return 15
@@ -460,8 +441,24 @@ def additional_formatting(
     Returns:
         tuple: output_lines and spacing.
     """
-
+    blank = " "
     line = pattern8.sub("\n", line)
+
+    # Add the spacing for the line back into the line.
+    # line = (
+    #    line.replace("<span class='blanktab1'></span>", f"{blank*SPACE_COUNT1[0]}")
+    #    .replace(
+    #        "<span class='blanktab2'></span>",
+    #        f"{blank*SPACE_COUNT2[0]}",
+    #    )
+    #    .replace(
+    #        "<span class='blanktab3'></span>",
+    #        f"{blank*SPACE_COUNT3[0]}",
+    #    )
+    # )
+
+    # Fix bad class statement
+    line = line.replace("class='\\blanktab1\\'", "class='blanktab1'")
 
     # Fix icons
     line = line.replace("&#9940;", "⛔")
@@ -708,7 +705,6 @@ def parse_html() -> dict:
     """
     output_lines = {}
     iterate = False
-    # PrimeItems.tab_table = {}  # Tabs table
 
     # Read the mapped html file
     with open("MapTasker.html") as html:

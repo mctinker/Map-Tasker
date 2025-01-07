@@ -79,7 +79,7 @@ from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapit import clean_up_memory, mapit_all
 from maptasker.src.maputils import update, validate_xml_file
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.proginit import log_startup_values
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
@@ -199,8 +199,9 @@ class MyGui(customtkinter.CTk):
         PrimeItems.mygui = self
 
         # The following lines are for testing only.
-        # self.event_handlers.diagram_event()
+        #self.event_handlers.diagram_event()
         # self.event_handlers.map_event()
+        # self.event_handlers.run_program_event()
 
     # Establish all of the default values used
     def set_defaults(self) -> None:
@@ -533,6 +534,7 @@ class MyGui(customtkinter.CTk):
 
         # Validate the name by using the existing XML or reading it in.
         # We will prompt user for XML file if it hasn't already been loaded.
+        name_entered = name_entered.strip()
         if name_entered and self.check_name(name_entered, my_name):
             self.single_project_name = self.single_profile_name = self.single_task_name = ""
 
@@ -793,6 +795,7 @@ class MyGui(customtkinter.CTk):
             "single_profile_name": lambda: self.process_single_name_restore("Profile", value),
             "single_project_name": lambda: self.process_single_name_restore("Project", value),
             "single_task_name": lambda: self.process_single_name_restore("Task", value),
+            "task_action_warning_limit": lambda: self.tasklimit_set(value),
             "taskernet": lambda: self.select_deselect_checkbox(
                 self.taskernet_checkbox,
                 value,
@@ -900,6 +903,20 @@ class MyGui(customtkinter.CTk):
         # Display completion
         self.display_message_box("Settings restored.\n", "Green")
         self.extract_in_progress = False
+
+    def tasklimit_set(self, limit: str) -> str:
+        """Set the limit for the number of Task actions before issuing a warning.
+
+        Args:
+            limit (str): The limit to set for the number of Task actions before issuing a warning.
+
+        Returns:
+            None: Does not return anything
+        """
+        self.task_action_warning_limit = limit
+        self.display_message_box(f"Task Action Warning Limit set to {limit}.\n", "Green")
+        self.task_action_label.configure(text=f"Task Action Limit: {limit}")
+        self.task_action_limit.set(limit)
 
     # Display an input field and a label for the user to input a value
     def display_label_and_input(
@@ -1513,6 +1530,9 @@ class MyGui(customtkinter.CTk):
         # Save the settings
         temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
         _, _ = save_restore_args(temp_args, self.color_lookup, True)
+
+        # force a reset of PrimeItems in mapit.py: initialize_everything.
+        PrimeItemsReset()
 
         # Now flag the fact that we are rerunning for the map view.
         # These flags are critical for the proper proceessing of the map.
@@ -3433,6 +3453,24 @@ class EventHandlers:
 
         # Let the user know.
         output_label(self.parent.textview, f"Profile Per Line is {profiles_per_line}.")
+
+    def tasklimit_event(self: object, slider_value: float) -> None:
+        """
+        Handles the task limit event in the text view box.
+
+        This function sets the task limit of the text view box.
+
+        Parameters:
+            self (object): The instance of the class.
+            textview (CTkTextview): The text view box.
+
+        Returns:
+            None
+        """
+        # Get and set thew Task action warning limit
+        slider_value = int(slider_value)
+        self.parent.task_action_warning_limit = slider_value
+        self.parent.task_action_label.configure(text=f"Task Action Limit: {slider_value}")
 
     def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:
         """

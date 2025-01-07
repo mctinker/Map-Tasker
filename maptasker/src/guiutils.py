@@ -58,6 +58,7 @@ from maptasker.src.sysconst import (
     KEYFILE,
     NOW_TIME,
     OPENAI_MODELS,
+    UNKNOWN_TASK_NAME,
     VERSION,
     Colors,
 )
@@ -70,21 +71,20 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 6.0.6 - Change Log\n
+Version 6.1.0 - Change Log\n
 ### Added\n
-- Added: Scenes have been added to the directory in the Map view.\n
-- Added: Open AI's 'chatgpt-4o-latest', and 'o1' models have been added.\n
-- Added: Ollama 'llama3.3' model has been added.\n
+- Added: Open AI new models 'o3' and 'o3-mini' have been added.\n
+- Added: List Tasks with 'too many actions' warning at the bottom of the output with hotlinks to the Task.\n
+- Added: The GUI has a slider to define the limit for 'too many Task actions' warning.\n
+- Added: Additional tooltips have been added to the user interface.\n
 ### Changed\n
-- Changed: Hover text in the Map view for Projects and Tasks now display additional details.\n
-- Changed: Unnamed/Anonymous Tasks are now displayed with an ID so that they can properly be parsed.\n
+- Changed: Updated the GUI help information.\n
 ### Fixed\n
-- Fixed: GUI Menu hover tooltips are displaying in a very small font.\n
-- Fixed: Program error due to bad font name.\n
-- Fixed: Projects with a trailing blank character are not properly recognized.\n
-- Fixed: Numerous hover text issues.\n
-- Fixed: Issue running AI Analysis with '01-preview' model.\n
-- Fixed: When searching for the next or previous string in the Map or Diagram view, using the 'Top' button to navigate to the top does not restart the search from the beginning.\n
+- Fixed: Alignment of column heading in Project hover text is not correct.\n
+- Fixed: Hover text for "Unnamed/Anonymous" Tasks is not correct.\n
+- Fixed: Tooltips are too small to read.\n
+- Fixed: Changing the Single Project, Profile or Task name uses the prior data in the Map view.\n
+- Fixed: Task action arguments are not all aligned if 'Pretty' is selected.\n
 """
 
 default_font_size = 14
@@ -1802,12 +1802,24 @@ def search_substring_in_list(strings: list, substring: str, stop_on_first_match:
         list: A list of tuples containing the index of the string and the position of the substring.
     """
     matches = []
+    # If this is an Unklown Task or Task in warning dict, we need to search for the Task ID in A Scene as well.
+    if f"Task: {UNKNOWN_TASK_NAME}" in substring:
+        task_id = substring.split(".")[1].strip()
+        second_search_string = f"id: {task_id}"
+    elif substring[6:] in PrimeItems.task_action_warnings:
+        second_search_string = f"id: {PrimeItems.task_action_warnings[substring[6:]]['id']}"
+    else:
+        second_search_string = ""
     lower_substring = substring.lower()
     for i, string in enumerate(strings):
         lower_string = string.lower()
+        lower_string_len = len(lower_string)
         start = 0
-        while start < len(lower_string):
+        while start < lower_string_len:
             pos = lower_string.find(lower_substring, start)
+            # Do we need to search for a Task in a Scene (ID: task_id)?
+            if pos == -1 and second_search_string:
+                pos = lower_string.find(second_search_string, start)
             if pos == -1 or "up one level" in lower_string:
                 break
             matches.append((i, pos))
@@ -2329,6 +2341,8 @@ def find_string_from_text_bottom(self: object, target: str, start_index: int) ->
     # Loop through the list in reverse order
     for i in range(start_index, -1, -1):
         string = self.textview_textbox.get(f"{i!s}.0", f"{i!s}.end")
+        if "Properties..." in string:
+            continue
         if target in string:  # Check if the target string is in the current string
             return string
     return None  # Return None if the target string is not found

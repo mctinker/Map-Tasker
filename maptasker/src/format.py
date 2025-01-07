@@ -7,6 +7,9 @@
 #                                                                                      #
 
 from maptasker.src.sysconst import (
+    SPACE_COUNT1,
+    SPACE_COUNT2,
+    SPACE_COUNT3,
     pattern2,
     pattern8,
     pattern9,
@@ -25,6 +28,7 @@ def format_line(item: str) -> str:
 
     # output_lines = output_obj.output_lines
     # blank = " "
+    blank = "&nbsp;"
 
     # If item is a list, then get the actual output line
     if isinstance(item, list):
@@ -51,6 +55,16 @@ def format_line(item: str) -> str:
     output_line = pattern8.sub("<br>\r", output_line)
     # Get rid of trailing blank
     output_line = pattern2.sub("", output_line)  # Get space-commas: " ,"
+
+    # Shrink down the number of spaces between words
+    # output_line = (
+    #    output_line.replace(f"{blank*SPACE_COUNT3[0]}", "<span class='blanktab'></span>")
+    #    .replace(f"{blank*SPACE_COUNT2[0]}", "<span class='blanktab2'></span>")
+    #    .replace(
+    #        f"{blank*SPACE_COUNT1[0]}",
+    #        "<span class='blanktab1'></span>",
+    #    )
+    # )
 
     # Get rid of extraneous html code that somehow got in to the output
     output_line = pattern9.sub("</span>", output_line)

@@ -88,7 +88,7 @@ class LineOut:
             PrimeItems.ai["output_lines"].clear()
         self.output_lines.clear()
 
-        # Clear the directory
+        # Clear the directory, grand totals, etc.
         PrimeItems.directory_items = {
             "current_item": "",
             "projects": [],
@@ -104,6 +104,7 @@ class LineOut:
             "named_tasks": 0,
             "scenes": 0,
         }
+        PrimeItems.task_action_warnings = {}
 
         # Display th starting information in beginning of output
         output_the_front_matter()
@@ -212,7 +213,7 @@ class LineOut:
         return f'{element[0:color_pos]}_color {tab}"{element[(color_pos+7):]}'
 
     # Add "Go to top" hyperlink to the element
-    def add_top_link(self, element: str) -> str:
+    def add_gototop_link(self, element: str) -> str:
         """
         Adds a "Go to top" link to the element if it's under 70 characters.
         Otherwise, adds it after 5 blanks.
@@ -267,7 +268,7 @@ class LineOut:
                 Returns:
                     _type_: output text with hyperlink target embedded
         """
-        element = self.add_top_link(element)
+        element = self.add_gototop_link(element)
         element = self.add_tab("projtab", element)
         return self.add_directory_link("<br>", element, "\n")
 
@@ -281,7 +282,7 @@ class LineOut:
         - Adds opening and closing tags for list item
         - Calls method to add directory link
         - Returns formatted string"""
-        element = self.add_top_link(element)
+        element = self.add_gototop_link(element)
         element = self.add_tab("proftab", element)
         # Add the directory link to the Profile line.
         # Add <div </div> to ensure line wrap breaks at proftab (Profile spacing)
@@ -301,7 +302,7 @@ class LineOut:
             - Add font and element details to style
             - Return styled element from add_style method"""
 
-        element = self.add_top_link(element)
+        element = self.add_gototop_link(element)
         style_details = {
             "tab": "tasktab",
             "font": font,
@@ -348,7 +349,7 @@ class LineOut:
                 scene_name = remove_html_tags(scene_name, "")
 
             directory = f'<a id="{scene_name.replace(" ","_")}"></a>\n'
-        element = self.add_top_link(element)
+        element = self.add_gototop_link(element)
         style_details = {
             "tab": "scenetab",
             "color": "scene_color",
@@ -358,17 +359,6 @@ class LineOut:
 
         # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
         return f"{directory}<br><div>{self.add_style(style_details)}</div>"
-
-        # def remove_attributes(self, scene_name):
-        #     scene_name = scene_name.replace("<em>", "")
-        #     scene_name = scene_name.replace("</em>", "")
-        #     scene_name = scene_name.replace("<b>", "")
-        #     scene_name = scene_name.replace("</b>", "")
-        #     scene_name = scene_name.replace("<mark>", "")
-        #     scene_name = scene_name.replace("</mark>", "")
-        #     scene_name = scene_name.replace("<u>", "")
-        #     scene_name = scene_name.replace("</u>", "")
-        #     return scene_name
 
     # Handles the action element.
     def handle_action(self, element: str) -> str:
@@ -403,7 +393,8 @@ class LineOut:
             <span class="actiontab"></span><span class="indentation">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continued >>> Attribute</span><br>
         """
         blank = "&nbsp;"
-        # Is this a continuation line?
+
+        # Is this a continuation line?  This logic handles continuation lines (not pretty)
         if "Action: ..." in element:
             if element[11:] == "":  # This catches valid lines that have "Action: ..." in them
                 return ""
@@ -412,6 +403,7 @@ class LineOut:
             # '<span ...">Action: ...indent=2item=Attribute</span><span ...</span>>'
             start1 = element.split("indent=")
             start2 = start1[1].split("item=")  # Indentation amount
+
             # Force an indent of at least 1
             indentation = f"{'&nbsp;' * 5}" if start2[0] == "0" else f"{blank * (int(start2[0]) + 8)}"
             # Add indentation for contination line

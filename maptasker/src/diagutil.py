@@ -8,6 +8,7 @@
 #                                                                                      #
 from __future__ import annotations
 
+import re
 from string import printable
 from tkinter import font
 
@@ -234,6 +235,20 @@ def count_icons(text: str) -> int:
     return len(icon_pattern.findall(text))
 
 
+def find_cjk_positions(string: str) -> list:
+    """
+    Finds all positions of CJK (Chinese, Japanese, Korean) characters in the given string.
+
+    Args:
+        string (str): The input string to search for CJK characters.
+
+    Returns:
+        list: A list of positions (indices) where CJK characters are found in the input string.
+    """
+    # Find all positions of CJK characters in the string
+    return [match.start() for match in re.finditer(r"[\u4E00-\u9FFF]", string)]
+
+
 # If an icon is found in the string passed in, remove it and return modified string.
 def remove_icon(text: str) -> str:
     """
@@ -256,15 +271,28 @@ def remove_icon(text: str) -> str:
 
     # If there are icons in the text...
     icon_count = count_icons(text)
-    if icon_count > 0:
-        # Drop here if there is at least one icon.
-        for find_arrow in directional_arrows + bar:
-            found_arrow = text.find(find_arrow)
-            if found_arrow != -1:
-                # Remove the icon return the modified string
-                return remove_char(text, found_arrow - 1)
 
-        # No icon found
+    # simplified_chinese_chars = ''.join(chr(i) for i in range(0x4E00, 0x9FFF + 1))
+    # Test if Chinese, Japanese or Korean characters
+    # TODO Make this work for CJK characters
+    # chinese_japanese_korean = find_cjk_positions(text)
+    # if chinese_japanese_korean:
+    #    icon_count += len(chinese_japanese_korean) * 12
+
+    if icon_count > 0:
+        got_it = False
+        for _ in range(icon_count):
+            # Drop here if there is at least one icon.  This will handle a single icon.
+            for find_arrow in directional_arrows + bar:
+                found_arrow = text.find(find_arrow)
+                if found_arrow != -1:
+                    # Remove the icon return the modified string
+                    text = remove_char(text, found_arrow - 1)
+                    got_it = True
+            if got_it:
+                return text
+
+        # No arrows/bars found.  Just remove the first icon.
         output = text[: arrow_position - icon_count] + text[arrow_position:]
 
     return output
@@ -295,18 +323,22 @@ def build_box(name: str, output_lines: list) -> tuple:
     if set(name).difference(printable):
         trailer = fix_icon(name)
 
+    # Deal with Chinese/Japanese/Korean characters
+    cjk = find_cjk_positions(name)
+    cjk_blanks = (3 * len(cjk)) if cjk else 0
+
     # Build top and bottom box lines
-    box_line_length = len(name)
+    box_line_length = len(name) + cjk_blanks
     box_top = f"╔═{box_line*box_line_length}═╗"
     box_bottom = f"╚═{box_line*box_line_length}═╝"
 
     # Add box lines to output
     output_lines[0] += f"{filler}{box_top}"
-    output_lines[1] += f"{filler}║{blank}{name}{trailer}║"
+    output_lines[1] += f"{filler}║{blank}{name}{trailer}{blank*(cjk_blanks-2)}║"
     output_lines[2] += f"{filler}{box_bottom}"
 
     # Calculate anchor position
-    position_for_anchor = len(output_lines[0]) - len(name) // 2 - 4
+    position_for_anchor = len(output_lines[0]) - (len(name) + cjk_blanks) // 2 - 4
 
     return output_lines, position_for_anchor
 

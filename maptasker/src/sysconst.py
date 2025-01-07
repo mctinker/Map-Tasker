@@ -17,7 +17,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "6.0.6"
+VERSION = "6.0.7"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -137,6 +137,7 @@ ARGUMENT_NAMES = {
     "single_profile_name": "Single Profile Name",
     "single_project_name": "Single Project Name",
     "single_task_name": "Single Task Name",
+    "task_action_warning_limit": "Task Action Warning Limit",
     "taskernet": "Display TaskerNet Info",
     "tree_window_position": "Last Tree Window Position",
     "twisty": "Hide Task Details under Twisty",
@@ -192,7 +193,8 @@ icon_pattern = re.compile(
     r"[\U0001F800-\U0001F8FF]|"  # Supplemental Arrows-C
     r"[\U0001F900-\U0001F9FF]|"  # Supplemental Symbols and Pictographs
     r"[\U0001FA00-\U0001FA6F]|"  # Chess Symbols
-    r"[\U0001FA70-\U0001FAFF]",  # Symbols and Pictographs Extended-A
+    r"[\U0001FA70-\U0001FAFF]"  # Symbols and Pictographs Extended-A
+    r"[\u4E00-\u9FFF]",  # CJK Unified Ideographs (Simplified Chinese)
 )
 
 
@@ -250,6 +252,8 @@ OPENAI_MODELS = [
     "o1",
     "o1-mini",
     "o1-preview",
+    "o3",
+    "o3-mini",
 ]
 LLAMA_MODELS = [
     "aya",
@@ -276,3 +280,8 @@ LLAMA_MODELS = [
 
 # DFefine the number of Profiles per line in the Diagram view.  Default = 6.
 DIAGRAM_PROFILES_PER_LINE = 6
+
+# Number of spaces to substitute &nbsp; for <blanktab> CSS in the output. [spaces, 'pixels']
+SPACE_COUNT1 = [16, "155"]
+SPACE_COUNT2 = [25, "160"]
+SPACE_COUNT3 = [50, "200"]

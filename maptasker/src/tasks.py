@@ -90,7 +90,10 @@ def get_actions(
             # Make it pretty
             if "Configuration Parameter(s):" in task_code and PrimeItems.program_arguments["pretty"]:
                 number_of_blanks = task_code.find(":")
-                task_code = task_code.replace(",", f"<br>{blank*(number_of_blanks-70)}")  # Back out the "<span..."
+                new_blanks = f"<br>{blank*(number_of_blanks-80)}"
+                task_code = (
+                    task_code.replace(",", new_blanks).replace("\n", f"{new_blanks}").replace(" Timeout=", "Timeout=")
+                )
 
             # Build the output line.
             tasklist = action_evaluate.build_action(
@@ -144,8 +147,10 @@ def entry_or_exit_task(
                 task_output_lines.append(f"{task_name}{blank*4}{line_left_arrow} Entry Task{extra}")
         else:
             task_output_lines.append(f"{task_name}{blank*4}")
+    # Unnamed Task
     else:
         task_name = f"{UNKNOWN_TASK_NAME}{the_task_id}"
+        PrimeItems.tasker_root_elements["all_tasks"][the_task_id]["name"] = task_name
         # Count this as an unnamed Task if it hasn't yet been counted and it
         # is a normal Task
         if not duplicate_task and task_type in {"Entry", "Exit"}:

@@ -1,4 +1,9 @@
 #! /usr/bin/env python3
+"""
+proclist: process list - process a list of line items for Tasks and Scenes
+
+MIT License   Refer to https://opensource.org/license/mit
+"""
 
 #                                                                                      #
 # proclist: process list - process a list of line items for Tasks and Scenes           #
@@ -71,7 +76,7 @@ def format_task_or_scene(list_type: list, the_item: str) -> tuple:
 
 
 # ################################################################################
-# If doing a directory, format and add it.  If doing twisties, add a twisty
+# If doing a directory, format and add it.  If doing twisties, add a twisty.
 # ################################################################################
 def add_dictionary_and_twisty(
     list_type: str,
@@ -81,62 +86,199 @@ def add_dictionary_and_twisty(
     color_to_use: str,
 ) -> tuple[str, str]:
     """
-    If doing a directory, format and add it.  If doing twisties, add a twisty
-        Args:
-            list_type (list): Either "Task:" or "Scene:"
-            the_item (str): text for Task or Scene
-            the_task (defusedxml): XML pointer to our Task being procesed
-            output_line (str): The etxt satring containing the output
-            color_to_use (str): The color to use in the output
+    If doing a directory, format and add it. If not doing directory and we have a Task, add a link.
+    If doing twisties, add a twisty.
 
-        Returns:
-            tuple[str, str]: Our temporary item and temporary list item
+    Args:
+        list_type (str): Either "Task:" or "Scene:"
+        the_item (str): Text for Task or Scene
+        the_task (defusedxml): XML pointer to the Task being processed
+        output_line (str): The text string containing the output
+        color_to_use (str): The color to use in the output
+
+    Returns:
+        tuple[str, str]: Temporary item and temporary list item
     """
+    temp_item, temp_list = "", ""
+    blank = "&nbsp;"
 
-    temp_item = temp_list = ""
     if "&#45;&#45;Task:" in list_type:
-        temp_item = the_item
-        temp_list = list_type
-        the_item = ""
-        if PrimeItems.program_arguments["debug"]:  # Get the Task ID
-            id_loc = list_type.find("ID:")
-            if id_loc != -1:
-                list_type = f"{list_type}{id_loc}"
+        temp_item, temp_list = handle_task(list_type, the_item, blank)
+    elif PrimeItems.program_arguments["directory"]:
+        handle_directory(list_type, the_item, the_task)
+    elif "Task:" in list_type:
+        handle_task_hyperlink(the_item, blank)
 
-    # Insert directory for Task
-    elif PrimeItems.program_arguments["directory"] and "Task:" in list_type:
-        # Get the Task name from the line being formatted
-        task_id = the_task.attrib.get("sr")[4:]
-        task_name = PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
-        if task_name != "":
-            # Handle directory hyperlink
-            add_directory_item("tasks", task_name)
+    if should_add_directory_hyperlink(list_type):
+        add_directory_hyperlink()
 
-    # Insert directory for Scene
-    elif PrimeItems.program_arguments["directory"] and list_type == "Scene:":
-        add_directory_item("scenes", the_item)
+    if list_type == "Scene:":
+        PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
-    # Insert a hyperlink if this is a Task...it has to go before a twisty
-    if (
+    if PrimeItems.program_arguments["twisty"] and "Task:" in list_type:
+        handle_twisty(color_to_use, output_line)
+
+    return temp_item, temp_list
+
+
+def handle_task(list_type: str, the_item: str, blank: str) -> tuple[str, str]:
+    """
+    Handle the task by adding a task hyperlink and debugging the task ID.
+
+    Args:
+        list_type (str): The type of the list.
+        the_item (str): The text item to process.
+        blank (str): A blank string for formatting.
+
+    Returns:
+        tuple[str, str]: The processed item and list type.
+    """
+    task_name = PrimeItems.tasker_root_elements["all_tasks"][the_item]["name"]
+    add_task_hyperlink(task_name, True, blank)
+    temp_item, temp_list = the_item, list_type
+    list_type = debug_task_id(list_type)
+    return temp_item, temp_list
+
+
+def handle_directory(list_type: str, the_item: str, the_task: defusedxml) -> None:
+    """
+    Handle the directory by processing tasks or adding scene directories.
+
+    Args:
+        list_type (str): The type of the list.
+        the_item (str): The text item to process.
+        the_task (defusedxml): The task XML element.
+
+    Returns:
+        None
+    """
+    if "Task:" in list_type:
+        process_task_directory(the_task)
+    elif list_type == "Scene:":
+        add_scene_directory(the_item)
+
+
+def handle_task_hyperlink(the_item: str, blank: str) -> None:
+    """
+    Handle the task hyperlink by adding a hyperlink to the task name.
+
+    Args:
+        the_item (str): The text item to process.
+        blank (str): A blank string for formatting.
+
+    Returns:
+        None
+    """
+    task_name = the_item.split("&nbsp;")[0]
+    add_task_hyperlink(task_name, False, blank)
+
+
+def should_add_directory_hyperlink(list_type: str) -> bool:
+    """
+    Determine if a directory hyperlink should be added.
+
+    Args:
+        list_type (str): The type of the list.
+
+    Returns:
+        bool: True if a directory hyperlink should be added, False otherwise.
+    """
+    return (
         PrimeItems.program_arguments["directory"]
         and PrimeItems.directory_items["current_item"]
         and "Task:" in list_type
         and "&#45;&#45;Task:" not in list_type
-    ):
-        directory_item = f'"{PrimeItems.directory_items["current_item"]}"'
-        directory = f"<a id={directory_item}></a>\n"
-        PrimeItems.output_lines.add_line_to_output(5, directory, FormatLine.dont_format_line)
+    )
 
-    if list_type == "Scene:":
-        # Force a line break first
-        PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
 
-    # Add the "twisty" to hide the Task details
-    if PrimeItems.program_arguments["twisty"] and "Task:" in list_type:
-        # Add the twisty magic
-        add_twisty(color_to_use, output_line)
+def add_task_hyperlink(task_name: str, display_name: bool, blank: str) -> None:
+    """
+    Add a hyperlink to the task name.
 
-    return temp_item, temp_list
+    Args:
+        task_name (str): The name of the task.
+        display_name (bool): Whether to display the task name.
+        blank (str): A blank string for formatting.
+
+    Returns:
+        None
+    """
+    hyperlink_name = task_name.replace(" ", "_")
+    name = f"{blank * 8}{task_name}" if display_name else ""
+    PrimeItems.output_lines.add_line_to_output(
+        5,
+        f"<a id=tasks_{hyperlink_name}><br>{name}</a>",
+        FormatLine.dont_format_line,
+    )
+
+
+def process_task_directory(the_task: defusedxml) -> None:
+    """
+    Process the task directory by adding the task name to the directory items.
+
+    Args:
+        the_task (defusedxml): The task XML element.
+
+    Returns:
+        None
+    """
+    task_id = the_task.attrib.get("sr", "")[4:]
+    task_name = PrimeItems.tasker_root_elements["all_tasks"].get(task_id, {}).get("name", "")
+    if task_name:
+        add_directory_item("tasks", task_name)
+
+
+def add_scene_directory(the_item: str) -> None:
+    """
+    Add a scene directory item.
+
+    Args:
+        the_item (str): The scene item to add to the directory.
+    """
+    add_directory_item("scenes", the_item)
+
+
+def add_directory_hyperlink() -> None:
+    """
+    Add a hyperlink to the current directory item.
+
+    Returns:
+        None
+    """
+    directory_item = f'"{PrimeItems.directory_items["current_item"]}"'
+    directory = f"<a id={directory_item}></a>\n"
+    PrimeItems.output_lines.add_line_to_output(5, directory, FormatLine.dont_format_line)
+
+
+def handle_twisty(color_to_use: str, output_line: str) -> None:
+    """
+    Handle the twisty by adding a twisty to the output line.
+
+    Args:
+        color_to_use (str): The color to use for the twisty.
+        output_line (str): The output line to add the twisty to.
+
+    Returns:
+        None
+    """
+    add_twisty(color_to_use, output_line)
+
+
+def debug_task_id(list_type: str) -> str:
+    """
+    Debug the task ID by appending the ID location to the list type if in debug mode.
+
+    Args:
+        list_type (str): The type of the list.
+
+    Returns:
+        str: The modified list type with the ID location appended if in debug mode.
+    """
+    if PrimeItems.program_arguments["debug"]:
+        id_loc = list_type.find("ID:")
+        if id_loc != -1:
+            return f"{list_type}{id_loc}"
+    return list_type
 
 
 # ################################################################################

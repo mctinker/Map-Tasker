@@ -14,17 +14,21 @@ import socket
 import subprocess
 import sys
 from contextlib import contextmanager
-from typing import Generator
+from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree as et  # noqa: N813
 import requests
-from requests.exceptions import ConnectionError, InvalidSchema, Timeout
+from requests.exceptions import ConnectionError, InvalidSchema, Timeout  # noqa: A004
 
+from maptasker.src.format import format_html
 from maptasker.src.getbakup import write_out_backup_file
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.xmldata import rewrite_xml
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 @contextmanager
@@ -418,3 +422,55 @@ def find_substring_in_list(strings: str, substring: str) -> int:
         if substring in string:
             return index
     return -1  # Return -1 if the substring is not found
+
+
+def display_task_warnings() -> None:
+    """
+    Output any warnings for tasks with too many actions.
+
+    This function goes through the list of tasks with too many actions
+    and adds them to the output list.  It then outputs all the warnings.
+    """
+    warnings = [
+        format_html(
+            "trailing_comments_color",
+            "",
+            f"Tasks With Too Many Actions (Limit is {PrimeItems.program_arguments['task_action_warning_limit']})...",
+            False,
+        ),
+    ]
+    # Go through the warnings and add to our output list.
+    for task_name, value in PrimeItems.task_action_warnings.items():
+        # Build the hotlink to the Task.
+        href_name = fix_hyperlink_name(task_name)
+        # Build the hyperelink reference
+        href = f"<a href=#tasks_{href_name}>{task_name}</a>"
+
+        # Add the warning to the list.
+        warnings.append(f"Task {href} has {value["count"]} actions")
+
+    # Start the output
+    PrimeItems.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)
+
+    # Output all Task warning lines
+    for warning in warnings:
+
+        # Add the line to the output.
+        PrimeItems.output_lines.add_line_to_output(
+            0,
+            warning,
+            ["", "trailing_comments_color", FormatLine.add_end_span],
+        )
+
+
+def fix_hyperlink_name(name: str) -> str:
+    """
+    Fix the hyperlink name so it doewsn't screw up the html output.
+
+    Args:
+        name (str): The name to fix.
+
+    Returns:
+        str: The fixed name.
+    """
+    return name.replace(" ", "_").replace(">", "&gt;").replace("<", "&lt;")

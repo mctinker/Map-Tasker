@@ -23,6 +23,7 @@ from PIL import Image, ImageTk
 
 from maptasker.src.actione import get_action_code
 from maptasker.src.colrmode import set_color_mode
+from maptasker.src.diagcnst import task_delimeter
 from maptasker.src.getids import get_ids
 from maptasker.src.guiutils import (
     add_button,
@@ -1117,10 +1118,16 @@ class CTkTextview(ctk.CTkFrame):
         # Get a list of the Profiles and Tasks in the Project.
         profiles = get_profiles_in_project(name)
         tasks = get_tasks_in_profile(name)
+
         # Merge the Profiles and Tasks lists.
         profiles_and_tasks = merge_lists(profiles, tasks)
+
         # Add column headings.
-        profiles_and_tasks.insert(0, ["\n\nProfiles", "Tasks"])
+        max_length = max((len(s) for s in profiles), default=0)
+        profile_header = f"{'Profile'.ljust(max_length)}"
+        profiles_and_tasks.insert(0, [f"\n\n{profile_header}", "  Tasks"])
+
+        # Convert to columns.
         results_in_columns = parse_pairs_to_columns(profiles_and_tasks)
         return f"{text} {properties}{results_in_columns}"
 
@@ -1256,7 +1263,7 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             str: The extracted profile name if found, otherwise an empty string.
         """
-        if name == "Unnamed/Anonymous.":
+        if "Unnamed/Anonymous." in name:
             start_line_num = int(tag.split(".")[0]) - 1
             profile_line = find_string_from_text_bottom(self, title, start_line_num)
             if profile_line is not None:
@@ -1301,8 +1308,8 @@ class CTkTextview(ctk.CTkFrame):
             - Cleans and formats the properties for output.
         """
         # Get the item's XML
-        if item_name == "Unnamed/Anonymous.":
-            return ""
+        # if item_name == "Unnamed/Anonymous.":
+        #    return ""
         if item_type == "Task":
             try:
                 result = next(
@@ -1658,6 +1665,7 @@ class CTkTextview(ctk.CTkFrame):
         log_info = logger.info if master_debug else lambda *_: None  # No-op if debug is off
         process_directory = self.process_directory
         process_colored_text = self.process_colored_text
+        PrimeItems.track_task_warnings = []
 
         # Go through the data and format it accordingly.
         for num, (_, value) in enumerate(the_data.items()):
@@ -2039,6 +2047,7 @@ class CTkTextview(ctk.CTkFrame):
         debug = self.master.master.debug
 
         for num, message in enumerate(value["text"]):
+            # Formats the message for pretty output, debug, and specific cases.
             formatted_message = self._format_message(
                 message,
                 line_num_str,
@@ -2125,12 +2134,48 @@ class CTkTextview(ctk.CTkFrame):
         start_idx = f"{line_num_str}.{char_position}"
         end_idx = f"{line_num_str}.{char_position + len(message)}"
 
-        # Insert the message into the text box
-        try:
-            self.textview_textbox.insert(start_idx, message, tag_id)
-        except TclError:
+        # Handle Task Action Limit Warnings.  We have to break it up into 3 pieces:
+        # 1. Before the Task name.
+        # 2. The Task name as a hyperlink.
+        # 3.After the Task name.
+        if message.startswith("Task ") and message.endswith("actions\n"):
+
+            # Get the Task name.
+            for task_name in PrimeItems.task_action_warnings:
+                if f"Task {task_name} has" in message:
+                    break
+
+            # Get the inseertion positions.
+            taskname_start = 5
+            taskname_end = taskname_start + len(task_name)
+            task_name = message[taskname_start:taskname_end]
+
+            # Check to see if we have already done this Task.
+            if UNKNOWN_TASK_NAME not in task_name and task_name in PrimeItems.track_task_warnings:
+                return char_position
+            PrimeItems.track_task_warnings.append(task_name)
+
+            # Add #1.
+            end_start = f"{line_num_str}.{char_position + 5!s}"  # 5 is the length of "Task "
+            if not self._insert_text_and_tag(start_idx, end_start, "Task ", tag_id):
+                return char_position
+
+            # Add #2.
+            hyper_tag_id = self.textview_hyperlink.add(["tasks", task_name])
+            taskname_start_idx = f"{line_num_str}.{char_position + taskname_start!s}"
+            taskname_end_inx = f"{line_num_str}.{char_position + taskname_end!s}"
+            if not self._insert_text_and_tag(taskname_start_idx, taskname_end_inx, task_name, hyper_tag_id):
+                return char_position
+
+            # Add #3.
+            message = message.replace(task_delimeter, "")
+            trailer_start_idx = f"{line_num_str}.{char_position + taskname_end+1!s}"
+            if not self._insert_text_and_tag(trailer_start_idx, end_idx, f" {message[taskname_end + 1 :]}", tag_id):
+                return char_position
+
+        # Just normal text.  Insert it.
+        elif not self._insert_text_and_tag(start_idx, end_idx, message, tag_id):
             return char_position
-        self.textview_textbox.tag_add(tag_id, start_idx, end_idx)
 
         # Tag items for hover and background highlight
         if ": Properties" not in message and any(
@@ -2140,6 +2185,15 @@ class CTkTextview(ctk.CTkFrame):
             self.textview_textbox.tag_config(tag_id, background=background_color)
 
         return char_position + len(message)
+
+    def _insert_text_and_tag(self, start_idx: str, end_idx: str, message: str, tag_id: str) -> None:
+        # Insert the message into the text box
+        try:
+            self.textview_textbox.insert(start_idx, message, tag_id)
+        except TclError:
+            return False
+        self.textview_textbox.tag_add(tag_id, start_idx, end_idx)
+        return True
 
     def _handle_color_and_highlighting(
         self,
@@ -2726,7 +2780,7 @@ class CTkHyperlinkManager:
         }
 
         if action in action_map and self.name_in_list(name, action_map[action]):
-            # Find and point to the item in the map view
+            # Search for and point to the item in the map view
             self.find_and_point_to_item(action, name, guiself)
             return
 
@@ -2799,7 +2853,9 @@ class CTkHyperlinkManager:
         # Search for all hits for our search string.
         search_hits = search_substring_in_list(search_list, search_string, stop_on_first_match=True)
         if not search_hits:
-            guiself.display_message_box(f"Could not find '{search_string}' in the list.", "Orange")
+            message = f"Could not find '{search_string}' in the list."
+            guiself.display_message_box(message, "Orange")
+            output_label(guiself.textview, message)
             return
         first_hit = search_hits[0]
         line_num = first_hit[0] + 1
@@ -2917,6 +2973,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.single_profile_name = None
     self.single_project_name = None
     self.single_task_name = None
+    self.task_action_warning_limit = 20
     self.taskernet = None
     self.title("MapTasker Runtime Options")
     self.tree_window_position = ""
@@ -3002,6 +3059,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "w",
         "",
     )
+    create_tooltip(
+        self.everything_checkbox,
+        text="Checks all of the below checkboxes except for 'twistyt' and sets the display level to the maximum detail level.",
+    )
 
     # Display 'Condition' checkbox
     self.conditions_checkbox = add_checkbox(
@@ -3072,6 +3133,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "w",
         "",
     )
+    create_tooltip(
+        self.directory_checkbox,
+        text="Display a directory of all Projects, Profiles, Tasks and Scenes with hotlinks at the begging of the output.",
+    )
 
     # Outline
     self.outline_checkbox = add_checkbox(
@@ -3086,6 +3151,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "w",
         "",
     )
+    create_tooltip(
+        self.outline_checkbox,
+        text="Display a diagram of the configuration with all Task connections your the default text editor.\nThis option only relates to the 'Run and Exit' and 'ReRun' buttons.",
+    )
 
     # Pretty Output
     self.pretty_checkbox = add_checkbox(
@@ -3099,6 +3168,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         10,
         "w",
         "",
+    )
+    create_tooltip(
+        self.pretty_checkbox,
+        text="Align all Task action arguments and parameters for nicer output.",
     )
 
     # Names: Bold / Highlight / Italicise / Underline
@@ -3184,6 +3257,38 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "",
     )
 
+    # Task 'actions' limit
+    self.task_action_label = add_label(
+        self,
+        self.sidebar_frame,
+        f"Task 'actions' limit: {self.task_action_warning_limit}",
+        "",
+        0,
+        "normal",
+        14,
+        0,
+        20,
+        (10, 0),
+        "n",
+    )
+    self.task_action_limit = ctk.CTkSlider(
+        self.sidebar_frame,
+        from_=10,
+        to=100,
+        number_of_steps=100,
+        orientation="horizontal",
+        command=self.event_handlers.tasklimit_event,
+        hover=True,
+        button_hover_color="blue",
+        progress_color="green",
+    )
+    self.task_action_limit.grid(row=14, column=0, padx=20, pady=40, sticky="n")
+    self.task_action_limit.set(100)
+    create_tooltip(
+        self.task_action_limit,
+        text="Select how many actions in a Task before issuing a warning.\nThe warning appears near th4e bottom of the configuration output,\nand is intended to help identify Tasks that are too comple\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit.",
+    )
+
     # Indentation
     self.indent_label = add_label(
         self,
@@ -3194,9 +3299,9 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "normal",
         14,
         0,
-        20,
         10,
-        "s",
+        (80, 0),
+        "n",
     )
 
     # Indentation Amount
@@ -3205,7 +3310,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         self.sidebar_frame,
         self.event_handlers.indent_selected_event,
         ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
-        15,
+        16,
         0,
         0,
         (0, 10),
@@ -3224,7 +3329,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "",
         0,
         "normal",
-        16,
+        17,
         0,
         0,
         (10, 0),
@@ -3236,7 +3341,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         self.sidebar_frame,
         self.event_handlers.change_appearance_mode_event,
         ["Light", "Dark", "System"],
-        17,
+        18,
         0,
         0,
         (0, 10),
@@ -3251,7 +3356,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "",
         0,
         "normal",
-        18,
+        19,
         0,
         0,
         0,
@@ -3269,7 +3374,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         1,
         "Map",
         1,
-        19,
+        20,
         0,
         (20, 0),
         0,
@@ -3292,7 +3397,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         2,
         "Diagram",
         1,
-        19,
+        20,
         0,
         105,
         0,
@@ -3315,7 +3420,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         2,
         "Tree",
         0,
-        19,
+        20,
         0,
         (0, 40),
         0,
@@ -3337,7 +3442,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         1,
         "?",
         1,
-        19,
+        20,
         0,
         (300, 0),
         0,
@@ -3352,7 +3457,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "",
         0,
         "normal",
-        20,
+        21,
         0,
         30,
         20,
@@ -3363,7 +3468,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         self.sidebar_frame,
         self.event_handlers.viewlimit_event,
         ["5000", "10000", "15000", "20000", "25000", "30000", "Unlimited"],
-        20,
+        21,
         0,
         (20, 0),
         20,
@@ -3384,7 +3489,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         1,
         "?",
         1,
-        20,
+        21,
         0,
         (200, 0),
         20,
@@ -3406,7 +3511,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         21,
         0,
         20,
-        (20, 10),
+        (80, 10),
         "",
     )
     create_tooltip(
@@ -3999,7 +4104,7 @@ class ToolTip(object):  # noqa: UP004
             background="#143a39",
             relief="solid",
             borderwidth=1,
-            font=(font, "10", "normal"),
+            font=(font, "12", "normal"),
         )
 
         label.pack(ipadx=1)

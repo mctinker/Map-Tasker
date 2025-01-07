@@ -104,6 +104,7 @@ class PrimeItems:
     tkroot = None
     last_run = NOW_TIME
     slash = "/"
+    task_action_warnings: ClassVar = {}
 
 
 # Reset all values
@@ -172,3 +173,4 @@ class PrimeItemsReset:
             "response": [],
             "api_key": "",
         }
+        PrimeItems.task_action_warnings = {}

@@ -58,6 +58,7 @@ def initialize_runtime_arguments() -> dict:
         "single_profile_name": "",  # Display single Profile name only
         "single_project_name": "",  # Display single Project name only
         "single_task_name": "",  # Display single Task name only
+        "task_action_warning_limit": 100,  # Task action warning limit
         "taskernet": False,  # Display TaskerNet information
         "tree_window_position": "",  # Last-used treeview window position
         "twisty": False,  # Add Task twisty "▶︎" clickable icons for Task details
