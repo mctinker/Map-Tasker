@@ -8,17 +8,16 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 from __future__ import annotations
 
-import contextlib
 import re
 
-from maptasker.src.maputils import count_consecutive_substr
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import SPACE_COUNT1, SPACE_COUNT2, SPACE_COUNT3, pattern8
+from maptasker.src.sysconst import pattern8
 from maptasker.src.xmldata import remove_html_tags
 
 glob_spacing = 15
 
 
+# Optimized
 def handle_gototop(text_list: list) -> list:
     """
     This function handles the addition of a 'Go to top' string in a given text.
@@ -31,46 +30,100 @@ def handle_gototop(text_list: list) -> list:
     Returns:
         text_list (list): The modified text with 'Go to top' added if the conditions are met.
     """
-    gototop_items = ["CAVEATS:", "Profile:", "Task:"]
+    gototop_items = {"CAVEATS:", "Profile:", "Task:"}
     gototop = "          Go to top"
 
-    # Look for match and if found, add a "Go to top" string if not already in it..
-    for item in gototop_items:
-        # Make sure to add it to the last text element in the list.
-        if item in text_list[0] and "Task: Properties" not in text_list[0]:
-            text_list[-1] = text_list[-1].replace("\n", f"{gototop}\n")
-            break
+    # Check if any of the gototop_items exist in the first element of the list
+    if any(item in text_list[0] for item in gototop_items) and "Task: Properties" not in text_list[0]:
+        # Replace the last newline character with "Go to top" + newline
+        text_list[-1] = text_list[-1].replace("\n", f"{gototop}\n", 1)
+
     return text_list
 
 
-def cleanup_text_elements(output_lines: dict, line_num: int) -> dict:
-    r"""
+from html.parser import HTMLParser
+
+
+class MLStripper(HTMLParser):
+    """
+    A class to strip HTML tags from a string.
+
+    This class extends the HTMLParser class and overrides the handle_data method to collect data
+    between HTML tags. The collected data can be retrieved using the get_data method.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initializes the MLStripper class.
+        """
+        super().__init__()
+        self.reset()
+        self.fed = []
+
+    def handle_data(self, d: str) -> None:
+        """
+        Overrides the handle_data method to collect data between HTML tags.
+
+        Args:
+            d (str): The data between HTML tags.
+        """
+        self.fed.append(d)
+
+    def get_data(self) -> str:
+        """
+        Retrieves the collected data between HTML tags.
+
+        Returns:
+            str: The collected data as a single string.
+        """
+        return "".join(self.fed)
+
+
+def remove_the_html_tags(text: str) -> str:
+    """
+    Removes HTML tags from the given text.
+
+    Args:
+        text (str): The input text containing HTML tags.
+
+    Returns:
+        str: The text with HTML tags removed.
+    """
+    s = MLStripper()
+    s.feed(text)
+    return s.get_data()
+
+
+# Optimized
+def cleanup_text_elements(output_lines: dict, line_num: int) -> list:
+    """
     Cleanup all of the text elements in the line by fixing html and other stuff.
 
     Args:
-        output_lines (dict): The dictionary containing the output lines.
+        output_lines (list): The dictionary containing the output lines.
         line_num (int): The line number to clean up.
 
     Returns:
         dict: The updated output_lines dictionary.
     """
-    # blank = " "
-    # Replace &nbsp. with " " and "\n\n" with "\n" in all text fields.
     text_list = output_lines[line_num]["text"]
     text_list = handle_gototop(text_list)
-    new_text_list = []
-    for text in text_list:
-        # Note: we can not replace text in-place since strings are immutable.  So we create a new list.
-        temp_text = text.replace("&nbsp;", " ")
-        temp_text = temp_text.replace("\n\n", "\n")
-        temp_text = remove_html_tags(temp_text, "")
-        temp_text = temp_text.replace("<DIV", "")
-        temp_text = temp_text.replace("&#45;", "-")  # Hyphen
-        temp_text = temp_text.replace("&lt;", "<")
-        temp_text = temp_text.replace("&gt;", ">")
-        temp_text = temp_text.replace("[Launcher Task:", " [Launcher Task:")  # Add a space
-        temp_text = temp_text.replace(" --Task:", "--Task:")  # Scene Task
-        new_text_list.append(temp_text)
+
+    # Use list comprehension for better performance
+    new_text_list = [
+        text.replace("&nbsp;", " ")
+        .replace("\n\n", "\n")
+        .replace("<DIV", "")
+        .replace("&#45;", "-")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("[Launcher Task:", " [Launcher Task:")
+        .replace(" --Task:", "--Task:")
+        for text in text_list
+    ]
+
+    # Optimize HTML removal with the custom HTMLParser class
+    new_text_list = [remove_the_html_tags(text) for text in new_text_list]
 
     if new_text_list:
         output_lines[line_num]["text"] = new_text_list
@@ -78,8 +131,9 @@ def cleanup_text_elements(output_lines: dict, line_num: int) -> dict:
     return output_lines
 
 
+# Optimized
 def eliminate_blanks(output_lines: dict) -> dict:
-    """Eliminate consequtive blank lines from the output.
+    """Eliminate consecutive blank lines from the output.
 
     Args:
         output_lines (dict): dictionary of output lines
@@ -87,40 +141,29 @@ def eliminate_blanks(output_lines: dict) -> dict:
     Returns:
         output_lines (dict): dictionary of output lines
     """
-    # Eliminate consequtive blanks.  Care must be taken not to iterate over the list we are modifying.
-    prev_value = None
-    items_to_remove = []
-    # Build a list of keys that have consequtive blanks.
+    blank_lines = {"", "    \n"}
+
     for key, value in output_lines.items():
-        # One or more text items in the list.
-        new_list = []
-        # Igfnore dictionarys.
-        with contextlib.suppress(KeyError):
+        try:
             if value["directory"]:
-                prev_value = None
-                continue
+                continue  # Skip directories
+        except KeyError:
+            pass
+
+        prev_value = None
+        new_text_list = []
         for item in value["text"]:
-            if item in ("\n", "    \n") and (prev_value is not None and prev_value in ("\n", "    \n")):
-                prev_value = item
+            if item in blank_lines and prev_value in blank_lines:
                 continue
-            new_list.append(item)
+            new_text_list.append(item)
             prev_value = item
 
-        # Update or remove the text list.
-        if new_list:
-            value["text"] = new_list
+        if new_text_list:
+            value["text"] = new_text_list
         else:
-            items_to_remove.append(key)
-
-    # Remove the consequtive blank keys.
-    for item in items_to_remove:
-        output_lines.pop(item)
+            output_lines.pop(key)
 
     return output_lines
-
-
-# def remove_html_tags(text, replacement=""):
-#     return re.sub(r"<[^>]+>", replacement, text)
 
 
 def extract_colors(line: str) -> list:

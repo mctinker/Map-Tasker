@@ -91,7 +91,7 @@ def add_dictionary_and_twisty(
 
     Args:
         list_type (str): Either "Task:" or "Scene:"
-        the_item (str): Text for Task or Scene
+        the_item (str): Task ID for Task or Scene
         the_task (defusedxml): XML pointer to the Task being processed
         output_line (str): The text string containing the output
         color_to_use (str): The color to use in the output

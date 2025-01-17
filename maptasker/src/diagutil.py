@@ -114,6 +114,19 @@ def print_all(lines: list) -> None:
         add_output_line(line)
 
 
+def count_cjk_characters(string: str) -> int:
+    """
+    Count the number of Chinese/Japanese/Korean characters in a string.
+
+    Args:
+        string (str): The input string to check.
+
+    Returns:
+        int: The number of Chinese characters in the string.
+    """
+    return len(re.findall(r"[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]", string))
+
+
 # Given a text string and title, enclose them in a box and print the box.
 def print_box(name: str, title: str, indent: int) -> None:
     """
@@ -133,13 +146,22 @@ def print_box(name: str, title: str, indent: int) -> None:
         - Prints the primary items, box lines with indentation
         - Does not return anything, just prints to console
     """
+    # Handle Chinese, Korean and Japanese characters.
+    chinese_char_count = count_cjk_characters(name)
+    if chinese_char_count > 0:
+        adder_space_boxline = f"{blank * (((chinese_char_count)//2)+1)}"
+        adder_space_name = f"{blank * (((chinese_char_count)//2)-1)}"
+    else:
+        adder_space_boxline = ""
+        adder_space_name = ""
+
     blanks = f"{blank*5}"
     filler = f"{blanks*indent}"
-    full_name = f"{title} {name}"
+    full_name = f"{title} {name}{adder_space_name}"
     box = ["", "", ""]
-    box[0] = f"{filler}╔═{box_line*len(full_name)}═╗"  # Box top
+    box[0] = f"{filler}╔═{box_line*(len(full_name)+len(adder_space_boxline))}═╗"  # Box top
     box[1] = f"{filler}║ {full_name} ║"  # Box middle
-    box[2] = f"{filler}╚═{box_line*len(full_name)}═╝"  # Box bottom
+    box[2] = f"{filler}╚═{box_line*(len(full_name)+len(adder_space_boxline))}═╝"  # Box bottom
     print_3_lines(box)
 
 
@@ -203,6 +225,8 @@ def remove_char(text: str, index: int) -> str:
     Returns:
         str: String with character removed at given index
     """
+    if text[:index].endswith("]"):  # If we hit a close bracket (valid char), don't truncate it.
+        return text[: index + 1] + text[index + 1 :]
     return text[:index] + text[index + 1 :]
 
 
@@ -272,12 +296,9 @@ def remove_icon(text: str) -> str:
     # If there are icons in the text...
     icon_count = count_icons(text)
 
-    # simplified_chinese_chars = ''.join(chr(i) for i in range(0x4E00, 0x9FFF + 1))
-    # Test if Chinese, Japanese or Korean characters
-    # TODO Make this work for CJK characters
-    # chinese_japanese_korean = find_cjk_positions(text)
-    # if chinese_japanese_korean:
-    #    icon_count += len(chinese_japanese_korean) * 12
+    # Handle Chinese, Korean and Japanese characters.
+    cjk_count = count_cjk_characters(text)
+    icon_count += cjk_count // 2
 
     if icon_count > 0:
         got_it = False
@@ -289,8 +310,17 @@ def remove_icon(text: str) -> str:
                     # Remove the icon return the modified string
                     text = remove_char(text, found_arrow - 1)
                     got_it = True
-            if got_it:
-                return text
+                    if cjk_count == 0:
+                        break
+                    # Make an effort to deal with chinese/etc.
+                    if find_arrow == bar:
+                        found_arrow = text.find(find_arrow, found_arrow + 1)
+                        if found_arrow != -1:
+                            # Remove the icon return the modified string
+                            text = remove_char(text, found_arrow - 1)
+                    # break
+        if got_it:
+            return text
 
         # No arrows/bars found.  Just remove the first icon.
         output = text[: arrow_position - icon_count] + text[arrow_position:]
@@ -317,28 +347,33 @@ def build_box(name: str, output_lines: list) -> tuple:
     """
     name = name.rstrip()
 
+    # Handle Chinese, Korean and Japanese characters.
+    chinese_char_count = count_cjk_characters(name)
+    if chinese_char_count > 0:
+        adder_space_boxline = f"{blank * (((chinese_char_count)//2)+2)}"
+        adder_space_name = f"{blank * (((chinese_char_count)//2)-1)}"
+    else:
+        adder_space_boxline = ""
+        adder_space_name = ""
+
     filler = trailer = blank
 
     # Deal with icon in the name
     if set(name).difference(printable):
         trailer = fix_icon(name)
 
-    # Deal with Chinese/Japanese/Korean characters
-    cjk = find_cjk_positions(name)
-    cjk_blanks = (3 * len(cjk)) if cjk else 0
-
     # Build top and bottom box lines
-    box_line_length = len(name) + cjk_blanks
-    box_top = f"╔═{box_line*box_line_length}═╗"
-    box_bottom = f"╚═{box_line*box_line_length}═╝"
+    box_line_length = len(name)
+    box_top = f"╔═{box_line*(box_line_length+len(adder_space_boxline))}═╗"
+    box_bottom = f"╚═{box_line*(box_line_length+len(adder_space_boxline))}═╝"
 
     # Add box lines to output
     output_lines[0] += f"{filler}{box_top}"
-    output_lines[1] += f"{filler}║{blank}{name}{trailer}{blank*(cjk_blanks-2)}║"
+    output_lines[1] += f"{filler}║{blank}{name}{trailer}{adder_space_name}║"
     output_lines[2] += f"{filler}{box_bottom}"
 
     # Calculate anchor position
-    position_for_anchor = len(output_lines[0]) - (len(name) + cjk_blanks) // 2 - 4
+    position_for_anchor = len(output_lines[0]) - (len(name) + len(adder_space_name)) // 2 - 4
 
     return output_lines, position_for_anchor
 
@@ -807,6 +842,7 @@ def process_callers_and_called_tasks(
                     )
                     + len(called_task_name) // 2
                 )
+                # Get out of loop.
                 break
 
         # If called Task found, then save everything (only do it once) in the call table.

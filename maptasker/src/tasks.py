@@ -25,26 +25,14 @@ blank = "&nbsp;"
 
 # Navigate through Task's Actions and identify each
 # Return a list of Task's actions for the given Task
-def get_actions(
-    current_task: defusedxml.ElementTree,
-) -> list:
+# Optimized
+def get_actions(current_task: defusedxml.ElementTree) -> list:
     """
-    Get the actions for a task
-    Args:
-        current_task: defusedxml.ElementTree - The XML element of the current task
-    Returns:
-        list - The list of actions for the task
-    Processing Logic:
-        1. Get all <Action> elements from the current task
-        2. Sort the actions by their "sr" attribute to get them in proper order
-        3. Iterate through each action and get its code
-        4. Build the action and add indentation if it is a conditional statement
-        5. Return the list of actions
+    Optimized extraction of actions from a task XML element.
     """
     tasklist = []
     blanks = f'{"&nbsp;" * PrimeItems.program_arguments["indent"]}'
 
-    # Get the Task's Actions (<Action> elements)
     try:
         task_actions = current_task.findall("Action")
     except defusedxml.DefusedXmlException:
@@ -52,67 +40,38 @@ def get_actions(
         error_handler("Error: No action found!!!", 0)
         return []
 
-    # Process the Actions
-    if task_actions:
-        indentation_amount = ""
-        indentation = 0
-        # Task's Action statements can be out-of-order, and we need them in
-        # proper-order/sequence.
-        # sort the Task's Actions by attrib sr (e.g. sr='act0', act1, act2, etc.)
-        # to get them in true order.
-        if len(task_actions) > 0:
-            shell_sort(task_actions, True, False)
+    if not task_actions:
+        return []
 
-        # Now go through each Action to start processing it.  They are in "argn" "n" order.
-        for action in task_actions:
-            child = action.find("code")  # Get the <code> element
+    shell_sort(task_actions, True, False)
 
-            # Get the Action code ( <code> ).  task_code will be returned with the formatted task action output line.
-            task_code = action_evaluate.get_action_code(
-                child,
-                action,
-                True,
-                "t",
-            )
-            # Log the Task action.
-            # logger.debug(
-            #     f'Task ID:{action.attrib["sr"]!s} Code:{child.text} task_code:{task_code}Action attr:{action.attrib!s}',
-            # )
+    indentation = 0
+    indentation_amount = ""
 
-            # Calculate the amount of indention required
-            if ">End If" in task_code or ">Else" in task_code or ">End For" in task_code:  # Do we un-indent?
-                indentation -= 1
-                length_indent = len(indentation_amount)
-                # Total indentation = 6 characters (&nbsp;) times the indent argument
-                total_indentation = int(f'{PrimeItems.program_arguments["indent"]*6}')
-                indentation_amount = indentation_amount[total_indentation:length_indent]
+    for action in task_actions:
+        child = action.find("code")
+        task_code = action_evaluate.get_action_code(child, action, True, "t")
 
-            # Make it pretty
-            if "Configuration Parameter(s):" in task_code and PrimeItems.program_arguments["pretty"]:
-                number_of_blanks = task_code.find(":")
-                new_blanks = f"<br>{blank*(number_of_blanks-80)}"
-                task_code = (
-                    task_code.replace(",", new_blanks).replace("\n", f"{new_blanks}").replace(" Timeout=", "Timeout=")
-                )
+        if any(token in task_code for token in [">End If", ">Else", ">End For"]):
+            indentation -= 1
+            indentation_amount = indentation_amount[: -(PrimeItems.program_arguments["indent"] * 6)]
 
-            # Build the output line.
-            tasklist = action_evaluate.build_action(
-                tasklist,
-                task_code,
-                child,
-                indentation,
-                indentation_amount,
-            )
+        if "Configuration Parameter(s):" in task_code and PrimeItems.program_arguments.get("pretty"):
+            number_of_blanks = task_code.find(":")
+            new_blanks = f"<br>{blanks * (number_of_blanks - 110)}"
+            task_code = task_code.replace(",", new_blanks).replace("\n", new_blanks).replace(" Timeout=", "Timeout=")
 
-            #  Indent the line if this is a condition
-            if ">If" in task_code or ">Else" in task_code or ">For<" in task_code:  # Do we indent?
-                indentation += 1
-                indentation_amount = f"{indentation_amount}{blanks}"
+        action_evaluate.build_action(tasklist, task_code, child, indentation, indentation_amount)
+
+        if any(token in task_code for token in [">If", ">Else", ">For<"]):
+            indentation += 1
+            indentation_amount += blanks
 
     return tasklist
 
 
-# Determine if the Task is an Entry or Exit Task.
+## Determine if the Task is an Entry or Exit Task.
+# Optimized
 def entry_or_exit_task(
     task_output_lines: list,
     task_name: str,
@@ -136,41 +95,30 @@ def entry_or_exit_task(
             tuple: task_output_lines and task_name
     """
     line_left_arrow = "&#11013;"
-    # Determine if this is an "Entry" or "Exit" Task
-    if task_name:
-        # Don't add the entry/exit text if display level = 0
-        if PrimeItems.program_arguments["display_detail_level"] > 0:
-            if task_type == "Exit":
-                task_output_lines.append(f"{task_name}{blank*4}{line_left_arrow} Exit Task{extra}")
+    display_level = PrimeItems.program_arguments["display_detail_level"]
+    indent = blank * PrimeItems.program_arguments["indent"]
 
-            else:
-                task_output_lines.append(f"{task_name}{blank*4}{line_left_arrow} Entry Task{extra}")
-        else:
-            task_output_lines.append(f"{task_name}{blank*4}")
-    # Unnamed Task
+    def append_task_line(name: str, task_type: str) -> None:
+        suffix = f"{indent}{line_left_arrow} {task_type} Task{extra}" if display_level > 0 else indent
+        task_output_lines.append(f"{name}{suffix}")
+
+    if task_name:
+        append_task_line(task_name, task_type)
     else:
         task_name = f"{UNKNOWN_TASK_NAME}{the_task_id}"
         PrimeItems.tasker_root_elements["all_tasks"][the_task_id]["name"] = task_name
-        # Count this as an unnamed Task if it hasn't yet been counted and it
-        # is a normal Task
-        if not duplicate_task and task_type in {"Entry", "Exit"}:
-            PrimeItems.task_count_unnamed = PrimeItems.task_count_unnamed + 1
-        blanks = f'{blank * PrimeItems.program_arguments["indent"]}'
-        # Don't add the entry/exit text if display level = 0
-        if PrimeItems.program_arguments["display_detail_level"] > 0:
-            if task_type == "Exit":
-                task_output_lines.append(f"{task_name}{blanks}{line_left_arrow} Exit Task{extra}")
 
-            else:
-                task_output_lines.append(f"{task_name}{blanks}{line_left_arrow} Entry Task{extra}")
-        else:
-            task_output_lines.append(f"{task_name}{blanks}")
+        if not duplicate_task and task_type in {"Entry", "Exit"}:
+            PrimeItems.task_count_unnamed += 1
+
+        append_task_line(task_name, task_type)
 
     return task_output_lines, task_name
 
 
 # Get the name of the task given the Task ID
 # return the Task's element and the Task's name
+# Optimized
 def get_task_name(
     the_task_id: str,
     tasks_that_have_been_found: list,
@@ -187,31 +135,27 @@ def get_task_name(
         :param task_type: Type of Task (Entry, Exit, Scene)
         :return: Task's xml element, Task's name
     """
+    # Get the Task info.
+    task_info = PrimeItems.tasker_root_elements["all_tasks"].get(the_task_id)
+    if not task_info:
+        return None, ""
+    task, task_name = task_info["xml"], task_info["name"]
 
-    if the_task_id.isdigit():
-        task = PrimeItems.tasker_root_elements["all_tasks"][the_task_id]["xml"]
-        task_name = PrimeItems.tasker_root_elements["all_tasks"][the_task_id]["name"]
-        duplicate_task = False
-        if the_task_id not in tasks_that_have_been_found:
-            tasks_that_have_been_found.append(the_task_id)
-        else:
-            duplicate_task = True
-        extra = f"&nbsp;&nbsp;Task ID: {the_task_id}" if PrimeItems.program_arguments["debug"] else ""
+    # Determine if this is a duplicate Task.   If not, add it to our list of found Tasks.
+    duplicate_task = the_task_id in tasks_that_have_been_found
+    if not duplicate_task:
+        tasks_that_have_been_found.append(the_task_id)
 
-        # Determine if this is an "Entry" or "Exit" Task
-        task_output_lines, task_name = entry_or_exit_task(
-            task_output_lines,
-            task_name,
-            task_type,
-            extra,
-            duplicate_task,
-            the_task_id,
-        )
-
-    else:
-        task = None
-        task_name = ""
-
+    # Determine if this is an "Entry" or "Exit" Task
+    extra = f"&nbsp;&nbsp;Task ID: {the_task_id}" if PrimeItems.program_arguments["debug"] else ""
+    task_output_lines, task_name = entry_or_exit_task(
+        task_output_lines,
+        task_name,
+        task_type,
+        extra,
+        duplicate_task,
+        the_task_id,
+    )
     return task, task_name
 
 
@@ -270,6 +214,7 @@ def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
 
 
 # We're processing a single task only
+# Optimized
 def do_single_task(
     our_task_name: str,
     project_name: str,
@@ -291,95 +236,46 @@ def do_single_task(
 
     Returns:
         None
-
-    This function processes a single Task only. It first checks if the Task name matches
-    the single Task name specified in the program arguments. If it does, it sets the
-    "single_task_found", "single_project_found", and "single_profile_found" flags to True,
-    and updates the program arguments with the project and profile names. It then clears
-    the output list. If a Task list is provided, it filters the list to include only the
-    Tasks that start with the same name as the single Task. If the Task list is empty, it
-    sets the temporary task list to an empty list. It then processes the Task/Task list by
-    calling the process_list function. If multiple Tasks are present in the Profile, it
-    adds a line to the output, filters the Task list to include only the single Task, and
-    processes the Task by calling the process_list function.
     """
     # This import must reside here to avoid circular error.
     from maptasker.src.proclist import process_list
 
     logger.debug(
-        "tasks single task"
-        f' name:{PrimeItems.program_arguments["single_task_name"]} our Task'
-        f" name:{our_task_name}",
+        f'tasks single task name:{PrimeItems.program_arguments["single_task_name"]} our Task name:{our_task_name}',
     )
 
-    # Doing a specific Task...
-    if (
-        PrimeItems.program_arguments["single_task_name"]
-        and PrimeItems.program_arguments["single_task_name"] == our_task_name
-    ):
-        # We have the single Task we are looking for
-        # Set all the "found" items so that everyone bails out of their loops.
-        PrimeItems.found_named_items["single_task_found"] = True
-        PrimeItems.found_named_items["single_project_found"] = True
-        PrimeItems.found_named_items["single_profile_found"] = True
-        save_project = PrimeItems.program_arguments["single_project_name"]
-        PrimeItems.program_arguments["single_project_name"] = project_name
-        save_profile = PrimeItems.program_arguments["single_profile_name"]
-        PrimeItems.program_arguments["single_profile_name"] = profile_name
-
-        # Deal with no name for Profile
-        if not profile_name:
-            profile_name = "None or unnamed!"
-
-        # Clear output list
-        PrimeItems.output_lines.refresh_our_output(
-            True,
-            project_name,
-            profile_name,
+    if PrimeItems.program_arguments.get("single_task_name") == our_task_name:
+        PrimeItems.found_named_items.update(
+            {"single_task_found": True, "single_project_found": True, "single_profile_found": True},
         )
 
-        # Go get the Task's details if we have a Task list
-        #  Note: we need to save the task_list since process_list will alter it.
-        temporary_task_list = []
-        if task_list:
-            the_task_name_length = len(our_task_name)
-            temporary_task_list = [item for item in task_list if our_task_name == item[:the_task_name_length]]
-        else:
-            temporary_task_list = task_list
+        save_project, save_profile = (
+            PrimeItems.program_arguments["single_project_name"],
+            PrimeItems.program_arguments["single_profile_name"],
+        )
+        PrimeItems.program_arguments.update(
+            {"single_project_name": project_name, "single_profile_name": profile_name or "None or unnamed!"},
+        )
 
-        # Make the line pretty
-        if PrimeItems.program_arguments["pretty"]:
+        PrimeItems.output_lines.refresh_our_output(True, project_name, profile_name)
+
+        temporary_task_list = (
+            [item for item in task_list if our_task_name == item[: len(our_task_name)]] if task_list else task_list
+        )
+
+        if PrimeItems.program_arguments.get("pretty") and temporary_task_list:
             temporary_task_list[0] = temporary_task_list[0].replace("[", "<br>[")
 
-        # Go process the Task/Task list
-        process_list(
-            "Task:",
-            temporary_task_list,
-            our_task_element,
-            list_of_found_tasks,
-        )
+        process_list("Task:", temporary_task_list, our_task_element, list_of_found_tasks)
 
-        # Restore our saved project and profile
-        PrimeItems.program_arguments["single_project_name"] = save_project
-        PrimeItems.program_arguments["single_profile_name"] = save_profile
-
-    # If multiple Tasks in this Profile, just get the one we want
+        PrimeItems.program_arguments.update({"single_project_name": save_project, "single_profile_name": save_profile})
     else:
         PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
-        # Make the line pretty
-        if PrimeItems.program_arguments["pretty"] and "[" not in our_task_name:
-            blanks = f'{"&nbsp;" * len(our_task_name)}'
-            task_list[0] = task_list[0].replace("[", f"<br>{blanks}[")
+        if PrimeItems.program_arguments.get("pretty") and "[" not in our_task_name:
+            task_list[0] = task_list[0].replace("[", f'<br>{"&nbsp;" * len(our_task_name)}[')
 
-        # Process the task(s)
-        process_list(
-            "Task:",
-            task_list,
-            our_task_element,
-            list_of_found_tasks,
-        )
-        # End Task list
+        process_list("Task:", task_list, our_task_element, list_of_found_tasks)
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
@@ -432,6 +328,7 @@ def get_icon_info(the_task: defusedxml.ElementTree) -> str:
 
 
 # Get additional information for this Task
+# Optimized
 def get_extra_details(
     our_task_element: defusedxml.ElementTree,
     task_output_lines: list,
@@ -445,31 +342,25 @@ def get_extra_details(
 
         Returns:
             _tuple (str, str, str, str): the extra stuff as strings"""
-    # KID App info
-    if kid_app_info := get_kid_app(our_task_element):
-        kid_app_info = format_html("task_color", "", kid_app_info, True)
-        task_output_lines[0] = f"{task_output_lines[0]} {kid_app_info}"
+    extra_details = {
+        "kid_app_info": get_kid_app(our_task_element),
+        "priority": task_flags.get_priority(our_task_element, False),
+        "collision": task_flags.get_collision(our_task_element),
+        "stay_awake": task_flags.get_awake(our_task_element),
+        "icon_info": get_icon_info(our_task_element),
+    }
 
-    # Task priority
-    if priority := task_flags.get_priority(our_task_element, False):
-        task_output_lines[0] = f"{task_output_lines[0]} {priority}"
+    for key, value in extra_details.items():
+        if value:
+            if key == "kid_app_info":
+                value = format_html("task_color", "", value, True)  # noqa: PLW2901
+            task_output_lines[0] += f" {value}"
 
-    # Collision flags
-    if collision := task_flags.get_collision(our_task_element):
-        task_output_lines[0] = f"{task_output_lines[0]} {collision}"
-
-    # Task stay-awake flag
-    if stay_awake := task_flags.get_awake(our_task_element):
-        task_output_lines[0] = f"{task_output_lines[0]} {stay_awake}"
-
-    # Task icon info, if any.
-    if icon_info := get_icon_info(our_task_element):
-        task_output_lines[0] = f"{task_output_lines[0]} {icon_info}"
-
-    return kid_app_info, priority, collision, stay_awake, icon_info
+    return tuple(extra_details.values())
 
 
 # Given a list of tasks, output them.
+# Optimized
 def output_task_list(
     list_of_tasks: list,
     project_name: str,
@@ -494,26 +385,14 @@ def output_task_list(
     for count, task_item in enumerate(list_of_tasks):
         # If we are coming in without a Task name, then we are only doing a single Task and we need to plug in
         # the Task name.
-        if task_output_lines[count] == " ":
-            task_output_lines[count] = f'{task_item["name"]}&nbsp;&nbsp;'
+        task_output_lines[count] = task_output_lines[count] or f'{task_item["name"]}&nbsp;&nbsp;'
 
         # Doing extra details?
         if do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
             # Get the extra details for this Task
-            (
-                kid_app_info,
-                priority,
-                collision,
-                stay_awake,
-                icon_info,
-            ) = get_extra_details(
-                task_item["xml"],
-                [task_output_lines[count]],
-            )
+            extra_details = get_extra_details(task_item["xml"], [task_output_lines[count]])
             # Tack on the extra info since [task_output_lines[count]] it is immutable
-            task_output_lines[count] = (
-                f"{task_output_lines[count]} {kid_app_info}{priority}{collision}{stay_awake}{blank*2}{icon_info}"
-            )
+            task_output_lines[count] += " ".join(filter(None, extra_details))
 
         do_single_task(
             task_item["name"],
@@ -525,10 +404,7 @@ def output_task_list(
         )
 
         # If only doing a single Task and we found/did it, then we are done
-        if (
-            PrimeItems.program_arguments["single_task_name"]
-            and PrimeItems.program_arguments["single_task_name"] == task_item["name"]
-        ):
+        if PrimeItems.program_arguments.get("single_task_name") == task_item["name"]:
             PrimeItems.found_named_items["single_task_found"] = True
             return True
 

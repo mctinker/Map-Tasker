@@ -2047,6 +2047,8 @@ class CTkTextview(ctk.CTkFrame):
         debug = self.master.master.debug
 
         for num, message in enumerate(value["text"]):
+            if message == "     \n":
+                continue
             # Formats the message for pretty output, debug, and specific cases.
             formatted_message = self._format_message(
                 message,
@@ -2139,7 +2141,6 @@ class CTkTextview(ctk.CTkFrame):
         # 2. The Task name as a hyperlink.
         # 3.After the Task name.
         if message.startswith("Task ") and message.endswith("actions\n"):
-
             # Get the Task name.
             for task_name in PrimeItems.task_action_warnings:
                 if f"Task {task_name} has" in message:
@@ -2249,7 +2250,7 @@ class CTkTextview(ctk.CTkFrame):
             (None, None),
         )
         # If we have a valid Tasker item and it isn't a Launcher name.
-        if item and not item.startswith(" [Lauincher Task: "):
+        if item and not item.startswith(" [Launcher Task: "):
             self.textview_textbox.tag_bind(tag_id, "<Enter>", self.click_text)
             self.textview_textbox.tag_bind(tag_id, "<Leave>", self.click_name_leave)
 
@@ -2908,7 +2909,6 @@ def initialize_gui(self) -> None:  # noqa: ANN001
         - Calls initialize_variables function.
         - Calls add_logo function."""
     initialize_variables(self)
-    _ = add_logo(self, "maptasker")
 
 
 # Initialize the GUI varliables (e..g _init_ method)
@@ -3785,6 +3785,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     self.tabview.tab("Specific Name").grid_columnconfigure(0, weight=1)  # configure grid of individual tabs
     self.tabview.tab("Colors").grid_columnconfigure(0, weight=1)
     self.tabview.tab("Analyze").grid_columnconfigure(0, weight=1)
+    self.tabview.tab("Debug").grid_columnconfigure(0, weight=1)
 
     # Prompt for the name
     self.name_label = add_label(
@@ -3979,17 +3980,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "w",
         "#6563ff",
     )
+    # Add maptasker icon
+    _ = add_logo(self, "maptasker")
     # Buy Me A Coffee button
     self._dict_icon = add_logo(self, "coffee")
-    # For some reason, Tkinter can fail on the following call if doing a 'ReRun'.
-    with contextlib.suppress(TclError):
-        self.coffee_button = ctk.CTkButton(
-            self.tabview.tab("Debug"),
-            text="",
-            image=self._dict_icon,
-            command=self.event_handlers.coffee_event,
-        )
-        self.coffee_button.grid(row=5, column=3, padx=20, pady=30, sticky="w")
 
 
 # Delete the windows

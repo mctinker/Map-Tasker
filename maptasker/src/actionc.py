@@ -66,6 +66,7 @@ action_codes = {
         ["0", "3", "4"],
         ["", "Timeout=", ["", "e", ",Structure Output (JSON, etc)"]],
     ),
+    "1040969826t": ActionCode(0, "1040876951t", [], [], "Muzei Wallpaper: Next Artwork", [], []),
     "105s": ActionCode(0, "", [], [], "Media Button", [], []),
     "105t": ActionCode(
         3,
@@ -175,6 +176,7 @@ action_codes = {
     "124t": ActionCode(0, "", [], [], "Remount", [], []),
     "1250249549t": ActionCode(0, "1040876951t", [], [], "AutoInput Screen Off/On", [], []),
     "1256900802t": ActionCode(0, "1040876951t", [], [], "Termux", [], []),
+    "1269159260t": ActionCode(0, "1040876951t", [], [], "Calendar Task", [], []),
     "125s": ActionCode(3, "", ["0", "1", "2"], ["Str", "Str", "Str"], "Proximity Sensor", [], []),
     "125t": ActionCode(
         3,
@@ -300,6 +302,7 @@ action_codes = {
         [["", "e", "Stop"], " Task="],
     ),
     "138t": ActionCode(1, "", ["0"], ["Img"], "Set Tasker Icon", ["0"], ["Icon="]),
+    "1384093265t": ActionCode(0, "1040876951t", [], [], "Calendar Task", [], []),
     "139t": ActionCode(0, "", [], [], "Disable (Tasker)", [], []),
     "140618776t": ActionCode(0, "1040876951t", [], [], "AutoWear Toast", [], []),
     "140s": ActionCode(
@@ -951,6 +954,7 @@ action_codes = {
     "211905330t": ActionCode(0, "1040876951t", [], [], "AutoContacts", [], []),
     "2114100406t": ActionCode(0, "1040876951t", [], [], "AutoLaunch Query", [], []),
     "212t": ActionCode(0, "", [], [], "WiFi IP Settings", [], []),
+    "2124887619t": ActionCode(0, "1040876951t", [], [], "AutoTools OCR", [], []),
     "2132875086t": ActionCode(0, "1040876951t", [], [], "AutoSheets Delete Rows/Columns", [], []),
     "214t": ActionCode(0, "", [], [], "Wireless Settings", [], []),
     "2142731215t": ActionCode(0, "1040876951t", [], [], "AutoSheets Duplicate Sheet", [], []),

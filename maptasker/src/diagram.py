@@ -1483,7 +1483,7 @@ def network_map(network: dict) -> None:
     )
     add_output_line(" ")
     add_output_line(
-        "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons in names can cause minor mis-alignment.",
+        "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons or Chinese/Korean/Japanese in names can cause minor mis-alignment.",
     )
     add_output_line(" ")
     add_output_line(" ")

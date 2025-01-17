@@ -454,7 +454,6 @@ def display_task_warnings() -> None:
 
     # Output all Task warning lines
     for warning in warnings:
-
         # Add the line to the output.
         PrimeItems.output_lines.add_line_to_output(
             0,
@@ -465,7 +464,7 @@ def display_task_warnings() -> None:
 
 def fix_hyperlink_name(name: str) -> str:
     """
-    Fix the hyperlink name so it doewsn't screw up the html output.
+    Fix the hyperlink name so it doesn't screw up the html output.
 
     Args:
         name (str): The name to fix.
@@ -474,3 +473,22 @@ def fix_hyperlink_name(name: str) -> str:
         str: The fixed name.
     """
     return name.replace(" ", "_").replace(">", "&gt;").replace("<", "&lt;")
+
+
+def get_value_if_match(data: dict, match_key: str, match_value: str, return_key: str) -> str | None:
+    """
+    Retrieve a specific value from a dictionary if another value matches a given string.
+
+    Parameters:
+    - data (dict): The dictionary to search.
+    - match_key (str): The key to check for the match.
+    - match_value (str): The value to match against.
+    - return_key (str): The key whose value to return if a match is found.
+
+    Returns:
+    - The value associated with return_key if a match is found, else None.
+    """
+    for key, item in data.items():
+        if item[match_key] == match_value:
+            return item[return_key], key
+    return None, None

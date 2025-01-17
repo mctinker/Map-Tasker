@@ -327,7 +327,7 @@ def outline_profiles_tasks_scenes(
             project (defusedxml.ElementTree): The xml head element for the Project we are processing
             project_name (str): name of the Project we are currently outlining
             profile_ids (list): liost of Profiles under this Project
-            task_ids (list): liost of Tasks under this Project
+            task_ids (list): list of Tasks under this Project
             network (dict): Dictionary structure for our network
     """
     all_profiles_tasks = []

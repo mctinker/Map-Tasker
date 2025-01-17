@@ -21,7 +21,6 @@ from typing import TYPE_CHECKING, Callable
 import customtkinter as ctk
 import darkdetect
 from PIL import Image
-from PIL.Image import open as open_img
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.diagcnst import (
@@ -71,20 +70,17 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 6.1.0 - Change Log\n
+Version 6.1.1 - Change Log\n
 ### Added\n
-- Added: Open AI new models 'o3' and 'o3-mini' have been added.\n
-- Added: List Tasks with 'too many actions' warning at the bottom of the output with hotlinks to the Task.\n
-- Added: The GUI has a slider to define the limit for 'too many Task actions' warning.\n
-- Added: Additional tooltips have been added to the user interface.\n
+- Added: Added support for plugins: Muzei Wallpaper, Calendar Task, AutoTools OCR.\n
 ### Changed\n
-- Changed: Updated the GUI help information.\n
+- Changed: Miscellaneous code optimized for performance.\n
 ### Fixed\n
-- Fixed: Alignment of column heading in Project hover text is not correct.\n
-- Fixed: Hover text for "Unnamed/Anonymous" Tasks is not correct.\n
-- Fixed: Tooltips are too small to read.\n
-- Fixed: Changing the Single Project, Profile or Task name uses the prior data in the Map view.\n
-- Fixed: Task action arguments are not all aligned if 'Pretty' is selected.\n
+- Fixed: Diagram connector alignment is somewhat corrected for Simplified Chinese, Korean and Japanese.\n
+- Fixed: Removed extraneous blank line after Profile in the Map view.\n
+- Fixed: Program error in Tkimage, when starting GUI if running via 'UV' Python package manager.\n
+- Fixed: Program error in taskactn if debug is on.\n
+- Fixed: Support Python 3.13.1\n
 """
 
 default_font_size = 14
@@ -446,7 +442,7 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
     Note: The changelog file is created immediately after the program is updated (userintr upgrade_event)
     """
     # TODO Test changelog before posting to PyPi.  Comment it out after testing.
-    #self.message = CHANGELOG
+    # self.message = CHANGELOG
 
     if os.path.isfile(CHANGELOG_FILE):
         with open(CHANGELOG_FILE) as changelog_file:
@@ -460,67 +456,88 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
         save_changelog_as_json(self)
 
 
-# Add the MapTasker icon to the screen
-def add_logo(self, what: str) -> None:  # noqa: ANN001
-    """Function:
-        Get the icon/png file and return the image.
+def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
+    """Add a logo to the screen.
+
     Parameters:
-        - self (object): The object that the function is being called on.
-        - what (str): The name of the object that the function is being called on.
+        - self (object): The calling object.
+        - logo_type (str): The logo identifier ('maptasker' or 'coffee').
+
     Returns:
-        - None: The function does not return anything.
-    Processing Logic:
-        - Get the path to our logos.
-        - Switch to our temp directory (assets).
-        - Create a CTkImage object to display the logo.
-        - Try to display the logo with a CTkLabel.
-        - Switch back to proper directory."""
+        - None: The function modifies the GUI components directly.
+    """
+    logo_map = {
+        "maptasker": (
+            "maptasker_logo_light.png",
+            "maptasker_logo_dark.png",
+            (190, 50),
+            self.sidebar_frame,
+            (0, 0),
+            "0",
+            "0",
+            "n",
+        ),
+        "coffee": (
+            "bmc-logo-no-background.png",
+            "bmc-logo-no-background.png",
+            (36, 54),
+            self.tabview.tab("Debug"),
+            (5, 3),
+            "10",
+            "0",
+            "se",
+        ),
+    }
     # Get the path to our logos:
     # current_dir = directory from which we are running.
     # abspath = path of this source code (userintr.py).
     # cwd = directory from which the main program is (main.py)
-    # dname = directory of src
     current_dir = os.getcwd()
     abspath = os.path.abspath(__file__)
     # cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
-    dname = os.path.dirname(abspath)
-    assets_dir = dname.replace("src", "assets")
+    assets_dir = os.path.dirname(abspath).replace("src", "assets")
     # Switch to our temp directory (assets)
     os.chdir(assets_dir)
 
-    # MapTasker logo
-    if what == "maptasker":
-        # Create a CTkImage object to display the logo
+    if logo_type in logo_map:
+        light_img, dark_img, size, parent, grid_pos, padx, pady, sticky = logo_map[logo_type]
         my_image = ctk.CTkImage(
-            light_image=Image.open("maptasker_logo_light.png"),
-            dark_image=Image.open("maptasker_logo_dark.png"),
-            size=(190, 50),
+            light_image=Image.open(light_img),
+            dark_image=Image.open(dark_img),
+            size=size,
         )
         try:
-            self.logo_label = ctk.CTkLabel(
-                self.sidebar_frame,
+            label = ctk.CTkLabel(
+                parent,
                 image=my_image,
                 text="",
                 compound="left",
                 font=ctk.CTkFont(size=1, weight="bold"),
-            )  # display image with a CTkLabel
-            self.logo_label.grid(row=0, column=0, padx=0, pady=0, sticky="n")
-        except:  # noqa: S110
-            pass
-        # del my_image  # Done with image...get rid of it.
-
-    # Buy Me A Coffee logo
-    elif what == "coffee":
-        dark_path = "bmc-button.png"
-        light_path = "bmc-button.png"
-        my_image = ctk.CTkImage(open_img(light_path), open_img(dark_path), (130, 40))
-
-    # Invalid logo
+            )
+            label.grid(row=grid_pos[0], column=grid_pos[1], padx=padx, pady=pady, sticky=sticky)
+        except (FileNotFoundError, TypeError, TclError) as e:
+            rutroh_error(f"Error displaying {logo_type} logo: {e}  Unable to attach Tkinter for image.")
     else:
-        my_image = None
-
-    # Switch back to proper directory
+        rutroh_error("Invalid logo type")
+    # Put the directory back to where it should be.
     os.chdir(current_dir)
+
+    if logo_type == "coffee":
+        self.coffee_button = add_button(
+            self,
+            parent,
+            "#246FB6",
+            "",
+            "",
+            self.event_handlers.coffee_event,
+            1,
+            "Buy Me A Coffee",
+            1,
+            *grid_pos,
+            20,
+            10,
+            "nw",
+        )
 
     return my_image
 

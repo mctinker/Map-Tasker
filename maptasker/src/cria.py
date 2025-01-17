@@ -5,7 +5,6 @@ if process_name.lower() in proc.name().lower() and proc.info["cmdline"] is not N
 """
 
 import atexit
-import contextlib
 import subprocess
 import time
 from contextlib import ContextDecorator
@@ -15,6 +14,8 @@ import httpx
 import ollama
 import psutil
 from ollama._client import Client as OllamaClient
+
+from maptasker.src.primitem import PrimeItems
 
 DEFAULT_MODEL = "llama3.1:8b"
 DEFAULT_MESSAGE_HISTORY = [{"role": "system", "content": "You are a helpful AI assistant."}]
@@ -135,10 +136,9 @@ def check_models(model, silence_output):
                 if not silence_output:
                     print(f"LLM model found, running {m_name}...")
                 return m_name
-            else:
-                if not silence_output:
-                    print(f"LLM partial match found, running {m_name}...")
-                return m_name
+            if not silence_output:
+                print(f"LLM partial match found, running {m_name}...")
+            return m_name
     model_match = next((True if m.get("name") == model else False for m in model_list), False)
     if model_match:
         return model
@@ -156,7 +156,11 @@ def check_models(model, silence_output):
         return model
     except Exception as e:
         print(e)
-        raise ValueError("Invalid model passed. See the model library here: https://ollama.com/library")
+        # Model not found!
+        PrimeItems.error_code = 1
+        PrimeItems.error_msg = f"Invalid model {model} passed. See the model library here: https://ollama.com/library"
+        return None
+        # raise ValueError("Invalid model passed. See the model library here: https://ollama.com/library")
 
 
 def find_process(command, process_name="ollama"):
@@ -207,11 +211,13 @@ class Cria(Client):
             ollama_stderr = subprocess.PIPE if capture_output else subprocess.DEVNULL
             try:
                 self.ollama_subrprocess = subprocess.Popen(
-                    ["ollama", "serve"], stdout=ollama_stdout, stderr=ollama_stderr
+                    ["ollama", "serve"],
+                    stdout=ollama_stdout,
+                    stderr=ollama_stderr,
                 )
             except FileNotFoundError:
                 raise FileNotFoundError(
-                    "Ollama is not installed, please install ollama from 'https://ollama.com/download'"
+                    "Ollama is not installed, please install ollama from 'https://ollama.com/download'",
                 )
             retries = 10
             while retries:
@@ -252,7 +258,7 @@ class Cria(Client):
         ollama_subprocess = self.ollama_subrprocess
         if not ollama_subprocess:
             raise ValueError(
-                "Ollama is not running as a subprocess, you must pass run_subprocess as True to capture output."
+                "Ollama is not running as a subprocess, you must pass run_subprocess as True to capture output.",
             )
         if not self.capture_output:
             raise ValueError("You must pass in capture_ouput as True to capture output.")
@@ -289,6 +295,8 @@ class Model(Cria, ContextDecorator):
         self.close_on_exit = close_on_exit
 
         self.model = check_models(model, silence_output)
+        if self.model is None:
+            return
 
         if run_attached and run_subprocess:
             raise ValueError("You cannot run attach to an LLM and run it as a subprocess at the same time.")

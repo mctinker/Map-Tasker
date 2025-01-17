@@ -26,68 +26,44 @@ if TYPE_CHECKING:
 
 
 # Get a specific Profile's Tasks (maximum of two:entry and exit)
-def get_profile_tasks(
-    the_profile: defusedxml.ElementTree,
-    found_tasks_list: list,
-    task_output_line: list,
-) -> list:
+def get_profile_tasks(the_profile: defusedxml.ElementTree, found_tasks_list: list, task_output_line: list) -> list:
     """
-    Get the task element and task name from the profile.
+    Get a specific Profile's Tasks (maximum of two: entry and exit).
 
-    This function iterates over the XML elements in the profile and extracts
-    the task element and task name.
-    It counts the task under the profile if it hasn't been counted before.
-    It also checks if a single task name is specified and sets a flag if
-    the task name matches.
-
-    Args:
-
-        the_profile (defusedxml.ElementTree.XML): The XML profile element.
-        found_tasks_list (list): A list of found tasks.
-        task_output_line (list): A list of task output lines.
-
-    Returns:
-        list: a list containing the task element and name
+    :param the_profile: XML element pointing to the Profile.
+    :param found_tasks_list: List of tasks that have been found.
+    :param task_output_line: List to store the output lines of tasks.
+    :return: List of tasks with their XML elements and names.
     """
-    keys_we_dont_want = ["cdate", "edate", "flags", "id", "limit"]
-    the_task_element, the_task_name = "", ""
+    keys_we_dont_want = {"cdate", "edate", "flags", "id", "limit"}
     list_of_tasks = []
+    single_task_name = PrimeItems.program_arguments.get("single_task_name")
 
     for child in the_profile:
-        if child.tag in keys_we_dont_want:
+        tag = child.tag
+        if tag in keys_we_dont_want:
             continue
-        if "mid" in child.tag:
-            # Assume Entry Task, unless tag = 'mid1'...then Exit Task
-            task_type = "Entry"
-            if child.tag == "mid1":
-                task_type = "Exit"
+
+        if "mid" in tag:
+            task_type = "Exit" if tag == "mid1" else "Entry"
             task_id = child.text
-            # Count Task under Profile if it hasn't yet been counted
+
             if task_id not in found_tasks_list:
-                PrimeItems.task_count_for_profile = PrimeItems.task_count_for_profile + 1
-            the_task_element, the_task_name = tasks.get_task_name(
-                task_id,
-                found_tasks_list,
-                task_output_line,
-                task_type,
-            )
-            # Add this Task to our list of Tasks processed thus far.
-            list_of_tasks.append({"xml": the_task_element, "name": the_task_name})
-            # Chedck if we are doing a single task and if this is it.
-            if (
-                PrimeItems.program_arguments["single_task_name"]
-                and PrimeItems.program_arguments["single_task_name"] == the_task_name
-            ):
-                # We are doiung a single Task and we found it.
+                PrimeItems.task_count_for_profile += 1
+
+            task_element, task_name = tasks.get_task_name(task_id, found_tasks_list, task_output_line, task_type)
+            list_of_tasks.append({"xml": task_element, "name": task_name})
+
+            if single_task_name and single_task_name == task_name:
                 PrimeItems.found_named_items["single_task_found"] = True
-                # Grab and save the associated Profile name also.
                 profile_name = the_profile.find("nme")
                 if profile_name is not None:
                     PrimeItems.program_arguments["single_profile_name"] = profile_name.text
                 break
-        # If hit Profile's name, we've passed all the Task ids.
-        elif child.tag == "nme":
+
+        elif tag == "nme":
             break
+
     return list_of_tasks
 
 

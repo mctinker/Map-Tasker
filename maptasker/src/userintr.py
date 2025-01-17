@@ -199,7 +199,8 @@ class MyGui(customtkinter.CTk):
         PrimeItems.mygui = self
 
         # The following lines are for testing only.
-        #self.event_handlers.diagram_event()
+        # Comment out
+        # self.event_handlers.diagram_event()
         # self.event_handlers.map_event()
         # self.event_handlers.run_program_event()
 

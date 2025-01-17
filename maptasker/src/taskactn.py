@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import maptasker.src.tasks as tasks  # noqa: PLR0402
 from maptasker.src.error import error_handler
-from maptasker.src.maputils import count_consecutive_substr
+from maptasker.src.maputils import count_consecutive_substr, get_value_if_match
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine
 from maptasker.src.xmldata import remove_html_tags
@@ -67,7 +67,6 @@ def output_list_of_actions(
     for taction in alist:
         # 'taction' has the Action text, including all of it's arguments.
         if taction is not None:
-
             # Optimize spacing if 'pretty' is enabled
             if PrimeItems.program_arguments.get("pretty"):
                 updated_action = ensure_argument_alignment(taction)
@@ -135,24 +134,25 @@ def get_task_actions_and_output(
     5. Handle errors if no task found
     """
     if UNKNOWN_TASK_NAME in the_item or PrimeItems.program_arguments["display_detail_level"] > 0:
-        # Get the Task ID so that we can get the Task xml element
-        # "--Task:" denotes a Task in a Scene
+        # Get the Task name so that we can get the Task xml element
+        # "--Task:" denotes a Task in a Scene which we will handle below
         temp_id = "x" if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
+        task_name = temp_id[0].split("&nbsp;")[0]
+        the_task, task_id = get_value_if_match(PrimeItems.tasker_root_elements["all_tasks"], "name", task_name, "xml")
 
-        # Get the Task xml element
-        if len(temp_id) > 1:
-            temp_id[1] = temp_id[1].split(" ", 1)[0]  # ID = 1st word of temp_id[1]
-            the_task, _ = tasks.get_task_name(
-                temp_id[1],  # Task ID
-                tasks_found,  # Tasks found so far
-                [temp_id[1]],  # Task's output line
-                "",  # Task type
-            )
+        # Get the Task name from the ID if it wasn't found above.
+        if the_task is None and task_name == "x":
+            the_task = PrimeItems.tasker_root_elements["all_tasks"][the_item]["xml"]
+            task_name = PrimeItems.tasker_root_elements["all_tasks"][the_item]["name"]
+            task_id = the_item
 
-        # Get the Task name.
-        attr = the_task.attrib.get("sr")
-        task_id = attr[4:]
-        task_name = PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
+        # It is a valid Task.  If unknown and it is an Entry or Exit (valid) task, add it to the count of unnamed Tasks.
+        elif UNKNOWN_TASK_NAME in the_item and ("Entry Task" in the_item or "Exit" in the_item):
+            PrimeItems.task_count_unnamed += 1
+
+        # Keep tabs on the tasks processed so far.
+        if task_id not in tasks_found:
+            tasks_found.append(task_id)
 
         # Get Task actions
         if the_task is not None:
