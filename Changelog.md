@@ -2,28 +2,38 @@
 
 All notable changes to this project will be documented in this file!
 
-## [6.1.0] 07-Jan-2025
+## [6.1.1] 16-Jan-2025
 
 ### Added
+
+- Added: Added support for plugins: Muzei Wallpaper, Calendar Task, AutoTools OCR.
+
+### Changed
+
+- Changed: Miscellaneous code optimized for performance.
+
+### Fixed
+
+- Fixed: Diagram connector alignment is somewhat corrected for Simplified Chinese, Korean and Japanese.
+- Fixed: Removed extraneous blank line after Profile in the Map view.
+- Fixed: Program error in Tkimage, when starting GUI if running via 'UV' Python package manager.
+- Fixed: Program error in taskactn if debug is on.
+- Fixed: Support Python 3.13.1
+
+## Older History Logs
+
+## [6.1.0]
 
 - Added: Open AI new models 'o3' and '03-mini' have been added.
 - Added: List Tasks with 'too many actions' warning at the bottom of the output with hotlinks to the Task.
 - Added: The GUI has a slider to define the limit for 'too many Task actions' warning.
 - Added: Additional tooltips have been added to the user interface.
-
-### Changed
-
 - Changed: Updated the GUI help information.
-
-### Fixed
-
 - Fixed: Alignment of column heading in Project hover text is not correct.
 - Fixed: Hover text for "Unnamed/Anonymous" Tasks is not correct.
 - Fixed: Tooltips are too small to read.
 - Fixed: Changing the Single Project, Profile or Task name uses the prior data in the Map view.
 - Fixed: Task action arguments are not all aligned if 'Pretty' is selected.
-
-## Older History Logs
 
 ## [6.0.6]
 
