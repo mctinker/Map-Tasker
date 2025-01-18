@@ -18,7 +18,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Removed extraneous blank line after Profile in the Map view.
 - Fixed: Program error in Tkimage, when starting GUI if running via 'UV' Python package manager.
 - Fixed: Program error in taskactn if debug is on.
-- Fixed: Support Python 3.13.1
 
 ## Older History Logs
 
