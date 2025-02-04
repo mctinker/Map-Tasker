@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "maptasker"
 
-version = "6.1.1"
+version = "7.0.0"
 
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
@@ -19,18 +19,19 @@ include = ["**/maptasker/**/*.py", "**/maptasker/assets/*.*", "**/sample.prj.xml
 exclude = ["run_test.py", "**/maptasker/**/backup.xml", "**/maptasker/maptasker.log", "**/maptasker/MapTasker.html", "**/maptasker/.MapTasker_RunCount.txt", "**/maptasker/.arguments.txt", "**/maptasker/**/__pycache__", "**/maptasker/**/.dep-tree.yml"]
 
 [tool.poetry.dependencies]
-python = "<=3.13,>=3.11"
+python = "<=3.13.*,>=3.11"
+anthropic = "^0.45.2"  #  Ai Anthropics support
 customtkinter = "^5.2.2"  # GUI
-# ctkcolorpicker = "^0.9.0"  # Color picker in GUI. Using local version to fix a bug
 pillow = "^11.1.0"  # Image support in GUI
 darkdetect = "^0.8.0"  # Appearance mode detection
 defusedxml = "0.7.1"  # More secure xml parser
 requests = "^2.32.3"  # HTTP Server function request
-tomli_w = "^1.1.0"  # Write toml file
-# cria = "^1.6.6"  #  Ai Ollama support (using local copy with fix)
-openai = "^1.59.7"  #  Ai OpenAi support
-ollama = "^0.4.6"  #  Ai Ollama support > cria rquires this
+tomli_w = "^1.2.0"  # Write toml file
+openai = "^1.61.0"  #  Ai OpenAi support
+ollama = "^0.4.7"  #  Ai Ollama support > cria rquires this
 psutil = "^6.1.1"  #  System monitoring
+google-generativeai = "^0.8.4"  #  Ai Google Generative support
+grpcio = "1.67.1"  #  Ai Google Generative support.  lower version required to avoid error msg 'WARNING: All log...'
 
 [tool.poetry.scripts]
 maptasker = "maptasker.main:main"
@@ -196,6 +197,7 @@ pytest-mock = "*"
 files = ["maptasker/src/sysconst.py"]
 search = 'VERSION = "{current_version}"'
 replace = 'VERSION = "{new_version}"'
+
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"

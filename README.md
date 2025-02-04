@@ -50,7 +50,8 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Command line or GUI interface.
 - Use exported XML or fetch the XML directly from your Android device for the configuration mapping.
 - Save and restore commonly used runtime settings.
-- Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT or the local-based Llama (via Ollama) supported models.*
+- Identify Tasks that have too many 'actions', and which should potentially be broken up into multiple Tasks.
+- Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT/Claude/DeepSeek/Gemini or the local-based Llama (via Ollama) supported models.*
 - Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View.*
 - Automatic update detection and optional installation of new versions.*
 
@@ -176,7 +177,7 @@ Python installations that use 'pyenv' version management, take note: tcl-tk has 
 - If running python 3.11.10 or lower, then the new tcl-tk is not recognized and you will get an import error for 'tkinter'.  Issue the commands (in the order specified):\n
     - 'brew uninstall tcl-tk',\n
     - 'pyenv uninstall 3.11.xx'\n
-    - 'brew install tcl-tk8'\n
+    - 'brew install tcl-tk@8'\n
     - 'pyenv install 3.11:latest'\n
 - if running python 3.12.4, upgrade to 3.12.7 (the latest): 'pyenv install 3.12:latest'\n
 - Python version 3.13.0 works fine with the new tcl-tk.\n
@@ -219,6 +220,8 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 
 - [x] Identify Tasks with too many actions. 
 
+- [x] Support additional AI's
+
 - [ ] Support additional plugins
 
 - [ ] Map remaining Tasker preferences
@@ -235,7 +238,7 @@ Network traffic is as follows:
 - On startup, check against pypi.com to determine if a new release is available.
 - Update the program from pypi.com (via 'pip) if 'Upgrade' is selected in the GUI.
 - Read file 'maptasker_changelog.json' from 'https://github.com/mctinker/Map-Tasker' if "What's New" is selected in the GUI.
-- Use chatgpt.com when using AI analysis with any of the OpenAi models.
+- Use chatgpt.com when using AI analysis with any of the OpenAi models.  Likewise for Claude (Anthropic), Google (Gemini) and DeepSeek.
 - New and updated local Ai models will be loaded from 'https://ollama.com/library'.
 
 ## Known Issues
@@ -255,7 +258,7 @@ Network traffic is as follows:
 
 [Akash Bora for CTkColorPicker and XYFrame](https://github.com/Akascape/CTkColorPicker)
 
-[Ollama](https://ollama.com/) and [OpenAi](https://openai.com/)
+[Ollama](https://ollama.com/), [OpenAi](https://openai.com/), [Claude AI](https://claude.ai), [Gemini AI](https://gemini.google.com/), [DeepSeek AI](https://chat.deepseek.com/)
 
 [Anonyo Noor for cria](https://github.com/leftmove/cria)
 

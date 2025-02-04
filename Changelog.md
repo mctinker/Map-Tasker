@@ -2,24 +2,39 @@
 
 All notable changes to this project will be documented in this file!
 
-## [6.1.1] 16-Jan-2025
+## [7.0.0] 04-Jan-2025
 
 ### Added
 
-- Added: Added support for plugins: Muzei Wallpaper, Calendar Task, AutoTools OCR.
+- Added: Hover tips for Scenes have been added to the Map view.
+- Added: Claude AI (Anthropic), Gemini AI, and DeepSeek AI are now supported in the AI Analysis tab.
+- Added: Support for multiple AI API keys.
+- Added: Tasker Beta 6.4.12 supported.
+- Added: Llama AI models 'deepseek-r1' and 'phi4' added.
 
 ### Changed
 
-- Changed: Miscellaneous code optimized for performance.
+- Changed: The GUI message box is now cleared before displaying an error during initialization.
+- Changed: The AI API Key prompt has been modified for multiple keys, and for the identification of the current key to be used for the AI Analysis.
+- Changed: The AI Model selection pulldown option list is now preceeded by their owner: 'OpenAI', 'Claude', 'Gemini' and 'LLAMA'.  Example: 'OpenAI: gpt-04', and each AI's list of models are now grouped together in the pulldown option list.
 
 ### Fixed
 
+- Fixed: Program error if the AI model has not been set.
+- Fixed: Ai Analysis of a single Task reports it as the Project owning the Task.
+- Fixed: Keep the 'Analyze' tab active after an AI analysis.
+
+## Older History Logs
+
+## [6.1.1]
+
+- Added: Added support for plugins: Muzei Wallpaper, Calendar Task, AutoTools OCR.
+- Changed: Miscellaneous code optimized for performance.
 - Fixed: Diagram connector alignment is somewhat corrected for Simplified Chinese, Korean and Japanese.
 - Fixed: Removed extraneous blank line after Profile in the Map view.
 - Fixed: Program error in Tkimage, when starting GUI if running via 'UV' Python package manager.
 - Fixed: Program error in taskactn if debug is on.
-
-## Older History Logs
+- Fixed: Support Python 3.13.1
 
 ## [6.1.0]
 
