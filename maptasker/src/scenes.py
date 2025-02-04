@@ -480,8 +480,8 @@ def process_scene(
 
 # Go through all Scenes for Project, get their detail and output it
 def process_project_scenes(
-    project: defusedxml.ElementTree.XML,
-    our_task_element: defusedxml.ElementTree.XML,
+    project: defusedxml.ElementTree,
+    our_task_element: defusedxml.ElementTree,
     found_tasks: list,
 ) -> bool:
     """

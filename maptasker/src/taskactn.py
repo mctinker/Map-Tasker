@@ -17,11 +17,12 @@ import maptasker.src.tasks as tasks  # noqa: PLR0402
 from maptasker.src.error import error_handler
 from maptasker.src.maputils import count_consecutive_substr, get_value_if_match
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine
+from maptasker.src.sysconst import FormatLine
 from maptasker.src.xmldata import remove_html_tags
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
+UNNAMED = "Anonymous#"
 
 
 def ensure_argument_alignment(taction: str) -> str:
@@ -96,12 +97,10 @@ def output_list_of_actions(
                 )
                 action_count += 1
             if (
-                action_count == 2
-                and PrimeItems.program_arguments["display_detail_level"] == 0
-                and UNKNOWN_TASK_NAME in the_item
+                action_count == 2 and PrimeItems.program_arguments["display_detail_level"] == 0 and UNNAMED in the_item
             ):  # Just show first Task if unknown Task
                 break
-            if PrimeItems.program_arguments["display_detail_level"] == 1 and UNKNOWN_TASK_NAME not in the_item:
+            if PrimeItems.program_arguments["display_detail_level"] == 1 and UNNAMED not in the_item:
                 break
 
     # Close Action list if doing straight print, no twisties
@@ -133,7 +132,7 @@ def get_task_actions_and_output(
     4. Output actions list with formatting
     5. Handle errors if no task found
     """
-    if UNKNOWN_TASK_NAME in the_item or PrimeItems.program_arguments["display_detail_level"] > 0:
+    if UNNAMED in the_item or PrimeItems.program_arguments["display_detail_level"] > 0:
         # Get the Task name so that we can get the Task xml element
         # "--Task:" denotes a Task in a Scene which we will handle below
         temp_id = "x" if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
@@ -147,7 +146,7 @@ def get_task_actions_and_output(
             task_id = the_item
 
         # It is a valid Task.  If unknown and it is an Entry or Exit (valid) task, add it to the count of unnamed Tasks.
-        elif UNKNOWN_TASK_NAME in the_item and ("Entry Task" in the_item or "Exit" in the_item):
+        elif UNNAMED in the_item and ("Entry Task" in the_item or "Exit" in the_item):
             PrimeItems.task_count_unnamed += 1
 
         # Keep tabs on the tasks processed so far.

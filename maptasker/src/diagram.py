@@ -109,7 +109,7 @@ def add_quotes(
     task_name = task["name"]
 
     # Get the primary task pointer for this task.
-    prime_task = PrimeItems.tasks_by_name[task_name]
+    prime_task = PrimeItems.tasker_root_elements["all_tasks_by_name"][task_name]
     with contextlib.suppress(KeyError):
         if prime_task["call_tasks"] is not None:
             # Flatten list of called tasks and surround each with a quote.
@@ -235,8 +235,8 @@ def print_all_tasks(
 
         # First we must find our real Task element that matches this "task".
         # Is it in the master list of all Task names in the XML?
-        if PrimeItems.tasks_by_name[task["name"]]:
-            prime_task = PrimeItems.tasks_by_name[task["name"]]
+        if PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]:
+            prime_task = PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]
             # Now see if this Task has any "called_by" Tasks.
             with contextlib.suppress(KeyError):
                 called_by_tasks = f" [Called by {line_left_arrow} {flatten_with_quotes(prime_task['called_by'])}]"

@@ -127,7 +127,7 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
             print(f"getputer tomli failure: {e}...one or more settings is 'None'!")
         settings_file.close()
 
-    # Write out the system program arguments in PICKLE format.
+    # Write out the system program arguments (e.g. window positions) in PICKLE format.
     with open(SYSTEM_SETTINGS_FILE, "wb") as settings_file:
         # dump information to that file
         pickle.dump(sys_args, settings_file)
@@ -268,7 +268,7 @@ def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, 
     elif os.path.isfile(new_file):
         program_arguments, colors_to_use = read_toml_file(new_file)
 
-    # Read the system settings PICKLE file
+    # Read the window positions from the PICKLE file
     if os.path.isfile(sys_file):
         with open(sys_file, "rb") as sys_settings_file:
             sys_args = pickle.load(sys_settings_file)  # noqa: S301

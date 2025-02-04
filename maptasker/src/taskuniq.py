@@ -119,9 +119,9 @@ def process_solo_task_with_no_profile(
     )
 
     # Get the Task's name
-    task_element, task_name = get_task_name(task_id, found_tasks, [], "")
+    _, task_name = get_task_name(task_id, found_tasks, [], "")
     if UNKNOWN_TASK_NAME in task_name:
-        task_name = f"{UNKNOWN_TASK_NAME}{task_id}&nbsp;&nbsp;Task ID: {task_id}"
+        task_details = f"{UNKNOWN_TASK_NAME}{task_id}&nbsp;&nbsp;Task ID: {task_id}"
         # Ignore it if it is in a Scene
         if task_in_scene(task_id, PrimeItems.tasker_root_elements["all_scenes"]):
             return have_heading, specific_task, task_count
@@ -135,15 +135,15 @@ def process_solo_task_with_no_profile(
         have_heading = add_heading(save_twisty)
     if not unknown_task and project_name != NO_PROJECT:
         if PrimeItems.program_arguments["debug"]:
-            task_name += f" with Task ID: {task_id} ...in Project '{project_name}'&nbsp;&nbsp;> <em>No Profile</em>"
+            task_details += f" with Task ID: {task_id} ...in Project '{project_name}'&nbsp;&nbsp;> <em>No Profile</em>"
         else:
-            task_name += f" ...in Project '{project_name}'&nbsp;&nbsp;> <em>No Profile</em>"
+            task_details += f" ...in Project '{project_name}'&nbsp;&nbsp;> <em>No Profile</em>"
 
     # Output the Task's details
     if (not unknown_task) and (
         PrimeItems.program_arguments["display_detail_level"] > 2
     ):  # Only list named Tasks or if details are wanted.
-        task_output_lines = [task_name]  # Return as a list.
+        task_output_lines = [task_details]  # Return as a list.
 
         # We have the Tasks.  Now let's output them.
         our_task = PrimeItems.tasker_root_elements["all_tasks"][task_id]

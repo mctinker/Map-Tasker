@@ -492,3 +492,26 @@ def get_value_if_match(data: dict, match_key: str, match_value: str, return_key:
         if item[match_key] == match_value:
             return item[return_key], key
     return None, None
+
+
+# Clear all Tasker XML data from memory so we start anew.
+def clear_tasker_data() -> None:
+    """
+    Clears all the tasker data stored in the PrimeItems class.
+
+    This function clears the tasker data by clearing the following lists:
+    - all_projects: a list of all the projects
+    - all_profiles: a list of all the profiles
+    - all_tasks: a list of all the tasks
+    - all_scenes: a list of all the scenes
+
+    This function does not take any parameters.
+
+    This function does not return anything.
+    """
+    # Get rid of any data we currently have
+    PrimeItems.tasker_root_elements["all_projects"].clear()
+    PrimeItems.tasker_root_elements["all_profiles"].clear()
+    PrimeItems.tasker_root_elements["all_tasks"].clear()
+    PrimeItems.tasker_root_elements["all_tasks_by_name"].clear()
+    PrimeItems.tasker_root_elements["all_scenes"].clear()

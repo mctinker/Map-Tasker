@@ -15,6 +15,7 @@ import os
 import platform
 import sys
 import time
+from functools import cache
 from tkinter import TclError, font
 from typing import TYPE_CHECKING, Callable
 
@@ -53,11 +54,14 @@ from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     CHANGELOG_FILE,
     CHANGELOG_JSON_FILE,
+    CLAUDE_MODELS,
+    DEEPSEEK_MODELS,
     ERROR_FILE,
+    GEMINI_MODELS,
     KEYFILE,
+    MODEL_GROUPS,
     NOW_TIME,
     OPENAI_MODELS,
-    UNKNOWN_TASK_NAME,
     VERSION,
     Colors,
 )
@@ -70,17 +74,21 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 6.1.1 - Change Log\n
+Version 7.0.0 - Change Log\n
 ### Added\n
-- Added: Added support for plugins: Muzei Wallpaper, Calendar Task, AutoTools OCR.\n
+- Added: Hover tips for Scenes have been added to the Map view.\n
+- Added: Claude AI (Anthropic), Gemini AI, and DeepSeek AI are now supported in the AI Analysis tab.\n
+- Added: Support for multiple AI API keys.\n
+- Added: Tasker Beta 6.4.12 supported.\n
+- Added: Llama AI models 'deepseek-r1' and 'phi4' added.\n
 ### Changed\n
-- Changed: Miscellaneous code optimized for performance.\n
+- Changed: The GUI message box is now cleared before displaying an error during initialization.\n
+- Changed: The AI API Key prompt has been modified for multiple keys, and for the identification of the current key to be used for the AI Analysis.\n
+- Changed: The AI Model selection pulldown option list is now preceeded by their owner: 'OpenAI', 'Claude', 'Gemini' and 'LLAMA'.  Example: 'OpenAI: gpt-04', and each AI's list of models are now grouped together in the pulldown option list.\n
 ### Fixed\n
-- Fixed: Diagram connector alignment is somewhat corrected for Simplified Chinese, Korean and Japanese.\n
-- Fixed: Removed extraneous blank line after Profile in the Map view.\n
-- Fixed: Program error in Tkimage, when starting GUI if running via 'UV' Python package manager.\n
-- Fixed: Program error in taskactn if debug is on.\n
-- Fixed: Support Python 3.13.1\n
+- Fixed: Program error if the AI model has not been set.\n
+- Fixed: Ai Analysis of a single Task reports it as the Project owning the Task.\n
+- Fixed: Keep the 'Analyze' tab active after a successful AI analysis.\n
 """
 
 default_font_size = 14
@@ -759,7 +767,7 @@ def display_analyze_button(self, row: int, first_time: bool) -> None:  # noqa: A
     Returns:
         None: This function does not return anything.
     """
-    # Make sure Ai model is blkank if value is "None"
+    # Make sure Ai model is blank if value is "None"
     if self.ai_model == "None":
         self.ai_model = ""
     # Highlight the button if we have everything to run the Analysis.
@@ -823,12 +831,26 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
 
     # Read the api key.
     self.ai_apikey = get_api_key()
-    key_to_display = "Unset" if self.ai_apikey == "None" or not self.ai_apikey else "Set"
+
+    # Set up for the display line of the API key and model details.
+    key_model = PrimeItems.program_arguments["ai_model"]
+    # key_to_display = "Unset" if self.ai_apikey == "None" or not self.ai_apikey else "Set"
+    key_to_display = "N/A"
+    for ai, models in MODEL_GROUPS.items():
+        if self.ai_model in models:
+            key_model = ai
+            if ai == "LLAMA":
+                key_to_display = "N/A"
+            else:
+                apikey_name = f"{key_model.lower()}_key"
+                key_to_display = "Unset" if not PrimeItems.ai[apikey_name] else "Set"
+            break
     model_to_display = self.ai_model if self.ai_model else "None"
+
     self.ai_set_label1 = add_label(
         self,
         self.tabview.tab("Analyze"),
-        f"API Key: {key_to_display}, Model: {model_to_display}",
+        f"{key_model} API Key: {key_to_display}, Model: {model_to_display}",
         "",
         0,
         "normal",
@@ -902,7 +924,6 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         (0, 30),
         "nw",
     )
-    # self.ai_set_label5.configure(wraplength=maxlen + 15, justify="left")
 
     # Display the label on 'Specific Name' tab.
     # First time through, self.specific_name_msg = ''
@@ -953,21 +974,28 @@ def update_tasker_object_menus(self, get_data: bool, reset_single_names: bool) -
 
 
 # Get the Ai api key
-def get_api_key() -> str:
+def get_api_key() -> tuple:
     """
     Retrieves the API key from the specified file.
 
     This function checks if the KEYFILE exists and if it does, it opens the file and reads the first line. The first line is assumed to be the API key. If the KEYFILE does not exist, it returns the string "None".
 
     Returns:
-        str: The API key if it exists, otherwise "None".
+        tuple: The file type and the API key if it exists, otherwise "None".
     """
     if os.path.isfile(KEYFILE):
-        # Open output file
-        with open(KEYFILE) as key_file:
-            return key_file.readline()
-    else:
-        return "None"
+        kind_of_file, contents = detect_and_read_file(KEYFILE)
+        if kind_of_file == "text":
+            return contents
+        if kind_of_file == "pickle":
+            PrimeItems.ai["api_key"] = contents["api_key"]
+            PrimeItems.ai["openai_key"] = contents["openai_key"]
+            PrimeItems.ai["claude_key"] = contents["claude_key"]
+            PrimeItems.ai["deepseek_key"] = contents["deepseek_key"]
+            with contextlib.suppress(KeyError):
+                PrimeItems.ai["gemini_key"] = contents["gemini_key"]
+            return PrimeItems.ai["api_key"]
+    return "None"
 
 
 # Either validate the file location provided or provide a filelist of XML files
@@ -1313,7 +1341,7 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     # If no tree data, then we don't have any Projects.  Just get the Profiles and Tasks.
     if not tree_data:
         profiles = [value["name"] for value in PrimeItems.tasker_root_elements["all_profiles"].values()]
-        tasks = [value["name"] for value in PrimeItems.tasker_root_elements["all_tasks"].values()]
+        # tasks = [value["name"] for value in PrimeItems.tasker_root_elements["all_tasks"].values()]
     # We have the Tasker objects.  Collect all Projects, Profiles and Tasks from the tree data.
     else:
         for project in tree_data:
@@ -1330,12 +1358,8 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     if not profiles_to_display:
         profiles_to_display = ["No profiles found"]
 
-    # Cleanup Task names.
-    tasks_to_display = []
-    for task in tasks:
-        name_to_use = task if task[0:5] == "Task:" else "Task: " + task
-        if name_to_use != "Task: Unnamed/Anonymous.":
-            tasks_to_display.append(name_to_use)
+    # Build list of Task names to display in the GUI pulldown.
+    tasks_to_display = list(PrimeItems.tasker_root_elements["all_tasks_by_name"])
 
     # Check for no tasks.
     if not tasks_to_display:
@@ -1445,12 +1469,15 @@ def display_messages_from_last_run(self) -> None:  # noqa: ANN001
                     f"Analysis response is in a separate Window and saved as {ANALYSIS_FILE}.",
                     "Turquoise",
                 )
+                self.tabview.set("Analyze")  # Switch to the 'Analyze' tab
             # Some other message.  Just display it in the message box and break it up if needed.
             elif "\n" in error_msg:
                 messages = error_msg.split("\n")
+                self.clear_messages = True
                 for message_line in messages:
                     self.display_message_box(message_line, "Red")
             else:
+                self.clear_messages = True
                 self.display_message_box(error_msg, "Red")
             # Get rid of error message so we don't display it again.
             os.remove(ERROR_FILE)  # Get rid of error message so we don't display it again.
@@ -1604,28 +1631,6 @@ def _set_default_names(self: object, defaults: dict) -> None:
         self.ai_task_optionmenu.set(defaults["task"])
     except AttributeError:
         pass
-
-
-# Clear all Tasker XML data from memory so we start anew.
-def clear_tasker_data() -> None:
-    """
-    Clears all the tasker data stored in the PrimeItems class.
-
-    This function clears the tasker data by clearing the following lists:
-    - all_projects: a list of all the projects
-    - all_profiles: a list of all the profiles
-    - all_tasks: a list of all the tasks
-    - all_scenes: a list of all the scenes
-
-    This function does not take any parameters.
-
-    This function does not return anything.
-    """
-    # Get rid of any data we currently have
-    PrimeItems.tasker_root_elements["all_projects"].clear()
-    PrimeItems.tasker_root_elements["all_profiles"].clear()
-    PrimeItems.tasker_root_elements["all_tasks"].clear()
-    PrimeItems.tasker_root_elements["all_scenes"].clear()
 
 
 # Adds the "Cancel Entry" button to the GUI.
@@ -1819,8 +1824,8 @@ def search_substring_in_list(strings: list, substring: str, stop_on_first_match:
         list: A list of tuples containing the index of the string and the position of the substring.
     """
     matches = []
-    # If this is an Unklown Task or Task in warning dict, we need to search for the Task ID in A Scene as well.
-    if f"Task: {UNKNOWN_TASK_NAME}" in substring:
+    # If this is an Unknown Task or Task in warning dict, we need to search for the Task ID in A Scene as well.
+    if "Task: {UNKNOWN_TASK_NAME}" in substring:
         task_id = substring.split(".")[1].strip()
         second_search_string = f"id: {task_id}"
     elif substring[6:] in PrimeItems.task_action_warnings:
@@ -2432,3 +2437,121 @@ def parse_pairs_to_columns(pairs: list) -> str:
 
     # Join all lines with a newline character
     return "\n  ".join(formatted_lines)
+
+
+# Window is getting closed.  Save the window position.
+def on_closing(self: object) -> None:
+    """Save the window position and close the window."""
+    window_position = self.wm_geometry()
+    title = self.wm_title()
+
+    # Mapping keywords to their corresponding master attributes
+    window_position_map = {
+        "Diagram": "diagram_window_position",
+        "Progress": "progressbar_window_position",
+        "Analysis": "ai_analysis_window_position",
+        "Tree": "tree_window_position",
+        "Map": "map_window_position",
+        "API": "apikey_window_position",
+    }
+
+    for keyword, attribute in window_position_map.items():
+        if keyword in title:
+            setattr(self.master, attribute, window_position)
+            if keyword == "Progress":
+                kill_the_progress_bar(self.master.progress_bar)
+            break
+
+    self.destroy()
+
+
+import pickle
+
+
+def detect_and_read_file(file_path: object) -> tuple:
+    """
+    Detects the file type and reads its content.
+
+    Args:
+        file_path (object): The path to the file to be read.
+
+    Returns:
+        tuple: A tuple containing the file type and its content.
+    """
+    try:
+        # Try opening the file as a pickle
+        with open(file_path, "rb") as file:
+            content = pickle.load(file)  # noqa: S301
+        return "pickle", content  # noqa: TRY300
+    except (pickle.UnpicklingError, EOFError):
+        pass
+
+    try:
+        # Try opening the file as text
+        with open(file_path, encoding="utf-8") as file:
+            content = file.read()
+        return "text", content  # noqa: TRY300
+    except UnicodeDecodeError:
+        pass
+
+    return "None", None
+
+
+def prefix_and_sort(strings: list[str], name: str) -> list[str]:
+    """
+    Prefixes each string in a list with a given name and returns the modified list sorted.
+
+    Args:
+        strings: A list of strings.
+        name: The name to prefix each string with.
+
+    Returns:
+        A new list of strings with each original string prefixed by `name`, sorted alphabetically.
+    """
+
+    prefixed_strings = [f"{name}: {s}" for s in strings]
+    prefixed_strings.sort()
+    return prefixed_strings
+
+
+@cache
+def get_item_xml(item_type: str, item_name: str) -> defusedxml.Element | None:
+    """
+    Retrieve the XML element for a given item type and name.
+
+    Args:
+        self (object): The instance of the class.
+        item_type (str): The type of the item (e.g., "Task").
+        item_name (str): The name of the item.
+
+    Returns:
+        defusedxml.Element | None: The XML element if found, otherwise None.
+    """
+    if item_type == "Task":
+        return next(
+            (v["xml"] for v in PrimeItems.tasker_root_elements["all_tasks"].values() if v["name"] == item_name),
+            None,
+        )
+    return PrimeItems.tasker_root_elements["all_projects"].get(item_name, {}).get("xml")
+
+
+def set_ai_key(self: object, model: str) -> None:
+    """
+    Set the API key for the AI service.
+
+    Args:
+        self (object): The instance of the class.
+        model (str): The model name for which to set the API key.
+
+    Returns:
+        None
+    """
+    # Set the appropriate API key based on the mdeol chosen.
+    model_keys = {
+        **dict.fromkeys(OPENAI_MODELS, "openai_key"),
+        **dict.fromkeys(CLAUDE_MODELS, "claude_key"),
+        **dict.fromkeys(DEEPSEEK_MODELS, "deepseek_key"),
+        **dict.fromkeys(GEMINI_MODELS, "gemini_key"),
+    }
+    self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
+    return bool(self.ai_apikey)

@@ -1,20 +1,22 @@
 """Code to manage the graphical user interface."""
 
-#! /usr/bin/env python3
-
 #                                                                                      #
 # userintr: provide GUI and process input for program arguments                        #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: I001
 
 import contextlib
 import json
 import os
+import pickle
 import webbrowser
 from pathlib import Path
+from tkinter import *  # noqa: F403
+
 from tkinter import TclError
+from tkinter.ttk import *  # noqa: F403
 from typing import Callable
 
 import customtkinter
@@ -36,7 +38,6 @@ from maptasker.src.guiutils import (
     build_profiles,
     check_for_changelog,
     clear_android_buttons,
-    clear_tasker_data,
     create_changelog,
     display_analyze_button,
     display_current_file,
@@ -58,6 +59,7 @@ from maptasker.src.guiutils import (
     reset_primeitems_single_names,
     search_nextprev_string,
     search_substring_in_list,
+    set_ai_key,
     set_tasker_object_names,
     setup_name_error,
     update_tasker_object_menus,
@@ -65,6 +67,7 @@ from maptasker.src.guiutils import (
     validate_or_filelist_xml,
 )
 from maptasker.src.guiwins import (
+    APIKeyDialog,
     CTkHyperlinkManager,
     CTkTextview,
     CTkTreeview,
@@ -77,8 +80,9 @@ from maptasker.src.guiwins import (
 )
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
+from maptasker.src.mapai import valid_api_key
 from maptasker.src.mapit import clean_up_memory, mapit_all
-from maptasker.src.maputils import update, validate_xml_file
+from maptasker.src.maputils import clear_tasker_data, update, validate_xml_file
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.proginit import log_startup_values
 from maptasker.src.sysconst import (
@@ -94,6 +98,7 @@ from maptasker.src.sysconst import (
 from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.userhelp import (
     AI_HELP_TEXT,
+    APIKEY_HELP_TEXT,
     BACKUP_HELP_TEXT,
     HELP,
     LISTFILES_HELP_TEXT,
@@ -199,10 +204,10 @@ class MyGui(customtkinter.CTk):
         PrimeItems.mygui = self
 
         # The following lines are for testing only.
-        # Comment out
+        # FIX Comment out
         # self.event_handlers.diagram_event()
         # self.event_handlers.map_event()
-        # self.event_handlers.run_program_event()
+        # self.event_handlers.ai_apikey_event()
 
     # Establish all of the default values used
     def set_defaults(self) -> None:
@@ -718,6 +723,7 @@ class MyGui(customtkinter.CTk):
             "reset",
             "window_position",
             "ai_analysis_window_position",
+            "ai_apikey_window_position",
             "ai_popup_window_position",
             "color_window_position",
             "diagram_window_position",
@@ -829,6 +835,7 @@ class MyGui(customtkinter.CTk):
             if message_func:
                 # Note: display_detail_level, file, font, indent, and single object name all return a message of 'None'.
                 message = message_func()  # This calls the lambda function and takes a bit of time.
+            # Catch bug where we have a key but no lambda function to process it.
             elif self.debug:
                 logger.debug("userintr: no lambda rtn for key or value: ", key, value)
 
@@ -2709,10 +2716,7 @@ class EventHandlers:
         """
         the_view = self.parent
         # Get rid of any data we currently have
-        PrimeItems.tasker_root_elements["all_projects"].clear()
-        PrimeItems.tasker_root_elements["all_profiles"].clear()
-        PrimeItems.tasker_root_elements["all_tasks"].clear()
-        PrimeItems.tasker_root_elements["all_scenes"].clear()
+        clear_tasker_data()
         the_view.single_project_name = ""
         the_view.single_profile_name = ""
         the_view.single_task_name = ""
@@ -2749,31 +2753,111 @@ class EventHandlers:
         # Get our key, if it exists.
         the_view.ai_apikey = get_api_key()
 
-        # Present user with input dialog for the key.
-        dialog = customtkinter.CTkInputDialog(
-            text=f"Enter your API Key (Cancel to leave as is):\nkey={the_view.ai_apikey}",
-            title="API Key",
-        )
-        # Get the name entered
-        new_key = dialog.get_input()
+        # Issue the dialog box for the API key.
+        api_key = APIKeyDialog()
+        # Save the window
+        api_key.master.ai_apikey_window = api_key
 
-        # If user did not hit 'Cancel', then save the key
-        if new_key is not None and new_key != "":
-            # Write out the new key
-            with open(KEYFILE, "w") as key_file:
-                key_file.write(new_key)
-                the_view.display_message_box(f"API key saved: '{new_key}' .", "Green")
-                the_view.ai_apikey = new_key
+    def ai_apikey_process_event(self, apikey_window: customtkinter, cancel: bool, clear: str) -> None:
+        """
+        Process the AI API Dialog key event.
+
+        Args:
+            apikey_window (customtkinter): The API key dialog window.
+            cancel (bool): Indicates if the operation was canceled.
+            clear (str): "openai_key", "claude_key", etc.
+
+        Returns:
+            None
+        """
+        apikeys_to_validate = ["openai_key", "claude_key"]
+        # self points to the 'event_handlers'; apikey_window is the dialog box window (APIKeyDialog).
+        my_gui = self.parent
+        # Bail out if user hit 'Cancel' button.
+        if cancel:
+            my_gui.display_message_box("'Cancel' button selected.  No change to the API keys!", "Orange")
+            # Save the window position and delete the window.  Then return.
+            my_gui.ai_apikey_window_position = save_window_position(apikey_window)
+            apikey_window.destroy()
+            return
+
+        # Get the API keys and update PrimeItems if necessary: key and length of key.
+        api_keys = {
+            "openai_key": apikey_window.openai_key.get(),
+            "claude_key": apikey_window.claude_key.get(),
+            "deepseek_key": apikey_window.deepseek_key.get(),
+            "gemini_key": apikey_window.gemini_key.get(),
+        }
+        apikey_changed = False
+        # Go through the API key entries.
+        for key, value in api_keys.items():
+            # See if 'Clear' button was selected.  Blank it out if it was.
+            if clear == key:
+                apikey_entry = f"entry_{key}"
+                entry_field = getattr(apikey_window, apikey_entry)
+                entry_field.delete(0, "end")
+                my_gui.display_message_box(
+                    f"{key.replace('_key', '').title()} API key cleared.",
+                    "LimeGreen",
+                )
+                return
+
+            # See if a valid API key was entered
+            if PrimeItems.ai[key] != value:  # If the key ent4ered doesn't matych what we already have.
+                # Validate the lngth of the key
+                if value and key in apikeys_to_validate and not valid_api_key(key, value):
+                    error_msg = f"{key.replace('_key', '').title()} API key is invalid!"
+                    my_gui.display_message_box(
+                        error_msg,
+                        "Red",
+                    )
+                    apikey_error_label = add_label(
+                        apikey_window,
+                        apikey_window,
+                        error_msg,
+                        "Red",
+                        14,
+                        "normal",
+                        5,
+                        0,
+                        20,
+                        20,
+                        "nw",
+                    )
+                    return
+
+                # Delete any error message that might exist.
+                with contextlib.suppress(Exception):
+                    apikey_error_label.destroy()
+                PrimeItems.ai[key] = value
+                apikey_changed = True
+                my_gui.display_message_box(
+                    f"{key.replace('_', ' ').title()} API key saved: '{value}' .",
+                    "LimeGreen",
+                )
+            else:
+                my_gui.display_message_box(
+                    f"{key.replace('_', ' ').title()} API key unmodified",
+                    "LimeGreen",
+                )
+
+        # Save the keys if they have changed.
+        if apikey_changed:
+            # Write out the new keys via pickle with filetype binary (b)
+            with open(KEYFILE, "wb") as key_file:
+                pickle.dump(PrimeItems.ai, key_file)
 
             # Redisplay ai settings with new key.
-            display_selected_object_labels(the_view)
-
-        # Usaer hit 'Cancel' or didn't input anything
+            display_selected_object_labels(my_gui)
         else:
-            the_view.display_message_box("No change to the API key!", "Orange")
+            my_gui.display_message_box("No API keys changed.", "LimeGreen")
+
+        # Save window position and destroy the window.
+        my_gui.ai_apikey_window_position = save_window_position(apikey_window)
+        apikey_window.destroy()
 
     # Show for edit the AI API Key
-    def ai_model_selected_event(self, model: str) -> None:
+    def ai_model_selected_event(self, modelplus: str) -> None:
         """
         Set the AI model to the specified model.
 
@@ -2784,6 +2868,8 @@ class EventHandlers:
             None
         """
         the_view = self.parent
+        #  model:  OpenAI: GPT-3.5
+        model = modelplus.split(": ")[1]
         if model == "None":
             the_view.display_message_box("No model selected.", "Orange")
             the_view.ai_model = ""
@@ -2791,6 +2877,9 @@ class EventHandlers:
             return
         the_view.ai_model = model
         the_view.display_message_box("Model set to " + model + ".", "Green")
+
+        # Set the appropriate API key based on the mdeol chosen.
+        set_ai_key(self, model)
 
         # Redisplay the Analyze button.
         display_analyze_button(the_view, 13, first_time=False)
@@ -2817,9 +2906,15 @@ class EventHandlers:
             None
         """
         the_view = self.parent
+        # Validate the model
         if the_view.ai_model in ("None", ""):
             the_view.display_message_box("No model selected.", "Orange")
             return
+        # Set the AI API key based on the model selected.
+        if not set_ai_key(the_view, the_view.ai_model):
+            the_view.display_message_box(f"The API Key is not set for model {the_view.ai_model}.", "Orange")
+            return
+        # Make sure we have a single name.
         if the_view.single_profile_name == "None or unnamed!":
             the_view.single_profile_name = ""
         # Do we have a single item identified?
@@ -3173,6 +3268,7 @@ class EventHandlers:
             "listfile": ("List Android Files Help", LISTFILES_HELP_TEXT),
             "search": ("Search Help", SEARCH_HELP_TEXT),
             "ppp": ("Profiles Per Line Help", PPP_HELP_TEXT),
+            "apikey": ("API Key Help", APIKEY_HELP_TEXT),
         }
 
         title, help_text = help_texts.get(query_name, ("", "No help available for this query."))
@@ -3252,23 +3348,7 @@ class EventHandlers:
                     # text_widget.tag_add(tag_name, start_index, end_index)
                     textview.textview_textbox.tag_add("found", idx, lastidx)
 
-                # This code never returns if stopindex is hit.
-                # # Start search at index 1...the beginning of the textbox.
-                # idx = "1.0"
-                # while 1:
-                #     # searches for desired string starting from index/last index.
-                #     idx = self.textview_textbox.search(
-                #         search_input, idx, nocase=1, count=found_counter, stopindex=end_line_col,
-                #     )
-                #     if not idx:
-                #         break
-
-                #     # Build a tag = index of found string + plus-sign + length of search string + 'c': eg. '14.0+3c'
-                #     lastidx = "%s+%dc" % (idx, len(search_input))
-
-                #     # overwrite 'Found' at idx
-                #     self.textview_textbox.tag_add("found", idx, lastidx)
-                #     idx = lastidx
+                # The tradditioonal tkinter search code fails: it never returns if stopindex is hit.
 
                 # mark located string as red
                 textview.textview_textbox.tag_config(
@@ -3540,3 +3620,6 @@ class EventHandlers:
 
     def profiles_per_line_event(self, profiles_per_line: str) -> None:  # noqa: D102
         self._handle_event("profiles_level_event", "diagramview", profiles_per_line)
+
+    def ai_apikey_get_event(self, cancel: bool, clear: bool) -> None:  # noqa: D102
+        self._handle_event("ai_apikey_process_event", "ai_apikey_window", cancel, clear)

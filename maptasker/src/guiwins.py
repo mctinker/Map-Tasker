@@ -1,9 +1,8 @@
+#! /usr/bin/env python3
 """GUI Window Classes and Definitions"""
 
-#! /usr/bin/env python3
-
 #                                                                                      #
-# userwins: provide GUI window functions                                               #
+# guiwins: provide GUI window functions                                                #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 from __future__ import annotations
@@ -37,14 +36,17 @@ from maptasker.src.guiutils import (
     extract_usage_profile,
     find_string_from_text_bottom,
     get_appropriate_color,
+    get_item_xml,
     get_monospace_fonts,
     get_profiles_in_project,
     get_tasks_in_profile,
     kill_the_progress_bar,
     make_hex_color,
     merge_lists,
+    on_closing,
     output_label,
     parse_pairs_to_columns,
+    prefix_and_sort,
     remove_tags_from_bars_and_names,
     reset_primeitems_single_names,
     search_substring_in_list,
@@ -54,15 +56,16 @@ from maptasker.src.lineout import LineOut
 from maptasker.src.maputils import find_all_positions, rutroh_error
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
+from maptasker.src.scenes import get_details
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
     DIAGRAM_PROFILES_PER_LINE,
-    LLAMA_MODELS,
-    OPENAI_MODELS,
+    MODEL_GROUPS,
     UNKNOWN_TASK_NAME,
     clean,
     logger,
 )
+from maptasker.src.xmldata import remove_html_tags
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -302,12 +305,6 @@ Click item and scroll mouse-wheel/trackpad\nas needed to go up or down.
             else:
                 self.treeview.insert(parent, "end", text=item)
 
-    # Tree view window is getting closed
-    def on_closing(self) -> None:
-        """Save the window position and close the window."""
-        self.master.tree_window_position = self.wm_geometry()
-        self.destroy()
-
 
 # Define the Text window
 class TextWindow(ctk.CTkToplevel):
@@ -354,24 +351,7 @@ class TextWindow(ctk.CTkToplevel):
         self.title(f"{title} - Drag window to desired position and rerun the {title} command.")
 
         # Save the window position on closure
-        self.protocol("WM_DELETE_WINDOW", self.on_closing)
-
-    # Text window is getting closed.  Save the window position.
-    def on_closing(self) -> None:
-        """Save the window position and close the window."""
-        window_position = self.wm_geometry()
-        title = self.wm_title()
-        if "Diagram" in title:
-            self.master.diagram_window_position = window_position
-        elif "Progress" in title:
-            self.master.progressbar_window_position = window_position
-        elif "Analysis" in title:
-            self.master.ai_analysis_window_position = window_position
-        elif "Tree" in title:
-            self.master.tree_window_position = window_position
-        elif "Map" in title:
-            self.master.map_window_position = window_position
-        self.destroy()
+        self.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
 
 
 # Display a Text structure: Used for 'Map', 'Diagram' and 'Tree' views.
@@ -398,30 +378,64 @@ class CTkTextview(ctk.CTkFrame):
         self.root = master
         super().__init__(self.root)
 
+        # Define a single column and make it extendable.
         self.grid_columnconfigure(0, weight=1)
 
-        # Basic appearance for text, foreground and background.
-        self.textview_bg_color = self.root._apply_appearance_mode(  # noqa: SLF001
-            ctk.ThemeManager.theme["CTkFrame"]["fg_color"],
-        )
-        self.textview_text_color = self.root._apply_appearance_mode(  # noqa: SLF001
-            ctk.ThemeManager.theme["CTkLabel"]["text_color"],
-        )
-        self.selected_color = self.root._apply_appearance_mode(  # noqa: SLF001
-            ctk.ThemeManager.theme["CTkButton"]["fg_color"],
-        )
+        # Setup our appearance for text, foreground and background.
+        self.setup_appearance()
+
+        # Set up the title
+        self.title = f"{title} - Drag window to desired position and rerun the {title} command."
+
+        # Setup the textbox.
+        self.setup_textbox(master)
+
+        # Process the data and insert it into the text box.
+        self.process_data(the_data)
+
+        # Set a timer so we can delete the label after a certain amount of time.
+        self.after(3000, self.delay_event)  # 3 second timer
+        self.textview_textbox.focus_set()
+
+    def setup_appearance(self) -> None:
+        """
+        Sets up the appearance of the text view by configuring colors based on the current theme.
+        """
+        self.textview_bg_color = self.get_appearance_color("CTkFrame", "fg_color")
+        self.textview_text_color = self.get_appearance_color("CTkLabel", "text_color")
+        self.selected_color = self.get_appearance_color("CTkButton", "fg_color")
 
         # Set up the style/theme
         self.textview_style = ttk.Style(self)
         self.textview_style.theme_use("default")
-        self.title = f"{title} - Drag window to desired position and rerun the {title} command."
-        self.top = False  # Used by Next / Prev buttons
 
-        # Recreate text box
-        width = getattr(master.master, "text_window_width")
-        height = getattr(master.master, "text_window_height")
-        # Shorten the height so that the scrollbar is shown.
-        height = str(int(height) - 70)
+        # Get the special fonts
+        self.bold_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], weight="bold", size=12)
+        self.italic_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], size=12, slant="italic")
+
+    def get_appearance_color(self, widget_type: object, color_type: str) -> object:
+        """
+        Retrieves the appearance color for a given widget type and color type.
+
+        Args:
+            widget_type (object): The type of the widget.
+            color_type (str): The type of the color.
+
+        Returns:
+            object: The appearance color.
+        """
+        return self.root._apply_appearance_mode(ctk.ThemeManager.theme[widget_type][color_type])  # noqa: SLF001
+
+    def setup_textbox(self, master: object) -> None:
+        """
+        Sets up the text box widget with the specified master widget.
+
+        Args:
+            master (object): The parent widget for the text box.
+
+        Returns:
+            None
+        """
         font = getattr(master.master, "font")
         self.textview_textbox = ctk.CTkTextbox(
             self,
@@ -429,10 +443,16 @@ class CTkTextview(ctk.CTkFrame):
         )
         self.textview_textbox.grid(row=0, column=0, padx=20, pady=40, sticky="nsew")
 
+        # Get thew width and height of the text box.
+        width = getattr(master.master, "text_window_width")
+        height = getattr(master.master, "text_window_height")
+        # Shorten the height so that the scrollbar is shown.
+        height = str(int(height) - 70)
+
         # Define a scrollbar
         _ = ctk.CTkScrollbar(self)
 
-        # Set the height and width
+        # Configure the text box
         self.textview_textbox.configure(
             height=height,
             width=width,
@@ -446,20 +466,23 @@ class CTkTextview(ctk.CTkFrame):
             get_appropriate_color(master.master, "blue"),
         )
 
-        # Get the special fonts
-        self.bold_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], weight="bold", size=12)
-        self.italic_font = ctk.CTkFont(family=PrimeItems.program_arguments["font"], size=12, slant="italic")
-
         # Initialize variables
         self.textview_textbox.diagram_highlighted_connector = ""
+        self.top = False  # Used by Next / Prev buttons
 
+    def process_data(self, the_data: list) -> None:
+        """
+        Processes the given data and inserts it into the text box.
+
+        Args:
+            the_data (list): The data to be processed and inserted.
+        """
         # Insert the text with our new message into the text box.
-        # fmt: off
         if type(the_data) == str:
             the_data = the_data.split("\n")
 
         # Process list data (list of lines): diagram view.
-        if type(the_data) !=  dict:
+        if type(the_data) != dict:
             self.output_list(the_data)
 
         else:
@@ -467,10 +490,6 @@ class CTkTextview(ctk.CTkFrame):
             self.output_map(the_data)
             # Add the CustomTkinter widgets
             self.add_view_widgets("Map")
-
-        # Set a timer so we can delete the label after a certain amount of time.
-        self.after(3000, self.delay_event)  # 3 second timer
-        self.textview_textbox.focus_set()
 
     def output_list(self, the_data: list) -> None:
         """
@@ -483,20 +502,48 @@ class CTkTextview(ctk.CTkFrame):
         """
         diagram = "Diagram" in self.title
         self.diagram_connectors = {}
-        for num, line in enumerate(the_data):
-            text_line = num + 1
-            # NOTE: debug mode displays line numbers, and colors/highlighting is offset by the line number length.
-            if self.master.master.debug:  # Add line number if debug mode.
-                self.textview_textbox.insert(f"{text_line!s}.0", f"{text_line!s}{line}\n")
-            else:
-                self.textview_textbox.insert(f"{text_line!s}.0", f"{line}\n")
+        # Go through the data and insert it into the textbox.
 
-            # Highlight the Tasker names if doing a diagram.
-            if diagram:
-                self.highlight_text(line, text_line)
+        # -------------------------------------------------------------------------
+        # 1) BUILD ALL LINES INTO ONE STRING AND DO ONE INSERT
+        # -------------------------------------------------------------------------
+        # Create the lines for insertion in a single pass
+        if self.master.master.debug:
+            # Include line numbers in front
+            lines = [f"{i+1}{line}\n" for i, line in enumerate(the_data)]
+        else:
+            # Just insert the raw lines
+            lines = [f"{line}\n" for line in the_data]
 
-                # Build our wire connectors.
-                self.diagram_connectors = build_connectors(the_data, num, self.diagram_connectors)
+        # Join everything into one big string
+        big_block_of_text = "".join(lines)
+
+        # Clear the Text widget once
+        self.textview_textbox.delete("1.0", "end")
+
+        # Insert in a single call
+        self.textview_textbox.insert("1.0", big_block_of_text)
+
+        # -------------------------------------------------------------------------
+        # 2) HIGHLIGHT IN ONE PASS, IF NECESSARY
+        # -------------------------------------------------------------------------
+        if diagram:
+            # If your highlight_text function depends on the line number,
+            # you still need to loop over each line.  But you've already
+            # done the text insertion, so this is just highlighting now.
+            for i, line in enumerate(the_data):
+                # Your highlight method might use something like
+                # f"{i+1}.0" for starting indices, etc.
+                self.highlight_text(line, i + 1)
+
+            # ---------------------------------------------------------------------
+            # 3) BUILD CONNECTORS IN A SEPARATE PASS
+            # ---------------------------------------------------------------------
+            # If you can modify build_connectors to handle the whole list at once,
+            # you could call it just once.  If it must be line-by-line, keep it
+            # in a loop.  For example:
+            for i in range(len(the_data)):
+                self.diagram_connectors = build_connectors(the_data, i, self.diagram_connectors)
 
         # Configure tag colors once if a highlight was applied
         if diagram:
@@ -1087,6 +1134,9 @@ class CTkTextview(ctk.CTkFrame):
         # Get the Profile related info.
         elif item_type == "profile":
             text = self.hover_profile(name, text)
+        # Get the Scene related info.
+        elif item_type == "scene":
+            text = self.hover_scene(name, text)
         # Project related info.
         else:
             text = self.hover_project(name, text)
@@ -1181,7 +1231,7 @@ class CTkTextview(ctk.CTkFrame):
             project = "None"
 
         # Get the Properties
-        properties = self.get_properties("Task", name)
+        properties = self.get_properties_for_hover("Task", name)
 
         # Get the list of Task actions.
         if UNKNOWN_TASK_NAME in name:
@@ -1194,6 +1244,32 @@ class CTkTextview(ctk.CTkFrame):
             task_item = ""
 
         return text + f"\n  In Profile: {profile}\n  In Project: {project}{properties}{task_item}"
+
+    def hover_scene(self, name: str, text: str) -> str:
+        """
+        Get the Scene related info and add it to the tooltip.
+
+        Finds the Profile and Project associated with the Task and adds
+        it to the tooltip.  Also, gets and adds the Task's properties.
+
+        Parameters:
+            self: The instance of the class.
+            tag (str): The tag name of the item.
+            name (str): The name of the item.
+            text (str): The initial text to add to the tooltip.
+
+        Returns:
+            str: The updated tooltip text.
+        """
+        scene_xml = PrimeItems.tasker_root_elements["all_scenes"][name]["xml"]
+        # Put the Scene's details into the output_lines.
+        PrimeItems.output_lines.output_lines = []
+        get_details(scene_xml, 0)
+        # Get just the elements
+        elements = [line for line in PrimeItems.output_lines.output_lines if "Element of type" in line]
+        for num, element in enumerate(elements):
+            elements[num] = remove_html_tags(element, "").replace("&nbsp;", "")
+        return text + "\nElements...\n" + "\n".join(elements)
 
     def get_list_of_actions(self, name: str, task_xml: defusedxml) -> str:
         """
@@ -1263,7 +1339,7 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             str: The extracted profile name if found, otherwise an empty string.
         """
-        if "Unnamed/Anonymous." in name:
+        if UNKNOWN_TASK_NAME in name:
             start_line_num = int(tag.split(".")[0]) - 1
             profile_line = find_string_from_text_bottom(self, title, start_line_num)
             if profile_line is not None:
@@ -1288,7 +1364,7 @@ class CTkTextview(ctk.CTkFrame):
         with contextlib.suppress(AttributeError):
             self.hover_tooltip.destroy()
 
-    def get_properties(self, item_type: str, item_name: str) -> str:
+    def get_properties_for_hover(self, item_type: str, item_name: str) -> str:
         """
         Retrieves and formats the properties of a specified item type.
 
@@ -1307,22 +1383,10 @@ class CTkTextview(ctk.CTkFrame):
             item type.
             - Cleans and formats the properties for output.
         """
-        # Get the item's XML
-        # if item_name == "Unnamed/Anonymous.":
-        #    return ""
-        if item_type == "Task":
-            try:
-                result = next(
-                    (k, v) for k, v in PrimeItems.tasker_root_elements["all_tasks"].items() if v["name"] == item_name
-                )
-                xml = result[1]["xml"]
-            except StopIteration:
-                if PrimeItems.program_arguments["debug"]:
-                    logger.debug(f"Error in guiwins: task {item_name} Not Found!!!!")
-                return ""
-
-        else:
-            xml = PrimeItems.tasker_root_elements["all_projects"][item_name]["xml"]
+        # Get the item's XML so we can chase down its properities.
+        xml = get_item_xml(item_type, item_name)
+        if xml is None:
+            return ""
 
         # Clear out the output and get the Project's properties
         PrimeItems.output_lines = LineOut()
@@ -2180,7 +2244,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Tag items for hover and background highlight
         if ": Properties" not in message and any(
-            keyword in message for keyword in ("Task: ", "Profile: ", "Project: ")
+            keyword in message for keyword in ("Task: ", "Profile: ", "Project: ", "Scene: ")
         ):
             self.tag_items(tag_id, message)
             self.textview_textbox.tag_config(tag_id, background=background_color)
@@ -2517,21 +2581,13 @@ class ProgressbarWindow(ctk.CTk):
         # self now points to the ProgressbarWindow.
 
         # Save the window position on closure
-        self.protocol("WM_DELETE_WINDOW", self.on_closing_progressbar_window)
+        self.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
 
         # self.progressbar.set(0.0)  # Start with progress of 0.
         self.progressbar.pack(padx=20, pady=20)
         # Setup values so we can determine the amount of time before we issue an IMKClient message.
         self.progressbar.start_time = round(time.time() * 1000)
         self.progressbar.print_alert = True
-
-    def on_closing_progressbar_window(self: object) -> None:
-        """Save the window position and close the window."""
-        window_position = self.wm_geometry()
-        title = self.wm_title()
-        if "Progress" in title and self.master.progressbar_window_position is not None:
-            self.master.progressbar_window_position = window_position
-        kill_the_progress_bar(self.master.progress_bar)
 
 
 # Define the Ai Popup window
@@ -2831,7 +2887,9 @@ class CTkHyperlinkManager:
         Returns:
             bool: True if the name is found, False otherwise.
         """
-        return any(tasker_items[key]["name"] == name for key in tasker_items)
+        # return any(tasker_items[key]["name"] == name for key in tasker_items)
+        names = {tasker_items[key]["name"] for key in tasker_items}
+        return name in names
 
     # Search for and point to the specific item in the textbox.
     def find_and_point_to_item(self, action: str, name: str, guiself: ctk) -> None:
@@ -2921,6 +2979,8 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.ai_analysis_window = None
     self.ai_analysis_window_position = ""
     self.ai_apikey = None
+    self.ai_apikey_window = None
+    self.ai_apikey_window_position = ""
     # self.ai_missing_module = None
     self.ai_model = ""
     self.ai_popup_window_position = ""
@@ -3551,7 +3611,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     )
 
     # Save settings button
-    self.save_settings_button = add_button(
+    _ = add_button(
         self,
         self,
         "#6563ff",
@@ -3569,7 +3629,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     )
 
     # Restore settings button
-    self.restore_settings_button = add_button(
+    _ = add_button(
         self,
         self,
         "#6563ff",
@@ -3659,7 +3719,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     )
 
     # 'Display Help' button definition
-    self.help_button = add_button(
+    _ = add_button(
         self,
         self,
         "#246FB6",
@@ -3677,7 +3737,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     )
 
     # 'Backup Help' button definition
-    self.backup_help_button = add_button(
+    _ = add_button(
         self,
         self,
         "#246FB6",
@@ -3753,7 +3813,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     )
 
     # 'Exit' button definition
-    self.exit_button = add_button(
+    _ = add_button(
         self,
         self,
         "#246FB6",
@@ -3788,7 +3848,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     self.tabview.tab("Debug").grid_columnconfigure(0, weight=1)
 
     # Prompt for the name
-    self.name_label = add_label(
+    _ = add_label(
         self,
         self.tabview.tab("Specific Name"),
         "(Pick ONLY One)",
@@ -3803,7 +3863,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     )
 
     # Setup to get various display colors
-    self.label_tab_2 = add_label(
+    _ = add_label(
         self,
         self.tabview.tab("Colors"),
         "Set Various Display Colors Here:",
@@ -3816,7 +3876,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         0,
         "",
     )
-    self.colors_optionmenu = add_option_menu(
+    _ = add_option_menu(
         self,
         self.tabview.tab("Colors"),
         self.event_handlers.colors_event,
@@ -3846,7 +3906,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     )
 
     # Reset to Default Colors button
-    self.color_reset_button = add_button(
+    _ = add_button(
         self,
         self.tabview.tab("Colors"),
         "",
@@ -3866,7 +3926,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     # AI Tab fields
     center = 50
     # API Key
-    self.ai_apikey_button = add_button(
+    _ = add_button(
         self,
         self.tabview.tab("Analyze"),
         "",  # fg_color: str,
@@ -3874,7 +3934,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "",  # border_color: str,
         self.event_handlers.ai_apikey_event,  # command
         2,  # border_width: int,
-        "Show/Edit OpenAI API Key",  # text: str,
+        "Show/Edit API Key(s)",  # text: str,
         1,  # columnspan: int,
         3,  # row: int,
         0,  # column: int,
@@ -3883,7 +3943,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "",
     )
     # Change Prompt
-    self.ai_apikey_button = add_button(
+    _ = add_button(
         self,
         self.tabview.tab("Analyze"),
         "",  # fg_color: str,
@@ -3913,8 +3973,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         (0, 0),
         "n",
     )
-    display_models = [*OPENAI_MODELS, *LLAMA_MODELS]  # Combine lists
-    display_models.sort()
+
+    # Prefix, sort, and combine the model lists
+    display_models = sorted(model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name))
+
     (
         display_models.insert(0, PrimeItems.program_arguments["ai_model"])
         if PrimeItems.program_arguments["ai_model"]
@@ -4012,37 +4074,30 @@ def get_rid_of_window(self, delete_all: bool = True) -> None:  # noqa: ANN001
     self.quit()
 
 
-# Store our various window positions
 def store_windows(self) -> None:  # noqa: ANN001
     """
-    Stores the positions of al of our windows.
+    Stores the positions of all of our windows.
 
     This function saves the positions of the various windows using the `save_window_position()` function.
-
-    Parameters:
-        self (object): The instance of the class.
 
     Returns:
         None
     """
+    windows = {
+        "ai_analysis_window": "ai_analysis_window_position",
+        "treeview_window": "tree_window_position",
+        "diagramview_window": "diagram_window_position",
+        "mapview_window": "map_window_position",
+        "progressbar_window": "progressbar_window_position",
+        "apikey_window": "ai_apikey_window_position",
+        "self": "window_position",
+    }
+
     with contextlib.suppress(AttributeError):
-        if window_pos := save_window_position(self.ai_analysis_window):
-            self.ai_analysis_window_position = window_pos
-    with contextlib.suppress(AttributeError):
-        if window_pos := save_window_position(self.treeview_window):
-            self.tree_window_position = window_pos
-    with contextlib.suppress(AttributeError):
-        if window_pos := save_window_position(self.diagramview_window):
-            self.diagram_window_position = window_pos
-    with contextlib.suppress(AttributeError):
-        if window_pos := save_window_position(self.mapview_window):
-            self.map_window_position = window_pos
-    with contextlib.suppress(AttributeError):
-        if window_pos := save_window_position(self):
-            self.window_position = window_pos
-    with contextlib.suppress(AttributeError):
-        if window_pos := save_window_position(self.progressbar_window):
-            self.progressbar_window_position = window_pos
+        for window_attr, position_attr in windows.items():
+            window_obj = getattr(self, window_attr, None)
+            if window_obj and (window_pos := save_window_position(window_obj)):
+                setattr(self, position_attr, window_pos)
 
 
 class ToolTip(object):  # noqa: UP004
@@ -4165,3 +4220,215 @@ def create_tooltip(widget: object, text: str) -> None:
 
     widget.bind("<Enter>", enter)
     widget.bind("<Leave>", leave)
+
+
+class CTkApiKeyOptions(ctk.CTkToplevel):
+    """
+    A class to represent the API Key options window.
+
+    This class inherits from CTkToplevel and is used to create a window for managing API Key options.
+    It will add an additional window to the GetAPIKey window.
+    """
+
+    def __init__(self, *args: dict, **kwargs: dict) -> None:
+        """
+        Initialize the CTkApiKeyOptions class.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        """
+        """
+        Initialize the GetApiKey window.
+
+        Parameters:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        """
+        super().__init__(*args, **kwargs)
+        # self.geometry("400x300")
+        # self.label = ctk.CTkLabel(self, text="ToplevelWindow")
+        # self.label.pack(padx=20, pady=20)
+
+
+class APIKeyDialog(ctk.CTkToplevel):
+    """
+    A class to represent the GetApiKey top-level window.  This is used to manage the AI API Keys.
+
+    This class inherits from CTk and is used to create a window for managing API keys.
+    """
+
+    def __init__(self, *args: dict, **kwargs: dict) -> None:
+        """
+        Initialize the CTkToplevel class.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        """
+        super().__init__(*args, **kwargs)
+
+        # Get our GUI
+        my_gui = self.master
+
+        # Basic appearance for text, foreground and background.
+        width = "800"
+        height = "400"
+        self.title("API Key Options")
+        self.apiview_bg_color = self._apply_appearance_mode(
+            ctk.ThemeManager.theme["CTkFrame"]["fg_color"],
+        )
+        self.apiview_text_color = self._apply_appearance_mode(
+            ctk.ThemeManager.theme["CTkLabel"]["text_color"],
+        )
+        self.selected_color = self._apply_appearance_mode(
+            ctk.ThemeManager.theme["CTkButton"]["fg_color"],
+        )
+
+        # Position the widget
+        window_position = my_gui.ai_apikey_window_position
+        try:
+            self.geometry(window_position)
+            # window_ shouldn't be in here.  If it is, pickle file is corrupt.
+            window_position = window_position.replace("window_", "")
+            work_window_geometry = window_position.split("x")
+            self.master.ai_apikey_window_width = work_window_geometry[0]
+            self.master.ai_apikey_window_height = work_window_geometry[1].split("+")[0]
+        except (AttributeError, TypeError):
+            self.master.ai_apikey_window_position = f"{width}x{height}+600+0"
+            self.master.ai_apikey_window_width = width
+            self.master.ai_apikey_window_height = height
+            self.geometry(f"{width}x{height}")
+        # Save the window position on closure
+        self.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
+
+        # Define the grid.
+        self.grid_columnconfigure(1, weight=1)
+
+        # Save the window
+        my_gui.ai_apikey_window = self
+
+        # Get the server-based keys
+        self.openai_key = self.create_key_entry(0, "OpenAI API Key:", "openai_key")
+        self.claude_key = self.create_key_entry(1, "Claude API Key:", "claude_key")
+        self.deepseek_key = self.create_key_entry(2, "DeepSeek API Key:", "deepseek_key")
+        self.gemini_key = self.create_key_entry(3, "Gemini API Key:", "gemini_key")
+
+        #  OK button
+        apikey_ok_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            ("#0BF075", "#ffd941"),
+            "#1bc9ff",
+            # Note: lambda needs the '_:' to pass the event object.
+            lambda: my_gui.event_handlers.ai_apikey_get_event(cancel=False, clear=""),
+            1,
+            "OK",
+            1,
+            4,
+            0,
+            (150, 0),
+            20,
+            "nw",
+        )
+        apikey_ok_button.configure(width=30)
+
+        #  Query ? button
+        apikey_query_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            ("#0BF075", "#ffd941"),
+            "#1bc9ff",
+            lambda: my_gui.event_handlers.query_event("apikey"),
+            1,
+            "?",
+            1,
+            4,
+            0,
+            (200, 0),
+            20,
+            "nw",
+        )
+        apikey_query_button.configure(width=20)
+        # Cancel button
+        _ = add_button(
+            self,
+            self,
+            "",
+            ("#0BF075", "#FFFFFF"),
+            "",
+            # Note: lambda needs the '_:' to pass the event object.
+            lambda: my_gui.event_handlers.ai_apikey_get_event(cancel=True, clear=""),
+            1,
+            "Cancel",
+            1,  # Column span
+            4,  # row
+            0,  # col
+            (250, 90),
+            0,
+            "ew",
+        )
+        self.focus()
+
+    def open_toplevel(self) -> None:
+        """
+        Open the toplevel window for API key options.
+
+        This method creates a new toplevel window for managing API key options if it does not already exist.
+        If the window exists, it brings it to focus.
+        """
+        if self.ai_apikey_window is None or not self.ai_apikey_window.winfo_exists():
+            self.ai_apikey_window = CTkApiKeyOptions(self)  # create window if its None or destroyed
+        else:
+            self.ai_apikey_window.focus()  # if window exists focus it
+
+    def create_key_entry(self, row: int, label_text: str, placeholder_key: str) -> ctk.CTkEntry:
+        """Helper function to create a label, entry and 'Clear' button for an API key."""
+        _ = add_label(
+            self,
+            self,
+            label_text,
+            "Orange",
+            14,
+            "normal",
+            row,
+            0,
+            20,
+            20,
+            "nw",
+        )
+        # Generate the dynamic entry field name / widget
+        entry_name = f"entry_{placeholder_key}"
+        setattr(self, entry_name, ctk.CTkEntry(self, placeholder_text=PrimeItems.ai[placeholder_key]))
+        # Access the dynamically created entry widget
+        entry_widget = getattr(self, entry_name)
+        entry_widget.grid(row=row, column=0, padx=(150, 10), pady=20, sticky="ne")
+        entry_widget.configure(width=565)
+        entry_widget.insert(0, PrimeItems.ai[placeholder_key])
+
+        # Get our GUI
+        my_gui = self.master
+
+        # Add 'Clear" button
+        clear = add_button(
+            self,
+            self,
+            "",
+            ("#0BF075", "#FFFFFF"),
+            "",
+            # Note: lambda needs the '_:' to pass the event object.
+            lambda: my_gui.event_handlers.ai_apikey_get_event(cancel=False, clear=placeholder_key),
+            1,
+            "Clear",
+            1,  # Column span
+            row,  # row
+            1,  # col
+            (10, 10),
+            20,
+            "ne",
+        )
+        clear.configure(width=20)
+
+        return entry_widget

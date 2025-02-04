@@ -47,7 +47,7 @@ from maptasker.src.globalvr import get_variables, output_variables
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapai import map_ai
-from maptasker.src.maputils import display_task_warnings
+from maptasker.src.maputils import clear_tasker_data, display_task_warnings
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
@@ -135,11 +135,7 @@ def clean_up_memory() -> None:
     if PrimeItems.xml_tree is not None:
         for elem in PrimeItems.xml_tree.iter():
             elem.clear()
-    PrimeItems.tasker_root_elements["all_projects"].clear()
-    PrimeItems.tasker_root_elements["all_profiles"].clear()
-    PrimeItems.tasker_root_elements["all_tasks"].clear()
-    PrimeItems.tasker_root_elements["all_scenes"].clear()
-    PrimeItems.tasker_root_elements["all_services"].clear()
+    clear_tasker_data()
     if PrimeItems.directories:
         PrimeItems.directories.clear()
     PrimeItems.directory_items["projects"].clear()

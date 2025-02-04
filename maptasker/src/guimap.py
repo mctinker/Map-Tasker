@@ -1,6 +1,5 @@
-"""GUI Map"""
-
 #! /usr/bin/env python3
+"""GUI Map"""
 
 #                                                                                      #
 # guimap: reverse engineer the mapped html file and return just the data as a list.    #
@@ -391,7 +390,7 @@ def calculate_spacing(
         return 7 if text.startswith("   The following Tasks in Project ") else 10
 
     # General spacing conditions
-    if spacing == 61 or text[0].isdigit() or " continued >>>" in text:
+    if spacing == 61 or (text and text[0].isdigit()) or " continued >>>" in text:
         return 15
 
     # Default spacing
@@ -614,7 +613,7 @@ def ignore_line(line: str) -> bool:
     """
     text_to_ignore = [
         "<style>",
-        "<tr> ",
+        "<tr>",
         "<table>",
         "<td></td>",
         "<a id=",

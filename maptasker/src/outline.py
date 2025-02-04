@@ -62,8 +62,10 @@ def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_na
         - Adds the caller task's name to the performed task's called_by list
     """
     # Get the Task element referred to by perform_task_name.
-    if PrimeItems.tasks_by_name[task["name"]]:
-        task_called = PrimeItems.tasks_by_name[task["name"]]  # Get the Task element referred to by perform_task_name
+    if PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]:
+        task_called = PrimeItems.tasker_root_elements["all_tasks_by_name"][
+            task["name"]
+        ]  # Get the Task element referred to by perform_task_name
 
         # Add it to the list of Tasks this Task calls.
         try:
@@ -73,12 +75,12 @@ def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_na
             task_called["call_tasks"] = [perform_task_name]
         except AttributeError:
             task_called["call_tasks"] = [perform_task_name]
-        PrimeItems.tasks_by_name[task["name"]]["call_tasks"] = task_called["call_tasks"]
+        PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]["call_tasks"] = task_called["call_tasks"]
 
     # Find the Task xml element to which this Perform Task refers.  Set up the called by Task list.
     with contextlib.suppress(KeyError):
-        if PrimeItems.tasks_by_name[perform_task_name]:
-            task_called = PrimeItems.tasks_by_name[perform_task_name]
+        if PrimeItems.tasker_root_elements["all_tasks_by_name"][perform_task_name]:
+            task_called = PrimeItems.tasker_root_elements["all_tasks_by_name"][perform_task_name]
 
             # Add it to the list of Tasks that call this Task.
             try:
@@ -88,7 +90,9 @@ def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_na
                     task_called["called_by"] = [task["name"]]
             except KeyError:
                 task_called["called_by"] = [task["name"]]
-            PrimeItems.tasks_by_name[perform_task_name]["called_by"] = task_called["called_by"]
+            PrimeItems.tasker_root_elements["all_tasks_by_name"][perform_task_name]["called_by"] = task_called[
+                "called_by"
+            ]
 
 
 # Go through the Task's Actions looking for any Perform Task actions.
@@ -293,8 +297,8 @@ def do_profile_tasks(
 
         # Go through all "calls task" tasks and add them to the call_task.
         with contextlib.suppress(KeyError):
-            if PrimeItems.tasks_by_name[task["name"]]:
-                prime_task = PrimeItems.tasks_by_name[task["name"]]
+            if PrimeItems.tasker_root_elements["all_tasks"][task["name"]]:
+                prime_task = PrimeItems.tasker_root_elements["all_tasks"][task["name"]]
                 try:
                     for perform_task in prime_task["call_tasks"]:
                         call_task = f"{call_task} '{perform_task}',"
@@ -387,30 +391,6 @@ def outline_profiles_tasks_scenes(
     outline_scenes(project_name, network)
 
 
-# Name anonymous Tasks as "anonymous#1", "anonymous#2", etc.
-def assign_names_to_anonymous_tasks() -> None:
-    """Assign names to anonymous tasks in the task list
-    Args:
-        None
-    Returns:
-        None: Assign names to anonymous tasks
-    - Count number of anonymous tasks
-    - Iterate through all tasks
-    - Check if task name is empty
-    - If empty, assign default name "Anonymous#{counter}"
-    - Increment counter"""
-    no_name_counter = 1
-    PrimeItems.tasks_by_name = {}
-    for value in PrimeItems.tasker_root_elements["all_tasks"].values():
-        if not value["name"]:
-            value["name"] = f"Anonymous#{no_name_counter!s}"
-            no_name_counter += 1
-
-        # From this point on, we only need to find Tasks by Name.  So create a dict of all Tasks by name.
-        # PrimeItems.tasks_by_name[value["name"]] = {"id": key, "name": value["name"], "xml": value["xml"]}
-        PrimeItems.tasks_by_name[value["name"]] = value
-
-
 # Start outline beginning with the Projects
 def do_the_outline(network: dict) -> None:
     """
@@ -418,16 +398,15 @@ def do_the_outline(network: dict) -> None:
         Args:
             network (dict): Dictionary structure for our network
     """
-    # Name anonymous Tasks as "anonymous#1", "anonymous#2", etc.
-    assign_names_to_anonymous_tasks()
     # Make sure we start clean by delteing all prexisting call_tasks and called_by lists.
     all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    all_tasks_by_name = PrimeItems.tasker_root_elements["all_tasks_by_name"]
     for task_num in all_tasks:
         task = PrimeItems.tasker_root_elements["all_tasks"][task_num]
         with contextlib.suppress(KeyError):
-            del PrimeItems.tasks_by_name[task["name"]]["call_tasks"]
+            del all_tasks_by_name[task["name"]]["call_tasks"]
         with contextlib.suppress(KeyError):
-            del PrimeItems.tasks_by_name[task["name"]]["called_by"]
+            del all_tasks_by_name[task["name"]]["called_by"]
     PrimeItems.outline_tasks_mapped = []  # Keep track of tasks that have been mapped.
 
     # If no projects and a profile or task, just display profile or task rather than going through this loop.

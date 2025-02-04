@@ -1,6 +1,7 @@
-"""Module containing action runner logic."""
-
 #! /usr/bin/env python3
+"""
+Module containing action runner logic.
+"""
 
 #                                                                                      #
 # sysconst: System constants                                                           #
@@ -17,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "6.1.1"
+VERSION = "7.0.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -30,7 +31,7 @@ NO_PROFILE = "None or unnamed!"
 CHANGELOG_FILE = ".maptasker_changelog.txt"
 CHANGELOG_JSON_FILE = "maptasker_changelog.json"
 CHANGELOG_JSON_URL = "https://raw.githubusercontent.com/mctinker/Map-Tasker/Master/maptasker_changelog.json"
-KEYFILE = ".maptasker.key"
+KEYFILE = ".maptasker.pkl"
 ERROR_FILE = ".maptasker_error.txt"
 ANALYSIS_FILE = "MapTasker_Analysis.txt"
 DIAGRAM_FILE = "MapTasker_Map.txt"
@@ -111,6 +112,7 @@ ARGUMENT_NAMES = {
     "android_file": "Android Backup File location on Android device",
     "android_ipaddr": "Android IP Address",
     "android_port": "Android Port Number",
+    "ai_apikey_window_position": "API Key Options Window Position",
     "appearance_mode": "Appearance Mode",
     "bold": "Bold Names",
     "color_window_position": "Last Color Window Position",
@@ -145,6 +147,7 @@ ARGUMENT_NAMES = {
     "window_position": "Last Window Position",
 }
 
+# Window positions etc. that are to be pickled
 SYSTEM_ARGUMENTS = [
     "window_position",
     "tree_window_position",
@@ -152,6 +155,7 @@ SYSTEM_ARGUMENTS = [
     "color_window_position",
     "ai_popup_window_position",
     "ai_analysis_window_position",
+    "ai_apikey_window_position",
     "map_window_position",
     "progressbar_window_position",
     "guiview",
@@ -261,6 +265,7 @@ LLAMA_MODELS = [
     "codellama",
     "deepseek-coder",
     "deepseek-coder-v2",
+    "deepseek-r1",
     "gemma",
     "gemma2",
     "llama2",
@@ -271,12 +276,37 @@ LLAMA_MODELS = [
     "mistral",
     "mistral-nemo",
     "phi3",
+    "phi4",
     "qwen",
     "qwen2",
     "qwen2.5-coder",
     "qwen2.5",
     "tinyllama",
 ]
+CLAUDE_MODELS = [
+    "claude-3-5-sonnet-latest",
+    "claude-3-5-haiku-latest",
+    "claude-3-opus-latest",
+    "claude-3-sonnet-20240229",
+    "claude-3-sonnet-20240229",
+]
+DEEPSEEK_MODELS = [
+    "deepseek-chat",
+]
+GEMINI_MODELS = [
+    "gemini-2.0-flash-exp",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-8b",
+    "gemini-1.5-pro",
+    "gemini-1.0-pro",
+]
+MODEL_GROUPS = {
+    "OpenAI": OPENAI_MODELS,
+    "Claude": CLAUDE_MODELS,
+    "LLAMA": LLAMA_MODELS,
+    "DeepSeek": DEEPSEEK_MODELS,
+    "Gemini": GEMINI_MODELS,
+}
 
 # DFefine the number of Profiles per line in the Diagram view.  Default = 6.
 DIAGRAM_PROFILES_PER_LINE = 6

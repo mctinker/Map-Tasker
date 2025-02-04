@@ -216,7 +216,7 @@ def do_tasks_in_project(
             have_tasks_not_in_profile = True
             PrimeItems.task_count_no_profile = PrimeItems.task_count_no_profile + 1
             # We have a Project's Task that has not yet been output
-            our_task_element, our_task_name = tasks.get_task_name(
+            _, our_task_name = tasks.get_task_name(
                 the_id,
                 found_tasks,
                 [],

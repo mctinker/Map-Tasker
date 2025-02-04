@@ -56,9 +56,12 @@ class PrimeItems:
     ai: ClassVar = {
         "do_ai": False,
         "model": "",
-        "output_lines": [],
-        "response": [],
+        "output_lines": [],  # Saved output results if doing an AI run.
         "api_key": "",
+        "openai_key": "",
+        "claude_key": "",
+        "deepseek_key": "",
+        "gemini_key": "",
     }
     xml_tree = None
     xml_root = None
@@ -96,6 +99,7 @@ class PrimeItems:
         "all_profiles": {},
         "all_scenes": {},
         "all_tasks": {},
+        "all_tasks_by_name": {},
         "all_services": [],
     }
     directories: ClassVar = []
@@ -148,6 +152,7 @@ class PrimeItemsReset:
             "all_profiles": {},
             "all_scenes": {},
             "all_tasks": {},
+            "all_tasks_by_name": {},
             "all_services": [],
         }
         PrimeItems.directories = []
@@ -170,7 +175,10 @@ class PrimeItemsReset:
         PrimeItems.ai = {
             "do_ai": False,
             "output_lines": [],
-            "response": [],
             "api_key": "",
+            "openai_key": "",
+            "claude_key": "",
+            "deepseek_key": "",
+            "gemini_key": "",
         }
         PrimeItems.task_action_warnings = {}

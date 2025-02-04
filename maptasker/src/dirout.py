@@ -16,7 +16,6 @@ import math
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import NO_PROFILE, NORMAL_TAB, TABLE_BACKGROUND_COLOR, TABLE_BORDER, FormatLine
-from maptasker.src.xmldata import find_task_by_name
 
 period = "."
 
@@ -156,7 +155,7 @@ def generate_html_table(data: list, rows: int, columns: int) -> str:
 
     # Build our table
     for _ in range(rows):
-        html += "  <tr> \n"
+        html += "  <tr>\n"
         for _ in range(columns):
             if index < len(data):
                 html += f"    <td>{data[index]}</td>\n"
@@ -259,7 +258,9 @@ def check_scene(item: str) -> bool:
         return False
     # Single Task?
     if (profile_name := PrimeItems.program_arguments["single_task_name"]) and (
-        this_task_id := find_task_by_name(PrimeItems.program_arguments["single_task_name"])
+        this_task_id := PrimeItems.tasker_root_elements["all_tasks_by_name"][
+            PrimeItems.program_arguments["single_task_name"]
+        ]["id"]
     ):
         # Find the Project this single Task belongs to.
         found, project = find_task_in_project("", this_task_id, "tids")
@@ -289,7 +290,7 @@ def check_task(item: str) -> bool:
     # Doing a single Profile?
     if PrimeItems.program_arguments["single_profile_name"]:
         # Get this Task's ID.
-        if this_task_id := find_task_by_name(item[1]):
+        if this_task_id := PrimeItems.tasker_root_elements["all_tasks_by_name"][item[1]]["id"]:
             # Find the Project that belongs to the Profile we are looking for.
             for project_item in PrimeItems.tasker_root_elements["all_projects"]:
                 project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]

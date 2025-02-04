@@ -22,6 +22,7 @@ def initialize_runtime_arguments() -> dict:
         "ai_analysis_window_position": "",  # Last-used ai analysis window position
         "ai_analyze": False,  # Do local AI processing
         "ai_apikey": "",  # AI API key
+        "ai_apikey_window_position": "",  # Last-used APIKey Options window position
         "ai_model": "",  # AI model
         "ai_popup_window_position": "",  # Last-used ai popup window position (currently not used)
         "ai_prompt": "",  # AI prompt

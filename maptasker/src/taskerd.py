@@ -9,7 +9,7 @@ import defusedxml.ElementTree as ET  # noqa: N817
 
 from maptasker.src.error import error_handler
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import FormatLine
+from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine
 from maptasker.src.xmldata import rewrite_xml
 
 
@@ -90,6 +90,14 @@ def get_the_xml_data() -> bool:
         "all_scenes": move_xml_to_table(PrimeItems.xml_root.findall("Scene"), False, "nme"),
         "all_services": PrimeItems.xml_root.findall("Setting"),
     }
+    # Get Tasks by name and handle Tasks with no name.
+    PrimeItems.tasker_root_elements["all_tasks_by_name"] = {}
+    for key, value in PrimeItems.tasker_root_elements["all_tasks"].items():
+        if not value["name"]:
+            # Assign unknown task name if none
+            value["name"] = f"{UNKNOWN_TASK_NAME}{key!s}"
+        PrimeItems.tasker_root_elements["all_tasks_by_name"][value["name"]] = {"xml": value["xml"], "id": key}
+
     return 0
 
 
