@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "maptasker"
 
-version = "7.0.0"
+version = "7.0.1"
 
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 authors = ["Michael Rubin <mikrubin@gmail.com>"]
@@ -19,7 +19,7 @@ include = ["**/maptasker/**/*.py", "**/maptasker/assets/*.*", "**/sample.prj.xml
 exclude = ["run_test.py", "**/maptasker/**/backup.xml", "**/maptasker/maptasker.log", "**/maptasker/MapTasker.html", "**/maptasker/.MapTasker_RunCount.txt", "**/maptasker/.arguments.txt", "**/maptasker/**/__pycache__", "**/maptasker/**/.dep-tree.yml"]
 
 [tool.poetry.dependencies]
-python = "<=3.13.*,>=3.11"
+python = ">=3.11,<3.14"
 anthropic = "^0.45.2"  #  Ai Anthropics support
 customtkinter = "^5.2.2"  # GUI
 pillow = "^11.1.0"  # Image support in GUI
@@ -199,10 +199,11 @@ search = 'VERSION = "{current_version}"'
 replace = 'VERSION = "{new_version}"'
 
 
+
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
 # +black = { version = "*", allows-prereleases = true }
 line-profiler = "^4.1.3"
 vulture = "^2.13"
-bumpversion = "0.6.0"
+poetry-bumpversion = "^0.3.3"
 pyinstrument = "^5.0.0"

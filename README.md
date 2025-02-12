@@ -127,6 +127,8 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - "maptasker.log"
 
      This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.
+      
+- hidden files: system settings and API keys.
 
 ## More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
@@ -238,7 +240,7 @@ Network traffic is as follows:
 - On startup, check against pypi.com to determine if a new release is available.
 - Update the program from pypi.com (via 'pip) if 'Upgrade' is selected in the GUI.
 - Read file 'maptasker_changelog.json' from 'https://github.com/mctinker/Map-Tasker' if "What's New" is selected in the GUI.
-- Use chatgpt.com when using AI analysis with any of the OpenAi models.  Likewise for Claude (Anthropic), Google (Gemini) and DeepSeek.
+- Use chatgpt.com when using AI analysis with any of the OpenAi models.  The output of MapTasker is sent to the server via the standard API call for analysis.  Likewise for Claude (Anthropic), Google (Gemini) and DeepSeek.
 - New and updated local Ai models will be loaded from 'https://ollama.com/library'.
 
 ## Known Issues
