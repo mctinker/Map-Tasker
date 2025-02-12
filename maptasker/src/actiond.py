@@ -153,13 +153,20 @@ def process_condition_list(
     code_action: defusedxml.ElementTree,
 ) -> tuple[list[list[Any]], list[str]]:
     """
-    Trundle through ConditionList "If" conditions
-        :param code_action: <Action> xml element
-        :return: list of conditions and list of associated booleans
+    Extracts conditions and their associated booleans from the <ConditionList> element.
+
+    Args:
+        code_action (ElementTree): XML element containing conditions.
+
+    Returns:
+        tuple[list[list[Any]], list[str]]: List of conditions and their associated booleans.
     """
-    condition_list, boolean_list = [], []
     condition_list_str = code_action.find("ConditionList")
-    if condition_list_str is not None:
-        for child in condition_list_str:
-            condition_list, boolean_list = get_boolean_or_condition(child, condition_list, boolean_list)
+    if condition_list_str is None:
+        return [], []
+
+    condition_list, boolean_list = [], []
+    for child in condition_list_str:
+        condition_list, boolean_list = get_boolean_or_condition(child, condition_list, boolean_list)
+
     return condition_list, boolean_list

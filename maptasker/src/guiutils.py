@@ -74,21 +74,17 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 7.0.0 - Change Log\n
+Version 7.0.1 - Change Log\n
 ### Added\n
-- Added: Hover tips for Scenes have been added to the Map view.\n
-- Added: Claude AI (Anthropic), Gemini AI, and DeepSeek AI are now supported in the AI Analysis tab.\n
-- Added: Support for multiple AI API keys.\n
-- Added: Tasker Beta 6.4.12 supported.\n
-- Added: Llama AI models 'deepseek-r1' and 'phi4' added.\n
+- Added: New Ai models added: gemini-2.0.flash, gemini-2.0-flash-lite-preview, gpt-4-turbo-preview\n
+- Added: Task action "Get Pixel Colors' to map.\n
 ### Changed\n
-- Changed: The GUI message box is now cleared before displaying an error during initialization.\n
-- Changed: The AI API Key prompt has been modified for multiple keys, and for the identification of the current key to be used for the AI Analysis.\n
-- Changed: The AI Model selection pulldown option list is now preceeded by their owner: 'OpenAI', 'Claude', 'Gemini' and 'LLAMA'.  Example: 'OpenAI: gpt-04', and each AI's list of models are now grouped together in the pulldown option list.\n
+- Changed: Code optimizations.\n
 ### Fixed\n
-- Fixed: Program error if the AI model has not been set.\n
-- Fixed: Ai Analysis of a single Task reports it as the Project owning the Task.\n
-- Fixed: Keep the 'Analyze' tab active after a successful AI analysis.\n
+- Fixed: Windget V2 missing the argument 'Ask To Add If Not Present'.\n
+- Fixed: Program error when hovering over a Scene name in the Map view.\n
+- Fixed: Program error in taskuniq.py.\n
+- Fixed: MapTasker can not be installed with Python 3.13.2 or higher.  Fixed so that it can run any 3.13.\n
 """
 
 default_font_size = 14

@@ -152,14 +152,7 @@ def evaluate_action_setting(*args: list) -> list:
     return results
 
 
-# Given a required value logic and its position, evaluate the found integer and add
-#   to match_results
-# code_flag identifies the type of xml data to go after based on the specific code
-#   in <code>xxx</code>
-# *args is an undetermined number of lists, each consisting of 3 pairs:
-#   1: True=it is a string, False it is an integer,
-#   2: the value to test
-#   3: the value to plug in if it meets the test
+## Given a required value logic and its position, evaluate the found integer and add
 def process_xml_list(
     names: list,
     arg_location: int,
@@ -168,6 +161,7 @@ def process_xml_list(
     arguments: defusedxml.ElementTree,
 ) -> None:
     """
+    Evaluates an argument from an XML list and adds the processed result to match_results.
     Given a required value logic and its position, evaluate the found integer and add
         to match_results.
     The incoming list (names) looks something like the following:
@@ -185,74 +179,52 @@ def process_xml_list(
     #   1: True=it is a string, False it is an integer,
     #   2: the value to test
     #   3: the value to plug in if it meets the test
-        :param names: list of entries to substitute the argn value against from actionc.
-        :param arg_location: the location of the argument in the lookup table
-        :param the_int_value: tha integer value found in the <argn> xml element
-        :param match_results: list in which to return the evaluated values
-        :param arguments: list of arguments to look for (e.g. arg1,arg5,arg9)
-        :return: nothing
-    """
 
-    the_list = names[arg_location]  # Point to the specific evaluation argument
-    # the_title = the_list[0]  # Title is first element in the list
-    idx = 0
-    running = True
-    # Loop through list two items at a time: 1st element is digit,
-    #   2nd element is the name
-    # to apply if it matches.
-    len_of_list = len(the_list)
-    while running:
-        idx = (idx + 1) % len_of_list  # Get next element = first element in pair
+    Args:
+        names (list): List of entries to substitute the argn value against.
+        arg_location (int): The position of the argument in the lookup table.
+        the_int_value (str): The integer value found in the <argn> XML element.
+        match_results (list): List to store evaluated values.
+        arguments (ElementTree): XML element containing argument definitions.
+
+    Returns:
+        None
+    """
+    the_list = names[arg_location]  # Retrieve the specific evaluation argument
+    idx, len_of_list = 0, len(the_list)
+
+    while True:
+        idx = (idx + 1) % len_of_list  # Cycle through elements
         this_element = the_list[idx]
 
-        # Are we to just evaluate for 0 or 1?
-        if this_element in ["e", "if"]:
+        if this_element in {"e", "if"}:
             idx = (idx + 1) % len_of_list
-            next_element = the_list[idx]  # Second element in pair
-            # Determine whether we are to include the negative value.
-            # This will equate to True or False, depending on 1 or 0.
-            # The next line equates to the followinbg commented-out lines.
+            next_element = the_list[idx]
             include_negative = the_list[0] == "1" if this_element == "e" else False
-            # Evaluate the action setting (selected or not selected)
             evaluated_value = evaluate_action_setting([include_negative, the_int_value, next_element])
-            selected_indicator = "" if evaluated_value[0] == "" else "(selected)"
-            evaluated_value = f"{evaluated_value[0]} {selected_indicator}, "
-            match_results.append(evaluated_value)
+            match_results.append(f"{evaluated_value[0]} {'(selected)' if evaluated_value[0] else ''}, ")
             break
 
-        # Are we to do a table lookup for the value?
         if this_element == "l":
-            idx = (idx + 1) % len_of_list  # Point to the lookup key
-            if the_list[idx] in lookup_values:
+            idx = (idx + 1) % len_of_list  # Move to lookup key
+            lookup_key = the_list[idx]
+
+            if lookup_key in lookup_values:
                 try:
-                    evaluated_value = [lookup_values[the_list[idx]][int(the_int_value)]]
-                    evaluated_value = f"{the_list[idx - 2]}{evaluated_value[0]}, "
-                    match_results.append(evaluated_value)
+                    mapped_value = lookup_values[lookup_key][int(the_int_value)]
+                    match_results.append(f"{the_list[idx - 2]}{mapped_value}, ")
                 except (KeyError, IndexError):
                     match_results.append(
-                        f"MapTasker 'mapped' error in action: int {the_int_value} not"
-                        f" in lookup_values (actiont) for item {the_list[idx]} which is"
-                        f" {[lookup_values[the_list[idx]]]}",
+                        f"MapTasker 'mapped' error: int {the_int_value} not in lookup_values "
+                        f"for item {lookup_key} ({lookup_values.get(lookup_key, [])})",
                     )
                 break
 
-            # Error: the element is not in the lookup table.
-            match_results.append(
-                f"MapTasker 'mapped' error in action: {the_list[idx]} is not in"
-                f" actiont (lookup table) for name:{names}",
-            )
-            # Get out of loop
+            match_results.append(f"MapTasker 'mapped' error: {lookup_key} not in lookup table for {names}")
             break
 
-        # Not doing a table lookup.  Flag it as an error.
-        error_handler(
-            (
-                "get_xml_int_argument_to_value failed-"
-                f" this_element:{this_element} {arguments} for element"
-                f" {this_element}"
-            ),
-            1,
-        )
+        error_handler(f"get_xml_int_argument_to_value failed - this_element:{this_element} {arguments}", 1)
+        break
 
 
 # Get Task's label, disabled flag and any conditions
@@ -483,25 +455,26 @@ def get_extra_stuff(
 
 
 # Get the application specifics for the given code
-def get_app_details(code_child: defusedxml.ElementTree) -> tuple[str, str, str, str]:
+def get_app_details(code_child: defusedxml.ElementTree) -> tuple[str, str, str]:
     """
-    Get the application specifics for the given code (<App>)
+    Extracts application details from the given XML code element.
 
-        :param code_child: Action xml element
-        :return: the aplication specifics - class, package name, app name, extra stuff
+    Args:
+        code_child (ElementTree): XML element containing application details.
+
+    Returns:
+        tuple[str, str, str]: Class, package name, and app name.
     """
-    # extra_stuff = get_extra_stuff(code_child, action_type)
-    app_class, app_pkg, app = "", "", ""
+    app_class = app_pkg = app = ""
+
     child = code_child.find("App")
-    if child is not None and child.tag == "App":
-        if child.find("appClass") is None:
-            # return "", "", "", extra_stuff
-            return "", "", ""
-        if child.find("appClass").text is not None:
-            app_class = f'Class:{child.find("appClass").text}'
-        if child.find("appPkg").text is not None:
-            app_pkg = f', Package:{child.find("appPkg").text}'
-        if child.find("label").text is not None:
-            app = f', App:{child.find("label").text}'
-    # return app_class, app_pkg, app, extra_stuff
+    if child is not None:
+        app_class = child.findtext("appClass", default="")
+        app_pkg = child.findtext("appPkg", default="")
+        app = child.findtext("label", default="")
+
+        app_class = f"Class:{app_class}" if app_class else ""
+        app_pkg = f", Package:{app_pkg}" if app_pkg else ""
+        app = f", App:{app}" if app else ""
+
     return app_class, app_pkg, app

@@ -131,19 +131,18 @@ VIEW_HELP_TEXT = (
     "- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n"
     "- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
 )
-# FIX
 AI_HELP_TEXT = (
-    "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI model.\n\n"
+    "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\n"
     "The following steps are required in order to run AI against your Profile.\n\n"
     "1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n"
     "2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n"
-    "3- Select the model you want to use.\n"
-    "If you select a local model that has not yet been loaded, Ollama will be loaded in the background once the analysis begins.\n\n"
-    "5- Click the 'Run Analysis' button.  It will turn pink when all of the necessary data has been entered.\n\n"
+    "3- Select the model you want to use.\n\n"
+    "   o The model selected will determine with which AI the analysis is to be performed.\n\n"
+    "4- Click the 'Run Analysis' button.  It will turn pink when all of the necessary data has been entered.\n\n"
     "   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n"
     "   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n"
     "   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\n"
-    "Your designated api-key (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\n"
+    "Your designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\n"
     "The 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
 )
 
@@ -173,7 +172,6 @@ PPP_HELP_TEXT = (
     "Selecting a number will automatically re-generate the diagram with the new setting.\n\n"
     "This setting is only valid for the currrent Diagram view, and will be reset back to the default value when the Diagram view is closed.\n\n"
 )
-# FIX
 APIKEY_HELP_TEXT = (
     "This menu is where you define your AI API keys for use by the AI 'Analyze' button.\n\n"
     "The keys are saved across sessions.\n\n"

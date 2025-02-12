@@ -1,5 +1,5 @@
-# sourcery skip: avoid-global-variables
 #! /usr/bin/env python3
+"""ask Action table/dictionary of keywords for MapTasker"""
 
 #                                                                                      #
 # actiont: Task Action table/dictionary of keywords for MapTasker                      #

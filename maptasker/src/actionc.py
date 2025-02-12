@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+"""Task "Action" and Profile "condition" dictionary"""
 #                                                                                      #
 # actionc: Task "Action" and Profile "condition" dictionary                            #
 #                                                                                      #
@@ -19,7 +20,6 @@
 #      ['some_string:', 'l', 'lookup-code] for actiont dictionary lookup for specific  #
 #       code.                                                                          #
 #                                                                                      #
-
 
 from collections import namedtuple
 
@@ -124,7 +124,7 @@ action_codes = {
         ["", ["", "e", "Structure Output (JSON (etc)"]],
     ),
     "1138588429t": ActionCode(0, "1040876951t", [], [], "Join Send Query", [], []),
-    "113t": ActionCode(0, "", [], [], "WiFi Tether", [], []),
+    "113t": ActionCode(0, "", [], [], "WiFi Tether (Hotspot)", [], []),
     "114t": ActionCode(0, "", [], [], "USB Tether", [], []),
     "1150542767e": ActionCode(0, "1040876951t", [], [], "Tap Tap Plugin", [], []),
     "116t": ActionCode(0, "", [], [], "HTTP Post", [], []),
@@ -285,7 +285,7 @@ action_codes = {
         "",
         ["0", "1", "2", "3"],
         ["Int", "Int", "Str", "ConditionList"],
-        "Go To",
+        "Goto",
         ["0", "1", "2"],
         [["Set=", "l", "135"], ", Number=", ", Label="],
     ),
@@ -484,7 +484,7 @@ action_codes = {
             "Str",
             "Str",
         ],
-        "Setup Quick Setting Tile",
+        "Set up Quick Setting Tile",
         ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
         [
             ["Number=", "l", "162"],
@@ -948,12 +948,12 @@ action_codes = {
         ],
     ),
     "210e": ActionCode(0, "", 0, [], "Display Off", ["0"], [["Priority=", "l", "4s"]]),
-    "210t": ActionCode(0, "", [], [], "Input Method Settings", [], []),
+    "210t": ActionCode(0, "", [], [], "InputMethod Settings", [], []),
     "211t": ActionCode(0, "", [], [], "Sync Settings", [], []),
     "211707263t": ActionCode(0, "1040876951t", [], [], "Global Actions", [], []),
     "211905330t": ActionCode(0, "1040876951t", [], [], "AutoContacts", [], []),
     "2114100406t": ActionCode(0, "1040876951t", [], [], "AutoLaunch Query", [], []),
-    "212t": ActionCode(0, "", [], [], "WiFi IP Settings", [], []),
+    "212t": ActionCode(0, "", [], [], "WIFI IP Settings", [], []),
     "2124887619t": ActionCode(0, "1040876951t", [], [], "AutoTools OCR", [], []),
     "2132875086t": ActionCode(0, "1040876951t", [], [], "AutoSheets Delete Rows/Columns", [], []),
     "214t": ActionCode(0, "", [], [], "Wireless Settings", [], []),
@@ -970,7 +970,7 @@ action_codes = {
     "224e": ActionCode(0, "", [], [], "File Closed", [], []),
     "224t": ActionCode(0, "", [], [], "Locale Settings", [], []),
     "226e": ActionCode(0, "", [], [], "File Opened", [], []),
-    "226t": ActionCode(0, "", [], [], "App Manager Settings", [], []),
+    "226t": ActionCode(0, "", [], [], "App Manage Settings", [], []),
     "227t": ActionCode(0, "", [], [], "Memory Card Settings", [], []),
     "228e": ActionCode(0, "", [], [], "File Deleted", [], []),
     "228t": ActionCode(0, "", [], [], "Network Operator Settings", [], []),
@@ -1751,7 +1751,7 @@ action_codes = {
         "",
         ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
         ["Bundle", "Int", "Str", "Str", "Str", "Str", "Int", "Int", "Str", "Int"],
-        "Get Location V2",
+        "Get Location v2",
         ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
         [
             "Timeout (Seconds)=",
@@ -2146,7 +2146,7 @@ action_codes = {
         "",
         ["0", "1", "2"],
         ["Bundle", "Str", "Str"],
-        "Set Variable Structure",
+        "Set Variable Structure Type",
         ["1", "2"],
         ["Name=", ", Structure Type="],
     ),
@@ -2155,7 +2155,7 @@ action_codes = {
         "",
         ["0", "1", "2", "3", "4", "5", "6"],
         ["Bundle", "Str", "Int", "Str", "Str", "Str", "Str"],
-        "Array Merge",
+        "Arrays Merge",
         ["1", "2", "3", "4", "5", "6"],
         [
             "Names=",
@@ -2376,6 +2376,15 @@ action_codes = {
         ["Tile To Add=", "Title=", "Icon="],
     ),
     "413e": ActionCode(0, "", [], [], "Device Shutdown", [], []),
+    "414t": ActionCode(
+        3,
+        "",
+        ["0", "1", "2"],
+        ["Bundle", "Str", "Str"],
+        "Pixel Colors",
+        ["1", "2"],
+        ["Image=", ", Pixel Coordinates="],
+    ),
     "414549629t": ActionCode(0, "1040876951t", [], [], "AutoSpotify Search", [], []),
     "415t": ActionCode(0, "", [], [], "Read Line", [], []),
     "41628340e": ActionCode(
@@ -2423,7 +2432,7 @@ action_codes = {
         ["0", "1", "2", "3"],
         ["File=", ["", "e", ", Delete Dialog"], ", Level=", ", Output File="],
     ),
-    "421t": ActionCode(0, "", ["0"], ["Bundle"], "Get Screen Info", [], []),
+    "421t": ActionCode(0, "", ["0"], ["Bundle"], "Get Screen Info (Assistant)", [], []),
     "422e": ActionCode(0, "", [], [], "Device Storage Low", [], []),
     "422t": ActionCode(
         2,
@@ -2438,19 +2447,19 @@ action_codes = {
     "424t": ActionCode(0, "", ["0"], ["Bundle"], "Get Battery Info", [], []),
     "424867932t": ActionCode(0, "1040876951t", [], [], "AutoBubbles Manage Bubble", [], []),
     "425e": ActionCode(0, "", [], [], "K9 Email Received", [], []),
-    "425t": ActionCode(1, "", ["0"], ["Int"], "Wifi", ["0"], [["Set=", "l", "switch_set"]]),
+    "425t": ActionCode(1, "", ["0"], ["Int"], "WiFi", ["0"], [["Set=", "l", "switch_set"]]),
     "426e": ActionCode(0, "", [], [], "Widget Locker", [], []),
     "426t": ActionCode(
         3,
         "",
         ["0", "1", "2"],
         ["Int", "Int", "Int"],
-        "Wifi Net",
+        "WiFi Net",
         ["0", "1", "2"],
         [["Action=", "l", "426"], ["", "e", ", Force"], ["", "e", ", Report Failure"]],
     ),
     "427e": ActionCode(0, "", [], [], "OpenWatch", [], []),
-    "427t": ActionCode(1, "", ["0"], ["Int"], "Wifi Sleep", ["0"], [["Policy=", "l", "427"]]),
+    "427t": ActionCode(1, "", ["0"], ["Int"], "WiFi Sleep", ["0"], [["Policy=", "l", "427"]]),
     "427019141t": ActionCode(0, "1040876951t", [], [], "AutoNotification Replace Gmail Notifications", [], []),
     "428e": ActionCode(0, "", [], [], "Kaloer Clock", [], []),
     "42924197t": ActionCode(0, "1040876951t", [], [], "Notification Listener", [], []),
@@ -2497,7 +2506,7 @@ action_codes = {
         "",
         ["0", "1", "2", "3", "4"],
         ["Bundle", "Str", "Str", "Str", "Str"],
-        "Matter Light",
+        "Matter Light (Experimental)",
         ["1", "2", "3", "4"],
         ["Device IDs/Name=", ", Set=", ", Color=", ", Brightness="],
     ),
@@ -2553,7 +2562,7 @@ action_codes = {
         "",
         ["0", "1", "2", "3", "4", "5"],
         ["Bundle", "Str", "Str", "Str", "Str", "Int"],
-        "Get File/Folder Properties",
+        "Get Files/Folders Properties",
         ["1", "2", "3", "4", "5"],
         ["Path=", ", Type=", ", Name/Path Filter=", ", Other Filters=", ["", "e", ", Recurse"]],
     ),
@@ -2645,7 +2654,7 @@ action_codes = {
     "461t": ActionCode(
         16,
         "",
-        ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"],
+        ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"],
         [
             "Str",
             "Str",
@@ -2663,8 +2672,9 @@ action_codes = {
             "Str",
             "Int",
             "Str",
+            "Int",
         ],
-        "Widget V2",
+        "Widget v2",
         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"],
         [
             "Widget Name=",
@@ -2681,7 +2691,8 @@ action_codes = {
             ", Command Prefix=",
             ", Command Layout=",
             ["", "e", ", Material You Colors"],
-            ", Number oof Columns=",
+            ", Number of Columns=",
+            ["", "e", ", Ask To Add If Not Present"],
         ],
     ),
     "462e": ActionCode(0, "", [], [], "Button Widget Clicked", [], []),
@@ -3672,7 +3683,7 @@ action_codes = {
         "",
         ["0"],
         ["Int"],
-        "Display Autorotate",
+        "Display AutoRotate",
         ["0"],
         [["Set=", "l", "switch_set"]],
     ),

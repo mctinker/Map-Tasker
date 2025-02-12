@@ -98,28 +98,25 @@ def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_na
 # Go through the Task's Actions looking for any Perform Task actions.
 def do_task_actions(task_actions: defusedxml.ElementTree, task: defusedxml.ElementTree) -> None:
     """
-    Parses task action elements and updates task call relationships
+    Parses task action elements and updates task call relationships.
+
     Args:
-        task_actions: defusedxml.ElementTree - Task action elements
-        task: defusedxml.ElementTree - Task element
+        task_actions: defusedxml.ElementTree - Task action elements.
+        task: defusedxml.ElementTree - Task element.
+
     Returns:
         None
+
     Processing Logic:
-        - Loops through each action element
-        - Checks for "Perform Task" code
-        - Gets task name from action
-        - Finds called task element
-        - Adds caller task to called task's call_tasks
-        - Adds called task to caller task's called_by
+        - Loops through each action element.
+        - Checks for "Perform Task" code.
+        - Gets task name from action.
+        - Updates caller and called task relationships.
     """
     for action in task_actions:
-        # Have action: go through it looking for a "Perform Task"
-        for child in action:
-            if child.tag == "code" and child.text == "130":
-                # We have a Perform Task.  Get the Task name to be performed, which is in the first string encountered.
-                all_strings = action.findall("Str")
-                perform_task_name = all_strings[0].text
-
+        if any(child.tag == "code" and child.text == "130" for child in action):
+            perform_task_name = next((s.text for s in action.findall("Str")), None)
+            if perform_task_name:
                 update_caller_and_called_tasks(task, perform_task_name)
 
 

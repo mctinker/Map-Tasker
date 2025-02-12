@@ -1,15 +1,10 @@
-"""Module containing action runner logic."""
-
 #! /usr/bin/env python3
-
+"""Module containing action runner logic."""
 #                                                                                      #
 # format: Various formatting functions,                                                #
 #                                                                                      #
 
 from maptasker.src.sysconst import (
-    SPACE_COUNT1,
-    SPACE_COUNT2,
-    SPACE_COUNT3,
     pattern2,
     pattern8,
     pattern9,
@@ -25,11 +20,6 @@ def format_line(item: str) -> str:
         :param item: the specific text to reformat from the list of output lines
         :return: the reformatted text line for output
     """
-
-    # output_lines = output_obj.output_lines
-    # blank = " "
-    blank = "&nbsp;"
-
     # If item is a list, then get the actual output line
     if isinstance(item, list):
         item = item[1]

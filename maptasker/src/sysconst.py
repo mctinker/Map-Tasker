@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "7.0.0"
+VERSION = "7.0.1"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -249,10 +249,11 @@ NOW_TIME = datetime.now()  # noqa: DTZ005
 OPENAI_MODELS = [
     "gpt-3.5-turbo",
     "gpt-4o",
+    "gpt-4o-mini",
     "gpt-4",
     "gpt-4-turbo",
+    "gpt-4-turbo-preview",
     "chatgpt-4o-latest",
-    "gpt-4o-mini",
     "o1",
     "o1-mini",
     "o1-preview",
@@ -294,8 +295,10 @@ DEEPSEEK_MODELS = [
     "deepseek-chat",
 ]
 GEMINI_MODELS = [
-    "gemini-2.0-flash-exp",
     "gemini-1.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-exp",
+    "gemini-2.0-flash-lite-preview",
     "gemini-1.5-flash-8b",
     "gemini-1.5-pro",
     "gemini-1.0-pro",

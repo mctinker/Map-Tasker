@@ -1,7 +1,5 @@
-"""Process the Tasker preferences via the services xml elements"""
-
 #! /usr/bin/env python3
-
+"""Process the Tasker preferences via the services xml elements"""
 #                                                                                      #
 # prefers: Process Tasker's Preferences                                                #
 #                                                                                      #

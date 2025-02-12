@@ -175,13 +175,18 @@ def get_action_results(
     # Clean up the arguments, if any.  Replace <> so they appear properly
     # Eliminate extra commas
     if result:
-        result = pattern3.sub("&lt;", result)  # Replace "<" with "&lt;"
-        result = pattern4.sub("&gt;", result)  # Replace ">" with "&gt;"
-        result = pattern1.sub(",", result)  # Replace ",  ," with ","
-        result = pattern2.sub(",", result)  # Replace " ," with ","
-        result = pattern2.sub(",", result)  # Do it again to catch any missed
-        result = pattern2.sub(",", result)  # Do it again to catch any missed
-        result = pattern0.sub(",", result)  # Catch ",,"
+        # Replace "<" with "&lt;"
+        result = pattern3.sub("&lt;", result)
+        # Replace ">" with "&gt;"
+        result = pattern4.sub("&gt;", result)
+        # Replace ",  ," with ","
+        result = pattern1.sub(",", result)
+        # Replace " ," with "," (loop until all instances are handled)
+        while pattern2.search(result):
+            result = pattern2.sub(",", result)
+        # Catch ",," and replace with ","
+        result = pattern0.sub(",", result)
+        # Add non-breaking spaces at the beginning
         result = f"&nbsp;&nbsp;{result}"
 
         # Process variables if display_detail_level is 4

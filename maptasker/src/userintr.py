@@ -199,7 +199,7 @@ class MyGui(customtkinter.CTk):
         self.display_message_box("Initialization complete.\n", "Green")
 
         # Turn off first time
-        self.first_time = False
+        self.first_time = True
         # Save ourself
         PrimeItems.mygui = self
 

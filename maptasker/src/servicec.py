@@ -87,7 +87,7 @@ service_codes = {
         "num": 9,
     },
     "PREF_USE_2024_TASKER": {
-        "display": "Use Tasker 2024 UI (Very Early)",
+        "display": "Use Tasker 2025 UI (Very Early)",
         "section": 1,
         "num": 9.5,
     },

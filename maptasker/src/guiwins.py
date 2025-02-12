@@ -501,11 +501,9 @@ class CTkTextview(ctk.CTkFrame):
             the_data (list): List of lines to insert into the text box.
         """
         diagram = "Diagram" in self.title
-        self.diagram_connectors = {}
-        # Go through the data and insert it into the textbox.
 
         # -------------------------------------------------------------------------
-        # 1) BUILD ALL LINES INTO ONE STRING AND DO ONE INSERT
+        # BUILD ALL LINES INTO ONE STRING AND DO ONE INSERT
         # -------------------------------------------------------------------------
         # Create the lines for insertion in a single pass
         if self.master.master.debug:
@@ -521,32 +519,21 @@ class CTkTextview(ctk.CTkFrame):
         # Clear the Text widget once
         self.textview_textbox.delete("1.0", "end")
 
-        # Insert in a single call
+        # Insert in a single call all of the lines of data.
         self.textview_textbox.insert("1.0", big_block_of_text)
 
-        # -------------------------------------------------------------------------
-        # 2) HIGHLIGHT IN ONE PASS, IF NECESSARY
-        # -------------------------------------------------------------------------
         if diagram:
-            # If your highlight_text function depends on the line number,
-            # you still need to loop over each line.  But you've already
-            # done the text insertion, so this is just highlighting now.
+            # -------------------------------------------------------------------------
+            # Go thru the data:
+            #    - Add tags (aka highlight) for Project/Profile/Task name colors
+            #    - Build the Task-to-Task connectors
+            # -------------------------------------------------------------------------
+            self.diagram_connectors = {}
             for i, line in enumerate(the_data):
-                # Your highlight method might use something like
-                # f"{i+1}.0" for starting indices, etc.
                 self.highlight_text(line, i + 1)
-
-            # ---------------------------------------------------------------------
-            # 3) BUILD CONNECTORS IN A SEPARATE PASS
-            # ---------------------------------------------------------------------
-            # If you can modify build_connectors to handle the whole list at once,
-            # you could call it just once.  If it must be line-by-line, keep it
-            # in a loop.  For example:
-            for i in range(len(the_data)):
                 self.diagram_connectors = build_connectors(the_data, i, self.diagram_connectors)
 
-        # Configure tag colors once if a highlight was applied
-        if diagram:
+            # Configure tag colors once if a highlight was applied
             guiview = self.master.master
             # In order for the map to work, we need to ensure that we have the colors defined.
             if not guiview.color_lookup:
@@ -556,7 +543,7 @@ class CTkTextview(ctk.CTkFrame):
             self.textview_textbox.tag_config("task", foreground=guiview.color_lookup["task_color"])
             self.textview_textbox.tag_config("scene", foreground=guiview.color_lookup["scene_color"])
 
-            # Add connector tags.
+            # Add connector tags so theey can be highlighted when clicked.
             self.add_connector_tags(self.diagram_connectors)
 
         # Add the CustomTkinter widgets
@@ -1264,7 +1251,7 @@ class CTkTextview(ctk.CTkFrame):
         scene_xml = PrimeItems.tasker_root_elements["all_scenes"][name]["xml"]
         # Put the Scene's details into the output_lines.
         PrimeItems.output_lines.output_lines = []
-        get_details(scene_xml, 0)
+        get_details(scene_xml, [], 0)
         # Get just the elements
         elements = [line for line in PrimeItems.output_lines.output_lines if "Element of type" in line]
         for num, element in enumerate(elements):

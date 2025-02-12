@@ -329,19 +329,17 @@ def get_icon_info(the_task: defusedxml.ElementTree) -> str:
 
 # Get additional information for this Task
 # Optimized
-def get_extra_details(
-    our_task_element: defusedxml.ElementTree,
-    task_output_lines: list,
-) -> tuple:
+def get_extra_details(our_task_element: defusedxml.ElementTree, task_output_lines: list) -> tuple:
     """
-    Get additional information for this Task
-        Args:
+    Get additional information for this Task.
 
-            our_task_elelemtn(xml): our Task head xml element.
-            task_output_lines (list): list of Task's output line(s)
+    Args:
+        our_task_element (xml): The Task head XML element.
+        task_output_lines (list): List of Task's output line(s).
 
-        Returns:
-            _tuple (str, str, str, str): the extra stuff as strings"""
+    Returns:
+        tuple (str, str, str, str, str): The extra details as strings.
+    """
     extra_details = {
         "kid_app_info": get_kid_app(our_task_element),
         "priority": task_flags.get_priority(our_task_element, False),
@@ -350,11 +348,12 @@ def get_extra_details(
         "icon_info": get_icon_info(our_task_element),
     }
 
-    for key, value in extra_details.items():
-        if value:
-            if key == "kid_app_info":
-                value = format_html("task_color", "", value, True)  # noqa: PLW2901
-            task_output_lines[0] += f" {value}"
+    # Process 'kid_app_info' separately if it exists
+    if extra_details["kid_app_info"]:
+        extra_details["kid_app_info"] = format_html("task_color", "", extra_details["kid_app_info"], True)
+
+    # Append non-empty details to the first line of task_output_lines
+    task_output_lines[0] += " " + " ".join(filter(None, extra_details.values()))
 
     return tuple(extra_details.values())
 

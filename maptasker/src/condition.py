@@ -1,6 +1,6 @@
+#! /usr/bin/env python3
 """Process profile condition: time, date, state, event, location, app"""
 
-#! /usr/bin/env python3
 #                                                                                      #
 # condition: Process profile condition: time, date, state, event, location, app        #
 #                                                                                      #
@@ -20,85 +20,54 @@ from maptasker.src.taskflag import get_priority
 # Profile condition: Time
 def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) -> str:
     """
-    Handle the "Time" condition
-        :param the_item: the xml element with the Condition
-        :param the_output_condition: text into which the condition output is to
-            be formated
-        :return: the formatted condition's output string
+    Handle the "Time" condition.
+
+    :param the_item: The XML element with the Condition.
+    :param the_output_condition: The base condition output text.
+    :return: The formatted condition output string.
     """
 
-    (
-        to_hour,
-        to_minute,
-        from_hour,
-        from_minute,
-        rep,
-        rep_type,
-        from_variable,
-        to_variable,
-    ) = (
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-    )
-    child = None
+    time_values = {"fh": "", "fm": "", "th": "", "tm": "", "rep": "", "rep_type": "", "fromvar": "", "tovar": ""}
+
     for child in the_item:
         match child.tag:
-            case "fh":
-                from_hour = child.text
-            case "fm":
-                from_minute = child.text
-            case "th":
-                to_hour = child.text
-            case "tm":
-                to_minute = child.text
+            case "fh" | "fm" | "th" | "tm" | "fromvar" | "tovar":
+                time_values[child.tag] = child.text or ""
             case "rep":
-                rep_type = " minutes " if child.text == "2" else " hours "
+                time_values["rep_type"] = " minutes " if child.text == "2" else " hours "
             case "repval":
-                rep = f" repeat every {child.text}{rep_type}"
-            case "fromvar":
-                from_variable = child.text
-            case "tovar":
-                to_variable = child.text
+                time_values["rep"] = f" repeat every {child.text}{time_values['rep_type']}"
             case _:
-                child.text = "Rutroh"
+                return f"{the_output_condition}{child.text} not yet mapped!", not_in_dictionary(
+                    "Condition Time",
+                    child.text,
+                )
 
-    if from_hour or from_minute:
-        the_output_condition = f"{the_output_condition}Time: from {from_hour}:{from_minute.zfill(2)}{rep}"
+    from_time = f"{time_values['fh']}:{time_values['fm'].zfill(2)}"
+    to_time = f"{time_values['th']}:{time_values['tm'].zfill(2)}"
+    from_variable, to_variable = time_values["fromvar"], time_values["tovar"]
+    rep = time_values["rep"]
 
-    if to_hour or to_minute:
-        the_output_condition = f"{the_output_condition} to {to_hour}:{to_minute.zfill(2)}"
+    if from_time.strip(":"):
+        the_output_condition += f"Time: from {from_time}{rep}"
+        if to_time.strip(":"):
+            the_output_condition += f" to {to_time}"
     elif from_variable or to_variable:
-        the_output_condition = f"{the_output_condition}Time: from {from_variable} to {to_variable} {rep}"
-    else:
-        the_output_condition = f"{the_output_condition}{child.text} not yet mapped!"
-        not_in_dictionary("Condition Time", child.text)
+        the_output_condition += f"Time: from {from_variable} to {to_variable} {rep}"
+
     return the_output_condition
 
 
 # Profile condition: Day
-def condition_day(the_item: defusedxml.ElementTree.XML, the_output_condition: str) -> str:
+def condition_day(the_item: defusedxml.ElementTree, the_output_condition: str) -> str:
     """
     Handle the "Day" condition
         :param the_item: the xml element with the Condition
         :param the_output_condition: text into which the condition output is to
-            be formated
+            be formatted
         :return: the formatted condition's output string
     """
-    weekdays = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-    ]
+    weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     months = [
         "January",
         "February",
@@ -114,25 +83,23 @@ def condition_day(the_item: defusedxml.ElementTree.XML, the_output_condition: st
         "December",
     ]
 
-    the_days_of_week = ""
-    days_of_month = ""
-    the_months = ""
+    results = {"wday": [], "mday": [], "mnth": []}
+
     for child in the_item:
         if "wday" in child.tag:
-            the_days_of_week = f"{the_days_of_week}{weekdays[int(child.text) - 1]} "
+            results["wday"].append(weekdays[int(child.text) - 1])
         elif "mday" in child.tag:
-            days_of_month = f"{days_of_month}{child.text} "
+            results["mday"].append(child.text)
         elif "mnth" in child.tag:
-            the_months = f"{the_months}{months[int(child.text)]} "
-        else:
-            break
-    if the_days_of_week:
-        the_output_condition = f"{the_output_condition}Days of Week: {the_days_of_week}"
-    if days_of_month:
-        the_output_condition = f"{the_output_condition}Days of Month: {days_of_month} "
-    if the_months:
-        the_output_condition = f"{the_output_condition}Months: {the_months} "
-    return the_output_condition
+            results["mnth"].append(months[int(child.text)])
+
+    formatted_parts = [
+        f"Days of Week: {' '.join(results['wday'])}" if results["wday"] else "",
+        f"Days of Month: {' '.join(results['mday'])}" if results["mday"] else "",
+        f"Months: {' '.join(results['mnth'])}" if results["mnth"] else "",
+    ]
+
+    return the_output_condition + " ".join(filter(None, formatted_parts)) + " "
 
 
 # Profile condition: State

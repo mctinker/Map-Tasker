@@ -208,72 +208,54 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
 
 
 # Finalize the action line and append it to the list of actions.
-def finalize_action_details(task_code_line: str, alist: list, indent: int, extra_blanks: int, count: int) -> list:
-    r"""
+def finalize_action_details(
+    task_code_line: str,
+    alist: list,
+    indent: int,
+    extra_blanks: int,
+    count: int,
+) -> list:
+    """
     Finalize the action line and append it to the list of actions.
 
     Args:
         task_code_line (str): The action line to be finalized.
         alist (list): The list of actions.
         indent (int): The number of spaces to indent the output line.
-        extra_blanks (int): The number of extra blanks to add to the output line.
+        extra_blanks (int): Additional spaces to add to the output line.
         count (int): The count of continued lines.
 
     Returns:
         list: The updated list of actions.
-
-    Description:
-        This function finalizes the action line by breaking it into individual lines at line break (\n).
-        It determines whether to put the action line as is or make it a continuation line using '...' as the continuation flag.
-        It appends the finalized action line to the list of actions.
-        If the action line has no new line break or its line break is less than the width set for the browser,
-        or if pretty output is being done, it appends the action line as is.
-        Otherwise, it breaks the action line into individual lines at line break (\n).
-        It determines whether each line is a single line or a continued line.
-        If it is a continued line, it appends the line with '...indent={indent+extra_blanks}item={item}' format.
-        It only displays up to a certain number of continued lines.
-        If the count of continued lines reaches the limit, it adds a comment indicating that the limit has been reached.
-        It returns the updated list of actions.
-
-    Note:
-        - The action line is assumed to have line breaks already broken up.
-        - The action line is assumed to have leading empty fields removed.
     """
-    newline = task_code_line.find("\n")  # Break-up new line breaks
-    task_code_line_len = len(task_code_line)
 
-    # If no new line break or line break less than width set for browser...or doing pretty output,
-    # just put it as is.
-    # Otherwise, make it a continuation line using '...' has the continuation flag.
-    if (newline == -1 and task_code_line_len > 80) or (PrimeItems.program_arguments["pretty"]):
+    # Append as-is if there's no newline and length exceeds 80, or if pretty output is enabled
+    if ("\n" not in task_code_line and len(task_code_line) > 80) or PrimeItems.program_arguments["pretty"]:
         alist.append(task_code_line)
-    else:
-        # Break into individual lines at line break (\n)
-        array_of_lines = task_code_line.split("\n")
-        count = 0
-        # Determine if a single line or a continued line
-        for count, item in enumerate(array_of_lines):
-            if count == 0:
-                alist.append(item)
-            else:
-                alist.append(f"...indent={indent+extra_blanks}item={item}")
-            # count += 1
+        return alist
 
-            # Only display up to so many continued lines
-            if count == CONTINUE_LIMIT:
-                # Add comment that we have reached the limit for continued details.
-                alist[-1] = f"{alist[-1]}</span>" + format_html(
-                    "Red",
-                    "",
-                    (
-                        f"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;... continue limit of {CONTINUE_LIMIT!s} "
-                        'reached.  See "CONTINUE_LIMIT =" in config.py for '
-                        "details"
-                    ),
-                    True,
-                )
-                # Done with this item...get out of loop.
-                break
+    # Split into individual lines at line breaks
+    array_of_lines = task_code_line.split("\n")
+
+    for i, item in enumerate(array_of_lines[: CONTINUE_LIMIT + 1]):
+        if i == 0:
+            alist.append(item)
+        else:
+            alist.append(f"...indent={indent + extra_blanks}item={item}")
+
+    # Add continuation limit message if necessary
+    if len(array_of_lines) > CONTINUE_LIMIT:
+        # Add comment that we have reached the limit for continued details.
+        alist[-1] = f"{alist[-1]}</span>" + format_html(
+            "Red",
+            "",
+            (
+                f"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;... continue limit of {CONTINUE_LIMIT!s} "
+                'reached.  See "CONTINUE_LIMIT =" in config.py for '
+                "details"
+            ),
+            True,
+        )
 
     return alist
 

@@ -119,6 +119,7 @@ def process_solo_task_with_no_profile(
     )
 
     # Get the Task's name
+    task_details = ""
     _, task_name = get_task_name(task_id, found_tasks, [], "")
     if UNKNOWN_TASK_NAME in task_name:
         task_details = f"{UNKNOWN_TASK_NAME}{task_id}&nbsp;&nbsp;Task ID: {task_id}"
