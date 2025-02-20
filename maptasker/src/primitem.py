@@ -109,6 +109,11 @@ class PrimeItems:
     last_run = NOW_TIME
     slash = "/"
     task_action_warnings: ClassVar = {}
+    tasker_action_codes: ClassVar = {}
+    tasker_arg_specs: ClassVar = {}
+    tasker_category_descriptions: ClassVar = {}
+    tasker_event_codes: ClassVar = {}
+    tasker_state_codes: ClassVar = {}
 
 
 # Reset all values

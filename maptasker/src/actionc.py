@@ -4,7 +4,8 @@
 # actionc: Task "Action" and Profile "condition" dictionary                            #
 #                                                                                      #
 #  Provide the master lookup for a given <code>nnn</code> xml statement                #
-#  level 1 key = the code (nnn, above)                                                 #
+#  level 1 key = the code (nnn, above) or screen element type                          #
+#       If a code, the last character is 't' for 't', 'e' for event, 's' for state     #
 #   numargs subkey = the maximum number of argn xml lines in the action                #
 #      if it = 99, then this is a referral to another entry, which is identified       #
 #      in 'args'                                                                       #
@@ -46,7 +47,7 @@ action_codes = {
     ),
     "101t": ActionCode(0, "", [], [], "Take Photo", [], []),
     "102t": ActionCode(0, "", [], [], "Open File", [], []),
-    "103s": ActionCode(0, "", [], [], "Light Level", ["0"], []),
+    "103s": ActionCode(1, "", ["0"], ["Int"], "Light Level", ["0"], ["Level="]),
     "104s": ActionCode(0, "", [], [], "Pressure", [], []),
     "104t": ActionCode(
         4,
@@ -830,7 +831,7 @@ action_codes = {
     "2010186613t": ActionCode(0, "1040876951t", [], [], "AutoSheets Delete Cell Content", [], []),
     "202t": ActionCode(0, "", [], [], "APN Settings", [], []),
     "2022280279t": ActionCode(0, "1040876951t", [], [], "AutoNotification Media", [], []),
-    "203e": ActionCode(0, "", [], [], "Battery Changed", ["0"], [["Priority=", "l", "4s"]]),
+    "203e": ActionCode(0, "", ["0"], ["Str"], "Battery Changed", ["0"], [["Priority=", "l", "4s"]]),
     "203t": ActionCode(0, "", [], [], "Date Settings", [], []),
     "2046367074t": ActionCode(0, "1040876951t", [], [], "AutoNotification Cancel", [], []),
     "2041559229t": ActionCode(0, "1040876951t", [], [], "AutoSpotify Playlists", [], []),
@@ -908,7 +909,7 @@ action_codes = {
             ", Network Name/MAC Address=",
         ],
     ),
-    "208e": ActionCode(0, "", 0, [], "Display On", ["0"], [["Priority=", "l", "4s"]]),
+    "208e": ActionCode(0, "", ["0"], ["Str"], "Display On", ["0"], [["Priority=", "l", "4s"]]),
     "208t": ActionCode(0, "", [], [], "Location Settings", [], []),
     "2091e": ActionCode(
         6,
@@ -947,7 +948,7 @@ action_codes = {
             ["if"],
         ],
     ),
-    "210e": ActionCode(0, "", 0, [], "Display Off", ["0"], [["Priority=", "l", "4s"]]),
+    "210e": ActionCode(0, "", ["0"], ["Str"], "Display Off", ["0"], [["Priority=", "l", "4s"]]),
     "210t": ActionCode(0, "", [], [], "InputMethod Settings", [], []),
     "211t": ActionCode(0, "", [], [], "Sync Settings", [], []),
     "211707263t": ActionCode(0, "1040876951t", [], [], "Global Actions", [], []),
@@ -965,7 +966,7 @@ action_codes = {
     "219t": ActionCode(0, "", [], [], "Quick Settings", [], []),
     "220e": ActionCode(0, "", [], [], "File Moved", [], []),
     "220t": ActionCode(0, "", [], [], "Mobile Data Settings", [], []),
-    "222e": ActionCode(0, "", 0, [], "File Modified", ["0", "1"], ["File=", ", Event="]),
+    "222e": ActionCode(0, "", ["0", "1"], ["Int", "Str"], "File Modified", ["0", "1"], ["File=", ", Event="]),
     "222t": ActionCode(0, "", [], [], "Display Settings", [], []),
     "224e": ActionCode(0, "", [], [], "File Closed", [], []),
     "224t": ActionCode(0, "", [], [], "Locale Settings", [], []),
@@ -2338,7 +2339,7 @@ action_codes = {
         ["Directory=", ["", "e", ", Create All"], ["", "e", ", Use Root"]],
     ),
     "40966172t": ActionCode(0, "1040876951t", [], [], "AutoCast", [], []),
-    "40s": ActionCode(0, "", 0, [], "Call", ["0", "1"], ["Type=", ", Number="]),
+    "40s": ActionCode(0, "", 0, ["Int", "Str"], "Call", ["0", "1"], ["Type=", ", Number="]),
     "40t": ActionCode(0, "", [], [], "End For", [], []),
     "410t": ActionCode(
         5,
@@ -2696,6 +2697,15 @@ action_codes = {
         ],
     ),
     "462e": ActionCode(0, "", [], [], "Button Widget Clicked", [], []),
+    "462t": ActionCode(
+        2,
+        "",
+        ["0", "1"],
+        ["Bundle", "Int"],
+        "Remote Action Exection",
+        ["1"],
+        [["Mode=", "l", "462"]],
+    ),
     "463e": ActionCode(0, "", [], [], "New Window", [], []),
     "464e": ActionCode(
         6,
@@ -2782,8 +2792,8 @@ action_codes = {
     ),
     "49t": ActionCode(2, "", ["0", "1"], ["Str", "ConditionList"], "Destroy Scene", ["0"], ["Name="]),
     "4e": ActionCode(0, "", [], [], "Phone Idle", [], []),
+    "4s": ActionCode(0, "", [], ["Int"], "Phone Idle", ["0"], [["Priority=", "l", "4s"]]),
     "502102143t": ActionCode(0, "1040876951t", [], [], "AutoSheets Get Spreadsheet", [], []),
-    "4s": ActionCode(0, "", [], [], "Phone Idle", ["0"], [["Priority=", "l", "4s"]]),
     "502807688t": ActionCode(0, "1040876951t", [], [], "AutoAppsHub SendCommand", [], []),
     "50s": ActionCode(0, "", [], [], "Keyboard Out", [], []),
     "50t": ActionCode(

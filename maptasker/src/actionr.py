@@ -112,7 +112,7 @@ def get_variables(result: str) -> None:
                         primary_variable["project"].append(PrimeItems.current_project)
                     elif not primary_variable["project"]:
                         primary_variable["project"] = [PrimeItems.current_project]
-            except KeyError:  # noqa: PERF203
+            except KeyError:
                 # Drop here if variable is not in Tasker's variable list (i.e. the xml)
                 PrimeItems.variables[variable] = {
                     "value": "(Inactive)",
@@ -126,11 +126,9 @@ def get_variables(result: str) -> None:
 # Then evaluate the data against the master dictionary of actions.
 def get_action_results(
     the_action_code_plus: str,
-    lookup_code_entry: defusedxml.Element,
+    action_codes: defusedxml.Element,
     code_action: defusedxml.Element,
     action_type: bool,
-    arg_list: list[str],
-    evaluate_list: list[str],
 ) -> str:
     """
     For the given code, save the display_name, required arg list and associated type
@@ -138,18 +136,18 @@ def get_action_results(
     Then evaluate the data against the master dictionary of actions
         :param the_action_code_plus: the code found in <code> for the Action (<Action>)
         plus the type (e.g. "861t", where "t" = Task, "s" = State, "e" = Event)
-        :param lookup_code_entry: The key to our Action code dictionary in actionc.py
+        :param action_codes: The Task acction code dictionary in actionc.py
         :param code_action: the <code> xml element
         :param action_type: True if this is for a Task, false if for a Condition
-        :param arg_list: list of <argn> statements
-        :param evaluate_list: list of argument evaluations
         :return: the output line containing the Action details
     """
     # Setup default dictionary as empty list
+    arg_list = action_codes[the_action_code_plus].reqargs
+    evaluate_list = action_codes[the_action_code_plus].evalargs
     evaluated_results = defaultdict(list)
     evaluated_results["required_args"] = arg_list
     result = ""
-    our_action_code = lookup_code_entry[the_action_code_plus]
+    our_action_code = action_codes[the_action_code_plus]
 
     program_arguments = PrimeItems.program_arguments
     # If just displaying action names or there are no action details, then just
@@ -159,7 +157,7 @@ def get_action_results(
         evaluated_results = action_args(
             arg_list,
             the_action_code_plus,
-            lookup_code_entry,
+            action_codes,
             evaluate_list,
             code_action,
             evaluated_results,

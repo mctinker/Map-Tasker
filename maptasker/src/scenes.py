@@ -210,8 +210,6 @@ def format_and_output_arguments(child: defusedxml.ElementTree, element_type: str
         action_codes,  # from actionc.py
         child,
         True,
-        action_codes[element_type].reqargs,
-        action_codes[element_type].evalargs,
     )
     # Sub-element probably doesn't have a name.
     the_result = the_result.replace("&nbsp;&nbsp;,", "&nbsp;&nbsp;(no name),")
@@ -376,7 +374,7 @@ def get_details(
     Returns:
         Nothing
     """
-
+    element_type = ""
     for child in scene:
         if child.tag in SCENE_TAGS_TO_IGNORE:
             continue

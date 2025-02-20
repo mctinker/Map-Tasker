@@ -1,6 +1,5 @@
-"""Action dictionary functions."""
-
 #! /usr/bin/env python3
+"""Action dictionary functions."""
 
 #                                                                                      #
 # actiond: Task Action dictionary functions for MapTasker                              #
@@ -20,11 +19,7 @@ if TYPE_CHECKING:
 IGNORE_ITEMS = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
 
 
-# Provide the Action dictionary to the caller
-# def get_dict() -> defusedxml.ElementTree:
-#     return action_codes
-
-
+# FIX Remove
 # Update the dictionary for the Action code
 #  This is only called if the action code is already in our master
 #  dictionary of codes.
@@ -114,6 +109,9 @@ def build_action_codes(
         build_new_action_codes(action, the_action_code_plus)
 
     return
+
+
+### COMMENT ENDS HERE
 
 
 # Given a child xml element, determine if it is a boolean of condtion

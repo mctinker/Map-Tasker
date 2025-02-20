@@ -17,7 +17,7 @@ import sys
 import time
 from functools import cache
 from tkinter import TclError, font
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import customtkinter as ctk
 import darkdetect
@@ -67,6 +67,8 @@ from maptasker.src.sysconst import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     import defusedxml
 
 
@@ -74,17 +76,14 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 7.0.1 - Change Log\n
+Version 7.0.2 - Change Log\n
 ### Added\n
-- Added: New Ai models added: gemini-2.0.flash, gemini-2.0-flash-lite-preview, gpt-4-turbo-preview\n
-- Added: Task action "Get Pixel Colors' to map.\n
+- Added: Task action 'Remote Action Execution' added.\n
 ### Changed\n
-- Changed: Code optimizations.\n
+- Changed: Updated list of deprecated Task actions.\n
 ### Fixed\n
-- Fixed: Windget V2 missing the argument 'Ask To Add If Not Present'.\n
-- Fixed: Program error when hovering over a Scene name in the Map view.\n
-- Fixed: Program error in taskuniq.py.\n
-- Fixed: MapTasker can not be installed with Python 3.13.2 or higher.  Fixed so that it can run any 3.13.\n
+- Fixed: 'UnboundLocalError' program error in scenes.py.\n
+- Fixed: LLAMA AI Analysis fails due to improper API key when no API key is required.\n
 """
 
 default_font_size = 14

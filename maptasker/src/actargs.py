@@ -240,7 +240,7 @@ def handle_missing_code(the_action_code_plus: str, index: int) -> str:
 def action_args(
     arg_list: list,
     the_action_code_plus: str,
-    lookup_code_entry: dict,
+    action_codes: dict,
     evaluate_list: list,
     code_action: defusedxml,
     evaluated_results: dict,
@@ -251,7 +251,7 @@ def action_args(
         :param arg_list: list of arguments (xml "<argn>") to process
         :param the_action_code_plus: the lookup the Action code from actionc with
             "action type" (e.g. 861t, t=Task, e=Event, s=State)
-        :param lookup_code_entry: dictionary entry for code nnnx (e.g. for entry "846t")
+        :param action_codes: Task action codes dictionary.
         :param evaluate_list: dictionary into which we are supplying the results
         :param code_action: xml element of the action code (<code>)
         :param action_type: True if this is for a Task, False if for a condition
@@ -259,7 +259,8 @@ def action_args(
         :param evaluated_results: dictionary into which to store the results
         :return: dictionary of the stored results
     """
-    our_action_code = lookup_code_entry[the_action_code_plus]
+    # Get the action code and arguments
+    our_action_code = action_codes[the_action_code_plus]
     our_action_args = our_action_code.args
 
     # Go through each <arg> in list of args

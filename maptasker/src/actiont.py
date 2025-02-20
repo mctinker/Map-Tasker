@@ -420,6 +420,7 @@ lookup_values = {
     "455": ["Default", "Microphone", "Call Outgoing", "Call Incoming", "Call"],
     "455a": ["MP4", "3GPP", "AMR Narrowband", "AMR Wideband"],
     "446": ["Directories", "Files"],
+    "462": ["Query", "Reset Token"],
     "490": ["Grab", "Release"],
     "512": ["Expanded", "Collapsed"],
     "523": [

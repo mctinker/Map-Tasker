@@ -42,7 +42,8 @@ def check_for_deprecation(the_action_code_plus: str) -> None:
     """
 
     lookup = the_action_code_plus[:-1]  # Remove last character to get just the digits
-    if lookup in depricated and the_action_code_plus in action_codes:
+    # if lookup in depricated and the_action_code_plus in action_codes:
+    if lookup in depricated and lookup in PrimeItems.tasker_action_codes:
         return "<em> (Is Deprecated)</em> "
 
     return ""
@@ -59,19 +60,20 @@ def get_action_code(
     Given an action code, evaluate it for display
         :param code_child: xml element of the <code>
         :param code_action: value of <code> (e.g. "549")
-        :param action_type: entry or exit
+        :param action_type: True if task, False otherwise
         :param code_type: 'e'=event, 's'=state, 't'=task
         :return: formatted output line with action details
     """
 
     # logger.debug(f"get action code:{code_child.text}{code_type}")
-    the_action_code_plus = code_child.text + code_type
+    just_the_code = code_child.text
+    the_action_code_plus = just_the_code + code_type
 
     # See if this code is deprecated
     depricated = check_for_deprecation(the_action_code_plus)
 
     # We have a code that is not yet in the dictionary?
-    if the_action_code_plus not in action_codes or not action_codes[the_action_code_plus].display:
+    if the_action_code_plus not in action_codes:
         the_result = f"Code {the_action_code_plus} not yet mapped{get_extra_stuff(code_action, action_type)}"
         not_in_dictionary(
             "Action/Condition",
@@ -80,29 +82,31 @@ def get_action_code(
 
     else:
         # Format the output with HTML if this is a Task
-        if action_type:
+        if action_type and len(just_the_code) <= 3:
             # The code is in our dictionary.  Add the display name
             the_result = format_html(
                 "action_name_color",
                 "",
+                # f"{PrimeItems.tasker_action_codes[just_the_code]["name"]}{depricated}",
                 f"{action_codes[the_action_code_plus].display}{depricated}",
                 True,
             )
+            # numargs = len(PrimeItems.tasker_action_codes[just_the_code]["args"])
+
         # Not a Task.  Must be a condition.
         else:
             the_result = f"{action_codes[the_action_code_plus].display}{depricated}"
 
+        # Set the number of arguments for this action.
         numargs = action_codes[the_action_code_plus].numargs if action_codes[the_action_code_plus].numargs else 0
 
         # If there are required args, then parse them
-        if numargs != 0 and action_codes[the_action_code_plus].reqargs:
+        if numargs != 0:
             the_result = action_results.get_action_results(
                 the_action_code_plus,
                 action_codes,
                 code_action,
                 action_type,
-                action_codes[the_action_code_plus].reqargs,
-                action_codes[the_action_code_plus].evalargs,
             )
 
         # If this is a redirected lookup entry, create a temporary mirror
@@ -131,8 +135,6 @@ def get_action_code(
                     temp_lookup_codes,
                     code_action,
                     action_type,
-                    temp_lookup_codes[the_action_code_plus].reqargs,
-                    temp_lookup_codes[the_action_code_plus].evalargs,
                 )
 
     return the_result

@@ -17,7 +17,6 @@ from tkinter import *  # noqa: F403
 
 from tkinter import TclError
 from tkinter.ttk import *  # noqa: F403
-from typing import Callable
 
 import customtkinter
 import darkdetect
@@ -90,6 +89,7 @@ from maptasker.src.sysconst import (
     CHANGELOG_JSON_URL,
     DIAGRAM_FILE,
     KEYFILE,
+    LLAMA_MODELS,
     OPENAI_MODELS,
     TYPES_OF_COLOR_NAMES,
     DISPLAY_DETAIL_LEVEL_all_parameters,
@@ -107,6 +107,10 @@ from maptasker.src.userhelp import (
     VIEW_HELP_TEXT,
     VIEWLIMIT_HELP_TEXT,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # Color Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_appearance_mode("System")
@@ -214,19 +218,19 @@ class MyGui(customtkinter.CTk):
         # Item names must be the same as their value in
         #  PrimeItems.program_arguments
         """
-        Sets default values for attributes.
-        Args:
-            first_time: {bool}: Indicates if it is the first time running the program.
-        Returns:
-            None: No value is returned.
-        {Processing Logic:
-        - Sets default values for attributes like sidebar detail level, conditions flags etc.
-        - Sets appearance mode, indent etc.
-        - Inserts help text if first_time is True
-        - Initializes empty dictionaries and default font
-        - Handles initialization of backup file attributes if not already defined
-        - Displays single name status message
-        }"""
+                Sets default values for attributes.
+        the api key        Args:
+                    first_time: {bool}: Indicates if it is the first time running the program.
+                Returns:
+                    None: No value is returned.
+                {Processing Logic:
+                - Sets default values for attributes like sidebar detail level, conditions flags etc.
+                - Sets appearance mode, indent etc.
+                - Inserts help text if first_time is True
+                - Initializes empty dictionaries and default font
+                - Handles initialization of backup file attributes if not already defined
+                - Displays single name status message
+                }"""
         self.sidebar_detail_option.configure(values=["0", "1", "2", "3", "4", "5"])
         self.sidebar_detail_option.set(str(DEFAULT_DISPLAY_DETAIL_LEVEL))
         self.display_detail_level = DEFAULT_DISPLAY_DETAIL_LEVEL
@@ -2911,7 +2915,7 @@ class EventHandlers:
             the_view.display_message_box("No model selected.", "Orange")
             return
         # Set the AI API key based on the model selected.
-        if not set_ai_key(the_view, the_view.ai_model):
+        if the_view.ai_model not in LLAMA_MODELS and not set_ai_key(the_view, the_view.ai_model):
             the_view.display_message_box(f"The API Key is not set for model {the_view.ai_model}.", "Orange")
             return
         # Make sure we have a single name.
