@@ -1,44 +1,69 @@
-[tool.poetry]
+[project]
 name = "maptasker"
-
-version = "7.0.1"
-
+dynamic = [ "version" ]
+version = "7.0.2"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
-authors = ["Michael Rubin <mikrubin@gmail.com>"]
+requires-python = ">=3.11,<4.0"
+authors = [
+    { name = "Michael Rubin", email = "mikrubin@gmail.com" },
+]
 readme = "README_PyPl.md"
 license = "MIT License (MIT)"
 repository = "https://github.com/mctinker/Map-Tasker"
 # changelog = "https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md"
-keywords = ["tasker", "Tasker", "map tasker"]
+keywords = [
+    "tasker",
+    "Tasker",
+    "map tasker",
+    "configuration",
+    "tasker configuration",
+    "tasker",
+    "tasker configuration"
+]
 packages = [
     { include = "maptasker"}
 ]
-include = ["**/maptasker/**/*.py", "**/maptasker/assets/*.*", "**/sample.prj.xml"]
-# How to include a data directory...
-# include = ["**/maptasker/**/*.py", {path="**/clip/castles/ascii/**", format="sdist"}]
-exclude = ["run_test.py", "**/maptasker/**/backup.xml", "**/maptasker/maptasker.log", "**/maptasker/MapTasker.html", "**/maptasker/.MapTasker_RunCount.txt", "**/maptasker/.arguments.txt", "**/maptasker/**/__pycache__", "**/maptasker/**/.dep-tree.yml"]
+include = [
+    "**/maptasker/**/*.py",
+    "**/maptasker/assets/*.*",
+    "**/sample.prj.xml"
+]
+exclude = [
+    "run_test.py",
+    "**/maptasker/**/backup.xml",
+    "**/maptasker/maptasker.log",
+    "**/maptasker/MapTasker.html",
+    "**/maptasker/.MapTasker_RunCount.txt",
+    "**/maptasker/.arguments.txt",
+    "**/maptasker/**/__pycache__",
+    "**/maptasker/**/.dep-tree.yml"
+]
+dependencies = [
+    "anthropic>=0.45.2",  #  Ai Anthropics support
+    "customtkinter>=5.2.2",  # GUI
+    "pillow>=11.1.0",  # Image support in GUI
+    "darkdetect>=0.8.0",  # Appearance mode detection
+    "defusedxml>=0.7.1",  # More secure xml parser
+    "requests>=2.32.3",  # HTTP Server function request
+    "tomli_w>=1.2.0",  # Write toml file
+    "openai>=1.61.0",  #  Ai OpenAi support
+    "ollama>=0.4.7",  #  Ai Ollama support > cria rquires this
+    "psutil>=6.1.1",  #  System monitoring
+    "google-generativeai>=0.8.4",  #  Ai Google Generative support
+    "grpcio==1.67.1",  #  Ai Google Generative support. Lower version required to avoid error msg 'WARNING: All log...'
+]
 
-[tool.poetry.dependencies]
-python = ">=3.11,<3.14"
-anthropic = "^0.45.2"  #  Ai Anthropics support
-customtkinter = "^5.2.2"  # GUI
-pillow = "^11.1.0"  # Image support in GUI
-darkdetect = "^0.8.0"  # Appearance mode detection
-defusedxml = "0.7.1"  # More secure xml parser
-requests = "^2.32.3"  # HTTP Server function request
-tomli_w = "^1.2.0"  # Write toml file
-openai = "^1.61.0"  #  Ai OpenAi support
-ollama = "^0.4.7"  #  Ai Ollama support > cria rquires this
-psutil = "^6.1.1"  #  System monitoring
-google-generativeai = "^0.8.4"  #  Ai Google Generative support
-grpcio = "1.67.1"  #  Ai Google Generative support.  lower version required to avoid error msg 'WARNING: All log...'
-
-[tool.poetry.scripts]
+[project.scripts]
 maptasker = "maptasker.main:main"
 
-[tool.poetry.urls]
+[project.urls]
+Homepage = "https://github.com/mctinker/Map-Tasker"
 "Bug Tracker" = "https://github.com/mctinker/Map-Tasker/issues"
-"Change Log" = "https://github.com/mctinker/Map-Tasker/CHANGELOG.md"
+Changelog = "https://github.com/mctinker/Map-Tasker/CHANGELOG.md"
+
+
+[tool.poetry]
+requires-poetry = ">=2.0"
 
 [[tool.poetry.source]]
 name = "testpypi"
@@ -185,7 +210,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 pythonpath = [
-  "."
+    "."
 ]
 
 [tool.poetry.group.test.dependencies]
@@ -197,8 +222,6 @@ pytest-mock = "*"
 files = ["maptasker/src/sysconst.py"]
 search = 'VERSION = "{current_version}"'
 replace = 'VERSION = "{new_version}"'
-
-
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"

@@ -73,6 +73,8 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ## Installation
 
+This program and all of it's perquisites will take about 230MBs of space.  It is recommended that you install it into a virtual environment (option 2).
+
 - Install MapTasker by entering the following command into the Terminal:
 
      ```python -m pip install maptasker -U```

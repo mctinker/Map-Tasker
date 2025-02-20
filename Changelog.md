@@ -2,25 +2,32 @@
 
 All notable changes to this project will be documented in this file!
 
-## [7.0.1] 12-Feb-2025
+## [7.0.2] 20-Feb-2025
 
 ### Added
 
-- Added: New Ai models added: gemini-2.0.flash, gemini-2.0-flash-lite-preview, gpt-4-turbo-preview
-- Added: Task action "Get Pixel Colors' to map.
+- Added: Task action 'Remote Action Execution' added.
 
 ### Changed
 
-- Changed: Code optimizations.
+- Changed: Updated list of deprecated Task actions.
 
 ### Fixed
 
+- Fixed: 'UnboundLocalError' program error in scenes.py.
+- Fixed: LLAMA AI Analysis fails due to improper API key when no API key is required.
+
+## Older History Logs
+
+## [7.0.1]
+
+- Added: New Ai models added: gemini-2.0.flash, gemini-2.0-flash-lite-preview, gpt-4-turbo-preview
+- Added: Task action "Get Pixel Colors' to map.
+- Changed: Code optimizations.
 - Fixed: Windget V2 missing the argument 'Ask To Add If Not Present'.
 - Fixed: Program error when hovering over a Scene name in the Map view.
 - Fixed: Program error in taskuniq.py.
 - Fixed: MapTasker can not be installed with Python 3.13.2 or higher.  Fixed so that it can run any 3.13.
-
-## Older History Logs
 
 ## [7.0.0]
 
