@@ -223,7 +223,7 @@ def process_xml_list(
             match_results.append(f"MapTasker 'mapped' error: {lookup_key} not in lookup table for {names}")
             break
 
-        error_handler(f"get_xml_int_argument_to_value failed - this_element:{this_element} {arguments}", 1)
+        error_handler(f"action.py get_xml_int_argument_to_value failed - this_element:{this_element} {arguments}", 1)
         break
 
 
@@ -309,7 +309,8 @@ def get_conditions(child: defusedxml, the_action_code: str) -> str:
     for children in child.find("ConditionList"):
         if "bool" in children.tag:
             booleans.append(children.text)
-        elif children.tag == "Condition" and the_action_code != "37":
+        # elif children.tag == "Condition" and the_action_code != "37":
+        elif children.tag == "Condition":
             # Evaluate the condition to add to output
             string1, operator, string2 = evaluate_condition(children)
             if condition_count != 0:
@@ -406,8 +407,11 @@ def get_extra_stuff(
     """
 
     # If no code, just bail out.
-    if code_action.find("code") is None:
+    action_code_xml = code_action.find("code")
+    if action_code_xml is None:
         return ""
+
+    action_code = action_code_xml.text if action_code_xml is not None and not isinstance(action_code_xml, int) else ""
 
     program_arguments = PrimeItems.program_arguments
     colors_to_use = PrimeItems.colors_to_use
@@ -416,7 +420,9 @@ def get_extra_stuff(
     if action_type and program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
         # Look for extra Task stuff: label, disabled, conditions
         extra_stuff = get_label_disabled_condition(code_action)
-
+        # If this is an 'If' action, remove the 'IF' from the label since we already have it.
+        if action_code == "37":
+            extra_stuff = extra_stuff.replace("IF", "").replace("( ", "(")
         # Get rid of html that might screw up our output
         extra_stuff = (
             RE_FONT.sub("", extra_stuff)

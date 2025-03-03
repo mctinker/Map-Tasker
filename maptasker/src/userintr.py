@@ -208,12 +208,12 @@ class MyGui(customtkinter.CTk):
         PrimeItems.mygui = self
 
         # The following lines are for testing only.
-        # FIX Comment out
+        # NOTE For Development Only!
         # self.event_handlers.diagram_event()
         # self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
 
-    # Establish all of the default values used
+    # Establish all the default values used
     def set_defaults(self) -> None:
         # Item names must be the same as their value in
         #  PrimeItems.program_arguments
@@ -3166,7 +3166,6 @@ class EventHandlers:
             PrimeItems.program_arguments["single_profile_name"] = guiview.single_profile_name
             PrimeItems.program_arguments["single_task_name"] = guiview.single_task_name
 
-            # outline_the_configuration()
             # Re-invoke ourselves to force the html to be written
             _ = mapit_all("")
 

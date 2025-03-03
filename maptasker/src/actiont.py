@@ -518,7 +518,7 @@ lookup_values = {
         "Preference",
         "Selected Alt",
         "Tab",
-        "Text",
+        "Test",
         "Cardboard",
     ],
     "877a": ["Broadcast Receiver", "Activity", "Service"],

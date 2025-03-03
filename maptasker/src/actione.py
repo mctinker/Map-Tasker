@@ -87,27 +87,22 @@ def get_action_code(
             the_result = format_html(
                 "action_name_color",
                 "",
-                # f"{PrimeItems.tasker_action_codes[just_the_code]["name"]}{depricated}",
-                f"{action_codes[the_action_code_plus].display}{depricated}",
+                f"{action_codes[the_action_code_plus].name}{depricated}",
                 True,
             )
             # numargs = len(PrimeItems.tasker_action_codes[just_the_code]["args"])
 
         # Not a Task.  Must be a condition.
         else:
-            the_result = f"{action_codes[the_action_code_plus].display}{depricated}"
+            the_result = f"{action_codes[the_action_code_plus].name}{depricated}"
 
-        # Set the number of arguments for this action.
-        numargs = action_codes[the_action_code_plus].numargs if action_codes[the_action_code_plus].numargs else 0
-
-        # If there are required args, then parse them
-        if numargs != 0:
-            the_result = action_results.get_action_results(
-                the_action_code_plus,
-                action_codes,
-                code_action,
-                action_type,
-            )
+        # Get the actions results
+        the_result = action_results.get_action_results(
+            the_action_code_plus,
+            action_codes,
+            code_action,
+            action_type,
+        )
 
         # If this is a redirected lookup entry, create a temporary mirror
         # dictionary entry.
@@ -120,13 +115,11 @@ def get_action_code(
                 # Create a temporary mirror dictionary entry using values of redirected code
                 temp_lookup_codes = {}
                 temp_lookup_codes[the_action_code_plus] = ActionCode(
-                    action_codes[referral].numargs,
                     "",
                     action_codes[referral].args,
-                    action_codes[referral].types,
-                    action_codes[the_action_code_plus].display,
-                    action_codes[referral].reqargs,
-                    action_codes[referral].evalargs,
+                    action_codes[the_action_code_plus].name,
+                    action_codes[referral].category,
+                    action_codes[referral].canfail,
                 )
 
                 # Get the results from the (copy of the) referred-to dictionary entry

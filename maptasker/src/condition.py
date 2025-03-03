@@ -151,9 +151,9 @@ def condition_event(the_item: defusedxml.ElementTree.XMLParse, the_output_condit
     the_event_code = the_item.find("code")
 
     # Determine what the Event code is and return the actual Event text
-    logger.debug(f"code:{the_event_code.text}")
     event_code = f"{the_event_code.text}e" if "e" not in the_event_code.text else the_event_code.text
     if event_code not in action_codes:
+        logger.debug(f"code:{the_event_code.text} not found in action codes!")
         # Build new (template_ action code if not in our dictionary of codes yet
         process_action_codes.build_action_codes(the_event_code, the_item)  # Add it to our action dictionary
     # the_event_code.text = event_code

@@ -17,6 +17,8 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.xmldata import extract_integer, extract_string
 
+blank = "&nbsp;"
+
 
 ## We have a <bundle>.   Process it
 def get_bundle(code_action: defusedxml.ElementTree, evaluated_results: dict, arg: str) -> dict:
@@ -54,18 +56,21 @@ def get_bundle(code_action: defusedxml.ElementTree, evaluated_results: dict, arg
 
     if clean_string:
         if PrimeItems.program_arguments.get("pretty", False):
-            clean_string = clean_string.replace("\n\n", "\n").replace("\n", ",")
+            clean_string = clean_string.replace("\n\n", "\n")
+            clean_string = clean_string.replace("\n", ",")
 
-        evaluated_results[f"arg{arg}"] = {"value": f"Configuration Parameter(s):\n{clean_string}\n"}
+        # Set up proper spacing if this is an event.
+        spacer = f"{blank * 70}" if code_action.tag == "Event" else ""
+        evaluated_results[f"arg{arg[0]}"] = {"value": f"Configuration Parameter(s):\n{spacer}{clean_string}\n"}
     else:
-        evaluated_results[f"arg{arg}"] = {"value": ""}
+        evaluated_results[f"arg{arg[0]}"] = {"value": ""}
         evaluated_results["returning_something"] = False
 
     return evaluated_results
 
 
 # Given an <argn> element, evaluate it's contents based on our Action code dictionary
-def get_action_arguments(
+def evaluate_argument(
     evaluated_results: dict,
     arg: object,
     argeval: list,
@@ -86,11 +91,13 @@ def get_action_arguments(
         dict: Updated evaluated results.
     """
     evaluated_results["returning_something"] = True
-    the_arg = f"arg{arg}"
+    the_arg = f"arg{arg[0]}"
 
     match argtype:
         case "Int":
-            evaluated_results[the_arg] = {"value": extract_integer(code_action, the_arg, argeval)}
+            if isinstance(argeval, str) and argeval[-1] != "=":
+                argeval = argeval + "="
+            evaluated_results[the_arg] = {"value": extract_integer(code_action, the_arg, argeval, arg)}
 
         case "Str":
             if argeval == "Label":
@@ -98,6 +105,10 @@ def get_action_arguments(
                 evaluated_results[the_arg] = {"value": label or ""}
             else:
                 evaluated_results[the_arg] = {"value": extract_string(code_action, the_arg, argeval)}
+
+        case "Boolean":
+            argeval = arg[4]  # Reform the eval: name, 'e', ''
+            evaluated_results[the_arg] = {"value": extract_integer(code_action, the_arg, argeval, arg).strip()}
 
         case "App":
             extract_argument(evaluated_results, arg, argeval)
@@ -108,6 +119,9 @@ def get_action_arguments(
             extract_condition(evaluated_results, arg, argeval, code_action)
 
         case "Img":
+            extract_image(evaluated_results, code_action, argeval, arg)
+
+        case "Icon":
             extract_image(evaluated_results, code_action, argeval, arg)
 
         case "Bundle":
@@ -140,6 +154,7 @@ def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str
     image, package = "", ""
     child = code_action.find("Img")
     if child is None:
+        evaluated_results[f"arg{arg[0]}"]["value"] = " "
         return
     # Image name
     with contextlib.suppress(Exception):
@@ -149,10 +164,10 @@ def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str
     elif child.find("var") is not None:  # There is a variable name?
         image = child.find("var").text
     if image:
-        evaluated_results[f"arg{arg}"]["value"] = f"{argeval}{image}{package}"
+        evaluated_results[f"arg{arg[0]}"]["value"] = f"{argeval}{image}{package}"
 
     else:
-        evaluated_results[f"arg{arg}"]["value"] = " "
+        evaluated_results[f"arg{arg[0]}"]["value"] = " "
 
 
 # Get condition releated details from action xml
@@ -205,7 +220,11 @@ def extract_argument(evaluated_results: dict, arg: str, argeval: str) -> None:
     - Appends argument name to strargs list in evaluated_results
     - Appends argument evaluation to streval list in evaluated_results
     - Sets get_xml_flag to False"""
-    evaluated_results[f"arg{arg}"]["value"] = argeval
+
+    if f"arg{arg[0]}" not in evaluated_results:
+        evaluated_results[f"arg{arg[0]}"] = {}
+
+    evaluated_results[f"arg{arg[0]}"]["value"] = argeval
 
 
 # Action code not found...let user know
@@ -238,55 +257,52 @@ def handle_missing_code(the_action_code_plus: str, index: int) -> str:
 
 # Go through the arguments and parse each one based on its argument 'type'
 def action_args(
-    arg_list: list,
     the_action_code_plus: str,
-    action_codes: dict,
-    evaluate_list: list,
+    action_codes: list,
     code_action: defusedxml,
     evaluated_results: dict,
-) -> object:
+) -> list:
     """
     Go through the arguments and parse each one based on its argument 'type'
 
-        :param arg_list: list of arguments (xml "<argn>") to process
+        #:param arg_list: list of arguments (xml "<argn>") to process
         :param the_action_code_plus: the lookup the Action code from actionc with
             "action type" (e.g. 861t, t=Task, e=Event, s=State)
         :param action_codes: Task action codes dictionary.
-        :param evaluate_list: dictionary into which we are supplying the results
         :param code_action: xml element of the action code (<code>)
-        :param action_type: True if this is for a Task, False if for a condition
-            (State, Event, etc.)
-        :param evaluated_results: dictionary into which to store the results
-        :return: dictionary of the stored results
+        :param evaluated_results: dictionary of the stored results
+        :return evaluated_results: dictionary of the stored results
     """
+
     # Get the action code and arguments
     our_action_code = action_codes[the_action_code_plus]
     our_action_args = our_action_code.args
 
     # Go through each <arg> in list of args
-    for num, arg in enumerate(arg_list):
+    for num, arg in enumerate(our_action_args):
         # Find the location for this arg in dictionary key "types' since they can be
         # non-sequential (e.g. '1', '3', '4', '6')
         index = num if arg == "if" else our_action_args.index(arg)
 
-        # Get the arg name and type
+        # If this is just a string, use Tasker's argument 'name'.  Otherwise, use the evalarg value in the argument.
+        argeval = arg[2] if arg[2] and isinstance(arg[4], str) else arg[4]
+
+        # Get the argument type: Int, Str, etc.
         try:
-            argeval = evaluate_list[num]
-        except IndexError:
-            evaluated_results["returning_something"] = False
-            evaluated_results["error"] = (
-                "MapTasker mapped IndexError error in action_args...action details not displayed"
-            )
-            return evaluated_results
-        try:
-            argtype = our_action_code.types[index]
+            # Make sure the argument 'type' is a digit = 0-9
+            if not arg[3].isdigit():
+                evaluated_results["error"] = (
+                    "MapTasker mapped IndexError error in action_args...action details not displayed"
+                )
+                return evaluated_results
+            argtype = PrimeItems.tasker_arg_specs[arg[3]]
         except IndexError:
             argtype = handle_missing_code(the_action_code_plus, index)
 
         # Get the Action arguments
-        evaluated_results[f"arg{arg}"] = {}
-        evaluated_results[f"arg{arg}"]["type"] = argtype
-        evaluated_results = get_action_arguments(
+        evaluated_results[f"arg{arg[0]}"] = {}
+        evaluated_results[f"arg{arg[0]}"]["type"] = argtype
+        evaluated_results = evaluate_argument(
             evaluated_results,
             arg,
             argeval,

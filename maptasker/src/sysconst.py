@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "7.0.2"
+VERSION = "7.1.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -184,6 +184,7 @@ pattern12 = re.compile(r"[%]\w+")  # matches any word-constituent character.
 pattern13 = (
     r",(?=\S)"  # matches any comma followed by a non-blank character.  e.g. now is,the time, for (catches is,the)
 )
+pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<"  # Match everything after the label until a '<'
 RE_FONT = re.compile(r"</font>")
 
 clean = re.compile("<.*?>")
@@ -249,11 +250,12 @@ NOW_TIME = datetime.now()  # noqa: DTZ005
 OPENAI_MODELS = [
     "gpt-3.5-turbo",
     "gpt-4o",
+    "gpt-4o-latest",
     "gpt-4o-mini",
     "gpt-4",
     "gpt-4-turbo",
     "gpt-4-turbo-preview",
-    "chatgpt-4o-latest",
+    "gpt-4.5-preview",
     "o1",
     "o1-mini",
     "o1-preview",
@@ -267,6 +269,7 @@ LLAMA_MODELS = [
     "deepseek-coder",
     "deepseek-coder-v2",
     "deepseek-r1",
+    # "deepseek-v3",  # This model is huge!
     "gemma",
     "gemma2",
     "llama2",
@@ -297,11 +300,9 @@ DEEPSEEK_MODELS = [
 GEMINI_MODELS = [
     "gemini-1.5-flash",
     "gemini-2.0-flash",
-    "gemini-2.0-flash-exp",
-    "gemini-2.0-flash-lite-preview",
+    "gemini-2.0-flash-lite",
     "gemini-1.5-flash-8b",
     "gemini-1.5-pro",
-    "gemini-1.0-pro",
 ]
 MODEL_GROUPS = {
     "OpenAI": OPENAI_MODELS,

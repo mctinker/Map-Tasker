@@ -38,25 +38,26 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
     """
     Get all of the evaluated results into a single list and return results as a string.
     :param evaluated_results: a dictionary containing evaluated results
-    :type evaluated_results: dict
     :return: a string containing the evaluated results in order
-    :rtype: str
     """
-
     # Get all of the evaluated results into a single list
     result_parts = []
-    for arg in evaluated_results["required_args"]:
-        value = evaluated_results[f"arg{arg}"]["value"]
-        if value is not None:
-            result_parts.append(value)
-        # Eliminate empty values
-        if result_parts and result_parts[-1] == ", ":
-            result_parts.pop()
-            continue
+    for key in evaluated_results:
+        if key not in ("returning_something", "error"):
+            arg_value = evaluated_results[key]["value"]
+            if arg_value is not None:
+                if isinstance(arg_value, str | bool):
+                    result_parts.append(arg_value)
+                else:
+                    result_parts.append(arg_value["value"])
+            # Eliminate empty values
+            if result_parts and (result_parts[-1] == ", " or result_parts[-1] == ""):
+                result_parts.pop()
+                continue
 
     # Return results as a string
     if result_parts:
-        return " ".join(result_parts)
+        return ", ".join(map(str, result_parts))
 
     return ""
 
@@ -142,29 +143,31 @@ def get_action_results(
         :return: the output line containing the Action details
     """
     # Setup default dictionary as empty list
-    arg_list = action_codes[the_action_code_plus].reqargs
-    evaluate_list = action_codes[the_action_code_plus].evalargs
-    evaluated_results = defaultdict(list)
-    evaluated_results["required_args"] = arg_list
     result = ""
     our_action_code = action_codes[the_action_code_plus]
+
+    # Setup default evaluation results as empty list
+    evaluated_results = defaultdict(list)
+    evaluated_results["returning_something"] = False
 
     program_arguments = PrimeItems.program_arguments
     # If just displaying action names or there are no action details, then just
     # display the name
-    if arg_list and program_arguments["display_detail_level"] != DISPLAY_DETAIL_LEVEL_all_tasks:
+    if (
+        action_codes[the_action_code_plus].args
+        and program_arguments["display_detail_level"] != DISPLAY_DETAIL_LEVEL_all_tasks
+    ):
         # Process the Task action arguments
         evaluated_results = action_args(
-            arg_list,
             the_action_code_plus,
             action_codes,
-            evaluate_list,
             code_action,
             evaluated_results,
         )
 
     # If we have results from evaluation, then go put them in their appropriate order
     if evaluated_results["returning_something"]:
+        # Get the results from the list of evaulations.
         result = get_results_in_arg_order(evaluated_results)
 
     elif evaluated_results["error"]:
@@ -196,7 +199,7 @@ def get_action_results(
         return format_html(
             "action_name_color",
             "",
-            our_action_code.display,
+            our_action_code.name,
             True,
         ) + format_html(
             "action_color",
@@ -205,4 +208,4 @@ def get_action_results(
             False,
         )
 
-    return f"{our_action_code.display}{result}{get_action.get_extra_stuff(code_action, action_type)}"
+    return f"{our_action_code.name}{result}{get_action.get_extra_stuff(code_action, action_type)}"

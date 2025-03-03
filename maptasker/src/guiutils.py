@@ -76,14 +76,24 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 7.0.2 - Change Log\n
+Version 7.1.0 - Change Log\n
 ### Added\n
 - Added: Task action 'Remote Action Execution' added.\n
+- Added: Support for Tasker version 6.4.13\n
+- Added: Event 'Intent Received' is missing the arguments.\n
+- Added: Open AI 'gpt-4.5-preview' AI model.\n
+- Added: Numerous Task action arguments have been added with the background synchronization with Tasker.\n
 ### Changed\n
 - Changed: Updated list of deprecated Task actions.\n
+- Changed: Program data restructured to enable easier transition to future Tasker 'Task' action changes and improve accuracy.\n
+- Changed: Removed no longer supported 'Gemini-1.0' and 'gemini-2.0-flash-exp' AI models.\n
 ### Fixed\n
 - Fixed: 'UnboundLocalError' program error in scenes.py.\n
 - Fixed: LLAMA AI Analysis fails due to improper API key when no API key is required.\n
+- Fixed: Various Task action arguments were missing or incorrect.\n
+- Fixed: Alignment of 'Configuration Parameter(s)' is not always correct if using 'pretty' option.\n
+- Fixed: Program error if trying to close the progress bar window.\n
+- Fixed: Removed redundant blank lines from the Map view.\n
 """
 
 default_font_size = 14
@@ -2434,7 +2444,7 @@ def parse_pairs_to_columns(pairs: list) -> str:
     return "\n  ".join(formatted_lines)
 
 
-# Window is getting closed.  Save the window position.
+# Window is getting closed. Save the window position.
 def on_closing(self: object) -> None:
     """Save the window position and close the window."""
     window_position = self.wm_geometry()
@@ -2449,12 +2459,15 @@ def on_closing(self: object) -> None:
         "Map": "map_window_position",
         "API": "apikey_window_position",
     }
-
+    # Handle progressbar separately.
+    if "Progress" in title:
+        kill_the_progress_bar(PrimeItems.progressbar)
+        return
+    # Find the window being closed and save it's position.
     for keyword, attribute in window_position_map.items():
+        # If this is for the progressbar, then handle separately.
         if keyword in title:
             setattr(self.master, attribute, window_position)
-            if keyword == "Progress":
-                kill_the_progress_bar(self.master.progress_bar)
             break
 
     self.destroy()

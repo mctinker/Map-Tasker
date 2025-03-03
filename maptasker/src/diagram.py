@@ -1253,13 +1253,17 @@ def configure_progress_bar(output_lines: list, title: str) -> tuple:
         tenth_increment = max_data // 10
         if tenth_increment == 0:
             tenth_increment = 1
-        return {
+
+        # Save the info
+        PrimeItems.progressbar = {
             "progress_bar": progress_bar,
             "tenth_increment": tenth_increment,
             "max_data": max_data,
             "progress_counter": 0,
             "self": None,
         }
+        return PrimeItems.progressbar
+
     return None
 
 

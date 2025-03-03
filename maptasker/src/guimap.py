@@ -323,6 +323,7 @@ def process_line(output_lines: list, line: str, line_num: int, highlight_tags: l
                     "Projects..........................." in raw_text
                     or "Profiles..........................." in raw_text
                     or "Tasks..........................." in raw_text
+                    or "Scenes..........................." in raw_text
                 ):
                     raw_text = f"\nn{raw_text}"
 

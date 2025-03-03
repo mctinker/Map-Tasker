@@ -66,14 +66,15 @@ def tag_in_type(tag: str, flag: bool) -> bool:
 
 
 # We have an integer.  Evaluaate it's value based oon the code's evaluation parameters.
-def extract_integer(action: defusedxml.ElementTree, arg: str, argeval: str) -> str:
+def extract_integer(code_action: defusedxml.ElementTree, the_arg: str, argeval: str, arg: list) -> str:
     """
     Extract an integer value from an XML action element.
 
     Args:
-        action (XML element): The XML action element to search.
+        code_action (XML element): The XML action element to search.
         arg (str): The name of the argument to search for.
         argeval (str | list): The evaluation to perform on the integer.
+        arg: (list): The list of arguments for this action from action_codes.
 
     Returns:
         str: The result of the integer evaluation.
@@ -81,7 +82,10 @@ def extract_integer(action: defusedxml.ElementTree, arg: str, argeval: str) -> s
     from maptasker.src.action import drop_trailing_comma, process_xml_list
 
     # Find the first matching <Int> element with the desired 'sr' attribute
-    int_element = next((child for child in action if child.tag == "Int" and child.attrib.get("sr") == arg), None)
+    int_element = next(
+        (child for child in code_action if child.tag == "Int" and child.attrib.get("sr") == the_arg),
+        None,
+    )
 
     if int_element is None:
         return ""  # No matching <Int> element found
@@ -94,11 +98,28 @@ def extract_integer(action: defusedxml.ElementTree, arg: str, argeval: str) -> s
     if not the_int_value:
         return ""  # No valid integer or variable name found
 
+    # If this is a boolean and the integer is 0, then return the empty string
+    if arg[3] == "3" and the_int_value == "0":
+        return ""
+
     # Process the integer evaluation
     if isinstance(argeval, list):
         result = []
-        process_xml_list([argeval], 0, the_int_value, result, [arg])
+        if len(argeval) > 1:
+            # Handle the special case of "e" by adding a space before the value..expects a blank in element 0.
+            new_argeval = ["", "e", argeval[1]] if argeval[0] == "e" else argeval
+            # Handle special case of 'l' lookup.
+            new_argeval = [f"{arg[2]}=", "l", argeval[2]] if arg[2] and argeval[1] == "l" else new_argeval
+        else:
+            new_argeval = argeval
+
+        # Process the argument evaluation
+        process_xml_list([new_argeval], 0, the_int_value, result, [the_arg])
         final_result = " ".join(result)
+    elif isinstance(argeval, str):
+        if argeval[-1] != "=":
+            argeval += "="
+        final_result = argeval + the_int_value
     else:
         final_result = argeval + the_int_value
 
@@ -128,7 +149,10 @@ def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> st
         return ""  # No matching element found
 
     # Extract text value with prefix
-    extracted_text = f"{argeval}(carriage return)" if str_element.text == "\n" else f"{argeval}{str_element.text or ''}"
+    new_argeval = f"{argeval}=" if argeval[-1] != "=" else argeval
+    extracted_text = (
+        f"{argeval}(carriage return)" if str_element.text == "\n" else f"{new_argeval}{str_element.text or ''}"
+    )
 
     # Drop trailing comma if necessary
     return drop_trailing_comma([extracted_text])[0] if extracted_text else ""

@@ -835,7 +835,7 @@ class CTkTextview(ctk.CTkFrame):
             )
             self.profiles_per_line_option.configure(width=50)
             self.profiles_per_line_option.set("6")
-            #  Query ? button
+            # Query ? button
             ppp_query_button = add_button(
                 self,
                 self,
@@ -1717,6 +1717,7 @@ class CTkTextview(ctk.CTkFrame):
         process_directory = self.process_directory
         process_colored_text = self.process_colored_text
         PrimeItems.track_task_warnings = []
+        previous_text = ""
 
         # Go through the data and format it accordingly.
         for num, (_, value) in enumerate(the_data.items()):
@@ -1724,10 +1725,22 @@ class CTkTextview(ctk.CTkFrame):
                 progress["progress_counter"] = num
                 display_progress_bar(progress, is_instance_method=True)
 
-            # Get the text of the value and ignore blank lines.
+            # Get the text of the value and ignore duplicate blank lines.
             text = value.get("text", [])
-            if text and text[0] == "  \n":
+            if previous_text == "\n" and text and text[0] == "\n":
                 continue
+            if text:
+                previous_text = text[0]
+            # Handle special spacing for directory headings
+            if text and text[0].startswith("\nn"):
+                # If dictionary header, then let's add a leading blank line.
+                # Add hyperlink directory entry
+                tag_id = self._generate_unique_tag_id(line_num, char_position, tags)
+                self.textview_textbox.tag_config(
+                    tag_id,
+                    background=make_hex_color(self.master.master.color_lookup["background_color"]),
+                )
+                self.textview_textbox.insert("end", "\n", tag_id)
 
             # Check to see if we need to bump the line number.
             line_num, char_position = check_bump(line_num, char_position, previous_value, value)
@@ -1736,7 +1749,7 @@ class CTkTextview(ctk.CTkFrame):
             if not value["color"] and value["text"]:
                 value["color"] = [previous_color]
 
-            # Go through all of the text/color combinations
+            # Go through all the text/color combinations
             if value.get("color"):
                 line_num, previous_color, previous_value, tags = process_colored_text(
                     value,
@@ -1948,20 +1961,22 @@ class CTkTextview(ctk.CTkFrame):
 
         if text == "Directory\n":
             # Replace text with the formatted directory description
-            value["text"] = ["Directory    (blue entries are hotlinks)\n"]
+            value["text"] = ["Directory    (blue entries are hotlinks)\n \n"]
 
+        # Process directory headings (e.g. 'Projects...')
         elif text.startswith("\nn"):
             # Save and temporarily update text and color
             save_text = text[2:]
             save_color = value["color"]
-            value["text"] = "\n\n"
+            value["text"][0] = "\n"
 
             # Output current text and increment line number
             previous_color = self.output_map_text_lines(value, line_num, tags, previous_color, previous_value)
             line_num += 1
+            # return line_num + 1, previous_color, "color", tags
 
             # Restore original text and color
-            value["text"] = save_text
+            value["text"][0] = save_text
             value["color"] = save_color
 
         # Output the updated text and color
@@ -1995,7 +2010,7 @@ class CTkTextview(ctk.CTkFrame):
         """
         spacing, columns = 40, 3
         directory_type = value["directory"][0]
-        # We dont't support Grand Totals hotlinks (yet)
+        # We don't support Grand Totals hotlinks (yet)
         if directory_type in {"grand", "</td"}:
             return 0, previous_directory, line_num
 
@@ -2057,7 +2072,7 @@ class CTkTextview(ctk.CTkFrame):
                     go_up_type = "profiles_up"
                     name_object = "Profile:"
                 else:
-                    # We're at the Project level.  Do nothing.
+                    # We're at the Project level. Do nothing.
                     go_up_type = "all"
                     name_to_go_up = "entire configuration"
                     name_object = ""
@@ -2092,12 +2107,14 @@ class CTkTextview(ctk.CTkFrame):
         line_num_str = str(line_num)
         char_position = 0
 
-        # Precompute the background color
+        # Pre-compute the background color
         background_color = make_hex_color(self.master.master.color_lookup["background_color"])
         pretty = self.master.master.pretty
         debug = self.master.master.debug
 
-        for num, message in enumerate(value["text"]):
+        # Iterate over a list or a string.
+        for num, message in enumerate(value["text"] if isinstance(value["text"], list) else [value["text"]]):
+            # If the text is not a list, just get the string.
             if message == "     \n":
                 continue
             # Formats the message for pretty output, debug, and specific cases.
@@ -2117,13 +2134,18 @@ class CTkTextview(ctk.CTkFrame):
                 formatted_message += "\n"
 
             tag_id = self._generate_unique_tag_id(line_num_str, char_position, tags)
-            char_position = self._insert_message(
-                line_num_str,
-                char_position,
-                formatted_message,
-                tag_id,
-                background_color,
-            )
+
+            # If new line, just do it and get out.
+            if message == "\n":
+                self.textview_textbox.insert("end", "\n", tag_id)
+            else:
+                char_position = self._insert_message(
+                    line_num_str,
+                    char_position,
+                    formatted_message,
+                    tag_id,
+                    background_color,
+                )
             previous_color = self._handle_color_and_highlighting(
                 value,
                 tags,
@@ -2162,8 +2184,8 @@ class CTkTextview(ctk.CTkFrame):
             message = f"  {message}"
 
         # Add debug information
-        if debug:
-            message = f"{line_num_str} {message}"
+        # if debug:
+        #    message = f"{line_num_str} {message}"
 
         return message
 
@@ -2187,7 +2209,7 @@ class CTkTextview(ctk.CTkFrame):
         start_idx = f"{line_num_str}.{char_position}"
         end_idx = f"{line_num_str}.{char_position + len(message)}"
 
-        # Handle Task Action Limit Warnings.  We have to break it up into 3 pieces:
+        # Handle Task Action Limit Warnings. We have to break it up into 3 pieces:
         # 1. Before the Task name.
         # 2. The Task name as a hyperlink.
         # 3.After the Task name.
@@ -2197,7 +2219,7 @@ class CTkTextview(ctk.CTkFrame):
                 if f"Task {task_name} has" in message:
                     break
 
-            # Get the inseertion positions.
+            # Get the insertion positions.
             taskname_start = 5
             taskname_end = taskname_start + len(task_name)
             task_name = message[taskname_start:taskname_end]
@@ -2442,8 +2464,8 @@ class CTkTextview(ctk.CTkFrame):
                     {"background": PrimeItems.colors_to_use["highlight_color"]},
                 )
 
-            if self.master.master.debug:
-                self._debug_highlight(line_to_highlight, start_pos, end_pos, tag_id)
+            # if self.master.master.debug:
+            #    self._debug_highlight(line_to_highlight, start_pos, end_pos, tag_id)
 
         return tags
 
@@ -2489,7 +2511,7 @@ class CTkTextview(ctk.CTkFrame):
     def _debug_highlight(self, line: str, start: int, end: int, tag_id: str) -> None:
         """Output debug information for the highlight."""
         line_num = int(line) - 2
-        print(f"Debug: Line {line_num}, Start {start}, End {end}")
+        print(f"GUIWINS Debug: Line {line_num}, Start {start}, Line {line_num}, End {end}, Tagid {tag_id}")
         self.textview_textbox.insert(f"{line_num}.{end + 1}", "<< Here is a highlight >>", tag_id)
 
     def ctrlevent(self, event: object) -> str:

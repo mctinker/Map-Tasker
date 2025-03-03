@@ -9,20 +9,16 @@ import contextlib
 import json
 import os
 import platform
-import re
 import sys
 from collections import namedtuple
-from json import dumps, loads  # For write and read counter
+from json import dumps, loads
 from pathlib import Path
 from tkinter import TkVersion, messagebox
 
-# importing askopenfile (from class filedialog) and messagebox functions
+# importing askopenfile (from class filedialog) and messagebox functionsy
 from tkinter.filedialog import askopenfile
 
-import requests
-
 import maptasker.src.progargs as get_arguments
-from maptasker.src.actionc import action_codes
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DARK_MODE, GUI
 from maptasker.src.error import error_handler
@@ -41,10 +37,12 @@ from maptasker.src.sysconst import (
 )
 from maptasker.src.taskerd import get_the_xml_data
 
+# TODO Change this so that we eventually create and keep in memory action_codes.
 ActionCode = namedtuple(  # noqa: PYI024
     "ActionCode",
-    ("redirect", "args", "display", "reqargs", "evalargs"),
+    ("redirect", "args", "name", "category", "canfail"),
 )
+ArgumentCode = namedtuple("ArgumentCode", ["arg_id", "arg_required", "arg_name", "arg_type", "arg_eval"])  # noqa: PYI024
 
 
 # Use a counter to determine if this is the first time run.
@@ -331,265 +329,50 @@ def check_versions() -> None:
         exit(0)  # noqa: PLR1722
 
 
-def java_constants_to_dict(url) -> dict:
-    """
-    Fetches a Java source file from the given URL and extracts public static final int constants.
-
-    Args:
-        url (str): The URL of the Java source file.
-
-    Returns:
-        dict: A dictionary where the keys are the constant names and the values are their corresponding integer values.
-
-    Raises:
-        requests.exceptions.RequestException: If there is an issue with the HTTP request.
-    """
-    constants = {}
-    pattern = re.compile(r"public\s+static\s+final\s+int\s+(\w+)\s*=\s*(-?\d+);")
-
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
-
-    for line in response.text.splitlines():
-        match = pattern.search(line)
-        if match:
-            constants[match.group(1)] = int(match.group(2))
-
-    return constants
-
-
-class CustomJSONEncoder(json.JSONEncoder):
-    """
-    Custom JSON Encoder that capitalizes JSON boolean values.
-
-    This encoder overrides the default JSONEncoder to replace lowercase
-    boolean values ('true', 'false') with their capitalized counterparts
-    ('True', 'False') in the resulting JSON string.
-    """
-
-    def iterencode(self, obj: object, _one_shot: bool = False) -> object:
-        """
-        Encodes the given object to a JSON formatted string, replacing lowercase
-        JSON booleans with their capitalized counterparts.
-
-        Args:
-            obj: The object to encode.
-            _one_shot (bool): Whether to use a single-pass encoding process.
-
-        Yields:
-            str: Chunks of the JSON encoded string with capitalized booleans.
-        """
-        for chunk in super().iterencode(obj, _one_shot):
-            yield chunk.replace("true", "True").replace("false", "False")  # Capitalizing JSON booleans
-
-
-def save_dict_to_json(dictionary: dict, filename: str) -> None:
-    """
-    Save a dictionary to a JSON file.
-
-    Args:
-        dictionary (dict): The dictionary to save.
-        filename (str): The path to the file where the dictionary will be saved.
-
-    Returns:
-        None
-    """
-    with open(filename, "w") as file:
-        json.dump(dictionary, file, indent=4, cls=CustomJSONEncoder)
-
-
-def merge_type(arg_type: str) -> int:
-    """
-    Retrieve the integer value associated with a given argument type from PrimeItems.tasker_arg_specs.
-
-    Args:
-        arg_type (str): The type of argument to look up in PrimeItems.tasker_arg_specs.
-
-    Returns:
-        int: The integer value associated with the provided argument type.
-    """
-    for key, value in PrimeItems.tasker_arg_specs.items():
-        if value == arg_type:
-            return key
-    return None
-
-
-def merge_add_arg(
-    args: list,
-    argid: str,
-    manditory: bool,
-    name: str,
-    argtype: str,
-    value: ActionCode,
-    position: int,
-    plugin: bool = False,
-) -> list:
-    """
-    Adds a new argument to the list of arguments.
-
-    Args:
-        args (list): The list of arguments to which the new argument will be added.
-        argid (str): The identifier for the argument.
-        manditory (bool): Whether the argument is mandatory.
-        name (str): The name of the argument.
-        argtype (str): The type of the argument.
-        value (ActionCode): The value from which to get the evaluation element.
-
-    Returns:
-        list: The updated list of arguments with the new argument added.
-    """
-    # Get the evaluation arguments
-    if not plugin:  # Task/State/Event
-        try:
-            evaluate = value.evalargs[position] if position >= 0 else "undefined"
-        except NameError:
-            evaluate = ""
-    else:  # Plugin
-        try:
-            evaluate = value.evalargs[position] if position >= 0 else "undefined"
-        except NameError:
-            evaluate = ""
-
-    args.append((argid, manditory, name, argtype, evaluate))
-    return args
-
-
-def merge_codes(new_dict: dict, just_the_code: str, code: str, value: object) -> dict:
-    """
-    Merges tasker action codes into a new dictionary.
-
-    Args:
-        new_dict (dict): The dictionary to merge the codes into.
-        just_the_code (str): The key to look up in the tasker action codes.
-        code (str): The code to use as the key in the new dictionary.
-        value (object): An object containing the required arguments and evaluation arguments.
-
-    Returns:
-        dict: The updated dictionary with the merged codes.
-
-    Raises:
-        KeyError: If the `just_the_code` is not found in `PrimeItems.tasker_action_codes`.
-    """
-    try:
-        tasker_action_code = PrimeItems.tasker_action_codes[just_the_code]
-        args = []
-        for arg in tasker_action_code["args"]:
-            try:
-                arg_pos = value.reqargs.index(str(arg["id"]))
-            except (ValueError, AttributeError):
-                arg_pos = -1
-
-            # Add the argument
-            args = merge_add_arg(
-                args,
-                arg["id"],
-                arg["isMandatory"],
-                arg["name"],
-                arg["type"],
-                value,
-                arg_pos,
-                plugin=False,
-            )
-
-        # Get optional values
-        category = tasker_action_code.get("category_code", "")
-        canfail = tasker_action_code.get("canfail", "")
-        # Build the dictionary
-        new_dict[code] = ActionCode(
-            "",
-            args,
-            tasker_action_code["name"],
-            category,
-            canfail,
-        )
-
-    # It's a plugin
-    except KeyError:
-        # Copy relevant data to new dictionary,
-        args = []
-        if value.reqargs:
-            for num, arg in enumerate(value.reqargs):
-                argtype = value.types[num]
-                # Add the argument
-                args = merge_add_arg(args, arg, True, "", merge_type(argtype), value, num, plugin=True)
-
-        # Add it to our dictionary
-        new_dict[code] = ActionCode(value.redirect, args, value.display, "", "")
-    return new_dict
-
-
-def merge_action_codes() -> None:
-    """
-    Merges action codes from the global `action_codes` dictionary and `PrimeItems.tasker_action_codes` dictionary
-    into a new dictionary, and saves the result to a file.
-
-    The function performs the following steps:
-    1. Iterates through the old `action_codes` dictionary and processes each code based on its type.
-       - If the code type is 't', 's', or 'e' and the code (excluding the last character) is numeric, it merges the code
-       with the code table read from Tasker's development site (`PrimeItems.tasker_action_codes`).
-       - Otherwise, it handles screen elements by creating a list of arguments and adding them to the new dictionary.
-    2. Ensures that all codes from `PrimeItems.tasker_action_codes` are included in the new dictionary.
-       - If a code is not present, it merges the code with a modified version of the code.
-    3. Saves the new dictionary to a file named "newdict.txt" in Python syntax.
-
-    The function does not return any value.
-    """
-    new_dict = {}
-    for code, value in action_codes.items():
-        just_the_code = code[:-1]
-        code_type = code[-1]
-        # Task?
-        if code_type in ("t", "s", "e") and just_the_code.isdigit():
-            # if code == "1040876951t":
-            #    print("bingo")
-            new_dict = merge_codes(new_dict, just_the_code, code, value)
-
-        # Handle screen elements
-        else:
-            args = []
-            for num, arg in enumerate(value.reqargs):
-                evaluate = value.evalargs[num] if num else "undefined"
-                args.append(("", arg, True, "", evaluate))
-            new_dict[code] = ActionCode(value.redirect, args, value.display, "", "")
-
-    # Check if all PrimeItems.tasker_action_codes are in action_codes, and if not, then add it.
-    for just_the_code, value in PrimeItems.tasker_action_codes.items():
-        modified_code = f"{just_the_code}t"
-        if modified_code not in new_dict:
-            tasker_action_code = PrimeItems.tasker_action_codes[just_the_code]
-            # Format the arguments
-            args = []
-            for arg in tasker_action_code["args"]:
-                args.append(("", arg["id"], arg["isMandatory"], arg["name"], arg["type"], ""))
-            # Get optional values
-            category = tasker_action_code.get("category_code", "")
-            canfail = tasker_action_code.get("canfail", "")
-            print("Adding Task action:", value["name"])
-            new_dict[modified_code] = ActionCode("", args, value["name"], category, canfail)
-
-    # Sort and save the new dictionary so we can import it.
-    new_dict = dict(sorted(new_dict.items()))
-    save_dict_to_json(new_dict, "newdict.py")
-
-    print("New Action Codes dictionary saved.")
-
-
-def build_action_codes() -> None:
+def build_action_codes(build_it_all: bool = False) -> None:
     """
     Builds the action codes dictionary from the Tasker JSON files.
     Args:
-        None
+        build_it_all(bool): True = build all action codes, False = build only new action spec codes
     Returns:
         None
     """
-    # Get the JSON directory
-    asset_dir = (
-        f"{os.getcwd()}{PrimeItems.slash}maptasker{PrimeItems.slash}assets{PrimeItems.slash}json{PrimeItems.slash}"
-    )
-    # Get the map of all Tasker task action codes and their arguments
-    with open(f"{asset_dir}task_all_actions.json", encoding="utf-8") as file:
-        tasker_codes = json.load(file)
-        # Go thru the list of dictionaries and build our own dictionary.
+    # Point to the JSON directory
+    current_dir = os.getcwd()
+    abspath = os.path.abspath(__file__)
+    json_dir = os.path.dirname(abspath).replace("src", f"assets{PrimeItems.slash}json{PrimeItems.slash}")
+    # Switch to our temp directory (assets)
+    os.chdir(json_dir)
+
+    # Get the map of all Tasker task action argument types
+    try:
+        with open(f"{json_dir}arg_specs.json", encoding="utf-8") as file:
+            PrimeItems.tasker_arg_specs = json.load(file)
+            spec_number = len(PrimeItems.tasker_arg_specs)
+            # Add extras for new action specs
+            PrimeItems.tasker_arg_specs[str(spec_number)] = "ConditionList"
+            PrimeItems.tasker_arg_specs[str(spec_number + 1)] = "Img"
+            for key, value in PrimeItems.tasker_arg_specs.items():
+                if value == "String":
+                    PrimeItems.tasker_arg_specs[key] = "Str"
+                    break
+    except FileNotFoundError:
+        print("arg_specs missing!")
+
+    # If building it all, then get the map of all Tasker task action codes and their arguments, states, and events.
+    if build_it_all:
+        from maptasker.src.acmerge import merge_action_codes, validate_states_and_events
+
+        # Get the map of all Tasker task action codes and their arguments
+        with open(f"{json_dir}task_all_actions.json", encoding="utf-8") as file:
+            # NOTE: 'spec' defines the argument value:
+            # t:n:? = text where 'n' is number of input lines; ? means optional.
+            # n:nn = range of numbers; nn is the maximum number.
+            # h:m:s = time
+            # plus more...
+            tasker_codes = json.load(file)
+
+        # Go thru the list of dictionaries and build our own dictionary from task_all_actions.json contents.
         for value in tasker_codes:
             PrimeItems.tasker_action_codes[str(value["code"])] = {
                 "args": value["args"],
@@ -600,32 +383,27 @@ def build_action_codes() -> None:
         # Sort the dictionary
         PrimeItems.tasker_action_codes = dict(sorted(PrimeItems.tasker_action_codes.items()))
 
-    # Get the map of all Tasker task action argument types
-    with open(f"{asset_dir}arg_specs.json", encoding="utf-8") as file:
-        PrimeItems.tasker_arg_specs = json.load(file)
-        spec_number = len(PrimeItems.tasker_arg_specs)
-        PrimeItems.tasker_arg_specs[str(spec_number)] = "ConditionList"
-        for key, value in PrimeItems.tasker_arg_specs.items():
-            if value == "String":
-                PrimeItems.tasker_arg_specs[key] = "Str"
-                break
+        # Get the action category description
+        with open(f"{json_dir}category_descriptions.json", encoding="utf-8") as file:
+            category_descriptions = json.load(file)
+            for description in category_descriptions:
+                PrimeItems.tasker_category_descriptions[description["code"]] = description["name"]
 
-    # Get the action category description
-    with open(f"{asset_dir}category_descriptions.json", encoding="utf-8") as file:
-        category_descriptions = json.load(file)
-        for description in category_descriptions:
-            PrimeItems.tasker_category_descriptions[description["code"]] = description["name"]
+        # Merge actionc with this new data to create a new dictionary
+        merge_action_codes()
 
-    # Get the event codes
-    url = "https://tasker.joaoapps.com/code/EventCodes.java"
-    PrimeItems.tasker_event_codes = java_constants_to_dict(url)
+        # Validate event codes
+        url = "https://tasker.joaoapps.com/code/EventCodes.java"
+        validate_states_and_events("e", url)
 
-    # Get the state codes
-    url = "https://tasker.joaoapps.com/code/StateCodes.java"
-    PrimeItems.tasker_state_codes = java_constants_to_dict(url)
+        # Validate the state codes
+        url = "https://tasker.joaoapps.com/code/StateCodes.java"
+        validate_states_and_events("s", url)
 
-    # Merge actionc with this new data to create a new dictionary
-    merge_action_codes()
+        PrimeItems.tasker_action_codes.clear()
+
+    # Put the directory back to where it should be.
+    os.chdir(current_dir)
 
 
 # Perform maptasker program initialization functions
@@ -672,8 +450,12 @@ def start_up() -> dict:
     PrimeItems.colors_to_use = setup_colors()
 
     # Build the action codes
-    # NOTE: FOR DEVELOPMENT ONLY!!! THIS ROUTINE SHOULD ONLY BE RUN WITH A NEW UPDATE OF TASKER!
-    # build_action_codes()
+    # NOTE: FOR DEVELOPMENT ONLY!!! 'BUILD_ALL = TRUE' ONLY WITH NEW UPDATE OF TASKER!  See acmerge.py
+    build_all = False
+    build_action_codes(build_it_all=build_all)
+    if build_all:
+        sys.exit()
+    # END OF DEVELOPMENT CODE
 
     # Display a popup window telling user we are analyzing
     if PrimeItems.program_arguments["doing_diagram"]:

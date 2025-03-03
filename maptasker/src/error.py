@@ -1,6 +1,6 @@
+#! /usr/bin/env python3
 """Error handling module for MapTasker."""
 
-#! /usr/bin/env python3
 import sys
 
 #                                                                                      #
