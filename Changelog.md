@@ -2,22 +2,39 @@
 
 All notable changes to this project will be documented in this file!
 
-## [7.0.2] 20-Feb-2025
+## [7.1.0] 04-Mar-2025
 
 ### Added
 
 - Added: Task action 'Remote Action Execution' added.
+- Added: Support for Tasker version 6.4.13
+- Added: Event 'Intent Received' is missing the arguments.
+- Added: Open AI 'gpt-4.5-preview' AI model.
+- Added: Numerous Task action arguments have been added with the background synchronization with Tasker.
 
 ### Changed
 
 - Changed: Updated list of deprecated Task actions.
+- Changed: Program data restructured to enable easier transition to future Tasker 'Task' action changes and improve accuracy.
+- Changed: Removed no longer supported 'Gemini-1.0' and 'gemini-2.0-flash-exp' AI models.
 
 ### Fixed
 
 - Fixed: 'UnboundLocalError' program error in scenes.py.
 - Fixed: LLAMA AI Analysis fails due to improper API key when no API key is required.
+- Fixed: Various Task action arguments were missing or incorrect.
+- Fixed: Alignment of 'Configuration Parameter(s)' is not always correct if using 'pretty' option.
+- Fixed: Program error if trying to close the progress bar window.
+- Fixed: Removed redundant blank lines from the Map view.
 
 ## Older History Logs
+
+## [7.0.2]
+
+- Added: Task action 'Remote Action Execution' added.
+- Changed: Updated list of deprecated Task actions.
+- Fixed: 'UnboundLocalError' program error in scenes.py.
+- Fixed: LLAMA AI Analysis fails due to improper API key when no API key is required.
 
 ## [7.0.1]
 
