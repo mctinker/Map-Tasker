@@ -1,7 +1,7 @@
 [project]
 name = "maptasker"
 dynamic = [ "version" ]
-version = "7.1.0"
+version = "7.1.1"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 requires-python = ">=3.11,<4.0"
 authors = [
@@ -46,7 +46,7 @@ dependencies = [
     "defusedxml>=0.7.1",  # More secure xml parser
     "requests>=2.32.3",  # HTTP Server function request
     "tomli_w>=1.2.0",  # Write toml file
-    "openai>=1.65.2",  #  Ai OpenAi support
+    "openai>=1.66.3",  #  Ai OpenAi support
     "ollama>=0.4.7",  #  Ai Ollama support > cria rquires this
     "psutil>=7.0.0",  #  System monitoring
     "google-generativeai>=0.8.4",  #  Ai Google Generative support
@@ -75,7 +75,7 @@ name = "PyPI"
 priority = "primary"
 
 [tool.ruff]
-line-length = 120
+include = ["pyproject.toml", "maptasker/src/**/*.py", "scripts/**/*.py"]
 respect-gitignore = true
 # editor.formatOnSaveMode = "modificationsIfAvailable"
 select = [
@@ -155,6 +155,12 @@ exclude = [
     "venv",
     ".md",
     "__init__.py",
+    "**/maptasker/assets/*.*",
+    "**/maptasker/MapTasker.html",
+    "**/maptasker/.MapTasker_RunCount.txt",
+    "**/maptasker/.arguments.txt",
+    "**/maptasker/**/__pycache__",
+    "**/maptasker/**/.dep-tree.yml"
 ]
 
 ignore = [
@@ -218,11 +224,10 @@ pytest = "^7.3.2"
 pytest-mock = "*"
 
 # Bump version identifiers.  Repeat this chunk for each file.
-[[tool.poetry_bumpversion.replacements]]
+[tool.poetry_bumpversion.replacements]
 files = ["maptasker/src/sysconst.py"]
 search = 'VERSION = "{current_version}"'
 replace = 'VERSION = "{new_version}"'
-
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"

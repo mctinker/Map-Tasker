@@ -2,32 +2,47 @@
 
 All notable changes to this project will be documented in this file!
 
-## [7.1.0] 04-Mar-2025
+## [7.1.1] 17-Mar-2025
 
 ### Added
+
+- Added: Tasker version 6.5.1 Beta support (new 'Calendar' Task actions).
+- Added: Closing the progress bar now also cancels the current view.
+- Added: Scene Tasks have been added to the Diagram view.
+- Added: Profile Events 'Network Changed', 'Pick Up Gesture', 'Fingerprint Gesture', 'Physical Activity', 'Clipboard Changed', 'Accessibility Services Changed', 'Device Unlock Failed' and 'Remote Action Token Changed' are now recognized.
+- Added: Profile States 'Room', 'Reaching', 'Physical Activity', 'Matter Light', 'Data Usage', and 'Compass Orientation' are now recognized.
+
+### Changed
+
+- Changed:
+
+### Fixed
+
+- Fixed: The current view continues to display as empty if closing the progress bar.
+- Fixed: Screen WebElement 'Source=' HTML is missing and/or malformed.
+- Fixed: States 'BT Status' and 'BT Near' not recognized.
+- Fixed: Task action labels are not all displaying in the correct color.
+- Fixed: Not correctly parsing action arguments that contain a '<'.
+- Fixed: 'Run and Exit' after doing a 'Map' view from the GUI would display the wrong data in the browser.
+
+## Older History Logs
+
+## [7.1.0]
 
 - Added: Task action 'Remote Action Execution' added.
 - Added: Support for Tasker version 6.4.13
 - Added: Event 'Intent Received' is missing the arguments.
 - Added: Open AI 'gpt-4.5-preview' AI model.
 - Added: Numerous Task action arguments have been added with the background synchronization with Tasker.
-
-### Changed
-
 - Changed: Updated list of deprecated Task actions.
 - Changed: Program data restructured to enable easier transition to future Tasker 'Task' action changes and improve accuracy.
 - Changed: Removed no longer supported 'Gemini-1.0' and 'gemini-2.0-flash-exp' AI models.
-
-### Fixed
-
 - Fixed: 'UnboundLocalError' program error in scenes.py.
 - Fixed: LLAMA AI Analysis fails due to improper API key when no API key is required.
 - Fixed: Various Task action arguments were missing or incorrect.
 - Fixed: Alignment of 'Configuration Parameter(s)' is not always correct if using 'pretty' option.
 - Fixed: Program error if trying to close the progress bar window.
 - Fixed: Removed redundant blank lines from the Map view.
-
-## Older History Logs
 
 ## [7.0.2]
 

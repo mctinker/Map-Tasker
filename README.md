@@ -26,6 +26,7 @@
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX/WIN11 machine based on Tasker's backup or exported XML file
 
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
+[More Samples]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see [Note 1](#1)).
 
@@ -49,7 +50,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Display a diagram of your entire Tasker configuration.
 - Command line or GUI interface.
 - Use exported XML or fetch the XML directly from your Android device for the configuration mapping.
-- Save and restore commonly used runtime settings.
+- Save and restore runtime settings.
 - Identify Tasks that have too many 'actions', and which should potentially be broken up into multiple Tasks.
 - Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT/Claude/DeepSeek/Gemini or the local-based Llama (via Ollama) supported models.*
 - Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View.*
@@ -59,7 +60,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ## Program Dependencies
 
-### - Python version v3.11 (see [Note 4](#4)) or higher and Tkinter 8.6 or higher
+### - Python version v3.11 (see [Note 4](#4)) or higher
 
 ### - TKinter 8.6 or higher (see [Note 3](#3))
 
@@ -177,14 +178,14 @@ If having problems getting Tkinter to version 8.6, try the following:
 
 If still having Tkinter version problems, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
 
-Python installations that use 'pyenv' version management, take note: tcl-tk has been upgraded to version 9 (brew install tcl-tk), which may cause an error when importing tkinter.  If this error occurs:
-- If running python 3.11.10 or lower, then the new tcl-tk is not recognized and you will get an import error for 'tkinter'.  Issue the commands (in the order specified):\n
-    - 'brew uninstall tcl-tk',\n
-    - 'pyenv uninstall 3.11.xx'\n
-    - 'brew install tcl-tk@8'\n
-    - 'pyenv install 3.11:latest'\n
-- if running python 3.12.4, upgrade to 3.12.7 (the latest): 'pyenv install 3.12:latest'\n
-- Python version 3.13.0 works fine with the new tcl-tk.\n
+Python installations that use 'pyenv' version management, take note: tcl-tk has been upgraded to version 9 (brew install tcl-tk).  If this error occurs:
+- If running python version 3.11, then the new tcl-tk is not recognized and you will get an import error for 'tkinter'.  Issue the commands (in the order specified):
+    - 'brew uninstall tcl-tk'
+    - 'pyenv uninstall 3.11.xx'
+    - 'brew install tcl-tk@8'
+    - 'pyenv install 3.11:latest'
+- if running python 3.12.4, upgrade to the latest version of 3.12: 'pyenv install 3.12:latest'
+- Python version 3.13.0 works fine with the new tcl-tk.
 
 ### 4
 
@@ -247,10 +248,10 @@ Network traffic is as follows:
 
 ## Known Issues
 
-- An upgrade to Tcl-tk verison 9 (brew install tcl-tk) may cause an error when importing tkinter.  If this occurs, upgrade to the latest available version of Python: e.g. if running python 3.12.4, upgrade to 3.12.7 (the latest).  Otherwise, 'brew uninstall tcl-tk' and 'brew install tcl-tk@8' to revert back to Tcl-tk version 8 for Python version 3.11.
-- Task actions that are specific to Android 15 have not yet been mapped, and will display as such.
+- An upgrade to Tcl-tk verison 9 (brew install tcl-tk) may cause an error when importing tkinter.  If this occurs, reefer to [Note 3](#3).
 - The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
 - Diagram connectors are misaligned if names are in Chinese, Korean or Japanese.
+- The error message 'IMKClient Stall detected, *please Report* your user scenario attaching...' may appear on OS X and it can be ignored.
 
 ## Contributions
 
