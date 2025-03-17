@@ -16,30 +16,13 @@ from maptasker.src.actione import action_results
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proclist import process_list
-from maptasker.src.sysconst import FormatLine
+from maptasker.src.sysconst import SCENE_TASK_TYPES, FormatLine
 from maptasker.src.tasks import get_actions
 from maptasker.src.xmldata import tag_in_type
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-SCENE_TASK_TYPES = {
-    "checkchangeTask": "Check Change",
-    "clickTask": "TAP",
-    "focuschangeTask": "Focus Change",
-    "itemselectedTask": "Item Selected",
-    "keyTask": "Key",
-    "linkclickTask": "Link",
-    "longclickTask": "LONG TAP",
-    "mapclickTask": "Map",
-    "maplongclickTask": "Long Map",
-    "pageloadedTask": "Page Load",
-    "strokeTask": "STROKE",
-    "valueselectedTask": "Value Selected",
-    "videoTask": "Video",
-    "itemclickTask": "ITEM TAP",
-    "itemlongclickTask": "ITEM LONG TAP",
-}
 SCENE_TAGS_TO_IGNORE = [
     "cdate",
     "edate",
@@ -144,10 +127,15 @@ def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> Non
                     f"<br>{blank*12}KEY Tab {line_out}<br>",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
+    return  # noqa: PLR1711
 
 
 # Process the Properties ListElementItem element.
-def process_list_element(child: defusedxml.ElementTree, indentation: int, element_name: str) -> None:
+def process_list_element(
+    child: defusedxml.ElementTree,
+    indentation: int,
+    element_name: str,
+) -> None:
     """
     Process the list element associated with the given child element.
 
@@ -185,7 +173,11 @@ def process_list_element(child: defusedxml.ElementTree, indentation: int, elemen
 
 
 # Get the xxxElement arguments, format and output them.  Recurse for more sub-elements.
-def format_and_output_arguments(child: defusedxml.ElementTree, element_type: str, indentation: int) -> None:
+def format_and_output_arguments(
+    child: defusedxml.ElementTree,
+    element_type: str,
+    indentation: int,
+) -> None:
     """
     Formats and outputs the arguments for the given child element, element type, and indentation level.
 
@@ -222,7 +214,10 @@ def format_and_output_arguments(child: defusedxml.ElementTree, element_type: str
     # Make sure this goes down as a Scene line and not a Task line.add
     line_out = the_result.replace("action_color", "scene_color")
     # Fix 'Maximum Characters" in EditTextElement
-    line_out = line_out.replace("Maximum Characters:1000", "Maximum Characters:Unlimited")
+    line_out = line_out.replace(
+        "Maximum Characters:1000",
+        "Maximum Characters:Unlimited",
+    )
     # Fix CheckBox 'Maximum Characters" in EditTextElement
     line_out = line_out.replace("Checkbox, Checked0", ", Checked=False")
     # Remove 'Rounded Corners' if no 'Corner Radius'
@@ -256,7 +251,11 @@ def format_and_output_arguments(child: defusedxml.ElementTree, element_type: str
 
 
 # Break down the UI aspects and output them based on it's arguments.
-def process_arguments(child: defusedxml.ElementTree, element_type: str, indentation: int) -> None:
+def process_arguments(
+    child: defusedxml.ElementTree,
+    element_type: str,
+    indentation: int,
+) -> None:
     """
     Process the arguments of a given child element in a scene.
 
@@ -320,7 +319,11 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
             # Only process Task if it is not a fake Task.
             if temp_task_list[0][0] != "-":
                 # Start a list
-                PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
+                PrimeItems.output_lines.add_line_to_output(
+                    1,
+                    "",
+                    FormatLine.dont_format_line,
+                )
                 # Get the name of Task
                 task_element, _ = tasks.get_task_name(
                     sub_child.text,
@@ -507,10 +510,18 @@ def process_project_scenes(
             )
 
             # Force a line break
-            PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
+            PrimeItems.output_lines.add_line_to_output(
+                0,
+                "",
+                FormatLine.dont_format_line,
+            )
 
             if PrimeItems.program_arguments["display_detail_level"] == 0:
                 # End list if displaying level 0
-                PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+                PrimeItems.output_lines.add_line_to_output(
+                    3,
+                    "",
+                    FormatLine.dont_format_line,
+                )
 
     return bool(scene_names)

@@ -102,7 +102,9 @@ def process_projects_and_their_profiles(
         scene_list = []
         found_tasks = []
         for scene in PrimeItems.tasker_root_elements["all_scenes"]:
-            scene_list.append(PrimeItems.tasker_root_elements["all_scenes"][scene]["name"])
+            scene_list.append(
+                PrimeItems.tasker_root_elements["all_scenes"][scene]["name"],
+            )
             PrimeItems.grand_totals["scenes"] += 1
         process_list(
             "Scene:",
@@ -212,19 +214,11 @@ def do_tasks_in_project(
             not PrimeItems.found_named_items["single_profile_found"]
             and not PrimeItems.found_named_items["single_task_found"]
         ):
-            # Flag that we have Tasks that are not in any Profile, and bump the count\
+            # Flag that we have Tasks that are not in any Profile, and bump the count.
             have_tasks_not_in_profile = True
             PrimeItems.task_count_no_profile = PrimeItems.task_count_no_profile + 1
             # We have a Project's Task that has not yet been output
-            _, our_task_name = tasks.get_task_name(
-                the_id,
-                found_tasks,
-                [],
-                "",
-            )
-            # We have to remove this Task from found Tasks since it was added
-            # by get_task_name
-            found_tasks.remove(the_id)
+            our_task_name = PrimeItems.tasker_root_elements["all_tasks"][the_id]["name"]
 
             # Only print the Task header if there are Tasks not found in any Profile,
             # and we are not looking for a single item
@@ -296,7 +290,11 @@ def tasks_not_in_profiles(
         if have_tasks_not_in_profile:
             remove_twisty()
         else:
-            PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+            PrimeItems.output_lines.add_line_to_output(
+                3,
+                "",
+                FormatLine.dont_format_line,
+            )
 
     # Force a line break
     PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
@@ -347,9 +345,15 @@ def get_extra_and_output_project(
     if PrimeItems.program_arguments["pretty"]:
         indent_amt = len(project_name) + 5
         # Break at comma
-        final_project_line = final_project_line.replace(", ", f", <br>{blank*indent_amt}")
+        final_project_line = final_project_line.replace(
+            ", ",
+            f", <br>{blank*indent_amt}",
+        )
         # Break at bracket
-        final_project_line = final_project_line.replace(" [", f"<br>{blank*indent_amt} [")
+        final_project_line = final_project_line.replace(
+            " [",
+            f"<br>{blank*indent_amt} [",
+        )
 
     # Are we looking for a specific Project?
     if PrimeItems.program_arguments["single_project_name"]:
@@ -436,10 +440,10 @@ def summary_counts(project_name: str, profile_count: int) -> None:
 
 # Output the remaining components related to the Project
 def finish_up(
-    project: defusedxml.ElementTree.XML,
+    project: defusedxml.ElementTree,
     project_name: str,
     found_tasks: list,
-    our_task_element: defusedxml.ElementTree.XML,
+    our_task_element: defusedxml.ElementTree,
     profile_count: int,
 ) -> None:
     """
@@ -491,7 +495,11 @@ def finish_up(
     if not PrimeItems.program_arguments["twisty"] and (
         PrimeItems.program_arguments["display_detail_level"] > 0 or not have_scenes
     ):
-        PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)  # Close Profile list
+        PrimeItems.output_lines.add_line_to_output(
+            3,
+            "",
+            FormatLine.dont_format_line,
+        )  # Close Profile list
 
 
 # Helper functions to process_projects function, below
@@ -567,7 +575,10 @@ def add_close_project_list_line_to_output() -> None:
 # ################################################################################
 # Get this Project's details and output them
 # ################################################################################
-def get_profile_details_and_output(project: str, project_name: str) -> tuple[bool, int, str, bool]:
+def get_profile_details_and_output(
+    project: str,
+    project_name: str,
+) -> tuple[bool, int, str, bool]:
     """
     Get this Project's details and output them
         Args:
@@ -593,7 +604,11 @@ def get_profile_details_and_output(project: str, project_name: str) -> tuple[boo
 
     # Check for extra details to include.
     # This comes back as True if we have the specific Project we are looking for.
-    have_project_wanted = get_extra_and_output_project(project, project_name, launcher_task_info)
+    have_project_wanted = get_extra_and_output_project(
+        project,
+        project_name,
+        launcher_task_info,
+    )
 
     # Process Project Properties
     if PrimeItems.program_arguments["display_detail_level"] > 2:
@@ -637,7 +652,12 @@ def process_project_profiles(
     # True if we have Profiles for this Project
     if profile_ids := get_profile_ids(project, project_name, projects_without_profiles):
         profile_count = len(profile_ids)
-        our_task_element = process_profiles(project, project_name, profile_ids, found_tasks)
+        our_task_element = process_profiles(
+            project,
+            project_name,
+            profile_ids,
+            found_tasks,
+        )
 
         # Are we searching for a single Profile and it wasn't found (result=True)?
         if is_single_profile_not_found():

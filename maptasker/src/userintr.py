@@ -189,7 +189,11 @@ class MyGui(customtkinter.CTk):
         # The following line is equivalent to a call to update_tasker_object_menus but only when the Analysis tab is clicked.
         self.tabview.configure(
             "Analyze",
-            command=update_tasker_object_menus(self, get_data=True, reset_single_names=False),
+            command=update_tasker_object_menus(
+                self,
+                get_data=True,
+                reset_single_names=False,
+            ),
         )
 
         # Update the analysis button
@@ -207,8 +211,8 @@ class MyGui(customtkinter.CTk):
         # Save ourself
         PrimeItems.mygui = self
 
+        # CHGME: For Development Only!
         # The following lines are for testing only.
-        # NOTE For Development Only!
         # self.event_handlers.diagram_event()
         # self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
@@ -276,11 +280,19 @@ class MyGui(customtkinter.CTk):
             self.window_position = save_window_position(self)
 
         # Display current Items setting.
-        with contextlib.suppress(AttributeError):  # single_name_status may not be defined yet.
+        with contextlib.suppress(
+            AttributeError,
+        ):  # single_name_status may not be defined yet.
             self.single_name_status(all_objects, "#3f99ff")
 
     # Display the Backup button
-    def display_backup_button(self, the_text: str, color1: str, color2: str, routine: Callable) -> None:
+    def display_backup_button(
+        self,
+        the_text: str,
+        color1: str,
+        color2: str,
+        routine: Callable,
+    ) -> None:
         """
         Displays a backup button on the GUI.
         Args:
@@ -364,7 +376,10 @@ class MyGui(customtkinter.CTk):
         self.textbox.insert(f"{line_num_str}.0", f"{message}\n", (line_num_str))
         self.textbox.tag_add(line_num_str, f"{line_num_str}.0", f"{line_num_str}.{len(message)!s}")
         # fmt: on
-        self.textbox.tag_config(line_num_str, foreground=self.all_messages[line_num]["color"])
+        self.textbox.tag_config(
+            line_num_str,
+            foreground=self.all_messages[line_num]["color"],
+        )
 
         # If current message is a setting ("set On/Off/True/False"), then color it
         if self.check_message_for_special_highlighting(message, line_num_str):
@@ -375,7 +390,11 @@ class MyGui(customtkinter.CTk):
         self.textbox.configure(font=(self.font, 14))
 
     # Check the current messsage for additional highlighting
-    def check_message_for_special_highlighting(self, message: str, line_num_str: str) -> None:
+    def check_message_for_special_highlighting(
+        self,
+        message: str,
+        line_num_str: str,
+    ) -> None:
         """
         Checks if the message is a setting and highlights it if so.
 
@@ -415,12 +434,23 @@ class MyGui(customtkinter.CTk):
 
         # Do we have a highlight color?  If so, highlight the string.
         if highlight_color:
-            self.highlight_string(message, line_num_str, final_position, highlight_color)
+            self.highlight_string(
+                message,
+                line_num_str,
+                final_position,
+                highlight_color,
+            )
             return True
         return False
 
     # Highlight a string in the textbox.
-    def highlight_string(self, message: str, line_num_str: str, highlight_position: int, highlight_color: str) -> None:
+    def highlight_string(
+        self,
+        message: str,
+        line_num_str: str,
+        highlight_position: int,
+        highlight_color: str,
+    ) -> None:
         """
         Adds a tag to the text box highlighting a specific portion of text in a specific color.
 
@@ -469,14 +499,35 @@ class MyGui(customtkinter.CTk):
             self.named_item = False
         # Check to make sure only one named item has been entered
         elif self.single_project_name and self.single_profile_name:
-            error_message = setup_name_error("Project", "Profile", self.single_project_name, self.single_profile_name)
+            error_message = setup_name_error(
+                "Project",
+                "Profile",
+                self.single_project_name,
+                self.single_profile_name,
+            )
         elif self.single_project_name and self.single_task_name:
-            error_message = setup_name_error("Project", "Task", self.single_project_name, self.single_task_name)
+            error_message = setup_name_error(
+                "Project",
+                "Task",
+                self.single_project_name,
+                self.single_task_name,
+            )
         elif self.single_profile_name and self.single_task_name:
-            error_message = setup_name_error("Profile", "Task", self.single_profile_name, self.single_task_name)
+            error_message = setup_name_error(
+                "Profile",
+                "Task",
+                self.single_profile_name,
+                self.single_task_name,
+            )
 
         # Make sure the named item exists
-        elif not valid_item(self, the_name, element_name, self.debug, self.appearance_mode):
+        elif not valid_item(
+            self,
+            the_name,
+            element_name,
+            self.debug,
+            self.appearance_mode,
+        ):
             front_error = f'Error: Trying to validate "{the_name}" {element_name}'
             if not PrimeItems.file_to_get:
                 error_message = [
@@ -504,7 +555,10 @@ class MyGui(customtkinter.CTk):
 
         # No error.
         if the_name == "None":
-            self.display_message_box("'None' selected.  Displaying all Projects, Profiles and Tasks.", "Green")
+            self.display_message_box(
+                "'None' selected.  Displaying all Projects, Profiles and Tasks.",
+                "Green",
+            )
         else:
             self.display_message_box(
                 f"Display only the '{the_name}' {element_name} (overrides any previous set name).",
@@ -580,8 +634,15 @@ class MyGui(customtkinter.CTk):
         """
         self.textbox = customtkinter.CTkTextbox(self, height=650, width=250)
         self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
-        self.textbox.configure(font=(self.font, 14), wrap="word", scrollbar_button_color="#6563ff")
-        self.hyperlink = CTkHyperlinkManager(self.textbox, text_color=get_appropriate_color(self, "blue"))
+        self.textbox.configure(
+            font=(self.font, 14),
+            wrap="word",
+            scrollbar_button_color="#6563ff",
+        )
+        self.hyperlink = CTkHyperlinkManager(
+            self.textbox,
+            text_color=get_appropriate_color(self, "blue"),
+        )
 
     # ################################################################################
     # Select or deselect a checkbox based on the value passed in
@@ -637,7 +698,11 @@ class MyGui(customtkinter.CTk):
                     # Delete the http url
                     self.textbox.delete(f"{num+1}.{hyper}", f"{num+1}.{end_hyper+1}")
                     # Add the link
-                    self.textbox.insert(f"{num+1}.{end_hyper+2}", link, self.hyperlink.add(link))
+                    self.textbox.insert(
+                        f"{num+1}.{end_hyper+2}",
+                        link,
+                        self.hyperlink.add(link),
+                    )
 
         # Display some colored text: the heading
         self.textbox.tag_add(
@@ -650,7 +715,12 @@ class MyGui(customtkinter.CTk):
     # ################################################################################
     # Inform user of toggle selection
     # ################################################################################
-    def inform_message(self, toggle_name: str, toggle_value: str, number_value: str) -> None:
+    def inform_message(
+        self,
+        toggle_name: str,
+        toggle_value: str,
+        number_value: str,
+    ) -> None:
         """
         Set a toggle and display a message box
         Args:
@@ -741,7 +811,9 @@ class MyGui(customtkinter.CTk):
             "android_ipaddr": lambda: f"Android Get XML TCP IP Address set to {value}\n",
             "android_port": lambda: f"Android Get XML Port Number set to {value}\n",
             "android_file": lambda: f"Android Get XML File Location set to {value}\n",
-            "appearance_mode": lambda: self.event_handlers.change_appearance_mode_event(value),
+            "appearance_mode": lambda: self.event_handlers.change_appearance_mode_event(
+                value,
+            ),
             "bold": lambda: self.select_deselect_checkbox(
                 self.bold_checkbox,
                 value,
@@ -754,14 +826,21 @@ class MyGui(customtkinter.CTk):
                 "Display Profile/Task Conditions",
                 display=False,
             ),
-            "debug": lambda: self.select_deselect_checkbox(self.debug_checkbox, value, "Debug Mode", display=False),
+            "debug": lambda: self.select_deselect_checkbox(
+                self.debug_checkbox,
+                value,
+                "Debug Mode",
+                display=False,
+            ),
             "directory": lambda: self.select_deselect_checkbox(
                 self.directory_checkbox,
                 value,
                 "Display Directory",
                 display=False,
             ),
-            "display_detail_level": lambda: self.event_handlers.detail_selected_event(value),
+            "display_detail_level": lambda: self.event_handlers.detail_selected_event(
+                value,
+            ),
             "file": lambda: self.display_and_set_file(value),
             "font": lambda: self.event_handlers.font_event(value),
             # "font": lambda: f"Font set to {value}.\n",
@@ -803,8 +882,14 @@ class MyGui(customtkinter.CTk):
                 "Display Runtime Settings",
                 display=False,
             ),
-            "single_profile_name": lambda: self.process_single_name_restore("Profile", value),
-            "single_project_name": lambda: self.process_single_name_restore("Project", value),
+            "single_profile_name": lambda: self.process_single_name_restore(
+                "Profile",
+                value,
+            ),
+            "single_project_name": lambda: self.process_single_name_restore(
+                "Project",
+                value,
+            ),
             "single_task_name": lambda: self.process_single_name_restore("Task", value),
             "task_action_warning_limit": lambda: self.tasklimit_set(value),
             "taskernet": lambda: self.select_deselect_checkbox(
@@ -880,14 +965,20 @@ class MyGui(customtkinter.CTk):
                         color = "white"
                         text_out = f"{value} (displayed as white)"
                     with contextlib.suppress(KeyError):
-                        self.display_message_box(f"{inv_color_names[key]} color set to {text_out}\n", color)
+                        self.display_message_box(
+                            f"{inv_color_names[key]} color set to {text_out}\n",
+                            color,
+                        )
 
         # Make sure we have all of our colors.  If any are missing then just make them turquoise.
         if self.color_lookup:
             for key, color in TYPES_OF_COLOR_NAMES.items():
                 if color not in self.color_lookup:
                     self.color_lookup[color] = "turquoise"
-                    self.display_message_box(f"{key} color missing.  It has been set to turquoise.\n", "turquoise")
+                    self.display_message_box(
+                        f"{key} color missing.  It has been set to turquoise.\n",
+                        "turquoise",
+                    )
 
     def extract_settings(self, temp_args: dict) -> None:
         """
@@ -926,7 +1017,10 @@ class MyGui(customtkinter.CTk):
             None: Does not return anything
         """
         self.task_action_warning_limit = limit
-        self.display_message_box(f"Task Action Warning Limit set to {limit}.\n", "Green")
+        self.display_message_box(
+            f"Task Action Warning Limit set to {limit}.\n",
+            "Green",
+        )
         self.task_action_label.configure(text=f"Task Action Limit: {limit}")
         self.task_action_limit.set(limit)
 
@@ -1173,7 +1267,10 @@ class MyGui(customtkinter.CTk):
                 display_current_file(self, "None")
             else:
                 self.display_multiple_messages(
-                    [f"{PrimeItems.error_msg}\n", "Click 'Get Local XML' to try a different XML file."],
+                    [
+                        f"{PrimeItems.error_msg}\n",
+                        "Click 'Get Local XML' to try a different XML file.",
+                    ],
                     "Red",
                 )
                 display_current_file(self, "None")
@@ -1184,7 +1281,10 @@ class MyGui(customtkinter.CTk):
             self.display_and_set_file(PrimeItems.file_to_get.name)
             self.android_file = self.android_ipaddr = self.android_port = ""
             clear_android_buttons(self)
-            self.display_message_box("'Get XML From Android' settings cleared.", "Green")
+            self.display_message_box(
+                "'Get XML From Android' settings cleared.",
+                "Green",
+            )
         return True
 
     # Load the XML if not already loaded.
@@ -1219,7 +1319,10 @@ class MyGui(customtkinter.CTk):
                 try:
                     PrimeItems.file_to_get = open(file_to_use)
                 except FileNotFoundError:
-                    self.display_message_box(f"XML file {file_to_use} not found.", "Red")
+                    self.display_message_box(
+                        f"XML file {file_to_use} not found.",
+                        "Red",
+                    )
                     return False
 
                 # Display the current file
@@ -1258,7 +1361,12 @@ class MyGui(customtkinter.CTk):
                 project_name = projects[project]["name"]
 
                 # Retrieves profile IDs for a given project and project name, excluding projects without profiles.
-                if profile_ids := get_ids(True, projects[project]["xml"], project_name, []):
+                if profile_ids := get_ids(
+                    True,
+                    projects[project]["xml"],
+                    project_name,
+                    [],
+                ):
                     # Build our list of Profiles in this Project.
                     profile_list = build_profiles(root, profile_ids, project)
 
@@ -1276,7 +1384,9 @@ class MyGui(customtkinter.CTk):
                         profile_list.append(f"Scene: {scene}")
 
                 # Put it all together: Project, Profiles, and Tasks
-                tree_data.append({"name": f"Project: {project_name}", "children": profile_list})
+                tree_data.append(
+                    {"name": f"Project: {project_name}", "children": profile_list},
+                )
 
         # Return our data tree
         return tree_data
@@ -1340,7 +1450,11 @@ class MyGui(customtkinter.CTk):
         elif view_type == "diagram":
             # Display the data.
             if data:
-                view = CTkTextview(master=getattr(self, window_attribute), title=window_title, the_data=data)
+                view = CTkTextview(
+                    master=getattr(self, window_attribute),
+                    title=window_title,
+                    the_data=data,
+                )
             else:
                 self.display_message_box("No Project(s) Found in XML!", "Red")
                 return None
@@ -1351,7 +1465,10 @@ class MyGui(customtkinter.CTk):
                 self.display_message_box("No Project(s) Found in XML!", "Red")
                 return None
         else:
-            self.display_message_box()("Invalid view type specified. Use 'map', 'diagram', or 'tree'.", "Red")
+            self.display_message_box()(
+                "Invalid view type specified. Use 'map', 'diagram', or 'tree'.",
+                "Red",
+            )
 
         view.pack(padx=10, pady=10, fill="none", expand=True)
         return view
@@ -1378,9 +1495,16 @@ class MyGui(customtkinter.CTk):
             self.ai_analysis_window.focus()  # if window exists focus it
 
         # Display the analysis in the toplevel window.
-        analysisview = CTkTextview(master=self.ai_analysis_window, title="Analysis View", the_data=error_msg)
+        analysisview = CTkTextview(
+            master=self.ai_analysis_window,
+            title="Analysis View",
+            the_data=error_msg,
+        )
         analysisview.pack(padx=10, pady=10, fill="both", expand=True)
-        analysisview.after(10, self.ai_analysis_window.lift)  # Make window jump to the front
+        analysisview.after(
+            10,
+            self.ai_analysis_window.lift,
+        )  # Make window jump to the front
 
     # Set and display the file name.
     def display_and_set_file(self, filename: str) -> None:
@@ -1557,7 +1681,10 @@ class MyGui(customtkinter.CTk):
             reset_primeitems_single_names()
         fresh_message_box(self)
 
-        self.display_message_box("The 'Map' view is running in the background.  Please stand by...", "LimeGreen")
+        self.display_message_box(
+            "The 'Map' view is running in the background.  Please stand by...",
+            "LimeGreen",
+        )
 
         # Re-invoke ourselves to force the html to be written
         _ = mapit_all("")
@@ -1568,7 +1695,10 @@ class MyGui(customtkinter.CTk):
 
         # Check for error and display it and exit if necessary.
         if PrimeItems.error_code > 0:
-            self.display_message_box(f"Map View not displayed.  {PrimeItems.error_msg}", "Orange")
+            self.display_message_box(
+                f"Map View not displayed.  {PrimeItems.error_msg}",
+                "Orange",
+            )
             PrimeItems.error_code = 0
             PrimeItems.error_msg = ""
             return
@@ -1641,7 +1771,11 @@ class EventHandlers:
         temp_args = {}
         the_view.color_lookup = {}
         # Restore all changes that have been saved
-        temp_args, the_view.color_lookup = save_restore_args(temp_args, the_view.color_lookup, False)
+        temp_args, the_view.color_lookup = save_restore_args(
+            temp_args,
+            the_view.color_lookup,
+            False,
+        )
 
         # Check for errors
         with contextlib.suppress(KeyError):
@@ -1719,7 +1853,10 @@ class EventHandlers:
 
         ###  File Location ###
         if the_view.android_file == "" or the_view.android_file is None:
-            android_file = "/Tasker/configs/user/backup.xml".replace("/", PrimeItems.slash)
+            android_file = "/Tasker/configs/user/backup.xml".replace(
+                "/",
+                PrimeItems.slash,
+            )
         else:
             android_file = the_view.android_file.replace("/", PrimeItems.slash)
         the_view.file_entry = the_view.file_label = None
@@ -1952,7 +2089,11 @@ class EventHandlers:
 
         # Validate XML file.
         PrimeItems.program_arguments["gui"] = True
-        return_code, error_message = validate_xml_file(the_view.android_ipaddr, the_view.android_port, android_file)
+        return_code, error_message = validate_xml_file(
+            the_view.android_ipaddr,
+            the_view.android_port,
+            android_file,
+        )
 
         # Not valid XML...
         if return_code > 0:
@@ -2101,7 +2242,10 @@ class EventHandlers:
         the_view = self.parent
         PrimeItems.colors_to_use = set_color_mode(the_view.appearance_mode)
         the_view.color_lookup = {}
-        the_view.display_message_box("Tasker items set back to their default colors.", "Green")
+        the_view.display_message_box(
+            "Tasker items set back to their default colors.",
+            "Green",
+        )
         with contextlib.suppress(Exception):
             the_view.color_change.destroy()
 
@@ -2149,7 +2293,9 @@ class EventHandlers:
                 "Red",
             )
             return
-        the_view.display_message_box("Report an Issue or Request a Feature\n\n" + issue_text)
+        the_view.display_message_box(
+            "Report an Issue or Request a Feature\n\n" + issue_text,
+        )
 
     # Process single name selection/event
     def process_name_event(
@@ -2194,7 +2340,11 @@ class EventHandlers:
                 the_view.single_name_msg = all_objects
             # Set the names in the pulldown menus and update the pulldown menus.
             set_tasker_object_names(the_view)
-            update_tasker_object_menus(the_view, get_data=False, reset_single_names=False)
+            update_tasker_object_menus(
+                the_view,
+                get_data=False,
+                reset_single_names=False,
+            )
             display_analyze_button(the_view, 13, first_time=False)
 
     def process_single_name_event(self, event_type: str, name_selected: str) -> None:
@@ -2240,7 +2390,10 @@ class EventHandlers:
         the_view.appearance_mode_optionmenu.set(the_view.appearance_mode.capitalize())
         if not the_view.extract_in_progress:
             the_view.color_lookup = set_color_mode(the_view.appearance_mode)
-        the_view.display_message_box("Appearance mode set to " + the_view.appearance_mode.capitalize(), "Green")
+        the_view.display_message_box(
+            "Appearance mode set to " + the_view.appearance_mode.capitalize(),
+            "Green",
+        )
 
     # Process the screen mode: dark, light, system
     def font_event(self, font_selected: str) -> None:
@@ -2358,7 +2511,10 @@ class EventHandlers:
         pick_color.focus_set()  # Set focus to the color picker
         color = pick_color.get()  # Get the color
         if color is not None:
-            the_view.display_message_box(f"{color_selected_item} color changed to {color}", color)
+            the_view.display_message_box(
+                f"{color_selected_item} color changed to {color}",
+                color,
+            )
 
             # Okay, plug in the selected color for the selected named item
             the_view.event_handlers.extract_color_from_event(color, color_selected_item)
@@ -2455,7 +2611,10 @@ class EventHandlers:
         - Assign the return value to the outline attribute
         """
         the_view = self.parent
-        the_view.pretty = the_view.get_input_and_put_message(the_view.pretty_checkbox, "Display Pretty Output")
+        the_view.pretty = the_view.get_input_and_put_message(
+            the_view.pretty_checkbox,
+            "Display Pretty Output",
+        )
 
     # Process the 'everything' checkbox
     def everything_event(self) -> None:
@@ -2485,7 +2644,12 @@ class EventHandlers:
         for attr_name, display_message in checkbox_map.items():
             checkbox = getattr(the_view, attr_name, None)
             if checkbox:
-                the_view.select_deselect_checkbox(checkbox, value, display_message, display=True)
+                the_view.select_deselect_checkbox(
+                    checkbox,
+                    value,
+                    display_message,
+                    display=True,
+                )
                 setattr(the_view, attr_name.replace("_checkbox", ""), value)
 
         # Handle Display Detail Level separately
@@ -2494,7 +2658,10 @@ class EventHandlers:
 
         # Optionally display results in a message box (only if needed)
         evereything = "on" if value else "off"
-        the_view.display_message_box(f"Everything toggled {evereything} successfully", "Green")
+        the_view.display_message_box(
+            f"Everything toggled {evereything} successfully",
+            "Green",
+        )
 
     # Process the 'Tasker Preferences' checkbox
     def preferences_event(self) -> None:
@@ -2526,7 +2693,10 @@ class EventHandlers:
         - No return value, function call has side effects on instance state
         """
         the_view = self.parent
-        the_view.twisty = the_view.get_input_and_put_message(the_view.twisty_checkbox, "Hide Task Details Under Twisty")
+        the_view.twisty = the_view.get_input_and_put_message(
+            the_view.twisty_checkbox,
+            "Hide Task Details Under Twisty",
+        )
         if the_view.twisty and int(the_view.display_detail_level) < DISPLAY_DETAIL_LEVEL_all_parameters:
             the_view.display_message_box(
                 "This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!",
@@ -2558,7 +2728,10 @@ class EventHandlers:
         - If checked, put message "Display Directory"
         - Does not return anything, just updates class attribute"""
         the_view = self.parent
-        the_view.directory = the_view.get_input_and_put_message(the_view.directory_checkbox, "Display Directory")
+        the_view.directory = the_view.get_input_and_put_message(
+            the_view.directory_checkbox,
+            "Display Directory",
+        )
 
     # Process the 'Bold Names' checkbox
     def names_bold_event(self) -> None:
@@ -2572,7 +2745,10 @@ class EventHandlers:
         - Put message "Display Names in Bold" based on input
         - No return value, function updates attribute on class instance"""
         the_view = self.parent
-        the_view.bold = the_view.get_input_and_put_message(the_view.bold_checkbox, "Display Names in Bold")
+        the_view.bold = the_view.get_input_and_put_message(
+            the_view.bold_checkbox,
+            "Display Names in Bold",
+        )
 
     # Process the 'Highlight Names' checkbox
     def names_highlight_event(self) -> None:
@@ -2607,7 +2783,10 @@ class EventHandlers:
         - No return value, function updates UI state directly
         """
         the_view = self.parent
-        the_view.italicize = the_view.get_input_and_put_message(the_view.italicize_checkbox, "Display Names Italicized")
+        the_view.italicize = the_view.get_input_and_put_message(
+            the_view.italicize_checkbox,
+            "Display Names Italicized",
+        )
 
     # Process the 'Underline Names' checkbox
     def names_underline_event(self) -> None:
@@ -2622,7 +2801,10 @@ class EventHandlers:
         #Loading.
         """
         the_view = self.parent
-        the_view.underline = the_view.get_input_and_put_message(the_view.underline_checkbox, "Display Names Underlined")
+        the_view.underline = the_view.get_input_and_put_message(
+            the_view.underline_checkbox,
+            "Display Names Underlined",
+        )
 
     # Process the 'Taskernet' checkbox
     def taskernet_event(self) -> None:
@@ -2654,7 +2836,10 @@ class EventHandlers:
         - If checked, put message "Display Runtime Settings"
         - No return value, function modifies instance attributes"""
         the_view = self.parent
-        the_view.runtime = the_view.get_input_and_put_message(the_view.runtime_checkbox, "Display Runtime Settings")
+        the_view.runtime = the_view.get_input_and_put_message(
+            the_view.runtime_checkbox,
+            "Display Runtime Settings",
+        )
 
     # Process the 'Save Settings' checkbox
     def save_settings_event(self) -> None:
@@ -2673,7 +2858,11 @@ class EventHandlers:
         temp_args = {value: getattr(the_view, value) for value in ARGUMENT_NAMES}
 
         # Save the arguments in the temporary dictionary
-        temp_args, the_view.color_lookup = save_restore_args(temp_args, the_view.color_lookup, True)
+        temp_args, the_view.color_lookup = save_restore_args(
+            temp_args,
+            the_view.color_lookup,
+            True,
+        )
         the_view.display_message_box("Settings saved.", "Green")
 
     # Display a treeview of the XML.
@@ -2709,7 +2898,10 @@ class EventHandlers:
             the_view.display_message_box("Tree View displayed.", "Green")
         else:
             display_no_xml_message(the_view)
-            the_view.display_message_box("XML must have at least one Project.", "Orange")
+            the_view.display_message_box(
+                "XML must have at least one Project.",
+                "Orange",
+            )
 
     # Get XML button clicked.  Prompt usere for XML and load it.
     def getxml_event(self) -> None:
@@ -2739,7 +2931,10 @@ class EventHandlers:
         the_view.current_file_display_message = False
         # If debug is on, let the user know that we are using 'backup.xml'
         if the_view.debug:
-            the_view.display_message_box("Using backup.xml since debug mode is on.", "Orange")
+            the_view.display_message_box(
+                "Using backup.xml since debug mode is on.",
+                "Orange",
+            )
 
     # Show for edit the AI API Key
     def ai_apikey_event(self) -> None:
@@ -2762,7 +2957,12 @@ class EventHandlers:
         # Save the window
         api_key.master.ai_apikey_window = api_key
 
-    def ai_apikey_process_event(self, apikey_window: customtkinter, cancel: bool, clear: str) -> None:
+    def ai_apikey_process_event(
+        self,
+        apikey_window: customtkinter,
+        cancel: bool,
+        clear: str,
+    ) -> None:
         """
         Process the AI API Dialog key event.
 
@@ -2779,7 +2979,10 @@ class EventHandlers:
         my_gui = self.parent
         # Bail out if user hit 'Cancel' button.
         if cancel:
-            my_gui.display_message_box("'Cancel' button selected.  No change to the API keys!", "Orange")
+            my_gui.display_message_box(
+                "'Cancel' button selected.  No change to the API keys!",
+                "Orange",
+            )
             # Save the window position and delete the window.  Then return.
             my_gui.ai_apikey_window_position = save_window_position(apikey_window)
             apikey_window.destroy()
@@ -2915,8 +3118,14 @@ class EventHandlers:
             the_view.display_message_box("No model selected.", "Orange")
             return
         # Set the AI API key based on the model selected.
-        if the_view.ai_model not in LLAMA_MODELS and not set_ai_key(the_view, the_view.ai_model):
-            the_view.display_message_box(f"The API Key is not set for model {the_view.ai_model}.", "Orange")
+        if the_view.ai_model not in LLAMA_MODELS and not set_ai_key(
+            the_view,
+            the_view.ai_model,
+        ):
+            the_view.display_message_box(
+                f"The API Key is not set for model {the_view.ai_model}.",
+                "Orange",
+            )
             return
         # Make sure we have a single name.
         if the_view.single_profile_name == "None or unnamed!":
@@ -2925,7 +3134,10 @@ class EventHandlers:
         if the_view.single_project_name or the_view.single_profile_name or the_view.single_task_name:
             the_view.ai_analyze = True
             the_view.event_handlers.clear_messages_event()  # Clear out all displayed messages.
-            the_view.display_message_box(f"Running analysis with model {the_view.ai_model}.", "Green")
+            the_view.display_message_box(
+                f"Running analysis with model {the_view.ai_model}.",
+                "Green",
+            )
 
             # Do the analysis.  First save our windows and settings.
             store_windows(the_view)
@@ -2995,7 +3207,10 @@ class EventHandlers:
         else:
             # Valid response.
             the_view.ai_prompt = name_entered
-            the_view.display_message_box(f"Prompt changed to '{the_view.ai_prompt}'.", "Green")
+            the_view.display_message_box(
+                f"Prompt changed to '{the_view.ai_prompt}'.",
+                "Green",
+            )
             display_selected_object_labels(the_view)
 
     def coffee_event(self) -> None:
@@ -3040,7 +3255,10 @@ class EventHandlers:
             if "Older History" in value:  # Get out if we hit then of the the new version changes.
                 break
             if key == "version":
-                the_view.display_message_box(f"Changes in the new version {value}:", "Green")
+                the_view.display_message_box(
+                    f"Changes in the new version {value}:",
+                    "Green",
+                )
                 the_view.display_message_box("", "Green")
             elif "##" in value:
                 # Add spaces as needed to make it more readible
@@ -3066,6 +3284,13 @@ class EventHandlers:
         the_view = self.parent
         the_view.go_program = True
         the_view.rerun = False
+
+        # Reset fund items in case they had already been set by 'Map' view.
+        PrimeItems.found_named_items = {
+            "single_project_found": False,
+            "single_profile_found": False,
+            "single_task_found": False,
+        }
 
         # Validate the XML and cleanup
         the_view.cleanup_and_run(run_only=True)
@@ -3274,7 +3499,10 @@ class EventHandlers:
             "apikey": ("API Key Help", APIKEY_HELP_TEXT),
         }
 
-        title, help_text = help_texts.get(query_name, ("", "No help available for this query."))
+        title, help_text = help_texts.get(
+            query_name,
+            ("", "No help available for this query."),
+        )
 
         guiview.new_message_box(f"{title}\n\n{help_text}")
         guiview.clear_messages = True  # Flag to tell display_message_box to clear the message box
@@ -3331,7 +3559,11 @@ class EventHandlers:
             # Get the entire textbox into a list, one item per line.
             ty = textview.textview_textbox.get("1.0", "end").rstrip().split("\n")
             # Find all matches.
-            search_hits = search_substring_in_list(ty, search_input, stop_on_first_match=False)
+            search_hits = search_substring_in_list(
+                ty,
+                search_input,
+                stop_on_first_match=False,
+            )
             number_of_hits = len(search_hits)
 
             # Process the matches
@@ -3391,7 +3623,9 @@ class EventHandlers:
             remove_tags_from_bars_and_names(textview)
             textview.textview_textbox.tag_config(
                 textview.textview_textbox.diagram_highlighted_connector,
-                background=make_hex_color(textview.master.master.color_lookup["background_color"]),
+                background=make_hex_color(
+                    textview.master.master.color_lookup["background_color"],
+                ),
             )
             textview.textview_textbox.diagram_highlighted_connector = ""
         # Clear the search input field.
@@ -3470,10 +3704,15 @@ class EventHandlers:
                 textview.textview_textbox.see("end-1c")
             else:
                 # Go to bottom (first valid non-blank line)
-                line_count = int(textview.textview_textbox.index("end-1c").split(".")[0])
+                line_count = int(
+                    textview.textview_textbox.index("end-1c").split(".")[0],
+                )
                 line_pos = line_count - 1
                 while line_pos:
-                    line = textview.textview_textbox.get(f"{line_pos!s}.0", f"{line_pos!s}.end")
+                    line = textview.textview_textbox.get(
+                        f"{line_pos!s}.0",
+                        f"{line_pos!s}.end",
+                    )
                     if "CAVEATS:" in line:
                         break
                     line_pos -= 1
@@ -3483,7 +3722,12 @@ class EventHandlers:
         # Let the user know.
         output_label(textview, f"{display_msg} of text view displayed.")
 
-    def jump_topbottom_event(self: object, textview: CTkTextview, top: bool, connector: int) -> None:
+    def jump_topbottom_event(
+        self: object,
+        textview: CTkTextview,
+        top: bool,
+        connector: int,
+    ) -> None:
         """
         Handles going to jump-to top/bottom of text view.
 
@@ -3512,9 +3756,16 @@ class EventHandlers:
         # Display the Task
         textview.textview_textbox.see(seek_line)
 
-        output_label(textview, f"Showing {modifier} of connection to {connector['task_upper'][0]}")
+        output_label(
+            textview,
+            f"Showing {modifier} of connection to {connector['task_upper'][0]}",
+        )
 
-    def profiles_level_event(self: object, textview: CTkTextview, profiles_per_line: str) -> None:  # noqa: ARG002
+    def profiles_level_event(
+        self: object,
+        textview: CTkTextview,
+        profiles_per_line: str,
+    ) -> None:
         """
         Handles the profile level event in the text view box.
 
@@ -3554,7 +3805,9 @@ class EventHandlers:
         # Get and set thew Task action warning limit
         slider_value = int(slider_value)
         self.parent.task_action_warning_limit = slider_value
-        self.parent.task_action_label.configure(text=f"Task Action Limit: {slider_value}")
+        self.parent.task_action_label.configure(
+            text=f"Task Action Limit: {slider_value}",
+        )
 
     def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:
         """

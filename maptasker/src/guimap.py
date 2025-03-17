@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 
+from maptasker.src.guiutils import align_text
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import pattern8
 from maptasker.src.xmldata import remove_html_tags
@@ -94,13 +95,14 @@ def remove_the_html_tags(text: str) -> str:
 
 
 # Optimized
-def cleanup_text_elements(output_lines: dict, line_num: int) -> list:
+def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) -> list:
     """
     Cleanup all of the text elements in the line by fixing html and other stuff.
 
     Args:
         output_lines (list): The dictionary containing the output lines.
         line_num (int): The line number to clean up.
+        remove_html (bool): A flag indicating whether to remove HTML tags.
 
     Returns:
         dict: The updated output_lines dictionary.
@@ -121,8 +123,9 @@ def cleanup_text_elements(output_lines: dict, line_num: int) -> list:
         for text in text_list
     ]
 
-    # Optimize HTML removal with the custom HTMLParser class
-    new_text_list = [remove_the_html_tags(text) for text in new_text_list]
+    # Remove html from the text
+    if remove_html:
+        new_text_list = [remove_the_html_tags(text) for text in new_text_list]
 
     if new_text_list:
         output_lines[line_num]["text"] = new_text_list
@@ -265,7 +268,12 @@ def extract_highlights(working_text: str, highlight_tags: list) -> list:
     return highlights
 
 
-def process_line(output_lines: list, line: str, line_num: int, highlight_tags: list) -> list:
+def process_line(
+    output_lines: list,
+    line: str,
+    line_num: int,
+    highlight_tags: list,
+) -> list:
     """
     A function to process a line of text, extract colors, working text, and highlights.
 
@@ -456,7 +464,9 @@ def capture_front_text(output_lines: list, line: str, line_num: int) -> list:
     # Assign the last color used as the default color
     for output_line_num in reversed(output_lines):
         if output_lines[output_line_num]["color"]:
-            output_lines[line_num]["color"] = [output_lines[output_line_num]["color"][-1]]
+            output_lines[line_num]["color"] = [
+                output_lines[output_line_num]["color"][-1],
+            ]
             break
     return output_lines
 
@@ -468,6 +478,7 @@ def additional_formatting(
     line_num: int,
     spacing: int,
     previous_line: str,
+    remove_html: bool,
 ) -> tuple:
     """
     Applies special formatting to a given line of text and appends the formatted line to an output list.
@@ -480,30 +491,17 @@ def additional_formatting(
         line_num (int): The line number of the line in the output dictionary.
         spacing (int): The number of spaces to be inserted at the beginning of the formatted line.
         last_line (str): The previous line of the output list.
+        remove_html (bool): Whether or not to remove HTML tags from the line.
 
     Returns:
         tuple: output_lines and spacing.
     """
-    blank = " "
     line = pattern8.sub("\n", line)
 
-    # Add the spacing for the line back into the line.
-    # line = (
-    #    line.replace("<span class='blanktab1'></span>", f"{blank*SPACE_COUNT1[0]}")
-    #    .replace(
-    #        "<span class='blanktab2'></span>",
-    #        f"{blank*SPACE_COUNT2[0]}",
-    #    )
-    #    .replace(
-    #        "<span class='blanktab3'></span>",
-    #        f"{blank*SPACE_COUNT3[0]}",
-    #    )
-    # )
-
-    # Fix bad class statement
+    # Correct bad class statement
     line = line.replace("class='\\blanktab1\\'", "class='blanktab1'")
 
-    # Fix icons
+    # Correct icons
     line = line.replace("&#9940;", "⛔")
     line = line.replace("&#11013;", "⫷⇦") if "Entry" in line else line.replace("&#11013;", "⇨⫸")
 
@@ -523,7 +521,9 @@ def additional_formatting(
         temp1 = line.split('text-align:left">')
         global_var_name = temp1[1].split("<")[0]
         global_var_value = temp1[2].split("<")[0]
-        output_lines[line_num]["text"] = [f"{global_var_name.ljust(25, '.')}{global_var_value.rjust(15, '.')}"]
+        output_lines[line_num]["text"] = [
+            f"{global_var_name.ljust(25, '.')}{global_var_value.rjust(15, '.')}",
+        ]
         output_lines[line_num]["color"] = ["Turquoise"]
 
     # Handle the rest of the lines
@@ -533,12 +533,18 @@ def additional_formatting(
         if doing_global_variables:
             spacing = glob_spacing
 
-    output_lines = cleanup_text_elements(output_lines, line_num)
+    output_lines = cleanup_text_elements(output_lines, line_num, remove_html)
 
     # Handle disabled objects
     output_lines = handle_disabled_objects(output_lines, line_num)
     # Determine how much spacing to add to the front of the line.
-    spacing = calculate_spacing(spacing, output_lines, line_num, doing_global_variables, previous_line)
+    spacing = calculate_spacing(
+        spacing,
+        output_lines,
+        line_num,
+        doing_global_variables,
+        previous_line,
+    )
     output_lines[line_num]["text"][0] = f'{spacing * " "}{output_lines[line_num]["text"][0]}'
 
     return output_lines, spacing
@@ -598,7 +604,11 @@ def add_directory_entry(temp: list, output_lines: dict, line_num: int) -> dict:
 
     # Add the directory entry
     if name is not None:
-        output_lines[line_num] = {"directory": [tasker_type, name], "text": [], "color": []}
+        output_lines[line_num] = {
+            "directory": [tasker_type, name],
+            "text": [],
+            "color": [],
+        }
     return output_lines
 
 
@@ -613,7 +623,7 @@ def ignore_line(line: str) -> bool:
         bool: True if the line should be ignored, False otherwise.
     """
     text_to_ignore = [
-        "<style>",
+        # "<style>",
         "<tr>",
         "<table>",
         "<td></td>",
@@ -630,7 +640,12 @@ def ignore_line(line: str) -> bool:
 
 
 # Loop through html and format ourput
-def process_html_lines(lines: list, output_lines: list, spacing: int, iterate: bool) -> list:
+def process_html_lines(
+    lines: list,
+    output_lines: list,
+    spacing: int,
+    iterate: bool,
+) -> list:
     """
     Processes HTML lines and adds them to the output_lines list.
 
@@ -645,6 +660,7 @@ def process_html_lines(lines: list, output_lines: list, spacing: int, iterate: b
     """
     doing_global_variables = False
     previous_line = ""
+    remove_html = True
 
     for line_num, line in enumerate(lines):
         # Ignore lines that match the criteria
@@ -653,7 +669,11 @@ def process_html_lines(lines: list, output_lines: list, spacing: int, iterate: b
 
         # Process directory entries
         if "<td>" in line:
-            output_lines = add_directory_entry(line.split("<td>"), output_lines, line_num)
+            output_lines = add_directory_entry(
+                line.split("<td>"),
+                output_lines,
+                line_num,
+            )
             iterate = True
             continue
 
@@ -681,6 +701,15 @@ def process_html_lines(lines: list, output_lines: list, spacing: int, iterate: b
             spacing = 0
             continue
 
+        # If we are doing html such as from a screen WebElement or variable set, then provide appropriate spacing.
+        if not remove_html:
+            line = align_text(line, 30)  # noqa: PLW2901
+
+        # If "Source=" in line, then what follows is valid HTML and we don't want to remove it
+        # if "!DOCTYPE" in line or ("To=" in line and not line.startswith("<div ")):
+        if "!DOCTYPE" in line or "&lt;style&gt;" in line:
+            remove_html = False
+
         # Apply additional formatting
         output_lines, spacing = additional_formatting(
             doing_global_variables,
@@ -689,7 +718,13 @@ def process_html_lines(lines: list, output_lines: list, spacing: int, iterate: b
             line_num,
             spacing,
             previous_line,
+            remove_html,
         )
+
+        # If at end of valid html, start removing html again
+        if "/html" in line or "&lt;/script&gt;" in line:
+            remove_html = True
+
         previous_line = line
 
         # Validate and update profile name if missing

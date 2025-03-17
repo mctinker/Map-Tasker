@@ -18,7 +18,13 @@ from maptasker.src.getids import get_ids
 from maptasker.src.kidapp import get_kid_app
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME, DISPLAY_DETAIL_LEVEL_all_tasks, FormatLine, logger, pattern14
+from maptasker.src.sysconst import (
+    UNKNOWN_TASK_NAME,
+    DISPLAY_DETAIL_LEVEL_all_tasks,
+    FormatLine,
+    logger,
+    pattern14,
+)
 from maptasker.src.xmldata import tag_in_type
 
 blank = "&nbsp;"
@@ -56,15 +62,19 @@ def reformat_html(html_string: str) -> str:
     Returns:
         str: The reformatted HTML string.
     """
-    # pattern = r"(;Configuration Parameter\(s\):)(.*?)<"  # Match everything after the label until a '<'
 
-    def replacer(match: object) -> str:
+    def replacer(match: re.Match) -> str:
         params = match.group(2).strip().replace(";", "\n")  # Split parameters onto new lines
         return f"{match.group(1)}\n{params}\n<"  # Reinsert the opening '<' tag
 
+    # pattern14 has definition for everything after 'Configuration Parameter(s):'
     reformatted_html = re.sub(pattern14, replacer, html_string, flags=re.DOTALL)
     number_of_blanks = ((reformatted_html.find(":")) // 2) - 20
-    reformatted_html = replace_except_last(reformatted_html, "\n", f"\n{blank*number_of_blanks}")
+    reformatted_html = replace_except_last(
+        reformatted_html,
+        "\n",
+        f"\n{blank*number_of_blanks}",
+    )
     return reformatted_html.replace(",", f"\n{blank*number_of_blanks}")
 
 
@@ -76,7 +86,8 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
     Optimized extraction of actions from a task XML element.
     """
     tasklist = []
-    blanks = f'{"&nbsp;" * PrimeItems.program_arguments["indent"]}'
+    indent_size = PrimeItems.program_arguments["indent"]
+    blanks = f'{"&nbsp;" * indent_size}'
 
     try:
         task_actions = current_task.findall("Action")
@@ -92,20 +103,27 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
 
     indentation = 0
     indentation_amount = ""
+    pretty_mode = PrimeItems.program_arguments.get("pretty")
 
     for action in task_actions:
         child = action.find("code")
         task_code = action_evaluate.get_action_code(child, action, True, "t")
 
         if any(token in task_code for token in [">End If", ">Else", ">End For"]):
-            indentation -= 1
-            indentation_amount = indentation_amount[: -(PrimeItems.program_arguments["indent"] * 6)]
+            indentation = max(indentation - 1, 0)
+            indentation_amount = indentation_amount[: -(indent_size * 6)]
 
         # If pretty text, then reformat it.
-        if "Configuration Parameter(s):" in task_code and PrimeItems.program_arguments.get("pretty"):
+        if "Configuration Parameter(s):" in task_code and pretty_mode:
             task_code = reformat_html(task_code)
 
-        action_evaluate.build_action(tasklist, task_code, child, indentation, indentation_amount)
+        action_evaluate.build_action(
+            tasklist,
+            task_code,
+            child,
+            indentation,
+            indentation_amount,
+        )
 
         if any(token in task_code for token in [">If", ">Else", ">For<"]):
             indentation += 1
@@ -290,7 +308,11 @@ def do_single_task(
 
     if PrimeItems.program_arguments.get("single_task_name") == our_task_name:
         PrimeItems.found_named_items.update(
-            {"single_task_found": True, "single_project_found": True, "single_profile_found": True},
+            {
+                "single_task_found": True,
+                "single_project_found": True,
+                "single_profile_found": True,
+            },
         )
 
         save_project, save_profile = (
@@ -298,7 +320,10 @@ def do_single_task(
             PrimeItems.program_arguments["single_profile_name"],
         )
         PrimeItems.program_arguments.update(
-            {"single_project_name": project_name, "single_profile_name": profile_name or "None or unnamed!"},
+            {
+                "single_project_name": project_name,
+                "single_profile_name": profile_name or "None or unnamed!",
+            },
         )
 
         PrimeItems.output_lines.refresh_our_output(True, project_name, profile_name)
@@ -310,14 +335,24 @@ def do_single_task(
         if PrimeItems.program_arguments.get("pretty") and temporary_task_list:
             temporary_task_list[0] = temporary_task_list[0].replace("[", "<br>[")
 
-        process_list("Task:", temporary_task_list, our_task_element, list_of_found_tasks)
+        process_list(
+            "Task:",
+            temporary_task_list,
+            our_task_element,
+            list_of_found_tasks,
+        )
 
-        PrimeItems.program_arguments.update({"single_project_name": save_project, "single_profile_name": save_profile})
+        PrimeItems.program_arguments.update(
+            {"single_project_name": save_project, "single_profile_name": save_profile},
+        )
     else:
         PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
 
         if PrimeItems.program_arguments.get("pretty") and "[" not in our_task_name:
-            task_list[0] = task_list[0].replace("[", f'<br>{"&nbsp;" * len(our_task_name)}[')
+            task_list[0] = task_list[0].replace(
+                "[",
+                f'<br>{"&nbsp;" * len(our_task_name)}[',
+            )
 
         process_list("Task:", task_list, our_task_element, list_of_found_tasks)
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
@@ -373,7 +408,10 @@ def get_icon_info(the_task: defusedxml.ElementTree) -> str:
 
 # Get additional information for this Task
 # Optimized
-def get_extra_details(our_task_element: defusedxml.ElementTree, task_output_lines: list) -> tuple:
+def get_extra_details(
+    our_task_element: defusedxml.ElementTree,
+    task_output_lines: list,
+) -> tuple:
     """
     Get additional information for this Task.
 
@@ -394,7 +432,12 @@ def get_extra_details(our_task_element: defusedxml.ElementTree, task_output_line
 
     # Process 'kid_app_info' separately if it exists
     if extra_details["kid_app_info"]:
-        extra_details["kid_app_info"] = format_html("task_color", "", extra_details["kid_app_info"], True)
+        extra_details["kid_app_info"] = format_html(
+            "task_color",
+            "",
+            extra_details["kid_app_info"],
+            True,
+        )
 
     # Append non-empty details to the first line of task_output_lines
     task_output_lines[0] += " " + " ".join(filter(None, extra_details.values()))
@@ -433,7 +476,10 @@ def output_task_list(
         # Doing extra details?
         if do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
             # Get the extra details for this Task
-            extra_details = get_extra_details(task_item["xml"], [task_output_lines[count]])
+            extra_details = get_extra_details(
+                task_item["xml"],
+                [task_output_lines[count]],
+            )
             # Tack on the extra info since [task_output_lines[count]] it is immutable
             task_output_lines[count] += " ".join(filter(None, extra_details))
 

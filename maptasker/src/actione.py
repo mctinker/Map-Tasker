@@ -168,32 +168,51 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     """
 
     # Add our leading spaces (indent_amt) and extra spaces for the Task action name.
-    temp_line = task_code_line.replace(blank, "")  # Strip blanks from line to figure out Task action name length.
+    temp_line = task_code_line.replace(
+        blank,
+        "",
+    )  # Strip blanks from line to figure out Task action name length.
     close_bracket = temp_line.find(">")
     open_bracket = temp_line.find("<", close_bracket)
     extra_blanks = open_bracket - close_bracket + 5
     # Break at comma followed by a space.
-    task_code_line = task_code_line.replace(", ", f", <br>{indent_amt}{blank*extra_blanks}")
+    task_code_line = task_code_line.replace(
+        ", ",
+        f", <br>{indent_amt}{blank*extra_blanks}",
+    )
     # Break at newline and comma if not a config param.
     # NOTE: There may be one or more double '\n' strings, which is ok.
     if "Configuration Parameter(s):" not in task_code_line:
         # Replace all commas followed by a non-blank with a break
-        task_code_line = re.sub(pattern13, f"<br>{indent_amt}{blank*(extra_blanks+7)}", task_code_line)
+        task_code_line = re.sub(
+            pattern13,
+            f"<br>{indent_amt}{blank*(extra_blanks+7)}",
+            task_code_line,
+        )
         # Now handle newlines
-        task_code_line = task_code_line.replace("\n", f"<br>{indent_amt}{blank*(extra_blanks+7)}")  # 7 for "Values="
+        task_code_line = task_code_line.replace(
+            "\n",
+            f"<br>{indent_amt}{blank*(extra_blanks+7)}",
+        )  # 7 for "Values="
 
     # Break at bracket
     a_bit_more = 9 if "DISABLED" not in task_code_line else 0
-    task_code_line = task_code_line.replace("[", f"<br>{indent_amt}{blank*(extra_blanks+a_bit_more)}[")
-    # Break at (If condition
-    task_code_line = task_code_line.replace("(<em>IF", f"<br>{indent_amt}{blank*extra_blanks}(<em>IF")
-    # Break at label
     task_code_line = task_code_line.replace(
-        "...with label:",
-        f"<br>{indent_amt}{blank*extra_blanks} ...with label:",
+        "[",
+        f"<br>{indent_amt}{blank*(extra_blanks+a_bit_more)}[",
+    )
+    # Break at (If condition
+    task_code_line = task_code_line.replace(
+        "(<em>IF",
+        f"<br>{indent_amt}{blank*extra_blanks}(<em>IF",
+    )
+    # Break at label with filler
+    task_code_line = task_code_line.replace(
+        '<span class="action_label_color"> ...with label:',
+        f'<br>{indent_amt}{blank*extra_blanks}<span class="action_label_color">...with label:',
     )
 
-    # Fix up "Structure Output (JSON, etc)", which got separated by the comma
+    # Correct "Structure Output (JSON, etc)", which got separated by the comma
     task_code_line = fix_json(task_code_line, "Structure Output")
 
     # Finally, rtemove the trailing comma since each argument is separated already
@@ -274,7 +293,10 @@ def build_action(
     """
 
     # Clean up the action line by removing any leading ermpty field
-    task_code_line = task_code_line.replace(f"{blank*2},", f"{blank*2}")  # Drop the leading comma if present.
+    task_code_line = task_code_line.replace(
+        f"{blank*2},",
+        f"{blank*2}",
+    )  # Drop the leading comma if present.
 
     # Calculate total indentation to put in front of action
     count = indent
@@ -282,7 +304,11 @@ def build_action(
     if count != 0:
         # Add the indent amount to the front of the Action output line
         front_matter = '<span class="action_name_color">'
-        task_code_line = task_code_line.replace(front_matter, f"{front_matter}{indent_amt}", 1)
+        task_code_line = task_code_line.replace(
+            front_matter,
+            f"{front_matter}{indent_amt}",
+            1,
+        )
         count = 0
     if count < 0:
         indent_amt += task_code_line
@@ -309,6 +335,12 @@ def build_action(
 
     # We have Task Action details
     else:
-        alist = finalize_action_details(task_code_line, alist, indent, extra_blanks, count)
+        alist = finalize_action_details(
+            task_code_line,
+            alist,
+            indent,
+            extra_blanks,
+            count,
+        )
 
     return alist

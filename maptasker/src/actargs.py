@@ -7,6 +7,7 @@
 #                                                                                      #
 
 import contextlib
+import html
 
 import defusedxml.ElementTree  # Need for type hints
 
@@ -21,7 +22,11 @@ blank = "&nbsp;"
 
 
 ## We have a <bundle>.   Process it
-def get_bundle(code_action: defusedxml.ElementTree, evaluated_results: dict, arg: str) -> dict:
+def get_bundle(
+    code_action: defusedxml.ElementTree,
+    evaluated_results: dict,
+    arg: str,
+) -> dict:
     """
     Extracts a bundle value from an XML code action.
 
@@ -54,14 +59,21 @@ def get_bundle(code_action: defusedxml.ElementTree, evaluated_results: dict, arg
         "",
     )
 
+    # Separate configuration parameter arguments by commas.
+
     if clean_string:
         if PrimeItems.program_arguments.get("pretty", False):
             clean_string = clean_string.replace("\n\n", "\n")
             clean_string = clean_string.replace("\n", ",")
 
         # Set up proper spacing if this is an event.
-        spacer = f"{blank * 70}" if code_action.tag == "Event" else ""
-        evaluated_results[f"arg{arg[0]}"] = {"value": f"Configuration Parameter(s):\n{spacer}{clean_string}\n"}
+        if code_action.tag == "Event":
+            clean_string = f"{blank*50}{clean_string}"
+            clean_string = clean_string.replace(",", f"\n{blank*49}")
+
+        evaluated_results[f"arg{arg[0]}"] = {
+            "value": f"Configuration Parameter(s):\n{clean_string}\n",
+        }
     else:
         evaluated_results[f"arg{arg[0]}"] = {"value": ""}
         evaluated_results["returning_something"] = False
@@ -97,18 +109,30 @@ def evaluate_argument(
         case "Int":
             if isinstance(argeval, str) and argeval[-1] != "=":
                 argeval = argeval + "="
-            evaluated_results[the_arg] = {"value": extract_integer(code_action, the_arg, argeval, arg)}
+            evaluated_results[the_arg] = {
+                "value": extract_integer(code_action, the_arg, argeval, arg),
+            }
 
         case "Str":
             if argeval == "Label":
-                label = next((child.text for child in code_action if child.tag == "label"), None)
+                label = next(
+                    (child.text for child in code_action if child.tag == "label"),
+                    None,
+                )
                 evaluated_results[the_arg] = {"value": label or ""}
             else:
-                evaluated_results[the_arg] = {"value": extract_string(code_action, the_arg, argeval)}
+                evaluated_string = extract_string(code_action, the_arg, argeval)
+                # Convert any embedded html to plain text so it can be embedded ion our HTML.
+                evaluated_string = html.escape(evaluated_string)
+                evaluated_results[the_arg] = {
+                    "value": evaluated_string,
+                }
 
         case "Boolean":
             argeval = arg[4]  # Reform the eval: name, 'e', ''
-            evaluated_results[the_arg] = {"value": extract_integer(code_action, the_arg, argeval, arg).strip()}
+            evaluated_results[the_arg] = {
+                "value": extract_integer(code_action, the_arg, argeval, arg).strip(),
+            }
 
         case "App":
             extract_argument(evaluated_results, arg, argeval)
@@ -128,14 +152,21 @@ def evaluate_argument(
             get_bundle(code_action, evaluated_results, arg)
 
         case _:
-            logger.debug(f"actargs get_action_results error: unknown argtype '{argtype}'")
+            logger.debug(
+                f"actargs get_action_results error: unknown argtype '{argtype}'",
+            )
             evaluated_results["returning_something"] = False
 
     return evaluated_results
 
 
 # Get image related details from action xml
-def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str, arg: str) -> None:
+def extract_image(
+    evaluated_results: dict,
+    code_action: defusedxml,
+    argeval: str,
+    arg: str,
+) -> None:
     """
     Extract image from evaluated results
     Args:
@@ -171,7 +202,12 @@ def extract_image(evaluated_results: dict, code_action: defusedxml, argeval: str
 
 
 # Get condition releated details from action xml
-def extract_condition(evaluated_results: dict, arg: str, argeval: str, code_action: str) -> None:
+def extract_condition(
+    evaluated_results: dict,
+    arg: str,
+    argeval: str,
+    code_action: str,
+) -> None:
     # Get argument
     """
     Extracts the condition from the code action.
@@ -251,7 +287,11 @@ def handle_missing_code(the_action_code_plus: str, index: int) -> str:
         True,
     )
     logger.debug(error_message)
-    PrimeItems.output_lines.add_line_to_output(0, error_message, FormatLine.dont_format_line)
+    PrimeItems.output_lines.add_line_to_output(
+        0,
+        error_message,
+        FormatLine.dont_format_line,
+    )
     return ""
 
 

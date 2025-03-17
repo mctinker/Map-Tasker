@@ -78,7 +78,10 @@ class CustomJSONEncoder(json.JSONEncoder):
             str: Chunks of the JSON encoded string with capitalized booleans.
         """
         for chunk in super().iterencode(obj, _one_shot):
-            yield chunk.replace("true", "True").replace("false", "False")  # Capitalizing JSON booleans
+            yield chunk.replace("true", "True").replace(
+                "false",
+                "False",
+            )  # Capitalizing JSON booleans
 
 
 def save_dict_to_json(dictionary: dict, filename: str) -> None:
@@ -199,6 +202,8 @@ def merge_codes(new_dict: dict, just_the_code: str, code: str, value: object) ->
     try:
         tasker_action_code = PrimeItems.tasker_action_codes[just_the_code]
         args = []
+        if just_the_code == "464":
+            print("bingo")
         for arg in tasker_action_code["args"]:
             arg_eval = ""
             try:
@@ -210,7 +215,15 @@ def merge_codes(new_dict: dict, just_the_code: str, code: str, value: object) ->
             except (ValueError, AttributeError):
                 arg_eval = ""
             # Add the argument
-            args.append((str(arg["id"]), arg["isMandatory"], arg["name"], str(arg["type"]), arg_eval))
+            args.append(
+                (
+                    str(arg["id"]),
+                    arg["isMandatory"],
+                    arg["name"],
+                    str(arg["type"]),
+                    arg_eval,
+                ),
+            )
 
         # Sort the args.
         args = merge_custom_sort(args)
@@ -219,11 +232,20 @@ def merge_codes(new_dict: dict, just_the_code: str, code: str, value: object) ->
         category = tasker_action_code.get("category_code", "")
         canfail = tasker_action_code.get("canfail", "")
         # Build the dictionary
-        new_dict = merge_add_code(new_dict, code, "", args, tasker_action_code["name"], category, canfail)
+        new_dict = merge_add_code(
+            new_dict,
+            code,
+            "",
+            args,
+            tasker_action_code["name"],
+            category,
+            canfail,
+        )
 
     # It's a plugin, or simply not in Tasker's table.
     except KeyError:
-        if len(just_the_code) <= 4:
+        # Ignore code 100t (test) and codes > 4 digits (plugins)
+        if len(just_the_code) <= 4 and code != "1000t":
             debug_print(f"Code {code} not found in Tasker's table.")
         # Copy relevant argument(s) data to new dictionary.
         # FIS Remove commented out code
@@ -231,7 +253,15 @@ def merge_codes(new_dict: dict, just_the_code: str, code: str, value: object) ->
         args = value.args
 
         # Add it to our dictionary
-        new_dict = merge_add_code(new_dict, code, value.redirect, args, value.name, value.category, "")
+        new_dict = merge_add_code(
+            new_dict,
+            code,
+            value.redirect,
+            args,
+            value.name,
+            value.category,
+            "",
+        )
 
     return new_dict
 
@@ -266,22 +296,49 @@ def merge_action_codes() -> None:
             # Copy relevant argument(s) data to new dictionary.
             args = value.args
             # Add it to our dictionary
-            new_dict = merge_add_code(new_dict, code, value.redirect, args, value.name, "", "")
+            new_dict = merge_add_code(
+                new_dict,
+                code,
+                value.redirect,
+                args,
+                value.name,
+                "",
+                "",
+            )
 
     # Check if all PrimeItems.tasker_action_codes are in action_codes, and if not, then add it.
     for just_the_code, value in PrimeItems.tasker_action_codes.items():
         modified_code = f"{just_the_code}t"
         if modified_code not in new_dict:
+            # New code!  Add it.
             tasker_action_code = PrimeItems.tasker_action_codes[just_the_code]
             # Format the arguments
             args = []
             for arg in tasker_action_code["args"]:
-                args.append(("", arg["id"], arg["isMandatory"], arg["name"], arg["type"], ""))
+                args.append(
+                    (
+                        str(arg["id"]),
+                        arg["isMandatory"],
+                        arg["name"],
+                        str(arg["type"]),
+                        f", {arg["name"]}",
+                    ),
+                )
             # Get optional values
             category = tasker_action_code.get("category_code", "")
             canfail = tasker_action_code.get("canfail", "")
-            debug_print("Adding Task action:", value["name"])
-            new_dict = merge_add_code(new_dict, modified_code, "", args, value["name"], category, canfail)
+            debug_print(
+                f"Adding Task action: {value["name"]}...validate the arguments!",
+            )
+            new_dict = merge_add_code(
+                new_dict,
+                modified_code,
+                "",
+                args,
+                value["name"],
+                category,
+                canfail,
+            )
 
     # Sort and save the new dictionary so we can import it.
     new_dict = dict(sorted(new_dict.items()))
@@ -302,6 +359,46 @@ def debug_print(message: str) -> None:
     """
     if PrimeItems.program_arguments["debug"]:
         print(message)
+
+
+def format_string(s: str) -> str:
+    """
+    Converts a string of fully capitalized words separated by underscores
+    into a properly capitalized sentence with spaces.
+
+    Example:
+    format_string("HELLO_WORLD_THIS_IS_CHATGPT") -> "Hello World This Is Chatgpt"
+
+    :param s: The input string with words in uppercase separated by underscores.
+    :return: A formatted string with spaces instead of underscores and correct capitalization.
+    """
+    return " ".join(word.capitalize() for word in s.split("_"))
+
+
+def format_columns(entries: list) -> str:
+    """
+    Formats a list of entries into aligned columns.
+
+    :param entries: List of strings containing mismatched Tasker names.
+    :return: A formatted string with aligned columns.
+    """
+    formatted_entries = []
+
+    for entry in entries:
+        parts = entry.split("   <<< ")
+        names = parts[0].split(" vs ")
+        code = parts[1] if len(parts) > 1 else ""
+        formatted_entries.append((names[0].strip(), names[1].strip(), code.strip()))
+
+    # Determine column widths
+    col1_width = max(len(row[0]) for row in formatted_entries)
+    col2_width = max(len(row[1]) for row in formatted_entries)
+    col3_width = max(len(row[2]) for row in formatted_entries)
+
+    # Format output
+    return "".join(
+        f"{row[0]:<{col1_width}} != {row[1]:<{col2_width}} <<< {row[2]:<{col3_width}}\n" for row in formatted_entries
+    )
 
 
 def validate_states_and_events(code_type: str, url: str) -> None:
@@ -332,10 +429,12 @@ def validate_states_and_events(code_type: str, url: str) -> None:
     target.update(codes)
 
     # Make sure the Tasker codes are in our dictionary
-    for code in codes.values():
+    for key, code in codes.items():
         modified_code = str(code) + code_type
-        if modified_code not in action_codes:
-            debug_print(f"Code {modified_code} not found in actionc table.")
+        if code != -1 and modified_code not in action_codes:
+            debug_print(
+                f"Tasker's {key} {code_name} code {code!s} not found in actionc table!  Needs to be added.",
+            )
 
     # Reverse the dictionary of Tasker codes
     reverse_codes = {v: k for k, v in codes.items()}
@@ -348,4 +447,18 @@ def validate_states_and_events(code_type: str, url: str) -> None:
             missing_codes.append(code)
 
     if missing_codes:
-        debug_print(f"Action codes not found in Tasker's {code_name} table: {", ".join(missing_codes)}")
+        debug_print(
+            f"Our action codes (actionc) not found in Tasker's {code_name} table: {", ".join(missing_codes)}",
+        )
+
+    # Make sure Tasker code 'names' are the same as our actionc code 'names'
+    mismatch_names = []
+    for key, code in codes.items():
+        code_name = format_string(key)
+        modified_code = str(code) + code_type
+        if code != -1 and modified_code in action_codes and code_name != action_codes[modified_code][2]:
+            mismatch_names.append(
+                f"{code_name} vs {action_codes[modified_code][2]}   <<< Tasker's name mismatch for actionc table code:{modified_code}.",
+            )
+    if mismatch_names:
+        debug_print(format_columns(mismatch_names))

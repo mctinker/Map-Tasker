@@ -15,6 +15,10 @@ from maptasker.src.debug import not_in_dictionary
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 from maptasker.src.taskflag import get_priority
+from maptasker.src.tasks import reformat_html
+
+space = "&nbsp;"
+spaces = f"{space * 50}"
 
 
 # Profile condition: Time
@@ -27,7 +31,16 @@ def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) 
     :return: The formatted condition output string.
     """
 
-    time_values = {"fh": "", "fm": "", "th": "", "tm": "", "rep": "", "rep_type": "", "fromvar": "", "tovar": ""}
+    time_values = {
+        "fh": "",
+        "fm": "",
+        "th": "",
+        "tm": "",
+        "rep": "",
+        "rep_type": "",
+        "fromvar": "",
+        "tovar": "",
+    }
 
     for child in the_item:
         match child.tag:
@@ -38,9 +51,12 @@ def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) 
             case "repval":
                 time_values["rep"] = f" repeat every {child.text}{time_values['rep_type']}"
             case _:
-                return f"{the_output_condition}{child.text} not yet mapped!", not_in_dictionary(
-                    "Condition Time",
-                    child.text,
+                return (
+                    f"{the_output_condition}{child.text} not yet mapped!",
+                    not_in_dictionary(
+                        "Condition Time",
+                        child.text,
+                    ),
                 )
 
     from_time = f"{time_values['fh']}:{time_values['fm'].zfill(2)}"
@@ -67,7 +83,15 @@ def condition_day(the_item: defusedxml.ElementTree, the_output_condition: str) -
             be formatted
         :return: the formatted condition's output string
     """
-    weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    weekdays = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+    ]
     months = [
         "January",
         "February",
@@ -103,7 +127,10 @@ def condition_day(the_item: defusedxml.ElementTree, the_output_condition: str) -
 
 
 # Profile condition: State
-def condition_state(the_item: defusedxml.ElementTree.XMLParse, the_output_condition: str) -> str:
+def condition_state(
+    the_item: defusedxml.ElementTree.XMLParse,
+    the_output_condition: str,
+) -> str:
     """
     Handle the "State" condition
         :param the_item: the xml element with the Condition
@@ -128,7 +155,12 @@ def condition_state(the_item: defusedxml.ElementTree.XMLParse, the_output_condit
                 "s",
             )
 
+            # If pretty text, then reformat it.
+            if "Configuration Parameter(s):" in state and PrimeItems.program_arguments["pretty"]:
+                state = reformat_html(state)
+
             # Add this State to any preceding State
+            state = state.replace("\n", spaces)
             the_output_condition = f"{the_output_condition}State: {state}"
             invert = the_item.find("pin")
             if invert is not None and invert.text == "true":
@@ -140,7 +172,10 @@ def condition_state(the_item: defusedxml.ElementTree.XMLParse, the_output_condit
 
 
 # Profile condition: Event
-def condition_event(the_item: defusedxml.ElementTree.XMLParse, the_output_condition: str) -> str:
+def condition_event(
+    the_item: defusedxml.ElementTree.XMLParse,
+    the_output_condition: str,
+) -> str:
     """
     Handle the "Event" condition
         :param the_item: the xml element with the Condition
@@ -155,7 +190,10 @@ def condition_event(the_item: defusedxml.ElementTree.XMLParse, the_output_condit
     if event_code not in action_codes:
         logger.debug(f"code:{the_event_code.text} not found in action codes!")
         # Build new (template_ action code if not in our dictionary of codes yet
-        process_action_codes.build_action_codes(the_event_code, the_item)  # Add it to our action dictionary
+        process_action_codes.build_action_codes(
+            the_event_code,
+            the_item,
+        )  # Add it to our action dictionary
     # the_event_code.text = event_code
     event = action_evaluate.get_action_code(
         the_event_code,
@@ -166,7 +204,12 @@ def condition_event(the_item: defusedxml.ElementTree.XMLParse, the_output_condit
     # Get the event priority
     event = f"{event}{get_priority(the_item, True)}"
 
+    # If pretty text, then reformat it.
+    if "Configuration Parameter(s):" in event and PrimeItems.program_arguments["pretty"]:
+        event = reformat_html(event)
+
     # Format the Event text
+    event = event.replace("\n", "<br>")
     the_output_condition = f"{the_output_condition}Event: {event}"
     if PrimeItems.program_arguments["debug"]:  # if program_args['debug'] then add the code
         the_output_condition = f"{the_output_condition} (code:{the_event_code.text})"

@@ -106,8 +106,12 @@ def on_crash(exctype: str, value: str, traceback: list) -> None:
         # sys.__excepthook__ is the default excepthook that prints the stack trace
         # So we use it directly if we want to see it
         sys.__excepthook__(exctype, value, traceback)
-        print("MapTasker encountered a runtime error!  Error can be found in maptasker_debug.log")
-        print("]\nGo to https://github.com/mctinker/Map-Tasker/issues to report the problem.\n")
+        print(
+            "MapTasker encountered a runtime error!  Error can be found in maptasker_debug.log",
+        )
+        print(
+            "]\nGo to https://github.com/mctinker/Map-Tasker/issues to report the problem.\n",
+        )
     # Give the user a more graceful error message.
     else:
         # Instead of the stack trace, we print an error message to stderr
@@ -369,9 +373,15 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
     # Only invoke the browser if not doing a Map View from the GUI.
     if not PrimeItems.program_arguments["guiview"]:
         try:
-            webbrowser.open(f"file:{PrimeItems.slash*2}{my_output_dir}{my_file_name}", new=2)
+            webbrowser.open(
+                f"file:{PrimeItems.slash*2}{my_output_dir}{my_file_name}",
+                new=2,
+            )
         except webbrowser.Error:
-            error_handler("Error: Failed to open output in browser: your browser is not supported.", 1)
+            error_handler(
+                "Error: Failed to open output in browser: your browser is not supported.",
+                1,
+            )
 
     # If doing the outline, let 'em know about the map file.
     if not PrimeItems.program_arguments["guiview"]:
@@ -379,7 +389,9 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
             "The Configuration Map was saved as MapTasker_Map.txt.  " if PrimeItems.program_arguments["outline"] else ""
         )
         print("")
-        print(f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}")
+        print(
+            f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}",
+        )
         print("")
 
 
@@ -527,7 +539,11 @@ def display_back_matter(
 
     # Finalize the HTML
     final_msg = "\n</body>\n</html>"
-    PrimeItems.output_lines.add_line_to_output(5, final_msg, FormatLine.dont_format_line)
+    PrimeItems.output_lines.add_line_to_output(
+        5,
+        final_msg,
+        FormatLine.dont_format_line,
+    )
 
     # If not output directory, cleanup and exit.
     logger.debug(f"output directory:{my_output_dir}")
@@ -587,7 +603,11 @@ def do_rerun() -> None:
 
 # Do the cleanup stuff: check for single name, do unique situations, and display
 # back matter.
-def final_processing(found_tasks: list, projects_without_profiles: list, projects_with_no_tasks: list) -> None:
+def final_processing(
+    found_tasks: list,
+    projects_without_profiles: list,
+    projects_with_no_tasks: list,
+) -> None:
     # Store single item details in local variables
     """
     Processes special handling of found tasks, projects without profiles, and projects with no tasks.
@@ -733,7 +753,11 @@ def mapit_all(file_to_get: str) -> int:
     # Save our runtime settings for next time.  Make sure we don't save the rerun state as True
     save_rerun_state = PrimeItems.program_arguments["rerun"]
     PrimeItems.program_arguments["rerun"] = False
-    _, _ = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)
+    _, _ = save_restore_args(
+        PrimeItems.program_arguments,
+        PrimeItems.colors_to_use,
+        True,
+    )
     PrimeItems.program_arguments["rerun"] = save_rerun_state
 
     # Do a little cleanup by clearing output lines

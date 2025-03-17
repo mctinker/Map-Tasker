@@ -301,6 +301,7 @@ lookup_values = {
         "Timer Widget Remaining",
         "Current Task Name",
         "Used Memory",
+        "Projects",
     ],
     "348": [
         "AutoRotate",
@@ -384,6 +385,20 @@ lookup_values = {
     ],
     "394a": ["None", "Seconds", "Minutes", "Hours", "Days"],
     "396": ["Simple", "Regex"],
+    "4": [
+        "Any",
+        "Audio/Video",
+        "Computer",
+        "Health",
+        "Imaging",
+        "Misc",
+        "Networking",
+        "Peripheral",
+        "Phone",
+        "Toy",
+        "Wearable",
+        "Uncategorized",
+    ],
     "412": [
         "Alphabetic",
         "Alphabetic, Reverse",

@@ -76,31 +76,35 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 7.1.0 - Change Log\n
+Version 7.1.1 - Change Log\n
 ### Added\n
-- Added: Task action 'Remote Action Execution' added.\n
-- Added: Support for Tasker version 6.4.13\n
-- Added: Event 'Intent Received' is missing the arguments.\n
-- Added: Open AI 'gpt-4.5-preview' AI model.\n
-- Added: Numerous Task action arguments have been added with the background synchronization with Tasker.\n
+- Added: Tasker version 6.5.1 Beta support (new 'Calendar' Task actions).\n
+- Added: Closing the progress bar now also cancels the current view.\n
+- Added: Scene Tasks have been added to the Diagram view.\n
+- Added: Profile Events 'Network Changed', 'Pick Up Gesture', 'Fingerprint Gesture', 'Physical Activity', 'Clipboard Changed', 'Accessibility Services Changed', 'Device Unlock Failed' and 'Remote Action Token Changed' are now recognized.\n
+- Added: Profile States 'Room', 'Reaching', 'Physical Activity', 'Matter Light', 'Data Usage', and 'Compass Orientation' are now recognized.\n
 ### Changed\n
-- Changed: Updated list of deprecated Task actions.\n
-- Changed: Program data restructured to enable easier transition to future Tasker 'Task' action changes and improve accuracy.\n
-- Changed: Removed no longer supported 'Gemini-1.0' and 'gemini-2.0-flash-exp' AI models.\n
+- Changed: No changes.\n
 ### Fixed\n
-- Fixed: 'UnboundLocalError' program error in scenes.py.\n
-- Fixed: LLAMA AI Analysis fails due to improper API key when no API key is required.\n
-- Fixed: Various Task action arguments were missing or incorrect.\n
-- Fixed: Alignment of 'Configuration Parameter(s)' is not always correct if using 'pretty' option.\n
-- Fixed: Program error if trying to close the progress bar window.\n
-- Fixed: Removed redundant blank lines from the Map view.\n
+- Fixed: The current view continues to display as empty if closing the progress bar.\n
+- Fixed: Screen WebElement 'Source=' HTML is missing and/or malformed.\n
+- Fixed: States 'BT Status' and 'BT Near' not recognized.\n
+- Fixed: Task action labels are not all displaying in the correct color.\n
+- Fixed: Not correctly parsing action arguments that contain HTML.\n
+- Fixed: 'Run and Exit' after doing a 'Map' view from the GUI would display the wrong data in the browser.\n
 """
 
 default_font_size = 14
 
 
 # Make sure the single named item exists...that it is a valid name
-def valid_item(self, the_name: str, element_name: str, debug: bool, appearance_mode: str) -> bool:  # noqa: ANN001
+def valid_item(
+    self: object,
+    the_name: str,
+    element_name: str,
+    debug: bool,
+    appearance_mode: str,
+) -> bool:
     """
     Checks if an item name is valid
     Args:
@@ -240,7 +244,10 @@ def ping_android_device(self, ip_address: str, port_number: str) -> bool:  # noq
     # Validate IP Address
     if validate_ip_address(ip_address):
         # Verify that the host IP is reachable:
-        self.display_message_box(f"Pinging address {ip_address}.  Please wait...", "Green")
+        self.display_message_box(
+            f"Pinging address {ip_address}.  Please wait...",
+            "Green",
+        )
         self.update()  # Force a window refresh.
 
         # Ping IP address.
@@ -308,7 +315,9 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
     if not self.first_time:  # If first time, don't destory Upgrade and What's New buttons.
         with contextlib.suppress(AttributeError):
             self.list_files_query_button.destroy()
-        with contextlib.suppress(AttributeError):  # Destroy upgrade button since file location would sit on top of it.
+        with contextlib.suppress(
+            AttributeError,
+        ):  # Destroy upgrade button since file location would sit on top of it.
             self.upgrade_button.destroy()
 
     self.get_backup_button = self.display_backup_button(
@@ -379,7 +388,13 @@ def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tupl
         - Otherwise, return error with empty string."""
 
     # Get the contents of the file.
-    return_code, file_contents = http_request(ip_address, ip_port, file_location, "maplist", "?xml")
+    return_code, file_contents = http_request(
+        ip_address,
+        ip_port,
+        file_location,
+        "maplist",
+        "?xml",
+    )
 
     # If good return code, get the list of XML file locations into a list and return.
     if return_code == 0:
@@ -527,9 +542,17 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
                 compound="left",
                 font=ctk.CTkFont(size=1, weight="bold"),
             )
-            label.grid(row=grid_pos[0], column=grid_pos[1], padx=padx, pady=pady, sticky=sticky)
+            label.grid(
+                row=grid_pos[0],
+                column=grid_pos[1],
+                padx=padx,
+                pady=pady,
+                sticky=sticky,
+            )
         except (FileNotFoundError, TypeError, TclError) as e:
-            rutroh_error(f"Error displaying {logo_type} logo: {e}  Unable to attach Tkinter for image.")
+            rutroh_error(
+                f"Error displaying {logo_type} logo: {e}  Unable to attach Tkinter for image.",
+            )
     else:
         rutroh_error("Invalid logo type")
     # Put the directory back to where it should be.
@@ -713,7 +736,14 @@ def add_button(
         border_width=border_width,
         text=text,
     )
-    button_name.grid(row=row, column=column, columnspan=columnspan, padx=padx, pady=pady, sticky=sticky)
+    button_name.grid(
+        row=row,
+        column=column,
+        columnspan=columnspan,
+        padx=padx,
+        pady=pady,
+        sticky=sticky,
+    )
     return button_name
 
 
@@ -1027,12 +1057,22 @@ def validate_or_filelist_xml(
     """
     # If we don't yet have the file, then get it from the Android device.
     if len(android_file) != 0 and android_file != "" and self.list_files == False:
-        return_code, file_contents = http_request(android_ipaddr, android_port, android_file, "file", "?download=1")
+        return_code, file_contents = http_request(
+            android_ipaddr,
+            android_port,
+            android_file,
+            "file",
+            "?download=1",
+        )
 
         # Validate XML file.
         if return_code == 0:
             PrimeItems.program_arguments["gui"] = True
-            return_code, error_message = validate_xml_file(android_ipaddr, android_port, android_file)
+            return_code, error_message = validate_xml_file(
+                android_ipaddr,
+                android_port,
+                android_file,
+            )
             if return_code != 0:
                 self.display_message_box(error_message, "Red")
                 return 1, android_ipaddr, android_port, android_file
@@ -1043,7 +1083,11 @@ def validate_or_filelist_xml(
     else:
         clear_android_buttons(self)
         # Get list from Tasker directory (/Tasker) or system directory (/storage/emulated/0)
-        return_code, filelist = get_list_of_files(android_ipaddr, android_port, "/storage/emulated/0/Tasker")
+        return_code, filelist = get_list_of_files(
+            android_ipaddr,
+            android_port,
+            "/storage/emulated/0/Tasker",
+        )
         if return_code != 0:
             # Error getting list of files.
             self.display_message_box(filelist, "Red")
@@ -1080,7 +1124,12 @@ def validate_or_filelist_xml(
         # Set backup IP and file location attributes if valid
         self.android_ipaddr = android_ipaddr
         self.android_port = android_port
-        return 2, "", "", ""  # Just return with error so the prompt comes up to select file.
+        return (
+            2,
+            "",
+            "",
+            "",
+        )  # Just return with error so the prompt comes up to select file.
 
     # All is okay
     return 0, android_ipaddr, android_port, android_file
@@ -1304,18 +1353,20 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     # Display the object pulldowns in 'Specific Name' tab
     if not projects_to_display:  # If no Projects to display
         projects_to_display = ["None"]
-    self.specific_project_optionmenu, self.specific_profile_optionmenu, self.specific_task_optionmenu = (
-        display_object_pulldowns(
-            self,
-            self.tabview.tab("Specific Name"),
-            5,
-            projects_to_display,
-            profiles_to_display,
-            tasks_to_display,
-            self.event_handlers.single_project_name_event,
-            self.event_handlers.single_profile_name_event,
-            self.event_handlers.single_task_name_event,
-        )
+    (
+        self.specific_project_optionmenu,
+        self.specific_profile_optionmenu,
+        self.specific_task_optionmenu,
+    ) = display_object_pulldowns(
+        self,
+        self.tabview.tab("Specific Name"),
+        5,
+        projects_to_display,
+        profiles_to_display,
+        tasks_to_display,
+        self.event_handlers.single_project_name_event,
+        self.event_handlers.single_profile_name_event,
+        self.event_handlers.single_task_name_event,
     )
     return True
 
@@ -1377,7 +1428,11 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
 
 
 # Build a list of Profiles that are under the given project
-def build_profiles(root: dict, profile_ids: list, project: defusedxml.ElementTree) -> list:
+def build_profiles(
+    root: dict,
+    profile_ids: list,
+    project: defusedxml.ElementTree,
+) -> list:
     """Parameters:
         - root (dict): Dictionary containing all profiles and their tasks.
         - profile_ids (list): List of profile IDs to be processed.
@@ -1425,7 +1480,12 @@ def build_profiles(root: dict, profile_ids: list, project: defusedxml.ElementTre
 
     # Now add tasks that are not found in any Profile that belong to the Project
     no_profile_tasks = []
-    task_ids = get_ids(False, PrimeItems.tasker_root_elements["all_projects"][project]["xml"], project, [])
+    task_ids = get_ids(
+        False,
+        PrimeItems.tasker_root_elements["all_projects"][project]["xml"],
+        project,
+        [],
+    )
     for task_id in task_ids:
         if root["all_tasks"][task_id]["name"] not in found_tasks:
             no_profile_tasks.append(root["all_tasks"][task_id]["name"])  # noqa: PERF401
@@ -1485,11 +1545,16 @@ def display_messages_from_last_run(self) -> None:  # noqa: ANN001
                 self.clear_messages = True
                 self.display_message_box(error_msg, "Red")
             # Get rid of error message so we don't display it again.
-            os.remove(ERROR_FILE)  # Get rid of error message so we don't display it again.
+            os.remove(
+                ERROR_FILE,
+            )  # Get rid of error message so we don't display it again.
 
     # Display any error message from other rountines
     if PrimeItems.error_msg:
-        self.display_message_box(f"{PrimeItems.error_msg} with return code {PrimeItems.error_code}.", "Red")
+        self.display_message_box(
+            f"{PrimeItems.error_msg} with return code {PrimeItems.error_code}.",
+            "Red",
+        )
 
 
 # Display the current file as a label
@@ -1530,7 +1595,12 @@ def display_current_file(self, file_name: str) -> None:  # noqa: ANN001
 
 
 # Set up error message for single Project/Profile/Task name that was entered.  Called by check_name in userintr.
-def setup_name_error(object1_name: str, object2_name: str, single_name1: str, single_name2: str) -> None:
+def setup_name_error(
+    object1_name: str,
+    object2_name: str,
+    single_name1: str,
+    single_name2: str,
+) -> None:
     """
     Set up an error message for when both a Project and a Profile name are entered.
 
@@ -1705,7 +1775,9 @@ def reload_gui(self: object) -> None:
     # ReRun via a new process, which will load and run the new program/version.
     # Note: this will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'
     # Note: this current process will not return after this call, but simply be killed.
-    print("The following error message can be ignored: 'Task policy set failed: 4 ((os/kern) invalid argument)'.")
+    print(
+        "The following error message can be ignored: 'Task policy set failed: 4 ((os/kern) invalid argument)'.",
+    )
     os.execl(sys.executable, "python", *sys.argv)
 
 
@@ -1796,8 +1868,15 @@ def create_new_textbox(self: object) -> None:
     """
     self.textbox = ctk.CTkTextbox(self, height=650, width=250)
     self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
-    self.textbox.configure(font=(self.font, 14), wrap="word", scrollbar_button_color="#6563ff")
-    self.hyperlink = ctk.HyperlinkManager(self.textbox, text_color=get_appropriate_color(self, "blue"))
+    self.textbox.configure(
+        font=(self.font, 14),
+        wrap="word",
+        scrollbar_button_color="#6563ff",
+    )
+    self.hyperlink = ctk.HyperlinkManager(
+        self.textbox,
+        text_color=get_appropriate_color(self, "blue"),
+    )
 
 
 def make_hex_color(color: str) -> str:
@@ -1816,7 +1895,11 @@ def make_hex_color(color: str) -> str:
     return color
 
 
-def search_substring_in_list(strings: list, substring: str, stop_on_first_match: bool) -> list:
+def search_substring_in_list(
+    strings: list,
+    substring: str,
+    stop_on_first_match: bool,
+) -> list:
     """
     Searches for a given substring within a list of strings and returns a list of tuples containing the index of the string and the position of the substring.
 
@@ -1856,7 +1939,11 @@ def search_substring_in_list(strings: list, substring: str, stop_on_first_match:
     return matches
 
 
-def search_nextprev_string(self: object, textview: ctk.CTkTextbox, direction: str) -> None:
+def search_nextprev_string(
+    self: object,
+    textview: ctk.CTkTextbox,
+    direction: str,
+) -> None:
     """
     Searches for the next or previous occurrence of a string in a text box based on the given direction.
 
@@ -1906,7 +1993,11 @@ def search_nextprev_string(self: object, textview: ctk.CTkTextbox, direction: st
                 # Add tag to highlight the found text
                 temp = textview.search_current_line.split(".")
                 end_index = int(temp[1]) + len(textview.search_string)
-                textview.textview_textbox.tag_add("next", textview.search_current_line, f"{temp[0]!s}.{end_index}")
+                textview.textview_textbox.tag_add(
+                    "next",
+                    textview.search_current_line,
+                    f"{temp[0]!s}.{end_index}",
+                )
                 textview.textview_textbox.tag_config(
                     "next",
                     foreground=textview.search_color_text,
@@ -1981,7 +2072,10 @@ def get_appropriate_color(self: object, color_to_use: str) -> str:
         color_to_use (str): color to use based on dark or light mode
     """
     # Color matching dictionary: color_to_use: [dark-mode color, light-mode color], ...
-    color_match = {"blue": ["LightSkyBlue", "darkblue"], "green": ["lightgreen", "darkgreen"]}
+    color_match = {
+        "blue": ["LightSkyBlue", "darkblue"],
+        "green": ["lightgreen", "darkgreen"],
+    }
 
     if self.appearance_mode is None:
         self.appearance_mode = "system"
@@ -2058,14 +2152,22 @@ def display_progress_bar(
     # Check if an alert needs to be printed (OS X only).
     if (
         platform.system() == "Darwin"
+        and progress
         and progress["progress_bar"].progressbar.print_alert
         and round(time.time() * 1000) - progress["progress_bar"].progressbar.start_time > 4000
     ):
-        print(f"{Colors.Green}You can ignore the error message: 'IMKClient Stall detected, *please Report*...'")
+        print(
+            f"{Colors.Green}You can ignore the error message: 'IMKClient Stall detected, *please Report*...'",
+        )
         progress["progress_bar"].progressbar.print_alert = False
 
 
-def find_connector(output_lines: list, line_num: int, start_symbol: str, end_symbol: str) -> tuple:
+def find_connector(
+    output_lines: list,
+    line_num: int,
+    start_symbol: str,
+    end_symbol: str,
+) -> tuple:
     """
     Finds the start and end positions for a connector within a line of the diagram.
 
@@ -2110,7 +2212,11 @@ def find_lower_elbows(
     while not found_arrow:
         line_num += 1
         if line_num < len(output_lines):
-            right_lower_elbow = output_lines[line_num].find(right_corner_up, end_elbow, end_elbow + 1)
+            right_lower_elbow = output_lines[line_num].find(
+                right_corner_up,
+                end_elbow,
+                end_elbow + 1,
+            )
             if right_lower_elbow != -1:
                 found_arrow = True
                 left_lower_elbow = output_lines[line_num].find(left_corner_down)
@@ -2124,7 +2230,12 @@ def find_lower_elbows(
     return None, None, None
 
 
-def get_connected_task(output_lines: list, line_num: int, elbow: int, top: bool) -> tuple:
+def get_connected_task(
+    output_lines: list,
+    line_num: int,
+    elbow: int,
+    top: bool,
+) -> tuple:
     """
     Finds the connected task in the connector.
 
@@ -2168,10 +2279,18 @@ def get_connected_task(output_lines: list, line_num: int, elbow: int, top: bool)
         search_position += 1
     right_position = search_position
 
-    return line[left_position - 1 : right_position].strip(), left_position, right_position
+    return (
+        line[left_position - 1 : right_position].strip(),
+        left_position,
+        right_position,
+    )
 
 
-def build_connectors(output_lines: list, line_num: int, diagram_connectors: dict) -> dict:
+def build_connectors(
+    output_lines: list,
+    line_num: int,
+    diagram_connectors: dict,
+) -> dict:
     """
     Build the connectors for a given line number.
 
@@ -2184,7 +2303,12 @@ def build_connectors(output_lines: list, line_num: int, diagram_connectors: dict
         dict: Updated dictionary of connectors.
     """
     # Handle top-down connectors
-    start_elbow, end_elbow = find_connector(output_lines, line_num, right_arrow_corner_down, left_arrow_corner_up)
+    start_elbow, end_elbow = find_connector(
+        output_lines,
+        line_num,
+        right_arrow_corner_down,
+        left_arrow_corner_up,
+    )
     if start_elbow is not None:
         next_line, right_lower_elbow, left_lower_elbow = find_lower_elbows(
             output_lines,
@@ -2219,7 +2343,12 @@ def build_connectors(output_lines: list, line_num: int, diagram_connectors: dict
 
     # Handle bottom-up connectors
     else:
-        start_elbow, end_elbow = find_connector(output_lines, line_num, left_arrow_corner_down, left_arrow_corner_up)
+        start_elbow, end_elbow = find_connector(
+            output_lines,
+            line_num,
+            left_arrow_corner_down,
+            left_arrow_corner_up,
+        )
         if start_elbow is not None:
             next_line, right_lower_elbow, left_lower_elbow = find_lower_elbows(
                 output_lines,
@@ -2275,7 +2404,11 @@ def remove_tags_from_bars_and_names(self: object) -> None:
                 )
                 line_num += 1
             for bar in values["extra_bars"]:
-                self.textview_textbox.tag_remove(values["tag"], f"{bar[0]!s}.{bar[1]!s}", f"{bar[0]!s}.{bar[1]+1!s}")
+                self.textview_textbox.tag_remove(
+                    values["tag"],
+                    f"{bar[0]!s}.{bar[1]!s}",
+                    f"{bar[0]!s}.{bar[1]+1!s}",
+                )
             values["tag"] = ""
 
         # Remove the tags in the Task names.
@@ -2288,9 +2421,9 @@ def remove_tags_from_bars_and_names(self: object) -> None:
             )
 
 
-def kill_the_progress_bar(progress_bar: dict) -> None:
+def kill_the_progress_bar(progress_bar: dict, remove_windows: bool = False) -> None:
     """
-    Stop and destroy the progress bar.
+    Stop and destroy the progress bar. and any open views.
 
     Args:
         progress_bar (dict): The dictionary containing the progress bar information.
@@ -2302,10 +2435,22 @@ def kill_the_progress_bar(progress_bar: dict) -> None:
     from maptasker.src.guiwins import save_window_position
 
     # Save the window position in our main window (self=MyGui).
-    PrimeItems.mygui.progressbar_window_position = save_window_position(progress_bar["progress_bar"])
+    PrimeItems.mygui.progressbar_window_position = save_window_position(
+        progress_bar["progress_bar"],
+    )
+    # Get rid of the progressbar
     progress_bar["progress_bar"].progressbar.stop()
     progress_bar["progress_bar"].progressbar.destroy()
     progress_bar["progress_bar"].destroy()
+    progress_bar.clear()
+    PrimeItems.progressbar.clear()
+    # Get rid of any open views.
+    if remove_windows:
+        for window_attr in ["mapview_window", "diagramview_window", "treeview_window"]:
+            window = getattr(PrimeItems.mygui, window_attr, None)
+            if window is not None:
+                window.destroy()
+                setattr(PrimeItems.mygui, window_attr, None)
 
 
 def get_profiles_in_project(project_name: str) -> str:
@@ -2317,11 +2462,16 @@ def get_profiles_in_project(project_name: str) -> str:
 
     Returns:
         str: A string containing the list of profile names associated with the project,
-             formatted as "Profiles:\n" followed by a comma-separated list of names.
-             Returns an empty string if no profiles are found.
+            formatted as "Profiles:\n" followed by a comma-separated list of names.
+            Returns an empty string if no profiles are found.
     """
     # Get the Project's profile Ids.
-    pids = get_ids(True, PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"], project_name, [])
+    pids = get_ids(
+        True,
+        PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"],
+        project_name,
+        [],
+    )
     # Get all of the Profiles in the Project
     profile_names = [PrimeItems.tasker_root_elements["all_profiles"][pid]["name"] for pid in pids]
     if pids:
@@ -2339,11 +2489,16 @@ def get_tasks_in_profile(project_name: str) -> str:
 
     Returns:
         str: A string containing the list of task names associated with the profile,
-             formatted as "Tasks:\n" followed by a comma-separated list of names.
-             Returns an empty string if no tasks are found.
+            formatted as "Tasks:\n" followed by a comma-separated list of names.
+            Returns an empty string if no tasks are found.
     """
     # Get the Profile's Task Ids.
-    tids = get_ids(False, PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"], project_name, [])
+    tids = get_ids(
+        False,
+        PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"],
+        project_name,
+        [],
+    )
     # Get all of the Tasks in the Profile
     task_names = [PrimeItems.tasker_root_elements["all_tasks"][tid]["name"] for tid in tids]
     if tids:
@@ -2351,7 +2506,11 @@ def get_tasks_in_profile(project_name: str) -> str:
     return ""
 
 
-def find_string_from_text_bottom(self: object, target: str, start_index: int) -> str | None:
+def find_string_from_text_bottom(
+    self: object,
+    target: str,
+    start_index: int,
+) -> str | None:
     """
     Searches for the target string in a list of strings, starting from the end of the list,
     and returns the first string containing the target.
@@ -2363,7 +2522,7 @@ def find_string_from_text_bottom(self: object, target: str, start_index: int) ->
 
     Returns:
         str or None: The first string from the end of the list that contains the target string,
-                     or None if the target string is not found in any of the strings.
+                    or None if the target string is not found in any of the strings.
     """
     # Loop through the list in reverse order
     for i in range(start_index, -1, -1):
@@ -2461,7 +2620,7 @@ def on_closing(self: object) -> None:
     }
     # Handle progressbar separately.
     if "Progress" in title:
-        kill_the_progress_bar(PrimeItems.progressbar)
+        kill_the_progress_bar(PrimeItems.progressbar, remove_windows=True)
         return
     # Find the window being closed and save it's position.
     for keyword, attribute in window_position_map.items():
@@ -2563,3 +2722,21 @@ def set_ai_key(self: object, model: str) -> None:
     }
     self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
     return bool(self.ai_apikey)
+
+
+def align_text(text: str, column: int) -> str:
+    """
+    Aligns the given text so that its first non-&nbsp; character starts at the specified column.
+
+    :param text: The input string where '&nbsp;' is treated as a space.
+    :param column: The desired starting column for the first non-&nbsp; character.
+    :return: The aligned string.
+    """
+    nbsp = "&nbsp;"
+    stripped_text = text.lstrip(nbsp)  # Remove leading '&nbsp;' characters
+    leading_spaces = (len(text) - len(stripped_text)) // len(
+        nbsp,
+    )  # Count '&nbsp;' as spaces
+    adjusted_column = max(0, column - leading_spaces)  # Ensure non-negative padding
+
+    return (nbsp * adjusted_column) + text  # Adjust spacing to align correctly

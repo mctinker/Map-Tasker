@@ -18,7 +18,6 @@ from maptasker.src.error import error_handler
 from maptasker.src.maputils import count_consecutive_substr, get_value_if_match
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
-from maptasker.src.xmldata import remove_html_tags
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -33,14 +32,18 @@ def ensure_argument_alignment(taction: str) -> str:
     Returns:
         str: Correctly aligned action text
     """
-    action_breakdown = taction.split("<br>")
+    action_breakdown = taction.replace("\n", "<br>").split("<br>")
     if len(action_breakdown) > 1:
         count_of_spaces = count_consecutive_substr(action_breakdown[1], "&nbsp;")
         correct_spacing = "&nbsp;" * count_of_spaces
         for index, arg in enumerate(action_breakdown[2:]):
-            action_breakdown[index + 2] = remove_html_tags(arg.strip(), "")
+            # action_breakdown[index + 2] = remove_html_tags(arg.strip(), "")
+            action_breakdown[index + 2] = arg.strip()
             if count_consecutive_substr(arg, "&nbsp;") != count_of_spaces:
-                action_breakdown[index + 2] = action_breakdown[index + 2].replace("&nbsp;", "")
+                action_breakdown[index + 2] = action_breakdown[index + 2].replace(
+                    "&nbsp;",
+                    "",
+                )
                 action_breakdown[index + 2] = f"{correct_spacing}{action_breakdown[index+2]}"
         # Put it all back together.
         taction = "<br>".join(action_breakdown)
@@ -137,7 +140,12 @@ def get_task_actions_and_output(
         # "--Task:" denotes a Task in a Scene which we will handle below
         temp_id = "x" if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
         task_name = temp_id[0].split("&nbsp;")[0]
-        the_task, task_id = get_value_if_match(PrimeItems.tasker_root_elements["all_tasks"], "name", task_name, "xml")
+        the_task, task_id = get_value_if_match(
+            PrimeItems.tasker_root_elements["all_tasks"],
+            "name",
+            task_name,
+            "xml",
+        )
 
         # Get the Task name from the ID if it wasn't found above.
         if the_task is None and task_name == "x":
@@ -166,18 +174,37 @@ def get_task_actions_and_output(
                     and action_count > PrimeItems.program_arguments["task_action_warning_limit"]
                     and task_name not in PrimeItems.task_action_warnings
                 ):
-                    PrimeItems.task_action_warnings[task_name] = {"count": action_count, "id": task_id}
+                    PrimeItems.task_action_warnings[task_name] = {
+                        "count": action_count,
+                        "id": task_id,
+                    }
 
                 # Start a list of Actions
-                PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
+                PrimeItems.output_lines.add_line_to_output(
+                    1,
+                    "",
+                    FormatLine.dont_format_line,
+                )
                 action_count = 1
                 output_list_of_actions(action_count, alist, the_item)
                 # End list if Scene Task
                 if "&#45;&#45;Task:" in list_type:
-                    PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+                    PrimeItems.output_lines.add_line_to_output(
+                        3,
+                        "",
+                        FormatLine.dont_format_line,
+                    )
                     if PrimeItems.program_arguments["twisty"]:
-                        PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+                        PrimeItems.output_lines.add_line_to_output(
+                            3,
+                            "",
+                            FormatLine.dont_format_line,
+                        )
                 # End the list of Actions
-                PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+                PrimeItems.output_lines.add_line_to_output(
+                    3,
+                    "",
+                    FormatLine.dont_format_line,
+                )
         else:
             error_handler("No Task found!!!", 0)

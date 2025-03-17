@@ -55,7 +55,16 @@ from maptasker.src.guiutils import display_progress_bar, kill_the_progress_bar
 from maptasker.src.guiwins import ProgressbarWindow
 from maptasker.src.maputils import find_all_positions, rutroh_error
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import DIAGRAM_FILE, DIAGRAM_PROFILES_PER_LINE, MY_VERSION, NOW_TIME, FormatLine, logger
+from maptasker.src.sysconst import (
+    DIAGRAM_FILE,
+    DIAGRAM_PROFILES_PER_LINE,
+    MY_VERSION,
+    NOW_TIME,
+    SCENE_TASK_TYPES,
+    FormatLine,
+    logger,
+)
+from maptasker.src.xmldata import tag_in_type
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -108,15 +117,22 @@ def add_quotes(
     call_tasks = ""
     task_name = task["name"]
 
+    # Correct the name in case it has a Screen element 'click' name associated with it.
+    position = task_name.find(":")
+    real_task_name = task_name
+    if position != -1 and "," in task_name:
+        scene_task_type_to_check = task_name.split(",")[1].split(":")[0][1:]
+        for scene_task_type in SCENE_TASK_TYPES.values():
+            if scene_task_type == scene_task_type_to_check:
+                real_task_name = task_name.split(":")[1][1:]
+                break
+
     # Get the primary task pointer for this task.
-    prime_task = PrimeItems.tasker_root_elements["all_tasks_by_name"][task_name]
+    prime_task = PrimeItems.tasker_root_elements["all_tasks_by_name"][real_task_name]
     with contextlib.suppress(KeyError):
         if prime_task["call_tasks"] is not None:
             # Flatten list of called tasks and surround each with a quote.
             call_tasks = f" [Calls {line_right_arrow} {flatten_with_quotes(prime_task['call_tasks'])}]"
-
-            # Add a blank line for each called task.
-            # for len(prime_task["call_tasks"]):
 
     # We are still accumulating outlines for Profiles.
     # Build lines for the Profile's Tasks as well.
@@ -137,9 +153,15 @@ def add_quotes(
                 if the_task in PrimeItems.called_task_tracker:
                     PrimeItems.called_task_tracker[the_task]["total_number"] += 1
                 else:
-                    PrimeItems.called_task_tracker[the_task] = {"total_number": 1, "counter": 0}
+                    PrimeItems.called_task_tracker[the_task] = {
+                        "total_number": 1,
+                        "counter": 0,
+                    }
             else:
-                PrimeItems.called_task_tracker[the_task] = {"total_number": 1, "counter": 0}
+                PrimeItems.called_task_tracker[the_task] = {
+                    "total_number": 1,
+                    "counter": 0,
+                }
 
     # Interject the "|" for previous Tasks under Profile
     for bar_char in last_upward_bar:
@@ -256,6 +278,74 @@ def print_all_tasks(
     return found_tasks
 
 
+def process_scene_tasks(
+    scene: str,
+    position_for_anchor: int,
+    task_list: list,
+) -> tuple:
+    """
+    Process a Scene's Tasks.
+
+    Args:
+        scene (str): The Scene name to process.
+        position_for_anchor (int): The position of the anchor point for the Task.
+        task_list (list): List of tasks to add to.
+
+    Returns:
+        tuple: (task_list, output_task_lines)
+    """
+    output_task_lines = []
+
+    # Retrieve XML elements inside the scene
+    scene_xml = PrimeItems.tasker_root_elements["all_scenes"].get(scene, {}).get("xml", [])
+    # Go through the scene elements, looking for "xxxElement"
+    for sub_scene in scene_xml:
+        sub_scene_tag = sub_scene.tag
+
+        if not tag_in_type(sub_scene_tag, True):
+            if sub_scene_tag in {"Str", "Int"}:
+                break
+            continue  # Skip elements that are not relevant
+
+        # Retrieve element name if available
+        element_name = sub_scene_tag
+        arg0_element = sub_scene.find("./Str[@sr='arg0']")
+        if arg0_element is not None:
+            element_name = arg0_element.text or element_name
+
+        # Go through the "xxxElement" sub-elements looking for a "xxxTask"
+        for sub_element in sub_scene:
+            sub_element_tag = sub_element.tag
+
+            if sub_element_tag == "PropertiesElement":
+                break  # No need to continue if we hit arguments
+
+            if not tag_in_type(sub_element_tag, False):
+                continue
+
+            task_id = sub_element.text
+            if not task_id or task_id.startswith("-"):
+                continue  # Skip invalid or fake tasks
+
+            # Retrieve task information
+            task_info = PrimeItems.tasker_root_elements["all_tasks"].get(task_id)
+            if not task_info:
+                continue
+
+            task = {
+                "xml": task_info["xml"],
+                "name": f"Element '{element_name}', {SCENE_TASK_TYPES[sub_element_tag]}: {task_info['name']}",
+            }
+
+            # Store the task
+            task_list.append([task, position_for_anchor])
+
+    if output_task_lines:
+        print_all(output_task_lines)
+
+    return task_list, output_task_lines
+
+
 # Process all Scenes in the Project, 8 Scenes to a row.
 def print_all_scenes(scenes: list) -> None:
     """
@@ -278,6 +368,7 @@ def print_all_scenes(scenes: list) -> None:
     scene_counter = 0
     output_scene_lines = [filler, filler, filler]
     header = False
+    task_list = []
     # Empty line to start
     add_output_line(" ")
 
@@ -296,11 +387,33 @@ def print_all_scenes(scenes: list) -> None:
         # Start/continue building our outlines
         output_scene_lines, position_for_anchor = build_box(scene, output_scene_lines)
 
-    # Print anyn remaining Scenes
+        # Process Scene's Tasks
+        task_list, output_task_lines = process_scene_tasks(
+            scene,
+            position_for_anchor + 15,
+            task_list,
+        )
+
+    # Print any remaining Scenes
     if not header:
         include_heading(f"{blank*7}Scenes:", output_scene_lines)
-
     print_3_lines(output_scene_lines)
+
+    # Print out the Scenes' Tasks
+    for task in task_list:
+        # Output the Task
+        found_tasks, last_upward_bar, output_task_lines = output_the_task(
+            True,
+            [],
+            task[0],
+            output_task_lines,
+            task[1] + 15,
+            "",
+            "",
+            task[1],
+        )
+    if task_list:
+        print_all(output_task_lines)
 
 
 # Process Tasks not in any Profile
@@ -377,7 +490,12 @@ def do_tasks_with_no_profile(
 
 
 # Fill the designated line with arrows starting at the specified position.
-def fill_line_with_arrows(line: str, arrow: str, line_length: int, call_task_position: int) -> str:
+def fill_line_with_arrows(
+    line: str,
+    arrow: str,
+    line_length: int,
+    call_task_position: int,
+) -> str:
     """
     Fills spaces in a line with left/right arrows up to a specified position.
     Args:
@@ -518,12 +636,20 @@ def get_index_setup(s: str, called_task_name: str) -> tuple:
     # Find all positions of the called task name beyond the "Calls -->".
     string_without_delimiters = s.replace(task_delimeter, "") if delimiter == task_delimeter else s
     start_search = string_without_delimiters.find("Calls ──▶ ") + 9
-    positions = find_all_positions(string_without_delimiters, called_task_name, start_search)
+    positions = find_all_positions(
+        string_without_delimiters,
+        called_task_name,
+        start_search,
+    )
 
     return substrings, positions
 
 
-def get_index_by_middle_char_position(s: str, middle_char_position: int, called_task_name: str) -> int:
+def get_index_by_middle_char_position(
+    s: str,
+    middle_char_position: int,
+    called_task_name: str,
+) -> int:
     # Split the string into substrings based on commas
     """
     Finds and returns the index of a called task based on its middle character position.
@@ -624,7 +750,12 @@ def add_down_and_up_arrows(
         line_count += 1
         if line_count > 20:
             if PrimeItems.program_arguments["debug"]:
-                print("Rutroh", line_to_modify1, len(output_lines), output_lines[line_to_modify1])
+                print(
+                    "Rutroh",
+                    line_to_modify1,
+                    len(output_lines),
+                    output_lines[line_to_modify1],
+                )
             else:
                 logger.error(
                     f"Unable to find next blank line to modify.  Line to modify: {line_to_modify1}  Line: {output_lines[line_to_modify1]}",
@@ -802,7 +933,9 @@ def mark_tasks_not_found(output_lines: list) -> None:
                 for check_line in output_lines:
                     if search_name in check_line:
                         found_called_task = True
-                        called_task_position = check_line.index(called_name_no_delimeter)
+                        called_task_position = check_line.index(
+                            called_name_no_delimeter,
+                        )
                         break
 
                 # If Task doesn't exist, mark it as such.
@@ -815,7 +948,9 @@ def mark_tasks_not_found(output_lines: list) -> None:
                         num_called_task,
                         0,
                     )
-                    end_of_called_task_position = called_task_position + len(called_task_name[0])
+                    end_of_called_task_position = called_task_position + len(
+                        called_task_name[0],
+                    )
 
                     # Reconstruct the line
                     output_lines[caller_line_num] = (
@@ -866,7 +1001,7 @@ def check_limit(call_table: dict, output_lines: list, progress_bar: dict) -> Non
             PrimeItems.error_code = 1
             PrimeItems.error_msg = f"Too much data to display (Size={size!s}, View Limit={view_limit}).  Select a larger 'View Limit' or a single Project / Profile / Task and try again."
             # Kill the progressbar.
-            kill_the_progress_bar(progress_bar)
+            kill_the_progress_bar(progress_bar, remove_windows=False)
 
             # Cleanup
             PrimeItems.netmap_output = []
@@ -920,7 +1055,11 @@ def cleanup_task_names(output_lines: list, num: int, line: str) -> list:
         elif PrimeItems.program_arguments["debug"]:
             print("Rutroh!  Diagram: No call position found in line", num, line)
         else:
-            logger.error("Rutroh!  Diagram: No call position found in line %s %s", num, line)
+            logger.error(
+                "Rutroh!  Diagram: No call position found in line %s %s",
+                num,
+                line,
+            )
     return output_lines
 
 
@@ -1024,7 +1163,10 @@ def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:  
             if len(new_line) <= position:
                 new_line = new_line.ljust(position + 1, " ")
             if new_line[position] == straight_line or new_line[position] == " ":
-                output_lines[previous_line_num] = insert_bar_if_blank(new_line, position)
+                output_lines[previous_line_num] = insert_bar_if_blank(
+                    new_line,
+                    position,
+                )
                 previous_line_num -= 1
                 new_line = output_lines[previous_line_num]
             elif new_line[position] == box_line:
@@ -1090,7 +1232,11 @@ def cleanup_diagram(
         output_lines = cleanup_dangling_elbows(output_lines, num)
 
         # Cleanup missing bars above Task angles.
-        special_deliminaters = [angle_elbow, right_arrow_corner_down, left_arrow_corner_up]
+        special_deliminaters = [
+            angle_elbow,
+            right_arrow_corner_down,
+            left_arrow_corner_up,
+        ]
         substr, position = find_first_substring_position(line, special_deliminaters)
         if position != -1 and line[position - 1][0] == " ":
             output_lines = cleanup_missing_bars(output_lines, num, position)
@@ -1142,7 +1288,12 @@ def add_blanks_above_called_tasks(output_lines: list) -> None:
             # One extra for a blank line between upper and previous called task lower connectors.
             if task_name in PrimeItems.called_task_tracker:
                 new_output_lines.extend(
-                    ["" for _ in range(PrimeItems.called_task_tracker[task_name]["total_number"] + 2)],
+                    [
+                        ""
+                        for _ in range(
+                            PrimeItems.called_task_tracker[task_name]["total_number"] + 2,
+                        )
+                    ],
                 )
 
         # Add the original line to the new output lines.
@@ -1183,7 +1334,11 @@ def handle_calls(output_lines: list) -> None:
     call_table = build_call_table(output_lines)
 
     # Check if we have exceeded our maximum size limit.
-    exceeded_limit, call_table, output_lines = check_limit(call_table, output_lines, progress["progress_bar"])
+    exceeded_limit, call_table, output_lines = check_limit(
+        call_table,
+        output_lines,
+        progress["progress_bar"],
+    )
     if exceeded_limit:
         return []
 
@@ -1192,7 +1347,9 @@ def handle_calls(output_lines: list) -> None:
     # Fix overlapping connectors that have the same up/down locations.
     call_table = fix_duplicate_up_down_locations(call_table)
     # Finally, sort it by up/down location (inner locations before outer).
-    call_table = dict(sorted(call_table.items(), key=lambda item: item[1]["up_down_location"]))
+    call_table = dict(
+        sorted(call_table.items(), key=lambda item: item[1]["up_down_location"]),
+    )
 
     # Now traverse the call table and add arrows to the output lines.
     called_task_lookup = {}
@@ -1209,7 +1366,7 @@ def handle_calls(output_lines: list) -> None:
 
     # We're done.  Kill the progressbar.
     if PrimeItems.program_arguments["gui"]:
-        kill_the_progress_bar(progress)
+        kill_the_progress_bar(progress, remove_windows=False)
 
     return output_lines
 
@@ -1240,7 +1397,9 @@ def configure_progress_bar(output_lines: list, title: str) -> tuple:
 
         # Set the geometry of the progress bar
         if PrimeItems.program_arguments["progressbar_window_position"]:
-            progress_bar.geometry(PrimeItems.program_arguments["progressbar_window_position"])
+            progress_bar.geometry(
+                PrimeItems.program_arguments["progressbar_window_position"],
+            )
 
         # Setup for our progress bar.  Use the total number of output lines as the metric.
         # 4 times since we go thru output lines 4 times in a majore way...

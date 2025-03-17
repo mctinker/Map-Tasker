@@ -4,12 +4,7 @@
 # format: Various formatting functions,                                                #
 #                                                                                      #
 
-from maptasker.src.sysconst import (
-    pattern2,
-    pattern8,
-    pattern9,
-    pattern10,
-)
+from maptasker.src.sysconst import pattern2, pattern8, pattern9, pattern10, pattern15
 
 
 # Given a line in the output queue, reformat it before writing to file
@@ -20,6 +15,7 @@ def format_line(item: str) -> str:
         :param item: the specific text to reformat from the list of output lines
         :return: the reformatted text line for output
     """
+    space = "&nbsp;"
     # If item is a list, then get the actual output line
     if isinstance(item, list):
         item = item[1]
@@ -33,28 +29,23 @@ def format_line(item: str) -> str:
         action_number_list = item[action_position + 8 :].split(" ")
         action_number = action_number_list[0]
         action_number = action_number.split("<")
-        output_line = item.replace(f"Action: {action_number[0]}", f"{action_number[0]}:")
+        output_line = item.replace(
+            f"Action: {action_number[0]}",
+            f"{action_number[0]}:",
+        )
 
     # No changes needed
     else:
         output_line = item
 
     # # Format the html...add a number of blanks if some sort of list.
+    if "DOCTYPE" in item:  # If imbedded html (e.g. Scene WebElement), add a break and some spacing.
+        output_line = pattern15.sub(f"<br>{space*30}", output_line)
 
     # Add a carriage return if this is a break: replace("<br>" with "<br>\r"
     output_line = pattern8.sub("<br>\r", output_line)
     # Get rid of trailing blank
     output_line = pattern2.sub("", output_line)  # Get space-commas: " ,"
-
-    # Shrink down the number of spaces between words
-    # output_line = (
-    #    output_line.replace(f"{blank*SPACE_COUNT3[0]}", "<span class='blanktab'></span>")
-    #    .replace(f"{blank*SPACE_COUNT2[0]}", "<span class='blanktab2'></span>")
-    #    .replace(
-    #        f"{blank*SPACE_COUNT1[0]}",
-    #        "<span class='blanktab1'></span>",
-    #    )
-    # )
 
     # Get rid of extraneous html code that somehow got in to the output
     output_line = pattern9.sub("</span>", output_line)

@@ -19,7 +19,12 @@ from maptasker.src.error import error_handler
 from maptasker.src.format import format_html
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
-from maptasker.src.sysconst import DISABLED, FONT_FAMILY, RE_FONT, DISPLAY_DETAIL_LEVEL_all_tasks
+from maptasker.src.sysconst import (
+    DISABLED,
+    FONT_FAMILY,
+    RE_FONT,
+    DISPLAY_DETAIL_LEVEL_all_tasks,
+)
 from maptasker.src.xmldata import remove_html_tags
 
 
@@ -91,7 +96,7 @@ def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
     the_operation = the_operations[operation]
     if "set" not in the_operation and child.find("rhs").text is not None:  # No second string if "set/not" set
         second_operation = child.find("rhs").text
-        # Fix embedded html tags in text string.
+        # Correct any embedded html tags in text string.
         second_operation = second_operation.replace("<", "&lt;")
         second_operation = second_operation.replace(">", "&gt;")
     else:
@@ -223,7 +228,10 @@ def process_xml_list(
             match_results.append(f"MapTasker 'mapped' error: {lookup_key} not in lookup table for {names}")
             break
 
-        error_handler(f"action.py get_xml_int_argument_to_value failed - this_element:{this_element} {arguments}", 1)
+        error_handler(
+            f"action.py get_xml_int_argument_to_value failed - this_element:{this_element} {arguments}",
+            1,
+        )
         break
 
 

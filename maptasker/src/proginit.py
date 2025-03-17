@@ -37,12 +37,15 @@ from maptasker.src.sysconst import (
 )
 from maptasker.src.taskerd import get_the_xml_data
 
-# TODO Change this so that we eventually create and keep in memory action_codes.
+# Define the action code fields and arguments.
 ActionCode = namedtuple(  # noqa: PYI024
     "ActionCode",
     ("redirect", "args", "name", "category", "canfail"),
 )
-ArgumentCode = namedtuple("ArgumentCode", ["arg_id", "arg_required", "arg_name", "arg_type", "arg_eval"])  # noqa: PYI024
+ArgumentCode = namedtuple(  # noqa: PYI024
+    "ArgumentCode",
+    ["arg_id", "arg_required", "arg_name", "arg_type", "arg_eval"],
+)
 
 
 # Use a counter to determine if this is the first time run.
@@ -340,7 +343,10 @@ def build_action_codes(build_it_all: bool = False) -> None:
     # Point to the JSON directory
     current_dir = os.getcwd()
     abspath = os.path.abspath(__file__)
-    json_dir = os.path.dirname(abspath).replace("src", f"assets{PrimeItems.slash}json{PrimeItems.slash}")
+    json_dir = os.path.dirname(abspath).replace(
+        "src",
+        f"assets{PrimeItems.slash}json{PrimeItems.slash}",
+    )
     # Switch to our temp directory (assets)
     os.chdir(json_dir)
 
@@ -363,6 +369,9 @@ def build_action_codes(build_it_all: bool = False) -> None:
     if build_it_all:
         from maptasker.src.acmerge import merge_action_codes, validate_states_and_events
 
+        # Make sure we see the output
+        PrimeItems.program_arguments["debug"] = True
+
         # Get the map of all Tasker task action codes and their arguments
         with open(f"{json_dir}task_all_actions.json", encoding="utf-8") as file:
             # NOTE: 'spec' defines the argument value:
@@ -381,7 +390,9 @@ def build_action_codes(build_it_all: bool = False) -> None:
                 "name": value["name"],
             }
         # Sort the dictionary
-        PrimeItems.tasker_action_codes = dict(sorted(PrimeItems.tasker_action_codes.items()))
+        PrimeItems.tasker_action_codes = dict(
+            sorted(PrimeItems.tasker_action_codes.items()),
+        )
 
         # Get the action category description
         with open(f"{json_dir}category_descriptions.json", encoding="utf-8") as file:

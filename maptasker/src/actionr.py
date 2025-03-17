@@ -167,7 +167,7 @@ def get_action_results(
 
     # If we have results from evaluation, then go put them in their appropriate order
     if evaluated_results["returning_something"]:
-        # Get the results from the list of evaulations.
+        # Get the results from the list of evaluations.
         result = get_results_in_arg_order(evaluated_results)
 
     elif evaluated_results["error"]:

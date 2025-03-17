@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "7.1.0"
+VERSION = "7.1.1"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -184,7 +184,9 @@ pattern12 = re.compile(r"[%]\w+")  # matches any word-constituent character.
 pattern13 = (
     r",(?=\S)"  # matches any comma followed by a non-blank character.  e.g. now is,the time, for (catches is,the)
 )
-pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<"  # Match everything after the label until a '<'
+# pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<\\"  # Match everything after the label until a '<'
+pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<span>"
+pattern15 = re.compile("\n")
 RE_FONT = re.compile(r"</font>")
 
 clean = re.compile("<.*?>")
@@ -319,3 +321,21 @@ DIAGRAM_PROFILES_PER_LINE = 6
 SPACE_COUNT1 = [16, "155"]
 SPACE_COUNT2 = [25, "160"]
 SPACE_COUNT3 = [50, "200"]
+
+SCENE_TASK_TYPES = {
+    "checkchangeTask": "Check Change",
+    "clickTask": "TAP",
+    "focuschangeTask": "Focus Change",
+    "itemselectedTask": "Item Selected",
+    "keyTask": "Key",
+    "linkclickTask": "Link",
+    "longclickTask": "LONG TAP",
+    "mapclickTask": "Map",
+    "maplongclickTask": "Long Map",
+    "pageloadedTask": "Page Load",
+    "strokeTask": "STROKE",
+    "valueselectedTask": "Value Selected",
+    "videoTask": "Video",
+    "itemclickTask": "ITEM TAP",
+    "itemlongclickTask": "ITEM LONG TAP",
+}

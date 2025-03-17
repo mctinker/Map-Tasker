@@ -1,7 +1,5 @@
-"""Process Unique Task Situations"""
-
 #! /usr/bin/env python3
-
+"""Process Unique Task Situations"""
 #                                                                                      #
 # taskuniq: deal with unique Tasks                                                     #
 #                                                                                      #
@@ -9,7 +7,11 @@
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import NO_PROJECT, NORMAL_TAB, UNKNOWN_TASK_NAME, FormatLine
-from maptasker.src.tasks import get_project_for_solo_task, get_task_name, output_task_list, task_in_scene
+from maptasker.src.tasks import (
+    get_project_for_solo_task,
+    output_task_list,
+    task_in_scene,
+)
 from maptasker.src.twisty import add_twisty, remove_twisty
 
 
@@ -41,7 +43,11 @@ def process_missing_tasks_and_profiles(
                 ["", "trailing_comments_color", FormatLine.add_end_span],
             )
         # End list
-        PrimeItems.output_lines.add_line_to_output(3, "<br>", FormatLine.dont_format_line)
+        PrimeItems.output_lines.add_line_to_output(
+            3,
+            "<br>",
+            FormatLine.dont_format_line,
+        )
 
     # List all Projects without Profiles
     if projects_without_profiles:
@@ -58,7 +64,11 @@ def process_missing_tasks_and_profiles(
                 ["", "trailing_comments_color", FormatLine.add_end_span],
             )
         # End list
-        PrimeItems.output_lines.add_line_to_output(3, "<br>", FormatLine.dont_format_line)
+        PrimeItems.output_lines.add_line_to_output(
+            3,
+            "<br>",
+            FormatLine.dont_format_line,
+        )
 
 
 # Add heading to output for named Tasks not in any Profile
@@ -85,7 +95,11 @@ def add_heading(save_twisty: bool) -> bool:
         ["", "trailing_comments_color", FormatLine.add_end_span],
     )
     PrimeItems.displaying_named_tasks_not_in_profile = True
-    PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)  # Start Task list
+    PrimeItems.output_lines.add_line_to_output(
+        1,
+        "",
+        FormatLine.dont_format_line,
+    )  # Start Task list
     return True
 
 
@@ -120,7 +134,8 @@ def process_solo_task_with_no_profile(
 
     # Get the Task's name
     task_details = ""
-    _, task_name = get_task_name(task_id, found_tasks, [], "")
+    task_name = PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
+    # _, task_name = get_task_name(task_id, found_tasks, [], "")
     if UNKNOWN_TASK_NAME in task_name:
         task_details = f"{UNKNOWN_TASK_NAME}{task_id}&nbsp;&nbsp;Task ID: {task_id}"
         # Ignore it if it is in a Scene
@@ -166,7 +181,8 @@ def process_tasks_not_called_by_profile(
     found_tasks_list: list,
 ) -> None:
     """
-    Go through all tasks and output them
+    Go through all tasks and output those that are not called by any Profile.
+    This is only called if we are not doing a single named item.
         :param projects_with_no_tasks: list of Project xml roots for which there are no Tasks
         :param found_tasks_list: list of all Tasks found so far
         :return: nothing
@@ -186,6 +202,7 @@ def process_tasks_not_called_by_profile(
 
         # We have a solo Task not associated to any Profile
         if task_id not in found_tasks_list:
+            # Theoretcally, we should never get here.
             have_heading, specific_task, task_count = process_solo_task_with_no_profile(
                 task_id,
                 found_tasks_list,
@@ -211,10 +228,26 @@ def process_tasks_not_called_by_profile(
     # Provide spacing and end list if we have Tasks
     if task_count > 0:
         if PrimeItems.program_arguments["display_detail_level"] > 0:
-            PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)  # blank line
-        PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)  # Close Task list
+            PrimeItems.output_lines.add_line_to_output(
+                0,
+                "",
+                FormatLine.dont_format_line,
+            )  # blank line
+        PrimeItems.output_lines.add_line_to_output(
+            3,
+            "",
+            FormatLine.dont_format_line,
+        )  # Close Task list
 
     if task_name is True:
-        PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)  # Close Task list
+        PrimeItems.output_lines.add_line_to_output(
+            3,
+            "",
+            FormatLine.dont_format_line,
+        )  # Close Task list
 
-    PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)  # Close out the list
+    PrimeItems.output_lines.add_line_to_output(
+        3,
+        "",
+        FormatLine.dont_format_line,
+    )  # Close out the list
