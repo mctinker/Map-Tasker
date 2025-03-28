@@ -37,7 +37,10 @@ from maptasker.src.xmldata import remove_html_tags
 # Output:∏
 #   arg_lst: list of sorted args as numbers only (e.g. 'arg' removed from 'arg0')
 #   type_list: list of sorted types (e.g. 'Int', 'Str', etc.)
-def get_args(action: defusedxml.ElementTree, ignore_list: list) -> tuple[list, list, list]:
+def get_args(
+    action: defusedxml.ElementTree,
+    ignore_list: list,
+) -> tuple[list, list, list]:
     """
     Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
     This is only called if the action code is not already in our master dictionary actionc.py
@@ -94,7 +97,9 @@ def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
     first_string = child.find("lhs").text
     operation = child.find("op").text
     the_operation = the_operations[operation]
-    if "set" not in the_operation and child.find("rhs").text is not None:  # No second string if "set/not" set
+    if (
+        "set" not in the_operation and child.find("rhs").text is not None
+    ):  # No second string if "set/not" set
         second_operation = child.find("rhs").text
         # Correct any embedded html tags in text string.
         second_operation = second_operation.replace("<", "&lt;")
@@ -206,8 +211,12 @@ def process_xml_list(
             idx = (idx + 1) % len_of_list
             next_element = the_list[idx]
             include_negative = the_list[0] == "1" if this_element == "e" else False
-            evaluated_value = evaluate_action_setting([include_negative, the_int_value, next_element])
-            match_results.append(f"{evaluated_value[0]} {'(selected)' if evaluated_value[0] else ''}, ")
+            evaluated_value = evaluate_action_setting(
+                [include_negative, the_int_value, next_element],
+            )
+            match_results.append(
+                f"{evaluated_value[0]} {'(selected)' if evaluated_value[0] else ''}, ",
+            )
             break
 
         if this_element == "l":
@@ -225,7 +234,9 @@ def process_xml_list(
                     )
                 break
 
-            match_results.append(f"MapTasker 'mapped' error: {lookup_key} not in lookup table for {names}")
+            match_results.append(
+                f"MapTasker 'mapped' error: {lookup_key} not in lookup table for {names}",
+            )
             break
 
         error_handler(
@@ -275,7 +286,12 @@ def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
 
     # Format conditions if any
     if task_conditions:
-        task_conditions = format_html("action_condition_color", "", task_conditions, True)
+        task_conditions = format_html(
+            "action_condition_color",
+            "",
+            task_conditions,
+            True,
+        )
 
     # See if this is a remote action
     if child.find("remoteDevice") is not None:
@@ -330,7 +346,7 @@ def get_conditions(child: defusedxml, the_action_code: str) -> str:
         result = result.replace(" condition: If", "<em>UNTIL</em>")
         # Just make all ":condition: If" as "IF"
     if result:
-        result = f' ({result.replace(" condition: If", "<em>IF</em>")})'
+        result = f" ({result.replace(' condition: If', '<em>IF</em>')})"
 
     return result
 
@@ -419,13 +435,20 @@ def get_extra_stuff(
     if action_code_xml is None:
         return ""
 
-    action_code = action_code_xml.text if action_code_xml is not None and not isinstance(action_code_xml, int) else ""
+    action_code = (
+        action_code_xml.text
+        if action_code_xml is not None and not isinstance(action_code_xml, int)
+        else ""
+    )
 
     program_arguments = PrimeItems.program_arguments
     colors_to_use = PrimeItems.colors_to_use
 
     # Only get extras if this is a Task action (vs. a Profile condition)
-    if action_type and program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
+    if (
+        action_type
+        and program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks
+    ):
         # Look for extra Task stuff: label, disabled, conditions
         extra_stuff = get_label_disabled_condition(code_action)
         # If this is an 'If' action, remove the 'IF' from the label since we already have it.
@@ -439,17 +462,21 @@ def get_extra_stuff(
             else extra_stuff
         )
         extra_stuff = (
-            extra_stuff.replace("</b>", "") if "<b>" in extra_stuff and "</b>" not in extra_stuff else extra_stuff
+            extra_stuff.replace("</b>", "")
+            if "<b>" in extra_stuff and "</b>" not in extra_stuff
+            else extra_stuff
         )
 
     else:
         extra_stuff = ""
 
-    if program_arguments["debug"] and action_type:  # Add the code if this is an Action and in debug mode
+    if (
+        program_arguments["debug"] and action_type
+    ):  # Add the code if this is an Action and in debug mode
         extra_stuff = extra_stuff + format_html(
             "disabled_action_color",
             "",
-            f'&nbsp;&nbsp;code: {code_action.find("code").text}-',
+            f"&nbsp;&nbsp;code: {code_action.find('code').text}-",
             True,
         )
 
@@ -457,7 +484,7 @@ def get_extra_stuff(
     if program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
         child = code_action.find("se")
         if child is not None and child.text == "false":
-            extra_stuff = f'{format_html("action_color",""," [Continue Task After Error]",True)}{extra_stuff}'
+            extra_stuff = f"{format_html('action_color', '', ' [Continue Task After Error]', True)}{extra_stuff}"
 
     # For some reason, we're left with an empty "<span..." element.  Remove it.
     extra_stuff = extra_stuff.replace(
@@ -466,6 +493,25 @@ def get_extra_stuff(
     )
 
     return f"{extra_stuff}"
+
+
+def replace_newline(string: str) -> str:
+    """Replace newlines with ';' in case there is more than one name in the string.
+
+    Args:
+        string (str): String to be formatted
+
+    Returns:
+        str: Formatted string with class information
+
+    Note: we can not use an f-string with a backslash in it in Python 3.11.
+    """
+    if string:
+        string = string.replace(",\n", "; ")  # Replace first
+        string = f"Class:{string}"  # Then format
+    else:
+        string = ""
+    return string
 
 
 # Get the application specifics for the given code
@@ -486,9 +532,9 @@ def get_app_details(code_child: defusedxml.ElementTree) -> tuple[str, str, str]:
         app_class = child.findtext("appClass", default="")
         app_pkg = child.findtext("appPkg", default="")
         app = child.findtext("label", default="")
-
-        app_class = f"Class:{app_class}" if app_class else ""
-        app_pkg = f", Package:{app_pkg}" if app_pkg else ""
-        app = f", App:{app}" if app else ""
+        # .replace(',\n', ';') is for handling multple names.
+        app_class = replace_newline(app_class)
+        app_pkg = replace_newline(app_pkg)
+        app = replace_newline(app)
 
     return app_class, app_pkg, app

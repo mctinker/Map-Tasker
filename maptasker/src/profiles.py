@@ -26,7 +26,11 @@ if TYPE_CHECKING:
 
 
 # Get a specific Profile's Tasks (maximum of two:entry and exit)
-def get_profile_tasks(the_profile: defusedxml.ElementTree, found_tasks_list: list, task_output_line: list) -> list:
+def get_profile_tasks(
+    the_profile: defusedxml.ElementTree,
+    found_tasks_list: list,
+    task_output_line: list,
+) -> list:
     """
     Get a specific Profile's Tasks (maximum of two: entry and exit).
 
@@ -51,14 +55,21 @@ def get_profile_tasks(the_profile: defusedxml.ElementTree, found_tasks_list: lis
             if task_id not in found_tasks_list:
                 PrimeItems.task_count_for_profile += 1
 
-            task_element, task_name = tasks.get_task_name(task_id, found_tasks_list, task_output_line, task_type)
+            task_element, task_name = tasks.get_task_name(
+                task_id,
+                found_tasks_list,
+                task_output_line,
+                task_type,
+            )
             list_of_tasks.append({"xml": task_element, "name": task_name})
 
             if single_task_name and single_task_name == task_name:
                 PrimeItems.found_named_items["single_task_found"] = True
                 profile_name = the_profile.find("nme")
                 if profile_name is not None:
-                    PrimeItems.program_arguments["single_profile_name"] = profile_name.text
+                    PrimeItems.program_arguments["single_profile_name"] = (
+                        profile_name.text
+                    )
                 break
 
         elif tag == "nme":
@@ -80,7 +91,11 @@ def get_profile_name(
     # If we don't have the name, then set it to 'No Profile'
     profile_id = profile.attrib.get("sr")
     profile_id = profile_id[4:]
-    if not (the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"]):
+    if not (
+        the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id][
+            "name"
+        ]
+    ):
         the_profile_name = NO_PROFILE
 
     # Make the Project name bold, italicize, underline and/or highlighted if requested
@@ -97,7 +112,7 @@ def get_profile_name(
     # If we are debugging, add the Profile ID
     if PrimeItems.program_arguments["debug"]:
         profile_id = profile.find("id").text
-        profile_name_with_html = f'{profile_name_with_html} {format_html("Red", "", f"ID:{profile_id}", True)}'
+        profile_name_with_html = f"{profile_name_with_html} {format_html('Red', '', f'ID:{profile_id}', True)}"
 
     return profile_name_with_html, the_profile_name
 
@@ -134,10 +149,12 @@ def build_profile_line(
 
     # Look for disabled Profile
     limit = profile.find("limit")  # Is the Profile disabled?
-    disabled = disabled_profile_html if limit is not None and limit.text == "true" else ""
+    disabled = (
+        disabled_profile_html if limit is not None and limit.text == "true" else ""
+    )
 
     # Is there a Launcher Task with this Project?
-    launcher_xml = project.find("ProfileVariable")
+    launcher_xml = profile.find("ProfileVariable")
     launcher = launcher_task_html if launcher_xml is not None else ""
 
     # See if there is a Kid app and/or Priority (FOR FUTURE USE)
@@ -149,7 +166,11 @@ def build_profile_line(
     # Display flags for debug mode
     if PrimeItems.program_arguments["debug"]:
         flags = profile.find("flags")
-        flags = format_html("launcher_task_color", "", f" flags: {flags.text}", True) if flags is not None else ""
+        flags = (
+            format_html("launcher_task_color", "", f" flags: {flags.text}", True)
+            if flags is not None
+            else ""
+        )
 
     # Get the Profile name
     profile_name_with_html, profile_name = get_profile_name(profile)
@@ -167,12 +188,13 @@ def build_profile_line(
             # profile_conditions = remove_html_tags(profile_conditions, "")
 
             # Make the conditions pretty
+            # NOTE: Fix this once and forall
             if PrimeItems.program_arguments["pretty"]:
                 condition_length = profile_conditions.find(":")
                 # Add spacing for profile name, condition name and "Profile:"
                 profile_conditions = profile_conditions.replace(
                     ",",
-                    f"<br>{blank*(len(profile_name)+condition_length+7)}",
+                    f"<br>{blank * (len(profile_name) + condition_length + 7)}",
                 )
                 # Fix splitting up of JSON Structure Output text
                 profile_conditions = fix_json(profile_conditions, "Structure Output")
@@ -190,11 +212,11 @@ def build_profile_line(
     if PrimeItems.program_arguments["pretty"]:
         indentation = len(profile_name) + 4
         # Break at comma
-        profile_info = temp.replace(", ", f"<br>{blank*indentation}")
+        profile_info = temp.replace(", ", f"<br>{blank * indentation}")
         # Break at paren
-        profile_info = temp.replace(" (", f"<br>{blank*indentation}  (")
+        profile_info = temp.replace(" (", f"<br>{blank * indentation}  (")
         # Break at bracket
-        profile_info = temp.replace(" [", f"<br>{blank*indentation}  [")
+        profile_info = temp.replace(" [", f"<br>{blank * indentation}  [")
 
     # Okay, string it all together
     profile_info = f"{profile_name_with_html} {temp}"
@@ -219,10 +241,10 @@ def do_profile(
     """Function:
         This function searches for a specific Profile and outputs its Tasks.
     Parameters:
-        - item (defusedxml.ElementTree.XML): The current item being processed.
-        - project (defusedxml.ElementTree.XML): The current project being processed.
+        - item (defusedxml.ElementTree): The current item being processed.
+        - project (defusedxml.ElementTree): The current project being processed.
         - project_name (str): The name of the current project.
-        - profile (defusedxml.ElementTree.XML): The current profile being processed.
+        - profile (defusedxml.ElementTree): The current profile being processed.
         - list_of_found_tasks (list): A list of all found tasks.
     Returns:
         - bool: True if a specific Task is being searched for, False otherwise.
@@ -238,7 +260,11 @@ def do_profile(
     # Are we searching for a specific Profile?
     if PrimeItems.program_arguments["single_profile_name"]:
         # Make sure this item's name is in our list of profiles.
-        if not (profile_name := PrimeItems.tasker_root_elements["all_profiles"][item]["name"]):
+        if not (
+            profile_name := PrimeItems.tasker_root_elements["all_profiles"][item][
+                "name"
+            ]
+        ):
             return False  # Not our Profile...go to next Profile ID
 
         if PrimeItems.program_arguments["single_profile_name"] != profile_name:
@@ -282,7 +308,11 @@ def do_profile(
         share(profile, "proftab")
         # Add a spacer if detail is 0
         if PrimeItems.program_arguments["display_detail_level"] == 0:
-            PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
+            PrimeItems.output_lines.add_line_to_output(
+                0,
+                "",
+                FormatLine.dont_format_line,
+            )
 
     # We have the Tasks for this Profile.  Now let's output them.
     # Return True = we're looking for a specific Task
@@ -319,7 +349,13 @@ def process_profiles(
         profile = PrimeItems.tasker_root_elements["all_profiles"][item]["xml"]
         if profile is None:  # If Project has no profiles, skip
             return None
-        specific_task = do_profile(item, project, project_name, profile, list_of_found_tasks)
+        specific_task = do_profile(
+            item,
+            project,
+            project_name,
+            profile,
+            list_of_found_tasks,
+        )
 
         # Get out if doing a specific Task, and it was found, or not specific task but
         # found speficic Profile.  No need to process any more Profiles.

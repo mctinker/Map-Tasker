@@ -10,6 +10,7 @@ from __future__ import annotations
 import ipaddress
 import json
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -107,7 +108,9 @@ def update() -> None:
     """Update this package."""
     version = get_pypi_version()
     packageversion = "maptasker" + version
-    subprocess.call([sys.executable, "-m", "pip", "install", packageversion, "--upgrade"])  # noqa: S603
+    subprocess.call(
+        [sys.executable, "-m", "pip", "install", packageversion, "--upgrade"],
+    )
 
 
 # Get the version of our code out on Pypi
@@ -180,7 +183,12 @@ def http_request(
 
 
 # Validate XML
-def validate_xml(ip_address: str, android_file: str, return_code: int, file_contents: str) -> tuple:
+def validate_xml(
+    ip_address: str,
+    android_file: str,
+    return_code: int,
+    file_contents: str,
+) -> tuple:
     # Run loop since we may have to rerun validation if unicode error
     """Validates an XML file and returns an error message and the parsed XML tree.
     Parameters:
@@ -224,12 +232,16 @@ def validate_xml(ip_address: str, android_file: str, return_code: int, file_cont
             # Run the XML file through the XML parser to validate it.
             try:
                 filename_location = android_file.rfind(PrimeItems.slash) + 1
-                file_to_validate = PrimeItems.program_arguments["android_file"][filename_location:]
+                file_to_validate = PrimeItems.program_arguments["android_file"][
+                    filename_location:
+                ]
                 xmlp = et.XMLParser(encoding=" iso8859_9")
                 xml_tree = et.parse(file_to_validate, parser=xmlp)
                 process_file = False  # Get out of while/loop
             except et.ParseError:  # Parsing error
-                error_message = f"Improperly formatted XML in {android_file}. Try again."
+                error_message = (
+                    f"Improperly formatted XML in {android_file}. Try again."
+                )
                 process_file = False  # Get out of while/loop
             except UnicodeDecodeError:  # Unicode error
                 rewrite_xml(file_to_validate)
@@ -239,7 +251,9 @@ def validate_xml(ip_address: str, android_file: str, return_code: int, file_cont
                     break
                 process_file = True  # Loop one more time.
             except Exception as e:  # any other errorError out and exit  # noqa: BLE001
-                error_message = f"XML parsing error {e} in file {android_file}.\n\nTry again."
+                error_message = (
+                    f"XML parsing error {e} in file {android_file}.\n\nTry again."
+                )
                 process_file = False  # Get out of while/loop
 
     return error_message, xml_tree
@@ -261,14 +275,25 @@ def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
         - Checks if the file is Tasker XML.
         - Returns True if the file is valid, False if not."""
     if ip_address:
-        return_code, file_contents = http_request(ip_address, port, android_file, "file", "?download=1")
+        return_code, file_contents = http_request(
+            ip_address,
+            port,
+            android_file,
+            "file",
+            "?download=1",
+        )
         if return_code != 0:
             return 1, file_contents
     else:
         return_code = 0
 
     # Validate the xml
-    error_message, xml_tree = validate_xml(ip_address, android_file, return_code, file_contents)
+    error_message, xml_tree = validate_xml(
+        ip_address,
+        android_file,
+        return_code,
+        file_contents,
+    )
 
     # If there was an error, bail out.
     if error_message:
@@ -475,7 +500,12 @@ def fix_hyperlink_name(name: str) -> str:
     return name.replace(" ", "_").replace(">", "&gt;").replace("<", "&lt;")
 
 
-def get_value_if_match(data: dict, match_key: str, match_value: str, return_key: str) -> str | None:
+def get_value_if_match(
+    data: dict,
+    match_key: str,
+    match_value: str,
+    return_key: str,
+) -> str | None:
     """
     Retrieve a specific value from a dictionary if another value matches a given string.
 
@@ -515,3 +545,9 @@ def clear_tasker_data() -> None:
     PrimeItems.tasker_root_elements["all_tasks"].clear()
     PrimeItems.tasker_root_elements["all_tasks_by_name"].clear()
     PrimeItems.tasker_root_elements["all_scenes"].clear()
+
+
+def contains_html(text: str) -> bool:
+    """Returns True if the given text contains HTML tags, otherwise False."""
+    html_pattern = re.compile(r"<[^>]+>")  # Matches anything inside < >
+    return bool(html_pattern.search(text))

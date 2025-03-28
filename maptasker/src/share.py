@@ -15,7 +15,7 @@ from maptasker.src.sysconst import FormatLine
 # Go through xml <Share> elements to grab and output TaskerNet description and
 # search-on lines.
 def share(
-    root_element: defusedxml.ElementTree.XML,
+    root_element: defusedxml.ElementTree,
     tab: str,
 ) -> None:
     """
@@ -42,26 +42,44 @@ def share(
             out_string = format_html(
                 "taskernet_color",
                 "",
-                f"\n<br><br>TaskerNet search on: {search_element.text}",
+                f"\n<br>TaskerNet search on: {search_element.text}\n<br>",
                 True,
             )
             # Add the tab CSS call to the color.
             out_string = PrimeItems.output_lines.add_tab(tab, out_string)
-            PrimeItems.output_lines.add_line_to_output(2, out_string, FormatLine.dont_format_line)
+            PrimeItems.output_lines.add_line_to_output(
+                2,
+                f"<br>{out_string}<br>",
+                FormatLine.dont_format_line,
+            )
 
         # Force a break when done with last Share element, only if there isn't one there already.
-        break_html = "" if PrimeItems.output_lines.output_lines[-1] == "<br>" else "<br>"
-        PrimeItems.output_lines.add_line_to_output(0, f"{break_html}", FormatLine.dont_format_line)
+        break_html = (
+            "" if PrimeItems.output_lines.output_lines[-1] == "<br>" else "<br>"
+        )
+        PrimeItems.output_lines.add_line_to_output(
+            0,
+            f"{break_html}",
+            FormatLine.dont_format_line,
+        )
 
         # Now get rid of the last duplicate <br> lines at the bottom of the output.
-        for num, item in reversed(list(enumerate(PrimeItems.output_lines.output_lines))):
+        for num, item in reversed(
+            list(enumerate(PrimeItems.output_lines.output_lines)),
+        ):
             if "TaskerNet description:" in item:
                 break
-            if item == "<br>" and PrimeItems.output_lines.output_lines[num - 1] == "<br>":
+            if (
+                item == "<br>"
+                and PrimeItems.output_lines.output_lines[num - 1] == "<br>"
+            ):
                 PrimeItems.output_lines.output_lines.remove(num)
                 break
             if tab != "proftab" and item.endswith("<br><br>"):
-                PrimeItems.output_lines.output_lines[-1] = item.replace("<br><br>", "<br>")
+                PrimeItems.output_lines.output_lines[-1] = item.replace(
+                    "<br><br>",
+                    "<br>",
+                )
                 break
 
 
@@ -119,4 +137,8 @@ def description_element_output(
     out_string = PrimeItems.output_lines.add_tab(tab, out_string)
 
     # Output the description line.
-    PrimeItems.output_lines.add_line_to_output(2, f"{out_string}", FormatLine.dont_format_line)
+    PrimeItems.output_lines.add_line_to_output(
+        2,
+        f"{out_string}",
+        FormatLine.dont_format_line,
+    )

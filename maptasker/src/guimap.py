@@ -34,7 +34,10 @@ def handle_gototop(text_list: list) -> list:
     gototop = "          Go to top"
 
     # Check if any of the gototop_items exist in the first element of the list
-    if any(item in text_list[0] for item in gototop_items) and "Task: Properties" not in text_list[0]:
+    if (
+        any(item in text_list[0] for item in gototop_items)
+        and "Task: Properties" not in text_list[0]
+    ):
         # Replace the last newline character with "Go to top" + newline
         text_list[-1] = text_list[-1].replace("\n", f"{gototop}\n", 1)
 
@@ -107,6 +110,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
     Returns:
         dict: The updated output_lines dictionary.
     """
+    tabs = f"{' ' * 4}"
     text_list = output_lines[line_num]["text"]
     text_list = handle_gototop(text_list)
 
@@ -120,6 +124,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
         .replace("&gt;", ">")
         .replace("[Launcher Task:", " [Launcher Task:")
         .replace(" --Task:", "--Task:")
+        .replace("\t", tabs)
         for text in text_list
     ]
 
@@ -300,7 +305,8 @@ def process_line(
                 working_text = extract_working_text(temp)
                 # Special handling if a Tasker preferencews key.
                 if PrimeItems.program_arguments["preferences"] and (
-                    "Key Service Account" in temp[2] or "Google Cloud Firebase" in temp[2]
+                    "Key Service Account" in temp[2]
+                    or "Google Cloud Firebase" in temp[2]
                 ):
                     working_text = line.split('preferences_color">')[1]
 
@@ -324,7 +330,11 @@ def process_line(
                     else:
                         output_lines[line_num]["highlights"] = highlights
 
-                raw_text = remove_html_tags(working_text, "").replace("<span class=", " ").replace("\n\n", "\n")
+                raw_text = (
+                    remove_html_tags(working_text, "")
+                    .replace("<span class=", " ")
+                    .replace("\n\n", "\n")
+                )
 
                 # Indicate a directory header
                 if (
@@ -389,13 +399,19 @@ def calculate_spacing(
     if doing_global_variables or text.startswith(("Project:", "Scene:")):
         return 0
 
-    if any(keyword in text for keyword in ("Project Global Variables", "Unreferenced Global Variables")):
+    if any(
+        keyword in text
+        for keyword in ("Project Global Variables", "Unreferenced Global Variables")
+    ):
         return 0
 
     if text.startswith(("Profile:", "TaskerNet")):
         return 5
 
-    if text.startswith(("Task:", "- Project '", "   The following Tasks in Project ")) or "--Task:" in text[:7]:
+    if (
+        text.startswith(("Task:", "- Project '", "   The following Tasks in Project "))
+        or "--Task:" in text[:7]
+    ):
         return 7 if text.startswith("   The following Tasks in Project ") else 10
 
     # General spacing conditions
@@ -503,7 +519,11 @@ def additional_formatting(
 
     # Correct icons
     line = line.replace("&#9940;", "⛔")
-    line = line.replace("&#11013;", "⫷⇦") if "Entry" in line else line.replace("&#11013;", "⇨⫸")
+    line = (
+        line.replace("&#11013;", "⫷⇦")
+        if "Entry" in line
+        else line.replace("&#11013;", "⇨⫸")
+    )
 
     output_lines[line_num] = {"text": [], "color": []}
 
@@ -545,7 +565,9 @@ def additional_formatting(
         doing_global_variables,
         previous_line,
     )
-    output_lines[line_num]["text"][0] = f'{spacing * " "}{output_lines[line_num]["text"][0]}'
+    output_lines[line_num]["text"][0] = (
+        f"{spacing * ' '}{output_lines[line_num]['text'][0]}"
+    )
 
     return output_lines, spacing
 
@@ -683,7 +705,11 @@ def process_html_lines(
             continue
 
         # Handle Unreferenced Global Variables table
-        if line == "<th>Name</th>\n" and line_num + 1 < len(lines) and lines[line_num + 1] == "<th>Value</th>\n":
+        if (
+            line == "<th>Name</th>\n"
+            and line_num + 1 < len(lines)
+            and lines[line_num + 1] == "<th>Value</th>\n"
+        ):
             output_lines[line_num] = {
                 "text": ["Variable Name...............Variable Value"],
                 "color": ["turquoise1"],

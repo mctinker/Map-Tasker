@@ -72,7 +72,10 @@ def process_projects_and_their_profiles(
         PrimeItems.grand_totals["profiles"] += 1
 
     # Only Tasks...(and not Scenes too) e.g. only Tasks?
-    elif PrimeItems.tasker_root_elements["all_tasks"] and not PrimeItems.tasker_root_elements["all_scenes"]:
+    elif (
+        PrimeItems.tasker_root_elements["all_tasks"]
+        and not PrimeItems.tasker_root_elements["all_scenes"]
+    ):
         # Build a "list" of Tasks consisting of the Tasks off our troot Task list,
         task_list = []
         task_output_lines = []
@@ -125,12 +128,18 @@ def process_projects_and_their_profiles(
 # ################################################################################
 # Identify and format launcher Task for Project
 # ################################################################################
-def get_launcher_task(project: defusedxml.ElementTree.XML) -> str:
+def get_launcher_task(project: defusedxml.ElementTree, project_name: str) -> str:
     """
     If Project has a launcher Task, get it and format it for output
         :param project: xml element of Project we are processing
+        :param project_name: name of the project we are processing
         :return: information related to launcher Task
     """
+    # space = "&nbsp;"
+    # name_len = len(project_name)
+    # total_spaces_first_line = name_len + 9
+    # blanks_in_front = f"{space * total_spaces_first_line}"
+    # blanks_after_front = f"{space * (total_spaces_first_line + 22)}"
     launcher_task_info = ""
     share_element = project.find("Share")
     if share_element is not None:
@@ -142,6 +151,7 @@ def get_launcher_task(project: defusedxml.ElementTree.XML) -> str:
                 f"[Launcher Task: {launcher_task_element.text}] ",
                 True,
             )
+
     return launcher_task_info
 
 
@@ -251,7 +261,10 @@ def do_tasks_in_project(
             )
 
         # Determine if we are to count this Task toward our total if doing a single Profile
-        elif PrimeItems.found_named_items["single_profile_found"] and the_id in found_tasks:
+        elif (
+            PrimeItems.found_named_items["single_profile_found"]
+            and the_id in found_tasks
+        ):
             PrimeItems.named_task_count_total += 1
 
     return have_tasks_not_in_profile
@@ -339,7 +352,9 @@ def get_extra_and_output_project(
     )
 
     # Set up the final Project output line.
-    final_project_line = f"{project_name_details} {launcher_task_info}{priority}{kid_app_info}"
+    final_project_line = (
+        f"{project_name_details} {launcher_task_info}{priority}{kid_app_info}"
+    )
 
     # Pretty it up?
     if PrimeItems.program_arguments["pretty"]:
@@ -347,12 +362,12 @@ def get_extra_and_output_project(
         # Break at comma
         final_project_line = final_project_line.replace(
             ", ",
-            f", <br>{blank*indent_amt}",
+            f", <br>{blank * indent_amt}",
         )
         # Break at bracket
         final_project_line = final_project_line.replace(
             " [",
-            f"<br>{blank*indent_amt} [",
+            f"<br>{blank * indent_amt} [",
         )
 
     # Are we looking for a specific Project?
@@ -508,7 +523,10 @@ def is_single_task_or_profile_found() -> bool:
     """
     Check if a single task or profile is found and return a boolean value.
     """
-    return PrimeItems.found_named_items["single_task_found"] or PrimeItems.found_named_items["single_profile_found"]
+    return (
+        PrimeItems.found_named_items["single_task_found"]
+        or PrimeItems.found_named_items["single_profile_found"]
+    )
 
 
 # Retrieves profile IDs for a given project and project name, excluding projects without profiles.
@@ -536,7 +554,8 @@ def is_single_profile_not_found() -> bool:
     Return a boolean indicating whether a single profile is not found.
     """
     return (
-        PrimeItems.program_arguments["single_profile_name"] and not PrimeItems.found_named_items["single_profile_found"]
+        PrimeItems.program_arguments["single_profile_name"]
+        and not PrimeItems.found_named_items["single_profile_found"]
     )
 
 
@@ -600,7 +619,7 @@ def get_profile_details_and_output(
         add_directory_item("projects", project_name)
 
     # Get any Project launch details
-    launcher_task_info = get_launcher_task(project)
+    launcher_task_info = get_launcher_task(project, project_name)
 
     # Check for extra details to include.
     # This comes back as True if we have the specific Project we are looking for.
@@ -645,7 +664,7 @@ def process_project_profiles(
             profile_count(int): count of the number of Profiles for this Project
 
         Returns:
-            tuple[bool, defusedxml.ElementTree.XML, int]: True if no Profiles found,
+            tuple[bool, defusedxml.ElementTree, int]: True if no Profiles found,
                 False otherwise; our Task XML element, count of Profiles in Project
     """
     # Get the Profile IDs for this Project and process them
@@ -693,7 +712,9 @@ def process_projects(
         project = PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"]
 
         # Keep track of the Project being processed
-        PrimeItems.current_project = PrimeItems.tasker_root_elements["all_projects"][project_name]
+        PrimeItems.current_project = PrimeItems.tasker_root_elements["all_projects"][
+            project_name
+        ]
 
         # Get the Project line item details and output them
         (

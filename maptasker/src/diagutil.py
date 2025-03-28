@@ -259,20 +259,6 @@ def count_icons(text: str) -> int:
     return len(icon_pattern.findall(text))
 
 
-def find_cjk_positions(string: str) -> list:
-    """
-    Finds all positions of CJK (Chinese, Japanese, Korean) characters in the given string.
-
-    Args:
-        string (str): The input string to search for CJK characters.
-
-    Returns:
-        list: A list of positions (indices) where CJK characters are found in the input string.
-    """
-    # Find all positions of CJK characters in the string
-    return [match.start() for match in re.finditer(r"[\u4E00-\u9FFF]", string)]
-
-
 # If an icon is found in the string passed in, remove it and return modified string.
 def remove_icon(text: str) -> str:
     """
@@ -398,7 +384,10 @@ def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_pos
     while check_line:
         if len(output_lines[line_num]) >= called_task_position:
             # Only insert bar if previous line character is a right arrow or two blanks.
-            if output_lines[line_num][called_task_position] in (right_arrow, straight_line) or (
+            if output_lines[line_num][called_task_position] in (
+                right_arrow,
+                straight_line,
+            ) or (
                 output_lines[line_num][called_task_position] == " "
                 and output_lines[line_num][called_task_position - 1] == " "
             ):

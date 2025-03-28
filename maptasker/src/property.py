@@ -13,6 +13,12 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
 
 
+# Helper function to get text safely
+def get_text(element: defusedxml.ElementTree) -> str:
+    """Return value or"""
+    return element.text if element is not None else ""
+
+
 # Parse Property's variable and output it
 def parse_variable(
     property_tag: str,
@@ -73,44 +79,78 @@ def parse_variable(
         "scn": "Scene",
         "cac": "User Certificate",
     }
-    # Get the various property. TBD: pvid (int), pvit (str), pvt
-    clearout = variable_header.find("clearout").text
-    immutable = variable_header.find("immutable").text
-    configure_on_import = variable_header.find("pvci").text
-    prompt = variable_header.find("pvd").text
-    value_element = variable_header.find("pvv")
-    value = "" if value_element is None else value_element.text
-    display_name = variable_header.find("pvdn").text
-    structured_variable = variable_header.find("strout").text
-    variable_name = variable_header.find("pvn").text
-    if variable_header.find("pvn").text == "1":
-        exported_value = "Same as Value"
-    else:
-        exported_value = variable_header.find("exportval").text
-    # Get the variable type
-    variable_type_code = variable_header.find("pvt").text
-    try:
-        variable_type = variable_type_lookup[variable_type_code]
-    except KeyError:
-        variable_type = variable_type_code
-        rutroh_error(f"Unknown variable type: {variable_type_code}")
-    limit_repeats = f"Limiit Repeats:{limit}, " if limit else ""
-    cooldown = f"Cooldown Time (seconds):{cooldown}, " if cooldown else ""
+    # Extract values from XML once
+    fields = {
+        "clearout": variable_header.find("clearout"),
+        "immutable": variable_header.find("immutable"),
+        "pvci": variable_header.find("pvci"),
+        "pvd": variable_header.find("pvd"),
+        "pvv": variable_header.find("pvv"),
+        "pvdn": variable_header.find("pvdn"),
+        "strout": variable_header.find("strout"),
+        "pvn": variable_header.find("pvn"),
+        "exportval": variable_header.find("exportval"),
+        "pvt": variable_header.find("pvt"),
+    }
 
-    # Put together everything
-    out_string = f"<br>{property_tag} Properties...{cooldown}, {limit_repeats}Variable Title:{display_name}, Variable:{variable_name}, type: {variable_type}, clear-out:{clearout}, Configure on Import:{configure_on_import}, Structured Variable (JSON, etc.):{structured_variable}, Immutable:{immutable}, Value:{value}, Display Name:{display_name}, Prompt:{prompt}, Exported Value:{exported_value}<br>\n"
+    # Mapping field values to output strings.  They are in the order as displayed in Tasker.
+    components = [
+        f"Variable:{get_text(fields['pvn'])}, " if get_text(fields["pvn"]) else "",
+        "Configure on Import, " if get_text(fields["pvci"]) != "false" else "",
+        "Structured Variable (JSON, etc.), "
+        if get_text(fields["strout"]) != "false"
+        else "",
+        "Immutable, " if get_text(fields["immutable"]) != "false" else "",
+        f"Clear Out:{get_text(fields['clearout'])}, "
+        if get_text(fields["clearout"]) != "false"
+        else "",
+        f"Prompt:{get_text(fields['pvd'])}, " if get_text(fields["pvd"]) else "",
+        f"Value:{get_text(fields['pvv'])}, " if get_text(fields["pvv"]) else "",
+        f"Display Name:{get_text(fields['pvdn'])}, "
+        if get_text(fields["pvdn"])
+        else "",
+    ]
+
+    # Determine exported value
+    exported_value = (
+        "Same as Value"
+        if get_text(fields["pvn"]) == "1"
+        else get_text(fields["exportval"])
+    )
+    components.append(f"Exported Value:{exported_value}, " if exported_value else "")
+
+    # Get the variable type
+    variable_type_code = get_text(fields["pvt"])
+    variable_type = variable_type_lookup.get(variable_type_code, variable_type_code)
+    if variable_type_code not in variable_type_lookup:
+        rutroh_error(f"Unknown variable type: {variable_type_code}")
+    # Make sure the 'type' goes at the beginning.
+    components.insert(0, f"Variable Type:{variable_type}, " if variable_type else "")
+
+    # Additional attributes
+    if limit:
+        components.append(f"Limit Repeats:{limit}, ")
+    if cooldown:
+        components.append(f"Cooldown Time (seconds):{cooldown}, ")
+
+    # Final output string
+    out_string = f"<br>{property_tag} Properties..." + "".join(components) + "<br>\n"
 
     # Make it pretty
     blank = "&nbsp;"
     if PrimeItems.program_arguments["pretty"]:
         number_of_blanks = 20 if out_string.startswith("<br>Task") else 23
-        out_string = out_string.replace(",", f"<br>{blank*number_of_blanks}")
+        out_string = out_string.replace(",", f"<br>{blank * number_of_blanks}")
 
     # Put the line '"Structure Output (JSON, etc)' back together.
     out_string = fix_json(out_string, " Structured Variable")
 
     # Ok, output the line.
-    PrimeItems.output_lines.add_line_to_output(2, out_string, ["", css_attribute, FormatLine.add_end_span])
+    PrimeItems.output_lines.add_line_to_output(
+        2,
+        out_string,
+        ["", css_attribute, FormatLine.add_end_span],
+    )
 
 
 # Figure out which CSS attribute to insert into the output
@@ -156,19 +196,31 @@ def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
     comment_xml = header.find("pc")
     if comment_xml is not None:
         out_string = f"<br>{property_tag} Properties comment: {comment_xml.text}"
-        PrimeItems.output_lines.add_line_to_output(2, out_string, ["", css_attribute, FormatLine.add_end_span])
+        PrimeItems.output_lines.add_line_to_output(
+            2,
+            out_string,
+            ["", css_attribute, FormatLine.add_end_span],
+        )
         have_property = True
 
     keep_alive = header.find("stayawake")
     if keep_alive is not None:
-        out_string = f"<br>{property_tag} Properties Keep Device Awake: {keep_alive.text}"
-        PrimeItems.output_lines.add_line_to_output(2, out_string, ["", css_attribute, FormatLine.add_end_span])
+        out_string = f"{property_tag} Properties Keep Device Awake: {keep_alive.text}"
+        PrimeItems.output_lines.add_line_to_output(
+            2,
+            out_string,
+            ["", css_attribute, FormatLine.add_end_span],
+        )
         have_property = True
 
     collision_handling = header.find("rty")
     if collision_handling is not None:
-        out_string = f"<br>{property_tag} Properties Collision Handling: {collision[int(collision_handling.text)]}"
-        PrimeItems.output_lines.add_line_to_output(2, out_string, ["", css_attribute, FormatLine.add_end_span])
+        out_string = f"{property_tag} Properties Collision Handling: {collision[int(collision_handling.text)]}"
+        PrimeItems.output_lines.add_line_to_output(
+            2,
+            out_string,
+            ["", css_attribute, FormatLine.add_end_span],
+        )
         have_property = True
 
     # Look for variables in the head XML object (Project/Profile/Task).
@@ -185,4 +237,8 @@ def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
 
     # Force a new line if we output any properties.
     if have_property:
-        PrimeItems.output_lines.add_line_to_output(5, "<br>", FormatLine.dont_format_line)
+        PrimeItems.output_lines.add_line_to_output(
+            5,
+            "<br>",
+            FormatLine.dont_format_line,
+        )

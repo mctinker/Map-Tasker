@@ -8,6 +8,7 @@ import defusedxml.ElementTree
 
 import maptasker.src.actiond as process_action_codes
 import maptasker.src.actione as action_evaluate
+from maptasker.src.actargs import extract_condition
 
 # action_codes: Master dictionary of Task action and Profile condition codes
 from maptasker.src.actionc import action_codes
@@ -47,9 +48,13 @@ def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) 
             case "fh" | "fm" | "th" | "tm" | "fromvar" | "tovar":
                 time_values[child.tag] = child.text or ""
             case "rep":
-                time_values["rep_type"] = " minutes " if child.text == "2" else " hours "
+                time_values["rep_type"] = (
+                    " minutes " if child.text == "2" else " hours "
+                )
             case "repval":
-                time_values["rep"] = f" repeat every {child.text}{time_values['rep_type']}"
+                time_values["rep"] = (
+                    f" repeat every {child.text}{time_values['rep_type']}"
+                )
             case _:
                 return (
                     f"{the_output_condition}{child.text} not yet mapped!",
@@ -128,7 +133,7 @@ def condition_day(the_item: defusedxml.ElementTree, the_output_condition: str) -
 
 # Profile condition: State
 def condition_state(
-    the_item: defusedxml.ElementTree.XMLParse,
+    the_item: defusedxml.ElementTree,
     the_output_condition: str,
 ) -> str:
     """
@@ -138,7 +143,9 @@ def condition_state(
             be formated
         :return: the formatted condition's output string
     """
+    # Go through the XML for this 'State', looking for items of interest.
     for child in the_item:
+        # Process the state code
         if child.tag == "code":
             logger.debug(f"condition_state:{child.text}")
             state_code = f"{child.text}s" if "s" not in child.text else child.text
@@ -156,7 +163,10 @@ def condition_state(
             )
 
             # If pretty text, then reformat it.
-            if "Configuration Parameter(s):" in state and PrimeItems.program_arguments["pretty"]:
+            if (
+                "Configuration Parameter(s):" in state
+                and PrimeItems.program_arguments["pretty"]
+            ):
                 state = reformat_html(state)
 
             # Add this State to any preceding State
@@ -167,13 +177,20 @@ def condition_state(
                 the_output_condition = f"{the_output_condition} <em>[inverted]</em>"
             if PrimeItems.program_arguments["debug"]:
                 the_output_condition = f"{the_output_condition} (code:{child.text})"
-        return the_output_condition
-    return ""
+
+        elif child.tag == "ConditionList":
+            evaluated_results = {}
+            extract_condition(evaluated_results, "0", "", the_item)
+            the_output_condition = f"{the_output_condition}, Condition(s): {evaluated_results['arg0']['value']}"
+            break
+
+    return the_output_condition
+    # return ""
 
 
 # Profile condition: Event
 def condition_event(
-    the_item: defusedxml.ElementTree.XMLParse,
+    the_item: defusedxml.ElementTree,
     the_output_condition: str,
 ) -> str:
     """
@@ -186,7 +203,11 @@ def condition_event(
     the_event_code = the_item.find("code")
 
     # Determine what the Event code is and return the actual Event text
-    event_code = f"{the_event_code.text}e" if "e" not in the_event_code.text else the_event_code.text
+    event_code = (
+        f"{the_event_code.text}e"
+        if "e" not in the_event_code.text
+        else the_event_code.text
+    )
     if event_code not in action_codes:
         logger.debug(f"code:{the_event_code.text} not found in action codes!")
         # Build new (template_ action code if not in our dictionary of codes yet
@@ -194,6 +215,8 @@ def condition_event(
             the_event_code,
             the_item,
         )  # Add it to our action dictionary
+
+    # Get the event code and its arguments
     # the_event_code.text = event_code
     event = action_evaluate.get_action_code(
         the_event_code,
@@ -201,23 +224,34 @@ def condition_event(
         False,
         "e",
     )
+
     # Get the event priority
     event = f"{event}{get_priority(the_item, True)}"
 
+    # Handle any conditions in the Event
+    condition_list = the_item.find("ConditionList")
+    if condition_list is not None:
+        evaluated_results = {}
+        extract_condition(evaluated_results, "0", "", the_item)
+        event = f"{event}, Condition(s): {evaluated_results['arg0']['value']}"
+
     # If pretty text, then reformat it.
-    if "Configuration Parameter(s):" in event and PrimeItems.program_arguments["pretty"]:
+    # NOTE: Format line here instead of calling reformat_html()
+    if PrimeItems.program_arguments["pretty"]:
         event = reformat_html(event)
 
     # Format the Event text
     event = event.replace("\n", "<br>")
     the_output_condition = f"{the_output_condition}Event: {event}"
-    if PrimeItems.program_arguments["debug"]:  # if program_args['debug'] then add the code
+    if PrimeItems.program_arguments[
+        "debug"
+    ]:  # if program_args['debug'] then add the code
         the_output_condition = f"{the_output_condition} (code:{the_event_code.text})"
     return the_output_condition
 
 
 # Profile condition: App (application)
-def condition_app(item: defusedxml.ElementTree.XMLParse, condition: str) -> str:
+def condition_app(item: defusedxml.ElementTree, condition: str) -> str:
     """
     Handle the "App" condition
         :param the_item: the xml element with the Condition
@@ -233,7 +267,7 @@ def condition_app(item: defusedxml.ElementTree.XMLParse, condition: str) -> str:
 
 
 # Profile condition: Loc (location)
-def condition_loc(item: defusedxml.ElementTree.XMLParse, condition: str) -> str:
+def condition_loc(item: defusedxml.ElementTree, condition: str) -> str:
     """
     Handle the "Location" condition
         :param the_item: the xml element with the Condition
@@ -270,13 +304,15 @@ def parse_profile_condition(the_profile: defusedxml.ElementTree) -> str:
 
     # Go through Profile'x sub-XML looking for conditions
     for item in the_profile:
-        if item.tag in ignore_items or "mid" in item.tag:  # Bypass junk we don't care about
+        if (
+            item.tag in ignore_items or "mid" in item.tag
+        ):  # Bypass junk we don't care about
             continue
         if condition:  # If we already have a condition, add 'and' (italicized)
-            condition = f"{condition} <em>AND</em> "
+            condition = f"{condition}, <em>AND</em> "
 
         # Find out what the condition is and handle it.
         if item.tag in function_map:
             condition = function_map[item.tag](item, condition)
 
-    return "" if condition == "" else f"{condition}"
+    return condition

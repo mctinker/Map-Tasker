@@ -99,22 +99,6 @@ def save_dict_to_json(dictionary: dict, filename: str) -> None:
         json.dump(dictionary, file, indent=4, cls=CustomJSONEncoder)
 
 
-def merge_type(arg_type: str) -> int:
-    """
-    Retrieve the integer value associated with a given argument type from PrimeItems.tasker_arg_specs.
-
-    Args:
-        arg_type (str): The type of argument to look up in PrimeItems.tasker_arg_specs.
-
-    Returns:
-        int: The integer value associated with the provided argument type.
-    """
-    for key, value in PrimeItems.tasker_arg_specs.items():
-        if value == arg_type:
-            return key
-    return None
-
-
 def merge_custom_sort(lst: list) -> list:
     """
     Sorts a list of strings based on a custom sorting key.
@@ -133,7 +117,11 @@ def merge_custom_sort(lst: list) -> list:
 
     def sort_key(item: str) -> tuple:
         key = item[0]
-        return (float(key) if key.isdigit() else float("inf"), key) if key.isdigit() else (float("inf"), key)
+        return (
+            (float(key) if key.isdigit() else float("inf"), key)
+            if key.isdigit()
+            else (float("inf"), key)
+        )
 
     return sorted(lst, key=sort_key)
 
@@ -166,22 +154,6 @@ def merge_add_code(
     return new_dict
 
 
-def merge_get_args(value: ActionCode) -> list:
-    """
-    Retrieves the arguments from an ActionCode object.
-
-    Args:
-        value (ActionCode): The ActionCode object from which to retrieve the arguments.
-
-    Returns:
-        list: A list of arguments from the provided ActionCode object.
-    """
-    args = []
-    # Add the argument to our list of arguments.
-    args.extend([(arg[0], arg[1], arg[2], arg[3], arg[4]) for arg in value.args])
-    return merge_custom_sort(args)
-
-
 def merge_codes(new_dict: dict, just_the_code: str, code: str, value: object) -> dict:
     """
     Merges tasker 'Task' action codes into a new dictionary.
@@ -202,8 +174,6 @@ def merge_codes(new_dict: dict, just_the_code: str, code: str, value: object) ->
     try:
         tasker_action_code = PrimeItems.tasker_action_codes[just_the_code]
         args = []
-        if just_the_code == "464":
-            print("bingo")
         for arg in tasker_action_code["args"]:
             arg_eval = ""
             try:
@@ -248,8 +218,6 @@ def merge_codes(new_dict: dict, just_the_code: str, code: str, value: object) ->
         if len(just_the_code) <= 4 and code != "1000t":
             debug_print(f"Code {code} not found in Tasker's table.")
         # Copy relevant argument(s) data to new dictionary.
-        # FIS Remove commented out code
-        # args = merge_get_args(value)
         args = value.args
 
         # Add it to our dictionary
@@ -321,14 +289,14 @@ def merge_action_codes() -> None:
                         arg["isMandatory"],
                         arg["name"],
                         str(arg["type"]),
-                        f", {arg["name"]}",
+                        f", {arg['name']}",
                     ),
                 )
             # Get optional values
             category = tasker_action_code.get("category_code", "")
             canfail = tasker_action_code.get("canfail", "")
             debug_print(
-                f"Adding Task action: {value["name"]}...validate the arguments!",
+                f"Adding Task action: {value['name']}...validate the arguments!",
             )
             new_dict = merge_add_code(
                 new_dict,
@@ -397,7 +365,8 @@ def format_columns(entries: list) -> str:
 
     # Format output
     return "".join(
-        f"{row[0]:<{col1_width}} != {row[1]:<{col2_width}} <<< {row[2]:<{col3_width}}\n" for row in formatted_entries
+        f"{row[0]:<{col1_width}} != {row[1]:<{col2_width}} <<< {row[2]:<{col3_width}}\n"
+        for row in formatted_entries
     )
 
 
@@ -448,7 +417,7 @@ def validate_states_and_events(code_type: str, url: str) -> None:
 
     if missing_codes:
         debug_print(
-            f"Our action codes (actionc) not found in Tasker's {code_name} table: {", ".join(missing_codes)}",
+            f"Our action codes (actionc) not found in Tasker's {code_name} table: {', '.join(missing_codes)}",
         )
 
     # Make sure Tasker code 'names' are the same as our actionc code 'names'
@@ -456,7 +425,11 @@ def validate_states_and_events(code_type: str, url: str) -> None:
     for key, code in codes.items():
         code_name = format_string(key)
         modified_code = str(code) + code_type
-        if code != -1 and modified_code in action_codes and code_name != action_codes[modified_code][2]:
+        if (
+            code != -1
+            and modified_code in action_codes
+            and code_name != action_codes[modified_code][2]
+        ):
             mismatch_names.append(
                 f"{code_name} vs {action_codes[modified_code][2]}   <<< Tasker's name mismatch for actionc table code:{modified_code}.",
             )

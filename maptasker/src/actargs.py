@@ -37,6 +37,8 @@ def get_bundle(
 
     Returns:
         dict: Updated evaluated results.
+
+    evaluated_results["returning_something"] = True coming into this function
     """
     bundle = code_action.find("Bundle")
     if bundle is None:
@@ -44,6 +46,11 @@ def get_bundle(
         evaluated_results["returning_something"] = False
         return evaluated_results
 
+    # Handle any pref = Output Variables name
+    pref_tag = bundle.find("pref")
+    pref = pref_tag.text if pref_tag is not None else ""
+
+    # Handle the twofortyfouram.locale.intent.extra.BLURB tag
     vals = bundle.find("Vals")
     if vals is None:
         evaluated_results[f"arg{arg}"] = {"value": ""}
@@ -59,8 +66,11 @@ def get_bundle(
         "",
     )
 
-    # Separate configuration parameter arguments by commas.
+    # If we have a <pref> tag, add it to the clean_string
+    if pref:
+        clean_string = f"Output Variables={pref}{clean_string}"
 
+    # Separate configuration parameter arguments by commas.
     if clean_string:
         if PrimeItems.program_arguments.get("pretty", False):
             clean_string = clean_string.replace("\n\n", "\n")
@@ -68,8 +78,8 @@ def get_bundle(
 
         # Set up proper spacing if this is an event.
         if code_action.tag == "Event":
-            clean_string = f"{blank*50}{clean_string}"
-            clean_string = clean_string.replace(",", f"\n{blank*49}")
+            clean_string = f"{blank * 50}{clean_string}"
+            clean_string = clean_string.replace(",", f"\n{blank * 49}")
 
         evaluated_results[f"arg{arg[0]}"] = {
             "value": f"Configuration Parameter(s):\n{clean_string}\n",
@@ -97,7 +107,7 @@ def evaluate_argument(
         arg (object): Argument object.
         argeval (list): Argument evaluation criteria.
         argtype (str): Argument type.
-        code_action (defusedxml.ElementTree.XML): XML code action.
+        code_action (defusedxml.ElementTree): XML code action.
 
     Returns:
         dict: Updated evaluated results.
@@ -137,7 +147,10 @@ def evaluate_argument(
         case "App":
             extract_argument(evaluated_results, arg, argeval)
             app_class, app_pkg, app = get_action.get_app_details(code_action)
-            evaluated_results[the_arg] = {"value": f"{app_class}, {app_pkg}, {app}"}
+            # join handles empty strings.
+            evaluated_results[the_arg] = {
+                "value": f"{', '.join(filter(None, [app_class, app_pkg, app]))}",
+            }
 
         case "ConditionList":
             extract_condition(evaluated_results, arg, argeval, code_action)

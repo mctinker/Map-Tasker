@@ -11,11 +11,11 @@ import contextlib
 import json
 import os
 import pickle
+import tomllib
 from datetime import timedelta
 from pathlib import Path
 
 import tomli_w
-import tomllib
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
@@ -59,11 +59,7 @@ def corrupted_file(program_arguments: dict, colors_to_use: dict) -> None:
     # Return the error as an entry in our dictionaries for display via te GUI,
     # if needed.
     program_arguments = colors_to_use = {
-        "msg": (
-            "The settings file is corrupt or not compatible with the new verison of \
-            MapTasker!"
-            "The old settings can not be restored.  A new default settings file has been saved.",
-        ),
+        "msg": "The settings file is corrupt or not compatible with the new version of MapTasker!  The old settings can not be restored.  A new default settings file has been saved.",
     }
     return program_arguments, colors_to_use
 
@@ -109,7 +105,11 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
             user_args[argument] = program_arguments[argument]
 
     # Save dictionaries
-    settings = {"program_arguments": user_args, "colors_to_use": colors_to_use, "last_run": PrimeItems.last_run}
+    settings = {
+        "program_arguments": user_args,
+        "colors_to_use": colors_to_use,
+        "last_run": PrimeItems.last_run,
+    }
 
     # Write out the guidance for the file.
     with open(new_file, "wb") as settings_file:
@@ -118,8 +118,12 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
 
     # Write out the user program arguments in TOML format.  Open in binary append format (ab).
     with open(new_file, "ab") as settings_file:
-        settings["program_arguments"] = dict(sorted(user_args.items()))  # Sort the program args first.
-        settings["colors_to_use"] = dict(sorted(colors_to_use.items()))  # Sort the colors first.
+        settings["program_arguments"] = dict(
+            sorted(user_args.items()),
+        )  # Sort the program args first.
+        settings["colors_to_use"] = dict(
+            sorted(colors_to_use.items()),
+        )  # Sort the colors first.
         try:
             tomli_w.dump(settings, settings_file)
         except TypeError as e:
@@ -135,7 +139,11 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
 
 
 # User still has setting file in older unsupported format.  Convert the info and delete it.
-def process_old_formatted_file(program_arguments: dict, colors_to_use: dict, old_file: str) -> tuple:
+def process_old_formatted_file(
+    program_arguments: dict,
+    colors_to_use: dict,
+    old_file: str,
+) -> tuple:
     """
     Process an old formatted file and restore the program arguments and colors to use.
 
@@ -168,14 +176,18 @@ def process_old_formatted_file(program_arguments: dict, colors_to_use: dict, old
             # Check for corruption by testing display_detail_level
             try:
                 if isinstance(program_arguments["display_detail_level"], str):
-                    program_arguments["display_detail_level"] = int(program_arguments["display_detail_level"])
+                    program_arguments["display_detail_level"] = int(
+                        program_arguments["display_detail_level"],
+                    )
             except KeyError:
                 corrupted_file(program_arguments, colors_to_use)
 
     # Handle file not found condition
     except OSError:
         error_handler("'-r' MapTasker Error: No settings file found to restore!", 0)
-        program_arguments = colors_to_use = {"msg": "No settings file found to restore!"}
+        program_arguments = colors_to_use = {
+            "msg": "No settings file found to restore!",
+        }
     # Handle file format error
     except json.decoder.JSONDecodeError:  # no saved file
         corrupted_file(program_arguments, colors_to_use)
@@ -186,7 +198,9 @@ def process_old_formatted_file(program_arguments: dict, colors_to_use: dict, old
             temp_args = program_arguments["backup_file_http"].split(":")
             program_arguments["android_ipaddr"] = temp_args[1][2:]
             program_arguments["android_port"] = temp_args[2]
-            program_arguments["android_file"] = program_arguments["backup_file_location"]
+            program_arguments["android_file"] = program_arguments[
+                "backup_file_location"
+            ]
             del program_arguments["backup_file_http"]
             del program_arguments["backup_file_location"]
 
@@ -217,6 +231,8 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
         - If the TOML file is corrupted or does not exist, the function calls the "corrupted_file" function.
 
     """
+    program_arguments = ""
+    colors_to_use = ""
     with open(new_file, "rb") as f:
         # Setup old date if date last used is not in TROML settings file.  Catch all possible errors with TOML file.
         try:
@@ -225,11 +241,15 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
             try:
                 colors_to_use = settings["colors_to_use"]  # Get the colors to use
             except KeyError:
-                colors_to_use = set_color_mode("")  # If this hadn't been previously saved, set it to blank
+                colors_to_use = set_color_mode(
+                    "",
+                )  # If this hadn't been previously saved, set it to blank
 
             # Program arguments
             try:
-                program_arguments = settings["program_arguments"]  # Get the program arguments
+                program_arguments = settings[
+                    "program_arguments"
+                ]  # Get the program arguments
             except KeyError:
                 program_arguments = initialize_runtime_arguments()
             try:
@@ -240,13 +260,21 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
 
             f.close()
         except tomllib.TOMLDecodeError:  # no saved file
-            corrupted_file(program_arguments, colors_to_use)
+            program_arguments, colors_to_use = corrupted_file(
+                program_arguments,
+                colors_to_use,
+            )
 
     return program_arguments, colors_to_use
 
 
 # Read in the TOML runtime settings
-def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, new_file: str) -> None:
+def read_arguments(
+    program_arguments: dict,
+    colors_to_use: dict,
+    old_file: str,
+    new_file: str,
+) -> None:
     """
     Reads the program arguments, colors to use, old file, and new file.
 
@@ -262,7 +290,11 @@ def read_arguments(program_arguments: dict, colors_to_use: dict, old_file: str, 
     sys_file = f"{Path.cwd()}{PrimeItems.slash}{SYSTEM_SETTINGS_FILE}"
     # First see if there is an old formatted file to restore.
     if os.path.isfile(old_file):
-        program_arguments, colors_to_use = process_old_formatted_file(program_arguments, colors_to_use, old_file)
+        program_arguments, colors_to_use = process_old_formatted_file(
+            program_arguments,
+            colors_to_use,
+            old_file,
+        )
 
     # Read the user settings TOML file
     elif os.path.isfile(new_file):
@@ -300,6 +332,11 @@ def save_restore_args(
 
     # Restore dictionaries
     else:
-        program_arguments, colors_to_use = read_arguments(program_arguments, colors_to_use, old_file, new_file)
+        program_arguments, colors_to_use = read_arguments(
+            program_arguments,
+            colors_to_use,
+            old_file,
+            new_file,
+        )
 
     return program_arguments, colors_to_use

@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "7.1.1"
+VERSION = "7.1.2"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -181,9 +181,7 @@ pattern9 = re.compile("</span></span>")
 pattern10 = re.compile("</p></p>")
 pattern11 = re.compile(".*[A-Z].*")
 pattern12 = re.compile(r"[%]\w+")  # matches any word-constituent character.
-pattern13 = (
-    r",(?=\S)"  # matches any comma followed by a non-blank character.  e.g. now is,the time, for (catches is,the)
-)
+pattern13 = r",(?=\S)"  # matches any comma followed by a non-blank character.  e.g. now is,the time, for (catches is,the)
 # pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<\\"  # Match everything after the label until a '<'
 pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<span>"
 pattern15 = re.compile("\n")
@@ -260,7 +258,7 @@ OPENAI_MODELS = [
     "gpt-4.5-preview",
     "o1",
     "o1-mini",
-    "o1-preview",
+    "o1-pro",
     "o3",
     "o3-mini",
 ]
@@ -305,6 +303,7 @@ GEMINI_MODELS = [
     "gemini-2.0-flash-lite",
     "gemini-1.5-flash-8b",
     "gemini-1.5-pro",
+    "gemini-2.5-pro-exp-03-25",
 ]
 MODEL_GROUPS = {
     "OpenAI": OPENAI_MODELS,
