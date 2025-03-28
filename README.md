@@ -26,7 +26,7 @@
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX/WIN11 machine based on Tasker's backup or exported XML file
 
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
-[More Samples]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
+[More Samples]](<https://github.com/mctinker/Map-Tasker/wiki#sample-output>)
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see [Note 1](#1)).
 
@@ -130,7 +130,7 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 - "maptasker.log"
 
      This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.
-      
+
 - hidden files: system settings and API keys.
 
 ## More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
@@ -179,11 +179,12 @@ If having problems getting Tkinter to version 8.6, try the following:
 If still having Tkinter version problems, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
 
 Python installations that use 'pyenv' version management, take note: tcl-tk has been upgraded to version 9 (brew install tcl-tk).  If this error occurs:
+
 - If running python version 3.11, then the new tcl-tk is not recognized and you will get an import error for 'tkinter'.  Issue the commands (in the order specified):
-    - 'brew uninstall tcl-tk'
-    - 'pyenv uninstall 3.11.xx'
-    - 'brew install tcl-tk@8'
-    - 'pyenv install 3.11:latest'
+  - 'brew uninstall tcl-tk'
+  - 'pyenv uninstall 3.11.xx'
+  - 'brew install tcl-tk@8'
+  - 'pyenv install 3.11:latest'
 - if running python 3.12.4, upgrade to the latest version of 3.12: 'pyenv install 3.12:latest'
 - Python version 3.13.0 works fine with the new tcl-tk.
 
@@ -191,7 +192,7 @@ Python installations that use 'pyenv' version management, take note: tcl-tk has 
 
 If you are unable to upgrade to Python version 3.11 or higher, an older version of MapTasker is still available for Python version 3.10, via the command:
 
-	'pip install maptasker==2.6.3'
+ 'pip install maptasker==2.6.3'
 
 With this older version, you will not get the benefits offered by the newer version.  Refer to [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md) for details.
 
@@ -223,9 +224,13 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 
 - [x] Add 'Search' to the Diagram view.
 
-- [x] Identify Tasks with too many actions. 
+- [x] Identify Tasks with too many actions.
 
 - [x] Support additional AI's
+
+- [ ] Fix minor formatting issues.
+
+- [ ] If Profile has no name, display the same name as that of Tasker
 
 - [ ] Support additional plugins
 
@@ -242,16 +247,16 @@ Network traffic is as follows:
 - Local LAN traffic when fetching XML directly from your Android device.
 - On startup, check against pypi.com to determine if a new release is available.
 - Update the program from pypi.com (via 'pip) if 'Upgrade' is selected in the GUI.
-- Read file 'maptasker_changelog.json' from 'https://github.com/mctinker/Map-Tasker' if "What's New" is selected in the GUI.
+- Read file 'maptasker_changelog.json' from '<https://github.com/mctinker/Map-Tasker>' if "What's New" is selected in the GUI.
 - Use chatgpt.com when using AI analysis with any of the OpenAi models.  The output of MapTasker is sent to the server via the standard API call for analysis.  Likewise for Claude (Anthropic), Google (Gemini) and DeepSeek.
-- New and updated local Ai models will be loaded from 'https://ollama.com/library'.
+- New and updated local Ai models will be loaded from '<https://ollama.com/library>'.
 
 ## Known Issues
 
 - An upgrade to Tcl-tk verison 9 (brew install tcl-tk) may cause an error when importing tkinter.  If this occurs, reefer to [Note 3](#3).
 - The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
 - Diagram connectors are misaligned if names are in Chinese, Korean or Japanese.
-- The error message 'IMKClient Stall detected, *please Report* your user scenario attaching...' may appear on OS X and it can be ignored.
+- The error message 'IMKClient Stall detected, _please Report_ your user scenario attaching...' may appear on OS X and it can be ignored.
 
 ## Contributions
 

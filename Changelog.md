@@ -2,30 +2,41 @@
 
 All notable changes to this project will be documented in this file!
 
-## [7.1.1] 17-Mar-2025
+## [7.1.2] 31-Mar-2025
 
 ### Added
+
+- Added: OpenAI's 'o1-pro' and 'gemini-2.5-pro-exp-03-25' AI models have been added (removed 'o1-preview').
+- Added: Support for Tasker 6.5.3 Beta.
+
+### Changed
+
+- Changed: Only display a 'Property' if it has a value or is checked.
+
+### Fixed
+
+- Fixed: Minor html formatting issues.
+- Fixed: Events with multiple applications specified are not formatted properly.
+- Fixed: Conditions associated with Profile States and Events are not displayed.
+- Fixed: Profiles are being mis-identified as Launcher Tasks.
+- Fixed: Program error if the XML file is not accessible during startup.
+- Fixed: Program error on startup if the settings file is corrupt.
+
+## Older History Logs
+
+## [7.1.1]
 
 - Added: Tasker version 6.5.1 Beta support (new 'Calendar' Task actions).
 - Added: Closing the progress bar now also cancels the current view.
 - Added: Scene Tasks have been added to the Diagram view.
 - Added: Profile Events 'Network Changed', 'Pick Up Gesture', 'Fingerprint Gesture', 'Physical Activity', 'Clipboard Changed', 'Accessibility Services Changed', 'Device Unlock Failed' and 'Remote Action Token Changed' are now recognized.
 - Added: Profile States 'Room', 'Reaching', 'Physical Activity', 'Matter Light', 'Data Usage', and 'Compass Orientation' are now recognized.
-
-### Changed
-
-- Changed:
-
-### Fixed
-
 - Fixed: The current view continues to display as empty if closing the progress bar.
 - Fixed: Screen WebElement 'Source=' HTML is missing and/or malformed.
 - Fixed: States 'BT Status' and 'BT Near' not recognized.
 - Fixed: Task action labels are not all displaying in the correct color.
 - Fixed: Not correctly parsing action arguments that contain a '<'.
 - Fixed: 'Run and Exit' after doing a 'Map' view from the GUI would display the wrong data in the browser.
-
-## Older History Logs
 
 ## [7.1.0]
 
@@ -37,7 +48,7 @@ All notable changes to this project will be documented in this file!
 - Changed: Updated list of deprecated Task actions.
 - Changed: Program data restructured to enable easier transition to future Tasker 'Task' action changes and improve accuracy.
 - Changed: Removed no longer supported 'Gemini-1.0' and 'gemini-2.0-flash-exp' AI models.
-- Fixed: 'UnboundLocalError' program error in scenes.py.
+- Fixed: 'UnboundLocalError' program error in scenes.py.ø
 - Fixed: LLAMA AI Analysis fails due to improper API key when no API key is required.
 - Fixed: Various Task action arguments were missing or incorrect.
 - Fixed: Alignment of 'Configuration Parameter(s)' is not always correct if using 'pretty' option.
