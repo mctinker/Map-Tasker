@@ -166,6 +166,10 @@ To retrieve the Tasker XML file directly from your Android device, you must have
 
 ### 3
 
+The most dir3ect and simple solution is to get and use the [standard Python release download](https://www.python.org).
+
+If this is not an option and you insist on using Brew, then read on...
+
 To determine the version of Tkinter you are using, run the following command from Terminal:
 
      'python -m tkinter'
@@ -173,7 +177,7 @@ To determine the version of Tkinter you are using, run the following command fro
 If having problems getting Tkinter to version 8.6, try the following:
 
 - uninstall python
-- 'brew install tcl-tk'
+- 'brew install tcl-tk@8'
 - reinstall python
 
 If still having Tkinter version problems, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
@@ -185,8 +189,8 @@ Python installations that use 'pyenv' version management, take note: tcl-tk has 
   - 'pyenv uninstall 3.11.xx'
   - 'brew install tcl-tk@8'
   - 'pyenv install 3.11:latest'
-- if running python 3.12.4, upgrade to the latest version of 3.12: 'pyenv install 3.12:latest'
-- Python version 3.13.0 works fine with the new tcl-tk.
+- if running Python 3.12.0-thru-3.12.4, upgrade to the latest version of 3.12: 'pyenv install 3.12:latest'
+- Python version 3.13 works fine with the new tcl-tk.
 
 ### 4
 
@@ -249,7 +253,7 @@ Network traffic is as follows:
 - Update the program from pypi.com (via 'pip) if 'Upgrade' is selected in the GUI.
 - Read file 'maptasker_changelog.json' from '<https://github.com/mctinker/Map-Tasker>' if "What's New" is selected in the GUI.
 - Use chatgpt.com when using AI analysis with any of the OpenAi models.  The output of MapTasker is sent to the server via the standard API call for analysis.  Likewise for Claude (Anthropic), Google (Gemini) and DeepSeek.
-- New and updated local Ai models will be loaded from '<https://ollama.com/library>'.
+- New and updated local Ai models will be loaded from '<https://ollama.com/library>' when running the AI Analysis feature.
 
 ## Known Issues
 

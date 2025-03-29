@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Profiles are being mis-identified as Launcher Tasks.
 - Fixed: Program error if the XML file is not accessible during startup.
 - Fixed: Program error on startup if the settings file is corrupt.
+- FIxed: Program error can occur when trying to kill the progress bar during a Diagram view.
 
 ## Older History Logs
 
