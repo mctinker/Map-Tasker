@@ -89,6 +89,7 @@ Version 7.1.2 - Change Log\n
 - Fixed: Profiles are being mis-identified as Launcher Tasks.\n
 - Fixed: Program error if the XML file is not accessible during startup.\n
 - Fixed: Program error on startup if the settings file is corrupt.\n
+- FIxed: Program error can occur when trying to kill the progress bar during a Diagram view.\n
 """
 
 default_font_size = 14
