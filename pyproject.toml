@@ -1,7 +1,7 @@
 [project]
 name = "maptasker"
 dynamic = [ "version" ]
-version = "7.1.2"
+version = "7.2.0"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 requires-python = ">=3.11,<4.0"
 authors = [
@@ -46,11 +46,12 @@ dependencies = [
     "defusedxml>=0.7.1",  # More secure xml parser
     "requests>=2.32.3",  # HTTP Server function request
     "tomli_w>=1.2.0",  # Write toml file
-    "openai>=1.66.3",  #  Ai OpenAi support
+    "openai>=1.70.0",  #  Ai OpenAi support
     "ollama>=0.4.7",  #  Ai Ollama support > cria rquires this
     "psutil>=7.0.0",  #  System monitoring
     "google-generativeai>=0.8.4",  #  Ai Google Generative support
-    "grpcio==1.67.1",  #  Ai Google Generative support. Lower version required to avoid error msg 'WARNING: All log...'
+    # FIX
+    # "grpcio==1.67.1",  #  Ai Google Generative support. Lower version required to avoid error msg 'WARNING: All log...'
 ]
 
 [project.scripts]

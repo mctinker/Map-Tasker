@@ -2,28 +2,39 @@
 
 All notable changes to this project will be documented in this file!
 
-## [7.1.2] 30-Mar-2025
+## [7.2.0] 08-Apr-2025
 
 ### Added
 
-- Added: OpenAI's 'o1-pro' and 'gemini-2.5-pro-exp-03-25' AI models have been added (removed 'o1-preview').
-- Added: Support for Tasker 6.5.3 Beta.
+- Added: Hover over a matched search string in Map view displays all the matches from the 'Search'.
+- Added: Ollama AI models 'exaone-deep', 'gemma3' and 'phi4-mini' have been added.
+- Added: Deepseek AI 'deepseek-reaoner' model has been added.
+- Added: Anthropic AI 'claude-3-7-sonnet' model has been added.
 
 ### Changed
 
-- Changed: Only display a 'Property' if it has a value or is checked.
+- Changed: Task 'Configuration parameter(s):' have been flattened (removed 'Continued >>>') if not doing 'Pretty' output.
 
 ### Fixed
 
+- Fixed: If the 'Pretty' option is selected, properly align Profile condition arguments.
+- Fixed: Task '[⛔DISABLED]' indicators are misaligned.
+- Fixed: '<' and '>' are occasionally missing from IF conditions in the Map view.
+- Fixed: Invalid progress bar window position hides the progress bar altogether.
+
+## Older History Logs
+
+## [7.1.2]
+
+- Added: OpenAI's 'o1-pro' and 'gemini-2.5-pro-exp-03-25' AI models have been added (removed 'o1-preview').
+- Added: Support for Tasker 6.5.3 Beta.
+- Changed: Only display a 'Property' if it has a value or is checked.
 - Fixed: Minor html formatting issues.
 - Fixed: Events with multiple applications specified are not formatted properly.
 - Fixed: Conditions associated with Profile States and Events are not displayed.
 - Fixed: Profiles are being mis-identified as Launcher Tasks.
 - Fixed: Program error if the XML file is not accessible during startup.
 - Fixed: Program error on startup if the settings file is corrupt.
-- FIxed: Program error can occur when trying to kill the progress bar during a Diagram view.
-
-## Older History Logs
 
 ## [7.1.1]
 
