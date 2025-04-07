@@ -23,6 +23,7 @@ from PIL import Image, ImageTk
 from maptasker.src.actione import get_action_code
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.diagcnst import task_delimeter
+from maptasker.src.diagutil import width_and_height_calculator_in_pixel
 from maptasker.src.getids import get_ids
 from maptasker.src.guiutils import (
     add_button,
@@ -31,6 +32,7 @@ from maptasker.src.guiutils import (
     add_logo,
     add_option_menu,
     build_connectors,
+    destroy_hover_tooltip,
     display_analyze_button,
     display_progress_bar,
     extract_usage_profile,
@@ -53,7 +55,11 @@ from maptasker.src.guiutils import (
     update_tasker_object_menus,
 )
 from maptasker.src.lineout import LineOut
-from maptasker.src.maputils import find_all_positions, rutroh_error
+from maptasker.src.maputils import (
+    find_all_positions,
+    get_first_substring_match,
+    rutroh_error,
+)
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
 from maptasker.src.scenes import get_details
@@ -719,8 +725,9 @@ class CTkTextview(ctk.CTkFrame):
         search_button.configure(width=60)
         create_tooltip(
             search_button,
-            text="Click this button to initiate a search for the string you have entered to the left.\n\nClick the ? to get more info.",
+            text="Click this button to initiate a search for the string you have entered to the left and highlight the matches.\n\nClick the ? to get more info.",
         )
+
         # Next search button
         next_search_button = add_button(
             self,
@@ -1068,7 +1075,9 @@ class CTkTextview(ctk.CTkFrame):
         # print(f"Button number (if mouse event): {event.num}")
         # print(f"State (modifier keys/mouse buttons): {event.state}")
         # print(f"Timestamp: {event.time}")
-        # print(f"Widget under pointer: {event.widget.winfo_containing(event.x_root, event.y_root)}")
+        # print(
+        #    f"Widget under pointer: {event.widget.winfo_containing(event.x_root, event.y_root)}",
+        # )
 
         # get the index of the mouse click
         index = text_widget.index(f"@{event.x},{event.y}")
@@ -1079,19 +1088,21 @@ class CTkTextview(ctk.CTkFrame):
         connector = ""
 
         # Go through the tags for the character clicked.  There should only be one.
-        for tag in tags_at_index:
-            # If it is a connector, then highlight it.
-            if "wire_" in tag:
-                connector = self.display_connector_details(
-                    tag,
-                    connector,
-                    connector_tagid,
-                )
+        tag = tags_at_index[0]
+        tag_flag = tags_at_index[1] if len(tags_at_index) > 1 else ""
 
-            # Handle item name (Project, Profile, Task, Scene name tags)
-            elif "." in tag:
-                # Add the info to the hover tooltip.
-                self.display_hover_info(tag, event)
+        # If it is a connector, then highlight it.
+        if "wire_" in tag:
+            connector = self.display_connector_details(
+                tag,
+                connector,
+                connector_tagid,
+            )
+
+        # Handle item name (Project, Profile, Task, Scene or search name tags)
+        elif "." in tag:
+            # Add the info to the hover tooltip.
+            self.display_hover_info(tag, tag_flag, event)
 
         # Add 'Jump to' buttons.
         if connector:
@@ -1178,12 +1189,13 @@ class CTkTextview(ctk.CTkFrame):
 
         return connector
 
-    def display_hover_info(self, tag: str, event: object) -> None:
+    def display_hover_info(self, tag: str, tag_flag: str, event: object) -> None:
         """
         Displays a hover tooltip with information about the item associated with the given tag.
 
         Args:
             tag (str): The tag identifier for the selected item.
+            tag_flag (str): The flag indicating search value 'found'.
             event (object): The event object containing information about the mouse event.
 
         Description:
@@ -1194,20 +1206,27 @@ class CTkTextview(ctk.CTkFrame):
             associations, while project-related information includes project properties.
 
         """
+        with contextlib.suppress(AttributeError):
+            destroy_hover_tooltip(self.hover_tooltip)
+
+        # If this is a 'search' tag, then make the tag = 'found'.
+        if tag_flag == "found":
+            tag = tag_flag
+
         # Point to our gui self.
         mygui = self.master.master
-        # start_position = mygui.items_for_selection[tag]["start_position"]
-        # end_position = mygui.items_for_selection[tag]["end_position"]
+
         # Make sure it is a good tag.
         try:
             name = mygui.items_for_selection[tag]["name"]
         except KeyError:
             return
-        mygui.items_for_selection[tag]["name"] = name
+        # mygui.items_for_selection[tag]["name"] = name
         item_type = mygui.items_for_selection[tag]["item"]
         text = f"{item_type.capitalize()}: {name}"
 
-        # Get Task related info and add it.
+        # Determine type of hover type and get the text associated with it.
+        owner_text = ""
         if item_type == "task":
             text = self.hover_task(tag, name, text)
         # Get the Profile related info.
@@ -1217,8 +1236,23 @@ class CTkTextview(ctk.CTkFrame):
         elif item_type == "scene":
             text = self.hover_scene(name, text)
         # Project related info.
-        else:
+        elif item_type == "project":
             text = self.hover_project(name, text)
+        elif tag_flag == "found":
+            text, owner_text, max_len = self.hover_search()
+            # Recalculate the max lione length based on the window width.
+            char_width_in_pixels = width_and_height_calculator_in_pixel(
+                "m",
+                PrimeItems.program_arguments["font"],
+                12,
+            )[0]
+            window_width_in_pixels = int(
+                PrimeItems.mygui.map_window_position.split("x")[0],
+            )
+            max_len = min(
+                max_len,
+                (window_width_in_pixels // char_width_in_pixels) - 30,
+            )
 
         # Create the label.
         label = tk.Label(
@@ -1230,10 +1264,59 @@ class CTkTextview(ctk.CTkFrame):
             padx=5,
             pady=5,
         )
-
         # Place the label at the mouse position
         label.place(x=event.x + 100, y=event.y)
         self.hover_tooltip = label
+
+        # If we have owner_text, draw as separate label overlay in different color.
+        if owner_text:
+            label1 = tk.Label(
+                self,
+                text=owner_text,
+                bg="#092944",
+                fg="yellow",
+                justify="left",
+                font=("Courier", 12),
+                padx=5,
+                pady=5,
+            )
+            label1.place(x=event.x + 100 + max_len * 7, y=event.y)
+            self.hover_tooltip = [label, label1]
+
+    def hover_search(self) -> str:
+        """
+        Returns the text for the search tooltip.
+
+        This method returns a string indicating that the item is a search result.
+
+        Returns:
+            str: The text indicating that the item is a search result.
+        """
+        text = ""
+        owner_text = ""
+        mygui = self.master.master
+        textbox = self.textview_textbox
+        indecies = mygui.items_for_selection["found"]["indecies"]
+        max_len = 0
+        for num, index in enumerate(indecies):
+            text_line = f"{index.split('.')[0]}.0"
+            line = textbox.get(text_line, text_line + " lineend")
+            owner = self.get_owner_name_from_textbox(
+                textbox,
+                text_line.split(".")[0],
+                line,
+            )
+            # text += f"{line.strip()} {owner}\n"
+            text += f"{line.strip()}\n"
+            owner_text += f"{owner}\n"
+            if owner:
+                max_len = max(len(line), max_len)
+            # Only do a maximum of 80 lines.
+            if num > 80:
+                text = "Displaying only the first 80 matches...\n" + text
+                owner_text = "Displaying only the first 80 matches...\n" + owner_text
+                break
+        return text, owner_text, max_len
 
     def hover_project(self, name: str, text: str) -> str:
         """
@@ -1250,7 +1333,6 @@ class CTkTextview(ctk.CTkFrame):
             str: The updated tooltip text including the list of profiles.
         """
         # Get the Project's properties (temporarily commented out for now).
-        # properties = self.get_properties("Project", name)
         properties = ""
         # Get a list of the Profiles and Tasks in the Project.
         profiles = get_profiles_in_project(name)
@@ -1420,6 +1502,72 @@ class CTkTextview(ctk.CTkFrame):
 
         return task_item
 
+    def get_owner_name_from_textbox(
+        self,
+        textbox: CTkTextview,
+        text_line: str,
+        line: str,
+    ) -> str:
+        """
+        Retrieves the owner name from a textbox widget by searching for specific keywords
+        in the lines preceding a given line number.
+
+        Args:
+            textbox: The textbox widget containing the text to search.
+            text_line (str): The line number (as a string) from which to start searching
+                in reverse for the owner name.
+            line (str): The current line of text being processed.
+
+        Returns:
+            str: A formatted string containing the owner type and name if found,
+            otherwise an empty string.
+
+        Notes:
+            - The function searches for specific keywords ("Task: ", "Profile: ",
+              "Project: ", "Scene: ") in the lines above the given line number.
+            - If a match is found, it extracts the owner name and returns it in the
+              format "Owning <owner_type>: <owner_name>  >>> ".
+            - If no match is found, the function returns an empty string.
+        """
+        owner_keys = ["Task: ", "Profile: ", "Project: ", "Scene: "]
+        invalid_keys = [
+            "Properties Collision Handling",
+            "Run Both Together",
+            "Properties...",
+        ]
+        # Identify the possible owners based on what is in the line.
+        if "Project: " in line:
+            return "<<< Owner=Project"
+        if "Profile: " in line:
+            owner_keys.pop(0)  # Remove tasks
+            owner_keys.pop(0)  # Remove profiles
+        elif "Scene: " in line:
+            owner_keys.pop(0)  # Remove tasks
+            owner_keys.pop(0)  # Remove profiles
+            owner_keys.pop()  # Remove scenes
+
+        # Start with the previous line from the line of the search match string.
+        line_to_get = str(int(text_line) - 1)
+        # line_to_get = text_line
+        owner = ""
+
+        # Get the lines in reverse, looking for the owner name.
+        while line_to_get != "0":
+            # Get the line and check for the owner name.
+            idx = f"{line_to_get}.0"
+            line = textbox.get(idx, idx + " lineend")
+            if tasker_object := get_first_substring_match(line, owner_keys):
+                owner = line.split(":")[1].split("   ")[0].strip()
+                owner = owner.split("(Not referenced by any ")[0].strip()
+                # Filter out 'Task:' that isn't a Task, and "Properties..."
+                if _ := any(invalid_key in line for invalid_key in invalid_keys):
+                    line_to_get = str(int(line_to_get) - 1)
+                    continue
+                return f"<<< Owner={tasker_object}{owner.strip()}"
+            # If not found, decrement the line number.
+            line_to_get = str(int(line_to_get) - 1)
+        return ""
+
     def check_no_name(self, title: str, name: str, tag: str) -> str:
         """
         If the name is "Unnamed/Anonymous.", then search for the usage profile starting at the
@@ -1456,7 +1604,7 @@ class CTkTextview(ctk.CTkFrame):
         tags_at_index = text_widget.tag_names(index)
         """
         with contextlib.suppress(AttributeError):
-            self.hover_tooltip.destroy()
+            destroy_hover_tooltip(self.hover_tooltip)
 
     def get_properties_for_hover(self, item_type: str, item_name: str) -> str:
         """
@@ -2387,7 +2535,6 @@ class CTkTextview(ctk.CTkFrame):
             # Formats the message for pretty output, debug, and specific cases.
             formatted_message = self._format_message(
                 message,
-                line_num_str,
                 previous_value,
                 spaces,
                 pretty,
@@ -2428,11 +2575,10 @@ class CTkTextview(ctk.CTkFrame):
     def _format_message(
         self,
         message: str,
-        line_num_str: str,
         previous_value: str,
         spaces: str,
         pretty: bool,
-        debug: bool,
+        debug: bool,  # noqa: ARG002
     ) -> str:
         """Formats the message for pretty output, debug, and specific cases."""
         # Clean up the message content
@@ -2620,6 +2766,7 @@ class CTkTextview(ctk.CTkFrame):
             "Profile: ": "profile",
             "Project: ": "project",
             "Scene: ": "scene",
+            "Found:": "found",
         }
         # Find the first matching keyword and corresponding item type
         item, start_position = next(
@@ -2817,7 +2964,7 @@ class CTkTextview(ctk.CTkFrame):
         # Adjust positions for "directory" case
         if previous_value == "directory":
             start_pos = max(0, start_pos - 1)
-            end_pos = max(0, end_pos - 1)
+            end_pos = -max(0, end_pos - 1)
 
         return start_pos, end_pos
 
@@ -2938,8 +3085,9 @@ class ProgressbarWindow(ctk.CTk):
         # Save the window position on closure
         self.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
 
-        # self.progressbar.set(0.0)  # Start with progress of 0.
+        self.progressbar.set(0.0)  # Start with progress of 0.
         self.progressbar.pack(padx=20, pady=20)
+
         # Setup values so we can determine the amount of time before we issue an IMKClient message.
         self.progressbar.start_time = round(time.time() * 1000)
         self.progressbar.print_alert = True
@@ -3106,7 +3254,6 @@ class CTkHyperlinkManager:
             "_up": "Up",
             "tasks": "Task",
             "profiles": "Profile",
-            "projects": "Project",
             "scenes": "Scene",
         }
         # Set the cursor to a hand pointer.
@@ -3116,7 +3263,7 @@ class CTkHyperlinkManager:
         for tag in self.text.tag_names(ctk.CURRENT):
             # Delete any previous hover tooltip.
             with contextlib.suppress(AttributeError):
-                self.hover_tooltip.destroy()
+                destroy_hover_tooltip(self.hover_tooltip)
             if tag.startswith("hyper-"):
                 link = self.links[tag]
                 if link[0] in tasker_object:
@@ -3146,7 +3293,7 @@ class CTkHyperlinkManager:
         self.text.configure(cursor="xterm")
         # Delete any previous hover tooltip.
         with contextlib.suppress(AttributeError):
-            self.hover_tooltip.destroy()
+            destroy_hover_tooltip(self.hover_tooltip)
 
     def _click(self, event: object) -> None:
         """

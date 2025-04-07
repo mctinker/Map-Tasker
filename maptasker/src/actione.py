@@ -178,7 +178,7 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     # Break at comma followed by a space.
     task_code_line = task_code_line.replace(
         ", ",
-        f", <br>{indent_amt}{blank*extra_blanks}",
+        f", <br>{indent_amt}{blank * extra_blanks}",
     )
     # Break at newline and comma if not a config param.
     # NOTE: There may be one or more double '\n' strings, which is ok.
@@ -186,30 +186,30 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
         # Replace all commas followed by a non-blank with a break
         task_code_line = re.sub(
             pattern13,
-            f"<br>{indent_amt}{blank*(extra_blanks+7)}",
+            f"<br>{indent_amt}{blank * (extra_blanks + 7)}",
             task_code_line,
         )
         # Now handle newlines
         task_code_line = task_code_line.replace(
             "\n",
-            f"<br>{indent_amt}{blank*(extra_blanks+7)}",
+            f"<br>{indent_amt}{blank * (extra_blanks + 7)}",
         )  # 7 for "Values="
 
     # Break at bracket
     a_bit_more = 9 if "DISABLED" not in task_code_line else 0
     task_code_line = task_code_line.replace(
         "[",
-        f"<br>{indent_amt}{blank*(extra_blanks+a_bit_more)}[",
+        f"<br>{indent_amt}{blank * (extra_blanks + a_bit_more)}[",
     )
     # Break at (If condition
     task_code_line = task_code_line.replace(
         "(<em>IF",
-        f"<br>{indent_amt}{blank*extra_blanks}(<em>IF",
+        f"<br>{indent_amt}{blank * extra_blanks}(<em>IF",
     )
     # Break at label with filler
     task_code_line = task_code_line.replace(
         '<span class="action_label_color"> ...with label:',
-        f'<br>{indent_amt}{blank*extra_blanks}<span class="action_label_color">...with label:',
+        f'<br>{indent_amt}{blank * extra_blanks}<span class="action_label_color">...with label:',
     )
 
     # Correct "Structure Output (JSON, etc)", which got separated by the comma
@@ -227,7 +227,6 @@ def finalize_action_details(
     alist: list,
     indent: int,
     extra_blanks: int,
-    count: int,
 ) -> list:
     """
     Finalize the action line and append it to the list of actions.
@@ -244,7 +243,9 @@ def finalize_action_details(
     """
 
     # Append as-is if there's no newline and length exceeds 80, or if pretty output is enabled
-    if ("\n" not in task_code_line and len(task_code_line) > 80) or PrimeItems.program_arguments["pretty"]:
+    if (
+        "\n" not in task_code_line and len(task_code_line) > 80
+    ) or PrimeItems.program_arguments["pretty"]:
         alist.append(task_code_line)
         return alist
 
@@ -294,8 +295,8 @@ def build_action(
 
     # Clean up the action line by removing any leading ermpty field
     task_code_line = task_code_line.replace(
-        f"{blank*2},",
-        f"{blank*2}",
+        f"{blank * 2},",
+        f"{blank * 2}",
     )  # Drop the leading comma if present.
 
     # Calculate total indentation to put in front of action
@@ -340,7 +341,6 @@ def build_action(
             alist,
             indent,
             extra_blanks,
-            count,
         )
 
     return alist

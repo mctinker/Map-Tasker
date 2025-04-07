@@ -21,6 +21,46 @@ from maptasker.src.xmldata import extract_integer, extract_string
 blank = "&nbsp;"
 
 
+def process_clean_string(
+    clean_string: bool,
+    code_action: defusedxml.ElementTree,
+    arg: tuple,
+    evaluated_results: dict,
+    blank: str,
+) -> None:
+    """
+    Processes and formats the clean_string based on program arguments and code action.
+
+    Args:
+        clean_string (str): The string to process.
+        code_action: An object with a 'tag' attribute.
+        arg (tuple): A tuple where the first element is used as an argument key.
+        evaluated_results (dict): The dictionary to update with results.
+        blank (str): A string containing a single blank space.
+    """
+    if not clean_string:
+        evaluated_results[f"arg{arg[0]}"] = {"value": ""}
+        evaluated_results["returning_something"] = False
+        return
+
+    pretty_print = PrimeItems.program_arguments.get("pretty", False)
+
+    if pretty_print:
+        clean_string = clean_string.replace("\n\n", "\n")
+        clean_string = clean_string.replace("\n", ",")
+
+        if code_action.tag == "Event":
+            padding = blank * 50
+            clean_string = f"{padding}{clean_string}"
+            clean_string = clean_string.replace(",", f"\n{blank * 49}")
+
+    evaluated_results[f"arg{arg[0]}"] = {
+        "value": f"Configuration Parameter(s):\n{clean_string}\n",
+    }
+
+
+# Usage within your original context:
+# process_clean_string(clean_string, code_action, arg, evaluated_results, blank)
 ## We have a <bundle>.   Process it
 def get_bundle(
     code_action: defusedxml.ElementTree,
@@ -71,22 +111,7 @@ def get_bundle(
         clean_string = f"Output Variables={pref}{clean_string}"
 
     # Separate configuration parameter arguments by commas.
-    if clean_string:
-        if PrimeItems.program_arguments.get("pretty", False):
-            clean_string = clean_string.replace("\n\n", "\n")
-            clean_string = clean_string.replace("\n", ",")
-
-        # Set up proper spacing if this is an event.
-        if code_action.tag == "Event":
-            clean_string = f"{blank * 50}{clean_string}"
-            clean_string = clean_string.replace(",", f"\n{blank * 49}")
-
-        evaluated_results[f"arg{arg[0]}"] = {
-            "value": f"Configuration Parameter(s):\n{clean_string}\n",
-        }
-    else:
-        evaluated_results[f"arg{arg[0]}"] = {"value": ""}
-        evaluated_results["returning_something"] = False
+    process_clean_string(clean_string, code_action, arg, evaluated_results, blank)
 
     return evaluated_results
 

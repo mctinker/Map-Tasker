@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "7.1.2"
+VERSION = "7.2.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -270,8 +270,10 @@ LLAMA_MODELS = [
     "deepseek-coder-v2",
     "deepseek-r1",
     # "deepseek-v3",  # This model is huge!
+    "exaone-deep",
     "gemma",
     "gemma2",
+    "gemma3",
     "llama2",
     "llama3",
     "llama3.1",
@@ -281,6 +283,7 @@ LLAMA_MODELS = [
     "mistral-nemo",
     "phi3",
     "phi4",
+    "phi4-mini",
     "qwen",
     "qwen2",
     "qwen2.5-coder",
@@ -288,6 +291,7 @@ LLAMA_MODELS = [
     "tinyllama",
 ]
 CLAUDE_MODELS = [
+    "claude-3-7-sonnet-latest",
     "claude-3-5-sonnet-latest",
     "claude-3-5-haiku-latest",
     "claude-3-opus-latest",
@@ -296,6 +300,7 @@ CLAUDE_MODELS = [
 ]
 DEEPSEEK_MODELS = [
     "deepseek-chat",
+    "deepseek-reasoner",
 ]
 GEMINI_MODELS = [
     "gemini-1.5-flash",

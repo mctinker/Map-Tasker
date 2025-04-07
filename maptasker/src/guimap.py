@@ -330,6 +330,7 @@ def process_line(
                     else:
                         output_lines[line_num]["highlights"] = highlights
 
+                # Remove HTML tags and replace with spaces
                 raw_text = (
                     remove_html_tags(working_text, "")
                     .replace("<span class=", " ")
@@ -378,7 +379,6 @@ def calculate_spacing(
     output_lines: dict,
     line_num: int,
     doing_global_variables: bool,
-    previous_line: str,
 ) -> int:
     """
     Calculates the spacing for a given line of text in the output lines dictionary.
@@ -493,7 +493,6 @@ def additional_formatting(
     output_lines: dict,
     line_num: int,
     spacing: int,
-    previous_line: str,
     remove_html: bool,
 ) -> tuple:
     """
@@ -563,7 +562,6 @@ def additional_formatting(
         output_lines,
         line_num,
         doing_global_variables,
-        previous_line,
     )
     output_lines[line_num]["text"][0] = (
         f"{spacing * ' '}{output_lines[line_num]['text'][0]}"
@@ -743,7 +741,6 @@ def process_html_lines(
             output_lines,
             line_num,
             spacing,
-            previous_line,
             remove_html,
         )
 

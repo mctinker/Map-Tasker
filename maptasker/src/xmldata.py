@@ -10,8 +10,6 @@ import shutil
 
 import defusedxml.ElementTree
 
-from maptasker.src.sysconst import clean
-
 
 # See if the xml tag is one of the predefined types and return result
 def tag_in_type(tag: str, flag: bool) -> bool:
@@ -62,11 +60,18 @@ def tag_in_type(tag: str, flag: bool) -> bool:
         "itemlongclickTask",
     }
     # Return a boolean: True if tag found in the appropriate list, False otherwise
-    return (flag and tag in scene_task_element_types) or (not flag and tag in scene_task_click_types)  # Boolean
+    return (flag and tag in scene_task_element_types) or (
+        not flag and tag in scene_task_click_types
+    )  # Boolean
 
 
 # We have an integer.  Evaluaate it's value based oon the code's evaluation parameters.
-def extract_integer(code_action: defusedxml.ElementTree, the_arg: str, argeval: str, arg: list) -> str:
+def extract_integer(
+    code_action: defusedxml.ElementTree,
+    the_arg: str,
+    argeval: str,
+    arg: list,
+) -> str:
     """
     Extract an integer value from an XML action element.
 
@@ -83,7 +88,11 @@ def extract_integer(code_action: defusedxml.ElementTree, the_arg: str, argeval: 
 
     # Find the first matching <Int> element with the desired 'sr' attribute
     int_element = next(
-        (child for child in code_action if child.tag == "Int" and child.attrib.get("sr") == the_arg),
+        (
+            child
+            for child in code_action
+            if child.tag == "Int" and child.attrib.get("sr") == the_arg
+        ),
         None,
     )
 
@@ -109,7 +118,11 @@ def extract_integer(code_action: defusedxml.ElementTree, the_arg: str, argeval: 
             # Handle the special case of "e" by adding a space before the value..expects a blank in element 0.
             new_argeval = ["", "e", argeval[1]] if argeval[0] == "e" else argeval
             # Handle special case of 'l' lookup.
-            new_argeval = [f"{arg[2]}=", "l", argeval[2]] if arg[2] and argeval[1] == "l" else new_argeval
+            new_argeval = (
+                [f"{arg[2]}=", "l", argeval[2]]
+                if arg[2] and argeval[1] == "l"
+                else new_argeval
+            )
         else:
             new_argeval = argeval
 
@@ -143,7 +156,10 @@ def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> st
     from maptasker.src.action import drop_trailing_comma
 
     # Find the first matching <Str> element with the desired 'sr' attribute
-    str_element = next((child for child in action.findall("Str") if child.attrib.get("sr") == arg), None)
+    str_element = next(
+        (child for child in action.findall("Str") if child.attrib.get("sr") == arg),
+        None,
+    )
 
     if str_element is None or str_element.text is None:
         return ""  # No matching element found
@@ -151,7 +167,9 @@ def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> st
     # Extract text value with prefix
     new_argeval = f"{argeval}=" if argeval[-1] != "=" else argeval
     extracted_text = (
-        f"{argeval}(carriage return)" if str_element.text == "\n" else f"{new_argeval}{str_element.text or ''}"
+        f"{argeval}(carriage return)"
+        if str_element.text == "\n"
+        else f"{new_argeval}{str_element.text or ''}"
     )
 
     # Drop trailing comma if necessary
@@ -166,9 +184,29 @@ def remove_html_tags(text: str, replacement: str) -> str:
     :param replacement: text to replace HTML with, if any
     :return: the text with HTML removed
     """
-    import re
+    # return re.sub(clean, replacement, text)
+    result = []
+    in_tag = False
+    n = len(text)
+    i = 0
+    while i < n:
+        char = text[i]
+        if char == "<":
+            if i + 1 < n and not text[i + 1].isspace():
+                in_tag = True
+                i += 1  # Move past the '<'
+            else:
+                result.append(char)
+        elif char == ">":
+            if i > 0 and not text[i - 1].isspace():
+                in_tag = False
+            else:
+                result.append(char)
+        elif not in_tag:
+            result.append(char)
+        i += 1
 
-    return re.sub(clean, replacement, text)
+    return "".join(result) if result else replacement
 
 
 # Append file1 to file2

@@ -51,7 +51,11 @@ from maptasker.src.diagutil import (
     remove_icon,
 )
 from maptasker.src.getids import get_ids
-from maptasker.src.guiutils import display_progress_bar, kill_the_progress_bar
+from maptasker.src.guiutils import (
+    display_progress_bar,
+    kill_the_progress_bar,
+    validate_tkinter_geometry,
+)
 from maptasker.src.guiwins import ProgressbarWindow
 from maptasker.src.maputils import find_all_positions, rutroh_error
 from maptasker.src.primitem import PrimeItems
@@ -1435,13 +1439,20 @@ def configure_progress_bar(output_lines: list, title: str) -> tuple:
         progress_bar.title(f"{title} Progress")
         progress_bar.progressbar.set(0.0)
         progress_bar.progressbar.start()
+        progress_bar.progressbar.focus_set()
 
         # Set the geometry of the progress bar
-        if PrimeItems.program_arguments["progressbar_window_position"]:
+        if validate_tkinter_geometry(
+            PrimeItems.program_arguments["progressbar_window_position"]
+        ):
             progress_bar.geometry(
                 PrimeItems.program_arguments["progressbar_window_position"],
             )
 
+        else:
+            PrimeItems.program_arguments["progressbar_window_position"] = (
+                "300x500+100+0"
+            )
         # Setup for our progress bar.  Use the total number of output lines as the metric.
         # 4 times since we go thru output lines 4 times in a majore way...
         # 1st: the Diagram, 2nd: delete_hanging_bars
@@ -1462,6 +1473,7 @@ def configure_progress_bar(output_lines: list, title: str) -> tuple:
             "progress_counter": 0,
             "self": None,
         }
+
         return PrimeItems.progressbar
 
     return None

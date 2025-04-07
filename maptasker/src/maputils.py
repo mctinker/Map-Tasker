@@ -14,6 +14,7 @@ import re
 import socket
 import subprocess
 import sys
+import tkinter as tk
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
@@ -431,7 +432,7 @@ def rutroh_error(message: str) -> None:
         logger.debug(f"Rutroh! Error...{message}")
 
 
-def find_substring_in_list(strings: str, substring: str) -> int:
+def find_substring_in_list(strings: list, substring: str) -> int:
     """
     Finds the index of the first occurrence/line of a substring in a list of strings.
 
@@ -551,3 +552,67 @@ def contains_html(text: str) -> bool:
     """Returns True if the given text contains HTML tags, otherwise False."""
     html_pattern = re.compile(r"<[^>]+>")  # Matches anything inside < >
     return bool(html_pattern.search(text))
+
+
+def is_dark_or_light_color(color: str) -> str:
+    """
+    Determines if a given color name (including Tkinter names) or hex value is dark or light.
+
+    Args:
+        color (str): The name of the color (e.g., "red", "lightblue") or its hex value (e.g., "#FF0000", "#00F").
+
+    Returns:
+        str: "dark" if the color is determined to be dark, "light" otherwise.
+             Returns an error message if the color format is invalid or the named color is not recognized by Tkinter.
+    """
+
+    def hex_to_rgb(hex_value: str) -> tuple[int, int, int] | None:
+        hex_value = hex_value.lstrip("#")
+        if len(hex_value) == 3:
+            hex_value = "".join([c * 2 for c in hex_value])
+        if len(hex_value) == 6:
+            return tuple(int(hex_value[i : i + 2], 16) for i in (0, 2, 4))
+
+        return None
+
+    if color.startswith("#"):
+        rgb = hex_to_rgb(color)
+        if not rgb:
+            return "Error: Invalid hex color format."
+    else:
+        try:
+            root = tk.Tk()
+            root.withdraw()  # Hide the main window
+            frame = tk.Frame(root)
+            frame.config(bg=color)
+            hex_color = frame.cget("bg")
+            root.destroy()
+            rgb = hex_to_rgb(hex_color)
+            if not rgb:
+                return "Error: Could not convert Tkinter color to RGB."
+        except tk.TclError:
+            return "Error: Unrecognized color name."
+
+    if rgb:
+        luminance = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
+        if luminance < 128:
+            return "dark"
+        return "light"
+    return "Error: Invalid color format."
+
+
+def get_first_substring_match(main_string: str, substrings: list) -> str | None:
+    """
+    Checks if any of the substrings in a list are present in a given string.
+
+    Args:
+      main_string: The string to search within.
+      substrings: A list of strings to search for.
+
+    Returns:
+      The first substring found in the main string, or None if no match is found.
+    """
+    for sub in substrings:
+        if sub in main_string:
+            return sub
+    return None

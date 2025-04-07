@@ -11,6 +11,7 @@ import contextlib
 import json
 import os
 import pickle
+import string
 import webbrowser
 from pathlib import Path
 from tkinter import *  # noqa: F403
@@ -19,7 +20,6 @@ from tkinter import TclError
 from tkinter.ttk import *  # noqa: F403
 
 import customtkinter
-import darkdetect
 import requests
 
 from maptasker.src.colrmode import set_color_mode
@@ -81,7 +81,12 @@ from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapai import valid_api_key
 from maptasker.src.mapit import clean_up_memory, mapit_all
-from maptasker.src.maputils import clear_tasker_data, update, validate_xml_file
+from maptasker.src.maputils import (
+    clear_tasker_data,
+    is_dark_or_light_color,
+    update,
+    validate_xml_file,
+)
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.proginit import log_startup_values
 from maptasker.src.sysconst import (
@@ -3580,8 +3585,7 @@ class EventHandlers:
         Returns:
             None
         """
-
-        # Sstart search at beginning
+        # Start search at beginning
         textview.search_current_line = "1.0"
         try:
             textview.search_indecies = []
@@ -3596,19 +3600,26 @@ class EventHandlers:
 
         # Check if search_input is not empty
         if search_input:
+            # Determine if the background color is dark or light.
+            background_color = PrimeItems.colors_to_use["background_color"]
+            if all(c in string.hexdigits for c in background_color):
+                background_color = f"#{background_color}"
+            background_color_mode = is_dark_or_light_color(background_color)
+
             # Determine the color to highlight the next/previous string in.
-            if self.parent.appearance_mode == "dark" or (
-                self.parent.appearance_mode == "system" and darkdetect.isDark()
-            ):
+            if background_color_mode == "dark":
                 textview.search_color_text = "darkblue"
                 textview.search_color_highlight = "yellow"
                 textview.search_color_nextprev = "white"
-            elif self.parent.appearance_mode == "light" or (
-                self.parent.appearance_mode == "system" and darkdetect.isLight()
-            ):
+            elif background_color_mode == "light":
                 textview.search_color_text = "yellow"
                 textview.search_color_highlight = "orange"
                 textview.search_color_nextprev = "blue"
+            else:
+                # Rutroh...bad background color.
+                textview.search_color_text = "black"
+                textview.search_color_highlight = "white"
+                textview.search_color_nextprev = "gray"
 
             textview.search_string = search_input
             # Get the entire textbox into a list, one item per line.
@@ -3625,27 +3636,53 @@ class EventHandlers:
             first_time = True
             if number_of_hits > 0:
                 for match in search_hits:
+                    # Point to the actual line and position of the match.
                     text_line_num = match[0] + 1
                     text_line_pos = match[1]
 
+                    # Get the index and last-index for the match.
                     idx = f"{text_line_num!s}.{text_line_pos!s}"
                     lastidx = f"{idx}+{len(search_input)}c"
+
+                    # Keep track of it for 'Next' and 'Prev'.
                     textview.search_indecies.append(idx)
                     if first_time:
                         textview.search_current_line = idx
                         first_time = False
 
-                    # text_widget.tag_add(tag_name, start_index, end_index)
+                    # Add the tag for highlighting the matches.
                     textview.textview_textbox.tag_add("found", idx, lastidx)
 
-                # The tradditioonal tkinter search code fails: it never returns if stopindex is hit.
+                    # Tag it so that it will get caught by 'click_text' for hover.
+                    textview.tag_items("found", f"Found: {search_input}   ")
 
-                # mark located string as red
+                    # Add the list of matches to this entry in mygui.
+                    self.parent.items_for_selection["found"]["indecies"] = (
+                        textview.search_indecies
+                    )
+
+                # Mark located string by highlighting it.
                 textview.textview_textbox.tag_config(
                     "found",
                     foreground=textview.search_color_text,
                     background=textview.search_color_highlight,
                 )
+
+                ## Determine the color to use for highlighting based on the background color
+                # background_color = PrimeItems.colors_to_use["background_color"]
+                # if all(c in string.hexdigits for c in background_color):
+                #    background_color = f"#{background_color}"
+                # background_color_mode = is_dark_or_light_color(background_color)
+                # color_to_use = "white" if background_color_mode == "dark" else "black"
+
+                ## Add a rectangle around it.
+                # textview.textview_textbox.tag_config(
+                #    "found",
+                #    foreground=color_to_use,
+                #    relief="groove",
+                #    borderwidth=1,
+                # )
+
                 # Set the line at the first hit.  "See" makes it visible (sometimes).
                 textview.textview_textbox.see(textview.search_current_line)
                 textview.textview_textbox.focus_set()

@@ -13,6 +13,7 @@ import contextlib
 import json
 import os
 import platform
+import re
 import sys
 import time
 from functools import cache
@@ -76,20 +77,19 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 7.1.2 - Change Log\n
+Version 7.2.0 - Change Log\n
 ### Added\n
-- Added: OpenAI's 'o1-pro' and 'gemini-2.5-pro-exp-03-25' AI models have been added (removed 'o1-preview').\n
-- Added: Support for Tasker 6.5.3 Beta.\n
+- Added: Hover over a matched search string in Map view displays all the matches from the 'Search'.\n
+- Added: Ollama AI models 'exaone-deep', 'gemma3' and 'phi4-mini' have been added.\n
+- Added: Deepseek AI 'deepseek-reaoner' model has been added.
+- Added: Anthropic AI 'claude-3-7-sonnet' model has been added.\n
 ### Changed\n
-- Changed: Only display a 'Property' if it has a value or is checked.\n
+- Changed: Task 'Configuration parameter(s):' have been flattened (removed 'Continued >>>') if not doing 'Pretty' output.\n
 ### Fixed\n
-- Fixed: Minor html formatting issues.\n
-- Fixed: Events with multiple applications specified are not formatted properly.\n
-- Fixed: Conditions associated with Profile States and Events are not displayed.\n
-- Fixed: Profiles are being mis-identified as Launcher Tasks.\n
-- Fixed: Program error if the XML file is not accessible during startup.\n
-- Fixed: Program error on startup if the settings file is corrupt.\n
-- FIxed: Program error can occur when trying to kill the progress bar during a Diagram view.\n
+- Fixed: If the 'Pretty' option is selected, properly align Profile condition arguments.\n
+- Fixed: Task '[⛔DISABLED]' indicators are misaligned.\n
+- Fixed: '<' and '>' are occasionally missing from IF conditions in the Map view.\n
+- Fixed: Invalid progress bar window position hides the progress bar altogether.\n
 """
 
 default_font_size = 14
@@ -2786,3 +2786,67 @@ def align_text(text: str, column: int) -> str:
     adjusted_column = max(0, column - leading_spaces)  # Ensure non-negative padding
 
     return (nbsp * adjusted_column) + text  # Adjust spacing to align correctly
+
+
+def destroy_hover_tooltip(tooltip: object | list) -> None:
+    """
+    Destroy the hover tooltip if it exists.
+
+    Args:
+        tooltip (object): The instance of the tk.label or list.
+
+    Returns:
+        None
+    """
+    if tooltip:
+        if isinstance(tooltip, list):
+            try:
+                tooltip[0].destroy()
+                tooltip[1].destroy()
+            except AttributeError:
+                pass
+        else:
+            tooltip.destroy()
+    tooltip = None
+
+
+def validate_tkinter_geometry(geometry_string: str) -> bool:
+    """
+    Validates a tkinter window geometry string with additional constraints.
+
+    Args:
+        geometry_string (str): The geometry string in the format
+                                 'width x height + position_x + position_y'.
+
+    Returns:
+        bool: True if the geometry string is valid and meets the constraints,
+              False otherwise.
+    """
+    pattern = re.compile(r"^\d+x\d+\+\d+\+\d+$")
+    if not pattern.match(geometry_string):
+        return False
+
+    try:
+        parts = geometry_string.replace("+", " ").replace("x", " ").split()
+        width = int(parts[0])
+        height = int(parts[1])
+        pos_x = int(parts[2])
+        pos_y = int(parts[3])
+
+        if width < 300:
+            print("Error: Width must be at least 300.")
+            return False
+        if height < 50:
+            print("Error: Height must be at least 50.")
+            return False
+        if pos_x < 0:
+            print("Error: Position X must be a non-negative number.")
+            return False
+        if pos_y < 0:
+            print("Error: Position Y must be a non-negative number.")
+            return False
+
+        return True  # noqa: TRY300
+    except ValueError:
+        print("Error: Invalid numeric value in geometry string.")
+        return False

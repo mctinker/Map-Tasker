@@ -109,7 +109,11 @@ def get_variables(result: str) -> None:
             # Validate that this variable is for the Project we are currently doing.
             try:
                 if primary_variable := PrimeItems.variables[variable]:
-                    if primary_variable["project"] and PrimeItems.current_project not in primary_variable["project"]:
+                    if (
+                        primary_variable["project"]
+                        and PrimeItems.current_project
+                        not in primary_variable["project"]
+                    ):
                         primary_variable["project"].append(PrimeItems.current_project)
                     elif not primary_variable["project"]:
                         primary_variable["project"] = [PrimeItems.current_project]
@@ -120,6 +124,29 @@ def get_variables(result: str) -> None:
                     "project": [PrimeItems.current_project],
                     "verified": False,
                 }
+
+
+def fix_config_parameters(s: str, target: str, replacement: str) -> str:
+    """
+    Replaces all occurrences of 'target' in 's' with 'replacement',
+    except the first occurrence is replaced with '&nbsp;' and the last occurrence remains unchanged.
+    """
+    occurrences = [i for i in range(len(s)) if s.startswith(target, i)]
+
+    if len(occurrences) < 2:
+        return (
+            s  # If less than 2 occurrences, nothing to replace except maybe the first
+        )
+
+    first, *middle, last = occurrences
+
+    # Put it all together
+    s = s[:first] + "&nbsp;" + s[first + len(target) :].replace(target, replacement)
+    if s[-2:] == ", ":
+        # Remove the trailing comma if it exists
+        s = s[:-2]
+
+    return s
 
 
 # For the given code, save the display_name, required arg list and associated
@@ -173,8 +200,14 @@ def get_action_results(
     elif evaluated_results["error"]:
         result = evaluated_results["error"]
 
-    # Clean up the arguments, if any.  Replace <> so they appear properly
-    # Eliminate extra commas
+    # Replace '\n' with ', ' if not pretty
+    if (
+        not PrimeItems.program_arguments["pretty"]
+        and "Configuration Parameter(s):" in result
+    ):
+        result = fix_config_parameters(result, "\n", ", ")
+
+    # Clean up the rest of it.  Fix brackets, double commas, etc.
     if result:
         # Replace "<" with "&lt;"
         result = pattern3.sub("&lt;", result)
@@ -191,7 +224,10 @@ def get_action_results(
         result = f"&nbsp;&nbsp;{result}"
 
         # Process variables if display_detail_level is 4
-        if program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
+        if (
+            program_arguments["display_detail_level"]
+            >= DISPLAY_DETAIL_LEVEL_all_variables
+        ):
             get_variables(result)
 
     # Return the properly formatted HTML (if Task) with the Action name and extra stuff
