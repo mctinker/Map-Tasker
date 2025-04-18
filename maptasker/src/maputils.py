@@ -10,8 +10,8 @@ from __future__ import annotations
 import ipaddress
 import json
 import os
-import re
 import socket
+import string
 import subprocess
 import sys
 import tkinter as tk
@@ -109,7 +109,7 @@ def update() -> None:
     """Update this package."""
     version = get_pypi_version()
     packageversion = "maptasker" + version
-    subprocess.call(
+    subprocess.call(  # noqa: S603
         [sys.executable, "-m", "pip", "install", packageversion, "--upgrade"],
     )
 
@@ -233,16 +233,12 @@ def validate_xml(
             # Run the XML file through the XML parser to validate it.
             try:
                 filename_location = android_file.rfind(PrimeItems.slash) + 1
-                file_to_validate = PrimeItems.program_arguments["android_file"][
-                    filename_location:
-                ]
+                file_to_validate = PrimeItems.program_arguments["android_file"][filename_location:]
                 xmlp = et.XMLParser(encoding=" iso8859_9")
                 xml_tree = et.parse(file_to_validate, parser=xmlp)
                 process_file = False  # Get out of while/loop
             except et.ParseError:  # Parsing error
-                error_message = (
-                    f"Improperly formatted XML in {android_file}. Try again."
-                )
+                error_message = f"Improperly formatted XML in {android_file}. Try again."
                 process_file = False  # Get out of while/loop
             except UnicodeDecodeError:  # Unicode error
                 rewrite_xml(file_to_validate)
@@ -252,9 +248,7 @@ def validate_xml(
                     break
                 process_file = True  # Loop one more time.
             except Exception as e:  # any other errorError out and exit  # noqa: BLE001
-                error_message = (
-                    f"XML parsing error {e} in file {android_file}.\n\nTry again."
-                )
+                error_message = f"XML parsing error {e} in file {android_file}.\n\nTry again."
                 process_file = False  # Get out of while/loop
 
     return error_message, xml_tree
@@ -432,24 +426,6 @@ def rutroh_error(message: str) -> None:
         logger.debug(f"Rutroh! Error...{message}")
 
 
-def find_substring_in_list(strings: list, substring: str) -> int:
-    """
-    Finds the index of the first occurrence/line of a substring in a list of strings.
-
-    Args:
-        strings (list): A list of strings to search in.
-        substring (str): The substring to search for.
-
-    Returns:
-        int: The index of the first occurrence of the substring in the list,
-            or -1 if the substring is not found.
-    """
-    for index, string in enumerate(strings):
-        if substring in string:
-            return index
-    return -1  # Return -1 if the substring is not found
-
-
 def display_task_warnings() -> None:
     """
     Output any warnings for tasks with too many actions.
@@ -548,57 +524,34 @@ def clear_tasker_data() -> None:
     PrimeItems.tasker_root_elements["all_scenes"].clear()
 
 
-def contains_html(text: str) -> bool:
-    """Returns True if the given text contains HTML tags, otherwise False."""
-    html_pattern = re.compile(r"<[^>]+>")  # Matches anything inside < >
-    return bool(html_pattern.search(text))
-
-
-def is_dark_or_light_color(color: str) -> str:
+def is_dark_color(color: str) -> bool:
     """
-    Determines if a given color name (including Tkinter names) or hex value is dark or light.
+    Determines if a given tkinter color name or hex value is dark or light.
 
     Args:
-        color (str): The name of the color (e.g., "red", "lightblue") or its hex value (e.g., "#FF0000", "#00F").
+        color (str): A tkinter color name (e.g., "red", "lightblue") or a hex color value (e.g., "FF0000").
 
     Returns:
-        str: "dark" if the color is determined to be dark, "light" otherwise.
-             Returns an error message if the color format is invalid or the named color is not recognized by Tkinter.
+        bool: True if the color is dark, False if the color is light.
     """
+    if all(c in string.hexdigits for c in color):
+        color = "#" + color
+    root = tk.Tk()
+    try:
+        # Convert color to RGB tuple
+        rgb = root.winfo_rgb(color)
+        r, g, b = (x // 256 for x in rgb)  # Normalize RGB values to 0-255 range
 
-    def hex_to_rgb(hex_value: str) -> tuple[int, int, int] | None:
-        hex_value = hex_value.lstrip("#")
-        if len(hex_value) == 3:
-            hex_value = "".join([c * 2 for c in hex_value])
-        if len(hex_value) == 6:
-            return tuple(int(hex_value[i : i + 2], 16) for i in (0, 2, 4))
+        # Calculate luminance (YIQ formula)
+        luminance = 0.299 * r + 0.587 * g + 0.114 * b
 
-        return None
+        # Determine if dark or light based on luminance threshold
+        return luminance < 128  # noqa: TRY300
+    except tk.TclError:
+        return False  # Return false if invalid color.
 
-    if color.startswith("#"):
-        rgb = hex_to_rgb(color)
-        if not rgb:
-            return "Error: Invalid hex color format."
-    else:
-        try:
-            root = tk.Tk()
-            root.withdraw()  # Hide the main window
-            frame = tk.Frame(root)
-            frame.config(bg=color)
-            hex_color = frame.cget("bg")
-            root.destroy()
-            rgb = hex_to_rgb(hex_color)
-            if not rgb:
-                return "Error: Could not convert Tkinter color to RGB."
-        except tk.TclError:
-            return "Error: Unrecognized color name."
-
-    if rgb:
-        luminance = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
-        if luminance < 128:
-            return "dark"
-        return "light"
-    return "Error: Invalid color format."
+    finally:
+        root.destroy()  # Clean up the temporary Tkinter window
 
 
 def get_first_substring_match(main_string: str, substrings: list) -> str | None:

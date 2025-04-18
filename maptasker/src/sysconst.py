@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "7.2.0"
+VERSION = "7.2.1"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -181,7 +181,9 @@ pattern9 = re.compile("</span></span>")
 pattern10 = re.compile("</p></p>")
 pattern11 = re.compile(".*[A-Z].*")
 pattern12 = re.compile(r"[%]\w+")  # matches any word-constituent character.
-pattern13 = r",(?=\S)"  # matches any comma followed by a non-blank character.  e.g. now is,the time, for (catches is,the)
+pattern13 = (
+    r",(?=\S)"  # matches any comma followed by a non-blank character.  e.g. now is,the time, for (catches is,the)
+)
 # pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<\\"  # Match everything after the label until a '<'
 pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<span>"
 pattern15 = re.compile("\n")
@@ -255,12 +257,16 @@ OPENAI_MODELS = [
     "gpt-4",
     "gpt-4-turbo",
     "gpt-4-turbo-preview",
+    "gpt-4.1",
+    "gpt-4.1-mini",
+    "gpt-4.1-nano",
     "gpt-4.5-preview",
     "o1",
     "o1-mini",
     "o1-pro",
     "o3",
     "o3-mini",
+    "04-mini",
 ]
 LLAMA_MODELS = [
     "aya",

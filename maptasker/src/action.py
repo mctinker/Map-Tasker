@@ -97,9 +97,7 @@ def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
     first_string = child.find("lhs").text
     operation = child.find("op").text
     the_operation = the_operations[operation]
-    if (
-        "set" not in the_operation and child.find("rhs").text is not None
-    ):  # No second string if "set/not" set
+    if "set" not in the_operation and child.find("rhs").text is not None:  # No second string if "set/not" set
         second_operation = child.find("rhs").text
         # Correct any embedded html tags in text string.
         second_operation = second_operation.replace("<", "&lt;")
@@ -363,6 +361,7 @@ def clean_label(lbl: str) -> str:
         :return: the cleaned up label with added html tags for a label's color
     """
     # Remove html tags associated with label, and then add our own.
+    lbl = lbl.replace("<", "&lt;").replace(">", "&gt;")
     lbl = remove_html_tags(lbl, "")
     return format_html(
         "action_label_color",
@@ -386,8 +385,6 @@ Inputs:
 - 'code_action': an xml element representing the Task Action code
 - 'action_type': a boolean indicating whether the code represents a Task Action or
                     a Profile condition
-- 'colormap': a dictionary containing colors to use in output
-- 'program_args': a dictionary containing runtime arguments
 
 Flow:
 - Check if the code represents a Task Action and if the display detail level
@@ -435,20 +432,13 @@ def get_extra_stuff(
     if action_code_xml is None:
         return ""
 
-    action_code = (
-        action_code_xml.text
-        if action_code_xml is not None and not isinstance(action_code_xml, int)
-        else ""
-    )
+    action_code = action_code_xml.text if action_code_xml is not None and not isinstance(action_code_xml, int) else ""
 
     program_arguments = PrimeItems.program_arguments
     colors_to_use = PrimeItems.colors_to_use
 
     # Only get extras if this is a Task action (vs. a Profile condition)
-    if (
-        action_type
-        and program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks
-    ):
+    if action_type and program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
         # Look for extra Task stuff: label, disabled, conditions
         extra_stuff = get_label_disabled_condition(code_action)
         # If this is an 'If' action, remove the 'IF' from the label since we already have it.
@@ -462,17 +452,13 @@ def get_extra_stuff(
             else extra_stuff
         )
         extra_stuff = (
-            extra_stuff.replace("</b>", "")
-            if "<b>" in extra_stuff and "</b>" not in extra_stuff
-            else extra_stuff
+            extra_stuff.replace("</b>", "") if "<b>" in extra_stuff and "</b>" not in extra_stuff else extra_stuff
         )
 
     else:
         extra_stuff = ""
 
-    if (
-        program_arguments["debug"] and action_type
-    ):  # Add the code if this is an Action and in debug mode
+    if program_arguments["debug"] and action_type:  # Add the code if this is an Action and in debug mode
         extra_stuff = extra_stuff + format_html(
             "disabled_action_color",
             "",

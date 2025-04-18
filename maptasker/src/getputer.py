@@ -198,9 +198,7 @@ def process_old_formatted_file(
             temp_args = program_arguments["backup_file_http"].split(":")
             program_arguments["android_ipaddr"] = temp_args[1][2:]
             program_arguments["android_port"] = temp_args[2]
-            program_arguments["android_file"] = program_arguments[
-                "backup_file_location"
-            ]
+            program_arguments["android_file"] = program_arguments["backup_file_location"]
             del program_arguments["backup_file_http"]
             del program_arguments["backup_file_location"]
 
@@ -247,9 +245,7 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
 
             # Program arguments
             try:
-                program_arguments = settings[
-                    "program_arguments"
-                ]  # Get the program arguments
+                program_arguments = settings["program_arguments"]  # Get the program arguments
             except KeyError:
                 program_arguments = initialize_runtime_arguments()
             try:

@@ -77,19 +77,16 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 7.2.0 - Change Log\n
+Version 7.2.1 - Change Log\n
 ### Added\n
-- Added: Hover over a matched search string in Map view displays all the matches from the 'Search'.\n
-- Added: Ollama AI models 'exaone-deep', 'gemma3' and 'phi4-mini' have been added.\n
-- Added: Deepseek AI 'deepseek-reaoner' model has been added.
-- Added: Anthropic AI 'claude-3-7-sonnet' model has been added.\n
+- Added: Tasker version 6.5.4 Beta support.\n
+- Added: OpenAI models 'GPT-4.1', 'GPT-4.1-mini', 'GPT-4.1-nano', and '04-mini' have been added.\n
 ### Changed\n
-- Changed: Task 'Configuration parameter(s):' have been flattened (removed 'Continued >>>') if not doing 'Pretty' output.\n
+- Changed: Modified the display of search matches to start at the cursor location rather than display all matches.\n
 ### Fixed\n
-- Fixed: If the 'Pretty' option is selected, properly align Profile condition arguments.\n
-- Fixed: Task '[⛔DISABLED]' indicators are misaligned.\n
-- Fixed: '<' and '>' are occasionally missing from IF conditions in the Map view.\n
-- Fixed: Invalid progress bar window position hides the progress bar altogether.\n
+- Fixed: Fixed highlight color for 'Search' Map and Diagram views if light appearance.\n
+- Fixed: Background color for hover text in Map view doesn't match the Appearance Mode.\n
+- Fixed: Labels with '<' and no closing '>' (e.g. html tag) are not appearing in the output.\n
 """
 
 default_font_size = 14
@@ -2636,13 +2633,16 @@ def parse_pairs_to_columns(pairs: list) -> str:
         str: A string representing the two-column formatted text.
     """
     # Find the maximum width of the first column
-    max_width_col1 = max(len(pair[0]) for pair in pairs) + 2  # Add padding
+    max_width_col1 = 0
+    for pair in pairs:
+        max_width_col1 = max(len(pair[0]), max_width_col1)
+    max_width_col1 += 2
 
     # Format each pair into two columns
     formatted_lines = [f"{pair[0].ljust(max_width_col1)}{pair[1]}" for pair in pairs]
 
     # Join all lines with a newline character
-    return "\n  ".join(formatted_lines)
+    return "\n".join(formatted_lines)
 
 
 # Window is getting closed. Save the window position.

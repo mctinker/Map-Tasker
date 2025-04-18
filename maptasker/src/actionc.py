@@ -1324,14 +1324,6 @@ action_codes = {
         "",
         "",
     ),
-    "210e": ActionCode(
-        "",
-        [["0", True, "", "1", ["Priority=", "l", "4s"]]],
-        "Display Off",
-        "",
-        "",
-    ),
-    "210t": ActionCode("", [], "InputMethod Settings", "30", "False"),
     "2102e": ActionCode(
         "",
         [
@@ -1345,6 +1337,14 @@ action_codes = {
         "",
         "",
     ),
+    "210e": ActionCode(
+        "",
+        [["0", True, "", "1", ["Priority=", "l", "4s"]]],
+        "Display Off",
+        "",
+        "",
+    ),
+    "210t": ActionCode("", [], "InputMethod Settings", "30", "False"),
     "2114100406t": ActionCode("1040876951t", [], "AutoLaunch Query", "", ""),
     "211707263t": ActionCode("1040876951t", [], "Global Actions", "", ""),
     "211905330t": ActionCode("1040876951t", [], "AutoContacts", "", ""),

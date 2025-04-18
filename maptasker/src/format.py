@@ -39,9 +39,7 @@ def format_line(item: str) -> str:
         output_line = item
 
     # # Format the html...add a number of blanks if some sort of list.
-    if (
-        "DOCTYPE" in item
-    ):  # If imbedded html (e.g. Scene WebElement), add a break and some spacing.
+    if "DOCTYPE" in item:  # If imbedded html (e.g. Scene WebElement), add a break and some spacing.
         output_line = pattern15.sub(f"<br>{space * 30}", output_line)
 
     # Add a carriage return if this is a break: replace("<br>" with "<br>\r"

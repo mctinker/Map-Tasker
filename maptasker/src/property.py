@@ -97,26 +97,16 @@ def parse_variable(
     components = [
         f"Variable:{get_text(fields['pvn'])}, " if get_text(fields["pvn"]) else "",
         "Configure on Import, " if get_text(fields["pvci"]) != "false" else "",
-        "Structured Variable (JSON, etc.), "
-        if get_text(fields["strout"]) != "false"
-        else "",
+        "Structured Variable (JSON, etc.), " if get_text(fields["strout"]) != "false" else "",
         "Immutable, " if get_text(fields["immutable"]) != "false" else "",
-        f"Clear Out:{get_text(fields['clearout'])}, "
-        if get_text(fields["clearout"]) != "false"
-        else "",
+        f"Clear Out:{get_text(fields['clearout'])}, " if get_text(fields["clearout"]) != "false" else "",
         f"Prompt:{get_text(fields['pvd'])}, " if get_text(fields["pvd"]) else "",
         f"Value:{get_text(fields['pvv'])}, " if get_text(fields["pvv"]) else "",
-        f"Display Name:{get_text(fields['pvdn'])}, "
-        if get_text(fields["pvdn"])
-        else "",
+        f"Display Name:{get_text(fields['pvdn'])}, " if get_text(fields["pvdn"]) else "",
     ]
 
     # Determine exported value
-    exported_value = (
-        "Same as Value"
-        if get_text(fields["pvn"]) == "1"
-        else get_text(fields["exportval"])
-    )
+    exported_value = "Same as Value" if get_text(fields["pvn"]) == "1" else get_text(fields["exportval"])
     components.append(f"Exported Value:{exported_value}, " if exported_value else "")
 
     # Get the variable type

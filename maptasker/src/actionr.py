@@ -109,11 +109,7 @@ def get_variables(result: str) -> None:
             # Validate that this variable is for the Project we are currently doing.
             try:
                 if primary_variable := PrimeItems.variables[variable]:
-                    if (
-                        primary_variable["project"]
-                        and PrimeItems.current_project
-                        not in primary_variable["project"]
-                    ):
+                    if primary_variable["project"] and PrimeItems.current_project not in primary_variable["project"]:
                         primary_variable["project"].append(PrimeItems.current_project)
                     elif not primary_variable["project"]:
                         primary_variable["project"] = [PrimeItems.current_project]
@@ -134,9 +130,7 @@ def fix_config_parameters(s: str, target: str, replacement: str) -> str:
     occurrences = [i for i in range(len(s)) if s.startswith(target, i)]
 
     if len(occurrences) < 2:
-        return (
-            s  # If less than 2 occurrences, nothing to replace except maybe the first
-        )
+        return s  # If less than 2 occurrences, nothing to replace except maybe the first
 
     first, *middle, last = occurrences
 
@@ -201,10 +195,7 @@ def get_action_results(
         result = evaluated_results["error"]
 
     # Replace '\n' with ', ' if not pretty
-    if (
-        not PrimeItems.program_arguments["pretty"]
-        and "Configuration Parameter(s):" in result
-    ):
+    if not PrimeItems.program_arguments["pretty"] and "Configuration Parameter(s):" in result:
         result = fix_config_parameters(result, "\n", ", ")
 
     # Clean up the rest of it.  Fix brackets, double commas, etc.
@@ -224,10 +215,7 @@ def get_action_results(
         result = f"&nbsp;&nbsp;{result}"
 
         # Process variables if display_detail_level is 4
-        if (
-            program_arguments["display_detail_level"]
-            >= DISPLAY_DETAIL_LEVEL_all_variables
-        ):
+        if program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
             get_variables(result)
 
     # Return the properly formatted HTML (if Task) with the Action name and extra stuff

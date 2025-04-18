@@ -48,13 +48,9 @@ def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) 
             case "fh" | "fm" | "th" | "tm" | "fromvar" | "tovar":
                 time_values[child.tag] = child.text or ""
             case "rep":
-                time_values["rep_type"] = (
-                    " minutes " if child.text == "2" else " hours "
-                )
+                time_values["rep_type"] = " minutes " if child.text == "2" else " hours "
             case "repval":
-                time_values["rep"] = (
-                    f" repeat every {child.text}{time_values['rep_type']}"
-                )
+                time_values["rep"] = f" repeat every {child.text}{time_values['rep_type']}"
             case _:
                 return (
                     f"{the_output_condition}{child.text} not yet mapped!",
@@ -163,10 +159,7 @@ def condition_state(
             )
 
             # If pretty text, then reformat it.
-            if (
-                "Configuration Parameter(s):" in state
-                and PrimeItems.program_arguments["pretty"]
-            ):
+            if "Configuration Parameter(s):" in state and PrimeItems.program_arguments["pretty"]:
                 state = reformat_html(state)
 
             # Add this State to any preceding State
@@ -203,11 +196,7 @@ def condition_event(
     the_event_code = the_item.find("code")
 
     # Determine what the Event code is and return the actual Event text
-    event_code = (
-        f"{the_event_code.text}e"
-        if "e" not in the_event_code.text
-        else the_event_code.text
-    )
+    event_code = f"{the_event_code.text}e" if "e" not in the_event_code.text else the_event_code.text
     if event_code not in action_codes:
         logger.debug(f"code:{the_event_code.text} not found in action codes!")
         # Build new (template_ action code if not in our dictionary of codes yet
@@ -216,7 +205,7 @@ def condition_event(
             the_item,
         )  # Add it to our action dictionary
 
-    # Get the event code and its arguments
+    # Get the event code and its arguments with spacing added for 'pretty' text
     # the_event_code.text = event_code
     event = action_evaluate.get_action_code(
         the_event_code,
@@ -224,6 +213,10 @@ def condition_event(
         False,
         "e",
     )
+
+    # If pretty text, then reformat it.
+    if "Configuration Parameter(s):" in event and PrimeItems.program_arguments["pretty"]:
+        event = reformat_html(event)
 
     # Get the event priority
     event = f"{event}{get_priority(the_item, True)}"
@@ -235,17 +228,10 @@ def condition_event(
         extract_condition(evaluated_results, "0", "", the_item)
         event = f"{event}, Condition(s): {evaluated_results['arg0']['value']}"
 
-    # If pretty text, then reformat it.
-    # NOTE: Format line here instead of calling reformat_html()
-    if PrimeItems.program_arguments["pretty"]:
-        event = reformat_html(event)
-
     # Format the Event text
     event = event.replace("\n", "<br>")
     the_output_condition = f"{the_output_condition}Event: {event}"
-    if PrimeItems.program_arguments[
-        "debug"
-    ]:  # if program_args['debug'] then add the code
+    if PrimeItems.program_arguments["debug"]:  # if program_args['debug'] then add the code
         the_output_condition = f"{the_output_condition} (code:{the_event_code.text})"
     return the_output_condition
 
@@ -304,9 +290,7 @@ def parse_profile_condition(the_profile: defusedxml.ElementTree) -> str:
 
     # Go through Profile'x sub-XML looking for conditions
     for item in the_profile:
-        if (
-            item.tag in ignore_items or "mid" in item.tag
-        ):  # Bypass junk we don't care about
+        if item.tag in ignore_items or "mid" in item.tag:  # Bypass junk we don't care about
             continue
         if condition:  # If we already have a condition, add 'and' (italicized)
             condition = f"{condition}, <em>AND</em> "

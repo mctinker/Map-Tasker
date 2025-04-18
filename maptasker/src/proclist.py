@@ -64,11 +64,7 @@ def format_task_or_scene(list_type: list, the_item: str) -> tuple:
         tuple[str, str]: Our formatted output line and color to user
     """
     # Format the Task/Scene name as needed: spacing and HTML
-    the_item_altered = (
-        adjust_name(list_type, the_item)
-        if list_type in {"Task:", "Scene:"}
-        else the_item
-    )
+    the_item_altered = adjust_name(list_type, the_item) if list_type in {"Task:", "Scene:"} else the_item
 
     # Format the output line
     output_line = f"{list_type}&nbsp;{the_item_altered}"
@@ -227,9 +223,7 @@ def process_task_directory(the_task: defusedxml) -> None:
         None
     """
     task_id = the_task.attrib.get("sr", "")[4:]
-    task_name = (
-        PrimeItems.tasker_root_elements["all_tasks"].get(task_id, {}).get("name", "")
-    )
+    task_name = PrimeItems.tasker_root_elements["all_tasks"].get(task_id, {}).get("name", "")
     if task_name:
         add_directory_item("tasks", task_name)
 
@@ -385,12 +379,7 @@ def process_item(
     #   and not part of output for Tasks with no Profile(s)
     # Do we get the Task's Actions?
     if (
-        (
-            the_task is not None
-            and "Task:" in list_type
-            and UNKNOWN_TASK_NAME in the_item
-        )
-        or ("Task:" in list_type)
+        (the_task is not None and "Task:" in list_type and UNKNOWN_TASK_NAME in the_item) or ("Task:" in list_type)
     ) and "<em>No Profile" not in the_item:
         get_task_actions_and_output(
             the_task,
@@ -403,10 +392,7 @@ def process_item(
         if PrimeItems.program_arguments["twisty"]:
             remove_twisty()
 
-    elif (
-        list_type == "Scene:"
-        and PrimeItems.program_arguments["display_detail_level"] > 1
-    ):
+    elif list_type == "Scene:" and PrimeItems.program_arguments["display_detail_level"] > 1:
         # We have a Scene: process its details
         process_scene(
             the_item,

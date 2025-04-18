@@ -44,7 +44,12 @@ def ensure_argument_alignment(taction: str) -> str:
                     "&nbsp;",
                     "",
                 )
-                action_breakdown[index + 2] = f"{correct_spacing}{action_breakdown[index+2]}"
+                # Handle {DISABLED] task indicator at end of config parameters.
+                if action_breakdown[index + 2] == "[&#9940;DISABLED]</span>":
+                    correct_spacing = "&nbsp;" * (count_of_spaces - 18)
+
+                # Now add the correct number of spaces to the start of the line
+                action_breakdown[index + 2] = f"{correct_spacing}{action_breakdown[index + 2]}"
         # Put it all back together.
         taction = "<br>".join(action_breakdown)
     return taction

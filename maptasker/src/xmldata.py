@@ -60,9 +60,7 @@ def tag_in_type(tag: str, flag: bool) -> bool:
         "itemlongclickTask",
     }
     # Return a boolean: True if tag found in the appropriate list, False otherwise
-    return (flag and tag in scene_task_element_types) or (
-        not flag and tag in scene_task_click_types
-    )  # Boolean
+    return (flag and tag in scene_task_element_types) or (not flag and tag in scene_task_click_types)  # Boolean
 
 
 # We have an integer.  Evaluaate it's value based oon the code's evaluation parameters.
@@ -88,11 +86,7 @@ def extract_integer(
 
     # Find the first matching <Int> element with the desired 'sr' attribute
     int_element = next(
-        (
-            child
-            for child in code_action
-            if child.tag == "Int" and child.attrib.get("sr") == the_arg
-        ),
+        (child for child in code_action if child.tag == "Int" and child.attrib.get("sr") == the_arg),
         None,
     )
 
@@ -118,11 +112,7 @@ def extract_integer(
             # Handle the special case of "e" by adding a space before the value..expects a blank in element 0.
             new_argeval = ["", "e", argeval[1]] if argeval[0] == "e" else argeval
             # Handle special case of 'l' lookup.
-            new_argeval = (
-                [f"{arg[2]}=", "l", argeval[2]]
-                if arg[2] and argeval[1] == "l"
-                else new_argeval
-            )
+            new_argeval = [f"{arg[2]}=", "l", argeval[2]] if arg[2] and argeval[1] == "l" else new_argeval
         else:
             new_argeval = argeval
 
@@ -167,9 +157,7 @@ def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> st
     # Extract text value with prefix
     new_argeval = f"{argeval}=" if argeval[-1] != "=" else argeval
     extracted_text = (
-        f"{argeval}(carriage return)"
-        if str_element.text == "\n"
-        else f"{new_argeval}{str_element.text or ''}"
+        f"{argeval}(carriage return)" if str_element.text == "\n" else f"{new_argeval}{str_element.text or ''}"
     )
 
     # Drop trailing comma if necessary
@@ -206,6 +194,9 @@ def remove_html_tags(text: str, replacement: str) -> str:
             result.append(char)
         i += 1
 
+    # If we just have a '<' with no '>' then leave it alone.
+    if in_tag:
+        return text
     return "".join(result) if result else replacement
 
 

@@ -67,9 +67,7 @@ def get_profile_tasks(
                 PrimeItems.found_named_items["single_task_found"] = True
                 profile_name = the_profile.find("nme")
                 if profile_name is not None:
-                    PrimeItems.program_arguments["single_profile_name"] = (
-                        profile_name.text
-                    )
+                    PrimeItems.program_arguments["single_profile_name"] = profile_name.text
                 break
 
         elif tag == "nme":
@@ -91,11 +89,7 @@ def get_profile_name(
     # If we don't have the name, then set it to 'No Profile'
     profile_id = profile.attrib.get("sr")
     profile_id = profile_id[4:]
-    if not (
-        the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id][
-            "name"
-        ]
-    ):
+    if not (the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"]):
         the_profile_name = NO_PROFILE
 
     # Make the Project name bold, italicize, underline and/or highlighted if requested
@@ -130,7 +124,8 @@ def build_profile_line(
         :return: Profile name
     """
 
-    flags = condition_text = ""
+    flags = ""
+    condition_text = ""
     blank = "&nbsp;"
 
     # Set up HTML to use
@@ -149,9 +144,7 @@ def build_profile_line(
 
     # Look for disabled Profile
     limit = profile.find("limit")  # Is the Profile disabled?
-    disabled = (
-        disabled_profile_html if limit is not None and limit.text == "true" else ""
-    )
+    disabled = disabled_profile_html if limit is not None and limit.text == "true" else ""
 
     # Is there a Launcher Task with this Project?
     launcher_xml = profile.find("ProfileVariable")
@@ -166,11 +159,7 @@ def build_profile_line(
     # Display flags for debug mode
     if PrimeItems.program_arguments["debug"]:
         flags = profile.find("flags")
-        flags = (
-            format_html("launcher_task_color", "", f" flags: {flags.text}", True)
-            if flags is not None
-            else ""
-        )
+        flags = format_html("launcher_task_color", "", f" flags: {flags.text}", True) if flags is not None else ""
 
     # Get the Profile name
     profile_name_with_html, profile_name = get_profile_name(profile)
@@ -182,13 +171,7 @@ def build_profile_line(
     # Get the Profile's conditions
     if PrimeItems.program_arguments["conditions"] or profile_name == "NO_PROFILE":  # noqa: SIM102
         if profile_conditions := condition.parse_profile_condition(profile):
-            # Strip pre-existing HTML from conditions, since some condition codes
-            # may be same as Actions.
-            # And the Actions would have plugged in the action_color HTML.
-            # profile_conditions = remove_html_tags(profile_conditions, "")
-
             # Make the conditions pretty
-            # NOTE: Fix this once and forall
             if PrimeItems.program_arguments["pretty"]:
                 condition_length = profile_conditions.find(":")
                 # Add spacing for profile name, condition name and "Profile:"
@@ -221,6 +204,11 @@ def build_profile_line(
     # Okay, string it all together
     profile_info = f"{profile_name_with_html} {temp}"
 
+    # Do final alignment of the HTML string...must include the Profile name.
+    if PrimeItems.program_arguments["pretty"] and condition_text:
+        profile_info = align_html_text(profile_info)
+
+    # Fix the column alignment of the final html string
     # Output the Profile line
     PrimeItems.output_lines.add_line_to_output(
         2,
@@ -260,11 +248,7 @@ def do_profile(
     # Are we searching for a specific Profile?
     if PrimeItems.program_arguments["single_profile_name"]:
         # Make sure this item's name is in our list of profiles.
-        if not (
-            profile_name := PrimeItems.tasker_root_elements["all_profiles"][item][
-                "name"
-            ]
-        ):
+        if not (profile_name := PrimeItems.tasker_root_elements["all_profiles"][item]["name"]):
             return False  # Not our Profile...go to next Profile ID
 
         if PrimeItems.program_arguments["single_profile_name"] != profile_name:
@@ -325,6 +309,105 @@ def do_profile(
         list_of_found_tasks,
         True,
     )
+
+
+def align_html_text(html_string: str) -> str:
+    """
+    Align the Profile condition arguments...
+    Adds non-breaking spaces to an HTML string to align text following <br> and <em>AND</em> tags.
+
+    This function specifically targets the given HTML structure, identifying the
+    offset of the first condition and adds the appropriate number of "&nbsp;"
+    to subsequent lines to align them.  It also handles the case where
+    '<em>AND</em>' is present, inserting a line break and aligning the subsequent
+    text.  It also realigns '[DISABLED]' and 'Priority=' text.
+
+    Args:
+        html_string: The HTML string to adjust.
+
+    Returns:
+        The modified HTML string with added "&nbsp;" for alignment.
+    """
+    import re
+
+    # Find the starting position of the first occurrence of any of the target substrings
+    target_substrings = [
+        "\\(Event:",
+        "\\(State:",
+        "\\(Time:",
+        "\\(Application:",
+        "\\(Days of Week:",
+        "\\(Location:",
+    ]
+    pattern = r'(<span class="profile_condition_color">.*?)(' + "|".join(target_substrings) + r")"
+    position_match = re.search(pattern, html_string, re.DOTALL)
+
+    if not position_match:
+        return html_string  # Return original if none of the substrings are found
+
+    position_start = position_match.start(2)
+    position_end = position_match.end(2)
+    # Calculate the number of spaces before the first occurrence
+    spaces_before_position = position_end - position_start
+
+    # Get the length of the profile name substring and add it to the spaces
+    profile_name_start = html_string.find("Profile: ")
+    profile_name_end = html_string.find("</span>", profile_name_start)
+    profile_name_length = profile_name_end - profile_name_start
+    spaces_before_position += profile_name_length + 2
+
+    # Handle 'Configuration Parameter(s):'
+    config_position = html_string.find("Configuration Parameter(s):")
+    if config_position != -1:
+        spaces_before_position += config_position - position_start - 6
+
+    # Format Priority and '[(icon)DISABLED]'
+    html_string = html_string.replace(" Priority:", "<br>Priority:").replace(
+        "[&#9940;&nbsp;DISABLED]",
+        "<br>[&#9940;&nbsp;DISABLED])",
+    )
+
+    # Split the string by <br> tags within the profile_condition_color span
+    parts = re.split(r"(<br>)", html_string)
+    aligned_parts = [parts[0]]  # Keep the initial part unchanged
+
+    # Go thru every other string in the list, starting with 1.
+    for i in range(1, len(parts), 2):
+        if parts[i] == "<br>":
+            aligned_parts.append("<br>")
+
+        # Remove any and all spacing.  Ignore empty strings.
+        parts[i + 1] = parts[i + 1].replace("&nbsp;", "").strip()
+        if not parts[i + 1]:
+            continue
+
+        # Check for <em>AND</em> and insert a break if found
+        and_match = re.search(r"(<em>AND</em>)", parts[i + 1])
+        if and_match:
+            and_position = and_match.start(1)
+            # split the string at the AND tag
+            before_and = parts[i + 1][:and_position]
+            after_and = parts[i + 1][and_position + len("<em>AND</em>") :]
+            aligned_parts.append(before_and)
+            # aligned_parts.append("<br>")
+            aligned_parts.append(
+                "&nbsp;" * (spaces_before_position - 6) + "<em>AND</em>",
+            )
+            aligned_parts.append("<br>")
+            aligned_parts.append(
+                "&nbsp;" * (spaces_before_position - 7) + after_and,
+            )
+        else:
+            if "[&#9940;DISABLED]" in parts[i + 1]:
+                spaces_before_position = profile_name_length + 1
+                # Add spacers since we removed them all (above).
+                parts[i + 1] = parts[i + 1].replace(
+                    "[&#9940;DISABLED]",
+                    "[&#9940;&nbsp;DISABLED]",
+                )
+            # aligned_parts.append(parts[i])
+            aligned_parts.append("&nbsp;" * spaces_before_position + parts[i + 1])
+    return "".join(aligned_parts)
 
 
 # Go through all Projects Profiles...and output them

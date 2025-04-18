@@ -54,9 +54,7 @@ def share(
             )
 
         # Force a break when done with last Share element, only if there isn't one there already.
-        break_html = (
-            "" if PrimeItems.output_lines.output_lines[-1] == "<br>" else "<br>"
-        )
+        break_html = "" if PrimeItems.output_lines.output_lines[-1] == "<br>" else "<br>"
         PrimeItems.output_lines.add_line_to_output(
             0,
             f"{break_html}",
@@ -69,10 +67,7 @@ def share(
         ):
             if "TaskerNet description:" in item:
                 break
-            if (
-                item == "<br>"
-                and PrimeItems.output_lines.output_lines[num - 1] == "<br>"
-            ):
+            if item == "<br>" and PrimeItems.output_lines.output_lines[num - 1] == "<br>":
                 PrimeItems.output_lines.output_lines.remove(num)
                 break
             if tab != "proftab" and item.endswith("<br><br>"):
