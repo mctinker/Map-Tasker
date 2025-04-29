@@ -167,7 +167,7 @@ To retrieve the Tasker XML file directly from your Android device, you must have
 
 ### 3
 
-The most dir3ect and simple solution is to get and use the [standard Python release download](https://www.python.org).
+The most direct and simple solution is to get and use the [standard Python release download](https://www.python.org).
 
 If this is not an option and you insist on using Brew, then read on...
 
@@ -190,8 +190,8 @@ Python installations that use 'pyenv' version management, take note: tcl-tk has 
   - 'pyenv uninstall 3.11.xx'
   - 'brew install tcl-tk@8'
   - 'pyenv install 3.11:latest'
-- if running Python 3.12.0-thru-3.12.4, upgrade to the latest version of 3.12: 'pyenv install 3.12:latest'
-- Python version 3.13 works fine with the new tcl-tk.
+- if running Python 3.12, upgrade to the latest version of 3.12: 'pyenv install 3.12:latest'
+- Python version 3.13 works fine with the new tcl-tk version 9.
 
 ### 4
 
@@ -233,7 +233,7 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 
 - [x] Support additional AI's
 
-- [ ] Fix minor formatting issues.
+- [x] Fix minor formatting issues.
 
 - [ ] If Profile has no name, display the same name as that of Tasker
 

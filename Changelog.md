@@ -2,22 +2,21 @@
 
 All notable changes to this project will be documented in this file!
 
-## [7.2.1] 18-Apr-2025
+## [7.2.2] 29-Apr-2025
 
 ### Added
 
-- Added: Tasker version 6.5.4 Beta support.
-- Added: OpenAI models 'GPT-4.1', 'GPT-4.1-mini', 'GPT-4.1-nano', and '04-mini' have been added.
+- Added: Gemini models "gemini-2.5-flash-preview-04-17" and "gemini-2.5-pro-preview-03-25" have been added.
 
 ### Changed
 
-- Changed: Modified the display of search matches to start at the cursor location rather than display all matches.
+- Changed: No changes.
 
 ### Fixed
 
-- Fixed: Fixed highlight color for 'Search' Map and Diagram views if light appearance.
-- Fixed: Background color for hover text in Map view doesn't match the Appearance Mode.
-- Fixed: Labels with '<' and no closing '>' (e.g. html tag) are not appearing in the output.
+- Fixed: Tasks with '<' or '>' in the name is not appearing correctly in the Map view.
+- Fixed: Debug mode in GUI is not recognized.
+- Fixed: Doing a Map or Diagram view can potentially invoke AI Analysis inadvertently.
 
 ## Older History Logs
 
