@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 
 from maptasker.src.guiutils import align_text
+from maptasker.src.maputils import rutroh_error
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import pattern8
 from maptasker.src.xmldata import remove_html_tags
@@ -109,7 +110,26 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
     """
     tabs = f"{' ' * 4}"
     text_list = output_lines[line_num]["text"]
+    # If nothing, just return.
+    if not text_list:
+        return output_lines
+
     text_list = handle_gototop(text_list)
+
+    # Special handling for 'Task xxx has too many actions'.
+    # We don't want to strip the html from the Task name.
+    # Catch the '>' break before the &gt;' gets replaced.
+    too_many_pos = text_list[0].find("Task <a href=#tasks")
+    if too_many_pos != -1:
+
+        # Find the first ">"
+        break_pos = text_list[0].find(">")
+        if break_pos != -1:
+            # Remove everything before the first ">"
+            text_list[0] = f"Task {text_list[0][break_pos + 1 :].replace('</a>', '')}"
+            remove_html = False
+        else:
+            rutroh_error(f"guimap error: '{text_list[0]}' missing '>'!")
 
     # Use list comprehension for better performance
     new_text_list = [
@@ -125,7 +145,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
         for text in text_list
     ]
 
-    # Remove html from the text
+    # Remove all the html from the text
     if remove_html:
         new_text_list = [remove_the_html_tags(text) for text in new_text_list]
 
@@ -634,6 +654,7 @@ def ignore_line(line: str) -> bool:
         "{color: ",
         "padding: 5px;",
         "{display: ",
+        "></span><!doctype html>\n",
     ]
     # Ignore certain lines
     return any(ignore_str in line for ignore_str in text_to_ignore)
@@ -659,7 +680,6 @@ def process_html_lines(
         list: The updated output_lines list.
     """
     doing_global_variables = False
-    previous_line = ""
     remove_html = True
 
     for line_num, line in enumerate(lines):
@@ -705,8 +725,8 @@ def process_html_lines(
         if not remove_html:
             line = align_text(line, 30)  # noqa: PLW2901
 
-        # If "Source=" in line, then what follows is valid HTML and we don't want to remove it
-        # if "!DOCTYPE" in line or ("To=" in line and not line.startswith("<div ")):
+        # Check for valid lines in which we don't want to remove the html...
+        # Lines with imbedded html text from scripts and too many task action lines.
         if "!DOCTYPE" in line or "&lt;style&gt;" in line:
             remove_html = False
 
@@ -723,8 +743,6 @@ def process_html_lines(
         # If at end of valid html, start removing html again
         if "/html" in line or "&lt;/script&gt;" in line:
             remove_html = True
-
-        previous_line = line
 
         # Validate and update profile name if missing
         if "Profile:" in line:

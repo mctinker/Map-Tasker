@@ -550,8 +550,9 @@ def process_cli() -> None:
 
         PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.
 
-    # If runtime argument 'debug' is set, set the debug flag
-    PrimeItems.program_arguments["debug"] = getattr(args, debug_flag)
+    # If not gui and runtime argument 'debug' is set, set the debug flag
+    if not PrimeItems.program_arguments["gui"]:
+        PrimeItems.program_arguments["debug"] = getattr(args, debug_flag)
 
     # If using the GUI and not doing a map view or version, them process the GUI.
     do_version = getattr(args, version_flag)  # See if doing version (-v)

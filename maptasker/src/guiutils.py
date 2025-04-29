@@ -77,16 +77,14 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 7.2.1 - Change Log\n
-### Added\n
-- Added: Tasker version 6.5.4 Beta support.\n
-- Added: OpenAI models 'GPT-4.1', 'GPT-4.1-mini', 'GPT-4.1-nano', and '04-mini' have been added.\n
+Version 7.2.2 - Change Log\n
+- Added: Gemini models "gemini-2.5-flash-preview-04-17" and "gemini-2.5-pro-preview-03-25" have been added.\n
 ### Changed\n
-- Changed: Modified the display of search matches to start at the cursor location rather than display all matches.\n
+- Changed: No changes.\n
 ### Fixed\n
-- Fixed: Fixed highlight color for 'Search' Map and Diagram views if light appearance.\n
-- Fixed: Background color for hover text in Map view doesn't match the Appearance Mode.\n
-- Fixed: Labels with '<' and no closing '>' (e.g. html tag) are not appearing in the output.\n
+- Fixed: Tasks with '<' or '>' in the name is not appearing correctly in the Map view.\n
+- Fixed: Debug mode in GUI is not recognized.\n
+- Fixed: Doing a Map or Diagram view can potentially invoke AI Analysis inadvertently.\n
 """
 
 default_font_size = 14
@@ -312,9 +310,7 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
         self.filelist_label.destroy()
     with contextlib.suppress(AttributeError):
         self.filelist_option.destroy()
-    if (
-        not self.first_time
-    ):  # If first time, don't destory Upgrade and What's New buttons.
+    if not self.first_time:  # If first time, don't destory Upgrade and What's New buttons.
         with contextlib.suppress(AttributeError):
             self.list_files_query_button.destroy()
         with contextlib.suppress(
@@ -370,9 +366,7 @@ def is_new_version() -> bool:
     pypi_version_code = get_pypi_version()
     if pypi_version_code:
         pypi_version = pypi_version_code.split("==")[1]
-        PrimeItems.last_run = (
-            NOW_TIME  # Update last run to now since we are doing the check.
-        )
+        PrimeItems.last_run = NOW_TIME  # Update last run to now since we are doing the check.
         return is_version_greater(VERSION, pypi_version)
     return False
 
@@ -451,9 +445,7 @@ def save_changelog_as_json(self) -> None:  # noqa: ANN001
                     if bracket_start_pos == -1:
                         continue
                     bracket_end_pos = line.find("]", bracket_start_pos + 4)
-                    changelog_dict["version"] = line[
-                        bracket_start_pos + 4 : bracket_end_pos
-                    ]
+                    changelog_dict["version"] = line[bracket_start_pos + 4 : bracket_end_pos]
                 elif line != "\n" and have_first_bracket:
                     changelog_dict[f"change{change_count!s}"] = line
                     change_count += 1
@@ -534,9 +526,7 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
     os.chdir(assets_dir)
 
     if logo_type in logo_map:
-        light_img, dark_img, size, parent, grid_pos, padx, pady, sticky = logo_map[
-            logo_type
-        ]
+        light_img, dark_img, size, parent, grid_pos, padx, pady, sticky = logo_map[logo_type]
         my_image = ctk.CTkImage(
             light_image=Image.open(light_img),
             dark_image=Image.open(dark_img),
@@ -904,12 +894,8 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         "nw",
     )
     # Set up name to display
-    project_to_display = (
-        self.single_project_name if self.single_project_name else "None"
-    )
-    profile_to_display = (
-        self.single_profile_name if self.single_profile_name else "None"
-    )
+    project_to_display = self.single_project_name if self.single_project_name else "None"
+    profile_to_display = self.single_profile_name if self.single_profile_name else "None"
     task_to_display = self.single_task_name if self.single_task_name else "None"
     self.ai_model_option.set(model_to_display)  # Set the current model in the pulldown.
 
@@ -957,9 +943,7 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
     )
     # Display the Prompt..newline after every maxlen characters forces it to wrap.
     maxlen = 35
-    display_prompt = "\n".join(
-        self.ai_prompt[i : i + maxlen] for i in range(0, len(self.ai_prompt), maxlen)
-    )
+    display_prompt = "\n".join(self.ai_prompt[i : i + maxlen] for i in range(0, len(self.ai_prompt), maxlen))
     self.ai_set_label5 = add_label(
         self,
         self.tabview.tab("Analyze"),
@@ -1334,9 +1318,7 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     delete_old_pulldown_menus(self)
 
     # Get all of the Tasker objects: Projects/Profiles/Tasks/Scenes
-    return_code, projects_to_display, profiles_to_display, tasks_to_display = (
-        get_tasker_objects(self)
-    )
+    return_code, projects_to_display, profiles_to_display, tasks_to_display = get_tasker_objects(self)
     if not return_code:
         return False
 
@@ -1349,25 +1331,21 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     tasks_to_display.insert(0, "None")
 
     # Remove 'No Profile' profiles
-    new_profiles = [
-        profile for profile in profiles_to_display if profile != "No Profile"
-    ]
+    new_profiles = [profile for profile in profiles_to_display if profile != "No Profile"]
     if new_profiles:
         profiles_to_display = new_profiles
 
     # Display the object pulldowns in 'Analyze' tab
-    self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = (
-        display_object_pulldowns(
-            self,
-            self.tabview.tab("Analyze"),
-            8,
-            projects_to_display,
-            profiles_to_display,
-            tasks_to_display,
-            self.event_handlers.single_project_name_event,
-            self.event_handlers.single_profile_name_event,
-            self.event_handlers.single_task_name_event,
-        )
+    self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
+        self,
+        self.tabview.tab("Analyze"),
+        8,
+        projects_to_display,
+        profiles_to_display,
+        tasks_to_display,
+        self.event_handlers.single_project_name_event,
+        self.event_handlers.single_profile_name_event,
+        self.event_handlers.single_task_name_event,
     )
 
     # Display the object pulldowns in 'Specific Name' tab
@@ -1416,10 +1394,7 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     tree_data = self.build_the_tree()
     # If no tree data, then we don't have any Projects.  Just get the Profiles and Tasks.
     if not tree_data:
-        profiles = [
-            value["name"]
-            for value in PrimeItems.tasker_root_elements["all_profiles"].values()
-        ]
+        profiles = [value["name"] for value in PrimeItems.tasker_root_elements["all_profiles"].values()]
         # tasks = [value["name"] for value in PrimeItems.tasker_root_elements["all_tasks"].values()]
     # We have the Tasker objects.  Collect all Projects, Profiles and Tasks from the tree data.
     else:
@@ -1431,9 +1406,7 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
                     tasks.extend(profile["children"])
     # Clean up the object lists by removing anonymous or missing objects.
 
-    profiles_to_display = [
-        profile for profile in profiles if profile != "Profile: Unnamed/Anonymous"
-    ]
+    profiles_to_display = [profile for profile in profiles if profile != "Profile: Unnamed/Anonymous"]
     if not projects_to_display:
         projects_to_display = ["No projects found"]
     if not profiles_to_display:
@@ -1670,9 +1643,7 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
 
 def _set_single_project_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single project name is available."""
-    self.specific_name_msg = (
-        f"{defaults['display_only']}Project '{self.single_project_name}'"
-    )
+    self.specific_name_msg = f"{defaults['display_only']}Project '{self.single_project_name}'"
     try:
         self.specific_project_optionmenu.set(self.single_project_name)
     except AttributeError:
@@ -1686,9 +1657,7 @@ def _set_single_project_name(self: object, defaults: dict) -> None:
 
 def _set_single_profile_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single profile name is available."""
-    self.specific_name_msg = (
-        f"{defaults['display_only']}Profile '{self.single_profile_name}'"
-    )
+    self.specific_name_msg = f"{defaults['display_only']}Profile '{self.single_profile_name}'"
     try:
         self.specific_profile_optionmenu.set(self.single_profile_name)
     except AttributeError:
@@ -1946,9 +1915,7 @@ def search_substring_in_list(
         task_id = substring.split(".")[1].strip()
         second_search_string = f"id: {task_id}"
     elif substring[6:] in PrimeItems.task_action_warnings:
-        second_search_string = (
-            f"id: {PrimeItems.task_action_warnings[substring[6:]]['id']}"
-        )
+        second_search_string = f"id: {PrimeItems.task_action_warnings[substring[6:]]['id']}"
     else:
         second_search_string = ""
     lower_substring = substring.lower()
@@ -2113,8 +2080,7 @@ def get_appropriate_color(self: object, color_to_use: str) -> str:
 
     for key, color in color_match.items():
         if color_to_use == key and (
-            self.appearance_mode == "dark"
-            or (self.appearance_mode == "system" and darkdetect.isDark())
+            self.appearance_mode == "dark" or (self.appearance_mode == "system" and darkdetect.isDark())
         ):
             # Return the dark-mode color
             return color[0]
@@ -2186,8 +2152,7 @@ def display_progress_bar(
         platform.system() == "Darwin"
         and progress
         and progress["progress_bar"].progressbar.print_alert
-        and round(time.time() * 1000) - progress["progress_bar"].progressbar.start_time
-        > 4000
+        and round(time.time() * 1000) - progress["progress_bar"].progressbar.start_time > 4000
     ):
         print(
             f"{Colors.Green}You can ignore the error message: 'IMKClient Stall detected, *please Report*...'",
@@ -2428,9 +2393,7 @@ def remove_tags_from_bars_and_names(self: object) -> None:
         # Remove the bars from the text widget.
         if values["tag"]:
             line_num = values["start_top"][0]
-            number_of_lines_to_highlight = (
-                values["start_bottom"][0] - values["start_top"][0] + 1
-            )
+            number_of_lines_to_highlight = values["start_bottom"][0] - values["start_top"][0] + 1
             for _ in range(number_of_lines_to_highlight):
                 self.textview_textbox.tag_remove(
                     values["tag"],
@@ -2508,9 +2471,7 @@ def get_profiles_in_project(project_name: str) -> str:
         [],
     )
     # Get all of the Profiles in the Project
-    profile_names = [
-        PrimeItems.tasker_root_elements["all_profiles"][pid]["name"] for pid in pids
-    ]
+    profile_names = [PrimeItems.tasker_root_elements["all_profiles"][pid]["name"] for pid in pids]
     if pids:
         return profile_names
     return ""
@@ -2537,9 +2498,7 @@ def get_tasks_in_profile(project_name: str) -> str:
         [],
     )
     # Get all of the Tasks in the Profile
-    task_names = [
-        PrimeItems.tasker_root_elements["all_tasks"][tid]["name"] for tid in tids
-    ]
+    task_names = [PrimeItems.tasker_root_elements["all_tasks"][tid]["name"] for tid in tids]
     if tids:
         return task_names
     return ""
@@ -2738,11 +2697,7 @@ def get_item_xml(item_type: str, item_name: str) -> defusedxml.Element | None:
     """
     if item_type == "Task":
         return next(
-            (
-                v["xml"]
-                for v in PrimeItems.tasker_root_elements["all_tasks"].values()
-                if v["name"] == item_name
-            ),
+            (v["xml"] for v in PrimeItems.tasker_root_elements["all_tasks"].values() if v["name"] == item_name),
             None,
         )
     return PrimeItems.tasker_root_elements["all_projects"].get(item_name, {}).get("xml")

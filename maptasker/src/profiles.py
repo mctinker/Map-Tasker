@@ -106,7 +106,9 @@ def get_profile_name(
     # If we are debugging, add the Profile ID
     if PrimeItems.program_arguments["debug"]:
         profile_id = profile.find("id").text
-        profile_name_with_html = f"{profile_name_with_html} {format_html('Red', '', f'ID:{profile_id}', True)}"
+        profile_name_with_html = (
+            f"{profile_name_with_html} {format_html('unknown_task_color', '', f', ID:{profile_id}', True)}"
+        )
 
     return profile_name_with_html, the_profile_name
 
