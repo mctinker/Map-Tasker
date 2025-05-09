@@ -2,23 +2,44 @@
 
 All notable changes to this project will be documented in this file!
 
-## [7.2.2] 29-Apr-2025
+## [7.2.3] 09-May-2025
 
 ### Added
 
-- Added: Gemini models "gemini-2.5-flash-preview-04-17" and "gemini-2.5-pro-preview-03-25" have been added.
+- Added: Tasker version 6.5.6-rc is supported.
+- Added: Two missing events and two missing plugins have been added.
+- Added: Unnamed Profiles now have a name.  See 'Changed', below.
 
 ### Changed
 
-- Changed: No changes.
+- Changed: Unnamed Profiles are now listed as they are in Tasker, consisting of the conditions and are preceded by an asterisk and followed by a '(None or unnamed!).' plus unique ID number.  Example: '*Face Down (None or unnamed!).45'
+- Changed: Unnamed Profiles now appear at the beginning of the Profile directory entries (all names start with '*').
+- Changed: Unnamed Tasks called by Scenes are now identified as 'Unnamed/Anonymous'.
+- Changed: Extended Map view directory names from 40 characters long to 50 characters.
 
 ### Fixed
 
+- Fixed: 'File Modified' event is not displaying 'File=' value.
+- Fixed: Map view Scene elements are all misaligned.
+- Fixed: The Map view is displaying duplicate Scene 'Properties --Task:...' details.
+- Fixed: Program error if a 'Name' is associated with a Time or Day profile condition.
+- Fixed: The Diagram view gets corrupted if the diagram is greater than 4500 characters in length (e.g. a massive diagram).  The fix is to truncate those lines at 4500 characters.
+- Fixed: Global variables are not appearing in the Map view.
+- Fixed: Changed color settings are not being restored.
+- Fixed: Hover over Task name in the Map view displays incorrect Profile and Project.
+- Fixed: Hover over Scene name in Map view incorrectly displays HTML.
+- Fixed: Owner display when hovering over search string in Map view is off the screen.  Truncate the displayed results instead.
+- Fixed: Program error if the progress bar window is closed during a loop condition.
+
+## Older History Logs
+
+## [7.2.2]
+
+- Added: Gemini models "gemini-2.5-flash-preview-04-17" and "gemini-2.5-pro-preview-03-25" have been added.
+- Changed: No changes.
 - Fixed: Tasks with '<' or '>' in the name is not appearing correctly in the Map view.
 - Fixed: Debug mode in GUI is not recognized.
 - Fixed: Doing a Map or Diagram view can potentially invoke AI Analysis inadvertently.
-
-## Older History Logs
 
 ## [7.2.0]
 
