@@ -29,7 +29,7 @@ Map configuration...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
 
 Diagram...
-![](Master/documentation_images/introd.png)
+![](/Master/documentation_images/introd.png)
 [[More Samples]](<https://github.com/mctinker/Map-Tasker/wiki#sample-output>)
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see [Note 1](#1)).
