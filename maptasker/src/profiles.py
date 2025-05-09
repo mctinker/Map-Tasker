@@ -113,9 +113,175 @@ def get_profile_name(
     return profile_name_with_html, the_profile_name
 
 
+def delete_non_blank_before_equals(text):
+    """
+    Searches a string for '=', and for each match, deletes the non-blank
+    characters immediately preceding it.
+
+    Args:
+        text (str): The input string to process.
+
+    Returns:
+        str: The modified string with non-blank characters before '=' removed.
+    """
+    modified_text = list(text)  # Convert to a list for easier modification
+    indices_to_delete = set()
+
+    for i, char in enumerate(text):
+        if char == "=":
+            indices_to_delete.add(i)  # Mark the '=' for deletion
+            # Look backwards for non-blank characters to delete
+            j = i - 1
+            while j >= 0 and modified_text[j] != " " and modified_text[j] != "=":
+                indices_to_delete.add(j)
+                j -= 1
+
+    # Create a new list excluding the characters at the marked indices
+    result = [char for i, char in enumerate(modified_text) if i not in indices_to_delete]
+    return "".join(result)
+
+
+def set_name_to_condition(
+    profile_conditions: str,
+    profile_name: str,
+    profile_name_with_html: str,
+) -> tuple[str, str]:
+    """
+    Set the Profile name to the condition if it is not already set.
+
+        :param profile_conditions: The conditions of the profile.
+        :param profile_name: The current profile name.
+        :param profile_name_with_html: The HTML formatted profile name.
+        :return: Updated profile name and HTML formatted name.
+    """
+    condition_types = [
+        "State",
+        # "Event",
+        # "Time",
+        # "Application",
+        # "Days of Week",
+        # "Location",
+        "Condition(s)",
+        "Active=Any",
+        "Class",
+        "Priority",
+    ]
+    # Change filter of '=:=' temproarily so that we don't break it up.
+    # We will change it back to '=:=' later.
+    profile_conditions = profile_conditions.replace("=:=", "-+-")
+    # Break out the conditions.
+    conditions = (
+        profile_conditions.replace("&nbsp;&nbsp;Configuration Parameter(s):<br>", " ")
+        .replace("&nbsp;", "")
+        .split(
+            ":",
+        )
+    )
+
+    new_name = ""
+    # Go thru our list of conditions.  Repair all '=:=' strings.
+    for cond in conditions[1:]:  # Start at second element
+        new_cond = f":{cond.replace('-+-', '=:=')}" if "-+-" in cond else cond
+        new_cond = new_cond.replace("<br>", " ")
+        if new_cond.startswith("com.") and new_cond.endswith("Class"):
+            continue
+        modified_condition = ""
+        for condition_type in condition_types:
+            if new_cond.endswith(condition_type):
+                # If the condition is a type, then set the name to the condition
+                modified_condition += new_cond.replace(condition_type, "")
+
+        if modified_condition:
+            # If the condition is not empty, then set the name to the condition
+            new_name += modified_condition.lstrip()
+        else:
+            # If the condition is empty, then set the name to the condition
+            new_name += new_cond.lstrip()
+
+    # If the Profile name is 'No Profile', then set it to the condition
+    if new_name:
+        # Remove text in front of any '='
+        if "=" in new_name and not "=:=" in new_name:
+            new_name = delete_non_blank_before_equals(new_name)
+
+        # Get rid of priority
+        priority = new_name.find("Priority")
+        if priority != -1:
+            new_name = new_name[:priority].rstrip()
+
+        # Italicize the name aned clean it up.
+        new_name = f"<em>*{new_name.replace('<em>AND</em>', '').replace('&nbsp;&nbsp;', ' ').replace('is set', 'set').replace('<br>', '')}</em>"
+
+    return profile_name_with_html.replace(
+        NO_PROFILE,
+        f"{new_name} ({NO_PROFILE})",
+    ), profile_name.replace(
+        NO_PROFILE,
+        f"{new_name} ({NO_PROFILE})",
+    )
+
+
+def conditions_to_name(
+    profile: defusedxml.ElementTree,
+    profile_conditions: str,
+    profile_name: str,
+    profile_name_with_html: str,
+) -> tuple[str, str]:
+    """
+    Update the profile name and its HTML representation based on the profile's conditions.
+
+    Parameters
+    ----------
+    profile : defusedxml.ElementTree
+        The XML element representing the profile.
+    profile_conditions : str
+        The conditions associated with the profile.
+    profile_name : str
+        The current name of the profile.
+    profile_name_with_html : str
+        The HTML-formatted representation of the profile name.
+
+    Returns
+    -------
+    tuple[str, str]
+        A tuple containing the updated HTML-formatted profile name and the updated profile name.
+    """
+    profile_name_with_html, profile_name = set_name_to_condition(
+        profile_conditions,
+        profile_name,
+        profile_name_with_html,
+    )
+    # Put this name back into the master profile dictionary in PrimeItems.
+    # Add a unique identifier to the name: the profile id: profile_name.id
+    profile_id = profile.attrib.get("sr")
+    profile_id = profile_id[4:]
+    profile_name = profile_name.replace("unnamed!)", f"unnamed!).{profile_id}")
+    profile_name_with_html = profile_name_with_html.replace(
+        "unnamed!)",
+        f"unnamed!).{profile_id}",
+    )
+
+    # Now cleanup the name in order to use it.
+    new_profile_name = f"{profile_name.replace('<em>', '').replace('</em>', '')}"
+    PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"] = new_profile_name
+
+    # Handle directory hyperlink
+    if PrimeItems.program_arguments["directory"]:
+        add_directory_item("profiles", new_profile_name)
+
+    # Make the conditions pretty
+    if PrimeItems.program_arguments["pretty"]:
+        # condition_length = profile_conditions.find(":")
+        # Add spacing for profile name, condition name and "Profile:"
+        profile_conditions = profile_conditions.replace(",", "<br>")
+        # Fix splitting up of JSON Structure Output text
+        profile_conditions = fix_json(profile_conditions, "Structure Output")
+
+    return profile_name_with_html, profile_name, profile_conditions
+
+
 # Get the Profile's key attributes: limit, launcher task, run conditions
 def build_profile_line(
-    project: defusedxml.ElementTree,
     profile: defusedxml.ElementTree,
 ) -> str:
     """
@@ -152,12 +318,6 @@ def build_profile_line(
     launcher_xml = profile.find("ProfileVariable")
     launcher = launcher_task_html if launcher_xml is not None else ""
 
-    # See if there is a Kid app and/or Priority (FOR FUTURE USE)
-    # kid_app_info = ''
-    # if program_args["display_detail_level"] > 2:
-    #     kid_app_info = get_kid_app(profile)
-    #     priority = get_priority(profile, False)
-
     # Display flags for debug mode
     if PrimeItems.program_arguments["debug"]:
         flags = profile.find("flags")
@@ -165,43 +325,44 @@ def build_profile_line(
 
     # Get the Profile name
     profile_name_with_html, profile_name = get_profile_name(profile)
+    unmodified_profile_name = profile_name
 
     # Handle directory hyperlink
     if PrimeItems.program_arguments["directory"]:
         add_directory_item("profiles", profile_name)
 
     # Get the Profile's conditions
-    if PrimeItems.program_arguments["conditions"] or profile_name == "NO_PROFILE":  # noqa: SIM102
-        if profile_conditions := condition.parse_profile_condition(profile):
-            # Make the conditions pretty
-            if PrimeItems.program_arguments["pretty"]:
-                condition_length = profile_conditions.find(":")
-                # Add spacing for profile name, condition name and "Profile:"
-                profile_conditions = profile_conditions.replace(
-                    ",",
-                    f"<br>{blank * (len(profile_name) + condition_length + 7)}",
-                )
-                # Fix splitting up of JSON Structure Output text
-                profile_conditions = fix_json(profile_conditions, "Structure Output")
-
-            # Add the HTML
-            condition_text = format_html(
-                "profile_condition_color",
-                "",
-                f" ({profile_conditions})",
-                True,
+    if (PrimeItems.program_arguments["conditions"] or profile_name == NO_PROFILE) and (
+        profile_conditions := condition.parse_profile_condition(profile)
+    ):
+        # If profile is not named, then set the name to the condition.
+        if profile_name == NO_PROFILE:
+            profile_name_with_html, profile_name, profile_conditions = conditions_to_name(
+                profile,
+                profile_conditions,
+                profile_name,
+                profile_name_with_html,
             )
+
+        # Add the HTML
+        condition_text = format_html(
+            "profile_condition_color",
+            "",
+            f" ({profile_conditions})",
+            True,
+        )
 
     # Break it up into separate lines if we are doing pretty output
     temp = f"{condition_text} {launcher}{disabled} {flags}"
     if PrimeItems.program_arguments["pretty"]:
-        indentation = len(profile_name) + 4
+        indentation = len(unmodified_profile_name)
+        indentation = 1
         # Break at comma
-        profile_info = temp.replace(", ", f"<br>{blank * indentation}")
+        temp = temp.replace(", ", f"<br>{blank * indentation}")
         # Break at paren
-        profile_info = temp.replace(" (", f"<br>{blank * indentation}  (")
+        temp = temp.replace(" (", f"<br>{blank * indentation}  (")
         # Break at bracket
-        profile_info = temp.replace(" [", f"<br>{blank * indentation}  [")
+        temp = temp.replace(" [", f"<br>{blank * indentation}  [")
 
     # Okay, string it all together
     profile_info = f"{profile_name_with_html} {temp}"
@@ -280,10 +441,7 @@ def do_profile(
     )
 
     # Examine Profile attributes and output Profile line
-    profile_name = build_profile_line(
-        project,
-        profile,
-    )
+    profile_name = build_profile_line(profile)
 
     # Process Profile Properties
     if PrimeItems.program_arguments["display_detail_level"] > 2:
@@ -341,6 +499,14 @@ def align_html_text(html_string: str) -> str:
         "\\(Days of Week:",
         "\\(Location:",
     ]
+    conditions = [
+        "State:",
+        "Event:",
+        "Time:",
+        "Application:",
+        "Days of Week:",
+        "Location:",
+    ]
     pattern = r'(<span class="profile_condition_color">.*?)(' + "|".join(target_substrings) + r")"
     position_match = re.search(pattern, html_string, re.DOTALL)
 
@@ -353,10 +519,11 @@ def align_html_text(html_string: str) -> str:
     spaces_before_position = position_end - position_start
 
     # Get the length of the profile name substring and add it to the spaces
-    profile_name_start = html_string.find("Profile: ")
-    profile_name_end = html_string.find("</span>", profile_name_start)
-    profile_name_length = profile_name_end - profile_name_start
-    spaces_before_position += profile_name_length + 2
+    # profile_name_start = html_string.find("Profile: ")
+    # profile_name_end = html_string.find("</span>", profile_name_start)
+    # profile_name_length = profile_name_end - profile_name_start
+    # Setup the intial spacing
+    spaces_before_position += 20
 
     # Handle 'Configuration Parameter(s):'
     config_position = html_string.find("Configuration Parameter(s):")
@@ -393,22 +560,26 @@ def align_html_text(html_string: str) -> str:
             aligned_parts.append(before_and)
             # aligned_parts.append("<br>")
             aligned_parts.append(
-                "&nbsp;" * (spaces_before_position - 6) + "<em>AND</em>",
+                "&nbsp;" * (spaces_before_position + 1) + "<em>AND</em>",
             )
             aligned_parts.append("<br>")
             aligned_parts.append(
-                "&nbsp;" * (spaces_before_position - 7) + after_and,
+                "&nbsp;" * (spaces_before_position) + after_and,
             )
         else:
             if "[&#9940;DISABLED]" in parts[i + 1]:
-                spaces_before_position = profile_name_length + 1
+                spaces_before_position -= 8
                 # Add spacers since we removed them all (above).
                 parts[i + 1] = parts[i + 1].replace(
                     "[&#9940;DISABLED]",
                     "[&#9940;&nbsp;DISABLED]",
                 )
-            # aligned_parts.append(parts[i])
-            aligned_parts.append("&nbsp;" * spaces_before_position + parts[i + 1])
+            # Adds the appropriate spacing before the text
+            if any(cond in parts[i + 1] for cond in conditions):
+                new_space_before = spaces_before_position
+            else:
+                new_space_before = spaces_before_position + 8
+            aligned_parts.append("&nbsp;" * new_space_before + parts[i + 1])
     return "".join(aligned_parts)
 
 

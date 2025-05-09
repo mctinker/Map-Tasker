@@ -774,6 +774,13 @@ action_codes = {
         "104",
         "False",
     ),
+    "1645272907e": ActionCode(
+        "",
+        [],
+        "CalendarTask",
+        "",
+        "",
+    ),
     "166160670t": ActionCode("1040876951t", [], "AutoVoice Natural Language", "", ""),
     "1664218170e": ActionCode(
         "",
@@ -1157,6 +1164,7 @@ action_codes = {
     "205e": ActionCode("", [], "Battery Full", "", ""),
     "206e": ActionCode("", [], "Battery Overheating", "", ""),
     "206t": ActionCode("", [], "WIFI Settings", "30", "False"),
+    "2063919988t": ActionCode("1040876951t", [], "AutoTools System State", "", ""),
     "2075e": ActionCode(
         "",
         [
@@ -1350,6 +1358,7 @@ action_codes = {
     "211905330t": ActionCode("1040876951t", [], "AutoContacts", "", ""),
     "211t": ActionCode("", [], "Sync Settings", "30", "False"),
     "2124887619t": ActionCode("1040876951t", [], "AutoTools OCR", "", ""),
+    "2123721228e": ActionCode("", [], "AutoTools Assistant", "", ""),
     "212t": ActionCode("", [], "WIFI IP Settings", "30", "False"),
     "2132875086t": ActionCode(
         "1040876951t",
@@ -1375,7 +1384,7 @@ action_codes = {
     "220t": ActionCode("", [], "Mobile Data Settings", "30", "False"),
     "222e": ActionCode(
         "",
-        [["0", True, "", "0", "File="], ["1", True, "", "1", ", Event="]],
+        [["0", True, ", File", "1", "File="], ["1", True, "Event", "1", ", Event="]],
         "File Modified",
         "",
         "",
@@ -1555,7 +1564,7 @@ action_codes = {
     "3050e": ActionCode(
         "",
         [
-            ["0", True, "", "1", "Variable="],
+            ["0", True, "", "1", ", Variable="],
             ["1", True, "", "1", ", Value="],
             ["2", True, "", "0", ["", "e", ", User Variables Only"]],
         ],

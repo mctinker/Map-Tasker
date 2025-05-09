@@ -457,8 +457,9 @@ def start_up() -> dict:
     if PrimeItems.program_arguments["debug"]:
         log_startup_values()
 
-    # Get our map of colors
-    PrimeItems.colors_to_use = setup_colors()
+    # Get our map of colors if we don't have them.
+    if not PrimeItems.colors_to_use:
+        PrimeItems.colors_to_use = setup_colors()
 
     # Build the action codes
     # NOTE: FOR DEVELOPMENT ONLY!!! 'BUILD_ALL = TRUE' ONLY WITH NEW UPDATE OF TASKER!  See acmerge.py

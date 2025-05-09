@@ -35,8 +35,7 @@ from maptasker.src.guiutils import (
     destroy_hover_tooltip,
     display_analyze_button,
     display_progress_bar,
-    extract_usage_profile,
-    find_string_from_text_bottom,
+    extract_number_from_line,
     get_appropriate_color,
     get_item_xml,
     get_monospace_fonts,
@@ -418,7 +417,9 @@ class CTkTextview(ctk.CTkFrame):
         self._setup_appearance()
 
         # Set up the title
-        self.title = f"{title} - Drag window to desired position and rerun the {title} command."
+        self.title = (
+            f"{title} - Drag window to desired position and rerun the {title} command."
+        )
 
         # Setup the textbox.
         self._setup_textbox(master)
@@ -552,7 +553,24 @@ class CTkTextview(ctk.CTkFrame):
         # Create the lines for insertion in a single pass
         debug_mode = getattr(self.master.master, "debug", False)  # Get debug mode
         # Include the line number in front of the line if debug mode.
-        lines = [f"{i + 1}{line}\n" if debug_mode else f"{line}\n" for i, line in enumerate(the_data)]
+        # Use a list comprehension to build the lines.
+        # Truncate the lines greater than max_length due to output corruption beyond max_length.
+        max_length = 4500
+        trunncated = "...truncated!\n"
+        lines = [
+            (
+                f"{i + 1}{line[: max_length - 3]}{trunncated}"
+                if len(line) > max_length - 3 and debug_mode
+                else (
+                    f"{i + 1}{line}\n"
+                    if debug_mode
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
+                )
+            )
+            for i, line in enumerate(the_data)
+        ]
 
         # Join everything into one big string
         big_block_of_text = "".join(lines)
@@ -1138,7 +1156,9 @@ class CTkTextview(ctk.CTkFrame):
         connector_key = tag[5:]
         connector = self.diagram_connectors[connector_key]
         line_num = connector["start_top"][0]
-        number_of_lines_to_highlight = connector["start_bottom"][0] - connector["start_top"][0] + 1
+        number_of_lines_to_highlight = (
+            connector["start_bottom"][0] - connector["start_top"][0] + 1
+        )
         end_top_col = connector["end_top"][1]
         for _ in range(number_of_lines_to_highlight):
             self.textview_textbox.tag_add(
@@ -1249,6 +1269,7 @@ class CTkTextview(ctk.CTkFrame):
                 window_width_in_pixels = int(
                     PrimeItems.mygui.map_window_position.split("x")[0],
                 )
+                # Calculate ther max length for the second label (right-most text) = start_x position.
                 max_len = min(
                     max_len,
                     (window_width_in_pixels // char_width_in_pixels) - 30,
@@ -1260,6 +1281,8 @@ class CTkTextview(ctk.CTkFrame):
                     if item_type == "task"
                     else hover_handlers[item_type](name, text)
                 )
+        else:
+            return
 
         # Establish appropriate colors
         if is_dark_color(mygui.color_lookup["background_color"]):
@@ -1323,6 +1346,7 @@ class CTkTextview(ctk.CTkFrame):
         max_len = 0
         gen_output = False
         number_out = 0
+        allow_character_number = 100
         # Go through list of match indecies
         for index in indecies:
             text_line_num = index.split(".")[0]
@@ -1333,12 +1357,14 @@ class CTkTextview(ctk.CTkFrame):
                 continue
             text_line = f"{index.split('.')[0]}.0"
             line = textbox.get(text_line, text_line + " lineend")
-            owner = self.get_owner_name_from_textbox(
+            owner, _, _ = self.get_owner_name_from_textbox(
                 textbox,
                 text_line_num,
                 line,
             )
-            # text += f"{line.strip()} {owner}\n"
+            # Format the text for display.  Only display a maximum of 100 characters.
+            if len(line) > allow_character_number:
+                line = line[:allow_character_number]
             text += f"{line.strip()}\n"
             owner_text += f"{owner}\n"
             number_out += 1
@@ -1376,9 +1402,11 @@ class CTkTextview(ctk.CTkFrame):
         profiles_and_tasks = merge_lists(profiles, tasks)
 
         # Add column headings.
-        max_length = max((len(s) for s in profiles), default=0)
-        profile_header = f"{'Profile'.ljust(max_length)}"
-        profiles_and_tasks.insert(0, [f"\n\n{profile_header}", "  Tasks"])
+        max_profile_length = max((len(s) for s in profiles), default=0)
+        max_task_length = max((len(s) for s in tasks), default=0)
+        profile_header = f"{'Profiles'.ljust(max_profile_length, '.')}"
+        task_header = f"{' Tasks'.ljust(max_task_length, '.')}"
+        profiles_and_tasks.insert(0, [f"\n\n{profile_header}", task_header])
 
         # Convert to columns.
         results_in_columns = parse_pairs_to_columns(profiles_and_tasks)
@@ -1418,20 +1446,25 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             str: The updated tooltip text.
         """
-        if profile := self.check_no_name("Profile: ", name, tag):
-            pass
+        # Get the owning Profile.
+        textbox = self.textview_textbox
+        line_number = tag.split(".")[0]
+        owning_profile_name, line_num_found, line_found = (
+            self.get_owner_name_from_textbox(
+                textbox,
+                line_number,
+                text,
+            )
+        )
+        # Get the owning Project.
+        if owning_profile_name:
+            owning_project_name, _, _ = self.get_owner_name_from_textbox(
+                textbox,
+                line_num_found,
+                line_found,
+            )
         else:
-            profile = self.find_owning_profile(name)
-        if not profile:
-            profile = "None"
-
-        # Get the owning Project name.
-        if project := self.check_no_name("Project: ", name, tag):
-            pass
-        else:
-            project = self.find_task_owning_project(name)
-        if not project:
-            project = "None"
+            return ""
 
         # Get the Properties
         properties = self.get_properties_for_hover("Task", name)
@@ -1439,6 +1472,11 @@ class CTkTextview(ctk.CTkFrame):
         # Get the list of Task actions.
         if UNKNOWN_TASK_NAME in name:
             task_id = name.split(".")[1]
+            # Handle Tasks under Scenes with a Task ID.
+            id_loc = task_id.find("ID:")
+            if id_loc != -1:
+                task_id = task_id[: id_loc - 1]
+            # Get the Task XML element.
             task_xml = PrimeItems.tasker_root_elements["all_tasks"][task_id]["xml"]
             task_item = self.get_list_of_actions("", task_xml)
         elif name:
@@ -1446,7 +1484,15 @@ class CTkTextview(ctk.CTkFrame):
         else:
             task_item = ""
 
-        return text + f"\n  In Profile: {profile}\n  In Project: {project}{properties}{task_item}"
+        # Cleanup the text
+        owning_profile_name = owning_profile_name.replace("<<< Owner=", "   ")
+        owning_project_name = owning_project_name.replace("<<< Owner=", "   ")
+
+        # Cleanup the line and return it for display
+        return (
+            text
+            + f"\n {owning_profile_name}\n {owning_project_name}{properties}{task_item}"
+        )
 
     def hover_scene(self, name: str, text: str) -> str:
         """
@@ -1469,7 +1515,11 @@ class CTkTextview(ctk.CTkFrame):
         PrimeItems.output_lines.output_lines = []
         get_details(scene_xml, [], 0)
         # Get just the elements
-        elements = [line for line in PrimeItems.output_lines.output_lines if "Element of type" in line]
+        elements = [
+            line
+            for line in PrimeItems.output_lines.output_lines
+            if "Element of type" in line
+        ]
         for num, element in enumerate(elements):
             elements[num] = remove_html_tags(element, "").replace("&nbsp;", "")
         return text + "\nElements...\n" + "\n".join(elements)
@@ -1532,22 +1582,25 @@ class CTkTextview(ctk.CTkFrame):
     def get_owner_name_from_textbox(
         self,
         textbox: CTkTextview,
-        text_line: str,
+        text_line_num: str,
         line: str,
-    ) -> str:
+    ) -> tuple[str, str, str]:
         """
         Retrieves the owner name from a textbox widget by searching for specific keywords
         in the lines preceding a given line number.
 
         Args:
             textbox: The textbox widget containing the text to search.
-            text_line (str): The line number (as a string) from which to start searching
+            text_line_num (str): The line number (as a string) from which to start searching
                 in reverse for the owner name.
             line (str): The current line of text being processed.
 
         Returns:
-            str: A formatted string containing the owner type and name if found,
-            otherwise an empty string.
+            tuple:
+            - A formatted string containing the owner type and name if found,
+            otherwise an empty string;
+            - The line number of the owner or empty string;
+            - The line of text where the owner was found.
 
         Notes:
             - The function searches for specific keywords ("Task: ", "Profile: ",
@@ -1570,7 +1623,7 @@ class CTkTextview(ctk.CTkFrame):
         invalid_keys = [
             "Properties Collision Handling",
             "Run Both Together",
-            "Properties...",
+            " Properties",
         ]
         # Identify the possible owners based on what is in the line.
         if "Project: " in line:
@@ -1582,49 +1635,53 @@ class CTkTextview(ctk.CTkFrame):
             owner_keys.pop(0)  # Remove tasks
             owner_keys.pop(0)  # Remove profiles
             owner_keys.pop()  # Remove scenes
+        elif "Task: " in line:
+            owner_keys.pop(0)  # Remove tasks
+
+        # First make sure we are at the line number that contains the text we are starting from.
+        line_to_get = text_line_num
+        dont_got_line = True
+        # Search the lines in reverse order for the originating line number.
+        while dont_got_line and line_to_get != "0":
+            # Get the line and check for the owner name.
+            idx = f"{line_to_get}.0"
+            prev_line = textbox.get(idx, idx + " lineend")
+            if line in prev_line:
+                dont_got_line = False
+                break
+            # If not found, decrement the line number.
+            line_to_get = str(int(line_to_get) - 1)
 
         # Start with the previous line from the line of the search match string.
-        line_to_get = str(int(text_line) - 1)
-        # line_to_get = text_line
+        if line_to_get == "0":
+            # If we are at the top of the text box, then just return.
+            return "", "", ""
+        line_to_get = str(int(line_to_get) - 1)
         owner = ""
 
         # Get the lines in reverse, looking for the owner name.
         while line_to_get != "0":
             # Get the line and check for the owner name.
             idx = f"{line_to_get}.0"
-            line = textbox.get(idx, idx + " lineend")
-            if tasker_object := get_first_substring_match(line, owner_keys):
+            prev_line = textbox.get(idx, idx + " lineend")
+            if tasker_object := get_first_substring_match(prev_line, owner_keys):
                 if tasker_object != pgv:
-                    owner = line.split(":")[1].split("   ")[0].strip()
+                    owner = prev_line.split(":")[1].split("   ")[0].strip()
                     owner = owner.split("(Not referenced by any ")[0].strip()
                     # Filter out 'Task:' that isn't a Task, and "Properties..."
-                    if _ := any(invalid_key in line for invalid_key in invalid_keys):
+                    if _ := any(
+                        invalid_key in prev_line for invalid_key in invalid_keys
+                    ):
                         line_to_get = str(int(line_to_get) - 1)
                         continue
-                return f"<<< Owner={tasker_object}{owner.strip()}"
+                return (
+                    f"<<< Owner={tasker_object}{owner.strip()}",
+                    line_to_get,
+                    prev_line,
+                )
             # If not found, decrement the line number.
             line_to_get = str(int(line_to_get) - 1)
-        return ""
-
-    def check_no_name(self, title: str, name: str, tag: str) -> str:
-        """
-        If the name is "Unnamed/Anonymous.", then search for the usage profile starting at the
-        tag line number.  If found, return the extracted profile name.
-
-        Parameters:
-            title (str): The string to search for in the text.
-            name (str): The name of the item.
-            tag (str): The tag name of the item.
-
-        Returns:
-            str: The extracted profile name if found, otherwise an empty string.
-        """
-        if UNKNOWN_TASK_NAME in name:
-            start_line_num = int(tag.split(".")[0]) - 1
-            profile_line = find_string_from_text_bottom(self, title, start_line_num)
-            if profile_line is not None:
-                return extract_usage_profile(profile_line, title)
-        return ""
+        return "", "", ""
 
     def click_name_leave(self, event: object) -> None:  # noqa: ARG002
         """
@@ -1679,7 +1736,9 @@ class CTkTextview(ctk.CTkFrame):
         for line in PrimeItems.output_lines.output_lines:
             property_leadup = line.find(search_key)
             if property_leadup != -1:
-                properties_with_html = line[property_leadup + len(search_key) + 1 :].replace("<br>", "\n")
+                properties_with_html = line[
+                    property_leadup + len(search_key) + 1 :
+                ].replace("<br>", "\n")
                 # Get rid of html
                 properties_layed_out = re.sub(clean, "", properties_with_html)
                 properties.append(
@@ -1822,7 +1881,11 @@ class CTkTextview(ctk.CTkFrame):
         # Get the occurrences of left_arrow_corner_up "║" in the line and use it to determine start and end.
         occurrences = [i for i, c in enumerate(line) if c == "║"]
         # Get the locations of all icons in the names.
-        icons = [i for i, char in enumerate(line) if ord(char) > 1000 and char not in ("│", "║")]
+        icons = [
+            i
+            for i, char in enumerate(line)
+            if ord(char) > 1000 and char not in ("│", "║")
+        ]
         for num, occurrence in enumerate(occurrences):
             if num % 2 == 0:  # Even?
                 highlight_start = occurrence + 2
@@ -1998,7 +2061,9 @@ class CTkTextview(ctk.CTkFrame):
 
         # Make sure we have the window position set for the progress bar
         if not PrimeItems.program_arguments["map_window_position"]:
-            PrimeItems.program_arguments["map_window_position"] = self.master.master.window_position
+            PrimeItems.program_arguments["map_window_position"] = (
+                self.master.master.window_position
+            )
 
         # Setup to save items (Projects, Profiles, Tasks, and Scenes)
         self.master.master.items_for_selection = {}  # MyGui
@@ -2057,7 +2122,9 @@ class CTkTextview(ctk.CTkFrame):
         # self.master.master.progress_bar = progress
         check_bump = self.check_bump
         master_debug = self.master.master.debug
-        log_info = logger.info if master_debug else lambda *_: None  # No-op if debug is off
+        log_info = (
+            logger.info if master_debug else lambda *_: None
+        )  # No-op if debug is off
         process_directory = self.process_directory
         process_colored_text = self.process_colored_text
         PrimeItems.track_task_warnings = []
@@ -2104,11 +2171,13 @@ class CTkTextview(ctk.CTkFrame):
                     tags,
                 )
                 if text[0] == "Directory\n":
-                    line_num, previous_directory, previous_value, char_position = self.one_level_up(
-                        line_num,
-                        previous_directory,
-                        previous_value,
-                        char_position,
+                    line_num, previous_directory, previous_value, char_position = (
+                        self.one_level_up(
+                            line_num,
+                            previous_directory,
+                            previous_value,
+                            char_position,
+                        )
                     )
             elif "directory" in value:
                 char_position, previous_directory, line_num = process_directory(
@@ -2280,7 +2349,9 @@ class CTkTextview(ctk.CTkFrame):
         profile_id = {v["name"]: k for k, v in profile_dict.items()}.get(profile_name)
 
         if profile_id:
-            for project_name, project_value in PrimeItems.tasker_root_elements["all_projects"].items():
+            for project_name, project_value in PrimeItems.tasker_root_elements[
+                "all_projects"
+            ].items():
                 if profile_id in get_ids(True, project_value["xml"], project_name, []):
                     return project_name
         return ""
@@ -2300,7 +2371,10 @@ class CTkTextview(ctk.CTkFrame):
         all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
 
         for project_value in PrimeItems.tasker_root_elements["all_projects"].values():
-            if any(all_tasks[task_id]["name"] == task_name for task_id in get_ids(False, project_value["xml"], "", [])):
+            if any(
+                all_tasks[task_id]["name"] == task_name
+                for task_id in get_ids(False, project_value["xml"], "", [])
+            ):
                 return project_value["name"]
         return ""
 
@@ -2318,13 +2392,19 @@ class CTkTextview(ctk.CTkFrame):
             str: The name of the owning Profile, or an empty string if no matching Profile is found.
         """
         tid = next(
-            (k for k, v in PrimeItems.tasker_root_elements["all_tasks"].items() if v["name"] == task_name),
+            (
+                k
+                for k, v in PrimeItems.tasker_root_elements["all_tasks"].items()
+                if v["name"] == task_name
+            ),
             "",
         )
 
         # Find the owning Profile
         if tid:
-            for profile_value in PrimeItems.tasker_root_elements["all_profiles"].values():
+            for profile_value in PrimeItems.tasker_root_elements[
+                "all_profiles"
+            ].values():
                 for mid_key in ["mid0", "mid1"]:
                     mid = profile_value["xml"].find(mid_key)
                     if mid is not None and mid.text == tid:
@@ -2416,7 +2496,7 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             tuple: A tuple containing the updated character position, the previous directory, and the line number.
         """
-        spacing, columns = 40, 3
+        spacing, columns = 50, 3
         directory_type = value["directory"][0]
         # We don't support Grand Totals hotlinks (yet)
         if directory_type in {"grand", "</td"}:
@@ -2440,8 +2520,24 @@ class CTkTextview(ctk.CTkFrame):
             hotlink_name = f"Up One Level to {object_name}: {name_to_go_up}"
             name_to_insert, spacer = hotlink_name, ""
         else:
-            # Normal directory entry
-            name_to_insert = (hotlink_name[: spacing - 3] + "...") if len(hotlink_name) > spacing else hotlink_name
+            # Normal directory entry.  If name greater than spacing allows, truncate it.
+            if len(hotlink_name) > spacing:
+                name_to_insert = hotlink_name[: spacing - 3] + "..."
+                # Add the Profile ID if this is a profile with no name.
+                # Make it look like: 'some_profile_name.123...'
+                if name_to_insert.startswith("*") and (
+                    prof_id := extract_number_from_line(hotlink_name)
+                ):
+                    name_to_insert = hotlink_name[: spacing - 6] + "..."
+                    name_to_insert = (
+                        name_to_insert[: spacing - 7]
+                        + "."
+                        + prof_id
+                        + name_to_insert[spacing - 6 :]
+                    )
+
+            else:
+                name_to_insert = hotlink_name
 
             # Determine additional space to add to lines if needed.
             spacer = "\n" if char_position == spacing * columns - spacing else ""
@@ -2461,7 +2557,7 @@ class CTkTextview(ctk.CTkFrame):
             )
         except TclError:
             return char_position, previous_directory, line_num + (char_position == 0)
-
+        # Configure the tag for the hyperlink in the background color
         self.textview_textbox.tag_config(
             tag_id[1],
             background=make_hex_color(
@@ -2469,7 +2565,9 @@ class CTkTextview(ctk.CTkFrame):
             ),
         )
 
-        char_position = 0 if char_position == spacing * columns else char_position + spacing
+        char_position = (
+            0 if char_position == spacing * columns else char_position + spacing
+        )
         previous_directory = directory_type
 
         # Add a second "up one more level" hotlink
@@ -2659,12 +2757,17 @@ class CTkTextview(ctk.CTkFrame):
             task_name = message[taskname_start:taskname_end]
 
             # Check to see if we have already done this Task.
-            if UNKNOWN_TASK_NAME not in task_name and task_name in PrimeItems.track_task_warnings:
+            if (
+                UNKNOWN_TASK_NAME not in task_name
+                and task_name in PrimeItems.track_task_warnings
+            ):
                 return char_position
             PrimeItems.track_task_warnings.append(task_name)
 
             # Add #1.
-            end_start = f"{line_num_str}.{char_position + 5!s}"  # 5 is the length of "Task "
+            end_start = (
+                f"{line_num_str}.{char_position + 5!s}"  # 5 is the length of "Task "
+            )
             if not self._insert_text_and_tag(start_idx, end_start, "Task ", tag_id):
                 return char_position
 
@@ -2698,7 +2801,8 @@ class CTkTextview(ctk.CTkFrame):
 
         # Tag items for hover and background highlight
         if ": Properties" not in message and any(
-            keyword in message for keyword in ("Task: ", "Profile: ", "Project: ", "Scene: ")
+            keyword in message
+            for keyword in ("Task: ", "Profile: ", "Project: ", "Scene: ")
         ):
             self.tag_items(tag_id, message)
             self.textview_textbox.tag_config(tag_id, background=background_color)
@@ -2731,7 +2835,10 @@ class CTkTextview(ctk.CTkFrame):
         tag_id: str,
     ) -> str:
         """Determines the color and highlighting settings for the current message."""
-        if "Color for Background set to" in message or "highlighted for visibility" in message:
+        if (
+            "Color for Background set to" in message
+            or "highlighted for visibility" in message
+        ):
             color = "White"
         else:
             color, tags = self.output_map_colors_highlighting(
@@ -4553,7 +4660,11 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     )
 
     # Prefix, sort, and combine the model lists
-    display_models = sorted(model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name))
+    display_models = sorted(
+        model
+        for name, models in MODEL_GROUPS.items()
+        for model in prefix_and_sort(models, name)
+    )
 
     (
         display_models.insert(0, PrimeItems.program_arguments["ai_model"])
@@ -4953,20 +5064,6 @@ class APIKeyDialog(ctk.CTkToplevel):
             "ew",
         )
         self.focus()
-
-    def open_toplevel(self) -> None:
-        """
-        Open the toplevel window for API key options.
-
-        This method creates a new toplevel window for managing API key options if it does not already exist.
-        If the window exists, it brings it to focus.
-        """
-        if self.ai_apikey_window is None or not self.ai_apikey_window.winfo_exists():
-            self.ai_apikey_window = CTkApiKeyOptions(
-                self,
-            )  # create window if its None or destroyed
-        else:
-            self.ai_apikey_window.focus()  # if window exists focus it
 
     def create_key_entry(
         self,

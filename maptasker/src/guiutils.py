@@ -12,10 +12,8 @@ from __future__ import annotations
 import contextlib
 import json
 import os
-import platform
 import re
 import sys
-import time
 from functools import cache
 from tkinter import TclError, font
 from typing import TYPE_CHECKING
@@ -64,7 +62,6 @@ from maptasker.src.sysconst import (
     NOW_TIME,
     OPENAI_MODELS,
     VERSION,
-    Colors,
 )
 
 if TYPE_CHECKING:
@@ -77,14 +74,27 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 7.2.2 - Change Log\n
-- Added: Gemini models "gemini-2.5-flash-preview-04-17" and "gemini-2.5-pro-preview-03-25" have been added.\n
+Version 7.2.3 - Change Log\n
+- Added: Tasker version 6.5.6-rc is supported.\n
+- Added: Two missing events and two missing plugins have been added.\n
+- Added: Unnamed Profiles now have a name.  See 'Changed', below.\n
 ### Changed\n
-- Changed: No changes.\n
+- Changed: Unnamed Profiles are now listed as they are in Tasker, consisting of the conditions and are preceded by an asterisk and followed by a '(None or unnamed!).' plus unique ID number.  Example: '*Face Down (None or unnamed!).45'\n
+- Changed: Unnamed Profiles now appear at the beginning of the Profile directory entries (all names start with '*').\n
+- Changed: Unnamed Tasks called by Scenes are now identified as 'Unnamed/Anonymous'.\n
+- Changed: Extended Map view directory names from 40 characters long to 50 characters.\n
 ### Fixed\n
-- Fixed: Tasks with '<' or '>' in the name is not appearing correctly in the Map view.\n
-- Fixed: Debug mode in GUI is not recognized.\n
-- Fixed: Doing a Map or Diagram view can potentially invoke AI Analysis inadvertently.\n
+- Fixed: 'File Modified' event is not displaying 'File=' value.\n
+- Fixed: Map view Scene elements are all misaligned.\n
+- Fixed: The Map view is displaying duplicate Scene 'Properties --Task:...' details.\n
+- Fixed: Program error if a 'Name' is associated with a Time or Day profile condition.\n
+- Fixed: The Diagram view gets corrupted if the diagram is greater than 4500 characters in length (e.g. a massive diagram).  The fix is to truncate those lines at 4500 characters.\n
+- Fixed: Global variables are not appearing in the Map view.\n
+- Fixed: Changed color settings are not being restored.\n
+- Fixed: Hover over Task name in the Map view displays incorrect Profile and Project.\n
+- Fixed: Hover over Scene name in Map view incorrectly displays HTML.\n
+- Fixed: Owner display when hovering over search string in Map view is off the screen.  Truncate the displayed results instead.\n
+- Fixed: Program error if the progress bar window is closed during a loop condition.\n
 """
 
 default_font_size = 14
@@ -310,7 +320,9 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
         self.filelist_label.destroy()
     with contextlib.suppress(AttributeError):
         self.filelist_option.destroy()
-    if not self.first_time:  # If first time, don't destory Upgrade and What's New buttons.
+    if (
+        not self.first_time
+    ):  # If first time, don't destory Upgrade and What's New buttons.
         with contextlib.suppress(AttributeError):
             self.list_files_query_button.destroy()
         with contextlib.suppress(
@@ -366,7 +378,9 @@ def is_new_version() -> bool:
     pypi_version_code = get_pypi_version()
     if pypi_version_code:
         pypi_version = pypi_version_code.split("==")[1]
-        PrimeItems.last_run = NOW_TIME  # Update last run to now since we are doing the check.
+        PrimeItems.last_run = (
+            NOW_TIME  # Update last run to now since we are doing the check.
+        )
         return is_version_greater(VERSION, pypi_version)
     return False
 
@@ -445,7 +459,9 @@ def save_changelog_as_json(self) -> None:  # noqa: ANN001
                     if bracket_start_pos == -1:
                         continue
                     bracket_end_pos = line.find("]", bracket_start_pos + 4)
-                    changelog_dict["version"] = line[bracket_start_pos + 4 : bracket_end_pos]
+                    changelog_dict["version"] = line[
+                        bracket_start_pos + 4 : bracket_end_pos
+                    ]
                 elif line != "\n" and have_first_bracket:
                     changelog_dict[f"change{change_count!s}"] = line
                     change_count += 1
@@ -526,7 +542,9 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
     os.chdir(assets_dir)
 
     if logo_type in logo_map:
-        light_img, dark_img, size, parent, grid_pos, padx, pady, sticky = logo_map[logo_type]
+        light_img, dark_img, size, parent, grid_pos, padx, pady, sticky = logo_map[
+            logo_type
+        ]
         my_image = ctk.CTkImage(
             light_image=Image.open(light_img),
             dark_image=Image.open(dark_img),
@@ -894,8 +912,12 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         "nw",
     )
     # Set up name to display
-    project_to_display = self.single_project_name if self.single_project_name else "None"
-    profile_to_display = self.single_profile_name if self.single_profile_name else "None"
+    project_to_display = (
+        self.single_project_name if self.single_project_name else "None"
+    )
+    profile_to_display = (
+        self.single_profile_name if self.single_profile_name else "None"
+    )
     task_to_display = self.single_task_name if self.single_task_name else "None"
     self.ai_model_option.set(model_to_display)  # Set the current model in the pulldown.
 
@@ -943,7 +965,9 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
     )
     # Display the Prompt..newline after every maxlen characters forces it to wrap.
     maxlen = 35
-    display_prompt = "\n".join(self.ai_prompt[i : i + maxlen] for i in range(0, len(self.ai_prompt), maxlen))
+    display_prompt = "\n".join(
+        self.ai_prompt[i : i + maxlen] for i in range(0, len(self.ai_prompt), maxlen)
+    )
     self.ai_set_label5 = add_label(
         self,
         self.tabview.tab("Analyze"),
@@ -1318,7 +1342,9 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     delete_old_pulldown_menus(self)
 
     # Get all of the Tasker objects: Projects/Profiles/Tasks/Scenes
-    return_code, projects_to_display, profiles_to_display, tasks_to_display = get_tasker_objects(self)
+    return_code, projects_to_display, profiles_to_display, tasks_to_display = (
+        get_tasker_objects(self)
+    )
     if not return_code:
         return False
 
@@ -1331,21 +1357,25 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     tasks_to_display.insert(0, "None")
 
     # Remove 'No Profile' profiles
-    new_profiles = [profile for profile in profiles_to_display if profile != "No Profile"]
+    new_profiles = [
+        profile for profile in profiles_to_display if profile != "No Profile"
+    ]
     if new_profiles:
         profiles_to_display = new_profiles
 
     # Display the object pulldowns in 'Analyze' tab
-    self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
-        self,
-        self.tabview.tab("Analyze"),
-        8,
-        projects_to_display,
-        profiles_to_display,
-        tasks_to_display,
-        self.event_handlers.single_project_name_event,
-        self.event_handlers.single_profile_name_event,
-        self.event_handlers.single_task_name_event,
+    self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = (
+        display_object_pulldowns(
+            self,
+            self.tabview.tab("Analyze"),
+            8,
+            projects_to_display,
+            profiles_to_display,
+            tasks_to_display,
+            self.event_handlers.single_project_name_event,
+            self.event_handlers.single_profile_name_event,
+            self.event_handlers.single_task_name_event,
+        )
     )
 
     # Display the object pulldowns in 'Specific Name' tab
@@ -1394,7 +1424,10 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     tree_data = self.build_the_tree()
     # If no tree data, then we don't have any Projects.  Just get the Profiles and Tasks.
     if not tree_data:
-        profiles = [value["name"] for value in PrimeItems.tasker_root_elements["all_profiles"].values()]
+        profiles = [
+            value["name"]
+            for value in PrimeItems.tasker_root_elements["all_profiles"].values()
+        ]
         # tasks = [value["name"] for value in PrimeItems.tasker_root_elements["all_tasks"].values()]
     # We have the Tasker objects.  Collect all Projects, Profiles and Tasks from the tree data.
     else:
@@ -1406,7 +1439,9 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
                     tasks.extend(profile["children"])
     # Clean up the object lists by removing anonymous or missing objects.
 
-    profiles_to_display = [profile for profile in profiles if profile != "Profile: Unnamed/Anonymous"]
+    profiles_to_display = [
+        profile for profile in profiles if profile != "Profile: Unnamed/Anonymous"
+    ]
     if not projects_to_display:
         projects_to_display = ["No projects found"]
     if not profiles_to_display:
@@ -1643,7 +1678,9 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
 
 def _set_single_project_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single project name is available."""
-    self.specific_name_msg = f"{defaults['display_only']}Project '{self.single_project_name}'"
+    self.specific_name_msg = (
+        f"{defaults['display_only']}Project '{self.single_project_name}'"
+    )
     try:
         self.specific_project_optionmenu.set(self.single_project_name)
     except AttributeError:
@@ -1657,7 +1694,9 @@ def _set_single_project_name(self: object, defaults: dict) -> None:
 
 def _set_single_profile_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single profile name is available."""
-    self.specific_name_msg = f"{defaults['display_only']}Profile '{self.single_profile_name}'"
+    self.specific_name_msg = (
+        f"{defaults['display_only']}Profile '{self.single_profile_name}'"
+    )
     try:
         self.specific_profile_optionmenu.set(self.single_profile_name)
     except AttributeError:
@@ -1915,7 +1954,9 @@ def search_substring_in_list(
         task_id = substring.split(".")[1].strip()
         second_search_string = f"id: {task_id}"
     elif substring[6:] in PrimeItems.task_action_warnings:
-        second_search_string = f"id: {PrimeItems.task_action_warnings[substring[6:]]['id']}"
+        second_search_string = (
+            f"id: {PrimeItems.task_action_warnings[substring[6:]]['id']}"
+        )
     else:
         second_search_string = ""
     lower_substring = substring.lower()
@@ -2080,7 +2121,8 @@ def get_appropriate_color(self: object, color_to_use: str) -> str:
 
     for key, color in color_match.items():
         if color_to_use == key and (
-            self.appearance_mode == "dark" or (self.appearance_mode == "system" and darkdetect.isDark())
+            self.appearance_mode == "dark"
+            or (self.appearance_mode == "system" and darkdetect.isDark())
         ):
             # Return the dark-mode color
             return color[0]
@@ -2104,6 +2146,7 @@ def display_progress_bar(
     Returns:
         None: This function does not return anything.
     """
+    # Set values for use in this function.
     tenth_increment = progress["tenth_increment"]
     progress_counter = progress["progress_counter"]
     max_data = progress["max_data"]
@@ -2142,22 +2185,31 @@ def display_progress_bar(
         if progress_counter / max_data >= 0.99:
             progress_value = 0.97
 
+    if PrimeItems.program_arguments["debug"]:
+        print(
+            "Display Progressbar",
+            progress_value,
+            threshold,
+            progress_counter,
+            max_data,
+        )
+
     # Update the progress bar with the current value and color.
     progress["progress_bar"].progressbar.set(progress_value)
     progress["progress_bar"].progressbar.configure(progress_color=progress_color)
     progress["progress_bar"].progressbar.update()
 
-    # Check if an alert needs to be printed (OS X only).
-    if (
-        platform.system() == "Darwin"
-        and progress
-        and progress["progress_bar"].progressbar.print_alert
-        and round(time.time() * 1000) - progress["progress_bar"].progressbar.start_time > 4000
-    ):
-        print(
-            f"{Colors.Green}You can ignore the error message: 'IMKClient Stall detected, *please Report*...'",
-        )
-        progress["progress_bar"].progressbar.print_alert = False
+    # # Check if an alert needs to be printed (OS X only).
+    # if (
+    #     platform.system() == "Darwin"
+    #     and progress
+    #     and progress["progress_bar"].progressbar.print_alert
+    #     and round(time.time() * 1000) - progress["progress_bar"].progressbar.start_time > 4000
+    # ):
+    #     print(
+    #         f"{Colors.Green}You can ignore the error message: 'IMKClient Stall detected, *please Report*...'",
+    #     )
+    #     progress["progress_bar"].progressbar.print_alert = False
 
 
 def find_connector(
@@ -2393,7 +2445,9 @@ def remove_tags_from_bars_and_names(self: object) -> None:
         # Remove the bars from the text widget.
         if values["tag"]:
             line_num = values["start_top"][0]
-            number_of_lines_to_highlight = values["start_bottom"][0] - values["start_top"][0] + 1
+            number_of_lines_to_highlight = (
+                values["start_bottom"][0] - values["start_top"][0] + 1
+            )
             for _ in range(number_of_lines_to_highlight):
                 self.textview_textbox.tag_remove(
                     values["tag"],
@@ -2429,26 +2483,38 @@ def kill_the_progress_bar(progress_bar: dict, remove_windows: bool = False) -> N
     Returns:
         None
     """
-    # Keep import here to avoid ccircular import
+    # Make sure we have a progressbar.
+    if not progress_bar:
+        return
+    # Keep import here to avoid circular import
     from maptasker.src.guiwins import save_window_position
 
     # Save the window position in our main window (self=MyGui).
-    PrimeItems.mygui.progressbar_window_position = save_window_position(
-        progress_bar["progress_bar"],
-    )
-    # Get rid of the progressbar
-    progress_bar["progress_bar"].progressbar.stop()
-    progress_bar["progress_bar"].progressbar.destroy()
-    progress_bar["progress_bar"].destroy()
-    progress_bar.clear()
-    PrimeItems.progressbar.clear()
-    # Get rid of any open views.
-    if remove_windows:
-        for window_attr in ["mapview_window", "diagramview_window", "treeview_window"]:
-            window = getattr(PrimeItems.mygui, window_attr, None)
-            if window is not None:
-                window.destroy()
-                setattr(PrimeItems.mygui, window_attr, None)
+    if PrimeItems.progressbar:
+        PrimeItems.mygui.progressbar_window_position = save_window_position(
+            progress_bar["progress_bar"],
+        )
+        # Get rid of the progressbar
+        progress_bar["progress_bar"].progressbar.stop()
+        progress_bar["progress_bar"].progressbar.destroy()
+        progress_bar["progress_bar"].destroy()
+        progress_bar.clear()
+        PrimeItems.progressbar.clear()
+        # Get rid of any open views.
+        if remove_windows:
+            for window_attr in [
+                "mapview_window",
+                "diagramview_window",
+                "treeview_window",
+            ]:
+                window = getattr(PrimeItems.mygui, window_attr, None)
+                if window is not None:
+                    window.destroy()
+                    setattr(PrimeItems.mygui, window_attr, None)
+    # If we don't have PrimeItems.progressbar, we have a runaway situation (tkinter bug).
+    # Just destory the window.
+    else:
+        progress_bar.destroy()
 
 
 def get_profiles_in_project(project_name: str) -> str:
@@ -2471,7 +2537,9 @@ def get_profiles_in_project(project_name: str) -> str:
         [],
     )
     # Get all of the Profiles in the Project
-    profile_names = [PrimeItems.tasker_root_elements["all_profiles"][pid]["name"] for pid in pids]
+    profile_names = [
+        PrimeItems.tasker_root_elements["all_profiles"][pid]["name"] for pid in pids
+    ]
     if pids:
         return profile_names
     return ""
@@ -2498,7 +2566,9 @@ def get_tasks_in_profile(project_name: str) -> str:
         [],
     )
     # Get all of the Tasks in the Profile
-    task_names = [PrimeItems.tasker_root_elements["all_tasks"][tid]["name"] for tid in tids]
+    task_names = [
+        PrimeItems.tasker_root_elements["all_tasks"][tid]["name"] for tid in tids
+    ]
     if tids:
         return task_names
     return ""
@@ -2619,9 +2689,12 @@ def on_closing(self: object) -> None:
         "Map": "map_window_position",
         "API": "apikey_window_position",
     }
-    # Handle progressbar separately.
     if "Progress" in title:
-        kill_the_progress_bar(PrimeItems.progressbar, remove_windows=True)
+        if PrimeItems.progressbar:
+            progressbar = PrimeItems.progressbar
+        else:
+            progressbar = self.progressbar
+        kill_the_progress_bar(progressbar, remove_windows=True)
         return
     # Find the window being closed and save it's position.
     for keyword, attribute in window_position_map.items():
@@ -2697,7 +2770,11 @@ def get_item_xml(item_type: str, item_name: str) -> defusedxml.Element | None:
     """
     if item_type == "Task":
         return next(
-            (v["xml"] for v in PrimeItems.tasker_root_elements["all_tasks"].values() if v["name"] == item_name),
+            (
+                v["xml"]
+                for v in PrimeItems.tasker_root_elements["all_tasks"].values()
+                if v["name"] == item_name
+            ),
             None,
         )
     return PrimeItems.tasker_root_elements["all_projects"].get(item_name, {}).get("xml")
@@ -2805,3 +2882,20 @@ def validate_tkinter_geometry(geometry_string: str) -> bool:
     except ValueError:
         print("Error: Invalid numeric value in geometry string.")
         return False
+
+
+def extract_number_from_line(line: str) -> str | None:
+    """
+    Checks if a string ends with '.n' or '.nn' or '.nnn' (where 'n' represents a digit)
+    and returns the number part as a string. Leading zeros are not required.
+
+    Args:
+      line: The input string.
+
+    Returns:
+      The number part as a string if the line ends with a dot followed by one or more digits, otherwise None.
+    """
+    match = re.search(r"\.(\d+)$", line)
+    if match:
+        return match.group(1)
+    return None

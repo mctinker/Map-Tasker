@@ -189,7 +189,7 @@ def remove_html_tags(text: str, replacement: str) -> str:
     :return: the text with HTML removed
     """
     # If this is a Project/Profile/Task/Scene name, then we will leave the string asis.
-    if tasker_object:
+    if tasker_object(text):
         return text
 
     # Go thru each character in the string and remove HTML tags

@@ -41,6 +41,7 @@ def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) 
         "rep_type": "",
         "fromvar": "",
         "tovar": "",
+        "cname": "",
     }
 
     for child in the_item:
@@ -51,6 +52,8 @@ def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) 
                 time_values["rep_type"] = " minutes " if child.text == "2" else " hours "
             case "repval":
                 time_values["rep"] = f" repeat every {child.text}{time_values['rep_type']}"
+            case "cname":
+                time_values["cname"] = f" Name={child.text}"
             case _:
                 return (
                     f"{the_output_condition}{child.text} not yet mapped!",
@@ -72,7 +75,7 @@ def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) 
     elif from_variable or to_variable:
         the_output_condition += f"Time: from {from_variable} to {to_variable} {rep}"
 
-    return the_output_condition
+    return the_output_condition + time_values["cname"]
 
 
 # Profile condition: Day
@@ -108,7 +111,7 @@ def condition_day(the_item: defusedxml.ElementTree, the_output_condition: str) -
         "December",
     ]
 
-    results = {"wday": [], "mday": [], "mnth": []}
+    results = {"wday": [], "mday": [], "mnth": [], "cname": ""}
 
     for child in the_item:
         if "wday" in child.tag:
@@ -117,11 +120,14 @@ def condition_day(the_item: defusedxml.ElementTree, the_output_condition: str) -
             results["mday"].append(child.text)
         elif "mnth" in child.tag:
             results["mnth"].append(months[int(child.text)])
+        elif "cname" in child.tag:
+            results["cname"] = f" ,Name={child.text}"
 
     formatted_parts = [
         f"Days of Week: {' '.join(results['wday'])}" if results["wday"] else "",
         f"Days of Month: {' '.join(results['mday'])}" if results["mday"] else "",
         f"Months: {' '.join(results['mnth'])}" if results["mnth"] else "",
+        results["cname"],
     ]
 
     return the_output_condition + " ".join(filter(None, formatted_parts)) + " "
@@ -285,7 +291,16 @@ def parse_profile_condition(the_profile: defusedxml.ElementTree) -> str:
         "App": condition_app,
         "Loc": condition_loc,
     }
-    ignore_items = ["cdate", "edate", "flags", "id", "ProfileVariable"]
+    ignore_items = [
+        "cdate",
+        "edate",
+        "flags",
+        "id",
+        "ProfileVariable",
+        "nme",
+        "mid",
+        "pri",
+    ]
     condition = ""  # Assume no condition
 
     # Go through Profile'x sub-XML looking for conditions

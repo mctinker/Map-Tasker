@@ -15,7 +15,13 @@ This module contains functions to create and manage the directory output queue.
 import math
 
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import NO_PROFILE, NORMAL_TAB, TABLE_BACKGROUND_COLOR, TABLE_BORDER, FormatLine
+from maptasker.src.sysconst import (
+    NO_PROFILE,
+    NORMAL_TAB,
+    TABLE_BACKGROUND_COLOR,
+    TABLE_BORDER,
+    FormatLine,
+)
 
 period = "."
 
@@ -81,7 +87,10 @@ def calculate_grid_size(items: list, max_columns: int) -> tuple:
         ```
     """
     num_items = len(items)
-    num_columns = min(max_columns, num_items)  # Limit the number of columns to 6 at most
+    num_columns = min(
+        max_columns,
+        num_items,
+    )  # Limit the number of columns to 6 at most
     num_rows = math.ceil(num_items / num_columns)
     return num_rows, num_columns
 
@@ -139,7 +148,11 @@ def generate_html_table(data: list, rows: int, columns: int) -> str:
         ```python
         data = {
             "header": ["Name", "Age", "City"],
-            "rows": [["John Doe", 25, "New York"], ["Jane Smith", 30, "Los Angeles"], ["Mike Johnson", 35, "Chicago"]],
+            "rows": [
+                ["John Doe", 25, "New York"],
+                ["Jane Smith", 30, "Los Angeles"],
+                ["Mike Johnson", 35, "Chicago"],
+            ],
         }
 
         html_table = generate_html_table(data)
@@ -184,17 +197,21 @@ def do_trailing_matters() -> None:
     trailing_matter = []
     PrimeItems.output_lines.add_line_to_output(
         5,
-        f"<br><br>{NORMAL_TAB}Trailing Information{period*50}<br><br>",
+        f"<br><br>{NORMAL_TAB}Trailing Information{period * 50}<br><br>",
         ["", "project_color", FormatLine.add_end_span],
     )
 
     # Do the Configuration Variables
     if PrimeItems.program_arguments["display_detail_level"] == 4:
-        trailing_matter.append("<a href=#unreferenced_variables>Unreferenced Global Variables</a>")
+        trailing_matter.append(
+            "<a href=#unreferenced_variables>Unreferenced Global Variables</a>",
+        )
 
     # Do Configuration Outline
     if PrimeItems.program_arguments["outline"]:
-        trailing_matter.append("<a href=#configuration_outline>Configuration Outline</a>")
+        trailing_matter.append(
+            "<a href=#configuration_outline>Configuration Outline</a>",
+        )
 
     # Add Grand Totals.
     trailing_matter.append("<a href=#grand_totals>Grand Totals</a>")
@@ -204,7 +221,11 @@ def do_trailing_matters() -> None:
 
 
 # Determinme if an item is in a specific a specific Project.
-def find_task_in_project(start_index: object, item_to_match: str, items_to_search: str) -> bool:
+def find_task_in_project(
+    start_index: object,
+    item_to_match: str,
+    items_to_search: str,
+) -> bool:
     """
     Determinme if an item is in a specific a specific Project.
         Args:
@@ -304,7 +325,9 @@ def check_task(item: str) -> bool:
                         ):
                             # Get the Project's Task IDs
                             tids = project.find("tids")
-                            if tids is not None and this_task_id in tids.text.split(","):
+                            if tids is not None and this_task_id in tids.text.split(
+                                ",",
+                            ):
                                 return True
         return False
     return True
@@ -409,13 +432,15 @@ def do_tasker_element(name: str) -> None:
                 hyperlink_name = item[0].replace(">", "&gt;").replace("<", "&lt;")
                 display_name = item[1].replace(">", "&gt;").replace("<", "&lt;")
                 # Append our hyperlink to this Project to the list
-                directory_hyperlinks.append(f"<a href=#{name}_{hyperlink_name}>{display_name}</a>")
+                directory_hyperlinks.append(
+                    f"<a href=#{name}_{hyperlink_name}>{display_name}</a>",
+                )
 
         if directory_hyperlinks:
             # Output the name title: Project, Profile, Task, Scene
             PrimeItems.output_lines.add_line_to_output(
                 5,
-                f"{NORMAL_TAB}{name.capitalize()}{period*60}<br><br>",
+                f"{NORMAL_TAB}{name.capitalize()}{period * 60}<br><br>",
                 ["<br><br>", "project_color", FormatLine.add_end_span],
             )
             # 6 columns for projects, 5 columns for tasks
@@ -455,4 +480,8 @@ def output_directory() -> None:
     do_trailing_matters()
 
     # Add final rule and break
-    PrimeItems.output_lines.add_line_to_output(5, "<hr><br><br>\n", FormatLine.dont_format_line)
+    PrimeItems.output_lines.add_line_to_output(
+        5,
+        "<hr><br><br>\n",
+        FormatLine.dont_format_line,
+    )

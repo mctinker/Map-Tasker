@@ -35,6 +35,10 @@ def display_caveats() -> None:
             '- All attempts are made to retain embedded HTML (e.g. color=...>") in Tasker'
             " fields, but is stripped out of Action labels and TaskerNet comments.\n"
         ),
+        (
+            "- Profile names starting with '*' are anonymous/unnamed, and the name consists of"
+            " the Profile conditions.\n"
+        ),
     ]
 
     # Let 'em know about Google API key
@@ -58,7 +62,9 @@ def display_caveats() -> None:
         )
 
     if PrimeItems.program_arguments["display_detail_level"] > 2:  # Caveat about labels being stripped of html
-        caveats.extend(("- Task labels have been stripped of all html to avoid output formatting issues.\n",))
+        caveats.extend(
+            ("- Task labels have been stripped of all html to avoid output formatting issues.\n",),
+        )
 
     if (
         PrimeItems.program_arguments["display_detail_level"] == 4

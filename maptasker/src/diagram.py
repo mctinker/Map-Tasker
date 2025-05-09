@@ -8,7 +8,7 @@
 """
 This code is somewhat of a mess.  It is overly complex, but I wanted to develop my own
 diagramming app rather than rely on yet-another-dependency such as that for
-diagram and graphviz.
+'diagram' and 'graphviz' which would do a so-so job.
 """
 
 from __future__ import annotations

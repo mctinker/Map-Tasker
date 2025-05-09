@@ -66,6 +66,11 @@ def format_task_or_scene(list_type: list, the_item: str) -> tuple:
     # Format the Task/Scene name as needed: spacing and HTML
     the_item_altered = adjust_name(list_type, the_item) if list_type in {"Task:", "Scene:"} else the_item
 
+    # If Scene Task, add 'ID:' to the Task number and reformat the string.
+    if "&#45;&#45;Task:" in list_type:
+        the_item_altered = f"ID:{the_item_altered}"
+        list_type = list_type.replace("&#45;&#45;Task: ", "&#45;&#45;Task: '").replace("&nbsp;&nbsp;", "'&nbsp;&nbsp;")
+
     # Format the output line
     output_line = f"{list_type}&nbsp;{the_item_altered}"
 
@@ -433,7 +438,7 @@ def process_list(
         :return:
     """
 
-    # Go through all Tasks in the list
+    # Go through all Tasks/Scenes in the list
     # The list looks like...
     # 'Battery Full Alert&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task&nbsp;&nbsp;Task ID: 18 &nbsp;&nbsp;[Priority: 6]&nbsp;&nbsp;')
     for the_item in the_list:

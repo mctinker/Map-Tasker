@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import re
+from html.parser import HTMLParser
 
 from maptasker.src.guiutils import align_text
 from maptasker.src.maputils import rutroh_error
@@ -40,9 +41,6 @@ def handle_gototop(text_list: list) -> list:
         text_list[-1] = text_list[-1].replace("\n", f"{gototop}\n", 1)
 
     return text_list
-
-
-from html.parser import HTMLParser
 
 
 class MLStripper(HTMLParser):
@@ -121,7 +119,6 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
     # Catch the '>' break before the &gt;' gets replaced.
     too_many_pos = text_list[0].find("Task <a href=#tasks")
     if too_many_pos != -1:
-
         # Find the first ">"
         break_pos = text_list[0].find(">")
         if break_pos != -1:
@@ -541,7 +538,8 @@ def additional_formatting(
     elif line.startswith("<tr><td"):
         temp1 = line.split('text-align:left">')
         global_var_name = temp1[1].split("<")[0]
-        global_var_value = temp1[2].split("<")[0]
+        temp2 = temp1[2].split("<")
+        global_var_value = temp2[0] if temp2[0] else temp2[1][3:]
         output_lines[line_num]["text"] = [
             f"{global_var_name.ljust(25, '.')}{global_var_value.rjust(15, '.')}",
         ]
@@ -684,7 +682,7 @@ def process_html_lines(
 
     for line_num, line in enumerate(lines):
         # Ignore lines that match the criteria
-        if ignore_line(line):
+        if ignore_line(line) and not doing_global_variables:
             continue
 
         # Process directory entries
@@ -720,6 +718,10 @@ def process_html_lines(
             doing_global_variables = False
             spacing = 0
             continue
+
+        # Reset spacing if this is a Scene element
+        if "Element of type" in line:
+            spacing = 0
 
         # If we are doing html such as from a screen WebElement or variable set, then provide appropriate spacing.
         if not remove_html:

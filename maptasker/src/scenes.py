@@ -108,7 +108,9 @@ def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> Non
     values. The constructed line is then added to the output lines using the `add_line_to_output` method of the
     `PrimeItems.output_lines` object, with a level of 2, indentation of 12 spaces, and a color of "scene_color".
     """
+    original_indentation = indentation
     for subchild in child:
+        indentation = original_indentation
         # If it is an xxxElement, then process it by recursing.
         if tag_in_type(subchild.tag, True):
             process_arguments(subchild, subchild.tag, indentation + 5)
@@ -230,6 +232,7 @@ def format_and_output_arguments(
         element_name = ""
     else:
         title = "UI for  "
+        # indentation = 0
 
     # Make pretty
     if PrimeItems.program_arguments["pretty"]:
@@ -308,8 +311,10 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
         - Set task type string for output.
         - Process the Scene's Task.
         - If we hit the arguments, then break out of loop looking for tasks.add."""
+
     # xxxElement: Look for Tasks associated with this element
     for sub_child in child:  # Go through Element sub-items
+
         # Task-Click (<xxxClick>, <xxxTask>, etc.) associated with this
         #  Scene's element?
         if tag_in_type(sub_child.tag, False):  # e.g. clickTask?
@@ -325,7 +330,7 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
                     FormatLine.dont_format_line,
                 )
                 # Get the name of Task
-                task_element, _ = tasks.get_task_name(
+                task_element, task_name = tasks.get_task_name(
                     sub_child.text,
                     tasks_found,
                     temp_task_list,
@@ -338,14 +343,14 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
                 # If Task is related to the scene Properties, some of the names change.
                 task_title = SCENE_TASK_TYPES[sub_child.tag]  # Pick up title from xxxTask element.
                 if child.tag == "PropertiesElement":
-                    preamble = "Properties "
+                    preamble = "  Properties "
                     if sub_child.tag == "itemselectedTask":
                         task_title = "TAB TAP"
                 else:
                     preamble = ""
 
                 # Ok, process the task (e.g. output it).  "&#45;" = hyphen
-                extra = f"{blank*2}ID:"
+                extra = f"{blank*2}{task_name}"
                 task_type = f"<br>{blank}{preamble}&#45;&#45;Task: {task_title}{extra}"
                 # process the Scene's Task
                 process_list(
@@ -358,6 +363,9 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
         # If we hit the arguments, then break out of loop looking for tasks.add
         elif sub_child.tag in ["Str", "Int"]:
             break
+
+    # Add a break after last Task.
+    PrimeItems.output_lines.add_line_to_output(5, "<br>", FormatLine.dont_format_line)
 
 
 # Pull out the screen width and height
@@ -378,9 +386,11 @@ def get_details(
         Nothing
     """
     element_type = ""
+    original_indent = indentation
     for child in scene:
         if child.tag in SCENE_TAGS_TO_IGNORE:
             continue
+        indentation = original_indent
 
         # Is this an xxxElement?
         if tag_in_type(child.tag, True):  # xxxElement (e.g. RectElement)?
@@ -428,10 +438,10 @@ def process_properties(scene: defusedxml.ElementTree, indentation: int) -> None:
     properties = scene.find("PropertiesElement")
     if properties is not None:
         # Format and output the xxxElement arguments
-        format_and_output_arguments(properties, "PropertiesElement", indentation + 1)
+        format_and_output_arguments(properties, "PropertiesElement", indentation + 5)
 
         # Process any Tasks as part of this Scene Properties
-        process_tasks(properties, [])
+        # process_tasks(properties, [])
 
 
 # Process the Scene
