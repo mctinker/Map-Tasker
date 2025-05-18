@@ -15,13 +15,17 @@ from typing import TYPE_CHECKING
 
 import maptasker.src.tasks as tasks  # noqa: PLR0402
 from maptasker.src.error import error_handler
-from maptasker.src.maputils import count_consecutive_substr, get_value_if_match
+from maptasker.src.maputils import (
+    count_consecutive_substr,
+    count_unique_substring,
+    get_value_if_match,
+)
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
-UNNAMED = "Anonymous#"
+UNNAMED = " (Unnamed)"
 
 
 def ensure_argument_alignment(taction: str) -> str:
@@ -140,11 +144,17 @@ def get_task_actions_and_output(
     4. Output actions list with formatting
     5. Handle errors if no task found
     """
+    # If the Task is unnamed or we are doing more detail, find the Task.
     if UNNAMED in the_item or PrimeItems.program_arguments["display_detail_level"] > 0:
         # Get the Task name so that we can get the Task xml element
         # "--Task:" denotes a Task in a Scene which we will handle below
-        temp_id = "x" if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
-        task_name = temp_id[0].split("&nbsp;")[0]
+        if UNNAMED in the_item:
+            index = the_item.find(UNNAMED)
+            task_name = the_item[: index + len(UNNAMED)]
+        else:
+            temp_id = "x" if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
+            task_name = temp_id[0].split("&nbsp;")[0]
+        # Find the Task
         the_task, task_id = get_value_if_match(
             PrimeItems.tasker_root_elements["all_tasks"],
             "name",
@@ -172,7 +182,10 @@ def get_task_actions_and_output(
             # formatted.
             if alist := tasks.get_actions(the_task):
                 # Track the task and action count if too many actions.
-                action_count = len(alist)
+                action_count = len(alist) - count_unique_substring(
+                    alist,
+                    "...indent=",
+                )
                 # Add the Task to our warning limit dictionary.
                 if (
                     PrimeItems.program_arguments["task_action_warning_limit"] < 100

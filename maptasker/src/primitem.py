@@ -65,9 +65,9 @@ class PrimeItems:
     }
     xml_tree = None
     xml_root = None
-    program_arguments: ClassVar = {}
-    colors_to_use: ClassVar = {}
-    output_lines = None
+    program_arguments: ClassVar[dict] = {}
+    colors_to_use: ClassVar[dict] = {}
+    output_lines: ClassVar = None
     file_to_get = ""
     file_to_use = ""
     task_count_for_profile = 0
@@ -75,26 +75,26 @@ class PrimeItems:
     error_code = 0
     error_msg = ""
     mono_fonts: ClassVar = {}
-    found_named_items: ClassVar = {
+    found_named_items: ClassVar[dict] = {
         "single_project_found": False,
         "single_profile_found": False,
         "single_task_found": False,
     }
-    grand_totals: ClassVar = {
+    grand_totals: ClassVar[dict] = {
         "projects": 0,
         "profiles": 0,
         "unnamed_tasks": 0,
         "named_tasks": 0,
         "scenes": 0,
     }
-    directory_items: ClassVar = {
+    directory_items: ClassVar[dict] = {
         "current_item": "",
         "projects": [],
         "profiles": [],
         "tasks": [],
         "scenes": [],
     }
-    tasker_root_elements: ClassVar = {
+    tasker_root_elements: ClassVar[dict] = {
         "all_projects": [],
         "all_profiles": {},
         "all_scenes": {},
@@ -102,18 +102,18 @@ class PrimeItems:
         "all_tasks_by_name": {},
         "all_services": [],
     }
-    directories: ClassVar = []
-    variables: ClassVar = {}
+    directories: ClassVar[list] = []
+    variables: ClassVar[dict] = {}
     current_project = ""
     tkroot = None
     last_run = NOW_TIME
     slash = "/"
-    task_action_warnings: ClassVar = {}
-    tasker_action_codes: ClassVar = {}
-    tasker_arg_specs: ClassVar = {}
-    tasker_category_descriptions: ClassVar = {}
-    tasker_event_codes: ClassVar = {}
-    tasker_state_codes: ClassVar = {}
+    task_action_warnings: ClassVar[dict] = {}
+    tasker_action_codes: ClassVar[dict] = {}
+    tasker_arg_specs: ClassVar[dict] = {}
+    tasker_category_descriptions: ClassVar[dict] = {}
+    tasker_event_codes: ClassVar[dict] = {}
+    tasker_state_codes: ClassVar[dict] = {}
 
 
 # Reset all values

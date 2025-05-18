@@ -10,6 +10,7 @@ from __future__ import annotations
 import ipaddress
 import json
 import os
+import re
 import socket
 import string
 import subprocess
@@ -569,3 +570,88 @@ def get_first_substring_match(main_string: str, substrings: list) -> str | None:
         if sub in main_string:
             return sub
     return None
+
+
+def remove_substring_and_next(
+    main_string: str,
+    substring: str,
+    chars_to_remove_after: int = 1,
+) -> str:
+    """
+    Searches for a substring in a string and removes the substring
+    along with a specified number of characters immediately following it.
+
+    Args:
+        main_string (str): The string to search within.
+        substring (str): The substring to search for.
+        chars_to_remove_after (int, optional): The number of characters to remove
+                                               after the substring. Defaults to 1.
+
+    Returns:
+        str: The modified string with the substring and the following
+             characters removed, or the original string if the substring
+             is not found.
+    """
+    try:
+        start_index = main_string.find(substring)
+        if start_index != -1:
+            end_index = start_index + len(substring) + chars_to_remove_after
+            modified_string = main_string[:start_index] + main_string[end_index:]
+            return modified_string
+        return main_string
+    except IndexError:
+        # Handle the case where the substring is at or near the end
+        end_index = start_index + len(substring)
+        modified_string = main_string[:start_index]
+        return modified_string
+    except TypeError:
+        return main_string
+
+
+def truncate_string(text: str, max_length: int = 30) -> str:
+    """Truncates a string to a specified maximum length.
+
+    Args:
+      text: The input string.
+      max_length: The maximum number of characters to keep (default is 30).
+
+    Returns:
+      The truncated string. If the original string is shorter than or equal to
+      max_length, it is returned unchanged. If it's longer, it's truncated and
+      an ellipsis (...) is added to the end.
+    """
+    if len(text) <= max_length:
+        return text
+
+    return text[:max_length] + "..."
+
+
+def count_unique_substring(string_list: list, substring: str) -> int:
+    """
+    Counts the number of strings in a list that contain a given substring,
+    assuming each string has at most one instance of the substring.
+
+    Args:
+      string_list: A list of strings to search within.
+      substring: The substring to count.
+
+    Returns:
+      An integer representing the number of strings containing the substring.
+    """
+    count = 0
+    for text in string_list:
+        if substring in text:
+            count += 1
+    return count
+
+
+def remove_html_tags(text: str) -> str:
+    """Removes all HTML tags from a given string.
+
+    Args:
+      text: The input string containing HTML tags.
+
+    Returns:
+      A string with all HTML tags removed.
+    """
+    return re.sub(r"<[^>]+>", "", text)

@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
 
-VERSION = "7.2.3"
+VERSION = "7.3.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -313,7 +313,7 @@ GEMINI_MODELS = [
     "gemini-1.5-flash-8b",
     "gemini-1.5-pro",
     "gemini-2.5-flash-preview-04-17",
-    "gemini-2.5-pro-exp-03-25",
+    "gemini-2.5-pro-preview-03-25",
     "gemini-2.5-pro-preview-05-06",
 ]
 MODEL_GROUPS = {

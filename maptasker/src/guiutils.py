@@ -74,27 +74,22 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 7.2.3 - Change Log\n
-- Added: Tasker version 6.5.6-rc is supported.\n
-- Added: Two missing events and two missing plugins have been added.\n
-- Added: Unnamed Profiles now have a name.  See 'Changed', below.\n
+Version 7.3.0 - Change Log\n
+### Summary: Unnamed Tasks are now named with the first action in the Task\n\n
+### Added\n
+- Added: Add unnamed Tasks (e.g. Scene related tasks) to the directory.\n
+- Added: Hover over Profile now includes a list of Tasks in the Map view.\n
+- Added: All unnamed Tasks now have a name consisting of the first action in the Task.\n
 ### Changed\n
-- Changed: Unnamed Profiles are now listed as they are in Tasker, consisting of the conditions and are preceded by an asterisk and followed by a '(None or unnamed!).' plus unique ID number.  Example: '*Face Down (None or unnamed!).45'\n
-- Changed: Unnamed Profiles now appear at the beginning of the Profile directory entries (all names start with '*').\n
-- Changed: Unnamed Tasks called by Scenes are now identified as 'Unnamed/Anonymous'.\n
-- Changed: Extended Map view directory names from 40 characters long to 50 characters.\n
+- Changed: 'Debug' mode no longer requires the XML file to be named 'backup'.\n
+- Changed: Unnamed Tasks now have the name of the first action. Example: 'If %fast ~ no.475 (Unnamed)', where '475' is the Task id.\n
 ### Fixed\n
-- Fixed: 'File Modified' event is not displaying 'File=' value.\n
-- Fixed: Map view Scene elements are all misaligned.\n
-- Fixed: The Map view is displaying duplicate Scene 'Properties --Task:...' details.\n
-- Fixed: Program error if a 'Name' is associated with a Time or Day profile condition.\n
-- Fixed: The Diagram view gets corrupted if the diagram is greater than 4500 characters in length (e.g. a massive diagram).  The fix is to truncate those lines at 4500 characters.\n
-- Fixed: Global variables are not appearing in the Map view.\n
-- Fixed: Changed color settings are not being restored.\n
-- Fixed: Hover over Task name in the Map view displays incorrect Profile and Project.\n
-- Fixed: Hover over Scene name in Map view incorrectly displays HTML.\n
-- Fixed: Owner display when hovering over search string in Map view is off the screen.  Truncate the displayed results instead.\n
-- Fixed: Program error if the progress bar window is closed during a loop condition.\n
+- Fixed: Hover over Task name in Map view gives program error if Task is not associated with a Profile.\n
+- Fixed: 'Cancel Entry' button mistakenly leaves a '?' in the GUI.\n
+- Fixed: Incorrectly including a '0' in the Profile name if it is anonymous.\n
+- Fixed: Hover over a Project that has anonymous Profiles does display the Tasks under those Profiles.\n
+- Fixed: Cleaned up unnamed Profile (conditional) names.\n
+- Fixed: Task action output with 'continued >' lines are incorrectly being included in the action count.\n
 """
 
 default_font_size = 14
@@ -178,8 +173,6 @@ def get_xml(debug: bool, appearance_mode: str) -> int:
         - Set colors_to_use variable based on appearance mode.
         - Initialize output_lines variable.
         - Return data and output intro."""
-    if not PrimeItems.file_to_get:
-        PrimeItems.file_to_get = "backup.xml" if debug else ""
     PrimeItems.file_to_use = ""  # Get rid of any previous file
     PrimeItems.program_arguments["debug"] = debug
     PrimeItems.program_arguments["gui"] = True
@@ -320,6 +313,8 @@ def clear_android_buttons(self) -> None:  # noqa: ANN001
         self.filelist_label.destroy()
     with contextlib.suppress(AttributeError):
         self.filelist_option.destroy()
+    with contextlib.suppress(AttributeError):
+        self.list_files_query_button.destroy()
     if (
         not self.first_time
     ):  # If first time, don't destory Upgrade and What's New buttons.
@@ -604,10 +599,10 @@ def add_label(
     font_weight: str,
     row: int,
     column: int,
-    padx: tuple,
-    pady: tuple,
+    padx: int | tuple,
+    pady: int | tuple,
     sticky: str,
-) -> None:
+) -> ctk.CTkLabel:
     """Adds a custom label to a custom tkinter frame.
     Parameters:
         - frame (ctk.CTkFrame): The frame to add the label to.
@@ -701,8 +696,8 @@ def add_checkbox(
 def add_button(
     self,  # noqa: ANN001, ARG001
     frame: ctk.CTkFrame,
-    fg_color: str,
-    text_color: str,
+    fg_color: str | tuple,
+    text_color: str | tuple,
     border_color: str,
     command: Callable,
     border_width: int,
@@ -710,10 +705,10 @@ def add_button(
     columnspan: int,
     row: int,
     column: int,
-    padx: tuple,
-    pady: tuple,
+    padx: int | tuple,
+    pady: int | tuple,
     sticky: str,
-) -> None:
+) -> ctk.CTkButton:
     """Add a button to a custom tkinter frame.
     Parameters:
         - frame (ctk.CTkFrame): The frame to add the button to.
@@ -771,10 +766,10 @@ def add_option_menu(
     values: str | list,
     row: int,
     column: int,
-    padx: tuple,
-    pady: tuple,
+    padx: int | tuple,
+    pady: int | tuple,
     sticky: str,
-) -> None:
+) -> ctk.CTkOptionMenu:
     """Adds an option menu to a given frame with specified parameters.
     Parameters:
         - frame (ctk.CTkFrame): The frame to add the option menu to.
@@ -786,7 +781,7 @@ def add_option_menu(
         - pady (tuple): The amount of padding in the y-direction.
         - sticky (str): The direction in which the option menu should stick to the frame.
     Returns:
-        - None: This function does not return any value.
+        - option_menu_name (ctk.CTkOptionMenu): The option menu.
     Processing Logic:
         - Adds an option menu to a frame.
         - Sets the command to be called when an option is selected.
@@ -1950,9 +1945,11 @@ def search_substring_in_list(
     """
     matches = []
     # If this is an Unknown Task or Task in warning dict, we need to search for the Task ID in A Scene as well.
-    if "Task: {UNKNOWN_TASK_NAME}" in substring:
-        task_id = substring.split(".")[1].strip()
-        second_search_string = f"id: {task_id}"
+    if "Task: " in substring and "(Unnamed)" in substring:
+        temp = substring.replace("...", "").split(".")
+        task_id = temp[1].split(" (Unnamed)")[0]
+        # task_id = substring.split(".")[1].strip()
+        second_search_string = f"id:{task_id}"
     elif substring[6:] in PrimeItems.task_action_warnings:
         second_search_string = (
             f"id: {PrimeItems.task_action_warnings[substring[6:]]['id']}"
@@ -1960,6 +1957,8 @@ def search_substring_in_list(
     else:
         second_search_string = ""
     lower_substring = substring.lower()
+    # Go through all data looking for our substring.  Do all compares in lowercase.
+    # If we don't find a match, then search on second substring.
     for i, string in enumerate(strings):
         lower_string = string.lower()
         lower_string_len = len(lower_string)
@@ -1969,6 +1968,10 @@ def search_substring_in_list(
             # Do we need to search for a Task in a Scene (ID: task_id)?
             if pos == -1 and second_search_string:
                 pos = lower_string.find(second_search_string, start)
+                # If we have the "id:task_id" then get the position of the name.
+                if pos != -1:
+                    lower_substring = lower_substring.replace("task: ", "")
+                    pos = lower_string.find(lower_substring, start)
             if pos == -1 or "up one level" in lower_string:
                 break
             matches.append((i, pos))
@@ -2545,22 +2548,32 @@ def get_profiles_in_project(project_name: str) -> str:
     return ""
 
 
-def get_tasks_in_profile(project_name: str) -> str:
+def get_tasks_in_project(project_name: str) -> str:
     r"""
-    Retrieves and returns a string of task names for a given profile.
+    Retrieves and returns a string of task names for a given project.
 
     Args:
-        profile_name (str): The name of the profile for which to retrieve task names.
-        project_name (str): The name of the project associated with the profile.
+        project_name (str): The name of the project.
 
     Returns:
-        str: A string containing the list of task names associated with the profile,
+        str: A string containing the list of task names associated with the project,
             formatted as "Tasks:\n" followed by a comma-separated list of names.
             Returns an empty string if no tasks are found.
     """
-    # Get the Profile's Task Ids.
+    task_names = []
+    if not project_name:
+        return task_names
+
+    # Get the Project's Task Ids.
     tids = get_ids(
         False,
+        PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"],
+        project_name,
+        [],
+    )
+    # Get the Project's Profile Ids.
+    pids = get_ids(
+        True,
         PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"],
         project_name,
         [],
@@ -2569,56 +2582,23 @@ def get_tasks_in_profile(project_name: str) -> str:
     task_names = [
         PrimeItems.tasker_root_elements["all_tasks"][tid]["name"] for tid in tids
     ]
-    if tids:
-        return task_names
-    return ""
-
-
-def find_string_from_text_bottom(
-    self: object,
-    target: str,
-    start_index: int,
-) -> str | None:
-    """
-    Searches for the target string in a list of strings, starting from the end of the list,
-    and returns the first string containing the target.
-
-    Args:
-        self (object): The text widget.
-        target (str): The target string to search for within the list.
-        start_index (int): The index to start the search from.
-
-    Returns:
-        str or None: The first string from the end of the list that contains the target string,
-                    or None if the target string is not found in any of the strings.
-    """
-    # Loop through the list in reverse order
-    for i in range(start_index, -1, -1):
-        string = self.textview_textbox.get(f"{i!s}.0", f"{i!s}.end")
-        if "Properties..." in string:
-            continue
-        if target in string:  # Check if the target string is in the current string
-            return string
-    return None  # Return None if the target string is not found
-
-
-def extract_usage_profile(text: str, title: str) -> str:
-    """
-    Extract the profile name from the given text, if the pattern "Profile: <profile name>   " is found.
-
-    Args:
-        text (str): The text to search for the pattern.
-        title (str): The title to find.
-
-    Returns:
-        str or "": The profile name if found, otherwise "".
-    """
-    start_temp = text.find(title)
-    start = start_temp + 9
-    end = text.find("   ", start)
-    if start and end:
-        return text[start:end]  # Return the captured string, stripped of extra spaces
-    return ""  # Return None if the pattern is not found
+    # Include the Tasks under Profiles with no name.
+    if pids:
+        # Go through all Profiles in Project loking for anonymous names.
+        for pid in pids:
+            profile = PrimeItems.tasker_root_elements["all_profiles"][pid]
+            possible_task = None
+            if profile["name"].startswith("*"):
+                possible_task = profile["xml"].find("mid0")
+                if possible_task is None:
+                    possible_task = profile["xml"].find("mid1")
+                if possible_task is not None:
+                    task_names.append(
+                        PrimeItems.tasker_root_elements["all_tasks"][
+                            possible_task.text
+                        ]["name"],
+                    )
+    return task_names
 
 
 def merge_lists(list1: list, list2: list) -> tuple:
@@ -2899,3 +2879,37 @@ def extract_number_from_line(line: str) -> str | None:
     if match:
         return match.group(1)
     return None
+
+
+def find_the_line(
+    textbox: ctk.CTkTextbox,
+    line: str,
+    text_line_num: str,
+) -> tuple[str, str]:
+    """
+    Searches for a line containing a specific substring in a CTkTextbox, starting from a given line number and moving upwards.
+
+    Args:
+        textbox (ctk.CTkTextbox): The text widget to search in.
+        line (str): The substring to search for within each line.
+        text_line_num (str): The starting line number as a string.
+
+    Returns:
+        tuple[str, str]: A tuple containing the found line number, the line content, and a boolean indicating if the line was not found.
+    """
+    line_to_get = text_line_num
+    dont_got_line = True
+    # Search the lines in reverse order for the originating line number.
+    while dont_got_line and line_to_get != "0":
+        # Get the line and check for the owner name.
+        idx = f"{line_to_get}.0"
+        prev_line = textbox.get(idx, idx + " lineend")
+        if line in prev_line:
+            dont_got_line = False
+            break
+        # If not found, decrement the line number.
+        line_to_get = str(int(line_to_get) - 1)
+
+    # Convert the line number back to a string and return everything needed.
+    line_to_get = str(int(line_to_get) - 1)
+    return line_to_get, prev_line, dont_got_line

@@ -69,7 +69,10 @@ def format_task_or_scene(list_type: list, the_item: str) -> tuple:
     # If Scene Task, add 'ID:' to the Task number and reformat the string.
     if "&#45;&#45;Task:" in list_type:
         the_item_altered = f"ID:{the_item_altered}"
-        list_type = list_type.replace("&#45;&#45;Task: ", "&#45;&#45;Task: '").replace("&nbsp;&nbsp;", "'&nbsp;&nbsp;")
+        list_type = list_type.replace("&#45;&#45;Task: ", "&#45;&#45;Task: '").replace(
+            "&nbsp;&nbsp;",
+            "'&nbsp;&nbsp;",
+        )
 
     # Format the output line
     output_line = f"{list_type}&nbsp;{the_item_altered}"
@@ -211,8 +214,8 @@ def add_task_hyperlink(task_name: str, display_name: bool, blank: str) -> None:
     hyperlink_name = task_name.replace(" ", "_")
     name = f"{blank * 8}{task_name}" if display_name else ""
     PrimeItems.output_lines.add_line_to_output(
-        5,
-        f"<a id=tasks_{hyperlink_name}><br>{name}</a>",
+        2,
+        f'<a id="tasks_{hyperlink_name}"><br>{name}</a>',
         FormatLine.dont_format_line,
     )
 
@@ -250,8 +253,8 @@ def add_directory_hyperlink() -> None:
     Returns:
         None
     """
-    directory_item = f'"{PrimeItems.directory_items["current_item"]}"'
-    directory = f"<a id={directory_item}></a>\n"
+    directory_item = f"{PrimeItems.directory_items['current_item']}"
+    directory = f'<a id="{directory_item}"</a>\n'
     PrimeItems.output_lines.add_line_to_output(
         5,
         directory,

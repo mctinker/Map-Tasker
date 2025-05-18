@@ -20,6 +20,7 @@ from maptasker.src.sysconst import (
     NORMAL_TAB,
     TABLE_BACKGROUND_COLOR,
     TABLE_BORDER,
+    UNKNOWN_TASK_NAME,
     FormatLine,
 )
 
@@ -53,7 +54,7 @@ def add_directory_item(key: str, name: str) -> None:
                 where "directory_head is "project", "profile", "task", or "scene"
             name (str): name of the Project/Profile/Task/Scene
     """
-
+    # X Some Task names are indented in the directory. e.g. Ad Brg
     # Only set values if we haven't already done this named item
     if not search_lists(name, PrimeItems.directory_items[key]) and name != NO_PROFILE:
         hyperlink_name = name.replace(" ", "_")
@@ -306,7 +307,11 @@ def check_task(item: str) -> bool:
         Returns:
             bool: True if we should output this hyperlink, False if it is to be ingored.
     """
-    if PrimeItems.program_arguments["single_task_name"] and item[1] != PrimeItems.program_arguments["single_task_name"]:
+    if (
+        PrimeItems.program_arguments["single_task_name"]
+        and item[1] != PrimeItems.program_arguments["single_task_name"]
+        and UNKNOWN_TASK_NAME not in item[1]
+    ):
         return False
     # Doing a single Profile?
     if PrimeItems.program_arguments["single_profile_name"]:
@@ -429,7 +434,7 @@ def do_tasker_element(name: str) -> None:
             if check_item(name, item):
                 # Directory item is valid for this name.
                 # Get the name and display name for this item
-                hyperlink_name = item[0].replace(">", "&gt;").replace("<", "&lt;")
+                hyperlink_name = item[0].replace(">", "&gt;").replace("<", "&lt;").replace("_(Scene)", "")
                 display_name = item[1].replace(">", "&gt;").replace("<", "&lt;")
                 # Append our hyperlink to this Project to the list
                 directory_hyperlinks.append(

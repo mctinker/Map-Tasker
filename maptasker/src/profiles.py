@@ -1,4 +1,4 @@
-"""Handle Profile"""
+"""Handle everything related to "Profiles" from a Tasker project's XML configuration data."""
 
 #! /usr/bin/env python3
 
@@ -15,6 +15,7 @@ from maptasker.src.dirout import add_directory_item
 
 # from maptasker.src.kidapp import get_kid_app
 from maptasker.src.format import format_html
+from maptasker.src.maputils import remove_substring_and_next
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
@@ -113,7 +114,7 @@ def get_profile_name(
     return profile_name_with_html, the_profile_name
 
 
-def delete_non_blank_before_equals(text):
+def delete_non_blank_before_equals(text: str) -> str:
     """
     Searches a string for '=', and for each match, deletes the non-blank
     characters immediately preceding it.
@@ -155,8 +156,8 @@ def set_name_to_condition(
         :return: Updated profile name and HTML formatted name.
     """
     condition_types = [
-        "State",
-        # "Event",
+        # "State",
+        "Event",
         # "Time",
         # "Application",
         # "Days of Week",
@@ -166,9 +167,20 @@ def set_name_to_condition(
         "Class",
         "Priority",
     ]
+    if not profile_name:
+        return profile_name_with_html, profile_name
+
+    # Remove 'Priority:n'
+    profile_conditions = remove_substring_and_next(profile_conditions, "Priority:")
+
     # Change filter of '=:=' temproarily so that we don't break it up.
     # We will change it back to '=:=' later.
     profile_conditions = profile_conditions.replace("=:=", "-+-")
+    # Find and replace separate douyble-spaces
+    # Make sure it is not preceded or followed by another &nbsp;
+    pos = profile_conditions.find("&nbsp;&nbsp;")
+    if pos != -1 and profile_conditions[pos - 1] != ";" and profile_conditions[pos + 12] != "&":
+        profile_conditions = profile_conditions.replace("&nbsp;&nbsp;", " ", 1)
     # Break out the conditions.
     conditions = (
         profile_conditions.replace("&nbsp;&nbsp;Configuration Parameter(s):<br>", " ")
@@ -181,10 +193,18 @@ def set_name_to_condition(
     new_name = ""
     # Go thru our list of conditions.  Repair all '=:=' strings.
     for cond in conditions[1:]:  # Start at second element
+        # Fix the condition
         new_cond = f":{cond.replace('-+-', '=:=')}" if "-+-" in cond else cond
         new_cond = new_cond.replace("<br>", " ")
-        if new_cond.startswith("com.") and new_cond.endswith("Class"):
+        if (new_cond.startswith("com.") and new_cond.endswith("Class")) or len(
+            new_cond,
+        ) == 1:
             continue
+
+        # Cleanup "Applcation" condition, which lost it's ':' due to the split(":") above.
+        new_cond = new_cond.replace("Application", "Application:")
+
+        # Drop any conditions we don't want.
         modified_condition = ""
         for condition_type in condition_types:
             if new_cond.endswith(condition_type):
@@ -207,10 +227,21 @@ def set_name_to_condition(
         # Get rid of priority
         priority = new_name.find("Priority")
         if priority != -1:
-            new_name = new_name[:priority].rstrip()
+            new_name = new_name[: priority + 2].rstrip()
 
-        # Italicize the name aned clean it up.
-        new_name = f"<em>*{new_name.replace('<em>AND</em>', '').replace('&nbsp;&nbsp;', ' ').replace('is set', 'set').replace('<br>', '')}</em>"
+        # Italicize the name and clean it up.
+        replacements = {
+            "<em>AND</em>": "",
+            "&nbsp;&nbsp;": " ",
+            "is set": "set",
+            "<br>": "",
+            " ,": ",",
+            ",  ": ", ",
+        }
+
+        for old, new in replacements.items():
+            new_name = new_name.replace(old, new)
+        new_name = f"<em>*{new_name}</em>"
 
     return profile_name_with_html.replace(
         NO_PROFILE,
@@ -337,12 +368,14 @@ def build_profile_line(
     ):
         # If profile is not named, then set the name to the condition.
         if profile_name == NO_PROFILE:
+            # fmt: off
             profile_name_with_html, profile_name, profile_conditions = conditions_to_name(
-                profile,
-                profile_conditions,
-                profile_name,
-                profile_name_with_html,
+                    profile,
+                    profile_conditions,
+                    profile_name,
+                    profile_name_with_html,
             )
+            # fmt: on
 
         # Add the HTML
         condition_text = format_html(

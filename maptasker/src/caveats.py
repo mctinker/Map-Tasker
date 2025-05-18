@@ -39,6 +39,10 @@ def display_caveats() -> None:
             "- Profile names starting with '*' are anonymous/unnamed, and the name consists of"
             " the Profile conditions.\n"
         ),
+        (
+            "- Task names that consist of the first action that has embed html will have all '<' and '>' characters"
+            " converted to '{' and '}' respectively.\n"
+        ),
     ]
 
     # Let 'em know about Google API key

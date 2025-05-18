@@ -36,11 +36,12 @@ from maptasker.src.guiutils import (
     display_analyze_button,
     display_progress_bar,
     extract_number_from_line,
+    find_the_line,
     get_appropriate_color,
     get_item_xml,
     get_monospace_fonts,
     get_profiles_in_project,
-    get_tasks_in_profile,
+    get_tasks_in_project,
     kill_the_progress_bar,
     make_hex_color,
     merge_lists,
@@ -128,12 +129,12 @@ class CTkTreeview(ctk.CTkFrame):
         ctk (ctk): Our GUI framework
     """
 
-    def __init__(self, master: any, items: list) -> None:
+    def __init__(self, master: ctk.CTkToplevel, items: list) -> None:
         """Function:
         def __init__(self, master: any, items: list):
             Initializes a Treeview widget with a given master and list of items.
             Parameters:
-                master (any): The parent widget for the Treeview.
+                master ( ctk.CTkToplevel): The parent widget for the Treeview.
                 items (list): A list of items to be inserted into the Treeview.
             Returns:
                 None.
@@ -394,12 +395,12 @@ class CTkTextview(ctk.CTkFrame):
         ctk (ctk): Our GUI framework
     """
 
-    def __init__(self, master: any, title: str, the_data: list) -> None:
+    def __init__(self, master: ctk.CTkTextbox, title: str, the_data: list) -> None:
         """Function:
         def __init__(self, master: any, items: list):
             Initializes a Textview widget with a given master and list of items.
             Parameters:
-                master (any): The parent widget for the Textview.
+                master (ctk.CTkTextbox): The parent widget for the Textview.
                 items (list): A list of items to be inserted into the Textview.
             Returns:
                 None.
@@ -471,12 +472,12 @@ class CTkTextview(ctk.CTkFrame):
             ctk.ThemeManager.theme[widget_type][color_type],
         )
 
-    def _setup_textbox(self, master: object) -> None:
+    def _setup_textbox(self, master: ctk.CTkTextbox) -> None:
         """
         Sets up the text box widget with the specified master widget.
 
         Args:
-            master (object): The parent widget for the text box.
+            master (ctk.CTkTextbox): The parent widget for the text box.
 
         Returns:
             None
@@ -672,7 +673,7 @@ class CTkTextview(ctk.CTkFrame):
             ),
         }
 
-        # Retrieve and assign the events based on the title
+        # Retrieve and assign the customtkinter return 'events' based on the title
         if title in event_assignments:
             (
                 search_event,
@@ -1396,7 +1397,7 @@ class CTkTextview(ctk.CTkFrame):
         properties = ""
         # Get a list of the Profiles and Tasks in the Project.
         profiles = get_profiles_in_project(name)
-        tasks = get_tasks_in_profile(name)
+        tasks = get_tasks_in_project(name)
 
         # Merge the Profiles and Tasks lists.
         profiles_and_tasks = merge_lists(profiles, tasks)
@@ -1428,7 +1429,11 @@ class CTkTextview(ctk.CTkFrame):
             str: The updated tooltip text including the project and task list.
         """
         project = self.find_owning_project(name)
-        return text + f"\n  In Project: {project}"
+        tasks = get_tasks_in_project(project)
+        # Can't combine the following into opne large 'f-string' since can not have '\' in f-string.
+        temp = f"\n  In Project: {project}\n  Tasks...\n"
+        all_tasks = "\n   ".join(tasks)
+        return text + f"{temp}   {all_tasks}"
 
     def hover_task(self, tag: str, name: str, text: str) -> str:
         """
@@ -1449,6 +1454,16 @@ class CTkTextview(ctk.CTkFrame):
         # Get the owning Profile.
         textbox = self.textview_textbox
         line_number = tag.split(".")[0]
+
+        # See if this is a launcher task.  If it is, ignore it.
+        _, prev_line, dont_got_line = find_the_line(
+            textbox,
+            name,
+            line_number,
+        )
+        if not dont_got_line and "Launcher Task: " in prev_line:
+            return ""
+
         owning_profile_name, line_num_found, line_found = (
             self.get_owner_name_from_textbox(
                 textbox,
@@ -1463,6 +1478,10 @@ class CTkTextview(ctk.CTkFrame):
                 line_num_found,
                 line_found,
             )
+            # Check for situation in which there is a Project and no Profile (i.e. the Profile has the Project name).
+            if owning_project_name == "<<< Owner=Project":
+                owning_project_name = owning_profile_name
+                owning_profile_name = ""
         else:
             return ""
 
@@ -1612,7 +1631,7 @@ class CTkTextview(ctk.CTkFrame):
         # Global variables are a special case.
         pgv = "Project Global Variables"
         if pgv == line:
-            return f"<<< Owner={pgv}"
+            return f"<<< Owner={pgv}", "", ""
         owner_keys = [
             "Task: ",
             "Profile: ",
@@ -1627,7 +1646,7 @@ class CTkTextview(ctk.CTkFrame):
         ]
         # Identify the possible owners based on what is in the line.
         if "Project: " in line:
-            return "<<< Owner=Project"
+            return "<<< Owner=Project", "", ""
         if "Profile: " in line:
             owner_keys.pop(0)  # Remove tasks
             owner_keys.pop(0)  # Remove profiles
@@ -1639,27 +1658,16 @@ class CTkTextview(ctk.CTkFrame):
             owner_keys.pop(0)  # Remove tasks
 
         # First make sure we are at the line number that contains the text we are starting from.
-        line_to_get = text_line_num
-        dont_got_line = True
-        # Search the lines in reverse order for the originating line number.
-        while dont_got_line and line_to_get != "0":
-            # Get the line and check for the owner name.
-            idx = f"{line_to_get}.0"
-            prev_line = textbox.get(idx, idx + " lineend")
-            if line in prev_line:
-                dont_got_line = False
-                break
-            # If not found, decrement the line number.
-            line_to_get = str(int(line_to_get) - 1)
-
-        # Start with the previous line from the line of the search match string.
-        if line_to_get == "0":
-            # If we are at the top of the text box, then just return.
+        line_to_get, prev_line, dont_got_line = find_the_line(
+            textbox,
+            line,
+            text_line_num,
+        )
+        if dont_got_line:
             return "", "", ""
-        line_to_get = str(int(line_to_get) - 1)
-        owner = ""
 
         # Get the lines in reverse, looking for the owner name.
+        owner = ""
         while line_to_get != "0":
             # Get the line and check for the owner name.
             idx = f"{line_to_get}.0"
@@ -2522,13 +2530,13 @@ class CTkTextview(ctk.CTkFrame):
         else:
             # Normal directory entry.  If name greater than spacing allows, truncate it.
             if len(hotlink_name) > spacing:
-                name_to_insert = hotlink_name[: spacing - 3] + "..."
+                name_to_insert = hotlink_name[: spacing - 3] + "   "
                 # Add the Profile ID if this is a profile with no name.
                 # Make it look like: 'some_profile_name.123...'
                 if name_to_insert.startswith("*") and (
                     prof_id := extract_number_from_line(hotlink_name)
                 ):
-                    name_to_insert = hotlink_name[: spacing - 6] + "..."
+                    name_to_insert = hotlink_name[: spacing - 6] + "   "
                     name_to_insert = (
                         name_to_insert[: spacing - 7]
                         + "."
@@ -3474,13 +3482,15 @@ class CTkHyperlinkManager:
             "scenes": PrimeItems.tasker_root_elements["all_scenes"],
         }
 
-        if action in action_map and self.name_in_list(name, action_map[action]):
+        # If this is an unnamed Task in a Scene, remove the scene part of the name.
+        cleaned_name = name.replace(" (Scene)", "")
+        if action in action_map and self.name_in_list(cleaned_name, action_map[action]):
             # Search for and point to the item in the map view
-            self.find_and_point_to_item(action, name, guiself)
+            self.find_and_point_to_item(action, cleaned_name, guiself)
             return
 
         # Rebuild the map if item not found
-        self.rebuildmap_single_item(action, name, guiself)
+        self.rebuildmap_single_item(action, cleaned_name, guiself)
 
     # The user has clicked on a hotlink.  Get the item clicked and remap using only that single item.
     def rebuildmap_single_item(self, action: str, name: str, guiself: ctk) -> None:
@@ -3527,7 +3537,7 @@ class CTkHyperlinkManager:
 
         Args:
             name (str): The name to search for.
-            tasker_items (dict): The dictionary of tasker items (Project/Profiles/Tasksto search in.
+            tasker_items (dict): The dictionary of tasker items (Project/Profiles/Tasks to search in.
 
         Returns:
             bool: True if the name is found, False otherwise.
@@ -4909,35 +4919,6 @@ def create_tooltip(widget: object, text: str) -> None:
 
     widget.bind("<Enter>", enter)
     widget.bind("<Leave>", leave)
-
-
-class CTkApiKeyOptions(ctk.CTkToplevel):
-    """
-    A class to represent the API Key options window.
-
-    This class inherits from CTkToplevel and is used to create a window for managing API Key options.
-    It will add an additional window to the GetAPIKey window.
-    """
-
-    def __init__(self, *args: dict, **kwargs: dict) -> None:
-        """
-        Initialize the CTkApiKeyOptions class.
-
-        Args:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
-        """
-        Initialize the GetApiKey window.
-
-        Parameters:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
-        super().__init__(*args, **kwargs)
-        # self.geometry("400x300")
-        # self.label = ctk.CTkLabel(self, text="ToplevelWindow")
-        # self.label.pack(padx=20, pady=20)
 
 
 class APIKeyDialog(ctk.CTkToplevel):

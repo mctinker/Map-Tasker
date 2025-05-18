@@ -102,6 +102,8 @@ def get_variables(result: str) -> None:
         - If it is, add the current project name to the list of projects associated with the variable.
         - If it is not, add the variable to the variable dictionary with a default value and the current project name.
         - If the variable is not found in the dictionary, it is considered inactive."""
+    if not PrimeItems.current_project:
+        return
     if variable_list := find_capitalized_percent_substrings(result):
         # Go thru list of capitalized percent substrings and see if they are
         # in our variable dictionary.  If so, then add the project name to the list.

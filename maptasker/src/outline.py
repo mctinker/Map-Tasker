@@ -42,11 +42,14 @@ from maptasker.src.sysconst import FormatLine
 blank = "&nbsp;"
 list_of_found_tasks = []
 line = "─"
-arrow = f"├{line*3}▶"
+arrow = f"├{line * 3}▶"
 
 
 # Update Task with calls and called_by details
-def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_name: str) -> None:
+def update_caller_and_called_tasks(
+    task: defusedxml.ElementTree,
+    perform_task_name: str,
+) -> None:
     # Find the Task xml element to which this Perform Task refers.
     """
     Updates the caller and called tasks lists
@@ -96,7 +99,10 @@ def update_caller_and_called_tasks(task: defusedxml.ElementTree, perform_task_na
 
 
 # Go through the Task's Actions looking for any Perform Task actions.
-def do_task_actions(task_actions: defusedxml.ElementTree, task: defusedxml.ElementTree) -> None:
+def do_task_actions(
+    task_actions: defusedxml.ElementTree,
+    task: defusedxml.ElementTree,
+) -> None:
     """
     Parses task action elements and updates task call relationships.
 
@@ -182,13 +188,15 @@ def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list) -> No
             # Add it to the list of Tasks not in any Profile if not already in the list.
             if no_profile_task not in no_profile_tasks:
                 no_profile_tasks.append(no_profile_task)
-                no_profile_task_lines.append({"xml": no_profile_task["xml"], "name": no_profile_task["name"]})
+                no_profile_task_lines.append(
+                    {"xml": no_profile_task["xml"], "name": no_profile_task["name"]},
+                )
 
     # Format the output line
     if no_profile_tasks:
-        task_line = f"{blank*5}÷{line*5}▶ Tasks not in any Profile:"
+        task_line = f"{blank * 5}÷{line * 5}▶ Tasks not in any Profile:"
         for task in no_profile_tasks:
-            task_line = f'{task_line} {task["name"]},'
+            task_line = f"{task_line} {task['name']},"
 
         # Remove trailing comma: ",&nbsp;&nbsp;"
         task_line = task_line.rstrip(task_line[-1])
@@ -232,7 +240,7 @@ def outline_scenes(project_name: str, network: dict) -> None:
                     arrow_to_use = arrow_to_use.replace("├", "└")
                 PrimeItems.output_lines.add_line_to_output(
                     0,
-                    f"{blank*5}{arrow_to_use}{blank*2}Scene: {scene}",
+                    f"{blank * 5}{arrow_to_use}{blank * 2}Scene: {scene}",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
 
@@ -260,7 +268,7 @@ def do_profile_tasks(
             list: List of Tasks within the Profile being processed.
     """
 
-    arrow1 = f"├{line*5}▶"
+    arrow1 = f"├{line * 5}▶"
     # elbow = f"└{line*5}▶"
     arrow_to_use = arrow1
 
@@ -272,7 +280,7 @@ def do_profile_tasks(
     network[project_name][profile_name] = []
 
     # Go through Task's output lines and Tasks, and add arrows as appropriate.
-    for task_line, task in zip(task_output_line, the_tasks):
+    for task_line, task in zip(task_output_line, the_tasks, strict=False):
         # Keep track of Tasks processed.
         taskid = task["xml"].attrib.get("sr")
         if taskid not in tasks_in_profile:
@@ -302,10 +310,12 @@ def do_profile_tasks(
                 except KeyError:
                     call_task = ""
         if call_task:
-            call_task = f"{blank*3}{line*3} calls {line*2}▶ {call_task.rstrip(call_task[-1])}"  # Get rid of last comma
+            call_task = (
+                f"{blank * 3}{line * 3} calls {line * 2}▶ {call_task.rstrip(call_task[-1])}"  # Get rid of last comma
+            )
 
         # Add the Task output line
-        task_line = f"{blank*5}{arrow_to_use}{blank*2}Task: {task_line[0]}{call_task}"  # noqa: PLW2901
+        task_line = f"{blank * 5}{arrow_to_use}{blank * 2}Task: {task_line[0]}{call_task}"
         PrimeItems.output_lines.add_line_to_output(
             0,
             task_line,
@@ -324,11 +334,9 @@ def outline_profiles_tasks_scenes(
     """
     Given a Project, outline it's Profiles, Tasks and Scenes
         Args:
-
-            project (defusedxml.ElementTree): The xml head element for the Project we are processing
             project_name (str): name of the Project we are currently outlining
             profile_ids (list): liost of Profiles under this Project
-            task_ids (list): list of Tasks under this Project
+            tasks_in_project (list): list of Tasks under this Project
             network (dict): Dictionary structure for our network
     """
     all_profiles_tasks = []
@@ -349,7 +357,7 @@ def outline_profiles_tasks_scenes(
             or PrimeItems.program_arguments["single_profile_name"] == profile_name
         ):
             # Add Profile to our network
-            profile_line = f"{blank*5}{arrow}{blank*2}Profile: {profile_name}"
+            profile_line = f"{blank * 5}{arrow}{blank * 2}Profile: {profile_name}"
             PrimeItems.output_lines.add_line_to_output(
                 0,
                 profile_line,
@@ -421,7 +429,7 @@ def do_the_outline(network: dict) -> None:
             if not pids:
                 PrimeItems.output_lines.add_line_to_output(
                     0,
-                    f"{blank*3}Task only...nothing to outline",
+                    f"{blank * 3}Task only...nothing to outline",
                     ["", "project_color", FormatLine.add_end_span],
                 )
                 return
@@ -453,7 +461,7 @@ def do_the_outline(network: dict) -> None:
             # Output the final Project text
             PrimeItems.output_lines.add_line_to_output(
                 0,
-                f"{blank*3}Project: {project_name}",
+                f"{blank * 3}Project: {project_name}",
                 ["", "project_color", FormatLine.add_end_span],
             )
 
@@ -463,12 +471,21 @@ def do_the_outline(network: dict) -> None:
             # Get the Profile IDs for this Project and process them
             # True if we have Profiles for this Project
             if profile_ids := get_ids(True, project, project_name, []):
-                outline_profiles_tasks_scenes(project_name, profile_ids, task_ids, network)
+                outline_profiles_tasks_scenes(
+                    project_name,
+                    profile_ids,
+                    task_ids,
+                    network,
+                )
 
             # No Profiles for Project
             if not profile_ids:
                 # Add blank line since lineout.py added a completion for Project
-                PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+                PrimeItems.output_lines.add_line_to_output(
+                    3,
+                    "",
+                    FormatLine.dont_format_line,
+                )
 
 
 # Get the Project for the single named item (Profile or Task)

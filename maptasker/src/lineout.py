@@ -179,8 +179,8 @@ class LineOut:
         directory = ""
 
         if PrimeItems.program_arguments["directory"] and PrimeItems.directory_items["current_item"]:
-            directory_item = f'"{PrimeItems.directory_items["current_item"]}"'
-            directory = f"<a id={directory_item}></a>\n"
+            directory_item = PrimeItems.directory_items["current_item"]
+            directory = f'<a id="{directory_item}"</a>\n'
         return f"{directory}{arg1}{element}{arg3}"
 
     # Find the color attribute/class and add the tab attribute to it.
@@ -210,7 +210,7 @@ class LineOut:
 
         """
         color_pos = element.find('_color"')
-        return f'{element[0:color_pos]}_color {tab}"{element[(color_pos+7):]}'
+        return f'{element[0:color_pos]}_color {tab}"{element[(color_pos + 7) :]}'
 
     # Add "Go to top" hyperlink to the element
     def add_gototop_link(self, element: str) -> str:
@@ -294,7 +294,7 @@ class LineOut:
         Args:
             element: Element name in one line
             font: Font name in one line
-        Returns:
+        Returns:]
             style_details: Styled element details in one line
         Processing Logic:
             - Check if element name contains UNKNOWN_TASK_NAME
@@ -338,7 +338,7 @@ class LineOut:
         """
         directory = ""
         if PrimeItems.program_arguments["directory"] and PrimeItems.directory_items["current_item"]:
-            scene_name = f'scenes_{element.split("Scene:&nbsp;")[1]}'
+            scene_name = f"scenes_{element.split('Scene:&nbsp;')[1]}"
             # Get rid of any name attributions
             if (
                 PrimeItems.program_arguments["bold"]
@@ -348,7 +348,7 @@ class LineOut:
             ):
                 scene_name = remove_html_tags(scene_name, "")
 
-            directory = f'<a id="{scene_name.replace(" ","_")}"></a>\n'
+            directory = f'<a id="{scene_name.replace(" ", "_")}"></a>\n'
         element = self.add_gototop_link(element)
         style_details = {
             "tab": "scenetab",
@@ -407,7 +407,10 @@ class LineOut:
             # Force an indent of at least 1
             indentation = f"{'&nbsp;' * 5}" if start2[0] == "0" else f"{blank * (int(start2[0]) + 8)}"
             # Add indentation for contination line
-            tmp = start1[0].replace("Action: ...", f"{indentation}continued >>> {start2[1]}")
+            tmp = start1[0].replace(
+                "Action: ...",
+                f"{indentation}continued >>> {start2[1]}",
+            )
 
             element = tmp
 

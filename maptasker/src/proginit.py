@@ -144,25 +144,8 @@ def open_and_get_backup_xml_file() -> dict:
     dir_path = Path.cwd()
     logger.info(f"dir_path: {dir_path}")
 
-    # If debug and we didn't fetch the backup file from Android device, default to
-    # "backup.xml" file as backup to restore
-    if (
-        PrimeItems.program_arguments["debug"]
-        and PrimeItems.program_arguments["fetched_backup_from_android"] is False
-        and not PrimeItems.program_arguments["file"]
-    ):
-        PrimeItems.program_arguments["file"] = ""
-        try:
-            PrimeItems.file_to_get = open(f"{dir_path}{PrimeItems.slash}backup.xml")
-        except OSError:
-            error_handler(
-                (f"Error: Debug is on and the backup.xml file was not found in {dir_path}."),
-                3,
-            )
-            prompt_for_backup_file(dir_path)
-
     # See if we already have the file
-    elif PrimeItems.program_arguments["file"]:
+    if PrimeItems.program_arguments["file"]:
         filename = isinstance(PrimeItems.program_arguments["file"], str)
         filename = PrimeItems.program_arguments["file"].name if not filename else PrimeItems.program_arguments["file"]
 

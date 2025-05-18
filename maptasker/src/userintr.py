@@ -2964,18 +2964,16 @@ class EventHandlers:
         the_view.android_ipaddr = ""
         the_view.android_port = ""
         the_view.android_file = ""
+        program_args = PrimeItems.program_arguments
+        program_args["android_file"] = ""
+        program_args["android_ipaddr"] = ""
+        program_args["android_port"] = ""
 
         # Redisplay the Projects/Profiles/Tasks pulldown menus for selection
         # It will call 'display_and_set_file' to display the current file name via call to 'load_xml'
         the_view.current_file_display_message = True
         update_tasker_object_menus(the_view, get_data=True, reset_single_names=True)
         the_view.current_file_display_message = False
-        # If debug is on, let the user know that we are using 'backup.xml'
-        if the_view.debug:
-            the_view.display_message_box(
-                "Using backup.xml since debug mode is on.",
-                "Orange",
-            )
 
     # Show for edit the AI API Key
     def ai_apikey_event(self) -> None:

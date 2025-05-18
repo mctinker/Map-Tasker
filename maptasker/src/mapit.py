@@ -82,7 +82,7 @@ crash_debug = False
 
 
 # Handle program error gracefully if not in debug mode
-def on_crash(exctype: str, value: str, traceback: list) -> None:
+def on_crash(exctype: object, value: str, traceback: list) -> None:
     # Display the crash report if in debug mode
     """
     Handle runtime errors
@@ -277,10 +277,10 @@ def output_grand_totals() -> None:
 
 
 # Set up the major variables used within this program, and set up crash routine
-def initialize_everything() -> dict:
+def initialize_everything() -> tuple[list, list, list]:
     """
     Set up all the variables and logic in case program craps out
-        :return: dictionary of primary items used throughout project, and empty staring
+        :return: empty list of primary items used throughout project
     """
 
     # Check to see if we might be coming from another program (e.g. run_test.py), and we are not generating a map view.

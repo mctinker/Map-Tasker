@@ -32,6 +32,7 @@ SCENE_TAGS_TO_IGNORE = [
     "widthLand",
 ]
 blank = "&nbsp;"
+TASK_NAME_MAX_LENGTH = 35
 
 
 # Get the Scene's geometry
@@ -84,7 +85,7 @@ def get_scene_elements(
 
     PrimeItems.output_lines.add_line_to_output(
         0,
-        (f"{blank*(3+indentation)}{element_name}Element of type {element_type[0]}{geometry_text}"),
+        (f"{blank * (3 + indentation)}{element_name}Element of type {element_type[0]}{geometry_text}"),
         ["", "scene_color", FormatLine.add_end_span],
     )
 
@@ -126,7 +127,7 @@ def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> Non
             if line_out:
                 PrimeItems.output_lines.add_line_to_output(
                     2,
-                    f"<br>{blank*12}KEY Tab {line_out}<br>",
+                    f"<br>{blank * 12}KEY Tab {line_out}<br>",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
     return  # noqa: PLR1711
@@ -160,7 +161,7 @@ def process_list_element(
         action_line = get_actions(child)
 
         # Now fix our indentation
-        subline_indentation = f"{blank*len(element_name)}{blank*(9+indentation)}"
+        subline_indentation = f"{blank * len(element_name)}{blank * (9 + indentation)}"
         PrimeItems.output_lines.add_line_to_output(
             2,
             f"{subline_indentation}Action={label}",
@@ -193,7 +194,7 @@ def format_and_output_arguments(
     """
     # Remove "Element" from the name and set up the indetation spacing.
     element_name = element_type.replace("Element", "")
-    line_indentation = f"{blank*len(element_name)}{blank*(18+indentation)}"
+    line_indentation = f"{blank * len(element_name)}{blank * (18 + indentation)}"
 
     # Get the internal element name
     internal_name = child.attrib.get("sr")
@@ -209,7 +210,7 @@ def format_and_output_arguments(
     the_result = the_result.replace("&nbsp;&nbsp;,", "&nbsp;&nbsp;(no name),")
     # Add the internal name
     end_of_name = the_result.find(",")
-    temp = f"{the_result[:end_of_name+1]} Internal Name={internal_name},{the_result[end_of_name+1:]}"
+    temp = f"{the_result[: end_of_name + 1]} Internal Name={internal_name},{the_result[end_of_name + 1 :]}"
     the_result = temp
 
     # Modify UI detail line as needed.
@@ -241,7 +242,7 @@ def format_and_output_arguments(
     # Output the element line details.
     PrimeItems.output_lines.add_line_to_output(
         2,
-        f"{blank*(6+indentation)}{title}{element_name}...{line_out}<br>",
+        f"{blank * (6 + indentation)}{title}{element_name}...{line_out}<br>",
         ["", "scene_color", FormatLine.add_end_span],
     )
 
@@ -314,7 +315,6 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
 
     # xxxElement: Look for Tasks associated with this element
     for sub_child in child:  # Go through Element sub-items
-
         # Task-Click (<xxxClick>, <xxxTask>, etc.) associated with this
         #  Scene's element?
         if tag_in_type(sub_child.tag, False):  # e.g. clickTask?
@@ -340,6 +340,14 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
                 # reset to task name since get_task_name changes its value
                 temp_task_list = [sub_child.text]
 
+                # Add the Scene Task to the directory if unnamed.
+                if "(Unnamed)" in task_name:
+                    task_name = adjust_name_and_add_to_directory(
+                        task_name,
+                        temp_task_list[0],
+                        TASK_NAME_MAX_LENGTH,
+                    )
+
                 # If Task is related to the scene Properties, some of the names change.
                 task_title = SCENE_TASK_TYPES[sub_child.tag]  # Pick up title from xxxTask element.
                 if child.tag == "PropertiesElement":
@@ -350,8 +358,10 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
                     preamble = ""
 
                 # Ok, process the task (e.g. output it).  "&#45;" = hyphen
-                extra = f"{blank*2}{task_name}"
+                extra = f"{blank * 2}{task_name}"
                 task_type = f"<br>{blank}{preamble}&#45;&#45;Task: {task_title}{extra}"
+                PrimeItems.named_task_count_total += 1
+
                 # process the Scene's Task
                 process_list(
                     task_type,
@@ -366,6 +376,40 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
 
     # Add a break after last Task.
     PrimeItems.output_lines.add_line_to_output(5, "<br>", FormatLine.dont_format_line)
+
+
+def adjust_name_and_add_to_directory(
+    task_name: str,
+    task_id: str,
+    max_length: int,
+) -> str:
+    """
+    Adjusts the task name to fit within the specified maximum length and adds it to the directory with '(Scene)' appended.
+
+    Args:
+        task_name (str): The name of the task.
+        task_id (str): The unique identifier for the task.
+        max_length (int): The maximum allowed length for the task name.
+
+    Returns:
+        str: The adjusted task name.
+    """
+    # If the name is too long, adjust iot so that '(Scene)' will fit in the directory.
+    if len(task_name) > max_length:
+        # Get just the 'name.id'
+        task_name = f"{task_name.replace(' (Unnamed)', '').replace('...', '')}"
+        task_name = f"{task_name.split('.')[0].strip()}"
+        # Now truncate it.
+        task_name = f"{task_name[: max_length - 8]}.{task_id} (Unnamed)"
+        # Update the task name in our master dictionary
+        PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"] = task_name
+
+    # Add the Task to the directory with '(Scene)' appended.
+    add_directory_item(
+        "tasks",
+        f"{task_name} (Scene)",
+    )
+    return task_name
 
 
 # Pull out the screen width and height
@@ -411,7 +455,7 @@ def get_details(
                     width, height = get_geometry(sub_scene_element)
                     PrimeItems.output_lines.add_line_to_output(
                         0,
-                        f"{blank*(4+indentation)}Element has an item 'Layout' (Scene) with width/height {width} X {height}",
+                        f"{blank * (4 + indentation)}Element has an item 'Layout' (Scene) with width/height {width} X {height}",
                         ["", "scene_color", FormatLine.add_end_span],
                     )
 
@@ -469,7 +513,7 @@ def process_scene(
     height, width = get_geometry(scene)
     PrimeItems.output_lines.add_line_to_output(
         0,
-        f"{blank*(indentation+2)}Width/Height: {width} X {height}<br>",
+        f"{blank * (indentation + 2)}Width/Height: {width} X {height}<br>",
         ["", "scene_color", FormatLine.add_end_span],
     )
 

@@ -5,11 +5,13 @@
 #                                                                                      #
 # taskerd: get Tasker data from backup xml                                             #
 #                                                                                      #
+
 import defusedxml.ElementTree as ET  # noqa: N817
 
+from maptasker.src.actione import get_action_code
 from maptasker.src.error import error_handler
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine
+from maptasker.src.sysconst import FormatLine
 from maptasker.src.xmldata import rewrite_xml
 
 
@@ -84,19 +86,41 @@ def get_the_xml_data() -> bool:
 
     # Extract and transform data
     PrimeItems.tasker_root_elements = {
-        "all_projects": move_xml_to_table(PrimeItems.xml_root.findall("Project"), False, "name"),
-        "all_profiles": move_xml_to_table(PrimeItems.xml_root.findall("Profile"), True, "nme"),
-        "all_tasks": move_xml_to_table(PrimeItems.xml_root.findall("Task"), True, "nme"),
-        "all_scenes": move_xml_to_table(PrimeItems.xml_root.findall("Scene"), False, "nme"),
+        "all_projects": move_xml_to_table(
+            PrimeItems.xml_root.findall("Project"),
+            False,
+            "name",
+        ),
+        "all_profiles": move_xml_to_table(
+            PrimeItems.xml_root.findall("Profile"),
+            True,
+            "nme",
+        ),
+        "all_tasks": move_xml_to_table(
+            PrimeItems.xml_root.findall("Task"),
+            True,
+            "nme",
+        ),
+        "all_scenes": move_xml_to_table(
+            PrimeItems.xml_root.findall("Scene"),
+            False,
+            "nme",
+        ),
         "all_services": PrimeItems.xml_root.findall("Setting"),
     }
     # Get Tasks by name and handle Tasks with no name.
     PrimeItems.tasker_root_elements["all_tasks_by_name"] = {}
     for key, value in PrimeItems.tasker_root_elements["all_tasks"].items():
         if not value["name"]:
-            # Assign unknown task name if none
-            value["name"] = f"{UNKNOWN_TASK_NAME}{key!s}"
-        PrimeItems.tasker_root_elements["all_tasks_by_name"][value["name"]] = {"xml": value["xml"], "id": key}
+            # Get the first Task Action and user it as the Task name.
+            first_action = get_first_action(value["xml"])
+            # Put the new name back into PrimeItems.tasker_root_elements["all_tasks"]
+            value["name"] = f"{first_action}.{key!s} (Unnamed)"
+
+        PrimeItems.tasker_root_elements["all_tasks_by_name"][value["name"]] = {
+            "xml": value["xml"],
+            "id": key,
+        }
 
     return 0
 
@@ -106,3 +130,62 @@ def _handle_gui_error(message: str, code: int = 1) -> int:
     if PrimeItems.program_arguments["gui"]:
         PrimeItems.error_msg = message
     return code
+
+
+def get_first_action(task: ET) -> str:
+    """
+    Retrieve the name of the first action code from a Tasker task XML element.
+
+    Args:
+        task (ET.ElementTree): The XML element representing a Tasker task.
+
+    Returns:
+        str: The name of the first action's code if found, otherwise an empty string.
+
+    Processing Logic:
+        - Finds all "Action" elements within the task.
+        - Searches for the first action with attribute sr="act0".
+        - If found, retrieves the "code" child element of that action.
+        - Looks up the action code in the action_codes dictionary and returns its name.
+        - Returns an empty string if no suitable action is found.
+    """
+    # Build the Taskere argument codes dictionary if we don't yet have it.
+    if not PrimeItems.tasker_arg_specs:
+        from maptasker.src.proginit import build_action_codes
+
+        build_action_codes(False)
+
+    task_actions = task.findall("Action")
+    if task_actions is not None:
+        have_first_action = False
+        # Go through Actions looking for the first one ("act0")
+        for action in task_actions:
+            action_number = action.attrib.get("sr")
+            if action_number == "act0":
+                have_first_action = True
+                break
+
+        if not have_first_action:
+            return ""
+
+        # Now get the Action code
+        child = action.find("code")
+        the_result = get_action_code(child, action, True, "t")
+        from maptasker.src.maputils import remove_html_tags
+
+        clean_text = remove_html_tags(the_result)
+        clean_text = (
+            clean_text.replace("&nbsp;&nbsp;", "&nbsp;")
+            .replace("( ", "(")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("&nbsp;", " ")
+            .replace("...with label: ", "")
+            .replace("&lt;", "{")
+            .replace("&gt;", "}")
+        )
+        # Truncate the string at 30 charatcers.
+        from maptasker.src.maputils import truncate_string
+
+        return truncate_string(clean_text, 30)
+    return ""

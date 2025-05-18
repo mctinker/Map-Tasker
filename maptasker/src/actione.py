@@ -59,7 +59,7 @@ def get_action_code(
     """
     Given an action code, evaluate it for display
         :param code_child: xml element of the <code>
-        :param code_action: value of <code> (e.g. "549")
+        :param code_action: xml; element of the <Action
         :param action_type: True if task, False otherwise
         :param code_type: 'e'=event, 's'=state, 't'=task
         :return: formatted output line with action details
