@@ -2,23 +2,45 @@
 
 All notable changes to this project will be documented in this file!
 
-## [7.2.3] 09-May-2025
+## [7.3.0] 18-May-2025
+
+### Summary: Unnamed Tasks are now named with the first action in the Task
 
 ### Added
+
+- Added: Add unnamed Tasks (e.g. Scene related tasks) to the directory.
+- Added: Hover over Profile now includes a list of Tasks in the Map view.
+- Added: All unnamed Tasks now have a name consisting of the first action in the Task.
+
+### Changed
+
+- Changed: 'Debug' mode no longer requires the XML file to be named 'backup'.
+- Changed: Unnamed Tasks now have the name of the first action. Example: 'If %fast ~ no.475 (Unnamed)', where '475' is the Task id.
+
+### Fixed
+
+- Fixed: Hover over Task name in Map view gives program error if Task is not associated with a Profile.
+- Fixed: 'Cancel Entry' button mistakenly leaves a '?' in the GUI.
+- Fixed: Incorrectly including a '0' in the Profile name if it is anonymous.
+- Fixed: Hover over a Project that has anonymous Profiles does display the Tasks under those Profiles.
+- Fixed: Cleaned up unnamed Profile (conditional) names.
+- Fixed: Task action output with 'continued >' lines are incorrectly being included in the action count.
+
+### Known Issues
+
+- Unable to change any colors in GUI if using UV to manage the application (UV bug).
+
+## Older History Logs
+
+## [7.2.3]
 
 - Added: Tasker version 6.5.6-rc is supported.
 - Added: Two missing events and two missing plugins have been added.
 - Added: Unnamed Profiles now have a name.  See 'Changed', below.
-
-### Changed
-
 - Changed: Unnamed Profiles are now listed as they are in Tasker, consisting of the conditions and are preceded by an asterisk and followed by a '(None or unnamed!).' plus unique ID number.  Example: '*Face Down (None or unnamed!).45'
 - Changed: Unnamed Profiles now appear at the beginning of the Profile directory entries (all names start with '*').
 - Changed: Unnamed Tasks called by Scenes are now identified as 'Unnamed/Anonymous'.
 - Changed: Extended Map view directory names from 40 characters long to 50 characters.
-
-### Fixed
-
 - Fixed: 'File Modified' event is not displaying 'File=' value.
 - Fixed: Map view Scene elements are all misaligned.
 - Fixed: The Map view is displaying duplicate Scene 'Properties --Task:...' details.
@@ -30,8 +52,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Hover over Scene name in Map view incorrectly displays HTML.
 - Fixed: Owner display when hovering over search string in Map view is off the screen.  Truncate the displayed results instead.
 - Fixed: Program error if the progress bar window is closed during a loop condition.
-
-## Older History Logs
 
 ## [7.2.2]
 
@@ -108,7 +128,7 @@ All notable changes to this project will be documented in this file!
 - Added: New Ai models added: gemini-2.0.flash, gemini-2.0-flash-lite-preview, gpt-4-turbo-preview
 - Added: Task action "Get Pixel Colors' to map.
 - Changed: Code optimizations.
-- Fixed: Windget V2 missing the argument 'Ask To Add If Not Present'.
+- Fixed: Widget V2 missing the argument 'Ask To Add If Not Present'.
 - Fixed: Program error when hovering over a Scene name in the Map view.
 - Fixed: Program error in taskuniq.py.
 - Fixed: MapTasker can not be installed with Python 3.13.2 or higher.  Fixed so that it can run any 3.13.
@@ -122,7 +142,7 @@ All notable changes to this project will be documented in this file!
 - Added: Llama AI models 'deepseek-r1' and 'phi4' added.
 - Changed: The GUI message box is now cleared before displaying an error during initialization.
 - Changed: The AI API Key prompt has been modified for multiple keys, and for the identification of the current key to be used for the AI Analysis.
-- Changed: The AI Model selection pulldown option list is now preceeded by their owner: 'OpenAI', 'Claude', 'Gemini' and 'LLAMA'.  Example: 'OpenAI: gpt-04', and each AI's list of models are now grouped together in the pulldown option list.
+- Changed: The AI Model selection pulldown option list is now preceded by their owner: 'OpenAI', 'Claude', 'Gemini' and 'LLAMA'.  Example: 'OpenAI: gpt-04', and each AI's list of models are now grouped together in the pulldown option list.
 - Fixed: Program error if the AI model has not been set.
 - Fixed: Ai Analysis of a single Task reports it as the Project owning the Task.
 - Fixed: Keep the 'Analyze' tab active after an AI analysis.
@@ -218,7 +238,7 @@ All notable changes to this project will be documented in this file!
 - Added: For task action elements that are either selected or not, display '(selected)' along with the element name (e.g. 'Continue Task Immediately (selected)').
 - Changed: Improved the Diagram view performance.
 - Fixed: Outer horizontal connectors in the Diagram view are too far to the right.
-- Fixed: Program abend during GUI initialization if previous run was for a single named item.
+- Fixed: Program error during GUI initialization if previous run was for a single named item.
 - Fixed: Output lines with 'Structure Output (JSON, etc)' are incorrectly displaying '&nbsp' string in front.
 
 ## [6.0]
@@ -238,7 +258,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Some connections in the Diagram view are not displaying correctly.
 - Fixed: Hitting the 'Cancel' button on the file prompt is not clearing out the current file.
 - Fixed: Settings are being displayed twice on initialization of the GUI.
-- Fixed: Program abends on start up of GUI.
+- Fixed: Program errors on start up of GUI.
 
 ## [5.2.2]
 
@@ -266,7 +286,7 @@ All notable changes to this project will be documented in this file!
 ## [5.1.2]
 
 - Added: 'Up Two Levels' has been added to the Map view.
-- Changed: Map view performance has been improved when using the directory hyperlinks for single names that are already in the view.  It goes directly to the single named item in the current view rather than remapping the nnmed item and redrawing the view.
+- Changed: Map view performance has been improved when using the directory hyperlinks for single names that are already in the view.  It goes directly to the single named item in the current view rather than remapping the named item and redrawing the view.
 - Changed: To remap a single named item in the Map view, the single named item must be selected from the GUI and the 'Map' view button must be reselected.  Otherwise, it will simply display the single named item in the existing Map view.
 - Fixed: Project/Profile/Task/Scene name highlighting is incomplete in the Map view.
 - Fixed: Project/Profile/Task/Scene names with special characters in it are not displaying correctly.
@@ -281,7 +301,7 @@ All notable changes to this project will be documented in this file!
 - Added: "Go to top" has been added to Profile, Task and Scene elements in the browser.
 - Changed: Don't display the message, "You can find 'MapTasker.html' in the current folder." if displaying the Map or Diagram views from the GUI.
 - Fixed: Ai Analysis response window size and location are not being restored on recursive calls.
-- Fixed: Horizontal scrollbars are not being shown in the GUI views.
+- Fixed: Horizontal scroll-bars are not being shown in the GUI views.
 - Fixed: Fetching xml from the Android device is not resetting the single Project/Profile/Task to none.
 - Fixed: Program error if displaying the directory in the Map view.
 - Fixed: Directory names in the Map view that exceeded 40 characters are not displaying correctly.  Now they are truncated with "..." at end.
