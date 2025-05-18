@@ -1,7 +1,7 @@
 [project]
 name = "maptasker"
 dynamic = [ "version" ]
-version = "7.2.2"
+version = "7.3.0"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 requires-python = ">=3.11,<4.0"
 authors = [
@@ -39,17 +39,17 @@ exclude = [
     "**/maptasker/**/.dep-tree.yml"
 ]
 dependencies = [
-    "anthropic>=0.50.0",  #  Ai Anthropics support
+    "anthropic>=0.51.0",  #  Ai Anthropics support
     "customtkinter>=5.2.2",  # GUI
-    "pillow>=11.2.1",  # Image support in GUI
     "darkdetect>=0.8.0",  # Appearance mode detection
     "defusedxml>=0.7.1",  # More secure xml parser
+    "google-generativeai>=0.8.5",  #  Ai Google Generative support
+    "ollama>=0.4.8",  #  Ai Ollama support > cria rquires this
+    "openai>=1.79.0",  #  Ai OpenAi support
+    "pillow==11.2.1",  # Image support in GUI.  Revert back to 11.2.0 to avoid UV bug with tkinter.
+    "psutil>=7.0.0",  #  System monitoring
     "requests>=2.32.3",  # HTTP Server function request
     "tomli_w>=1.2.0",  # Write toml file
-    "openai>=1.76.0",  #  Ai OpenAi support
-    "ollama>=0.4.8",  #  Ai Ollama support > cria rquires this
-    "psutil>=7.0.0",  #  System monitoring
-    "google-generativeai>=0.8.5",  #  Ai Google Generative support
 ]
 
 [project.scripts]
@@ -181,8 +181,8 @@ docstring-quotes = 'double'
 multiline-quotes = 'double'
 
 [tool.ruff.mccabe]
-# Unlike Flake8, default to a complexity level of 10.
-max-complexity = 10
+# Unlike Flake8, default to a complexity level of 15.
+max-complexity = 15
 
 [tool.ruff.per-file-ignores]
 # https://beta.ruff.rs/docs/rules/
@@ -233,6 +233,7 @@ files = ["maptasker/src/sysconst.py"]
 search = 'VERSION = "{current_version}"'
 replace = 'VERSION = "{new_version}"'
 
+
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
 # +black = { version = "*", allows-prereleases = true }
@@ -240,3 +241,5 @@ line-profiler = "^4.1.3"
 vulture = "^2.13"
 poetry-bumpversion = "^0.3.3"
 pyinstrument = "^5.0.0"
+mypy = "^1.15.0"
+types-defusedxml = "^0.7.0"
