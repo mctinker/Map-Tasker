@@ -90,6 +90,7 @@ Version 7.3.0 - Change Log\n
 - Fixed: Hover over a Project that has anonymous Profiles does display the Tasks under those Profiles.\n
 - Fixed: Cleaned up unnamed Profile (conditional) names.\n
 - Fixed: Task action output with 'continued >' lines are incorrectly being included in the action count.\n
+- Fixed: Program error if searching for string in the Diagram view.\n
 """
 
 default_font_size = 14

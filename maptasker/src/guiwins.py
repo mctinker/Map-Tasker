@@ -527,6 +527,9 @@ class CTkTextview(ctk.CTkFrame):
         if type(the_data) == str:
             the_data = the_data.split("\n")
 
+        # Setup to save items (Projects, Profiles, Tasks, and Scenes)
+        self.master.master.items_for_selection = {}  # MyGui
+
         # Process list data (list of lines): diagram view.
         if not isinstance(the_data, dict):
             self.output_list(the_data)
@@ -2072,9 +2075,6 @@ class CTkTextview(ctk.CTkFrame):
             PrimeItems.program_arguments["map_window_position"] = (
                 self.master.master.window_position
             )
-
-        # Setup to save items (Projects, Profiles, Tasks, and Scenes)
-        self.master.master.items_for_selection = {}  # MyGui
 
         # Go through all of the map data and format it accordingly.
         self.process_map_data(
