@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [7.3.0] 18-May-2025
+## [7.3.1] 19-May-2025
 
 ### Summary: Unnamed Tasks are now named with the first action in the Task
 
@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Hover over a Project that has anonymous Profiles does display the Tasks under those Profiles.
 - Fixed: Cleaned up unnamed Profile (conditional) names.
 - Fixed: Task action output with 'continued >' lines are incorrectly being included in the action count.
+- Fixed: Program error if searching for string in the Diagram view.
 
 ### Known Issues
 
