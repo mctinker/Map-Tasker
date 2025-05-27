@@ -2,23 +2,41 @@
 
 All notable changes to this project will be documented in this file!
 
-## [7.3.1] 19-May-2025
+## [8.0.0] 27-May-2025
 
 ### Summary: Unnamed Tasks are now named with the first action in the Task
 
 ### Added
 
-- Added: Add unnamed Tasks (e.g. Scene related tasks) to the directory.
-- Added: Hover over Profile now includes a list of Tasks in the Map view.
-- Added: All unnamed Tasks now have a name consisting of the first action in the Task.
+- Added: New 'List Unnamed Items' checkbox has been added to the GUI under the 'Specific Name' tab.  Click on the text of the checkbox for details.
+- Added: The Anthropic 'claude-opus-4-20250514' and 'claude-sonnet-4-20250514' AI models have been added.
 
 ### Changed
 
-- Changed: 'Debug' mode no longer requires the XML file to be named 'backup'.
-- Changed: Unnamed Tasks now have the name of the first action. Example: 'If %fast ~ no.475 (Unnamed)', where '475' is the Task id.
+- Changed: 'None or Unnamed!' in Profile names has been changed to 'Unnamed'.
+- Changed: Gemini AI models 'gemini-2.5-flash-preview' and 'gemini-2.5-pro-preview' have been updated to the latest versions.
 
 ### Fixed
 
+- Fixed: Too much javascript content is not appearing in the output.
+- Fixed: Tasks with too many actions that have a '>' in the name are not hotlinks.
+- Fixed: Program errors related to Tasks with no name.
+- Fixed: Duplicate Tasks are displayed when hovering over Project or Profile name.
+- Fixed: Selecting an unnamed Task in the GUI pulldown menu can not be found for display.
+
+### Known Issues
+
+- Unable to change any colors in GUI if using UV to manage the application (UV bug).
+
+## Older History Logs
+
+## [7.3.1]
+
+- Added: Add unnamed Tasks (e.g. Scene related tasks) to the directory.
+- Added: Hover over Profile now includes a list of Tasks in the Map view.
+- Added: All unnamed Tasks now have a name consisting of the first action in the Task.
+- Changed: 'Debug' mode no longer requires the XML file to be named 'backup'.
+- Changed: Unnamed Tasks now have the name of the first action. Example: 'If %fast ~ no.475 (Unnamed)', where '475' is the Task id.
 - Fixed: Hover over Task name in Map view gives program error if Task is not associated with a Profile.
 - Fixed: 'Cancel Entry' button mistakenly leaves a '?' in the GUI.
 - Fixed: Incorrectly including a '0' in the Profile name if it is anonymous.
@@ -26,12 +44,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Cleaned up unnamed Profile (conditional) names.
 - Fixed: Task action output with 'continued >' lines are incorrectly being included in the action count.
 - Fixed: Program error if searching for string in the Diagram view.
-
-### Known Issues
-
-- Unable to change any colors in GUI if using UV to manage the application (UV bug).
-
-## Older History Logs
 
 ## [7.2.3]
 

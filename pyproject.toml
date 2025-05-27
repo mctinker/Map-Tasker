@@ -1,7 +1,7 @@
 [project]
 name = "maptasker"
 dynamic = [ "version" ]
-version = "7.3.1"
+version = "8.0.0"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 requires-python = ">=3.11,<4.0"
 authors = [
@@ -39,13 +39,13 @@ exclude = [
     "**/maptasker/**/.dep-tree.yml"
 ]
 dependencies = [
-    "anthropic>=0.51.0",  #  Ai Anthropics support
+    "anthropic>=0.52.0",  #  Ai Anthropics support
     "customtkinter>=5.2.2",  # GUI
     "darkdetect>=0.8.0",  # Appearance mode detection
     "defusedxml>=0.7.1",  # More secure xml parser
     "google-generativeai>=0.8.5",  #  Ai Google Generative support
     "ollama>=0.4.8",  #  Ai Ollama support > cria rquires this
-    "openai>=1.79.0",  #  Ai OpenAi support
+    "openai>=1.82.0",  #  Ai OpenAi support
     "pillow==11.2.1",  # Image support in GUI.  Revert back to 11.2.0 to avoid UV bug with tkinter.
     "psutil>=7.0.0",  #  System monitoring
     "requests>=2.32.3",  # HTTP Server function request
