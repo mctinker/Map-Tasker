@@ -16,11 +16,10 @@ import math
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
-    NO_PROFILE,
     NORMAL_TAB,
     TABLE_BACKGROUND_COLOR,
     TABLE_BORDER,
-    UNKNOWN_TASK_NAME,
+    UNNAMED_ITEM,
     FormatLine,
 )
 
@@ -54,9 +53,13 @@ def add_directory_item(key: str, name: str) -> None:
                 where "directory_head is "project", "profile", "task", or "scene"
             name (str): name of the Project/Profile/Task/Scene
     """
-    # X Some Task names are indented in the directory. e.g. Ad Brg
+    # If it is an unnamed task, and we are not doing the list of unnamed tasks, then skip it.
+    if UNNAMED_ITEM in name and not PrimeItems.program_arguments["list_unnamed_items"]:
+        return
+    # Clean up the name
+    # name = name.replace(" (Scene)", "")
     # Only set values if we haven't already done this named item
-    if not search_lists(name, PrimeItems.directory_items[key]) and name != NO_PROFILE:
+    if not search_lists(name, PrimeItems.directory_items[key]) and name != UNNAMED_ITEM:
         hyperlink_name = name.replace(" ", "_")
         PrimeItems.directory_items["current_item"] = f"{key}_{hyperlink_name}"
         PrimeItems.directory_items[key].append([hyperlink_name, name])
@@ -310,13 +313,14 @@ def check_task(item: str) -> bool:
     if (
         PrimeItems.program_arguments["single_task_name"]
         and item[1] != PrimeItems.program_arguments["single_task_name"]
-        and UNKNOWN_TASK_NAME not in item[1]
+        and UNNAMED_ITEM not in item[1]
     ):
         return False
     # Doing a single Profile?
     if PrimeItems.program_arguments["single_profile_name"]:
         # Get this Task's ID.
-        if this_task_id := PrimeItems.tasker_root_elements["all_tasks_by_name"][item[1]]["id"]:
+        name_to_find = item[1].replace(" (Scene)", "")
+        if this_task_id := PrimeItems.tasker_root_elements["all_tasks_by_name"][name_to_find]["id"]:
             # Find the Project that belongs to the Profile we are looking for.
             for project_item in PrimeItems.tasker_root_elements["all_projects"]:
                 project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]

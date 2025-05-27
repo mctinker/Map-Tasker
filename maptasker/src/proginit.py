@@ -433,6 +433,13 @@ def start_up() -> dict:
     # Validate runtime versions for python and tkinter
     check_versions()
 
+    # Build the action codes
+    # NOTE: FOR DEVELOPMENT ONLY!!! 'BUILD_ALL = TRUE' ONLY WITH NEW UPDATE OF TASKER!  See acmerge.py
+    build_all = False
+    build_action_codes(build_it_all=build_all)
+    if build_all:
+        sys.exit()
+    # END OF DEVELOPMENT CODE
     # Get runtime arguments (from CLI or GUI)
     get_arguments.get_program_arguments()
 
@@ -443,14 +450,6 @@ def start_up() -> dict:
     # Get our map of colors if we don't have them.
     if not PrimeItems.colors_to_use:
         PrimeItems.colors_to_use = setup_colors()
-
-    # Build the action codes
-    # NOTE: FOR DEVELOPMENT ONLY!!! 'BUILD_ALL = TRUE' ONLY WITH NEW UPDATE OF TASKER!  See acmerge.py
-    build_all = False
-    build_action_codes(build_it_all=build_all)
-    if build_all:
-        sys.exit()
-    # END OF DEVELOPMENT CODE
 
     # Display a popup window telling user we are analyzing
     if PrimeItems.program_arguments["doing_diagram"]:

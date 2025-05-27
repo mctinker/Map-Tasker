@@ -47,6 +47,7 @@ def initialize_runtime_arguments() -> dict:
         "icon_alignement": True,  # Align Diagram view with icons
         "indent": 4,  # Backup file was fetched from Android device
         "italicize": False,  # Italicise Project/Profile?Task/Scene names
+        "list_unnamed_items": False,  # List unnamed items
         "view_limit": 10000,  # Map view limit
         "map_window_position": "",  # Last-used map window position
         "outline": False,  # Outline Project/Profile?Task/Scene names

@@ -15,7 +15,7 @@ from maptasker.src.dirout import add_directory_item
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine, logger
+from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.taskactn import get_task_actions_and_output
 from maptasker.src.twisty import add_twisty, remove_twisty
 
@@ -383,12 +383,12 @@ def process_item(
     if PrimeItems.program_arguments["display_detail_level"] == 0:
         return
 
-    # Output Actions for this Task if Task is unknown
-    #   and not part of output for Tasks with no Profile(s)
-    # Do we get the Task's Actions?
-    if (
-        (the_task is not None and "Task:" in list_type and UNKNOWN_TASK_NAME in the_item) or ("Task:" in list_type)
-    ) and "<em>No Profile" not in the_item:
+    # Output Actions for this Task...
+    # If the Task is unnamed and we are listing unnamed tasks or...
+    # the Task is not unnamed.
+    task_in_list_type = "Task:" in list_type
+    if task_in_list_type:
+        # We have a Task, so get its Actions
         get_task_actions_and_output(
             the_task,
             list_type,

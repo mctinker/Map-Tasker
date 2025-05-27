@@ -12,15 +12,17 @@ from typing import TYPE_CHECKING
 from maptasker.src import condition, tasks
 from maptasker.src.actione import fix_json
 from maptasker.src.dirout import add_directory_item
-
-# from maptasker.src.kidapp import get_kid_app
 from maptasker.src.format import format_html
-from maptasker.src.maputils import remove_substring_and_next
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
 from maptasker.src.share import share
-from maptasker.src.sysconst import DISABLED, NO_PROFILE, FormatLine
+from maptasker.src.sysconst import (
+    DISABLED,
+    TASK_NAME_MAX_LENGTH,
+    UNNAMED_ITEM,
+    FormatLine,
+)
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -91,10 +93,18 @@ def get_profile_name(
     profile_id = profile.attrib.get("sr")
     profile_id = profile_id[4:]
     if not (the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"]):
-        the_profile_name = NO_PROFILE
+        the_profile_name = UNNAMED_ITEM
 
     # Make the Project name bold, italicize, underline and/or highlighted if requested
     altered_profile_name = add_name_attribute(the_profile_name)
+
+    # If this is an unnamed Profile, then italicize it if not already italicised.
+    if UNNAMED_ITEM in altered_profile_name and "<em>" not in altered_profile_name:
+        pos = altered_profile_name.rfind(".")
+        if pos != -1:
+            just_the_name = altered_profile_name[:pos]
+            all_but_the_name = altered_profile_name[pos:]
+            altered_profile_name = f"<em>{just_the_name}</em>{all_but_the_name}"
 
     # Add html color and font for Profile name
     profile_name_with_html = format_html(
@@ -112,6 +122,42 @@ def get_profile_name(
         )
 
     return profile_name_with_html, the_profile_name
+
+
+def remove_substring_and_next(
+    main_string: str,
+    substring: str,
+    chars_to_remove_after: int = 1,
+) -> str:
+    """
+    Searches for a substring in a string and removes the substring
+    along with a specified number of characters immediately following it.
+
+    Args:
+        main_string (str): The string to search within.
+        substring (str): The substring to search for.
+        chars_to_remove_after (int, optional): The number of characters to remove
+                                               after the substring. Defaults to 1.
+
+    Returns:
+        str: The modified string with the substring and the following
+             characters removed, or the original string if the substring
+             is not found.
+    """
+    try:
+        start_index = main_string.find(substring)
+        if start_index != -1:
+            end_index = start_index + len(substring) + chars_to_remove_after
+            modified_string = main_string[:start_index] + main_string[end_index:]
+            return modified_string
+        return main_string
+    except IndexError:
+        # Handle the case where the substring is at or near the end
+        end_index = start_index + len(substring)
+        modified_string = main_string[:start_index]
+        return modified_string
+    except TypeError:
+        return main_string
 
 
 def delete_non_blank_before_equals(text: str) -> str:
@@ -145,7 +191,6 @@ def delete_non_blank_before_equals(text: str) -> str:
 def set_name_to_condition(
     profile_conditions: str,
     profile_name: str,
-    profile_name_with_html: str,
 ) -> tuple[str, str]:
     """
     Set the Profile name to the condition if it is not already set.
@@ -168,7 +213,7 @@ def set_name_to_condition(
         "Priority",
     ]
     if not profile_name:
-        return profile_name_with_html, profile_name
+        return profile_name
 
     # Remove 'Priority:n'
     profile_conditions = remove_substring_and_next(profile_conditions, "Priority:")
@@ -241,15 +286,15 @@ def set_name_to_condition(
 
         for old, new in replacements.items():
             new_name = new_name.replace(old, new)
-        new_name = f"<em>*{new_name}</em>"
+        # new_name = f"<em>*{new_name}</em>"
 
-    return profile_name_with_html.replace(
-        NO_PROFILE,
-        f"{new_name} ({NO_PROFILE})",
-    ), profile_name.replace(
-        NO_PROFILE,
-        f"{new_name} ({NO_PROFILE})",
-    )
+        # Truncate the name
+        if len(new_name) > TASK_NAME_MAX_LENGTH:
+            if "Flash Text=Flash" in new_name:
+                print("bingo truncating ", new_name, " to ", new_name[:35].rstrip())
+            new_name = new_name[:35].rstrip()
+
+    return f"*{new_name}"
 
 
 def conditions_to_name(
@@ -277,23 +322,19 @@ def conditions_to_name(
     tuple[str, str]
         A tuple containing the updated HTML-formatted profile name and the updated profile name.
     """
-    profile_name_with_html, profile_name = set_name_to_condition(
+    profile_name = set_name_to_condition(
         profile_conditions,
         profile_name,
-        profile_name_with_html,
     )
     # Put this name back into the master profile dictionary in PrimeItems.
     # Add a unique identifier to the name: the profile id: profile_name.id
     profile_id = profile.attrib.get("sr")
     profile_id = profile_id[4:]
-    profile_name = profile_name.replace("unnamed!)", f"unnamed!).{profile_id}")
-    profile_name_with_html = profile_name_with_html.replace(
-        "unnamed!)",
-        f"unnamed!).{profile_id}",
-    )
+    # Add the profile id and unnamed portion
+    profile_name = f"{profile_name.rstrip()}.{profile_id} {UNNAMED_ITEM}"
 
     # Now cleanup the name in order to use it.
-    new_profile_name = f"{profile_name.replace('<em>', '').replace('</em>', '')}"
+    new_profile_name = f"{profile_name.replace('<em>', '').replace('</em>', '').rstrip()}"
     PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"] = new_profile_name
 
     # Handle directory hyperlink
@@ -363,20 +404,9 @@ def build_profile_line(
         add_directory_item("profiles", profile_name)
 
     # Get the Profile's conditions
-    if (PrimeItems.program_arguments["conditions"] or profile_name == NO_PROFILE) and (
+    if (PrimeItems.program_arguments["conditions"]) and (
         profile_conditions := condition.parse_profile_condition(profile)
     ):
-        # If profile is not named, then set the name to the condition.
-        if profile_name == NO_PROFILE:
-            # fmt: off
-            profile_name_with_html, profile_name, profile_conditions = conditions_to_name(
-                    profile,
-                    profile_conditions,
-                    profile_name,
-                    profile_name_with_html,
-            )
-            # fmt: on
-
         # Add the HTML
         condition_text = format_html(
             "profile_condition_color",

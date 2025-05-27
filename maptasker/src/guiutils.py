@@ -33,13 +33,13 @@ from maptasker.src.diagcnst import (
     right_arrow_corner_up,
     straight_line,
 )
+from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
 from maptasker.src.lineout import LineOut
 from maptasker.src.maputils import (
     append_item_to_list,
     get_pypi_version,
     http_request,
-    rutroh_error,
     validate_ip_address,
     validate_port,
     validate_xml_file,
@@ -61,6 +61,7 @@ from maptasker.src.sysconst import (
     MODEL_GROUPS,
     NOW_TIME,
     OPENAI_MODELS,
+    UNNAMED_ITEM,
     VERSION,
 )
 
@@ -74,23 +75,20 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 7.3.0 - Change Log\n
-### Summary: Unnamed Tasks are now named with the first action in the Task\n\n
+Version 8.0.0 - Change Log\n
+### Summary: Major update: Assign a name to all unnamed Profiles and Tasks\n\n
 ### Added\n
-- Added: Add unnamed Tasks (e.g. Scene related tasks) to the directory.\n
-- Added: Hover over Profile now includes a list of Tasks in the Map view.\n
-- Added: All unnamed Tasks now have a name consisting of the first action in the Task.\n
+- Added: New 'List Unnamed Items' checkbox has been added to the GUI under the 'Specific Name' tab.  Click on the text of the checkbox for details.\n
+- Added: The Anthropic 'claude-opus-4-20250514' and 'claude-sonnet-4-20250514' AI models have been added.\n
 ### Changed\n
-- Changed: 'Debug' mode no longer requires the XML file to be named 'backup'.\n
-- Changed: Unnamed Tasks now have the name of the first action. Example: 'If %fast ~ no.475 (Unnamed)', where '475' is the Task id.\n
+- Changed: 'None or Unnamed!' in Profile names has been changed to 'Unnamed'.\n
+- Changed: Gemini AI models 'gemini-2.5-flash-preview' and 'gemini-2.5-pro-preview' have been updated to the latest versions.\n
 ### Fixed\n
-- Fixed: Hover over Task name in Map view gives program error if Task is not associated with a Profile.\n
-- Fixed: 'Cancel Entry' button mistakenly leaves a '?' in the GUI.\n
-- Fixed: Incorrectly including a '0' in the Profile name if it is anonymous.\n
-- Fixed: Hover over a Project that has anonymous Profiles does display the Tasks under those Profiles.\n
-- Fixed: Cleaned up unnamed Profile (conditional) names.\n
-- Fixed: Task action output with 'continued >' lines are incorrectly being included in the action count.\n
-- Fixed: Program error if searching for string in the Diagram view.\n
+- Fixed: Too much javascript content is not appearing in the output.\n
+- Fixed: Tasks with too many actions that have a '>' in the name are not hotlinks.\n
+- Fixed: Program errors related to Tasks with no name.\n
+- Fixed: Duplicate Tasks are displayed when hovering over Project or Profile name.\n
+- Fixed: Selecting an unnamed Task in the GUI pulldown menu can not be found for display.\n
 """
 
 default_font_size = 14
@@ -154,6 +152,14 @@ def valid_item(
         "Task": PrimeItems.tasker_root_elements["all_tasks"],
     }
     root_element = root_element_choices[element_name]
+
+    # Special case if Task.
+    if (
+        root_element == PrimeItems.tasker_root_elements["all_tasks"]
+        and UNNAMED_ITEM in the_name
+    ):
+        task_id = get_taskid_from_unnamed_task(the_name)
+        return task_id in root_element
 
     # See if the item exists by going through all names
     return any(root_element[item]["name"] == the_name for item in root_element)
@@ -1184,6 +1190,7 @@ def display_object_pulldowns(
     # Display all of the Projects for selection.
     profile_row = row + 2
     task_row = row + 4
+    list_unanmed_tasks_row = row + 7
 
     # Make sure there is something to display
     if not projects_to_display and not profiles_to_display and not tasks_to_display:
@@ -1279,6 +1286,7 @@ def display_object_pulldowns(
             (30, 0),
             "s",
         )
+
     return project_option, profile_option, task_option
 
 
@@ -1320,7 +1328,7 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
 
     This function checks if the XML file has already been loaded. If not, it loads the XML file and builds the tree data.
     Then, it goes through each project and retrieves all the profile names and tasks.
-    The profile names and tasks are cleaned up by removing the "Profile: Unnamed/Anonymous" and "Task: Unnamed/Anonymous." entries.
+    The profile names and tasks are cleaned up by removing the "Profile: (Unnamed)" and "Task: ...(Unnamed)" entries.
     If there are no profiles or tasks found, a message box is displayed and the function returns False.
     The profile names and tasks are then sorted alphabetically and duplicates are removed.
     The profile names are displayed in a label for selection, and the corresponding tasks are displayed in another label for selection.
@@ -1344,20 +1352,21 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     if not return_code:
         return False
 
+    # Eliminate the Dummy
+
     # Make alphabetical
     if projects_to_display:
-        projects_to_display = sorted(projects_to_display)
+        projects_to_display.sort()
         projects_to_display.insert(0, "None")
-    profiles_to_display = sorted(profiles_to_display)
-    profiles_to_display.insert(0, "None")
+    if profiles_to_display:
+        # Filter out dummy profiles created for Tasks with no Profile.
+        profiles = [
+            profile for profile in profiles_to_display if profile != "No Profile"
+        ]
+        profiles_to_display = profiles
+        profiles_to_display.sort()
+        profiles_to_display.insert(0, "None")
     tasks_to_display.insert(0, "None")
-
-    # Remove 'No Profile' profiles
-    new_profiles = [
-        profile for profile in profiles_to_display if profile != "No Profile"
-    ]
-    if new_profiles:
-        profiles_to_display = new_profiles
 
     # Display the object pulldowns in 'Analyze' tab
     self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = (
@@ -1400,12 +1409,6 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     """
     Retrieves the projects, profiles, and tasks available in the XML file.
 
-    This function checks if the XML file has already been loaded. If not, it loads the XML file and builds the tree data.
-    Then, it goes through each project and retrieves all the profile names and tasks.
-    The profile names and tasks are cleaned up by removing the "Profile: Unnamed/Anonymous" and "Task: Unnamed/Anonymous." entries.
-    If there are no profiles or tasks found, a message box is displayed and the function returns False.
-    The profile names and tasks are then sorted alphabetically and duplicates are removed.
-
     Returns:
         tuple: A tuple containing the following:
             - bool: True if the XML file has Profiles or Tasks, False otherwise.
@@ -1433,11 +1436,14 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
                 with contextlib.suppress(TypeError):
                     profiles.append(profile["name"])
                     tasks.extend(profile["children"])
-    # Clean up the object lists by removing anonymous or missing objects.
 
-    profiles_to_display = [
-        profile for profile in profiles if profile != "Profile: Unnamed/Anonymous"
-    ]
+    # Clean up the object lists by removing anonymous or missing objects.
+    if self.list_unnamed_items:
+        profiles_to_display = profiles
+    else:
+        profiles_to_display = [
+            profile for profile in profiles if UNNAMED_ITEM not in profile
+        ]
     if not projects_to_display:
         projects_to_display = ["No projects found"]
     if not profiles_to_display:
@@ -1450,7 +1456,16 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     if not tasks_to_display:
         tasks_to_display = ["No tasks found"]
     else:
-        tasks_to_display = list(set(tasks_to_display))
+        if not self.list_unnamed_items:
+            # Remove unnamed Tasks from the list.
+            new_task_list = []
+            for task in tasks_to_display:
+                if UNNAMED_ITEM in task:
+                    continue
+                # If the task is not in the list of tasks, add it to the new list.
+                new_task_list.append(task)
+            # Remove duplicates and sort the list.
+            tasks_to_display = list(set(new_task_list))
         tasks_to_display.sort()
 
     return True, projects_to_display, profiles_to_display, tasks_to_display
@@ -1499,10 +1514,7 @@ def build_profiles(
             task_list = ["No Profile Tasks Found"]
 
         # Get the Profile name.
-        if profiles[profile]["name"] == "":
-            profile_name = "Profile: Unnamed/Anonymous"
-        else:
-            profile_name = f"Profile: {profiles[profile]['name']}"
+        profile_name = f"Profile: {profiles[profile]['name']}"
 
         # Combine the Profile with it's Tasks
         profile_list.append({"name": profile_name, "children": task_list})
@@ -1944,12 +1956,21 @@ def search_substring_in_list(
     Returns:
         list: A list of tuples containing the index of the string and the position of the substring.
     """
+    hightlighting_to_remove = [
+        "<em>",
+        "</em>",
+        "<b>",
+        "</b>",
+        "<mar>",
+        "</mark",
+        "<u>",
+        "</u>",
+    ]
     matches = []
     # If this is an Unknown Task or Task in warning dict, we need to search for the Task ID in A Scene as well.
     if "Task: " in substring and "(Unnamed)" in substring:
-        temp = substring.replace("...", "").split(".")
-        task_id = temp[1].split(" (Unnamed)")[0]
-        # task_id = substring.split(".")[1].strip()
+        # Get the Task ID.
+        task_id = get_taskid_from_unnamed_task(substring)
         second_search_string = f"id:{task_id}"
     elif substring[6:] in PrimeItems.task_action_warnings:
         second_search_string = (
@@ -1962,6 +1983,13 @@ def search_substring_in_list(
     # If we don't find a match, then search on second substring.
     for i, string in enumerate(strings):
         lower_string = string.lower()
+
+        # Remove highlighting if not part of search string
+        for highlight in hightlighting_to_remove:
+            if highlight not in substring:
+                lower_string = lower_string.replace(highlight, "")
+        lower_string = lower_string.rstrip()
+
         lower_string_len = len(lower_string)
         start = 0
         while start < lower_string_len:
@@ -2599,6 +2627,10 @@ def get_tasks_in_project(project_name: str) -> str:
                             possible_task.text
                         ]["name"],
                     )
+
+        # Remove duplicates and sort the list.
+        task_names = list(set(task_names))
+        task_names.sort()
     return task_names
 
 
@@ -2914,3 +2946,22 @@ def find_the_line(
     # Convert the line number back to a string and return everything needed.
     line_to_get = str(int(line_to_get) - 1)
     return line_to_get, prev_line, dont_got_line
+
+
+def get_taskid_from_unnamed_task(unnamed_task: str) -> str:
+    """
+    Extracts the task ID from an unnamed task string.
+
+    Args:
+        unnamed_task (str): The unnamed task string.
+
+    Returns:
+        str: The extracted task ID.
+    """
+    # Extract the task ID from the unnamed task string
+    position = unnamed_task.rfind(".")
+    if position != -1:
+        return unnamed_task[position + 1 :].split(" (Unnamed)")[0]
+
+    rutroh_error(f"Error.  Missing period for task ID in Taask name: '{unnamed_task}'")
+    return unnamed_task.split(".")[1].strip()

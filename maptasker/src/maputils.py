@@ -413,20 +413,6 @@ def find_all_positions(string: str, substring: str, start_position: int = 0) -> 
     return positions
 
 
-def rutroh_error(message: str) -> None:
-    """
-    Prints or logs an error message.
-    Args:
-        message (str): The error message to print
-    Returns:
-        None: Does not return anything
-    """
-    if PrimeItems.program_arguments["debug"]:
-        print(f"Rutroh! {message}")
-    else:
-        logger.debug(f"Rutroh! Error...{message}")
-
-
 def display_task_warnings() -> None:
     """
     Output any warnings for tasks with too many actions.
@@ -623,7 +609,7 @@ def truncate_string(text: str, max_length: int = 30) -> str:
     if len(text) <= max_length:
         return text
 
-    return text[:max_length] + "..."
+    return text[:max_length].rstrip() + "..."
 
 
 def count_unique_substring(string_list: list, substring: str) -> int:

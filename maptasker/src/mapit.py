@@ -743,7 +743,7 @@ def mapit_all(file_to_get: str) -> int:
         projects_without_profiles,
     )
 
-    # Do special handling: swrqap up back matter and print the output.
+    # Do special handling: wrap up back matter and print the output.
     final_processing(found_tasks, projects_without_profiles, projects_with_no_tasks)
 
     # Handle Ai Analysis

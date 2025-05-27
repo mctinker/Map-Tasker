@@ -6,11 +6,10 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import NO_PROJECT, NORMAL_TAB, UNKNOWN_TASK_NAME, FormatLine
+from maptasker.src.sysconst import NO_PROJECT, NORMAL_TAB, FormatLine
 from maptasker.src.tasks import (
     get_project_for_solo_task,
     output_task_list,
-    task_in_scene,
 )
 from maptasker.src.twisty import add_twisty, remove_twisty
 
@@ -132,16 +131,8 @@ def process_solo_task_with_no_profile(
         projects_with_no_tasks,
     )
 
-    # Get the Task's name
+    # Bump the count of Tasks and get the Task's details
     task_details = ""
-    task_name = PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
-    # _, task_name = get_task_name(task_id, found_tasks, [], "")
-    if UNKNOWN_TASK_NAME in task_name:
-        task_details = f"{UNKNOWN_TASK_NAME}{task_id}&nbsp;&nbsp;Task ID: {task_id}"
-        # Ignore it if it is in a Scene
-        if task_in_scene(task_id, PrimeItems.tasker_root_elements["all_scenes"]):
-            return have_heading, specific_task, task_count
-        unknown_task = True
     task_count += 1
 
     # At this point, we've found the Project this Task belongs to,

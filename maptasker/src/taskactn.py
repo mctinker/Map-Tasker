@@ -15,13 +15,14 @@ from typing import TYPE_CHECKING
 
 import maptasker.src.tasks as tasks  # noqa: PLR0402
 from maptasker.src.error import error_handler
+from maptasker.src.guiutils import get_taskid_from_unnamed_task
 from maptasker.src.maputils import (
     count_consecutive_substr,
     count_unique_substring,
     get_value_if_match,
 )
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import FormatLine
+from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -165,6 +166,9 @@ def get_task_actions_and_output(
         # Get the Task name from the ID if it wasn't found above.
         if the_task is None and task_name == "x":
             the_task = PrimeItems.tasker_root_elements["all_tasks"][the_item]["xml"]
+            if the_task is None and UNNAMED_ITEM in the_item:
+                task_id = get_taskid_from_unnamed_task(the_item)
+                the_task = PrimeItems.tasker_root_elements["all_tasks"][task_id]["xml"]
             task_name = PrimeItems.tasker_root_elements["all_tasks"][the_item]["name"]
             task_id = the_item
 

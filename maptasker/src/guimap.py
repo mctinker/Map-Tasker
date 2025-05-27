@@ -10,8 +10,8 @@ from __future__ import annotations
 import re
 from html.parser import HTMLParser
 
+from maptasker.src.error import rutroh_error
 from maptasker.src.guiutils import align_text
-from maptasker.src.maputils import rutroh_error
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import pattern8
 from maptasker.src.xmldata import remove_html_tags
@@ -136,6 +136,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
         .replace("&#45;", "-")
         .replace("&lt;", "<")
         .replace("&gt;", ">")
+        .replace("&quot;", '"')
         .replace("[Launcher Task:", " [Launcher Task:")
         .replace(" --Task:", "--Task:")
         .replace("\t", tabs)
@@ -729,7 +730,7 @@ def process_html_lines(
 
         # Check for valid lines in which we don't want to remove the html...
         # Lines with imbedded html text from scripts and too many task action lines.
-        if "!DOCTYPE" in line or "&lt;style&gt;" in line:
+        if "!DOCTYPE" in line or "&lt;style&gt;" in line or "&lt;script" in line:
             remove_html = False
 
         # Apply additional formatting
@@ -743,7 +744,7 @@ def process_html_lines(
         )
 
         # If at end of valid html, start removing html again
-        if "/html" in line or "&lt;/script&gt;" in line:
+        if "/html" in line or "<div <span" in line:
             remove_html = True
 
         # Validate and update profile name if missing

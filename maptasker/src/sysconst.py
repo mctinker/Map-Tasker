@@ -16,18 +16,19 @@ from enum import Enum
 import darkdetect
 
 # Global constants
-UNKNOWN_TASK_NAME = "Unnamed/Anonymous."
+UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "7.3.1"
+VERSION = "8.0.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
 NO_PROJECT = "-none found."
+UNNAMED_ITEM = "Unnamed"
+TASK_NAME_MAX_LENGTH = 35
 COUNTER_FILE = ".MapTasker_RunCount.txt"
 OLD_ARGUMENTS_FILE = ".MapTasker_arguments.json"
 ARGUMENTS_FILE = "MapTasker_Settings.toml"
 FONT_FAMILY = ";font-family:"
-NO_PROFILE = "None or unnamed!"
 CHANGELOG_FILE = ".maptasker_changelog.txt"
 CHANGELOG_JSON_FILE = "maptasker_changelog.json"
 CHANGELOG_JSON_URL = "https://raw.githubusercontent.com/mctinker/Map-Tasker/Master/maptasker_changelog.json"
@@ -128,6 +129,7 @@ ARGUMENT_NAMES = {
     "highlight": "Highlight Names",
     "indent": "Indentation Amount",
     "italicize": "Italicize Names",
+    "list_unnamed_items": "List Unnamed Items",
     "view_limit": "View Limit",
     "map_window_position": "Last Map Window Position",
     "outline": "Display Configuration Outline",
@@ -301,6 +303,8 @@ CLAUDE_MODELS = [
     "claude-3-opus-latest",
     "claude-3-sonnet-20240229",
     "claude-3-sonnet-20240229",
+    "claude-opus-4-20250514",
+    "claude-sonnet-4-20250514",
 ]
 DEEPSEEK_MODELS = [
     "deepseek-chat",
@@ -312,8 +316,7 @@ GEMINI_MODELS = [
     "gemini-2.0-flash-lite",
     "gemini-1.5-flash-8b",
     "gemini-1.5-pro",
-    "gemini-2.5-flash-preview-04-17",
-    "gemini-2.5-pro-preview-03-25",
+    "gemini-2.5-flash-preview-05-20",
     "gemini-2.5-pro-preview-05-06",
 ]
 MODEL_GROUPS = {

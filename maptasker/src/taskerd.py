@@ -8,10 +8,12 @@
 
 import defusedxml.ElementTree as ET  # noqa: N817
 
+from maptasker.src import condition
 from maptasker.src.actione import get_action_code
 from maptasker.src.error import error_handler
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import FormatLine
+from maptasker.src.profiles import conditions_to_name
+from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine
 from maptasker.src.xmldata import rewrite_xml
 
 
@@ -22,18 +24,14 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
     Given a list of Profile/Task/Scene elements, find each name and store the element and name in a dictionary.
         :param all_xml: the head xml element for Profile/Task/Scene
         :param get_id: True if we are to get the <id>
-        :param ame_qualifier: the qualifier to find the element's name.
+        :param name_qualifier: the qualifier to find the element's name.
         :return: dictionary that we created
     """
     new_table = {}
     for item in all_xml:
         # Get the element name
         name_element = item.find(name_qualifier)
-        name = (
-            name_element.text.strip()
-            if name_element is not None and name_element.text
-            else ""
-        )
+        name = name_element.text.strip() if name_element is not None and name_element.text else ""
 
         # Get the Profile/Task identifier: id=number for Profiles and Tasks,
         id_element = item.find("id")
@@ -82,11 +80,7 @@ def get_the_xml_data() -> bool:
             rewrite_xml(file_to_parse)
 
     if PrimeItems.xml_tree is None:
-        return (
-            1
-            if not PrimeItems.program_arguments["gui"]
-            else _handle_gui_error("Bad XML file")
-        )
+        return 1 if not PrimeItems.program_arguments["gui"] else _handle_gui_error("Bad XML file")
 
     PrimeItems.xml_root = PrimeItems.xml_tree.getroot()
     if PrimeItems.xml_root.tag != "TaskerData":
@@ -116,6 +110,28 @@ def get_the_xml_data() -> bool:
         ),
         "all_services": PrimeItems.xml_root.findall("Setting"),
     }
+
+    # Assign names to Profiles that have no name = their condition.nnn (Unnamed)
+    for key, value in PrimeItems.tasker_root_elements["all_profiles"].items():
+        if not value["name"]:
+            # The Profile doen't have a name.  Name it using it's conditions.
+            profile_name = UNNAMED_ITEM
+            profile_xml = value["xml"]
+            if profile_conditions := condition.parse_profile_condition(profile_xml):
+                # fmt: off
+                _, profile_name, profile_conditions = conditions_to_name(
+                        profile_xml,
+                        profile_conditions,
+                        profile_name,
+                        "",
+                )
+            # fmt: on
+
+            # CLean up the new name
+            profile_name = profile_name.replace("<em>", "").replace("</em>", "")
+
+            PrimeItems.tasker_root_elements["all_profiles"][key]["name"] = profile_name
+
     # Get Tasks by name and handle Tasks with no name.
     PrimeItems.tasker_root_elements["all_tasks_by_name"] = {}
     for key, value in PrimeItems.tasker_root_elements["all_tasks"].items():
@@ -124,7 +140,7 @@ def get_the_xml_data() -> bool:
             first_action = get_first_action(value["xml"])
 
             # Put the new name back into PrimeItems.tasker_root_elements["all_tasks"]
-            value["name"] = f"{first_action}.{key!s} (Unnamed)"
+            value["name"] = f"{first_action.rstrip()}.{key!s} (Unnamed)"
 
         PrimeItems.tasker_root_elements["all_tasks_by_name"][value["name"]] = {
             "xml": value["xml"],

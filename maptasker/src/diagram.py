@@ -50,6 +50,7 @@ from maptasker.src.diagutil import (
     print_box,
     remove_icon,
 )
+from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
 from maptasker.src.guiutils import (
     display_progress_bar,
@@ -57,7 +58,7 @@ from maptasker.src.guiutils import (
     validate_tkinter_geometry,
 )
 from maptasker.src.guiwins import ProgressbarWindow
-from maptasker.src.maputils import find_all_positions, rutroh_error
+from maptasker.src.maputils import find_all_positions
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
@@ -135,9 +136,7 @@ def add_quotes(
 
     # Get the primary task pointer for this task.
     try:
-        prime_task = PrimeItems.tasker_root_elements["all_tasks_by_name"][
-            real_task_name
-        ]
+        prime_task = PrimeItems.tasker_root_elements["all_tasks_by_name"][real_task_name]
     except KeyError:
         prime_task = None
 
@@ -270,9 +269,7 @@ def print_all_tasks(
         # First we must find our real Task element that matches this "task".
         # Is it in the master list of all Task names in the XML?
         if PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]:
-            prime_task = PrimeItems.tasker_root_elements["all_tasks_by_name"][
-                task["name"]
-            ]
+            prime_task = PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]
             # Now see if this Task has any "called_by" Tasks.
             with contextlib.suppress(KeyError):
                 called_by_tasks = f" [Called by {line_left_arrow} {flatten_with_quotes(prime_task['called_by'])}]"
@@ -311,9 +308,7 @@ def process_scene_tasks(
     output_task_lines = []
 
     # Retrieve XML elements inside the scene
-    scene_xml = (
-        PrimeItems.tasker_root_elements["all_scenes"].get(scene, {}).get("xml", [])
-    )
+    scene_xml = PrimeItems.tasker_root_elements["all_scenes"].get(scene, {}).get("xml", [])
     # Go through the scene elements, looking for "xxxElement"
     for sub_scene in scene_xml:
         sub_scene_tag = sub_scene.tag
@@ -467,10 +462,7 @@ def do_tasks_with_no_profile(
 
     # Go through each Task ID and see if it is in found_tasks.
     for task in project_task_ids:
-        if (
-            PrimeItems.tasker_root_elements["all_tasks"][task]["name"]
-            not in found_tasks
-        ):
+        if PrimeItems.tasker_root_elements["all_tasks"][task]["name"] not in found_tasks:
             profile = "No Profile"
             print_tasks = False
             the_task = PrimeItems.tasker_root_elements["all_tasks"][task]
@@ -580,13 +572,9 @@ def extract_with_subset(str1: str, str2: str) -> list:
         - Otherwise, add the current part
     """
     parts = str2.split(",")
-    parts = [
-        item[1:] if item.startswith(" ") else item for item in parts
-    ]  # Remove leading spaces
+    parts = [item[1:] if item.startswith(" ") else item for item in parts]  # Remove leading spaces
     subset_parts = str1.split(",")
-    subset_parts = [
-        item[1:] if item.startswith(" ") else item for item in subset_parts
-    ]  # Remove leading spaces
+    subset_parts = [item[1:] if item.startswith(" ") else item for item in subset_parts]  # Remove leading spaces
 
     # Initialize an empty list for the result
     result = []
@@ -649,9 +637,7 @@ def get_index_setup(s: str, called_task_name: str) -> tuple:
         # Split the string into substrings based on the task delimeter.
         temp_list = temp_line.split(delimiter)
         # Cleanup the results.
-        temp_list = [
-            item[1:] if item.startswith(" ") else item for item in temp_list
-        ]  # Remove leading spaces
+        temp_list = [item[1:] if item.startswith(" ") else item for item in temp_list]  # Remove leading spaces
         substrings = []
         for item in temp_list:
             item_to_add = item[1:] if item.startswith(" ") else item
@@ -659,9 +645,7 @@ def get_index_setup(s: str, called_task_name: str) -> tuple:
                 substrings.append(item_to_add)
 
     # Find all positions of the called task name beyond the "Calls -->".
-    string_without_delimiters = (
-        s.replace(task_delimeter, "") if delimiter == task_delimeter else s
-    )
+    string_without_delimiters = s.replace(task_delimeter, "") if delimiter == task_delimeter else s
     start_search = string_without_delimiters.find("Calls ──▶ ") + 9
     positions = find_all_positions(
         string_without_delimiters,
@@ -716,9 +700,7 @@ def get_index_by_middle_char_position(
             if current_position <= middle_char_position < end_position:
                 task_tracker += 1
                 if task_tracker == item_index:
-                    return (
-                        index + 1
-                    )  # Return the index if the position is within the range
+                    return index + 1  # Return the index if the position is within the range
 
     # If the position is out of range, return -1
     return -1
@@ -774,10 +756,7 @@ def add_down_and_up_arrows(
     # Add left arrows to called Task line.  First find next available blank line.
     line_to_modify1 = called_line_num - called_line_index
     line_count = 0
-    while (
-        output_lines[line_to_modify1]
-        and output_lines[line_to_modify1][caller_task_position] != " "
-    ):
+    while output_lines[line_to_modify1] and output_lines[line_to_modify1][caller_task_position] != " ":
         line_to_modify1 -= 1
         line_count += 1
         if line_count > 20:
@@ -873,10 +852,7 @@ def draw_arrows_to_called_task(
     if called_line_num > caller_line_num:
         start_line = line_to_modify
         # Take into account the index of the current "calls ->" called Task
-        line_count -= line_to_modify - (
-            caller_line_num
-            - PrimeItems.called_task_tracker[called_task_name]["counter"]
-        )
+        line_count -= line_to_modify - (caller_line_num - PrimeItems.called_task_tracker[called_task_name]["counter"])
     else:
         # Find the first free line above the called Task
         start_line = line_to_modify1
@@ -909,9 +885,7 @@ def draw_arrows_to_called_task(
         if delimeters:
             bars = find_all_positions(temp_line, bar)
             for bar_position in bars:
-                if (
-                    bar_position > delimeters[-1]
-                ):  # Only if the bar is beyond the last delimiter.
+                if bar_position > delimeters[-1]:  # Only if the bar is beyond the last delimiter.
                     delimeter_length = len(delimeters)
                     temp_line = front_line
                     front_line = (
@@ -1113,19 +1087,11 @@ def cleanup_dangling_elbows(output_lines: list, num: int) -> list:
     """
     elbow = output_lines[num].find(left_arrow_corner_up)
     if elbow != -1 and output_lines[num][elbow - 1] == " ":  # Check for dangling elbows
-        output_lines[num] = (
-            output_lines[num][: elbow - 1]
-            + right_arrow_corner_down
-            + output_lines[num][elbow:]
-        )
+        output_lines[num] = output_lines[num][: elbow - 1] + right_arrow_corner_down + output_lines[num][elbow:]
 
     elbow = output_lines[num].find(" ───╯")
     if elbow != -1:  # Check for dangling elbows
-        output_lines[num] = (
-            output_lines[num][:elbow]
-            + left_arrow_corner_down
-            + output_lines[num][elbow + 1 :]
-        )
+        output_lines[num] = output_lines[num][:elbow] + left_arrow_corner_down + output_lines[num][elbow + 1 :]
     return output_lines
 
 
@@ -1287,10 +1253,7 @@ def cleanup_diagram(
             output_lines = cleanup_missing_bars(output_lines, num, position)
 
         # Update progress bar if needed.
-        if (
-            PrimeItems.program_arguments["gui"]
-            and progress["progress_counter"] % progress["tenth_increment"] == 0
-        ):
+        if PrimeItems.program_arguments["gui"] and progress["progress_counter"] % progress["tenth_increment"] == 0:
             display_progress_bar(progress, is_instance_method=False)
         progress["progress_counter"] += 1
 
@@ -1331,11 +1294,7 @@ def add_blanks_above_called_tasks(output_lines: list) -> None:
         if task_line != -1:
             # We have a task line.  Now get the Task name.
             _, end_name = find_first_substring_position(line, name_stoppers)
-            task_name = (
-                line[task_line + 3 : end_name - 1]
-                if end_name != -1
-                else line[task_line + 3 : len(line) - 1]
-            )
+            task_name = line[task_line + 3 : end_name - 1] if end_name != -1 else line[task_line + 3 : len(line) - 1]
             # Do we have a task that has been called by another task?
             # One extra for a blank line between upper and previous called task lower connectors.
             if task_name in PrimeItems.called_task_tracker:
@@ -1343,8 +1302,7 @@ def add_blanks_above_called_tasks(output_lines: list) -> None:
                     [
                         ""
                         for _ in range(
-                            PrimeItems.called_task_tracker[task_name]["total_number"]
-                            + 2,
+                            PrimeItems.called_task_tracker[task_name]["total_number"] + 2,
                         )
                     ],
                 )
@@ -1458,9 +1416,7 @@ def configure_progress_bar(output_lines: list, title: str) -> tuple:
             )
 
         else:
-            PrimeItems.program_arguments["progressbar_window_position"] = (
-                "300x500+100+0"
-            )
+            PrimeItems.program_arguments["progressbar_window_position"] = "300x500+100+0"
         # Setup for our progress bar.  Use the total number of output lines as the metric.
         # 4 times since we go thru output lines 4 times in a majore way...
         # 1st: the Diagram, 2nd: delete_hanging_bars
@@ -1515,9 +1471,7 @@ def build_profile_box(
     filler = f"{blank * 8}"
     profile_counter += 1
     # Only print the lines if we are at the profiles-per-line value.
-    if (
-        profile_counter > PrimeItems.profiles_per_line
-    ):  # profiles_per_line defined as global variable
+    if profile_counter > PrimeItems.profiles_per_line:  # profiles_per_line defined as global variable
         print_3_lines(output_profile_lines)
         profile_counter = 1
         print_tasks = True
@@ -1735,11 +1689,7 @@ def network_map(network: dict) -> None:
                     # Create a spacer line with just bars
                     if bar in PrimeItems.netmap_output[num - 1]:
                         spacer = (
-                            "".join(
-                                char if char == bar else " "
-                                for char in PrimeItems.netmap_output[num + 1]
-                            )
-                            + "\n"
+                            "".join(char if char == bar else " " for char in PrimeItems.netmap_output[num + 1]) + "\n"
                         )
                     else:
                         spacer = "\n"

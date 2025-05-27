@@ -29,7 +29,7 @@ from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import format_html
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import UNKNOWN_TASK_NAME, FormatLine, debug_out, logger
+from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine, debug_out, logger
 from maptasker.src.xmldata import remove_html_tags
 
 
@@ -297,7 +297,7 @@ class LineOut:
         Returns:]
             style_details: Styled element details in one line
         Processing Logic:
-            - Check if element name contains UNKNOWN_TASK_NAME
+            - Check if element name contains UNNAMED_ITEM
             - Set color to "unknown_task_color" if true else "task_color"
             - Add font and element details to style
             - Return styled element from add_style method"""
@@ -307,7 +307,7 @@ class LineOut:
             "tab": "tasktab",
             "font": font,
             "element": element,
-            "color": ("unknown_task_color" if UNKNOWN_TASK_NAME in element else "task_color"),
+            "color": ("unknown_task_color" if UNNAMED_ITEM in element else "task_color"),
         }
         # Note: add <div> to force a divisional block so any text wraparound stays within the block of text.
         return self.add_style(style_details)

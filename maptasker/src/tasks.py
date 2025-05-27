@@ -19,7 +19,7 @@ from maptasker.src.kidapp import get_kid_app
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
-    UNKNOWN_TASK_NAME,
+    UNNAMED_ITEM,
     DISPLAY_DETAIL_LEVEL_all_tasks,
     FormatLine,
     logger,
@@ -169,7 +169,7 @@ def entry_or_exit_task(
     if task_name:
         append_task_line(task_name, task_type)
     else:
-        task_name = f"{UNKNOWN_TASK_NAME}{the_task_id}"
+        task_name = f"{UNNAMED_ITEM}{the_task_id}"
         PrimeItems.tasker_root_elements["all_tasks"][the_task_id]["name"] = task_name
 
         if not duplicate_task and task_type in {"Entry", "Exit"}:
@@ -324,7 +324,7 @@ def do_single_task(
         PrimeItems.program_arguments.update(
             {
                 "single_project_name": project_name,
-                "single_profile_name": profile_name or "None or unnamed!",
+                "single_profile_name": profile_name or UNNAMED_ITEM,
             },
         )
 
@@ -473,10 +473,14 @@ def output_task_list(
     for count, task_item in enumerate(list_of_tasks):
         # If we are coming in without a Task name, then we are only doing a single Task and we need to plug in
         # the Task name.
-        task_output_lines[count] = task_output_lines[count] or f"{task_item['name']}&nbsp;&nbsp;"
+        task_output_lines[count] = f"{task_item['name']}&nbsp;&nbsp;"
+
+        # fmt: off
+        # task_output_lines[count] = task_output_lines[count] or f"{task_item['name']}&nbsp;&nbsp;"
+        # fmt: on
 
         # Doing extra details?
-        if do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
+        if (do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks):
             # Get the extra details for this Task
             extra_details = get_extra_details(
                 task_item["xml"],

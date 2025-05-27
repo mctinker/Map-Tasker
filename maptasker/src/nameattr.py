@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+"""Povide the highlighting attribute(s) based on the settings."""
 
 #                                                                                      #
 # nameattr: Format the Project/Profile/Task/Scene name with bold, highlighting or      #

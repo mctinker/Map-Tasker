@@ -60,3 +60,17 @@ def error_handler(error_message: str, exit_code: int) -> None:
         print(final_error_message)
         logger.info(final_error_message)
         return
+
+
+def rutroh_error(message: str) -> None:
+    """
+    Prints or logs an error message.
+    Args:
+        message (str): The error message to print
+    Returns:
+        None: Does not return anything
+    """
+    if PrimeItems.program_arguments["debug"]:
+        print(f"Rutroh! {message}")
+    else:
+        logger.debug(f"Rutroh! Error...{message}")

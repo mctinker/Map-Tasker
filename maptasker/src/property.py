@@ -8,7 +8,7 @@
 import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.actione import fix_json
-from maptasker.src.maputils import rutroh_error
+from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
 

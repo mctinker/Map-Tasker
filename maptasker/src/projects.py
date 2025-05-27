@@ -16,6 +16,7 @@ from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.globalvr import output_variables
+from maptasker.src.guiutils import get_taskid_from_unnamed_task
 from maptasker.src.kidapp import get_kid_app
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
@@ -24,7 +25,7 @@ from maptasker.src.profiles import process_profiles
 from maptasker.src.property import get_properties
 from maptasker.src.scenes import process_project_scenes
 from maptasker.src.share import share
-from maptasker.src.sysconst import NORMAL_TAB, FormatLine
+from maptasker.src.sysconst import NORMAL_TAB, UNNAMED_ITEM, FormatLine
 from maptasker.src.taskflag import get_priority
 from maptasker.src.twisty import add_twisty, remove_twisty
 
@@ -52,8 +53,30 @@ def process_projects_and_their_profiles(
     # Temporarily save single Project name since process_profiles may override it
     single_project_name = PrimeItems.program_arguments["single_project_name"]
 
+    # Processing Tasker Objects: Single Unnamed Tasks, Projects, Profiles, Tasks or Scenes
+
+    # Process unnamed Task
+    if (
+        UNNAMED_ITEM in PrimeItems.program_arguments["single_task_name"]
+        and PrimeItems.program_arguments["list_unnamed_items"]
+    ) and PrimeItems.tasker_root_elements["all_tasks_by_name"]:
+        task_name = PrimeItems.program_arguments["single_task_name"]
+        task_id = get_taskid_from_unnamed_task(task_name)
+        unnamed_task = PrimeItems.tasker_root_elements["all_tasks"][task_id]
+        task_list = [{"xml": unnamed_task["xml"], "name": task_name}]
+        task_output_lines = [" "]
+        # Output the unnamed Task
+        tasks.output_task_list(
+            task_list,
+            "N/A",  # TODO project name
+            "",  # TODO profile name
+            task_output_lines,
+            [],
+            True,
+        )
+
     # Process Projects only if there are Projects
-    if PrimeItems.tasker_root_elements["all_projects"]:
+    elif PrimeItems.tasker_root_elements["all_projects"]:
         process_projects(
             projects_without_profiles,
             found_tasks,

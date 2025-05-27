@@ -16,7 +16,12 @@ from maptasker.src.actione import action_results
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proclist import process_list
-from maptasker.src.sysconst import SCENE_TASK_TYPES, FormatLine
+from maptasker.src.sysconst import (
+    SCENE_TASK_TYPES,
+    TASK_NAME_MAX_LENGTH,
+    UNNAMED_ITEM,
+    FormatLine,
+)
 from maptasker.src.tasks import get_actions
 from maptasker.src.xmldata import tag_in_type
 
@@ -32,7 +37,6 @@ SCENE_TAGS_TO_IGNORE = [
     "widthLand",
 ]
 blank = "&nbsp;"
-TASK_NAME_MAX_LENGTH = 35
 
 
 # Get the Scene's geometry
@@ -76,22 +80,16 @@ def get_scene_elements(
     if geom is not None:
         geometry_xml_element = child.find("geom").text
         geometry = geometry_xml_element.split(",")
-        geometry_text = (
-            f" ...with geometry {geometry[0]}x{geometry[1]} {geometry[2]}x{geometry[3]}"
-        )
+        geometry_text = f" ...with geometry {geometry[0]}x{geometry[1]} {geometry[2]}x{geometry[3]}"
     else:
         geometry_text = ""
 
     # Get the element name
-    element_name = (
-        "" if element_type[0] == "Properties" else f"'{name_xml_element.text}' "
-    )
+    element_name = "" if element_type[0] == "Properties" else f"'{name_xml_element.text}' "
 
     PrimeItems.output_lines.add_line_to_output(
         0,
-        (
-            f"{blank * (3 + indentation)}{element_name}Element of type {element_type[0]}{geometry_text}"
-        ),
+        (f"{blank * (3 + indentation)}{element_name}Element of type {element_type[0]}{geometry_text}"),
         ["", "scene_color", FormatLine.add_end_span],
     )
 
@@ -355,9 +353,7 @@ def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
                     )
 
                 # If Task is related to the scene Properties, some of the names change.
-                task_title = SCENE_TASK_TYPES[
-                    sub_child.tag
-                ]  # Pick up title from xxxTask element.
+                task_title = SCENE_TASK_TYPES[sub_child.tag]  # Pick up title from xxxTask element.
                 if child.tag == "PropertiesElement":
                     preamble = "  Properties "
                     if sub_child.tag == "itemselectedTask":
@@ -407,13 +403,14 @@ def adjust_name_and_add_to_directory(
         orig_name = task_name
 
         # Get just the 'name.id'
-        task_name = f"{task_name.replace(' (Unnamed)', '').replace('...', '')}"
+        task_name = task_name.replace(f" {UNNAMED_ITEM}", "").replace("...", "")
         last_period = task_name.rfind(".")
         if last_period != -1:
-            task_name = task_name[: last_period - 1]
+            task_name = task_name[:last_period]
 
         # Now truncate it.
-        task_name = f"{task_name[: max_length - 8]}.{task_id} (Unnamed)"
+        task_name = f"{task_name[: max_length - 8].rstrip()}.{task_id} (Unnamed)"
+
         # Update the task name in our master dictionary
         PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"] = task_name
         # Update the name in our 'by name' directory
@@ -422,17 +419,17 @@ def adjust_name_and_add_to_directory(
             if key == task_name:
                 break
             if value["id"] == task_id:
-                PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"] = (
-                    task_name
-                )
+                PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"] = task_name
 
                 # Add the new name / values
                 PrimeItems.tasker_root_elements["all_tasks_by_name"][task_name] = {
                     "xml": value["xml"],
                     "id": task_id,
                 }
+
                 # Delete the original
                 del PrimeItems.tasker_root_elements["all_tasks_by_name"][orig_name]
+                # Get out of loop
                 break
 
     # Add the Task to the directory with '(Scene)' appended.
@@ -497,10 +494,7 @@ def get_details(
             process_tasks(child, tasks_found)
 
     # Add a break if end of Scene elements (but not doing a Properties element)
-    if (
-        PrimeItems.program_arguments["display_detail_level"] != 2
-        and element_type != "PropertiesElement"
-    ):
+    if PrimeItems.program_arguments["display_detail_level"] != 2 and element_type != "PropertiesElement":
         PrimeItems.output_lines.output_lines.append("<br>")
 
 
@@ -541,11 +535,7 @@ def process_scene(
         :return:
     """
     # Get the Scene's XML pointer.  If scene_xml being passed in is None, then use the name passed in to get the XML.
-    scene = (
-        PrimeItems.tasker_root_elements["all_scenes"][my_scene]["xml"]
-        if scene_xml is None
-        else scene_xml
-    )
+    scene = PrimeItems.tasker_root_elements["all_scenes"][my_scene]["xml"] if scene_xml is None else scene_xml
 
     # Get the Scene's geometry and display it
     height, width = get_geometry(scene)

@@ -176,7 +176,13 @@ def tasker_object(text: str) -> bool:
     Returns:
         True if any of the modified keywords are found in the text, False otherwise.
     """
-    keywords_nbsp = ["Task:&nbsp;", "Profile:&nbsp;", "Profile:$nbsp;", "Scene:&nbsp;"]
+    keywords_nbsp = [
+        "Task:&nbsp;",
+        "Profile:&nbsp;",
+        "Profile:$nbsp;",
+        "Scene:&nbsp;",
+        "Task <a href=#tasks_",
+    ]
     return any(keyword in text for keyword in keywords_nbsp)
 
 
@@ -197,6 +203,7 @@ def remove_html_tags(text: str, replacement: str) -> str:
     in_tag = False
     n = len(text)
     i = 0
+    # Iterate through the string character by character
     while i < n:
         char = text[i]
         if char == "<":
@@ -217,6 +224,9 @@ def remove_html_tags(text: str, replacement: str) -> str:
     # If we just have a '<' with no '>' then leave it alone.
     if in_tag:
         return text
+
+    # Return the text with HTML tags removed
+    # If the result is empty, return the replacement string
     return "".join(result) if result else replacement
 
 
