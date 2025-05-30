@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "8.0.0"
+VERSION = "8.0.1"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -54,7 +54,7 @@ TYPES_OF_COLOR_NAMES = {
     "Action": "action_color",
     "Disabled Profiles": "disabled_profile_color",
     "DisabledProfile": "disabled_profile_color",
-    "UnknownTask": "unknown_task_color",
+    "Unnamed Tasks": "unknown_task_color",
     "DisabledAction": "disabled_action_color",
     "Action Conditions": "action_condition_color",
     "ActionCondition": "action_condition_color",
@@ -86,7 +86,7 @@ TYPES_OF_COLORS = {
     "Task": "Tasks",
     "Action": "Task 'actions'",
     "DisabledProfile": "'disabled' Profiles",
-    "UnknownTask": "'unknown' Tasks",
+    "UnnamedTask": "'unnamed' Tasks",
     "DisabledAction": "disabled Task 'actions'",
     "ActionCondition": "Task action 'conditions'",
     "ProfileCondition": "Profile 'conditions'",

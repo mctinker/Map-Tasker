@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 """Task "Action" and Profile "condition" dictionary"""
 
 #                                                                                      #
@@ -760,6 +759,7 @@ action_codes = {
     ),
     "1643249237t": ActionCode("1040876951t", [], "Tools & AmazFit", "", ""),
     "1644316156t": ActionCode("1040876951t", [], "AutoNotification Reply", "", ""),
+    "1645272907e": ActionCode("", [], "CalendarTask", "", ""),
     "1646792910t": ActionCode("1040876951t", [], "AutoTools Secure Settings", "", ""),
     "165s": ActionCode("", [], "Variable Value", "", ""),
     "165t": ActionCode(
@@ -773,13 +773,6 @@ action_codes = {
         "Cancel Alarm",
         "104",
         "False",
-    ),
-    "1645272907e": ActionCode(
-        "",
-        [],
-        "CalendarTask",
-        "",
-        "",
     ),
     "166160670t": ActionCode("1040876951t", [], "AutoVoice Natural Language", "", ""),
     "1664218170e": ActionCode(
@@ -1162,9 +1155,9 @@ action_codes = {
     "2050e": ActionCode("", [], "Quick Setting Clicked", "", ""),
     "2051074546t": ActionCode("1040876951t", [], "AutoSpotify Control Media", "", ""),
     "205e": ActionCode("", [], "Battery Full", "", ""),
+    "2063919988t": ActionCode("1040876951t", [], "AutoTools System State", "", ""),
     "206e": ActionCode("", [], "Battery Overheating", "", ""),
     "206t": ActionCode("", [], "WIFI Settings", "30", "False"),
-    "2063919988t": ActionCode("1040876951t", [], "AutoTools System State", "", ""),
     "2075e": ActionCode(
         "",
         [
@@ -1357,8 +1350,8 @@ action_codes = {
     "211707263t": ActionCode("1040876951t", [], "Global Actions", "", ""),
     "211905330t": ActionCode("1040876951t", [], "AutoContacts", "", ""),
     "211t": ActionCode("", [], "Sync Settings", "30", "False"),
-    "2124887619t": ActionCode("1040876951t", [], "AutoTools OCR", "", ""),
     "2123721228e": ActionCode("", [], "AutoTools Assistant", "", ""),
+    "2124887619t": ActionCode("1040876951t", [], "AutoTools OCR", "", ""),
     "212t": ActionCode("", [], "WIFI IP Settings", "30", "False"),
     "2132875086t": ActionCode(
         "1040876951t",

@@ -25,6 +25,7 @@ from requests.exceptions import ConnectionError, InvalidSchema, Timeout  # noqa:
 
 from maptasker.src.format import format_html
 from maptasker.src.getbakup import write_out_backup_file
+from maptasker.src.getids import get_ids
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.taskerd import get_the_xml_data
@@ -234,12 +235,16 @@ def validate_xml(
             # Run the XML file through the XML parser to validate it.
             try:
                 filename_location = android_file.rfind(PrimeItems.slash) + 1
-                file_to_validate = PrimeItems.program_arguments["android_file"][filename_location:]
+                file_to_validate = PrimeItems.program_arguments["android_file"][
+                    filename_location:
+                ]
                 xmlp = et.XMLParser(encoding=" iso8859_9")
                 xml_tree = et.parse(file_to_validate, parser=xmlp)
                 process_file = False  # Get out of while/loop
             except et.ParseError:  # Parsing error
-                error_message = f"Improperly formatted XML in {android_file}. Try again."
+                error_message = (
+                    f"Improperly formatted XML in {android_file}. Try again."
+                )
                 process_file = False  # Get out of while/loop
             except UnicodeDecodeError:  # Unicode error
                 rewrite_xml(file_to_validate)
@@ -249,7 +254,9 @@ def validate_xml(
                     break
                 process_file = True  # Loop one more time.
             except Exception as e:  # any other errorError out and exit  # noqa: BLE001
-                error_message = f"XML parsing error {e} in file {android_file}.\n\nTry again."
+                error_message = (
+                    f"XML parsing error {e} in file {android_file}.\n\nTry again."
+                )
                 process_file = False  # Get out of while/loop
 
     return error_message, xml_tree
@@ -558,42 +565,6 @@ def get_first_substring_match(main_string: str, substrings: list) -> str | None:
     return None
 
 
-def remove_substring_and_next(
-    main_string: str,
-    substring: str,
-    chars_to_remove_after: int = 1,
-) -> str:
-    """
-    Searches for a substring in a string and removes the substring
-    along with a specified number of characters immediately following it.
-
-    Args:
-        main_string (str): The string to search within.
-        substring (str): The substring to search for.
-        chars_to_remove_after (int, optional): The number of characters to remove
-                                               after the substring. Defaults to 1.
-
-    Returns:
-        str: The modified string with the substring and the following
-             characters removed, or the original string if the substring
-             is not found.
-    """
-    try:
-        start_index = main_string.find(substring)
-        if start_index != -1:
-            end_index = start_index + len(substring) + chars_to_remove_after
-            modified_string = main_string[:start_index] + main_string[end_index:]
-            return modified_string
-        return main_string
-    except IndexError:
-        # Handle the case where the substring is at or near the end
-        end_index = start_index + len(substring)
-        modified_string = main_string[:start_index]
-        return modified_string
-    except TypeError:
-        return main_string
-
-
 def truncate_string(text: str, max_length: int = 30) -> str:
     """Truncates a string to a specified maximum length.
 
@@ -641,3 +612,81 @@ def remove_html_tags(text: str) -> str:
       A string with all HTML tags removed.
     """
     return re.sub(r"<[^>]+>", "", text)
+
+
+# Find the owning Profile given a Task name
+def find_owning_profile(task_name: str) -> str:
+    """
+    Find the owning Profile given a Task name.
+
+    This function takes a Task name as input and searches for the corresponding Task ID in the `PrimeItems.tasker_root_elements["all_tasks"]` dictionary. It then iterates over the `PrimeItems.tasker_root_elements["all_profiles"]` dictionary to find the Profile that contains the Task ID. If a matching Profile is found, its name is returned. If no matching Profile is found, an empty string is returned.
+
+    Parameters:
+        task_name (str): The name of the Task.
+
+    Returns:
+        str: The name of the owning Profile, or an empty string if no matching Profile is found.
+    """
+    tid = next(
+        (
+            k
+            for k, v in PrimeItems.tasker_root_elements["all_tasks"].items()
+            if v["name"] == task_name
+        ),
+        "",
+    )
+
+    # Find the owning Profile
+    if tid:
+        for profile_value in PrimeItems.tasker_root_elements["all_profiles"].values():
+            for mid_key in ["mid0", "mid1"]:
+                mid = profile_value["xml"].find(mid_key)
+                if mid is not None and mid.text == tid:
+                    return profile_value["name"]
+
+    return ""
+
+
+# Find owning Project given a Profile name
+def find_owning_project(profile_name: str) -> str:
+    """
+    Find the owning Project given a Profile name.
+
+    Args:
+        self: The instance of the class.
+        profile_name (str): The Profile name.
+
+    Returns:
+        str: The owning Project name, or an empty string if not found.
+    """
+    profile_dict = PrimeItems.tasker_root_elements["all_profiles"]
+    profile_id = {v["name"]: k for k, v in profile_dict.items()}.get(profile_name)
+
+    if profile_id:
+        for project_name, project_value in PrimeItems.tasker_root_elements[
+            "all_projects"
+        ].items():
+            if profile_id in get_ids(True, project_value["xml"], project_name, []):
+                return project_name
+    return ""
+
+
+def find_task_pattern(text: str) -> bool:
+    r"""
+    Checks if the pattern 'xTask x has x actions\n' exists in the given string.
+
+    Args:
+        text (str): The string to search within.
+
+    Returns:
+        bool: True if the pattern is found, False otherwise.
+    """
+    # The '.*?' matches any character (except newline) zero or more times, non-greedily.
+    # We use re.DOTALL to make '.' match newlines as well, in case 'x' spans multiple lines,
+    # though your specific pattern has a newline character.
+    # The '\n' at the end of the pattern matches a literal newline character.
+    pattern = r".*?Task .*? has .*? actions\n"
+
+    # re.search() scans through the string looking for the first location
+    # where the regular expression pattern produces a match.
+    return bool(re.search(pattern, text, re.DOTALL))

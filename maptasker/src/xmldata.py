@@ -164,7 +164,7 @@ def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> st
     return drop_trailing_comma([extracted_text])[0] if extracted_text else ""
 
 
-def tasker_object(text: str) -> bool:
+def tasker_object(text: str, blank_trailer: bool) -> bool:
     """
     Checks if the input string contains any of the following keywords,
     where spaces are replaced with '&nbsp;':
@@ -172,6 +172,7 @@ def tasker_object(text: str) -> bool:
 
     Args:
         text: The string to be tested.
+        blank_trailer: True if keyword followed by space, otherwise followed by '&nbsp;'
 
     Returns:
         True if any of the modified keywords are found in the text, False otherwise.
@@ -183,6 +184,8 @@ def tasker_object(text: str) -> bool:
         "Scene:&nbsp;",
         "Task <a href=#tasks_",
     ]
+    if blank_trailer:
+        keywords_nbsp = [keyword.replace("&nbsp;", " ") for keyword in keywords_nbsp]
     return any(keyword in text for keyword in keywords_nbsp)
 
 
@@ -195,7 +198,7 @@ def remove_html_tags(text: str, replacement: str) -> str:
     :return: the text with HTML removed
     """
     # If this is a Project/Profile/Task/Scene name, then we will leave the string asis.
-    if tasker_object(text):
+    if tasker_object(text, False):
         return text
 
     # Go thru each character in the string and remove HTML tags

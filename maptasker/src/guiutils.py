@@ -64,6 +64,7 @@ from maptasker.src.sysconst import (
     UNNAMED_ITEM,
     VERSION,
 )
+from maptasker.src.xmldata import tasker_object
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -75,20 +76,16 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 8.0.0 - Change Log\n
-### Summary: Major update: Assign a name to all unnamed Profiles and Tasks\n\n
+Version 8.0.1 - Change Log\n
 ### Added\n
-- Added: New 'List Unnamed Items' checkbox has been added to the GUI under the 'Specific Name' tab.  Click on the text of the checkbox for details.\n
-- Added: The Anthropic 'claude-opus-4-20250514' and 'claude-sonnet-4-20250514' AI models have been added.\n
+- Added: Full support for Tasker version 6.5.8/9.\n
+- Added: If selecting an unnamed Task to display from the single-name pulldown menu, display the owning Profile and Project names as well.\n
 ### Changed\n
-- Changed: 'None or Unnamed!' in Profile names has been changed to 'Unnamed'.\n
-- Changed: Gemini AI models 'gemini-2.5-flash-preview' and 'gemini-2.5-pro-preview' have been updated to the latest versions.\n
+- No changes.\n
 ### Fixed\n
-- Fixed: Too much javascript content is not appearing in the output.\n
-- Fixed: Tasks with too many actions that have a '>' in the name are not hotlinks.\n
-- Fixed: Program errors related to Tasks with no name.\n
-- Fixed: Duplicate Tasks are displayed when hovering over Project or Profile name.\n
-- Fixed: Selecting an unnamed Task in the GUI pulldown menu can not be found for display.\n
+- Fixed: Clicking a irectory hotlink can inadvertently go to a partial match of the Tasker object name.\n
+- Fixed: Unable to change the color for unnamed Tasks.\n
+- Fixed: Non-GUI mode abends in diagram.py.\n
 """
 
 default_font_size = 14
@@ -1956,16 +1953,6 @@ def search_substring_in_list(
     Returns:
         list: A list of tuples containing the index of the string and the position of the substring.
     """
-    hightlighting_to_remove = [
-        "<em>",
-        "</em>",
-        "<b>",
-        "</b>",
-        "<mar>",
-        "</mark",
-        "<u>",
-        "</u>",
-    ]
     matches = []
     # If this is an Unknown Task or Task in warning dict, we need to search for the Task ID in A Scene as well.
     if "Task: " in substring and "(Unnamed)" in substring:
@@ -1979,17 +1966,14 @@ def search_substring_in_list(
     else:
         second_search_string = ""
     lower_substring = substring.lower()
+
+    # If stop on first match and a Tasker object, then indicate we need an exact match.
+    exact_match = bool(stop_on_first_match and tasker_object(substring, True))
+
     # Go through all data looking for our substring.  Do all compares in lowercase.
     # If we don't find a match, then search on second substring.
     for i, string in enumerate(strings):
         lower_string = string.lower()
-
-        # Remove highlighting if not part of search string
-        for highlight in hightlighting_to_remove:
-            if highlight not in substring:
-                lower_string = lower_string.replace(highlight, "")
-        lower_string = lower_string.rstrip()
-
         lower_string_len = len(lower_string)
         start = 0
         while start < lower_string_len:
@@ -2003,6 +1987,25 @@ def search_substring_in_list(
                     pos = lower_string.find(lower_substring, start)
             if pos == -1 or "up one level" in lower_string:
                 break
+
+            # Drop here if we have a potential match.
+            # If doing an exact match on a Tasker object, m ake sure we have an exact match.
+            if exact_match:
+                potential_match = lower_string[pos:]
+                # Handle possible --Task ... ID:
+                pos2 = potential_match.find(" id:")
+                if pos2 != -1:
+                    potential_match = potential_match[:pos2]
+                pos1 = potential_match.find("   ")
+                if pos2 != -1:
+                    potential_match = potential_match[:pos2]
+                pos1 = potential_match.find("   ")
+                if pos1 != -1 or (len(potential_match) != len(lower_substring)):
+                    new_lower_substring = potential_match[:pos1]
+                    if new_lower_substring != lower_substring:
+                        break
+
+            # Okay, we have the match!
             matches.append((i, pos))
             if stop_on_first_match:
                 return matches
@@ -2546,7 +2549,7 @@ def kill_the_progress_bar(progress_bar: dict, remove_windows: bool = False) -> N
     # If we don't have PrimeItems.progressbar, we have a runaway situation (tkinter bug).
     # Just destory the window.
     else:
-        progress_bar.destroy()
+        progress_bar.clear()
 
 
 def get_profiles_in_project(project_name: str) -> str:
