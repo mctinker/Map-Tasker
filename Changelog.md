@@ -2,33 +2,40 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.0.0] 27-May-2025
-
-### Summary: Unnamed Tasks are now named with the first action in the Task
+## [8.0.1] 30-May-2025
 
 ### Added
 
-- Added: New 'List Unnamed Items' checkbox has been added to the GUI under the 'Specific Name' tab.  Click on the text of the checkbox for details.
-- Added: The Anthropic 'claude-opus-4-20250514' and 'claude-sonnet-4-20250514' AI models have been added.
+- Added: Full support for Tasker version 6.5.8/9.
+- Added: If selecting an unnamed Task to display from the single-name pulldown menu, display the owning Profile and Project names as well.
 
 ### Changed
 
-- Changed: 'None or Unnamed!' in Profile names has been changed to 'Unnamed'.
-- Changed: Gemini AI models 'gemini-2.5-flash-preview' and 'gemini-2.5-pro-preview' have been updated to the latest versions.
+- Changed:
 
 ### Fixed
 
-- Fixed: Too much javascript content is not appearing in the output.
-- Fixed: Tasks with too many actions that have a '>' in the name are not hotlinks.
-- Fixed: Program errors related to Tasks with no name.
-- Fixed: Duplicate Tasks are displayed when hovering over Project or Profile name.
-- Fixed: Selecting an unnamed Task in the GUI pulldown menu can not be found for display.
+- Fixed: Clicking a irectory hotlink can inadvertently go to a partial match of the Tasker object name.
+- Fixed: Unable to change the color for unnamed Tasks.
+- Fixed: Non-GUI mode abends in diagram.py.
 
 ### Known Issues
 
 - Unable to change any colors in GUI if using UV to manage the application (UV bug).
 
 ## Older History Logs
+
+## [8.0.0]
+
+- Added: New 'List Unnamed Items' checkbox has been added to the GUI under the 'Specific Name' tab.  Click on the text of the checkbox for details.
+- Added: The Anthropic 'claude-opus-4-20250514' and 'claude-sonnet-4-20250514' AI models have been added.
+- Changed: 'None or Unnamed!' in Profile names has been changed to 'Unnamed'.
+- Changed: Gemini AI models 'gemini-2.5-flash-preview' and 'gemini-2.5-pro-preview' have been updated to the latest versions.
+- Fixed: Too much javascript content is not appearing in the output.
+- Fixed: Tasks with too many actions that have a '>' in the name are not hotlinks.
+- Fixed: Program errors related to Tasks with no name.
+- Fixed: Duplicate Tasks are displayed when hovering over Project or Profile name.
+- Fixed: Selecting an unnamed Task in the GUI pulldown menu can not be found for display.
 
 ## [7.3.1]
 
