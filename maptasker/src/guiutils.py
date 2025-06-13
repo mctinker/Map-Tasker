@@ -80,14 +80,15 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 CHANGELOG = """
 Version 8.0.2 - Change Log\n
 ### Added\n
-- Added: Full support for Tasker version 6.5.8/9.\n
-- Added: If selecting an unnamed Task to display from the single-name pulldown menu, display the owning Profile and Project names as well.\n
+- Added: The last 'tab' used in the GUI is now saved across sessions and restored on re-entry.\n
 ### Changed\n
 - No changes.\n
 ### Fixed\n
-- Fixed: Clicking a irectory hotlink can inadvertently go to a partial match of the Tasker object name.\n
-- Fixed: Unable to change the color for unnamed Tasks.\n
-- Fixed: Non-GUI mode abends in diagram.py.\n
+- Fixed: Closing the GUI window via the window icon is not saving the settings.\n
+- Fixed: The diagram is not appearing in the default text editor if running with '-outline' option.\n
+- Fixed: Changed error messages that referred to "Backup File" to read "XML File".\n
+- Fixed: Debug option is not working.\n
+- Fixed: Clicking on Map or Diagram view buttons in the GUI while either is already running causes an internal loop.\n
 """
 
 default_font_size = 14
@@ -2553,7 +2554,6 @@ def kill_the_progress_bar(progress_bar: dict, remove_windows: bool = False) -> N
     # If we don't have PrimeItems.progressbar, we have a runaway situation (tkinter bug).
     # Just destory the window.
     else:
-        progress_bar["progress_bar"].destroy()
         progress_bar = {}
         PrimeItems.program_arguments["guiview"] = True
 

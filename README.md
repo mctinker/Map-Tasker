@@ -235,7 +235,7 @@ Ai analysis is available through the GUI only.  You can run an analysis using a 
 
 - [x] Fix minor formatting issues.
 
-- [ ] If Profile has no name, display the same name as that of Tasker
+- [x] If Profile has no name, display the same name as that of Tasker
 
 - [ ] Support additional plugins
 

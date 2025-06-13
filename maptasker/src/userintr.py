@@ -3244,6 +3244,7 @@ class EventHandlers:
                 f"Running analysis with model {the_view.ai_model}.",
                 "Green",
             )
+            the_view.tab_to_use = the_view.tabview.get()
 
             # Do the analysis.  First save our windows and settings.
             store_windows(the_view)
@@ -3470,6 +3471,11 @@ class EventHandlers:
         """
         guiview = self.parent
 
+        # Make sure we are not currently doing a diagram
+        if guiview.map_in_progress:
+            return
+        guiview.map_in_progress = True
+
         # Save windows and delete previous mapview window.
         store_windows(self)
 
@@ -3524,6 +3530,7 @@ class EventHandlers:
                 guiview.display_message_box(PrimeItems.error_msg, "Orange")
                 PrimeItems.error_code = 0
                 PrimeItems.error_msg = ""
+                guiview.map_in_progress = False
                 return
 
             # Process the diagram file
@@ -3550,6 +3557,9 @@ class EventHandlers:
         else:
             display_no_xml_message(guiview)
 
+        # Indicate that we are dont.
+        guiview.map_in_progress = False
+
     def map_event(self) -> None:
         """
         Executes the map event.
@@ -3567,6 +3577,11 @@ class EventHandlers:
             None
         """
         guiview = self.parent
+        # Make sure we are not already doing a map
+        if guiview.map_in_progress:
+            return
+        guiview.map_in_progress = True
+
         # If we have some XML, then map it.
         if (
             PrimeItems.tasker_root_elements["all_projects"]
@@ -3585,6 +3600,9 @@ class EventHandlers:
                 return
         else:
             display_no_xml_message(guiview)
+
+        # Indicate that we are done.
+        guiview.map_in_progress = False
 
     def viewlimit_event(self: object, view_limit: str) -> None:
         """

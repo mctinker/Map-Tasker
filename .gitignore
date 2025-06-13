@@ -13,7 +13,6 @@
 !README.md
 !README_PyPl.md
 !pyproject.toml
-!uv.lock
 !maptasker
 !tests
 #!*.html

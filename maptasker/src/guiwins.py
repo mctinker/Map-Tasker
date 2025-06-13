@@ -3626,6 +3626,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.list_unnamed_items = False
     self.view_limit = 10000
     self.map_window_position = ""
+    self.map_in_progress = False
     self.mapview_window = None
     self.named_item = None
     self.outline = False

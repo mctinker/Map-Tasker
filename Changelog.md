@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.0.2] ??-June-2025  # FIX
+## [8.0.2] 16-June-2025
 
 ### Added
 
-- Added: The last 'tab' used in the GUI is now saved across sessions and restored on reentry.
+- Added: The last 'tab' used in the GUI is now saved across sessions and restored on re-entry.
 
 ### Changed
 
@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: The diagram is not appearing in the default text editor if running with '-outline' option.
 - Fixed: Changed error messages that referred to "Backup File" to read "XML File".
 - Fixed: Debug option is not working.
+- Fixed: Clicking on Map or Diagram view buttons in the GUI while either is already running causes an internal loop.
 
 ### Known Issues
 
@@ -29,7 +30,7 @@ All notable changes to this project will be documented in this file!
 
 - Added: Full support for Tasker version 6.5.8/9.
 - Added: If selecting an unnamed Task to display from the single-name pulldown menu, display the owning Profile and Project names as well.
-- Fixed: Clicking a irectory hotlink can inadvertently go to a partial match of the Tasker object name.
+- Fixed: Clicking a directory hotlink can inadvertently go to a partial match of the Tasker object name.
 - Fixed: Unable to change the color for unnamed Tasks.
 - Fixed: Non-GUI mode abends in diagram.py
 
