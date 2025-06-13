@@ -1,0 +1,25 @@
+#! /usr/bin/env python3
+
+depricated = {
+    "10": "Deprecated",
+    "11": "Deprecated",
+    "12": "Deprecated",
+    "115": "Deprecated",
+    "116": "Deprecated",
+    "117": "Deprecated",
+    "118": "Deprecated",
+    "151": "Deprecated",
+    "411": "Deprecated",
+    "500": "Deprecated",
+    "510": "Deprecated",
+    "520": "Deprecated",
+    "530": "Deprecated",
+    "540": "Deprecated",
+    "557": "Deprecated",
+    "560": "Deprecated",
+    "565": "Deprecated",
+    "594": "Deprecated",
+    "696": "Deprecated",
+    "777": "Deprecated",
+    "876": "Deprecated",
+}

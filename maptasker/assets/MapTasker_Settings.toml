@@ -1,0 +1,55 @@
+Guidance = "Modify this file as needed below the entries [program_arguments] and [colors_to_use].  Run 'maptasker -h' for details."
+last_run = 2024-12-06 13:42:09.693017
+
+[program_arguments]
+ai_analyze = false
+ai_apikey = "Hidden"
+ai_model = ""
+ai_prompt = "suggest improvements for performance and readability:"
+android_file = ""
+android_ipaddr = ""
+android_port = ""
+appearance_mode = "system"
+bold = false
+conditions = false
+debug = false
+directory = false
+display_detail_level = 5
+file = ""
+font = "Courier"
+gui = true
+highlight = false
+indent = 4
+italicize = false
+outline = false
+preferences = false
+pretty = false
+runtime = false
+single_profile_name = ""
+single_project_name = ""
+single_task_name = ""
+taskernet = false
+twisty = false
+underline = false
+view_limit = 10000
+
+[colors_to_use]
+action_color = "DarkOrange"
+action_condition_color = "PapayaWhip"
+action_label_color = "Magenta"
+action_name_color = "Gold"
+background_color = "222623"
+disabled_action_color = "Crimson"
+disabled_profile_color = "Red"
+heading_color = "LimeGreen"
+highlight_color = "DarkTurquoise"
+launcher_task_color = "GreenYellow"
+preferences_color = "PeachPuff"
+profile_color = "Aqua"
+profile_condition_color = "LightGrey"
+project_color = "White"
+scene_color = "Lime"
+task_color = "Yellow"
+taskernet_color = "LightPink"
+trailing_comments_color = "PeachPuff"
+unknown_task_color = "Red"

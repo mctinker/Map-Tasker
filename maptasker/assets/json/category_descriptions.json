@@ -1,0 +1,94 @@
+[
+  {
+    "code": 10,
+    "name": "Alert"
+  },
+  {
+    "code": 15,
+    "name": "App"
+  },
+  {
+    "code": 20,
+    "name": "Audio"
+  },
+  {
+    "code": 35,
+    "name": "Code"
+  },
+  {
+    "code": 40,
+    "name": "Display"
+  },
+  {
+    "code": 50,
+    "name": "File"
+  },
+  {
+    "code": 51,
+    "name": "Google Drive"
+  },
+  {
+    "code": 52,
+    "name": "Image"
+  },
+  {
+    "code": 55,
+    "name": "Input"
+  },
+  {
+    "code": 60,
+    "name": "Location"
+  },
+  {
+    "code": 141,
+    "name": "Matter Home Automation (Experimental)"
+  },
+  {
+    "code": 65,
+    "name": "Media"
+  },
+  {
+    "code": 80,
+    "name": "Net"
+  },
+  {
+    "code": 90,
+    "name": "Phone"
+  },
+  {
+    "code": 100,
+    "name": "Plugin"
+  },
+  {
+    "code": 102,
+    "name": "Scene"
+  },
+  {
+    "code": 30,
+    "name": "Settings"
+  },
+  {
+    "code": 104,
+    "name": "System"
+  },
+  {
+    "code": 105,
+    "name": "Task"
+  },
+  {
+    "code": 110,
+    "name": "Tasker"
+  },
+  {
+    "code": 120,
+    "name": "Variables"
+  },
+  {
+    "code": 125,
+    "name": "Zoom"
+  },
+  {
+    "code": 130,
+    "name": "3rd Party"
+  }
+]

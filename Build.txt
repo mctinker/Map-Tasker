@@ -1,0 +1,192 @@
+#! /bin/bash
+# python -m venv venv
+
+set SOURCE /Users/mikrubin/Kaka/maptasker_test/venv/bin/activate.fish
+set SOURCE /Users/mikrubin/Kaka/maptasker/venv/bin/activate.fish
+
+set VIRTUAL_ENV /Users/mikrubin/Kaka/maptasker_test/venv
+set VIRTUAL_ENV /Users/mikrubin/Kaka/maptasker/venv
+
+# python -m pip install xyz
+# deactivate
+
+# python -m pip freeze > requirements.txt
+# python -m pip list --outdated
+# python -m pip install -U PackageName
+
+#  Change Python Version
+# pyenv install 3.xx:latest
+# pyenv local 3.xx
+# pyenv global 3.xx
+# pyenv shell 3.xx
+# pyenv init - | source
+poetry self add poetry-plugin-shell  # Needed to use 'poetry shell' command in myenv.sh
+uv python install 3.xx
+uv python list (list all versions)
+uv venv --python 3.xx.x
+uv pip install xxxx
+poetry env use 3.xx
+poetry install
+Change VsCode interpreter to 3.xx
+
+# Install a new version of Python:
+# Enter the following into a command line, replacing "3.xx" at the bottom with the version number to be installed....
+env LDFLAGS="-L$(brew --prefix openssl@1.1)/lib -L$(brew --prefix readline)/lib -L$(brew --prefix sqlite3)/lib -L$(brew --prefix xz)/lib -L$(brew --prefix zlib)/lib -L$(brew --prefix tcl-tk)/lib" \
+CPPFLAGS="-I$(brew --prefix openssl@1.1)/include -I$(brew --prefix readline)/include -I$(brew --prefix sqlite3)/include -I$(brew --prefix xz)/include -I$(brew --prefix zlib)/include -I$(brew --prefix tcl-tk)/include" \
+PKG_CONFIG_PATH="$(brew --prefix openssl@1.1)/lib/pkgconfig:$(brew --prefix readline)/lib/pkgconfig:$(brew --prefix sqlite3)/lib/pkgconfig:$(brew --prefix xz)/lib/pkgconfig:$(brew --prefix zlib)/lib/pkgconfig:$(brew --prefix tcl-tk)/lib/pkgconfig" \
+pyenv install 3.xx  <<< VERSION
+
+
+1- Update  versionbl
+
+	pyproject.toml
+	maptasker/routines/sysconst.py
+	maptasker/maptasker.py
+	Changelog.md
+ 	__init__.py
+
+  Update code:
+    remove 'if __name__ = __main__' from main
+
+a- Profiler: add a profiler to code
+	Add @profile to function to be profiled.
+	kernprof -l maptasker -options
+
+	# Inspect results with
+	python -m line_profiler -rmt "maptasker.lprof"
+
+
+2- Install
+poetry install
+
+3- Build
+poetry Build
+
+4- Publish to test-pypi
+./publishtest.sh
+
+5- Test <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+python -m pip install --extra-index-url https://test.pypi.org/simple/ maptasker
+
+python -m pip install --extra-index-url https://test.pypi.org/simple/ maptasker==2.4.1
+
+6- Push to Production
+./publishprod.sh
+
+ Poetry build userid and password
+# Production PyPi.  The following lines are included in publishtest.sh and publishprod.sh.  So these can be ignored.
+
+export PYPI_USERNAME=__token__
+export PYPI_PASSWORD=PYPI_TOKEN_REDACTED
+
+poetry publish --build --username $PYPI_USERNAME --password $PYPI_PASSWORD
+
+Production token as of 12/28/23: PYPI_TOKEN_REDACTED
+
+# Test-PyPi
+poetry config repositories.testpypi https://test.pypi.org/legacy/
+
+# poetry config PYPI_TOKEN_REDACTED.testPYPI_TOKEN_REDACTED
+export PYPI_PASSWORD=PYPI_TOKEN_REDACTED
+
+PYPI_TOKEN_REDACTED
+
+poetry publish -r test-pypi --build --username $PYPI_USERNAME --password $PYPI_PASSWORD
+
+
+# Run vulture to find dead functions:
+pip install vulture
+vulture "/Users/mikrubin/Library/CloudStorage/GoogleDrive-mikrubin@gmail.com/My Drive/Python/maptasker/maptasker/src/" --config "/Users/mikrubin/Library/CloudStorage/GoogleDrive-mikrubin@gmail.com/My Drive/Python/maptasker/pyproject.toml" > vulture.txt
+
+# Blackd:
+# blackd --bind-host 127.0.0.1git merge 2.
+poetry run black --config pyproject.toml maptasker/src
+
+semgrep security check on ~/kaka/maptasker-test:
+semgrep --config=auto /Users/mikrubin/Kaka/maptasker_test/venv/lib/python3.10/site-packages/maptasker/src
+
+# Git list dimensions
+git count-objects -v
+
+# Git cleanup
+
+git gc --aggressive --prune
+
+git clean
+
+
+If you just clean untracked files, run git clean -f.
+If you want to also remove directories, run git clean -f -d.
+If you just want to remove ignored files, run git clean -f -X.
+If you want to remove ignored as well as non-ignored files, run git clean -f -x.
+
+# GIT List all files in a branch:
+git ls-tree -r master --name-only
+
+# GIT Delete File from GIT Repository
+git rm --cached file1.txt
+git commit -m "remove file1.txt"
+
+# Show uncommited changes
+Here are some of the options it expose which you can use
+
+git diff (no parameters)
+Print out differences between your working directory and the index.
+
+git diff --cached:
+Print out differences between the index and HEAD (current commit).
+
+git diff HEAD:
+Print out differences between your working directory and the HEAD.
+
+git diff --name-only
+Show only names of changed files.
+
+git diff --name-status
+Show only names and status of changed files.
+
+git diff --color-words
+Word by word diff instead of line by line.
+
+# GIT Rename Branch
+git branch -m 2.1.8 2.2.0
+set -x PATH "/Users/mikrubin/Library/Application Support/pypoetry/venv/bin" "$PATH"
+poetry version patch
+
+# List all branches
+git branch -a
+
+# Publishing a New Version
+1- Test Test Test  > Test on Python 3.11 and 3.12
+2- Check all FIX and TODO comments are resolved
+3- Run with debug to create maptasker_changelog.json
+4- push code to mctinker GitHub, and include maptasker_changelog.json
+5- Commit final changes
+5a- run brewupdate and rename zipped file xxx-Version-v.r.u
+5b- Copy to ~/MyStuff and My Drive/AMyStuff/Backups/MapTasker Older Copies
+6- poetry install
+7- delete dist folder
+8- poetry build
+9- ./publishtest.sh
+10- Install test-pypi package:
+brew uninstall pipx
+python3.11 -m pip install --extra-index-url https://test.pypi.org/simple/ maptasker==8.0.1
+...or...
+uv pip install --extra-index-url https://test.pypi.org/simple/ --index-strategy unsafe-best-match maptasker==6.0.2
+source .venv/bin/activate.fish
+11- validate the test code from #8
+12- On Github, make new release the new master
+13- ./publishprod.sh to pypi
+14- Test production maptasker on kaka
+    'brew install pipx' when done testing.
+15- GIT Merge / Go to Next Version (below)
+16- Update changelog.md
+DONE
+
+# GIT Merge / Go to Next Version
+git checkout master
+git merge <branch>   e.g. git merge 2.4.3
+git branch -d <branch>  e.g. git branch -d 2.4.3
+create new branch
+set -x PATH "/Users/mikrubin/Library/Application Support/pypoetry/venv/bin" "$PATH"
+poetry version patch  # Automatically bumps version number in pyproject.toml and sysconst.py from x.y.n to x.y.(n+1)

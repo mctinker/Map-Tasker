@@ -1,0 +1,65 @@
+import unittest  # noqa: D100
+
+from maptasker.src.guiwins import CTkTextview
+from maptasker.src.mapit import mapit_all
+from maptasker.src.userintr import MyGui
+
+
+class TestCTkTextview(unittest.TestCase):  # noqa: D101
+    def setUp(self):  # noqa: D102
+        # Initialize the CTkTextview object
+        view_type = "map"
+        window_attribute = f"{view_type}view_window"
+        self.textview = CTkTextview(
+            master=getattr(self, window_attribute),
+            title="Window Title",
+            the_data=["now is the time", "for all good men"],
+        )
+
+    def test_process_data(self):  # noqa: D102
+        # Example test for process_data method
+        data = {"key": "value"}
+        self.textview.process_data(data)
+        # Add assertions to verify the behavior
+
+    def test_output_list(self):  # noqa: D102
+        # Example test for output_list method
+        data = ["line1", "line2", "line3"]
+        self.textview.output_list(data)
+        # Add assertions to verify the behavior
+
+    def test_add_view_widgets(self):  # noqa: D102
+        # Example test for add_view_widgets method
+        title = "Example Title"
+        self.textview.add_view_widgets(title)
+        # Add assertions to verify the behavior
+
+    def test_hover_scene(self):  # noqa: D102
+        # Example test for hover_scene method
+        name = "Example Scene"
+        text = "Example Text"
+        result = self.textview.hover_scene(name, text)
+        # Add assertions to verify the behavior
+
+    def test_get_list_of_actions(self):  # noqa: D102
+        # Example test for get_list_of_actions method
+        name = "Example Task"
+        task_xml = None  # Replace with actual defusedxml.ElementTree object
+        result = self.textview.get_list_of_actions(name, task_xml)
+        # Add assertions to verify the behavior
+
+    def test_check_no_name(self):  # noqa: D102
+        # Example test for check_no_name method
+        title = "Example Title"
+        name = "Unnamed/Anonymous"
+        tag = "Example Tag"
+        result = self.textview.check_no_name(title, name, tag)
+        # Add assertions to verify the behavior
+
+
+if __name__ == "__main__":
+    # Re-invoke ourselves to force the html to be written
+    _ = mapit_all("")
+    user_input = MyGui()
+    user_input.mainloop()
+    unittest.main()
