@@ -1,12 +1,12 @@
-anthropic==0.52.0
+anthropic==0.54.0
 customtkinter==5.2.2
 darkdetect==0.8.0
 defusedxml==0.7.1
 distlib==0.3.9
 google-generativeai==0.8.5
-ollama==0.4.8
-openai==1.82.0
+ollama==0.5.1
+openai==1.86.0
 pillow==11.2.1
 psutil==7.0.0
-requests==2.32.3
+requests==2.32.4
 tomli_w==1.2.0
