@@ -26,6 +26,7 @@ from maptasker.src.error import error_handler
 # from maptasker.src.fonts import get_fonts
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getbakup import get_backup_file
+from maptasker.src.maputils import exit_program
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     COUNTER_FILE,
@@ -59,7 +60,9 @@ def read_counter() -> int:
     """
     try:
         with open(COUNTER_FILE) as f:
-            return loads(f.read()) + 1 if Path.exists(Path(COUNTER_FILE).resolve()) else 0
+            return (
+                loads(f.read()) + 1 if Path.exists(Path(COUNTER_FILE).resolve()) else 0
+            )
     except FileNotFoundError:
         return 0
 
@@ -147,16 +150,20 @@ def open_and_get_backup_xml_file() -> dict:
     # See if we already have the file
     if PrimeItems.program_arguments["file"]:
         filename = isinstance(PrimeItems.program_arguments["file"], str)
-        filename = PrimeItems.program_arguments["file"].name if not filename else PrimeItems.program_arguments["file"]
+        filename = (
+            PrimeItems.program_arguments["file"].name
+            if not filename
+            else PrimeItems.program_arguments["file"]
+        )
 
         # We already have the file name...open it.
         try:
             PrimeItems.file_to_get = open(filename)
         except FileNotFoundError:
             file_not_found = filename
-            error_handler(f"Backup file {file_not_found} not found.  Program ended.", 6)
+            error_handler(f"XML file {file_not_found} not found.", 6)
         except PermissionError:
-            error_handler(f"Backup file {filename} not accessible.", 100)
+            error_handler(f"XML file {filename} not accessible.", 100)
             prompt_for_backup_file(dir_path)
     else:
         prompt_for_backup_file(dir_path)
@@ -192,7 +199,9 @@ def setup_colors() -> dict:
             for color_argument_name in TYPES_OF_COLOR_NAMES.values():
                 try:
                     if PrimeItems.colors_to_use[color_argument_name]:
-                        colors_to_use[color_argument_name] = PrimeItems.colors_to_use[color_argument_name]
+                        colors_to_use[color_argument_name] = PrimeItems.colors_to_use[
+                            color_argument_name
+                        ]
                 except KeyError:
                     continue
 
@@ -204,8 +213,10 @@ def setup_logging() -> None:
     """
     Set up the logging: name the file and establish the log type and format
     """
+    # Add the date and time to the log filename.
+    file_name = f"maptasker_{NOW_TIME.month}-{NOW_TIME.day}-{NOW_TIME.year}_{NOW_TIME.hour}-{NOW_TIME.minute}-{NOW_TIME.second}.log"
     logging.basicConfig(
-        filename="maptasker.log",
+        filename=file_name,
         filemode="w",
         format="%(asctime)s,%(msecs)d %(levelname)s %(name)s %(funcName)s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -256,7 +267,9 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
         # We don't yet have the data.  Let's get it.
         if not PrimeItems.program_arguments["file"]:
             PrimeItems.program_arguments["file"] = (
-                PrimeItems.file_to_get if PrimeItems.file_to_use == "" else PrimeItems.file_to_use
+                PrimeItems.file_to_get
+                if PrimeItems.file_to_use == ""
+                else PrimeItems.file_to_use
             )
 
         # Only display message box if we don't yet have the file name,
@@ -278,7 +291,11 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
         PrimeItems.file_to_get.close()
 
     # Output the inital info: head, source, etc. ...if it hasn't already been output.
-    if return_code == 0 and do_front_matter and not PrimeItems.output_lines.output_lines:
+    if (
+        return_code == 0
+        and do_front_matter
+        and not PrimeItems.output_lines.output_lines
+    ):
         output_the_front_matter()
         return 0
 
@@ -308,9 +325,7 @@ def check_versions() -> None:
     version = str(TkVersion)
     major, minor = version.split(".")
     if int(major) < 8 or (int(major) == 8 and int(minor) < 6):
-        msg = (
-            f"{msg}  Tcl/tk (Tkinter) version {TkVersion} is not supported.  Please use Tkinter version 8.6 or greater."
-        )
+        msg = f"{msg}  Tcl/tk (Tkinter) version {TkVersion} is not supported.  Please use Tkinter version 8.6 or greater."
         logger.error(msg)
     if msg:
         logger.error("MapTasker", msg)
@@ -349,7 +364,7 @@ def build_action_codes(build_it_all: bool = False) -> None:
                     PrimeItems.tasker_arg_specs[key] = "Str"
                     break
     except FileNotFoundError:
-        print("arg_specs missing!")
+        logger.error("arg_specs missing!")
 
     # If building it all, then get the map of all Tasker task action codes and their arguments, states, and events.
     if build_it_all:
@@ -384,7 +399,9 @@ def build_action_codes(build_it_all: bool = False) -> None:
         with open(f"{json_dir}category_descriptions.json", encoding="utf-8") as file:
             category_descriptions = json.load(file)
             for description in category_descriptions:
-                PrimeItems.tasker_category_descriptions[description["code"]] = description["name"]
+                PrimeItems.tasker_category_descriptions[description["code"]] = (
+                    description["name"]
+                )
 
         # Merge actionc with this new data to create a new dictionary
         merge_action_codes()
@@ -421,6 +438,9 @@ def start_up() -> dict:
         - Gets key program elements and outputs intro text
         - Logs startup values if debug mode is enabled
     """
+    # If debug mode, fire-up the log.
+    if "-d" in sys.argv or "-debug" in sys.argv:
+        log_startup_values()
     logger.info(f"sys.argv{sys.argv!s}")
 
     # Get the OS so we know which directory slash to use (/ or \)
@@ -438,14 +458,11 @@ def start_up() -> dict:
     build_all = False
     build_action_codes(build_it_all=build_all)
     if build_all:
-        sys.exit()
+        exit_program(0)
     # END OF DEVELOPMENT CODE
+
     # Get runtime arguments (from CLI or GUI)
     get_arguments.get_program_arguments()
-
-    # If debug mode, log the arguments
-    if PrimeItems.program_arguments["debug"]:
-        log_startup_values()
 
     # Get our map of colors if we don't have them.
     if not PrimeItems.colors_to_use:

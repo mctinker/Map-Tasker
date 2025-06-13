@@ -70,9 +70,7 @@ def get_profile_tasks(
                 PrimeItems.found_named_items["single_task_found"] = True
                 profile_name = the_profile.find("nme")
                 if profile_name is not None:
-                    PrimeItems.program_arguments["single_profile_name"] = (
-                        profile_name.text
-                    )
+                    PrimeItems.program_arguments["single_profile_name"] = profile_name.text
                 break
 
         elif tag == "nme":
@@ -94,11 +92,7 @@ def get_profile_name(
     # If we don't have the name, then set it to 'No Profile'
     profile_id = profile.attrib.get("sr")
     profile_id = profile_id[4:]
-    if not (
-        the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id][
-            "name"
-        ]
-    ):
+    if not (the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"]):
         the_profile_name = UNNAMED_ITEM
 
     # Make the Project name bold, italicize, underline and/or highlighted if requested
@@ -123,7 +117,9 @@ def get_profile_name(
     # If we are debugging, add the Profile ID
     if PrimeItems.program_arguments["debug"]:
         profile_id = profile.find("id").text
-        profile_name_with_html = f"{profile_name_with_html} {format_html('unknown_task_color', '', f', ID:{profile_id}', True)}"
+        profile_name_with_html = (
+            f"{profile_name_with_html} {format_html('unknown_task_color', '', f', ID:{profile_id}', True)}"
+        )
 
     return profile_name_with_html, the_profile_name
 
@@ -186,9 +182,7 @@ def delete_non_blank_before_equals(text: str) -> str:
                 j -= 1
 
     # Create a new list excluding the characters at the marked indices
-    result = [
-        char for i, char in enumerate(modified_text) if i not in indices_to_delete
-    ]
+    result = [char for i, char in enumerate(modified_text) if i not in indices_to_delete]
     return "".join(result)
 
 
@@ -228,11 +222,7 @@ def set_name_to_condition(
     # Find and replace separate douyble-spaces
     # Make sure it is not preceded or followed by another &nbsp;
     pos = profile_conditions.find("&nbsp;&nbsp;")
-    if (
-        pos != -1
-        and profile_conditions[pos - 1] != ";"
-        and profile_conditions[pos + 12] != "&"
-    ):
+    if pos != -1 and profile_conditions[pos - 1] != ";" and profile_conditions[pos + 12] != "&":
         profile_conditions = profile_conditions.replace("&nbsp;&nbsp;", " ", 1)
     # Break out the conditions.
     conditions = (
@@ -340,12 +330,8 @@ def conditions_to_name(
     profile_name = f"{profile_name.rstrip()}.{profile_id} {UNNAMED_ITEM}"
 
     # Now cleanup the name in order to use it.
-    new_profile_name = (
-        f"{profile_name.replace('<em>', '').replace('</em>', '').rstrip()}"
-    )
-    PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"] = (
-        new_profile_name
-    )
+    new_profile_name = f"{profile_name.replace('<em>', '').replace('</em>', '').rstrip()}"
+    PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"] = new_profile_name
 
     # Handle directory hyperlink
     if PrimeItems.program_arguments["directory"]:
@@ -394,9 +380,7 @@ def build_profile_line(
 
     # Look for disabled Profile
     limit = profile.find("limit")  # Is the Profile disabled?
-    disabled = (
-        disabled_profile_html if limit is not None and limit.text == "true" else ""
-    )
+    disabled = disabled_profile_html if limit is not None and limit.text == "true" else ""
 
     # Is there a Launcher Task with this Project?
     launcher_xml = profile.find("ProfileVariable")
@@ -405,11 +389,7 @@ def build_profile_line(
     # Display flags for debug mode
     if PrimeItems.program_arguments["debug"]:
         flags = profile.find("flags")
-        flags = (
-            format_html("launcher_task_color", "", f" flags: {flags.text}", True)
-            if flags is not None
-            else ""
-        )
+        flags = format_html("launcher_task_color", "", f" flags: {flags.text}", True) if flags is not None else ""
 
     # Get the Profile name
     profile_name_with_html, profile_name = get_profile_name(profile)
@@ -490,11 +470,7 @@ def do_profile(
     # Are we searching for a specific Profile?
     if PrimeItems.program_arguments["single_profile_name"]:
         # Make sure this item's name is in our list of profiles.
-        if not (
-            profile_name := PrimeItems.tasker_root_elements["all_profiles"][item][
-                "name"
-            ]
-        ):
+        if not (profile_name := PrimeItems.tasker_root_elements["all_profiles"][item]["name"]):
             return False  # Not our Profile...go to next Profile ID
 
         if PrimeItems.program_arguments["single_profile_name"] != profile_name:
@@ -590,11 +566,7 @@ def align_html_text(html_string: str) -> str:
         "Days of Week:",
         "Location:",
     ]
-    pattern = (
-        r'(<span class="profile_condition_color">.*?)('
-        + "|".join(target_substrings)
-        + r")"
-    )
+    pattern = r'(<span class="profile_condition_color">.*?)(' + "|".join(target_substrings) + r")"
     position_match = re.search(pattern, html_string, re.DOTALL)
 
     if not position_match:

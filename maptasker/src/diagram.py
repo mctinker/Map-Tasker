@@ -726,26 +726,18 @@ def get_index_by_middle_char_position(
 
 
 # Add up and down arrows to the connection points.
-def add_down_and_up_arrows(
-    caller_line_index: int,
-    caller_line_num: int,
-    caller_task_position: int,
-    called_line_index: int,
-    called_line_num: int,
-    called_task_position: int,
-    up_down_location: int,
-    output_lines: list,
-) -> None:
+def add_down_and_up_arrows(connectors: dict, output_lines: list) -> None:
     """
     Adds down and up arrows between caller and called tasks.
     Args:
-        caller_line_index: {Caller task line index in the list}
-        caller_line_num: {Caller task line number}
-        caller_task_position: {Caller task position}
-        called_line_index: {Called task line index}
-        called_line_num: {Called task line number}
-        called_task_position: {Called task position}
-        up_down_location: {Arrow location}
+        connectors (dict): containert for...
+            caller_line_index: {Caller task line index in the list}
+            caller_line_num: {Caller task line number}
+            caller_task_position: {Caller task position}
+            called_line_index: {Called task line index}
+            called_line_num: {Called task line number}
+            called_task_position: {Called task position}
+            up_down_location: {Arrow location}
         output_lines: {Output lines list}
     Returns:
         output_lines: {Modified output lines list with arrows added}
@@ -755,6 +747,15 @@ def add_down_and_up_arrows(
         - Add left arrows to called Task line
         - Add an up arrow
     """
+    # Break out the arguments
+    caller_line_index = connectors["caller_line_index"]
+    caller_line_num = connectors["caller_line_num"]
+    caller_task_position = connectors["caller_task_position"]
+    called_line_index = connectors["called_line_index"]
+    called_line_num = connectors["called_line_num"]
+    called_task_position = connectors["called_task_position"]
+    up_down_location = connectors["up_down_location"]
+
     line_to_modify = caller_line_num + caller_line_index
 
     # Add right arrows to caller Task line (e.g. fill the line with blanks/straight-line to the start position).
@@ -858,16 +859,18 @@ def draw_arrows_to_called_task(
     PrimeItems.called_task_tracker[called_task_name]["counter"] += 1
 
     # Add up and down arrows to the connection points.
-    line_to_modify, line_to_modify1 = add_down_and_up_arrows(
-        caller_line_index,
-        caller_line_num,
-        caller_task_position,
-        PrimeItems.called_task_tracker[called_task_name]["counter"],
-        called_line_num,
-        called_task_position,
-        up_down_location,
-        output_lines,
-    )
+    connectors = {
+        "caller_line_index": caller_line_index,
+        "caller_line_num": caller_line_num,
+        "caller_task_position": caller_task_position,
+        "called_line_index": PrimeItems.called_task_tracker[called_task_name][
+            "counter"
+        ],
+        "called_line_num": called_line_num,
+        "called_task_position": called_task_position,
+        "up_down_location": up_down_location,
+    }
+    line_to_modify, line_to_modify1 = add_down_and_up_arrows(connectors, output_lines)
 
     # Fill called line with left arrows.  Figure out if we are top-down or bottom-up,
     # and assign start_line and line_count accordingly.

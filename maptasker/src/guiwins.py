@@ -72,6 +72,7 @@ from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
     DIAGRAM_PROFILES_PER_LINE,
     MODEL_GROUPS,
+    TAB_NAMES,
     UNNAMED_ITEM,
     clean,
     logger,
@@ -82,24 +83,11 @@ if TYPE_CHECKING:
     import defusedxml.ElementTree
 
 # Set up for access to icons
+kaka = os.getcwd()
+kaka1 = os.path.realpath(__file__)
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 ICON_DIR = os.path.join(CURRENT_PATH, f"..{PrimeItems.slash}assets", "icons")
-ICON_PATH = {
-    # "close": (os.path.join(ICON_DIR, "close_black.png"), os.path.join(ICON_DIR, "close_white.png")),
-    # # "images": list(os.path.join(ICON_DIR, f"image{i}.jpg") for i in range(1, 4)),
-    # "eye1": (os.path.join(ICON_DIR, "eye1_black.png"), os.path.join(ICON_DIR, "eye1_white.png")),
-    # "eye2": (os.path.join(ICON_DIR, "eye2_black.png"), os.path.join(ICON_DIR, "eye2_white.png")),
-    # "info": os.path.join(ICON_DIR, "info.png"),
-    # "warning": os.path.join(ICON_DIR, "warning.png"),
-    # "error": os.path.join(ICON_DIR, "error.png"),
-    # "left": os.path.join(ICON_DIR, "left.png"),
-    # "right": os.path.join(ICON_DIR, "right.png"),
-    # "warning2": os.path.join(ICON_DIR, "warning2.png"),
-    # "loader": os.path.join(ICON_DIR, "loader.gif"),
-    # "icon": os.path.join(ICON_DIR, "icon.png"),
-    "arrow": os.path.join(ICON_DIR, "arrow.png"),
-    # "image": os.path.join(ICON_DIR, "image.png"),
-}
+ICON_PATH = {"arrow": os.path.join(ICON_DIR, "arrow.png")}
 bar = "│"
 box_line = "═"
 straight_line = "─"
@@ -112,18 +100,6 @@ right_arrow_corner_up = "╯"
 left_arrow_corner_down = "╭"
 left_arrow_corner_up = "╮"
 angle = "└─ "
-# connector_chars = [
-#     bar,
-#     straight_line,
-#     down_arrow,
-#     up_arrow,
-#     left_arrow,
-#     right_arrow,
-#     right_arrow_corner_down,
-#     right_arrow_corner_up,
-#     left_arrow_corner_down,
-#     left_arrow_corner_up,
-# ]
 
 
 class CTkTreeview(ctk.CTkFrame):
@@ -3596,6 +3572,7 @@ def initialize_gui(self) -> None:  # noqa: ANN001
     Processing Logic:
         - Calls initialize_variables function.
         - Calls add_logo function."""
+    logger.info("Initializing GUI...")
     initialize_variables(self)
 
 
@@ -3649,15 +3626,17 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.list_unnamed_items = False
     self.view_limit = 10000
     self.map_window_position = ""
+    self.map_in_progress = False
     self.mapview_window = None
     self.named_item = None
     self.outline = False
     self.preferences = None
     self.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
-    self.progressbar_window_position = ""
+    # self.progressbar_window_position = ""
     self.pretty = False
     self.rerun = None
     self.reset = None
+    self.reset_debug_at_end = False
     self.restore = False
     self.runtime = False
     self.save = False
@@ -3665,6 +3644,7 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     self.single_project_name = None
     self.single_task_name = None
     self.task_action_warning_limit = 20
+    self.tab_to_use = None
     self.taskernet = None
     self.title("MapTasker Runtime Options")
     self.tree_window_position = ""
@@ -3712,6 +3692,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         - Creates a tabview for setting specific names, colors, and debug options.
         - Defines the fourth grid / column for checkboxes related to debug options.
         - Defines the sixth grid / column for checkboxes related to runtime settings."""
+    logger.info("Initializing screen...")
+
+    # Save the window position on closure
+    self.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
 
     # Display the frame title
     self.logo_label = add_label(
@@ -4498,10 +4482,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     # create tabview for Name, Color, Analysis and Debug
     self.tabview = ctk.CTkTabview(self, width=250, segmented_button_fg_color="#6563ff")
     self.tabview.grid(row=0, column=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
-    self.tabview.add("Specific Name")
-    self.tabview.add("Colors")
-    self.tabview.add("Analyze")
-    self.tabview.add("Debug")
+
+    # Add our tabs
+    for item in TAB_NAMES:
+        self.tabview.add(item)
 
     self.tabview.tab("Specific Name").grid_columnconfigure(
         0,

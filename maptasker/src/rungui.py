@@ -1,3 +1,4 @@
+"""Handler the GUI for MapTasker"""
 #! /usr/bin/env python3
 
 #                                                                                      #
@@ -12,12 +13,12 @@
 from __future__ import annotations
 
 import contextlib
-import sys
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.maputils import exit_program
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ARGUMENT_NAMES, logger
 
@@ -85,6 +86,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         - Convert display_detail_level and indent to integers.
         - Get font from GUI.
         - Return program arguments and colors to use."""
+    logger.info("starting")
     # Keep this here to avoid circular import
     if use_gui:
         from maptasker.src.userintr import MyGui
@@ -125,7 +127,9 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     for value in ARGUMENT_NAMES:
         with contextlib.suppress(AttributeError):
             PrimeItems.program_arguments[value] = getattr(user_input, value)
-            logger.info(f"GUI arg: {value} set to: {getattr(user_input, value)}")
+            logger.info(
+                f"GUI arg: {value} set to: {PrimeItems.program_arguments[value]}",
+            )
 
     # Convert display_detail_level to integer
     PrimeItems.program_arguments["display_detail_level"] = convert_to_integer(
@@ -133,7 +137,10 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         4,
     )
     # Convert indent to integer
-    PrimeItems.program_arguments["indent"] = convert_to_integer(PrimeItems.program_arguments["indent"], 4)
+    PrimeItems.program_arguments["indent"] = convert_to_integer(
+        PrimeItems.program_arguments["indent"],
+        4,
+    )
     # Get the font
     if the_font := user_input.font:
         PrimeItems.program_arguments["font"] = the_font
@@ -141,10 +148,16 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # If user selected the "Exit" button, call it quits.
     if user_input.exit:
         # Save the runtijme settings first.
-        _, _ = save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, True)
+        _, _ = save_restore_args(
+            PrimeItems.program_arguments,
+            PrimeItems.colors_to_use,
+            True,
+        )
         # Spit out the message and log it.
         error_handler("Program exited. Goodbye.", 0)
-        sys.exit(0)
+
+        # Call it quits.
+        exit_program(0)
 
     # Return the program arguments and colors to use.
     return (PrimeItems.program_arguments, do_colors(user_input))

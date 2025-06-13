@@ -8,6 +8,7 @@ Returns:
 #                                                                                      #
 # debug: special debug code for MapTasker                                              #
 #                                                                                      #
+import os
 import sys
 
 from maptasker.src.format import format_html
@@ -65,6 +66,20 @@ def display_debug_info() -> None:
             f"sys.argv (runtime arguments):{sys.argv!s}",
             ["", "disabled_profile_color", FormatLine.add_end_span],
         )
+        PrimeItems.output_lines.add_line_to_output(
+            0,
+            f"Path: {os.getcwd()}",
+            ["", "disabled_profile_color", FormatLine.add_end_span],
+        )
+        print("Path:", os.getcwd())
+    # print(
+    #     "__file__={0:<35} | __name__={1:<25} | __package__={2:<25}".format(
+    #         __file__, __name__, str(__package__)
+    #     )
+    # )
+    # print(sys.argv)
+    # # Verify Python version.
+    # print("Python version ", sys.version)
 
     # Copy our dictionary of runtime arguments and sort it alphabetically
     mydict = ARGUMENT_NAMES.copy()
@@ -85,7 +100,7 @@ def display_debug_info() -> None:
                 f"{line_formatted_to_length}: {value}",
                 ["", color_to_use, FormatLine.add_end_span],
             )
-        except KeyError:  # noqa: PERF203
+        except KeyError:
             msg = f"{ARGUMENT_NAMES[key]}: Error...not found!"
             PrimeItems.output_lines.add_line_to_output(
                 0,
@@ -113,10 +128,13 @@ def display_debug_info() -> None:
         )
 
         # Add the line formatted with HTML
-        color_set_to_width = format_line_debug(f"Color for {color_names[key]} set to", 40)
+        color_set_to_width = format_line_debug(
+            f"Color for {color_names[key]} set to",
+            40,
+        )
         PrimeItems.output_lines.add_line_to_output(
             0,
-            f"{ color_set_to_width}{the_color}",
+            f"{color_set_to_width}{the_color}",
             ["", "heading_color", FormatLine.add_end_span],
         )
 

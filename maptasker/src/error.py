@@ -1,11 +1,6 @@
 #! /usr/bin/env python3
 """Error handling module for MapTasker."""
 
-import sys
-
-#                                                                                      #
-# Error: Process Errors                                                                #
-#                                                                                      #
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ERROR_FILE, Colors, logger
 
@@ -16,6 +11,8 @@ def error_handler(error_message: str, exit_code: int) -> None:
         :param error_message: text of error to print and log
         :param exit_code: error code to exit with
     """
+    from maptasker.src.maputils import exit_program
+
     # Add our heading to more easily identify the problem
     if exit_code in {0, 99}:
         final_error_message = f"{Colors.Green}{error_message}"
@@ -46,14 +43,14 @@ def error_handler(error_message: str, exit_code: int) -> None:
             PrimeItems.error_msg = error_message
             return
         # Not coming from GUI...just print error.
-        print(final_error_message)
-        sys.exit(exit_code)
+        logger.debug(final_error_message)
+        exit_program(exit_code)
 
     # If exit code is 100, then the user closed the window
     elif exit_code == 100:
         print(final_error_message)
         logger.info(final_error_message)
-        sys.exit(0)
+        exit_program(0)
 
     # return code 0
     else:

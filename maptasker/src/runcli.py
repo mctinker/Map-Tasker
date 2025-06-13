@@ -23,6 +23,7 @@ from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.error import error_handler
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.maputils import exit_program
 from maptasker.src.parsearg import runtime_parser
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.rungui import process_gui
@@ -105,7 +106,7 @@ def get_and_set_booleans(args: list) -> None:
         try:
             if getattr(args, key):
                 PrimeItems.program_arguments[key] = True
-        except AttributeError:  # noqa: PERF203
+        except AttributeError:
             with contextlib.suppress(AttributeError):
                 if value and getattr(args, value):
                     PrimeItems.program_arguments[key] = True
@@ -320,7 +321,7 @@ def display_version() -> None:
     print(f"{color_to_use}{MY_VERSION}, under license {MY_LICENSE}\033[0m")
     print("")
     clip_figure("castles", False)
-    sys.exit(0)
+    exit_program(0)
 
 
 # Get arguments from command line and put them to the proper settings
@@ -529,6 +530,9 @@ def process_cli() -> None:
     # Process unit tests if "-test" in arguments, else get normal runtime arguments via Parsearg.
     args = unit_test() if "-test=yes" in sys.argv else runtime_parser()
 
+    # Get the debug argument and startup log file if in debug mode.
+    PrimeItems.program_arguments["debug"] = getattr(args, debug_flag)
+
     logger.debug(f"Program arguments: {args}")
 
     # Restore runtime arguments if we are not doing a reset and not doing the GUI and there is a settings file to restore.
@@ -545,18 +549,24 @@ def process_cli() -> None:
         restore_arguments()
 
         # Restore the GUI and Map View flags.
-        PrimeItems.program_arguments["gui"] = save_gui  # Restore GUI flag from runtime options,
-        PrimeItems.program_arguments["guiview"] = save_map  # Restore GUI Map View flag from runtime options,
+        PrimeItems.program_arguments["gui"] = (
+            save_gui  # Restore GUI flag from runtime options,
+        )
+        PrimeItems.program_arguments["guiview"] = (
+            save_map  # Restore GUI Map View flag from runtime options,
+        )
 
-        PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.
-
-    # If not gui and runtime argument 'debug' is set, set the debug flag
-    if not PrimeItems.program_arguments["gui"]:
-        PrimeItems.program_arguments["debug"] = getattr(args, debug_flag)
+        PrimeItems.program_arguments["rerun"] = (
+            False  # Make sure this is off!  Loops otherwise.
+        )
 
     # If using the GUI and not doing a map view or version, them process the GUI.
     do_version = getattr(args, version_flag)  # See if doing version (-v)
-    if PrimeItems.program_arguments["gui"] and not PrimeItems.program_arguments["guiview"] and not do_version:
+    if (
+        PrimeItems.program_arguments["gui"]
+        and not PrimeItems.program_arguments["guiview"]
+        and not do_version
+    ):
         (
             PrimeItems.program_arguments,
             PrimeItems.colors_to_use,

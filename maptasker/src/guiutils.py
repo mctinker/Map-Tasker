@@ -61,8 +61,10 @@ from maptasker.src.sysconst import (
     MODEL_GROUPS,
     NOW_TIME,
     OPENAI_MODELS,
+    TAB_NAMES,
     UNNAMED_ITEM,
     VERSION,
+    logger,
 )
 from maptasker.src.xmldata import tasker_object
 
@@ -76,16 +78,17 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 8.0.1 - Change Log\n
+Version 8.0.2 - Change Log\n
 ### Added\n
-- Added: Full support for Tasker version 6.5.8/9.\n
-- Added: If selecting an unnamed Task to display from the single-name pulldown menu, display the owning Profile and Project names as well.\n
+- Added: The last 'tab' used in the GUI is now saved across sessions and restored on re-entry.\n
 ### Changed\n
 - No changes.\n
 ### Fixed\n
-- Fixed: Clicking a irectory hotlink can inadvertently go to a partial match of the Tasker object name.\n
-- Fixed: Unable to change the color for unnamed Tasks.\n
-- Fixed: Non-GUI mode abends in diagram.py.\n
+- Fixed: Closing the GUI window via the window icon is not saving the settings.\n
+- Fixed: The diagram is not appearing in the default text editor if running with '-outline' option.\n
+- Fixed: Changed error messages that referred to "Backup File" to read "XML File".\n
+- Fixed: Debug option is not working.\n
+- Fixed: Clicking on Map or Diagram view buttons in the GUI while either is already running causes an internal loop.\n
 """
 
 default_font_size = 14
@@ -178,7 +181,8 @@ def get_xml(debug: bool, appearance_mode: str) -> int:
         - Initialize output_lines variable.
         - Return data and output intro."""
     PrimeItems.file_to_use = ""  # Get rid of any previous file
-    PrimeItems.program_arguments["debug"] = debug
+    if not PrimeItems.program_arguments["debug"]:
+        PrimeItems.program_arguments["debug"] = debug
     PrimeItems.program_arguments["gui"] = True
     PrimeItems.colors_to_use = set_color_mode(appearance_mode)
     PrimeItems.output_lines = LineOut()
@@ -482,6 +486,7 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
         - If it exists, prepare to display changes and remove the file so we only display the changes once.
     Note: The changelog file is created immediately after the program is updated (userintr upgrade_event)
     """
+    logger.info("Checking for changelog file.")
     # TODO Test changelog before posting to PyPi.  Comment it out after testing.
     # self.message = CHANGELOG
 
@@ -574,7 +579,7 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
     os.chdir(current_dir)
 
     if logo_type == "coffee":
-        self.coffee_button = add_button(
+        _ = add_button(
             self,
             parent,
             "#246FB6",
@@ -1187,7 +1192,6 @@ def display_object_pulldowns(
     # Display all of the Projects for selection.
     profile_row = row + 2
     task_row = row + 4
-    list_unanmed_tasks_row = row + 7
 
     # Make sure there is something to display
     if not projects_to_display and not profiles_to_display and not tasks_to_display:
@@ -1555,6 +1559,7 @@ def display_messages_from_last_run(self) -> None:  # noqa: ANN001
     Returns:
     - None
     """
+    logger.info("Displaying messages from last run.")
     # See if we have any carryover error messages from last run (rerun).
     if os.path.isfile(ERROR_FILE):
         with open(ERROR_FILE) as error_file:
@@ -2549,7 +2554,8 @@ def kill_the_progress_bar(progress_bar: dict, remove_windows: bool = False) -> N
     # If we don't have PrimeItems.progressbar, we have a runaway situation (tkinter bug).
     # Just destory the window.
     else:
-        progress_bar.clear()
+        progress_bar = {}
+        PrimeItems.program_arguments["guiview"] = True
 
 
 def get_profiles_in_project(project_name: str) -> str:
@@ -2702,7 +2708,7 @@ def on_closing(self: object) -> None:
         "Progress": "progressbar_window_position",
         "Analysis": "ai_analysis_window_position",
         "Tree": "tree_window_position",
-        "Map": "map_window_position",
+        "Map View": "map_window_position",
         "API": "apikey_window_position",
     }
     if "Progress" in title:
@@ -2718,6 +2724,11 @@ def on_closing(self: object) -> None:
         if keyword in title:
             setattr(self.master, attribute, window_position)
             break
+
+    # Special handling if this is our main windows.
+    if "Runtime" in title:
+        # Save the window position on closure
+        self.event_handlers.exit_program_event()
 
     self.destroy()
 
@@ -2968,3 +2979,11 @@ def get_taskid_from_unnamed_task(unnamed_task: str) -> str:
 
     rutroh_error(f"Error.  Missing period for task ID in Taask name: '{unnamed_task}'")
     return unnamed_task.split(".")[1].strip()
+
+
+def set_tab_to_use(self: object) -> None:
+    """Set the Tab to display as the last tab used."""
+    if self.tab_to_use:
+        self.tabview.set(self.tab_to_use)
+    else:
+        self.tabview.set(TAB_NAMES[0])

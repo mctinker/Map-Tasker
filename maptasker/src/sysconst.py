@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "8.0.1"
+VERSION = "8.0.2"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -141,6 +141,7 @@ ARGUMENT_NAMES = {
     "single_profile_name": "Single Profile Name",
     "single_project_name": "Single Project Name",
     "single_task_name": "Single Task Name",
+    "tab_to_use": "Tab To Use",
     "task_action_warning_limit": "Task Action Warning Limit",
     "taskernet": "Display TaskerNet Info",
     "tree_window_position": "Last Tree Window Position",
@@ -183,7 +184,9 @@ pattern9 = re.compile("</span></span>")
 pattern10 = re.compile("</p></p>")
 pattern11 = re.compile(".*[A-Z].*")
 pattern12 = re.compile(r"[%]\w+")  # matches any word-constituent character.
-pattern13 = r",(?=\S)"  # matches any comma followed by a non-blank character.  e.g. now is,the time, for (catches is,the)
+pattern13 = (
+    r",(?=\S)"  # matches any comma followed by a non-blank character.  e.g. now is,the time, for (catches is,the)
+)
 # pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<\\"  # Match everything after the label until a '<'
 pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<span>"
 pattern15 = re.compile("\n")
@@ -227,6 +230,9 @@ class FormatLine(Enum):
     dont_add_end_span = False
 
 
+# Definitions for defining the output display level.
+# Used for calls to addline (lineout.py).  Reference as DISPLAY_DETAIL_LEVEL_summary.value
+
 """Definitions for defining the output display level."""
 DISPLAY_DETAIL_LEVEL_summary: int = 0
 DISPLAY_DETAIL_LEVEL_anon_tasks_only: int = 1
@@ -245,7 +251,6 @@ DISABLED = " [&#9940;&nbsp;DISABLED]"  # &#9940 = "⛔"
 TABLE_BACKGROUND_COLOR = "DarkSteelBlue" if darkdetect.isDark() else "PaleTurquois"
 TABLE_BORDER_COLOR = "DarkSlateGrey" if darkdetect.isDark() else "LightGrey"
 TABLE_BORDER = f"\n<style> table, td, th {{ padding: 5px; border: 2px solid {TABLE_BORDER_COLOR}; border-radius: 3px; background-color: {TABLE_BACKGROUND_COLOR}; text-align: center;}} </style>"
-
 
 NOW_TIME = datetime.now()  # noqa: DTZ005
 
@@ -311,11 +316,12 @@ DEEPSEEK_MODELS = [
     "deepseek-reasoner",
 ]
 GEMINI_MODELS = [
+    # TODO 1.5 going away in Sept. 24th 2025
     "gemini-1.5-flash",
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
     "gemini-1.5-flash-8b",
     "gemini-1.5-pro",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
     "gemini-2.5-flash-preview-05-20",
     "gemini-2.5-pro-preview-05-06",
 ]
@@ -352,3 +358,6 @@ SCENE_TASK_TYPES = {
     "itemclickTask": "ITEM TAP",
     "itemlongclickTask": "ITEM LONG TAP",
 }
+
+# GUI Tab Names
+TAB_NAMES = ["Specific Name", "Colors", "Analyze", "Debug"]

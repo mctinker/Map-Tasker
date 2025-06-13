@@ -690,3 +690,18 @@ def find_task_pattern(text: str) -> bool:
     # re.search() scans through the string looking for the first location
     # where the regular expression pattern produces a match.
     return bool(re.search(pattern, text, re.DOTALL))
+
+
+def close_logfile() -> None:
+    """Close the log file(s)"""
+    for handler in logger.handlers[
+        :
+    ]:  # Iterate over a copy to avoid issues during modification
+        handler.close()  # Close the stream associated with the handler
+        logger.removeHandler(handler)  # Remove the handler from the logger
+
+
+def exit_program(return_code: int = 0) -> None:
+    """Common program exit code."""
+    close_logfile()
+    sys.exit(return_code)

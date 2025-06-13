@@ -32,17 +32,6 @@ import gc
 import os
 import platform
 import sys
-
-# The following is for debug only.
-# print('Path:', os.getcwd())
-# print(
-#     "__file__={0:<35} | __name__={1:<25} | __package__={2:<25}".format(
-#         __file__, __name__, str(__package__)
-#     )
-# )
-# print(sys.argv)
-# Verify Python version.
-# print("Python version ", sys.version)  # Which Python are we using today?
 import webbrowser
 from subprocess import run
 
@@ -58,7 +47,11 @@ from maptasker.src.globalvr import get_variables, output_variables
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapai import map_ai
-from maptasker.src.maputils import clear_tasker_data, display_task_warnings
+from maptasker.src.maputils import (
+    clear_tasker_data,
+    display_task_warnings,
+    exit_program,
+)
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
@@ -232,7 +225,7 @@ def clean_up_and_exit(
     # Clean up all memory
     clean_up_memory()
     # Exit with code "item" not found.
-    sys.exit(5)
+    exit_program(5)
 
 
 # Output grand totals
@@ -433,9 +426,9 @@ def process_outline() -> None:
             # Asterisk before sys.argv breaks it into separate arguments
             if platform.system() == "Windows":
                 directory = os.getcwd()
-                os.startfile(f"{directory}{PrimeItems.slash}MapTasker_map.txt")
+                os.startfile(f"{directory}{PrimeItems.slash}MapTasker_Map.txt")
             else:
-                run(["open", "MapTasker_map.txt"], check=False)  # noqa: S607, S603
+                run(["open", "MapTasker_Map.txt"], check=False)  # noqa: S607, S603
 
 
 # Check if doing a single item and if not found, then clean up and exit
@@ -566,7 +559,7 @@ def display_back_matter(
             0,
         )
         clean_up_memory()
-        sys.exit(2)
+        exit_program(2)
 
     # Finally, write out all of the output that is queued up.
     my_file_name = f"{PrimeItems.slash}MapTasker.html"
@@ -589,7 +582,7 @@ def restart_program() -> None:
         - Call ourselves and exit after the last call."""
 
     _ = mapit_all("")
-    sys.exit(0)  # This should never be called.
+    exit_program(0)  # This should never be called.
 
 
 # Handle "rerun" request
@@ -740,7 +733,7 @@ def mapit_all(file_to_get: str) -> int:
     PrimeItems.program_arguments["doing_diagram"] = save_diagram
 
     if PrimeItems.error_code > 0:
-        sys.exit(PrimeItems.error_code)
+        exit_program(PrimeItems.error_code)
 
     # Set up file to read if it is passed in (via rerun)
     if file_to_get:

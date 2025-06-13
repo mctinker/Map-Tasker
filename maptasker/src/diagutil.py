@@ -73,7 +73,7 @@ def include_heading(header: str, output_lines: list) -> None:
     - Replaces the second line of output_lines with the header
     - Replaces the third line of output_lines with the filler line
     """
-    filler = f"{blank*len(header)}"
+    filler = f"{blank * len(header)}"
     output_lines[0] = f"{filler}{output_lines[0]}"
     output_lines[1] = f"{header}{output_lines[1]}"
     output_lines[2] = f"{filler}{output_lines[2]}"
@@ -149,24 +149,32 @@ def print_box(name: str, title: str, indent: int) -> None:
     # Handle Chinese, Korean and Japanese characters.
     chinese_char_count = count_cjk_characters(name)
     if chinese_char_count > 0:
-        adder_space_boxline = f"{blank * (((chinese_char_count)//2)+1)}"
-        adder_space_name = f"{blank * (((chinese_char_count)//2)-1)}"
+        adder_space_boxline = f"{blank * (((chinese_char_count) // 2) + 1)}"
+        adder_space_name = f"{blank * (((chinese_char_count) // 2) - 1)}"
     else:
         adder_space_boxline = ""
         adder_space_name = ""
 
-    blanks = f"{blank*5}"
-    filler = f"{blanks*indent}"
+    blanks = f"{blank * 5}"
+    filler = f"{blanks * indent}"
     full_name = f"{title} {name}{adder_space_name}"
     box = ["", "", ""]
-    box[0] = f"{filler}╔═{box_line*(len(full_name)+len(adder_space_boxline))}═╗"  # Box top
+    box[0] = (
+        f"{filler}╔═{box_line * (len(full_name) + len(adder_space_boxline))}═╗"  # Box top
+    )
     box[1] = f"{filler}║ {full_name} ║"  # Box middle
-    box[2] = f"{filler}╚═{box_line*(len(full_name)+len(adder_space_boxline))}═╝"  # Box bottom
+    box[2] = (
+        f"{filler}╚═{box_line * (len(full_name) + len(adder_space_boxline))}═╝"  # Box bottom
+    )
     print_3_lines(box)
 
 
 # Get the dimensions of a text string using tkinter to calculate the width needed.
-def width_and_height_calculator_in_pixel(txt: str, fontname: str, fontsize: int) -> list:
+def width_and_height_calculator_in_pixel(
+    txt: str,
+    fontname: str,
+    fontsize: int,
+) -> list:
     """
     Calculates the width and height of the given text in pixels.
 
@@ -206,7 +214,11 @@ def fix_icon(name: str) -> str:
         if char.strip() and set(char).difference(printable):
             # tkframe = PrimeItems.tkroot.frame()  # Initialize Tkinter
             # We have the icon.
-            char_dimension = width_and_height_calculator_in_pixel(char, "Courier New", 12)
+            char_dimension = width_and_height_calculator_in_pixel(
+                char,
+                "Courier New",
+                12,
+            )
             trailer = "" if char_dimension[0] > char_dimension[1] else blank
             break
     return trailer
@@ -225,7 +237,9 @@ def remove_char(text: str, index: int) -> str:
     Returns:
         str: String with character removed at given index
     """
-    if text[:index].endswith("]"):  # If we hit a close bracket (valid char), don't truncate it.
+    if text[:index].endswith(
+        "]",
+    ):  # If we hit a close bracket (valid char), don't truncate it.
         return text[: index + 1] + text[index + 1 :]
     return text[:index] + text[index + 1 :]
 
@@ -272,7 +286,10 @@ def remove_icon(text: str) -> str:
     """
 
     # If no arrow found in text, just return the line as is.
-    arrow_position: int = next((text.index(char) for char in arrows + bar if char in text), 0)
+    arrow_position: int = next(
+        (text.index(char) for char in arrows + bar if char in text),
+        0,
+    )
     if arrow_position == 0:
         return text
 
@@ -336,8 +353,8 @@ def build_box(name: str, output_lines: list) -> tuple:
     # Handle Chinese, Korean and Japanese characters.
     chinese_char_count = count_cjk_characters(name)
     if chinese_char_count > 0:
-        adder_space_boxline = f"{blank * (((chinese_char_count)//2)+2)}"
-        adder_space_name = f"{blank * (((chinese_char_count)//2)-1)}"
+        adder_space_boxline = f"{blank * (((chinese_char_count) // 2) + 2)}"
+        adder_space_name = f"{blank * (((chinese_char_count) // 2) - 1)}"
     else:
         adder_space_boxline = ""
         adder_space_name = ""
@@ -350,8 +367,8 @@ def build_box(name: str, output_lines: list) -> tuple:
 
     # Build top and bottom box lines
     box_line_length = len(name)
-    box_top = f"╔═{box_line*(box_line_length+len(adder_space_boxline))}═╗"
-    box_bottom = f"╚═{box_line*(box_line_length+len(adder_space_boxline))}═╝"
+    box_top = f"╔═{box_line * (box_line_length + len(adder_space_boxline))}═╗"
+    box_bottom = f"╚═{box_line * (box_line_length + len(adder_space_boxline))}═╝"
 
     # Add box lines to output
     output_lines[0] += f"{filler}{box_top}"
@@ -359,13 +376,19 @@ def build_box(name: str, output_lines: list) -> tuple:
     output_lines[2] += f"{filler}{box_bottom}"
 
     # Calculate anchor position
-    position_for_anchor = len(output_lines[0]) - (len(name) + len(adder_space_name)) // 2 - 4
+    position_for_anchor = (
+        len(output_lines[0]) - (len(name) + len(adder_space_name)) // 2 - 4
+    )
 
     return output_lines, position_for_anchor
 
 
 # Trace backwards in the output, inserting a bar (|) through right arrows.
-def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_position: int) -> list:
+def add_bar_above_lines(
+    output_lines: list,
+    line_to_modify: str,
+    called_task_position: int,
+) -> list:
     """
     Adds a bar above the specified line in the output lines.
     Args:
@@ -392,7 +415,7 @@ def add_bar_above_lines(output_lines: list, line_to_modify: str, called_task_pos
                 and output_lines[line_num][called_task_position - 1] == " "
             ):
                 output_lines[line_num] = (
-                    f"{output_lines[line_num][:called_task_position]}{bar}{output_lines[line_num][called_task_position + 1:]}"
+                    f"{output_lines[line_num][:called_task_position]}{bar}{output_lines[line_num][called_task_position + 1 :]}"
                 )
                 line_num -= 1
             else:
@@ -444,7 +467,11 @@ def replace_diff_char(strings: list, char: str, replacement_char: str) -> list:
                         and next_string[char_position - 1] != up_arrow
                     ):
                         # Perform the string replacement
-                        strings[i] = strings[i][:char_position] + replacement_char + strings[i][char_position + 1 :]
+                        strings[i] = (
+                            strings[i][:char_position]
+                            + replacement_char
+                            + strings[i][char_position + 1 :]
+                        )
     return strings
 
 
@@ -509,7 +536,10 @@ def fix_duplicate_up_down_locations(call_table: dict) -> dict:
             break
 
         # Get the first connector's top and bottom line numbers.
-        if first_connector[1]["caller_line_num"] > first_connector[1]["called_line_num"]:
+        if (
+            first_connector[1]["caller_line_num"]
+            > first_connector[1]["called_line_num"]
+        ):
             first_connector_top_line = first_connector[1]["called_line_num"]
             first_connector_bottom_line = first_connector[1]["caller_line_num"]
         else:
@@ -517,7 +547,10 @@ def fix_duplicate_up_down_locations(call_table: dict) -> dict:
             first_connector_bottom_line = first_connector[1]["called_line_num"]
 
         # Get the second connector's top and bottom line numbers.
-        if second_connector[1]["caller_line_num"] > second_connector[1]["called_line_num"]:
+        if (
+            second_connector[1]["caller_line_num"]
+            > second_connector[1]["called_line_num"]
+        ):
             second_connector_top_line = second_connector[1]["called_line_num"]
             second_connector_bottom_line = second_connector[1]["caller_line_num"]
         else:
@@ -574,7 +607,13 @@ def build_call_table(output_lines: list) -> list:
         # Do we have a "Calls" line (caller Task)?
         elif line_right_arrow in line:
             # Handle all of the caller and called Tasks.
-            call_table = process_callers_and_called_tasks(output_lines, call_table, caller_line_num, line, project_name)
+            call_table = process_callers_and_called_tasks(
+                output_lines,
+                call_table,
+                caller_line_num,
+                line,
+                project_name,
+            )
 
     return call_table
 
@@ -603,7 +642,11 @@ def unique_up_down_location_by_project(call_table: dict, up_down_location: int) 
     return up_down_location
 
 
-def ensure_unique_up_down_location(call_table: dict, up_down_location: int, project_name: str) -> int:
+def ensure_unique_up_down_location(
+    call_table: dict,
+    up_down_location: int,
+    project_name: str,
+) -> int:
     """
     Ensure that the given up_down_location is not already in use in the call_table by
     incrementing or decrementing it until it is unique for the given project.  If the
@@ -620,18 +663,25 @@ def ensure_unique_up_down_location(call_table: dict, up_down_location: int, proj
         int: A unique up_down_location value.
     """
     project_keys_values = [
-        (key, details) for key, details in call_table.items() if details.get("project_name") == project_name
+        (key, details)
+        for key, details in call_table.items()
+        if details.get("project_name") == project_name
     ]
 
     # Make sure this called Task is in this Project.
     for key_value in project_keys_values:
         task_to_find = key_value[1]["caller_task_name"]
         caller_keys_values = [
-            (key, details) for key, details in call_table.items() if details.get("caller_task_name") == task_to_find
+            (key, details)
+            for key, details in call_table.items()
+            if details.get("caller_task_name") == task_to_find
         ]
 
         # If the caller task's project is not this called task project, then the called task project is outside this project.
-        if caller_keys_values and caller_keys_values[0][1]["project_name"] != project_name:
+        if (
+            caller_keys_values
+            and caller_keys_values[0][1]["project_name"] != project_name
+        ):
             restart = True
             while restart:
                 restart = False
@@ -646,7 +696,10 @@ def ensure_unique_up_down_location(call_table: dict, up_down_location: int, proj
             mini_call_table = {}
             for key_value in project_keys_values:  # noqa: PLW2901
                 mini_call_table[key_value[0]] = call_table[key_value[0]]
-            up_down_location = unique_up_down_location_by_project(mini_call_table, up_down_location)
+            up_down_location = unique_up_down_location_by_project(
+                mini_call_table,
+                up_down_location,
+            )
 
     return up_down_location
 
@@ -655,25 +708,21 @@ def ensure_unique_up_down_location(call_table: dict, up_down_location: int, proj
 def get_task_details_and_save(
     output_lines: list,
     call_table: dict,
-    caller_task_name: str,
-    caller_line_num: int,
-    caller_task_position: int,
-    called_task_name: str,
-    called_line_num: int,
-    called_task_position: int,
-    project_name: str,
+    connectors: dict,
 ) -> dict:
     """
     Saves task call details and returns updated call table
     Args:
         output_lines: Lines of output text
         call_table: Existing call table
-        caller_task_name: Name of calling task
-        caller_line_num: Line number of calling task
-        caller_task_position: Position of calling task
-        called_task_name: Name of called task
-        called_line_num: Line number of called task
-        called_task_position: Position of called task
+        connectors: Dictionary of connectors...
+            caller_task_name: Name of calling task
+            caller_line_num: Line number of calling task
+            caller_task_position: Position of calling task
+            called_task_name: Name of called task
+            called_line_num: Line number of called task
+            called_task_position: Position of called task
+            project_name: Name of project
     Returns:
         call_table: Updated call table with new task call details
     Processing Logic:
@@ -682,6 +731,15 @@ def get_task_details_and_save(
         3. Find range of lines for call
         4. Add new task call details to call table
     """
+    # Get our arguments.
+    caller_task_name = connectors["caller_task_name"]
+    caller_line_num = connectors["caller_line_num"]
+    caller_task_position = connectors["caller_task_position"]
+    called_task_name = connectors["called_task_name"]
+    called_line_num = connectors["called_line_num"]
+    called_task_position = connectors["called_task_position"]
+    project_name = connectors["project_name"]
+
     # Determine if the called Task is below or above the calling Task and set
     # the arrow location accordingly.
     if called_line_num > caller_line_num:
@@ -707,9 +765,14 @@ def get_task_details_and_save(
 
     # Find the outside boundary for the range of lines to traverse between "caller" and "called".
     # Up_down location is the pos of the "called" Task name "calls ..."
-    up_down_location = max(caller_task_position, called_task_position)  # Starting outer position (col)
+    up_down_location = max(
+        caller_task_position,
+        called_task_position,
+    )  # Starting outer position (col)
     for x in range(line_range):
-        line_to_compare = output_lines[up_down_start + x].rstrip().replace(task_delimeter, "")
+        line_to_compare = (
+            output_lines[up_down_start + x].rstrip().replace(task_delimeter, "")
+        )
         up_down_location = max(up_down_location, len(line_to_compare))
     up_down_location += 2
 
@@ -720,7 +783,11 @@ def get_task_details_and_save(
             call_table_key += 1
 
     # Ensure a unique up_down_location for the given project.
-    up_down_location = ensure_unique_up_down_location(call_table, up_down_location, project_name)
+    up_down_location = ensure_unique_up_down_location(
+        call_table,
+        up_down_location,
+        project_name,
+    )
 
     # Okay, we have everything we need.  Add it all to our call table.
     call_table[call_table_key] = {
@@ -777,7 +844,9 @@ def process_callers_and_called_tasks(
     caller_task_name = caller_task_name.rstrip()
 
     # Get the position in the line of of the caller Task name.
-    caller_task_position = output_lines[caller_line_num].index(caller_task_name) + (len(caller_task_name) // 2)
+    caller_task_position = output_lines[caller_line_num].index(caller_task_name) + (
+        len(caller_task_name) // 2
+    )
 
     # Get the called Task name.
     start_position = line.index(line_right_arrow) + 4
@@ -792,7 +861,11 @@ def process_callers_and_called_tasks(
             continue
 
         # Get the index of the called Task name.
-        called_task_index = 1 if called_task_name not in called_names else called_names.count(called_task_name) + 1
+        called_task_index = (
+            1
+            if called_task_name not in called_names
+            else called_names.count(called_task_name) + 1
+        )
         called_names.append(called_task_name)
 
         #  Find the "Called" Task line for the caller Task.
@@ -809,7 +882,10 @@ def process_callers_and_called_tasks(
                 str_pos = check_line.find(search_name)
 
                 # Find the "[" bracket and make sure it is the next valid character after the name.
-                modified_check_line = check_line.replace("(entry) ", "").replace("(exit) ", "")
+                modified_check_line = check_line.replace("(entry) ", "").replace(
+                    "(exit) ",
+                    "",
+                )
                 string_position = modified_check_line.find(f"{search_name} [", str_pos)
                 # Keep searching if this is not the valid caller Task name.
                 if string_position == -1:
@@ -837,17 +913,16 @@ def process_callers_and_called_tasks(
         # If called Task found, then save everything (only do it once) in the call table.
         # if found_called_task and called_task_name not in processed_tasks:
         if found_called_task:
-            call_table = get_task_details_and_save(
-                output_lines,
-                call_table,
-                caller_task_name,
-                caller_line_num,
-                caller_task_position,
-                called_task_name,
-                called_line_num,
-                called_task_position,
-                project_name,
-            )
+            connectors = {
+                "caller_task_name": caller_task_name,
+                "caller_line_num": caller_line_num,
+                "caller_task_position": caller_task_position,
+                "called_task_name": called_task_name,
+                "called_line_num": called_line_num,
+                "called_task_position": called_task_position,
+                "project_name": project_name,
+            }
+            call_table = get_task_details_and_save(output_lines, call_table, connectors)
             processed_tasks.append(called_task_name)
 
     return call_table  # Return call table with new entry.

@@ -1,13 +1,10 @@
 #! /usr/bin/env python3
+"""fonts:Get/set up fonts to use in output"""
 
-#                                                                                      #
-# fonts:Get/set up fonts to use in output                                              #
-#                                                                                      #
-# MIT License   Refer to https://opensource.org/license/mit                            #
-import sys
 from tkinter import Tk, font
 
 # from maptasker.src.nameattr import get_tk
+from maptasker.src.maputils import exit_program
 from maptasker.src.primitem import PrimeItems
 
 
@@ -45,7 +42,7 @@ def get_fonts(save_fonts: bool) -> dict:
                 PrimeItems.mono_fonts[f.name] = f.actual("family")
             mono_fonts.append(f.actual("family"))
     if our_font == "help":
-        sys.exit(0)
+        exit_program(0)
 
     del fonts
     return mono_fonts
