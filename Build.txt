@@ -179,7 +179,7 @@ source .venv/bin/activate.fish
 13- ./publishprod.sh to pypi
 14- Test production maptasker on kaka
     'brew install pipx' when done testing.
-15- GIT Merge / Go to Next Version (below)
+15- gitGIT Merge / Go to Next Version (below)
 16- Update changelog.md
 DONE
 

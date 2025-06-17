@@ -32,6 +32,7 @@ import gc
 import os
 import platform
 import sys
+import tkinter as tk
 import webbrowser
 from subprocess import run
 
@@ -65,9 +66,9 @@ from maptasker.src.sysconst import (
     logger,
 )
 
-# print("Tkinter version ", tk.TkVersion)  # Which Tkinter?
-# print(tk.Tcl().call("info", "library"))
-# print(tk.Tcl().call("info", "patchlevel"))
+print("Tkinter version ", tk.TkVersion)  # Which Tkinter?
+print(tk.Tcl().call("info", "library"))
+print(tk.Tcl().call("info", "patchlevel"))
 
 crash_debug = False
 

@@ -220,6 +220,7 @@ class MyGui(customtkinter.CTk):
         self.display_message_box("Initialization complete.\n", "Green")
 
         # Set the focus to the last used tab.
+        logger.info("Set tab")
         set_tab_to_use(self)
 
         # Turn off first time
@@ -1551,6 +1552,7 @@ class MyGui(customtkinter.CTk):
             10,
             self.ai_analysis_window.lift,
         )  # Make window jump to the front
+        analysisview.focus()
 
     # Set and display the file name.
     def display_and_set_file(self, filename: str) -> None:
