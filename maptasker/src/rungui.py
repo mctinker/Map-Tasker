@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import contextlib
 import os
-import sys
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
@@ -170,6 +169,9 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     logger.info("starting")
     # Keep this here to avoid circular import
     if use_gui:
+        import linecache
+        import sys
+
         from maptasker.src.userintr import MyGui
 
     PrimeItems.program_arguments["gui"] = True  # Set flag to indicate we are using GUI
@@ -187,6 +189,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     start_tracing = True
     sys.settrace(my_trace_function)  # Activate the trace function
 
+    linecache.clearcache()
     user_input.mainloop()
     # Get rid of window
     MyGui.quit(user_input)

@@ -474,14 +474,15 @@ class CTkTextview(ctk.CTkFrame):
         height = getattr(master.master, "text_window_height")
         # Shorten the height so that the scrollbar is shown.
         height = str(int(height) - 70)
+        print("bingo", width, height, type(width), type(height))
 
         # Define a scrollbar
         _ = ctk.CTkScrollbar(self)
 
         # Configure the text box
         self.textview_textbox.configure(
-            height=height,
-            width=width,
+            height=int(height),
+            width=int(width),
             state="normal",
             wrap="none",
         )

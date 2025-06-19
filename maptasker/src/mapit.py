@@ -32,7 +32,6 @@ import gc
 import os
 import platform
 import sys
-import tkinter as tk
 import webbrowser
 from subprocess import run
 
@@ -66,9 +65,9 @@ from maptasker.src.sysconst import (
     logger,
 )
 
-print("Tkinter version ", tk.TkVersion)  # Which Tkinter?
-print(tk.Tcl().call("info", "library"))
-print(tk.Tcl().call("info", "patchlevel"))
+# print("Tkinter version ", tk.TkVersion)  # Which Tkinter?
+# print(tk.Tcl().call("info", "library"))
+# print(tk.Tcl().call("info", "patchlevel"))
 
 crash_debug = False
 
@@ -429,7 +428,7 @@ def process_outline() -> None:
                 directory = os.getcwd()
                 os.startfile(f"{directory}{PrimeItems.slash}MapTasker_Map.txt")
             else:
-                run(["open", "MapTasker_Map.txt"], check=False)  # noqa: S607, S603
+                run(["open", "MapTasker_Map.txt"], check=False)  # noqa: S607
 
 
 # Check if doing a single item and if not found, then clean up and exit

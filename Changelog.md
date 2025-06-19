@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Ai-Analysis windoiw is not getting the focus.
+- Fixed: Numerous bugs when running on Windows 11.
 
 ### Known Issues
 

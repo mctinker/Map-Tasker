@@ -1715,7 +1715,14 @@ class MyGui(customtkinter.CTk):
                 self.color_lookup[color] = "turquoise"
 
         # Save the settings
-        temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
+        # temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
+        temp_args = {}
+        for value in ARGUMENT_NAMES:
+            try:
+                temp_args[value] = getattr(self, value)
+            except AttributeError:
+                temp_args[value] = ""
+
         temp_args["ai_analyze"] = (
             False  # Turn this off in event it was on from settings file.
         )

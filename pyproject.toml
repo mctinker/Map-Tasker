@@ -40,7 +40,7 @@ exclude = [
 ]
 dependencies = [
     "anthropic>=0.54.0",  #  Ai Anthropics support
-    "customtkinter>=5.2.2",  # GUI
+    # "customtkinter>=5.2.2",  # GUI
     "darkdetect>=0.8.0",  # Appearance mode detection
     "defusedxml>=0.7.1",  # More secure xml parser
     "google-generativeai>=0.8.5",  #  Ai Google Generative support
