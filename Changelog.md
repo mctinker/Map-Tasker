@@ -6,16 +6,18 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added:
+- Added: Nop addistions.
 
 ### Changed
 
-- Changed:
+- Changed: No changes.
 
 ### Fixed
 
 - Fixed: Ai-Analysis windoiw is not getting the focus.
 - Fixed: Numerous bugs when running on Windows 11.
+- Fixed: Diagram and Map views are not being displayed in the defined background color.
+- Fixed: The GUI 'hover tip' background and foreground colors are incorrect.
 
 ### Known Issues
 

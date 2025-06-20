@@ -323,8 +323,7 @@ def save_restore_args(
         :param to_save: True if this is a save request, False is restore request
         :return: program runtime arguments saved/restored, colors to use saved/restored
     """
-    our_path = Path.cwd()
-    print("bingo", our_path)
+    our_path = os.getcwd()
     new_file = f"{our_path}{PrimeItems.slash}{ARGUMENTS_FILE}"
     old_file = f"{our_path}{PrimeItems.slash}{OLD_ARGUMENTS_FILE}"
 

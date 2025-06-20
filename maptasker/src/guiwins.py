@@ -358,11 +358,6 @@ class TextWindow(ctk.CTkToplevel):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
-        # Display the title.
-        self.title(
-            f"{title} - Drag window to desired position and rerun the {title} command.",
-        )
-
         # Save the window position on closure
         self.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
 
@@ -436,6 +431,10 @@ class CTkTextview(ctk.CTkFrame):
             size=12,
             slant="italic",
         )
+        background_color = make_hex_color(
+            self.master.master.color_lookup["background_color"],
+        )
+        self.configure(fg_color=background_color)
 
     def _get_appearance_color(self, widget_type: object, color_type: str) -> object:
         """
@@ -474,7 +473,6 @@ class CTkTextview(ctk.CTkFrame):
         height = getattr(master.master, "text_window_height")
         # Shorten the height so that the scrollbar is shown.
         height = str(int(height) - 70)
-        print("bingo", width, height, type(width), type(height))
 
         # Define a scrollbar
         _ = ctk.CTkScrollbar(self)
@@ -612,12 +610,22 @@ class CTkTextview(ctk.CTkFrame):
             self.add_view_widgets("Analysis")
         else:
             self.add_view_widgets("Diagram")
-        # Force courier new for diagram view if just Courier...perfect character alignment.
-        if getattr(self.master.master, "font", "Arial") == "Courier":
-            self.textview_textbox.configure(self, font=("Courier New", 12))
+            # Force courier new for diagram view if just Courier...perfect character alignment.
+            background_color = make_hex_color(
+                self.master.master.color_lookup["background_color"],
+            )
+            if getattr(self.master.master, "font", "Arial") == "Courier":
+                self.textview_textbox.configure(
+                    self,
+                    font=("Courier New", 12),
+                    fg_color=background_color,
+                )
 
         # Save a pointer to the data.
         self.data = the_data
+
+        # Make it the focus
+        self.focus_set()
 
     def add_view_widgets(self, title: str) -> None:
         """
@@ -4821,12 +4829,24 @@ class ToolTip(object):  # noqa: UP004
                 font = tw.master.master.master.font
             except AttributeError:
                 font = "Courier"
+        mygui = tw.master.master
+        try:
+            color_lookup = mygui.color_lookup
+        except AttributeError:
+            color_lookup = mygui.master.color_lookup
+        try:
+            background_color = make_hex_color(color_lookup["background_color"])
+        except KeyError:
+            background_color = "Black"
+        # FIX Use 'is_color_dark' from maputils to determine foreground color.
+        foreground_color = make_hex_color(color_lookup["project_color"])
         label = Label(
             tw,
             text=self.text,
             justify="left",
             # background="#ffffe0",
-            background="#143a39",
+            background=background_color,
+            foreground=foreground_color,
             relief="solid",
             borderwidth=1,
             font=(font, "12", "normal"),

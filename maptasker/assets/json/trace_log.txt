@@ -1,0 +1,192 @@
+LINE: proginit.py:355 build_action_codes() - try:
+LINE: proginit.py:356 build_action_codes() - with open(f"{json_dir}arg_specs.json", encoding="utf-8") as file:
+CALL: codecs.py:312 Entering function: __init__()
+LINE: codecs.py:313 __init__() - IncrementalDecoder.__init__(self, errors)
+CALL: codecs.py:263 Entering function: __init__()
+LINE: codecs.py:271 __init__() - self.errors = errors
+RETURN: codecs.py:271 Exiting function: __init__() (Returned: None)
+LINE: codecs.py:315 __init__() - self.buffer = b""
+RETURN: codecs.py:315 Exiting function: __init__() (Returned: None)
+LINE: proginit.py:357 build_action_codes() - PrimeItems.tasker_arg_specs = json.load(file)
+CALL: __init__.py:274 Entering function: load()
+LINE: __init__.py:293 load() - return loads(fp.read(),
+CALL: codecs.py:322 Entering function: decode()
+LINE: codecs.py:324 decode() - data = self.buffer + input
+LINE: codecs.py:325 decode() - (result, consumed) = self._buffer_decode(data, self.errors, final)
+LINE: codecs.py:327 decode() - self.buffer = data[consumed:]
+LINE: codecs.py:328 decode() - return result
+RETURN: codecs.py:328 Exiting function: decode() (Returned: {
+    "0": "Int",
+    "1": "String",
+    "2": "App",
+    "3": "Boolean",
+    "4": "Icon",
+    "5": "Bundle",
+    "6": "Scene"
+})
+LINE: __init__.py:294 load() - cls=cls, object_hook=object_hook,
+LINE: __init__.py:295 load() - parse_float=parse_float, parse_int=parse_int,
+LINE: __init__.py:296 load() - parse_constant=parse_constant, object_pairs_hook=object_pairs_hook, **kw)
+LINE: __init__.py:293 load() - return loads(fp.read(),
+LINE: __init__.py:296 load() - parse_constant=parse_constant, object_pairs_hook=object_pairs_hook, **kw)
+LINE: __init__.py:293 load() - return loads(fp.read(),
+CALL: __init__.py:299 Entering function: loads()
+LINE: __init__.py:333 loads() - if isinstance(s, str):
+LINE: __init__.py:334 loads() - if s.startswith('\ufeff'):
+LINE: __init__.py:343 loads() - if (cls is None and object_hook is None and
+LINE: __init__.py:344 loads() - parse_int is None and parse_float is None and
+LINE: __init__.py:345 loads() - parse_constant is None and object_pairs_hook is None and not kw):
+LINE: __init__.py:346 loads() - return _default_decoder.decode(s)
+CALL: decoder.py:340 Entering function: decode()
+LINE: decoder.py:345 decode() - obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+CALL: decoder.py:351 Entering function: raw_decode()
+LINE: decoder.py:360 raw_decode() - try:
+LINE: decoder.py:361 raw_decode() - obj, end = self.scan_once(s, idx)
+LINE: decoder.py:364 raw_decode() - return obj, end
+RETURN: decoder.py:364 Exiting function: raw_decode() (Returned: ({'0': 'Int', '1': 'String', '2': 'App', '3': 'Boolean', '4': 'Icon', '5': 'Bundle', '6': 'Scene'}, 127))
+LINE: decoder.py:346 decode() - end = _w(s, end).end()
+LINE: decoder.py:347 decode() - if end != len(s):
+LINE: decoder.py:349 decode() - return obj
+RETURN: decoder.py:349 Exiting function: decode() (Returned: {'0': 'Int', '1': 'String', '2': 'App', '3': 'Boolean', '4': 'Icon', '5': 'Bundle', '6': 'Scene'})
+RETURN: __init__.py:346 Exiting function: loads() (Returned: {'0': 'Int', '1': 'String', '2': 'App', '3': 'Boolean', '4': 'Icon', '5': 'Bundle', '6': 'Scene'})
+RETURN: __init__.py:293 Exiting function: load() (Returned: {'0': 'Int', '1': 'String', '2': 'App', '3': 'Boolean', '4': 'Icon', '5': 'Bundle', '6': 'Scene'})
+LINE: proginit.py:358 build_action_codes() - spec_number = len(PrimeItems.tasker_arg_specs)
+LINE: proginit.py:360 build_action_codes() - PrimeItems.tasker_arg_specs[str(spec_number)] = "ConditionList"
+LINE: proginit.py:361 build_action_codes() - PrimeItems.tasker_arg_specs[str(spec_number + 1)] = "Img"
+LINE: proginit.py:362 build_action_codes() - for key, value in PrimeItems.tasker_arg_specs.items():
+LINE: proginit.py:363 build_action_codes() - if value == "String":
+LINE: proginit.py:362 build_action_codes() - for key, value in PrimeItems.tasker_arg_specs.items():
+LINE: proginit.py:363 build_action_codes() - if value == "String":
+LINE: proginit.py:364 build_action_codes() - PrimeItems.tasker_arg_specs[key] = "Str"
+LINE: proginit.py:365 build_action_codes() - break
+LINE: proginit.py:356 build_action_codes() - with open(f"{json_dir}arg_specs.json", encoding="utf-8") as file:
+LINE: proginit.py:370 build_action_codes() - if build_it_all:
+LINE: proginit.py:420 build_action_codes() - os.chdir(current_dir)
+LINE: proginit.py:355 build_action_codes() - try:
+LINE: proginit.py:356 build_action_codes() - with open(f"{json_dir}arg_specs.json", encoding="utf-8") as file:
+CALL: codecs.py:312 Entering function: __init__()
+LINE: codecs.py:313 __init__() - IncrementalDecoder.__init__(self, errors)
+CALL: codecs.py:263 Entering function: __init__()
+LINE: codecs.py:271 __init__() - self.errors = errors
+RETURN: codecs.py:271 Exiting function: __init__() (Returned: None)
+LINE: codecs.py:315 __init__() - self.buffer = b""
+RETURN: codecs.py:315 Exiting function: __init__() (Returned: None)
+LINE: proginit.py:357 build_action_codes() - PrimeItems.tasker_arg_specs = json.load(file)
+CALL: __init__.py:274 Entering function: load()
+LINE: __init__.py:293 load() - return loads(fp.read(),
+CALL: codecs.py:322 Entering function: decode()
+LINE: codecs.py:324 decode() - data = self.buffer + input
+LINE: codecs.py:325 decode() - (result, consumed) = self._buffer_decode(data, self.errors, final)
+LINE: codecs.py:327 decode() - self.buffer = data[consumed:]
+LINE: codecs.py:328 decode() - return result
+RETURN: codecs.py:328 Exiting function: decode() (Returned: {
+    "0": "Int",
+    "1": "String",
+    "2": "App",
+    "3": "Boolean",
+    "4": "Icon",
+    "5": "Bundle",
+    "6": "Scene"
+})
+LINE: __init__.py:294 load() - cls=cls, object_hook=object_hook,
+LINE: __init__.py:295 load() - parse_float=parse_float, parse_int=parse_int,
+LINE: __init__.py:296 load() - parse_constant=parse_constant, object_pairs_hook=object_pairs_hook, **kw)
+LINE: __init__.py:293 load() - return loads(fp.read(),
+LINE: __init__.py:296 load() - parse_constant=parse_constant, object_pairs_hook=object_pairs_hook, **kw)
+LINE: __init__.py:293 load() - return loads(fp.read(),
+CALL: __init__.py:299 Entering function: loads()
+LINE: __init__.py:333 loads() - if isinstance(s, str):
+LINE: __init__.py:334 loads() - if s.startswith('\ufeff'):
+LINE: __init__.py:343 loads() - if (cls is None and object_hook is None and
+LINE: __init__.py:344 loads() - parse_int is None and parse_float is None and
+LINE: __init__.py:345 loads() - parse_constant is None and object_pairs_hook is None and not kw):
+LINE: __init__.py:346 loads() - return _default_decoder.decode(s)
+CALL: decoder.py:340 Entering function: decode()
+LINE: decoder.py:345 decode() - obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+CALL: decoder.py:351 Entering function: raw_decode()
+LINE: decoder.py:360 raw_decode() - try:
+LINE: decoder.py:361 raw_decode() - obj, end = self.scan_once(s, idx)
+LINE: decoder.py:364 raw_decode() - return obj, end
+RETURN: decoder.py:364 Exiting function: raw_decode() (Returned: ({'0': 'Int', '1': 'String', '2': 'App', '3': 'Boolean', '4': 'Icon', '5': 'Bundle', '6': 'Scene'}, 127))
+LINE: decoder.py:346 decode() - end = _w(s, end).end()
+LINE: decoder.py:347 decode() - if end != len(s):
+LINE: decoder.py:349 decode() - return obj
+RETURN: decoder.py:349 Exiting function: decode() (Returned: {'0': 'Int', '1': 'String', '2': 'App', '3': 'Boolean', '4': 'Icon', '5': 'Bundle', '6': 'Scene'})
+RETURN: __init__.py:346 Exiting function: loads() (Returned: {'0': 'Int', '1': 'String', '2': 'App', '3': 'Boolean', '4': 'Icon', '5': 'Bundle', '6': 'Scene'})
+RETURN: __init__.py:293 Exiting function: load() (Returned: {'0': 'Int', '1': 'String', '2': 'App', '3': 'Boolean', '4': 'Icon', '5': 'Bundle', '6': 'Scene'})
+LINE: proginit.py:358 build_action_codes() - spec_number = len(PrimeItems.tasker_arg_specs)
+LINE: proginit.py:360 build_action_codes() - PrimeItems.tasker_arg_specs[str(spec_number)] = "ConditionList"
+LINE: proginit.py:361 build_action_codes() - PrimeItems.tasker_arg_specs[str(spec_number + 1)] = "Img"
+LINE: proginit.py:362 build_action_codes() - for key, value in PrimeItems.tasker_arg_specs.items():
+LINE: proginit.py:363 build_action_codes() - if value == "String":
+LINE: proginit.py:362 build_action_codes() - for key, value in PrimeItems.tasker_arg_specs.items():
+LINE: proginit.py:363 build_action_codes() - if value == "String":
+LINE: proginit.py:364 build_action_codes() - PrimeItems.tasker_arg_specs[key] = "Str"
+LINE: proginit.py:365 build_action_codes() - break
+LINE: proginit.py:356 build_action_codes() - with open(f"{json_dir}arg_specs.json", encoding="utf-8") as file:
+LINE: proginit.py:370 build_action_codes() - if build_it_all:
+LINE: proginit.py:420 build_action_codes() - os.chdir(current_dir)
+LINE: proginit.py:355 build_action_codes() - try:
+LINE: proginit.py:356 build_action_codes() - with open(f"{json_dir}arg_specs.json", encoding="utf-8") as file:
+CALL: codecs.py:312 Entering function: __init__()
+LINE: codecs.py:313 __init__() - IncrementalDecoder.__init__(self, errors)
+CALL: codecs.py:263 Entering function: __init__()
+LINE: codecs.py:271 __init__() - self.errors = errors
+RETURN: codecs.py:271 Exiting function: __init__() (Returned: None)
+LINE: codecs.py:315 __init__() - self.buffer = b""
+RETURN: codecs.py:315 Exiting function: __init__() (Returned: None)
+LINE: proginit.py:357 build_action_codes() - PrimeItems.tasker_arg_specs = json.load(file)
+CALL: __init__.py:274 Entering function: load()
+LINE: __init__.py:293 load() - return loads(fp.read(),
+CALL: codecs.py:322 Entering function: decode()
+LINE: codecs.py:324 decode() - data = self.buffer + input
+LINE: codecs.py:325 decode() - (result, consumed) = self._buffer_decode(data, self.errors, final)
+LINE: codecs.py:327 decode() - self.buffer = data[consumed:]
+LINE: codecs.py:328 decode() - return result
+RETURN: codecs.py:328 Exiting function: decode() (Returned: {
+    "0": "Int",
+    "1": "String",
+    "2": "App",
+    "3": "Boolean",
+    "4": "Icon",
+    "5": "Bundle",
+    "6": "Scene"
+})
+LINE: __init__.py:294 load() - cls=cls, object_hook=object_hook,
+LINE: __init__.py:295 load() - parse_float=parse_float, parse_int=parse_int,
+LINE: __init__.py:296 load() - parse_constant=parse_constant, object_pairs_hook=object_pairs_hook, **kw)
+LINE: __init__.py:293 load() - return loads(fp.read(),
+LINE: __init__.py:296 load() - parse_constant=parse_constant, object_pairs_hook=object_pairs_hook, **kw)
+LINE: __init__.py:293 load() - return loads(fp.read(),
+CALL: __init__.py:299 Entering function: loads()
+LINE: __init__.py:333 loads() - if isinstance(s, str):
+LINE: __init__.py:334 loads() - if s.startswith('\ufeff'):
+LINE: __init__.py:343 loads() - if (cls is None and object_hook is None and
+LINE: __init__.py:344 loads() - parse_int is None and parse_float is None and
+LINE: __init__.py:345 loads() - parse_constant is None and object_pairs_hook is None and not kw):
+LINE: __init__.py:346 loads() - return _default_decoder.decode(s)
+CALL: decoder.py:340 Entering function: decode()
+LINE: decoder.py:345 decode() - obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+CALL: decoder.py:351 Entering function: raw_decode()
+LINE: decoder.py:360 raw_decode() - try:
+LINE: decoder.py:361 raw_decode() - obj, end = self.scan_once(s, idx)
+LINE: decoder.py:364 raw_decode() - return obj, end
+RETURN: decoder.py:364 Exiting function: raw_decode() (Returned: ({'0': 'Int', '1': 'String', '2': 'App', '3': 'Boolean', '4': 'Icon', '5': 'Bundle', '6': 'Scene'}, 127))
+LINE: decoder.py:346 decode() - end = _w(s, end).end()
+LINE: decoder.py:347 decode() - if end != len(s):
+LINE: decoder.py:349 decode() - return obj
+RETURN: decoder.py:349 Exiting function: decode() (Returned: {'0': 'Int', '1': 'String', '2': 'App', '3': 'Boolean', '4': 'Icon', '5': 'Bundle', '6': 'Scene'})
+RETURN: __init__.py:346 Exiting function: loads() (Returned: {'0': 'Int', '1': 'String', '2': 'App', '3': 'Boolean', '4': 'Icon', '5': 'Bundle', '6': 'Scene'})
+RETURN: __init__.py:293 Exiting function: load() (Returned: {'0': 'Int', '1': 'String', '2': 'App', '3': 'Boolean', '4': 'Icon', '5': 'Bundle', '6': 'Scene'})
+LINE: proginit.py:358 build_action_codes() - spec_number = len(PrimeItems.tasker_arg_specs)
+LINE: proginit.py:360 build_action_codes() - PrimeItems.tasker_arg_specs[str(spec_number)] = "ConditionList"
+LINE: proginit.py:361 build_action_codes() - PrimeItems.tasker_arg_specs[str(spec_number + 1)] = "Img"
+LINE: proginit.py:362 build_action_codes() - for key, value in PrimeItems.tasker_arg_specs.items():
+LINE: proginit.py:363 build_action_codes() - if value == "String":
+LINE: proginit.py:362 build_action_codes() - for key, value in PrimeItems.tasker_arg_specs.items():
+LINE: proginit.py:363 build_action_codes() - if value == "String":
+LINE: proginit.py:364 build_action_codes() - PrimeItems.tasker_arg_specs[key] = "Str"
+LINE: proginit.py:365 build_action_codes() - break
+LINE: proginit.py:356 build_action_codes() - with open(f"{json_dir}arg_specs.json", encoding="utf-8") as file:
+LINE: proginit.py:370 build_action_codes() - if build_it_all:
+LINE: proginit.py:420 build_action_codes() - os.chdir(current_dir)

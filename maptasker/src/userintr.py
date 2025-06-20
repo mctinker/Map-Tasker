@@ -18,6 +18,8 @@ from tkinter import *  # noqa: F403
 from tkinter import TclError
 from tkinter.ttk import *  # noqa: F403
 
+from typing import TYPE_CHECKING
+
 import customtkinter
 import requests
 
@@ -114,7 +116,6 @@ from maptasker.src.userhelp import (
     VIEW_HELP_TEXT,
     VIEWLIMIT_HELP_TEXT,
 )
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Callable

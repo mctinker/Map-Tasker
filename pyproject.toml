@@ -50,6 +50,7 @@ dependencies = [
     "psutil>=7.0.0",  #  System monitoring
     "requests>=2.32.4",  # HTTP Server function request
     "tomli_w>=1.2.0",  # Write toml file
+    "webcolors>=24.11.1", # For color matching
 ]
 
 [project.scripts]
@@ -74,7 +75,7 @@ name = "PyPI"
 priority = "primary"
 
 [tool.ruff]
-include = ["pyproject.toml", "maptasker/src/**/*.py", "scripts/**/*.py"]
+include = ["pyproject.toml", "maptasker/custom_overrides/**/*.py", "maptasker/src/**/*.py", "scripts/**/*.py"]
 respect-gitignore = true
 # editor.formatOnSaveMode = "modificationsIfAvailable"
 select = [

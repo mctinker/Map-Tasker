@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree as et  # noqa: N813
 import requests
+import webcolors
 from requests.exceptions import ConnectionError, InvalidSchema, Timeout  # noqa: A004
 
 from maptasker.src.format import format_html
@@ -705,3 +706,96 @@ def exit_program(return_code: int = 0) -> None:
     """Common program exit code."""
     close_logfile()
     sys.exit(return_code)
+
+
+def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
+    """
+    Converts a hexadecimal color string (e.g., '#RRGGBB' or 'RRGGBB') to an RGB tuple.
+
+    Args:
+        hex_color (str): The hexadecimal color string.
+
+    Returns:
+        tuple[int, int, int]: An RGB tuple (R, G, B) where each component is 0-255.
+
+    Raises:
+        ValueError: If the hex color string is malformed.
+    """
+    hex_color = hex_color.lstrip("#")
+    if len(hex_color) != 6:
+        raise ValueError(
+            f"Invalid hex color format: '{hex_color}'. Expected 6 characters.",
+        )
+    try:
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        return (r, g, b)
+    except ValueError:
+        raise ValueError(
+            f"Could not convert '{hex_color}' to RGB. Ensure it contains valid hex digits.",
+        )
+
+
+def get_rgb_from_color_input(color_input: str) -> tuple[int, int, int]:
+    """
+    Converts a color input (either name or hex) to an RGB tuple.
+
+    Args:
+        color_input (str): The color name (e.g., "blue") or hex value (e.g., "#ffffe0").
+
+    Returns:
+        tuple[int, int, int]: An RGB tuple (R, G, B) where each component is 0-255.
+
+    Raises:
+        ValueError: If the color_input is not a valid color name or hex code.
+    """
+    color_input = color_input.strip()
+    if color_input.startswith("#"):
+        return hex_to_rgb(color_input)
+    try:
+        # webcolors.name_to_rgb expects a lowercase name
+        return webcolors.name_to_rgb(color_input.lower())
+    except ValueError:
+        raise ValueError(
+            f"'{color_input}' is not a recognized color name or valid hex code.",
+        )
+
+
+def is_color_dark(color_input: str, luminance_threshold: float = 0.5) -> bool:
+    """
+    Determines if a given color is darker than it is light based on its perceived luminance.
+
+    Args:
+        color_input (str): The color name (e.g., "blue") or hex value (e.g., "#ffffe0").
+        luminance_threshold (float): A value between 0.0 and 1.0 (inclusive)
+                                     where 0.0 is black and 1.0 is white.
+                                     Colors with luminance below this threshold are
+                                     considered 'dark'. Default is 0.5.
+
+    Returns:
+        bool: True if the color is darker than the threshold, False otherwise.
+
+    Raises:
+        ValueError: If the color_input is invalid or the threshold is out of range.
+    """
+    if not (0.0 <= luminance_threshold <= 1.0):
+        raise ValueError("luminance_threshold must be between 0.0 and 1.0.")
+
+    r, g, b = get_rgb_from_color_input(color_input)
+
+    # Calculate perceived luminance (a common formula for sRGB)
+    # The components are first normalized to 0-1, then weighted.
+    # These weights account for human perception of brightness (green > red > blue).
+    normalized_r = r / 255.0
+    normalized_g = g / 255.0
+    normalized_b = b / 255.0
+
+    # Note: For strict WCAG (Web Content Accessibility Guidelines) luminance,
+    # a more complex gamma correction might be applied before weighting.
+    # However, this simpler weighted sum is generally sufficient for a "darker than light" check.
+    luminance = 0.299 * normalized_r + 0.587 * normalized_g + 0.114 * normalized_b
+
+    print(f"Color: '{color_input}' (RGB: {r},{g},{b}) -> Luminance: {luminance:.4f}")
+
+    return luminance < luminance_threshold

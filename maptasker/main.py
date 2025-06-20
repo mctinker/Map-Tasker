@@ -5,8 +5,6 @@
 # Main: MapTasker entry point                                                          #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
-# import os
-# import sys
 
 # FOR DEVELOPMENT ONLY  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # print("Path:", os.getcwd())
@@ -16,6 +14,33 @@
 # print(sys.argv)
 # # Verify Python version.
 # print("Python version ", sys.version)
+import os
+import sys
+
+# Get the absolute path to your local overrides directory
+override_path = os.path.join(os.path.dirname(__file__), "custom_overrides")
+
+# Add your override path to the beginning of sys.path
+# This makes Python look here first
+sys.path.insert(0, override_path)
+# print("\nsys.path AFTER modification:")
+# for p in sys.path:
+#     print(f"  {p}")
+
+# Add this crucial check:
+if override_path != sys.path[0]:
+    print(
+        f"\nERROR: '{override_path}' IS NOT at the beginning of sys.path. Not picking up local mods.",
+    )
+# fmt: off
+# Force load ctk_tk.py from custom_overrides.
+import customtkinter as ctk
+
+KaKa = ctk.CTk()
+# KaKa.destroy()
+KaKa.withdraw()
+del KaKa
+# fmt: on
 from maptasker.src import mapit
 from maptasker.src.maputils import exit_program
 
