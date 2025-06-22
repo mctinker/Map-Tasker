@@ -2,15 +2,15 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.0.3] ??-June-2025. # FIX
+## [8.0.3] 22-June-2025
 
 ### Added
 
-- Added: Nop addistions.
+- Added: No additions.
 
 ### Changed
 
-- Changed: No changes.
+- Changed: Gemini model 2.5 Pro has been upgraded from the preview model to 'gemini-2.5-pro'.
 
 ### Fixed
 

@@ -78,17 +78,15 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 8.0.2 - Change Log\n
+Version 8.0.3 - Change Log\n
 ### Added\n
-- Added: The last 'tab' used in the GUI is now saved across sessions and restored on re-entry.\n
-### Changed\n
-- No changes.\n
+- Added: No additions.\n
+- Changed: Gemini model 2.5 Pro has been upgraded from the preview model to 'gemini-2.5-pro'.\n
 ### Fixed\n
-- Fixed: Closing the GUI window via the window icon is not saving the settings.\n
-- Fixed: The diagram is not appearing in the default text editor if running with '-outline' option.\n
-- Fixed: Changed error messages that referred to "Backup File" to read "XML File".\n
-- Fixed: Debug option is not working.\n
-- Fixed: Clicking on Map or Diagram view buttons in the GUI while either is already running causes an internal loop.\n
+- Fixed: Ai-Analysis windoiw is not getting the focus.\n
+- Fixed: Numerous bugs when running on Windows 11.\n
+- Fixed: Diagram and Map views are not being displayed in the defined background color.\n
+- Fixed: The GUI 'hover tip' background and foreground colors are incorrect.\n
 """
 
 default_font_size = 14

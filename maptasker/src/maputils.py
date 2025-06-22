@@ -12,10 +12,8 @@ import json
 import os
 import re
 import socket
-import string
 import subprocess
 import sys
-import tkinter as tk
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
@@ -76,6 +74,7 @@ def validate_ip_address(address: str) -> bool:
     try:
         ipaddress.ip_address(address)
     except ValueError:
+        logger.debug(f"Invalid IP address: {address}")
         return False
     return True
 
@@ -124,6 +123,7 @@ def get_pypi_version() -> str:
     try:
         version = "==" + requests.get(url).json()["info"]["version"]  # noqa: S113
     except (json.decoder.JSONDecodeError, ConnectionError, Exception):
+        logger.debug("Unable to get version from PYPI!")
         version = ""
     return version
 
@@ -519,36 +519,6 @@ def clear_tasker_data() -> None:
     PrimeItems.tasker_root_elements["all_scenes"].clear()
 
 
-def is_dark_color(color: str) -> bool:
-    """
-    Determines if a given tkinter color name or hex value is dark or light.
-
-    Args:
-        color (str): A tkinter color name (e.g., "red", "lightblue") or a hex color value (e.g., "FF0000").
-
-    Returns:
-        bool: True if the color is dark, False if the color is light.
-    """
-    if all(c in string.hexdigits for c in color):
-        color = "#" + color
-    root = tk.Tk()
-    try:
-        # Convert color to RGB tuple
-        rgb = root.winfo_rgb(color)
-        r, g, b = (x // 256 for x in rgb)  # Normalize RGB values to 0-255 range
-
-        # Calculate luminance (YIQ formula)
-        luminance = 0.299 * r + 0.587 * g + 0.114 * b
-
-        # Determine if dark or light based on luminance threshold
-        return luminance < 128  # noqa: TRY300
-    except tk.TclError:
-        return False  # Return false if invalid color.
-
-    finally:
-        root.destroy()  # Clean up the temporary Tkinter window
-
-
 def get_first_substring_match(main_string: str, substrings: list) -> str | None:
     """
     Checks if any of the substrings in a list are present in a given string.
@@ -723,18 +693,16 @@ def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
     """
     hex_color = hex_color.lstrip("#")
     if len(hex_color) != 6:
-        raise ValueError(
-            f"Invalid hex color format: '{hex_color}'. Expected 6 characters.",
-        )
+        return False
     try:
         r = int(hex_color[0:2], 16)
         g = int(hex_color[2:4], 16)
         b = int(hex_color[4:6], 16)
-        return (r, g, b)
+        return (r, g, b)  # noqa: TRY300
+
     except ValueError:
-        raise ValueError(
-            f"Could not convert '{hex_color}' to RGB. Ensure it contains valid hex digits.",
-        )
+        logger.debug("Invalid hex color input: " + hex_color)
+        return False
 
 
 def get_rgb_from_color_input(color_input: str) -> tuple[int, int, int]:
@@ -757,9 +725,8 @@ def get_rgb_from_color_input(color_input: str) -> tuple[int, int, int]:
         # webcolors.name_to_rgb expects a lowercase name
         return webcolors.name_to_rgb(color_input.lower())
     except ValueError:
-        raise ValueError(
-            f"'{color_input}' is not a recognized color name or valid hex code.",
-        )
+        logger.debug(f"Invalid color input: {color_input}")
+        return False
 
 
 def is_color_dark(color_input: str, luminance_threshold: float = 0.5) -> bool:
@@ -796,6 +763,6 @@ def is_color_dark(color_input: str, luminance_threshold: float = 0.5) -> bool:
     # However, this simpler weighted sum is generally sufficient for a "darker than light" check.
     luminance = 0.299 * normalized_r + 0.587 * normalized_g + 0.114 * normalized_b
 
-    print(f"Color: '{color_input}' (RGB: {r},{g},{b}) -> Luminance: {luminance:.4f}")
+    # print(f"Color: '{color_input}' (RGB: {r},{g},{b}) -> Luminance: {luminance:.4f}")
 
     return luminance < luminance_threshold

@@ -34,12 +34,10 @@ if override_path != sys.path[0]:
     )
 # fmt: off
 # Force load ctk_tk.py from custom_overrides.
-import customtkinter as ctk
 
-KaKa = ctk.CTk()
-# KaKa.destroy()
-KaKa.withdraw()
-del KaKa
+# KaKa = ctk.CTk()
+# KaKa.withdraw()
+# del KaKa
 # fmt: on
 from maptasker.src import mapit
 from maptasker.src.maputils import exit_program

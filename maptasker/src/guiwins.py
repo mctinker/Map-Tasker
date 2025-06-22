@@ -63,7 +63,7 @@ from maptasker.src.maputils import (
     find_owning_project,
     find_task_pattern,
     get_first_substring_match,
-    is_dark_color,
+    is_color_dark,
 )
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
@@ -1278,7 +1278,7 @@ class CTkTextview(ctk.CTkFrame):
             return
 
         # Establish appropriate colors
-        if is_dark_color(mygui.color_lookup["background_color"]):
+        if is_color_dark(mygui.color_lookup["background_color"]):
             background_color = "#092944"
             foreground_color1 = "white"
             foreground_color2 = "yellow"
@@ -4838,8 +4838,8 @@ class ToolTip(object):  # noqa: UP004
             background_color = make_hex_color(color_lookup["background_color"])
         except KeyError:
             background_color = "Black"
-        # FIX Use 'is_color_dark' from maputils to determine foreground color.
-        foreground_color = make_hex_color(color_lookup["project_color"])
+
+        foreground_color = "white" if is_color_dark(background_color) else "black"
         label = Label(
             tw,
             text=self.text,

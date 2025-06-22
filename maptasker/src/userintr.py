@@ -86,7 +86,7 @@ from maptasker.src.mapit import clean_up_memory, mapit_all
 from maptasker.src.maputils import (
     clear_tasker_data,
     close_logfile,
-    is_dark_color,
+    is_color_dark,
     update,
     validate_xml_file,
 )
@@ -3696,7 +3696,7 @@ class EventHandlers:
         # Check if search_input is not empty
         if search_input:
             # Determine the color to highlight the next/previous string in.
-            if is_dark_color(PrimeItems.colors_to_use["background_color"]):
+            if is_color_dark(PrimeItems.colors_to_use["background_color"]):
                 textview.search_color_text = "darkblue"
                 textview.search_color_highlight = "yellow"
                 textview.search_color_nextprev = "orange"
