@@ -428,7 +428,7 @@ def process_outline() -> None:
                 directory = os.getcwd()
                 os.startfile(f"{directory}{PrimeItems.slash}MapTasker_Map.txt")
             else:
-                run(["open", "MapTasker_Map.txt"], check=False)  # noqa: S607, S603
+                run(["open", "MapTasker_Map.txt"], check=False)  # noqa: S607
 
 
 # Check if doing a single item and if not found, then clean up and exit

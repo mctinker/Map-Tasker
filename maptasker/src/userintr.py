@@ -18,6 +18,8 @@ from tkinter import *  # noqa: F403
 from tkinter import TclError
 from tkinter.ttk import *  # noqa: F403
 
+from typing import TYPE_CHECKING
+
 import customtkinter
 import requests
 
@@ -84,7 +86,7 @@ from maptasker.src.mapit import clean_up_memory, mapit_all
 from maptasker.src.maputils import (
     clear_tasker_data,
     close_logfile,
-    is_dark_color,
+    is_color_dark,
     update,
     validate_xml_file,
 )
@@ -114,7 +116,6 @@ from maptasker.src.userhelp import (
     VIEW_HELP_TEXT,
     VIEWLIMIT_HELP_TEXT,
 )
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -220,6 +221,7 @@ class MyGui(customtkinter.CTk):
         self.display_message_box("Initialization complete.\n", "Green")
 
         # Set the focus to the last used tab.
+        logger.info("Set tab")
         set_tab_to_use(self)
 
         # Turn off first time
@@ -1551,6 +1553,7 @@ class MyGui(customtkinter.CTk):
             10,
             self.ai_analysis_window.lift,
         )  # Make window jump to the front
+        analysisview.focus()
 
     # Set and display the file name.
     def display_and_set_file(self, filename: str) -> None:
@@ -1713,7 +1716,14 @@ class MyGui(customtkinter.CTk):
                 self.color_lookup[color] = "turquoise"
 
         # Save the settings
-        temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
+        # temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
+        temp_args = {}
+        for value in ARGUMENT_NAMES:
+            try:
+                temp_args[value] = getattr(self, value)
+            except AttributeError:
+                temp_args[value] = ""
+
         temp_args["ai_analyze"] = (
             False  # Turn this off in event it was on from settings file.
         )
@@ -3686,7 +3696,7 @@ class EventHandlers:
         # Check if search_input is not empty
         if search_input:
             # Determine the color to highlight the next/previous string in.
-            if is_dark_color(PrimeItems.colors_to_use["background_color"]):
+            if is_color_dark(PrimeItems.colors_to_use["background_color"]):
                 textview.search_color_text = "darkblue"
                 textview.search_color_highlight = "yellow"
                 textview.search_color_nextprev = "orange"

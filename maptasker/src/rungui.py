@@ -86,10 +86,12 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         - Convert display_detail_level and indent to integers.
         - Get font from GUI.
         - Return program arguments and colors to use."""
+    # CODE STARTS HERE
     logger.info("starting")
+
     # Keep this here to avoid circular import
     if use_gui:
-        from maptasker.src.userintr import MyGui
+        from maptasker.src.userintr import MyGui  # noqa: PLC0415
 
     PrimeItems.program_arguments["gui"] = True  # Set flag to indicate we are using GUI
 
@@ -99,6 +101,9 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         PrimeItems.tkroot = None
     # Display GUI and get the user input
     user_input = MyGui()
+    logger.info("Starting mainloop")
+
+    # Process the GUI
     user_input.mainloop()
     # Get rid of window
     MyGui.quit(user_input)
