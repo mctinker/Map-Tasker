@@ -1807,8 +1807,8 @@ def reload_gui(self: object) -> None:
         None
     """
     # Imports are here to avoid circular import.
-    from maptasker.src.getputer import save_restore_args
-    from maptasker.src.guiwins import store_windows
+    from maptasker.src.getputer import save_restore_args  # noqa: PLC0415
+    from maptasker.src.guiwins import store_windows  # noqa: PLC0415
 
     # Save windows
     store_windows(self)
@@ -2525,7 +2525,7 @@ def kill_the_progress_bar(progress_bar: dict, remove_windows: bool = False) -> N
     if not progress_bar:
         return
     # Keep import here to avoid circular import
-    from maptasker.src.guiwins import save_window_position
+    from maptasker.src.guiwins import save_window_position  # noqa: PLC0415
 
     # Save the window position in our main window (self=MyGui).
     if PrimeItems.progressbar:
@@ -2710,10 +2710,7 @@ def on_closing(self: object) -> None:
         "API": "apikey_window_position",
     }
     if "Progress" in title:
-        if PrimeItems.progressbar:
-            progressbar = PrimeItems.progressbar
-        else:
-            progressbar = self.progressbar
+        progressbar = PrimeItems.progressbar or self.progressbar
         kill_the_progress_bar(progressbar, remove_windows=True)
         return
     # Find the window being closed and save it's position.

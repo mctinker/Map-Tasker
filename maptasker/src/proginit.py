@@ -161,7 +161,7 @@ def open_and_get_backup_xml_file() -> dict:
             PrimeItems.file_to_get = open(filename)
         except FileNotFoundError:
             file_not_found = filename
-            error_handler(f"XML file {file_not_found} not found.", 6)
+            error_handler(f"XML file {file_not_found} not found.", 5)
         except PermissionError:
             error_handler(f"XML file {filename} not accessible.", 100)
             prompt_for_backup_file(dir_path)

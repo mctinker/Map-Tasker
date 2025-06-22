@@ -747,7 +747,8 @@ def is_color_dark(color_input: str, luminance_threshold: float = 0.5) -> bool:
         ValueError: If the color_input is invalid or the threshold is out of range.
     """
     if not (0.0 <= luminance_threshold <= 1.0):
-        raise ValueError("luminance_threshold must be between 0.0 and 1.0.")
+        logger.debug("luminance_threshold must be between 0.0 and 1.0.")
+        return False
 
     r, g, b = get_rgb_from_color_input(color_input)
 

@@ -2110,7 +2110,7 @@ class CTkTextview(ctk.CTkFrame):
             None
         """
         # Define the progress bar.  Import must stay here to avoid circular import.
-        from maptasker.src.diagram import configure_progress_bar
+        from maptasker.src.diagram import configure_progress_bar  # noqa: PLC0415
 
         progress = configure_progress_bar(the_data, "Map")
         progress.update(
@@ -4821,19 +4821,22 @@ class ToolTip(object):  # noqa: UP004
         self.tipwindow = tw = Toplevel(self.widget)
         tw.wm_overrideredirect(1)
         tw.wm_geometry(f"+{x}+{y}")
-        # Get the font the userr has selected.
+
+        # Find MyGui from the top level window.  It could sbe hanging off a number of 'masters'
+        mygui = tw
+        while mygui:
+            if mygui.__class__.__name__ == "MyGui":
+                break
+            mygui = mygui.master
+
+        # Get the font the user has selected.
         try:
-            font = tw.master.master.font
+            font = mygui.font
         except AttributeError:
-            try:
-                font = tw.master.master.master.font
-            except AttributeError:
-                font = "Courier"
-        mygui = tw.master.master
-        try:
-            color_lookup = mygui.color_lookup
-        except AttributeError:
-            color_lookup = mygui.master.color_lookup
+            font = "Courier"
+
+        # Get our color table so we can get the background color definition.
+        color_lookup = mygui.color_lookup
         try:
             background_color = make_hex_color(color_lookup["background_color"])
         except KeyError:

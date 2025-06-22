@@ -211,7 +211,6 @@ class MyGui(customtkinter.CTk):
         display_analyze_button(self, 13, first_time=True)
 
         # Update the Project/Profile/Task pulldown option menus.
-        logger.info("Updating pulldown menus")
         set_tasker_object_names(self)
         logger.info("Updating pulldown menus")
         update_tasker_object_menus(self, get_data=False, reset_single_names=False)
@@ -1306,11 +1305,8 @@ class MyGui(customtkinter.CTk):
                 self.display_message_box("Cancel button pressed.\n", "Orange")
                 display_current_file(self, "None")
             else:
-                self.display_multiple_messages(
-                    [
-                        f"{PrimeItems.error_msg}\n",
-                        "Click 'Get Local XML' to try a different XML file.",
-                    ],
+                self.display_message_box(
+                    "Click 'Get Local XML' to try a different XML file.",
                     "Red",
                 )
                 display_current_file(self, "None")
@@ -1361,10 +1357,10 @@ class MyGui(customtkinter.CTk):
                 try:
                     PrimeItems.file_to_get = open(file_to_use)
                 except FileNotFoundError:
-                    self.display_message_box(
-                        f"XML file {file_to_use} not found.",
-                        "Red",
-                    )
+                    # self.display_message_box(
+                    #     f"XML file {file_to_use} not found.",
+                    #     "Red",
+                    # )
                     return False
 
                 # Display the current file
