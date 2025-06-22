@@ -1,4 +1,5 @@
 """Handler the GUI for MapTasker"""
+
 #! /usr/bin/env python3
 
 #                                                                                      #

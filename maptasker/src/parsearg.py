@@ -32,11 +32,7 @@ def validate_vars(var1: str, var2: int, var3: str) -> None:
         - Check if only var2 is True and var1 and var3 are False
         - Check if only var3 is True and var1 and var2 are False
         - If any of the above conditions are True, raise an error"""
-    if (
-        (var1 and not var2 and not var3)
-        or (not var1 and var2 and not var3)
-        or (not var1 and not var2 and var3)
-    ):
+    if (var1 and not var2 and not var3) or (not var1 and var2 and not var3) or (not var1 and not var2 and var3):
         msg = "The -android_ipaddr, -android_port and -xandroid_file options are mutually inclusive.  If one is specified, they each must have a value."
         error_handler(msg, 7)
         # raise argparse.ArgumentTypeError(msg)
@@ -483,9 +479,7 @@ def runtime_parser() -> None:
     # Display Task details under "hide/twisty"
     everything_group.add_argument(
         "-twisty",
-        help=(
-            "Hide Task's details under 'twisty' ➤. Click on twisty to display details."
-        ),
+        help=("Hide Task's details under 'twisty' ➤. Click on twisty to display details."),
         action="store_true",
         default=False,
     )

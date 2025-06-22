@@ -159,13 +159,9 @@ def print_box(name: str, title: str, indent: int) -> None:
     filler = f"{blanks * indent}"
     full_name = f"{title} {name}{adder_space_name}"
     box = ["", "", ""]
-    box[0] = (
-        f"{filler}╔═{box_line * (len(full_name) + len(adder_space_boxline))}═╗"  # Box top
-    )
+    box[0] = f"{filler}╔═{box_line * (len(full_name) + len(adder_space_boxline))}═╗"  # Box top
     box[1] = f"{filler}║ {full_name} ║"  # Box middle
-    box[2] = (
-        f"{filler}╚═{box_line * (len(full_name) + len(adder_space_boxline))}═╝"  # Box bottom
-    )
+    box[2] = f"{filler}╚═{box_line * (len(full_name) + len(adder_space_boxline))}═╝"  # Box bottom
     print_3_lines(box)
 
 
@@ -376,9 +372,7 @@ def build_box(name: str, output_lines: list) -> tuple:
     output_lines[2] += f"{filler}{box_bottom}"
 
     # Calculate anchor position
-    position_for_anchor = (
-        len(output_lines[0]) - (len(name) + len(adder_space_name)) // 2 - 4
-    )
+    position_for_anchor = len(output_lines[0]) - (len(name) + len(adder_space_name)) // 2 - 4
 
     return output_lines, position_for_anchor
 
@@ -467,11 +461,7 @@ def replace_diff_char(strings: list, char: str, replacement_char: str) -> list:
                         and next_string[char_position - 1] != up_arrow
                     ):
                         # Perform the string replacement
-                        strings[i] = (
-                            strings[i][:char_position]
-                            + replacement_char
-                            + strings[i][char_position + 1 :]
-                        )
+                        strings[i] = strings[i][:char_position] + replacement_char + strings[i][char_position + 1 :]
     return strings
 
 
@@ -536,10 +526,7 @@ def fix_duplicate_up_down_locations(call_table: dict) -> dict:
             break
 
         # Get the first connector's top and bottom line numbers.
-        if (
-            first_connector[1]["caller_line_num"]
-            > first_connector[1]["called_line_num"]
-        ):
+        if first_connector[1]["caller_line_num"] > first_connector[1]["called_line_num"]:
             first_connector_top_line = first_connector[1]["called_line_num"]
             first_connector_bottom_line = first_connector[1]["caller_line_num"]
         else:
@@ -547,10 +534,7 @@ def fix_duplicate_up_down_locations(call_table: dict) -> dict:
             first_connector_bottom_line = first_connector[1]["called_line_num"]
 
         # Get the second connector's top and bottom line numbers.
-        if (
-            second_connector[1]["caller_line_num"]
-            > second_connector[1]["called_line_num"]
-        ):
+        if second_connector[1]["caller_line_num"] > second_connector[1]["called_line_num"]:
             second_connector_top_line = second_connector[1]["called_line_num"]
             second_connector_bottom_line = second_connector[1]["caller_line_num"]
         else:
@@ -663,25 +647,18 @@ def ensure_unique_up_down_location(
         int: A unique up_down_location value.
     """
     project_keys_values = [
-        (key, details)
-        for key, details in call_table.items()
-        if details.get("project_name") == project_name
+        (key, details) for key, details in call_table.items() if details.get("project_name") == project_name
     ]
 
     # Make sure this called Task is in this Project.
     for key_value in project_keys_values:
         task_to_find = key_value[1]["caller_task_name"]
         caller_keys_values = [
-            (key, details)
-            for key, details in call_table.items()
-            if details.get("caller_task_name") == task_to_find
+            (key, details) for key, details in call_table.items() if details.get("caller_task_name") == task_to_find
         ]
 
         # If the caller task's project is not this called task project, then the called task project is outside this project.
-        if (
-            caller_keys_values
-            and caller_keys_values[0][1]["project_name"] != project_name
-        ):
+        if caller_keys_values and caller_keys_values[0][1]["project_name"] != project_name:
             restart = True
             while restart:
                 restart = False
@@ -770,9 +747,7 @@ def get_task_details_and_save(
         called_task_position,
     )  # Starting outer position (col)
     for x in range(line_range):
-        line_to_compare = (
-            output_lines[up_down_start + x].rstrip().replace(task_delimeter, "")
-        )
+        line_to_compare = output_lines[up_down_start + x].rstrip().replace(task_delimeter, "")
         up_down_location = max(up_down_location, len(line_to_compare))
     up_down_location += 2
 
@@ -844,9 +819,7 @@ def process_callers_and_called_tasks(
     caller_task_name = caller_task_name.rstrip()
 
     # Get the position in the line of of the caller Task name.
-    caller_task_position = output_lines[caller_line_num].index(caller_task_name) + (
-        len(caller_task_name) // 2
-    )
+    caller_task_position = output_lines[caller_line_num].index(caller_task_name) + (len(caller_task_name) // 2)
 
     # Get the called Task name.
     start_position = line.index(line_right_arrow) + 4
@@ -861,11 +834,7 @@ def process_callers_and_called_tasks(
             continue
 
         # Get the index of the called Task name.
-        called_task_index = (
-            1
-            if called_task_name not in called_names
-            else called_names.count(called_task_name) + 1
-        )
+        called_task_index = 1 if called_task_name not in called_names else called_names.count(called_task_name) + 1
         called_names.append(called_task_name)
 
         #  Find the "Called" Task line for the caller Task.
