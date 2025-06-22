@@ -2,29 +2,37 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.0.2] 16-June-2025
+## [8.0.3] 22-June-2025
 
 ### Added
 
-- Added: The last 'tab' used in the GUI is now saved across sessions and restored on re-entry.
+- Added: No additions.
 
 ### Changed
 
-- Changed:
+- Changed: Gemini model 2.5 Pro has been upgraded from the preview model to 'gemini-2.5-pro'.
 
 ### Fixed
 
-- Fixed: Closing the GUI window via the window icon is not saving the settings.
-- Fixed: The diagram is not appearing in the default text editor if running with '-outline' option.
-- Fixed: Changed error messages that referred to "Backup File" to read "XML File".
-- Fixed: Debug option is not working.
-- Fixed: Clicking on Map or Diagram view buttons in the GUI while either is already running causes an internal loop.
+- Fixed: Ai-Analysis windoiw is not getting the focus.
+- Fixed: Numerous bugs when running on Windows 11.
+- Fixed: Diagram and Map views are not being displayed in the defined background color.
+- Fixed: The GUI 'hover tip' background and foreground colors are incorrect.
 
 ### Known Issues
 
 - Unable to change any colors in GUI if using UV to manage the application (UV bug).
 
 ## Older History Logs
+
+## [8.0.2]
+
+- Added: The last 'tab' used in the GUI is now saved across sessions and restored on re-entry.
+- Fixed: Closing the GUI window via the window icon is not saving the settings.
+- Fixed: The diagram is not appearing in the default text editor if running with '-outline' option.
+- Fixed: Changed error messages that referred to "Backup File" to read "XML File".
+- Fixed: Debug option is not working.
+- Fixed: Clicking on Map or Diagram view buttons in the GUI while either is already running causes an internal loop.
 
 ## [8.0.1]
 
