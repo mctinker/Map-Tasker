@@ -75,7 +75,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ## Project Structure
 
-A brief overview of the main directories and their purpose:
+A brief overview of the main files and their purpose:
 
 - `maptasker/`: Contains the core application code.
   - `maptasker/src/`: The main Python source files for MapTasker's logic.
@@ -175,6 +175,7 @@ The software is provided "AS IS", without warranty of any kind. For the full lic
 ## Troubleshooting and FAQ
 
 **Q: I'm having trouble with Tkinter versioning, especially on macOS with Brew.**
+
 A: Tkinter 8.6 or higher is required.
     - The simplest solution is often to use the [standard Python release download](https://www.python.org) which usually includes a compatible Tcl/Tk.
     - To check your Tkinter version, run: `python -m tkinter`
@@ -187,15 +188,18 @@ A: Tkinter 8.6 or higher is required.
     - The "Notes" section of this README contains further details, particularly regarding Tkinter installation complexities.
 
 **Q: On Windows 11, I got a conflict installing `psutil`.**
+
 A: Try the following:
     1. `pip uninstall psutil`
     2. `pip install psutil==5.9.8`
     3. `pip install maptasker`
 
 **Q: The `MapTasker_Map.txt` diagram looks misaligned in Notepad on Windows.**
+
 A: Notepad may not handle spacing correctly for this file. It's recommended to use a different text editor like Notepad++, VS Code, or Typepad (and set it as your default for `.txt` files). Ensure 'text-wrap' is off and a monospace font is used.
 
 **Q: How do I retrieve the Tasker XML file directly from my Android device?**
+
 A: Prerequisites:
     - Desktop and Android device on the same local network.
     - The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) installed and active on the Android device, server running.
@@ -203,15 +207,19 @@ A: Prerequisites:
     - Further details are available in the "Notes" section of this README.
 
 **Q: I see the error message 'IMKClient Stall detected...' on macOS.**
+
 A: This message can generally be ignored. It's related to the input method kit on macOS and doesn't usually affect MapTasker's functionality.
 
 **Q: The background color is incorrect in Firefox (light mode) if my system is in dark mode.**
+
 A: This is a known issue with browser theme handling. Try aligning your browser theme with your system theme or vice-versa.
 
 **Q: Diagram connectors are misaligned for names in Chinese, Korean, or Japanese.**
+
 A: This is a known issue related to font metrics for these languages in the diagramming library.
 
 **Q: I can't upgrade to Python 3.11+. Can I still use MapTasker?**
+
 A: Yes, an older version (2.6.3) is available for Python 3.10: `pip install maptasker==2.6.3`. However, you will miss out on newer features and fixes. See the [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md) for details.
 
 ## Notes
@@ -219,6 +227,7 @@ A: Yes, an older version (2.6.3) is available for Python 3.10: `pip install mapt
 Details for some of the points mentioned in the "Troubleshooting and FAQ" section are preserved here for additional context.
 
 **Regarding Tkinter Installation (formerly Note 3):**
+
 The most direct and simple solution for Tkinter compatibility is to get and use the [standard Python release download](https://www.python.org). If using package managers like Brew or version managers like `pyenv`, specific steps might be needed if Tkinter version issues (requiring 8.6+) arise:
 
 - To determine your Tkinter version: `'python -m tkinter'`
@@ -233,6 +242,7 @@ The most direct and simple solution for Tkinter compatibility is to get and use 
 - If still having issues, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
 
 **Regarding Direct XML Retrieval from Android (formerly Note 2):**
+
 To retrieve the Tasker XML file directly:
 
 - Ensure both desktop and Android devices are on the same local network.
@@ -246,9 +256,11 @@ To retrieve the Tasker XML file directly:
 - For `MapTasker_Map.txt` display issues in Notepad, use an alternative text editor like Typepad and set it as default for `.txt` files.
 
 **Regarding Older Python Versions (formerly Note 4):**
+
 If you cannot use Python 3.11+, MapTasker version 2.6.3 is available for Python 3.10: `pip install maptasker==2.6.3`. This version will not have the latest features (see [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md)).
 
 **Note 5 (Original):**
+
 Ai analysis is available through the GUI only. You can run an analysis using a single Project, Profile or Task only. Support is available for server-based OpenAi (ChatGPT) and local-based Llama models.
 
 ## To-Do List (in no particular order)
