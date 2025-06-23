@@ -198,11 +198,11 @@ It's recommended to use a different text editor like Notepad++, VS Code, or Type
 
 A: Prerequisites:
 
-    1- Desktop and Android device on the same local network.
-    2- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) installed and active on the Android device, server running.
-    3- The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) imported into Tasker for the 'List XML Files' button in the GUI.
+1- Desktop and Android device on the same local network.
+2- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) installed and active on the Android device, server running.
+3- The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) imported into Tasker for the 'List XML Files' button in the GUI.
     
-    Further details are available in the "Notes" section of this README.
+Further details are available in the "Notes" section of this README.
 
 **Q: I see the error message 'IMKClient Stall detected...' on macOS.**
 
