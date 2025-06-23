@@ -29,7 +29,7 @@ Configuration Map...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
 
 Diagram Map...
-![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/introd.png)
+![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/Introd.png)
 
 [[More Samples]](<https://github.com/mctinker/Map-Tasker/wiki#sample-output>)
 
