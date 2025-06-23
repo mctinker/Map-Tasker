@@ -25,8 +25,11 @@
 
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX/WIN11 machine based on Tasker's backup or exported XML file
 
+Configuration Map...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
-![](/documentation_images/introd.png)
+
+Diagram Map...
+[](/documentation_images/introd.png)
 [[More Samples]](<https://github.com/mctinker/Map-Tasker/wiki#sample-output>)
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see [Note 1](#1)).
@@ -190,7 +193,7 @@ A: Tkinter 8.6 or higher is required.
 
 **Q: The `MapTasker_Map.txt` diagram looks misaligned in Notepad on Windows.**
 
-A: Notepad may not handle spacing correctly for this file. 
+A: Notepad may not handle spacing correctly for this file.
 
 It's recommended to use a different text editor like Notepad++, VS Code, or Typepad (and set it as your default for `.txt` files). Ensure 'text-wrap' is off and a monospace font is used.
 
@@ -203,18 +206,18 @@ A: Prerequisites:
 2- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) installed and active on the Android device, server running.
 
 3- The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) imported into Tasker for the 'List XML Files' button in the GUI.
-    
+
 Further details are available in the "Notes" section of this README.
 
 **Q: I see the error message 'IMKClient Stall detected...' on macOS.**
 
-A: This message can generally be ignored. 
+A: This message can generally be ignored.
 
 It's related to the input method kit on macOS and doesn't usually affect MapTasker's functionality.
 
 **Q: The background color is incorrect in Firefox (light mode) if my system is in dark mode.**
 
-A: This is a known issue with browser theme handling. 
+A: This is a known issue with browser theme handling.
 
 Try aligning your browser theme with your system theme or vice-versa.
 
@@ -224,7 +227,7 @@ A: This is a known issue related to font metrics for these languages in the diag
 
 **Q: I can't upgrade to Python 3.11+. Can I still use MapTasker?**
 
-A: Yes, an older version (2.6.3) is available for Python 3.10: `pip install maptasker==2.6.3`. 
+A: Yes, an older version (2.6.3) is available for Python 3.10: `pip install maptasker==2.6.3`.
 
 However, you will miss out on newer features and fixes. See the [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md) for details.
 
@@ -378,6 +381,5 @@ We appreciate your help in making MapTasker better!
 [Ollama](https://ollama.com/), [OpenAi](https://openai.com/), [Claude AI](https://claude.ai), [Gemini AI](https://gemini.google.com/), [DeepSeek AI](https://chat.deepseek.com/)
 
 [Anonyo Noor for cria](https://github.com/leftmove/cria)
-
 
 [!["Buy Me A Coffee"](/documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
