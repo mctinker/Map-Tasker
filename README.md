@@ -258,16 +258,18 @@ To retrieve the Tasker XML file directly:
 
 **Regarding Windows 11 Specifics (formerly Note 1):**
 
-- If `psutil` installation conflicts occur: `pip uninstall psutil`, then `pip install psutil==5.9.8`, then `pip install maptasker`.
+- Only WIndows 11 is supported.  Any earlier versions of Windows are not supported.
 - For `MapTasker_Map.txt` display issues in Notepad, use an alternative text editor like Typepad and set it as default for `.txt` files.
 
 **Regarding Older Python Versions (formerly Note 4):**
 
 If you cannot use Python 3.11+, MapTasker version 2.6.3 is available for Python 3.10: `pip install maptasker==2.6.3`. This version will not have the latest features (see [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md)).
 
-**Note 5 (Original):**
+**Note 5:**
 
 Ai analysis is available through the GUI only. You can run an analysis using a single Project, Profile or Task only. Support is available for server-based OpenAi (ChatGPT) and local-based Llama models.
+
+Llama based models are supported via [Ollama](https://ollama.com/), which you must manually download, install and run it once to set up the server on your desktop.
 
 ## To-Do List (in no particular order)
 
@@ -378,3 +380,4 @@ We appreciate your help in making MapTasker better!
 [Anonyo Noor for cria](https://github.com/leftmove/cria)
 
 <a href="https://www.buymeacoffee.com/mctinker"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=mctinker&button_colour=FFDD00&font_colour=000000&font_family=Poppins&outline_colour=000000&coffee_colour=ffffff" /></a>
+[!["Buy Me A Coffee"](/documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
