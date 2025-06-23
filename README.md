@@ -177,7 +177,7 @@ The software is provided "AS IS", without warranty of any kind. For the full lic
 **Q: I'm having trouble with Tkinter versioning, especially on macOS with Brew.**
 
 A: Tkinter 8.6 or higher is required.
-+
+
     - The simplest solution is often to use the [standard Python release download](https://www.python.org) which usually includes a compatible Tcl/Tk.
     - To check your Tkinter version, run: `python -m tkinter`
     - If using Brew and encountering issues:
@@ -198,7 +198,9 @@ A: Try the following:
 
 **Q: The `MapTasker_Map.txt` diagram looks misaligned in Notepad on Windows.**
 
-A: Notepad may not handle spacing correctly for this file. It's recommended to use a different text editor like Notepad++, VS Code, or Typepad (and set it as your default for `.txt` files). Ensure 'text-wrap' is off and a monospace font is used.
+A: Notepad may not handle spacing correctly for this file. 
+
+It's recommended to use a different text editor like Notepad++, VS Code, or Typepad (and set it as your default for `.txt` files). Ensure 'text-wrap' is off and a monospace font is used.
 
 **Q: How do I retrieve the Tasker XML file directly from my Android device?**
 
