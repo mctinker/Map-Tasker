@@ -177,6 +177,7 @@ The software is provided "AS IS", without warranty of any kind. For the full lic
 **Q: I'm having trouble with Tkinter versioning, especially on macOS with Brew.**
 
 A: Tkinter 8.6 or higher is required.
++
     - The simplest solution is often to use the [standard Python release download](https://www.python.org) which usually includes a compatible Tcl/Tk.
     - To check your Tkinter version, run: `python -m tkinter`
     - If using Brew and encountering issues:
@@ -190,6 +191,7 @@ A: Tkinter 8.6 or higher is required.
 **Q: On Windows 11, I got a conflict installing `psutil`.**
 
 A: Try the following:
+
     1. `pip uninstall psutil`
     2. `pip install psutil==5.9.8`
     3. `pip install maptasker`
@@ -201,6 +203,7 @@ A: Notepad may not handle spacing correctly for this file. It's recommended to u
 **Q: How do I retrieve the Tasker XML file directly from my Android device?**
 
 A: Prerequisites:
+
     - Desktop and Android device on the same local network.
     - The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) installed and active on the Android device, server running.
     - The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) imported into Tasker for the 'List XML Files' button in the GUI.
@@ -208,11 +211,15 @@ A: Prerequisites:
 
 **Q: I see the error message 'IMKClient Stall detected...' on macOS.**
 
-A: This message can generally be ignored. It's related to the input method kit on macOS and doesn't usually affect MapTasker's functionality.
+A: This message can generally be ignored. 
+
+It's related to the input method kit on macOS and doesn't usually affect MapTasker's functionality.
 
 **Q: The background color is incorrect in Firefox (light mode) if my system is in dark mode.**
 
-A: This is a known issue with browser theme handling. Try aligning your browser theme with your system theme or vice-versa.
+A: This is a known issue with browser theme handling. 
+
+Try aligning your browser theme with your system theme or vice-versa.
 
 **Q: Diagram connectors are misaligned for names in Chinese, Korean, or Japanese.**
 
@@ -220,7 +227,9 @@ A: This is a known issue related to font metrics for these languages in the diag
 
 **Q: I can't upgrade to Python 3.11+. Can I still use MapTasker?**
 
-A: Yes, an older version (2.6.3) is available for Python 3.10: `pip install maptasker==2.6.3`. However, you will miss out on newer features and fixes. See the [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md) for details.
+A: Yes, an older version (2.6.3) is available for Python 3.10: `pip install maptasker==2.6.3`. 
+
+However, you will miss out on newer features and fixes. See the [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md) for details.
 
 ## Notes
 
