@@ -2,28 +2,36 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.0.4] 22-June-2025
+## [8.0.5] ??-June-2025  # FIX
 
 ### Added
 
-- Added: No additions.
+- Added:
 
 ### Changed
 
-- Changed: Gemini model 2.5 Pro has been upgraded from the preview model to 'gemini-2.5-pro'.
+- Changed:
 
 ### Fixed
 
-- Fixed: Ai-Analysis windoiw is not getting the focus.
-- Fixed: Numerous bugs when running on Windows 11.
-- Fixed: Diagram and Map views are not being displayed in the defined background color.
-- Fixed: The GUI 'hover tip' background and foreground colors are incorrect.
+- Fixed: 'Upgrade To Latest Version' GUI button is not working on Windows 11.
+- Fixed: Program error in maputils is_color_dark when hovering over item in Map view and the background color is a hex value.
+- Fixed: Task actions are double-spacing in the Map view on Windows.
 
 ### Known Issues
 
 - Unable to change any colors in GUI if using UV to manage the application (UV bug).
 
 ## Older History Logs
+
+## [8.0.4]
+
+- Added: No additions.
+- Changed: Gemini model 2.5 Pro has been upgraded from the preview model to 'gemini-2.5-pro'.
+- Fixed: Ai-Analysis windoiw is not getting the focus.
+- Fixed: Numerous bugs when running on Windows 11.
+- Fixed: Diagram and Map views are not being displayed in the defined background color.
+- Fixed: The GUI 'hover tip' background and foreground colors are incorrect.
 
 ## [8.0.2]
 

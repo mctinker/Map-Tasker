@@ -25,8 +25,12 @@
 
 ## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX/WIN11 machine based on Tasker's backup or exported XML file
 
+Configuration Map...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
-![](/documentation_images/introd.png)
+
+Diagram Map...
+![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/Introd.png)
+
 [[More Samples]](<https://github.com/mctinker/Map-Tasker/wiki#sample-output>)
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see [Note 1](#1)).
@@ -61,17 +65,34 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ## Program Dependencies
 
-### - Python version v3.11 (see [Note 4](#4)) or higher
+### - Python version 3.11 (see [Note 4](#4)) or higher
 
 ### - TKinter 8.6 or higher (see [Note 3](#3))
 
-### - Tasker full or partial full backup or other exported Tasker XML file
+### - Tasker full or partial XML file: backup.xml or other exported XML file
 
-&nbsp;&nbsp;You will be prompted to locate and identify your Tasker exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
+&nbsp;&nbsp;&nbsp;You will be prompted to locate and identify your Tasker exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
 
 ### - Ai Analysis
 
-&nbsp;&nbsp;This requires a valid ChatGPT API key if using the server-based analysis  (See [Note 5](#5)).
+&nbsp;&nbsp;&nbsp;This requires a valid API key if using the server-based analysis and/or Ollama to be installed for local analysis  (See [Note 5](#5)).
+
+## Project Structure
+
+A brief overview of the main files and their purpose:
+
+- `maptasker/`: Contains the core application code.
+  - `maptasker/src/`: The main Python source files for MapTasker's logic.
+  - `maptasker/assets/`: Static assets like icons, images, and JSON data used by the application.
+  - `maptasker/custom_overrides/`: Contains custom modifications to third-party libraries.
+- `documentation_images/`: Images used within this README and other documentation.
+- `tests/`: Contains test scripts and related files for ensuring code quality.
+- `main.py`: The main entry point script for running MapTasker from a cloned repository.
+- `LICENSE`: The MIT License file for the project.
+- `README.md`: This file.
+- `Changelog.md`: A log of changes made in each version.
+- `pyproject.toml`: Project metadata and build system configuration.
+- `requirements.txt`: Lists project dependencies (primarily for GitHub installs).
 
 ## Installation
 
@@ -138,72 +159,121 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 
 ## License
 
-This program is licensed under the [MIT License](https://opensource.org/license/mit).
+This project is licensed under the [MIT License](./LICENSE).
+
+The MIT License is a permissive free software license originating at the Massachusetts Institute of Technology (MIT). As a permissive license, it puts only very limited restriction on reuse and has, therefore, high license compatibility.
+
+In brief, this means you are free to:
+
+- **Use**: Use the software for any purpose (commercial or private).
+- **Modify**: Modify the software.
+- **Distribute**: Distribute the original or modified software.
+- **Sublicense**: Sublicense the software.
+
+You must:
+
+- **Include Copyright**: Include the original copyright notice and the license itself in any substantial portions of the software.
+
+The software is provided "AS IS", without warranty of any kind. For the full license text, please see the [LICENSE](./LICENSE) file.
+
+## Troubleshooting and FAQ
+
+**Q: I'm having trouble with Tkinter versioning, especially on macOS with Brew.**
+
+A: Tkinter 8.6 or higher is required.
+
+    - The simplest solution is often to use the [standard Python release download](https://www.python.org) which usually includes a compatible Tcl/Tk.
+    - To check your Tkinter version, run: `python -m tkinter`
+    - If using Brew and encountering issues:
+        - You might need to uninstall Python, install `tcl-tk@8` via Brew, and then reinstall Python.
+        - For `pyenv` users:
+            - Python 3.11 may need `tcl-tk@8`. Commands: `brew uninstall tcl-tk`, `pyenv uninstall 3.11.xx`, `brew install tcl-tk@8`, `pyenv install 3.11:latest`.
+            - Python 3.12 should be upgraded to the latest 3.12.x: `pyenv install 3.12:latest`.
+            - Python 3.13 generally works with newer Tcl/Tk versions.
+    - The "Notes" section of this README contains further details, particularly regarding Tkinter installation complexities.
+
+**Q: The `MapTasker_Map.txt` diagram looks misaligned in Notepad on Windows.**
+
+A: Notepad may not handle spacing correctly for this file.
+
+It's recommended to use a different text editor like Notepad++, VS Code, or Typepad (and set it as your default for `.txt` files). Ensure 'text-wrap' is off and a monospace font is used.
+
+**Q: How do I retrieve the Tasker XML file directly from my Android device?**
+
+A: Prerequisites:
+
+1- Desktop and Android device on the same local network.
+
+2- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) installed and active on the Android device, server running.
+
+3- The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) imported into Tasker for the 'List XML Files' button in the GUI.
+
+Further details are available in the "Notes" section of this README.
+
+**Q: I see the error message 'IMKClient Stall detected...' on macOS.**
+
+A: This message can generally be ignored.
+
+It's related to the input method kit on macOS and doesn't usually affect MapTasker's functionality.
+
+**Q: The background color is incorrect in Firefox (light mode) if my system is in dark mode.**
+
+A: This is a known issue with browser theme handling.
+
+Try aligning your browser theme with your system theme or vice-versa.
+
+**Q: Diagram connectors are misaligned for names in Chinese, Korean, or Japanese.**
+
+A: This is a known issue related to font metrics for these languages in the diagramming library.
+
+**Q: I can't upgrade to Python 3.11+. Can I still use MapTasker?**
+
+A: Yes, an older version (2.6.3) is available for Python 3.10: `pip install maptasker==2.6.3`.
+
+However, you will miss out on newer features and fixes. See the [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md) for details.
 
 ## Notes
 
-### 1
+Details for some of the points mentioned in the "Troubleshooting and FAQ" section are preserved here for additional context.
 
-Windows 11 has been tested and verified to work.  Limitations:
+**Regarding Tkinter Installation (formerly Note 3):**
 
-- If a conflict arises during installation of 'psutil', then do the following:
-  - 'pip uninstall psutil'
-  - 'pip install psutil==5.9.8'
-  - 'pip install maptasker'
+The most direct and simple solution for Tkinter compatibility is to get and use the [standard Python release download](https://www.python.org). If using package managers like Brew or version managers like `pyenv`, specific steps might be needed if Tkinter version issues (requiring 8.6+) arise:
 
-- Notepad does not treat spacing correctly for the configuration diagram (MapTasker_Map.txt).  Install an app such as "Typepad" and set it as your default app for opening 'txt' files.
+- To determine your Tkinter version: `'python -m tkinter'`
+- General Brew troubleshooting for Tkinter:
+  - Uninstall Python.
+  - `brew install tcl-tk@8`
+  - Reinstall Python.
+- For `pyenv` users with Tcl/Tk version 9 conflicts:
+  - Python 3.11: `brew uninstall tcl-tk`, `pyenv uninstall 3.11.xx`, `brew install tcl-tk@8`, `pyenv install 3.11:latest`.
+  - Python 3.12: Upgrade to the latest 3.12.x: `pyenv install 3.12:latest`.
+  - Python 3.13: Generally compatible with Tcl/Tk version 9.
+- If still having issues, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
 
-### 2
+**Regarding Direct XML Retrieval from Android (formerly Note 2):**
 
-To retrieve the Tasker XML file directly from your Android device, you must have the following prerequisites:
+To retrieve the Tasker XML file directly:
 
-- Both the desktop and Android devices must be on the same local network.
+- Ensure both desktop and Android devices are on the same local network.
+- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, with the server running. Remember to run the "launch" Task and enter your Google Drive ID.
+- The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) must be imported into Tasker for the 'List XML Files' button in the GUI. You can [preview this app on TaskerNet](https://taskernet.com/?public&tags=maptasker,Utility&time=AllTime).
+- Once retrieved, the XML is saved on your desktop and doesn't need constant re-fetching unless changed.
 
-- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, and the server must be running (see Android notification: "HTTP Server Info...").  Make sure to run the "launch" Task and enter your Google Drive ID.
+**Regarding Windows 11 Specifics (formerly Note 1):**
 
-- The TaskerNet profile, [MapTasker List](https://shorturl.at/0MQrL), must be imported into Tasker for the 'List XML Files' button to work in the GUI.  You can also first [preview this app on TaskerNet](https://taskernet.com/?public&tags=maptasker,Utility&time=AllTime).
+- Only WIndows 11 is supported.  Any earlier versions of Windows are not supported.
+- For `MapTasker_Map.txt` display issues in Notepad, use an alternative text editor like Typepad and set it as default for `.txt` files.
 
-- Once the XML has been retrieved from your Android device, it is not necessary to keep retrieving it unless it has changed since it is automatically saved on your desktop.
+**Regarding Older Python Versions (formerly Note 4):**
 
-### 3
+If you cannot use Python 3.11+, MapTasker version 2.6.3 is available for Python 3.10: `pip install maptasker==2.6.3`. This version will not have the latest features (see [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md)).
 
-The most direct and simple solution is to get and use the [standard Python release download](https://www.python.org).
+**Note 5:**
 
-If this is not an option and you insist on using Brew, then read on...
+Ai analysis is available through the GUI only. You can run an analysis using a single Project, Profile or Task only. Support is available for server-based OpenAi (ChatGPT) and local-based Llama models.
 
-To determine the version of Tkinter you are using, run the following command from Terminal:
-
-     'python -m tkinter'
-
-If having problems getting Tkinter to version 8.6, try the following:
-
-- uninstall python
-- 'brew install tcl-tk@8'
-- reinstall python
-
-If still having Tkinter version problems, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
-
-Python installations that use 'pyenv' version management, take note: tcl-tk has been upgraded to version 9 (brew install tcl-tk).  If this error occurs:
-
-- If running python version 3.11, then the new tcl-tk is not recognized and you will get an import error for 'tkinter'.  Issue the commands (in the order specified):
-  - 'brew uninstall tcl-tk'
-  - 'pyenv uninstall 3.11.xx'
-  - 'brew install tcl-tk@8'
-  - 'pyenv install 3.11:latest'
-- if running Python 3.12, upgrade to the latest version of 3.12: 'pyenv install 3.12:latest'
-- Python version 3.13 works fine with the new tcl-tk version 9.
-
-### 4
-
-If you are unable to upgrade to Python version 3.11 or higher, an older version of MapTasker is still available for Python version 3.10, via the command:
-
- 'pip install maptasker==2.6.3'
-
-With this older version, you will not get the benefits offered by the newer version.  Refer to [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md) for details.
-
-### 5
-
-Ai analysis is available through the GUI only.  You can run an analysis using a single Project, Profile or Task only.  Support is available for server-based OpenAi (ChatGPT) and local-based Llama models.
+Llama based models are supported via [Ollama](https://ollama.com/), which you must manually download, install and run it once to set up the server on your desktop.
 
 ## To-Do List (in no particular order)
 
@@ -256,12 +326,48 @@ Network traffic is as follows:
 - Use chatgpt.com when using AI analysis with any of the OpenAi models.  The output of MapTasker is sent to the server via the standard API call for analysis.  Likewise for Claude (Anthropic), Google (Gemini) and DeepSeek.
 - New and updated local Ai models will be loaded from '<https://ollama.com/library>' when running the AI Analysis feature.
 
+## Contributing
+
+Contributions are welcome! Here are some ways you can contribute to MapTasker:
+
+**Reporting Bugs:**
+
+- If you find a bug, please open an issue on the [GitHub Issues page](https://github.com/mctinker/Map-Tasker/issues).
+- Include as much detail as possible:
+  - Steps to reproduce the bug.
+  - Expected behavior and actual behavior.
+  - Your operating system and Python version.
+  - MapTasker version.
+  - Relevant parts of your Tasker XML file (if applicable, and ensure no sensitive information is included).
+  - The `maptasker.log` file if generated with the `-debug` option.
+
+**Suggesting Enhancements:**
+
+- Open an issue on GitHub, outlining your suggestion.
+- Explain the use case and why this enhancement would be beneficial.
+
+**Pull Requests:**
+
+- If you'd like to contribute code:
+    1. Fork the repository.
+    2. Create a new branch for your feature or bug fix (e.g., `feature/new-output-format` or `fix/xml-parsing-error`).
+    3. Make your changes.
+    4. Ensure your code adheres to the Black code style (as indicated by the badge).
+    5. Add tests for your changes in the `tests/` directory if applicable.
+    6. Ensure all tests pass.
+    7. Submit a pull request to the `Master` branch.
+
+**Coding Style:**
+
+- This project uses [Black](https://github.com/psf/black) for code formatting. Please ensure your contributions are formatted with Black.
+
+We appreciate your help in making MapTasker better!
+
 ## Known Issues
 
-- An upgrade to Tcl-tk verison 9 (brew install tcl-tk) may cause an error when importing tkinter.  If this occurs, reefer to [Note 3](#3).
 - The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
 - Diagram connectors are misaligned if names are in Chinese, Korean or Japanese.
-- The error message 'IMKClient Stall detected, _please Report_ your user scenario attaching...' may appear on OS X and it can be ignored.
+- Unable to change any colors in GUI if using UV to manage the application (this is an open UV bug).
 
 ## Contributions
 
@@ -277,4 +383,4 @@ Network traffic is as follows:
 
 [Anonyo Noor for cria](https://github.com/leftmove/cria)
 
-<a href="https://www.buymeacoffee.com/mctinker"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=mctinker&button_colour=FFDD00&font_colour=000000&font_family=Poppins&outline_colour=000000&coffee_colour=ffffff" /></a>
+[!["Buy Me A Coffee"](/documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
