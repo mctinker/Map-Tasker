@@ -61,7 +61,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ## Program Dependencies
 
-### - Python version v3.11 (see [Note 4](#4)) or higher
+### - Python version 3.11 (see [Note 4](#4)) or higher
 
 ### - TKinter 8.6 or higher (see [Note 3](#3))
 
@@ -71,7 +71,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ### - Ai Analysis
 
-&nbsp;&nbsp;This requires a valid ChatGPT API key if using the server-based analysis  (See [Note 5](#5)).
+&nbsp;&nbsp;This requires a valid API key if using the server-based analysis and/or Ollama to be installed for local analysis  (See [Note 5](#5)).
 
 ## Project Structure
 
@@ -188,14 +188,6 @@ A: Tkinter 8.6 or higher is required.
             - Python 3.13 generally works with newer Tcl/Tk versions.
     - The "Notes" section of this README contains further details, particularly regarding Tkinter installation complexities.
 
-**Q: On Windows 11, I got a conflict installing `psutil`.**
-
-A: Try the following:
-
-    1. `pip uninstall psutil`
-    2. `pip install psutil==5.9.8`
-    3. `pip install maptasker`
-
 **Q: The `MapTasker_Map.txt` diagram looks misaligned in Notepad on Windows.**
 
 A: Notepad may not handle spacing correctly for this file. 
@@ -206,10 +198,11 @@ It's recommended to use a different text editor like Notepad++, VS Code, or Type
 
 A: Prerequisites:
 
-    - Desktop and Android device on the same local network.
-    - The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) installed and active on the Android device, server running.
-    - The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) imported into Tasker for the 'List XML Files' button in the GUI.
-    - Further details are available in the "Notes" section of this README.
+    1- Desktop and Android device on the same local network.
+    2- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) installed and active on the Android device, server running.
+    3- The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) imported into Tasker for the 'List XML Files' button in the GUI.
+    
+    Further details are available in the "Notes" section of this README.
 
 **Q: I see the error message 'IMKClient Stall detected...' on macOS.**
 
