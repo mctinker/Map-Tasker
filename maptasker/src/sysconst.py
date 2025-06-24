@@ -280,7 +280,8 @@ LLAMA_MODELS = [
     "deepseek-coder",
     "deepseek-coder-v2",
     "deepseek-r1",
-    # "deepseek-v3",  # This model is huge!
+    # "deepseek-v3",  # This model is huge...404gb!
+    # "devstral",     # This model is 14gb!
     "exaone-deep",
     "gemma",
     "gemma2",

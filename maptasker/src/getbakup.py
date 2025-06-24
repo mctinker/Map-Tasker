@@ -33,7 +33,9 @@ def write_out_backup_file(file_contents: bin) -> None:
     # We must get just the file name and type since we will be using this to save it to our local path.
     # This is the file we will do all of our processing against...the local file fetched from the Android device.
     # Get position of the last "/" in path/file
-    name_location = PrimeItems.program_arguments["android_file"].rfind(PrimeItems.slash) + 1
+    name_location = (
+        PrimeItems.program_arguments["android_file"].rfind(PrimeItems.slash) + 1
+    )
     # Get the name of the file
     my_file_name = PrimeItems.program_arguments["android_file"][name_location:]
 
@@ -99,6 +101,7 @@ def get_backup_file() -> str:
     )
 
     if return_code != 0:
+        logger.debug(f"return_code:{return_code}")
         if PrimeItems.program_arguments["gui"]:
             PrimeItems.error_code = return_code
             return None

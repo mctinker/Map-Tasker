@@ -363,6 +363,11 @@ class TextWindow(ctk.CTkToplevel):
         # Save the window position on closure
         self.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
 
+        # Display the title.
+        self.title(
+            f"{title} - Drag window to desired position and rerun the {title} command.",
+        )
+
 
 # Display a Text structure: Used for 'Map', 'Diagram' and 'Tree' views.
 class CTkTextview(ctk.CTkFrame):

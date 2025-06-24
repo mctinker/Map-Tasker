@@ -52,7 +52,6 @@ from maptasker.src.sysconst import NOW_TIME
 class PrimeItems:
     """PrimeItems class contains global variables used throughout MapTasker"""
 
-    ai_analyze = False
     ai: ClassVar = {
         "do_ai": False,
         "model": "",
@@ -176,7 +175,6 @@ class PrimeItemsReset:
         PrimeItems.error_code = 0
         PrimeItems.error_msg = ""
         PrimeItems.tkroot = None
-        PrimeItems.ai_analyze = False
         PrimeItems.ai = {
             "do_ai": False,
             "output_lines": [],

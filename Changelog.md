@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.0.5] ??-June-2025  # FIX
+## [8.0.5] 25-June-2025
 
 ### Added
 
@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: 'Upgrade To Latest Version' GUI button is not working on Windows 11.
 - Fixed: Program error in maputils is_color_dark when hovering over item in Map view and the background color is a hex value.
 - Fixed: Task actions are double-spacing in the Map view on Windows.
+- Fixed: AI Analysis wqindow is missing the title.
 
 ### Known Issues
 
