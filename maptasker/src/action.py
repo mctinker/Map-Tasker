@@ -473,10 +473,13 @@ def get_extra_stuff(
             extra_stuff = f"{format_html('action_color', '', ' [Continue Task After Error]', True)}{extra_stuff}"
 
     # For some reason, we're left with an empty "<span..." element.  Remove it.
-    extra_stuff = extra_stuff.replace(
-        f'<span style="color:{colors_to_use["action_color"]};{FONT_FAMILY}{program_arguments["font"]}"><span ',
-        "<span ",
-    )
+    try:
+        extra_stuff = extra_stuff.replace(
+            f'<span style="color:{colors_to_use["action_color"]};{FONT_FAMILY}{program_arguments["font"]}"><span ',
+            "<span ",
+        )
+    except KeyError:
+        print("bingo")
 
     return f"{extra_stuff}"
 

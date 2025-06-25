@@ -99,6 +99,10 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     user_args = {}
     sys_args = {}
     for argument in ARGUMENT_NAMES:
+        # TOML chokes on 'None" values.
+        if program_arguments[argument] is None:
+            logger.debug(f"{argument} is None.  Fix it!")
+            program_arguments[argument] = ""
         if argument in SYSTEM_ARGUMENTS:
             sys_args[argument] = program_arguments[argument]
         else:
@@ -198,9 +202,7 @@ def process_old_formatted_file(
             temp_args = program_arguments["backup_file_http"].split(":")
             program_arguments["android_ipaddr"] = temp_args[1][2:]
             program_arguments["android_port"] = temp_args[2]
-            program_arguments["android_file"] = program_arguments[
-                "backup_file_location"
-            ]
+            program_arguments["android_file"] = program_arguments["backup_file_location"]
             del program_arguments["backup_file_http"]
             del program_arguments["backup_file_location"]
 

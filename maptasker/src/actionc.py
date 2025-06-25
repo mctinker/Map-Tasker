@@ -16,7 +16,7 @@
 #   reqargs subkey = the requirement arg statement numbers for evaluation - optional   #
 #   evalargs subkey = formula for evaluation - optional                                #
 #      'some_string:' for str or int xml values                                        #
-#      ['', 'e', 'some_string'] for boolean: 1 = display string, 0 = no display - optl #
+#      ["e", ", name"] ...evaluate value to determine if it is 'selected'.             #
 #                                                                                      #
 #      ['some_string:', 'l', 'lookup-code] for actiont dictionary lookup for specific  #
 #       code.                                                                          #
@@ -131,10 +131,11 @@ action_codes = {
     "109t": ActionCode(
         "",
         [
-            ["0", True, "Type", "0", "Type"],
+            ["0", True, "Type", "0", ["Type=", "l", "109"]],
             ["1", False, "Image", "1", "Image"],
-            ["2", True, "Scale", "3", "Scale"],
-            ["3", True, "Crop", "3", "Crop"],
+            ["2", True, "Scale", "3", ["e", ", Scale"]],
+            ["3", True, "Crop", "3", ["e", ", Crop"]],
+            ["4", True, "Center", "3", ["e", ", Center"]],
         ],
         "Set Wallpaper",
         "40",
@@ -3649,6 +3650,17 @@ action_codes = {
         [["0", True, "Output Variables", "5", ", Output Variables"]],
         "Get Keyboard Info",
         "104",
+        "True",
+    ),
+    "473t": ActionCode(
+        "",
+        [
+            ["0", True, "Output Variables", "5", ", Output Variables"],
+            ["1", False, "Latitude", "1", ", Latitude"],
+            ["2", False, "Longitude", "1", ", Longitude"],
+        ],
+        "Get Sunrise/Sunset Times",
+        "60",
         "True",
     ),
     "475t": ActionCode(

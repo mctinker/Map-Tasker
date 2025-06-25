@@ -2,15 +2,15 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.0.5] 25-June-2025
+## [8.0.5] 26-June-2025
 
 ### Added
 
-- Added:
+- Added: Tasker version 6.6.0-beta is supported.
 
 ### Changed
 
-- Changed:
+- Changed: No changes.
 
 ### Fixed
 
@@ -18,6 +18,9 @@ All notable changes to this project will be documented in this file!
 - Fixed: Program error in maputils is_color_dark when hovering over item in Map view and the background color is a hex value.
 - Fixed: Task actions are double-spacing in the Map view on Windows.
 - Fixed: AI Analysis wqindow is missing the title.
+- Fixed: Potential AI analysis loop if it this was left on in settings due to abnormal terminal.
+- Fixed: Logging is not enabled if 'debug' is on in the saved settings at startup.
+- Fixed: Program error if a new action argument is not yet supported.
 
 ### Known Issues
 

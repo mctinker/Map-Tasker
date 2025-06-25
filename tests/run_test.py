@@ -38,9 +38,11 @@ def test_main():
     """
     ip = "62"
     # # Test name attributes
+    print("test 0")
     with patch("sys.argv", ["-test=yes", "reset", "debug", "outline"]):
         test_it()
     # Test name attributes
+    print("test 1")
     with patch(
         "sys.argv",
         [
@@ -50,9 +52,12 @@ def test_main():
             "debug",
             "names=bold highlight",
             "cHighlight LightBlue",
+            "file=/Users/mikrubin/MapTasker/My_Apps.prj.xml",
         ],
     ):
         test_it()
+
+    print("test 2")
     with patch(
         "sys.argv",
         [
@@ -62,27 +67,30 @@ def test_main():
             "debug",
             "names=underline italicize",
             "font='Menlo'",
+            "file=/Users/mikrubin/MapTasker/My_Apps.prj.xml",
         ],
     ):
         test_it()
     # Test light mode
+    print("test 3")
     with patch(
         "sys.argv",
         ["-test=yes", "reset", "detail=2", "debug", "appearance=light"],
+        "file=/Users/mikrubin/MapTasker/My_Apps.prj.xml",
     ):
         test_it()
     # Test max detail
     with patch("sys.argv", ["-test=yes", "reset", "detail=5", "debug"]):
         test_it()
-    # # Test max detail
-    # with patch("sys.argv", ["-test=yes", "reset", "detail=4", "debug", "i=10"]):
-    #    test_it()
-    # # Test full detail
-    # with patch("sys.argv", ["-test=yes", "reset", "detail=3", "debug", "pretty"]):
-    #    test_it()
-    # # Test limited detail
-    # with patch("sys.argv", ["-test=yes", "reset", "detail=2", "debug"]):
-    #    test_it()
+    # Test max detail
+    with patch("sys.argv", ["-test=yes", "reset", "detail=4", "debug", "i=10"]):
+        test_it()
+    # Test full detail
+    with patch("sys.argv", ["-test=yes", "reset", "detail=3", "debug", "pretty"]):
+        test_it()
+    # Test limited detail
+    with patch("sys.argv", ["-test=yes", "reset", "detail=2", "debug"]):
+        test_it()
     # # Test limited detail 1
     # with patch("sys.argv", ["-test=yes", "reset", "detail=1", "debug"]):
     #    test_it()

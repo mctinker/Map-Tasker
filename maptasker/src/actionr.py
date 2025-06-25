@@ -44,16 +44,20 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
     result_parts = []
     for key in evaluated_results:
         if key not in ("returning_something", "error"):
-            arg_value = evaluated_results[key]["value"]
-            if arg_value is not None:
-                if isinstance(arg_value, str | bool):
-                    result_parts.append(arg_value)
-                else:
-                    result_parts.append(arg_value["value"])
-            # Eliminate empty values
-            if result_parts and (result_parts[-1] == ", " or result_parts[-1] == ""):
-                result_parts.pop()
-                continue
+            try:
+                arg_value = evaluated_results[key]["value"]
+                if arg_value is not None:
+                    if isinstance(arg_value, str | bool):
+                        result_parts.append(arg_value)
+                    else:
+                        result_parts.append(arg_value["value"])
+                # Eliminate empty values
+                if result_parts and (result_parts[-1] == ", " or result_parts[-1] == ""):
+                    result_parts.pop()
+                    continue
+            # Argument is missing...ignore it.
+            except KeyError:
+                pass
 
     # Return results as a string
     if result_parts:

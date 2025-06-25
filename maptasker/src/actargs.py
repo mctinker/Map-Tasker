@@ -363,7 +363,10 @@ def action_args(
         index = num if arg == "if" else our_action_args.index(arg)
 
         # If this is just a string, use Tasker's argument 'name'.  Otherwise, use the evalarg value in the argument.
-        argeval = arg[2] if arg[2] and isinstance(arg[4], str) else arg[4]
+        if len(arg) > 4:
+            argeval = arg[2] if arg[2] and isinstance(arg[4], str) else arg[4]
+        else:
+            argeval = arg[2]
 
         # Get the argument type: Int, Str, etc.
         try:
