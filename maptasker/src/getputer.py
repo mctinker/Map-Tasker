@@ -202,7 +202,9 @@ def process_old_formatted_file(
             temp_args = program_arguments["backup_file_http"].split(":")
             program_arguments["android_ipaddr"] = temp_args[1][2:]
             program_arguments["android_port"] = temp_args[2]
-            program_arguments["android_file"] = program_arguments["backup_file_location"]
+            program_arguments["android_file"] = program_arguments[
+                "backup_file_location"
+            ]
             del program_arguments["backup_file_http"]
             del program_arguments["backup_file_location"]
 
@@ -250,8 +252,7 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
                     "",
                 )  # If this hadn't been previously saved, set it to blank
 
-            # Program arguments
-            # FIX Initialize log file if debug is true
+            # Get program arguments
             try:
                 program_arguments = settings["program_arguments"]
                 # Start log. file if debug is on.
