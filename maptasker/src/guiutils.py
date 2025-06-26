@@ -13,6 +13,7 @@ import contextlib
 import json
 import os
 import re
+import subprocess
 import sys
 from functools import cache
 from tkinter import TclError, font
@@ -78,15 +79,17 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 8.0.3 - Change Log\n
+Version 8.0.5 - Change Log\n
 ### Added\n
-- Added: No additions.\n
-- Changed: Gemini model 2.5 Pro has been upgraded from the preview model to 'gemini-2.5-pro'.\n
-### Fixed\n
-- Fixed: Ai-Analysis windoiw is not getting the focus.\n
-- Fixed: Numerous bugs when running on Windows 11.\n
-- Fixed: Diagram and Map views are not being displayed in the defined background color.\n
-- Fixed: The GUI 'hover tip' background and foreground colors are incorrect.\n
+- Added: Tasker version 6.6.0-beta is supported.\n
+- Changed: No changes.\n
+- Fixed: 'Upgrade To Latest Version' GUI button is not working on Windows 11.\n
+- Fixed: Program error in maputils is_color_dark when hovering over item in Map view and the background color is a hex value.\n
+- Fixed: Task actions are double-spacing in the Map view on Windows.\n
+- Fixed: AI Analysis wqindow is missing the title.\n
+- Fixed: Potential AI analysis loop if it this was left on in settings due to abnormal terminal.\n
+- Fixed: Logging is not enabled if 'debug' is on in the saved settings at startup.\n
+- Fixed: Program error if a new action argument is not yet supported.\n
 """
 
 default_font_size = 14
@@ -1818,12 +1821,43 @@ def reload_gui(self: object) -> None:
     _, _ = save_restore_args(temp_args, self.color_lookup, True)
 
     # ReRun via a new process, which will load and run the new program/version.
-    # Note: this will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'
     # Note: this current process will not return after this call, but simply be killed.
-    print(
-        "The following error message can be ignored: 'Task policy set failed: 4 ((os/kern) invalid argument)'.",
-    )
-    os.execl(sys.executable, "python", *sys.argv)
+    restart_program_subprocess()
+    # os.execl(sys.executable, "python", *sys.argv)
+
+
+# Or, if you prefer spawning a new process and then exiting the old one:
+def restart_program_subprocess() -> None:
+    """
+    Restarts the current program by spawning a new process and exiting the old one.
+    This is often more reliable on Windows.
+    """
+    print("Restarting program...")
+    try:
+        # Get the path to the current script
+        script_path = os.path.abspath(sys.argv[0])
+
+        # Create a new process (detaching it is often desired for restarts)
+        # creationflags=subprocess.DETACHED_PROCESS is for Windows only
+        if sys.platform == "win32":
+            command = f"{script_path} {','.join(sys.argv[1:])}"
+            subprocess.Popen(  # noqa: S603
+                command,
+                creationflags=subprocess.DETACHED_PROCESS,
+                close_fds=True,
+            )
+
+        else:
+            # Construct the command to run the script again
+            command = [sys.executable, script_path, *sys.argv[1:]]
+            # For Unix-like systems, you might use different flags or just Popen
+            subprocess.Popen(command, close_fds=True)  # noqa: S603
+
+    except Exception as e:  # noqa: BLE001
+        print(f"Error restarting: {e}")
+    finally:
+        # Exit the current process
+        sys.exit(0)
 
 
 def display_no_xml_message(self) -> None:  # noqa: ANN001
@@ -2888,16 +2922,16 @@ def validate_tkinter_geometry(geometry_string: str) -> bool:
         pos_y = int(parts[3])
 
         if width < 300:
-            print("Error: Width must be at least 300.")
+            print("Error: Window width must be at least 300.")
             return False
         if height < 50:
-            print("Error: Height must be at least 50.")
+            print("Error: Window height must be at least 50.")
             return False
         if pos_x < 0:
-            print("Error: Position X must be a non-negative number.")
+            print("Error: Window position X must be a non-negative number.")
             return False
         if pos_y < 0:
-            print("Error: Position Y must be a non-negative number.")
+            print("Error: Window position Y must be a non-negative number.")
             return False
 
         return True  # noqa: TRY300

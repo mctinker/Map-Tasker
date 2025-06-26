@@ -99,6 +99,10 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     user_args = {}
     sys_args = {}
     for argument in ARGUMENT_NAMES:
+        # TOML chokes on 'None" values.
+        if program_arguments[argument] is None:
+            logger.debug(f"{argument} is None.  Fix it!")
+            program_arguments[argument] = ""
         if argument in SYSTEM_ARGUMENTS:
             sys_args[argument] = program_arguments[argument]
         else:
@@ -198,7 +202,9 @@ def process_old_formatted_file(
             temp_args = program_arguments["backup_file_http"].split(":")
             program_arguments["android_ipaddr"] = temp_args[1][2:]
             program_arguments["android_port"] = temp_args[2]
-            program_arguments["android_file"] = program_arguments["backup_file_location"]
+            program_arguments["android_file"] = program_arguments[
+                "backup_file_location"
+            ]
             del program_arguments["backup_file_http"]
             del program_arguments["backup_file_location"]
 
@@ -229,6 +235,9 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
         - If the TOML file is corrupted or does not exist, the function calls the "corrupted_file" function.
 
     """
+    # Avoid circular import
+    from maptasker.src.proginit import log_startup_values
+
     program_arguments = ""
     colors_to_use = ""
     with open(new_file, "rb") as f:
@@ -243,9 +252,12 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
                     "",
                 )  # If this hadn't been previously saved, set it to blank
 
-            # Program arguments
+            # Get program arguments
             try:
-                program_arguments = settings["program_arguments"]  # Get the program arguments
+                program_arguments = settings["program_arguments"]
+                # Start log. file if debug is on.
+                if program_arguments["debug"]:
+                    log_startup_values()
             except KeyError:
                 program_arguments = initialize_runtime_arguments()
             try:

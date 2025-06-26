@@ -273,6 +273,9 @@ def initialize_everything() -> tuple[list, list, list]:
     Set up all the variables and logic in case program craps out
         :return: empty list of primary items used throughout project
     """
+    # Reset colors to use if running unit test
+    if "-test=yes" in sys.argv:
+        PrimeItems.colors_to_use = []
 
     # Check to see if we might be coming from another program (e.g. run_test.py), and we are not generating a map view.
     # If so, re-initialize PrimeItems since it is still carrying the values from the last test/run.
@@ -718,6 +721,7 @@ def mapit_all(file_to_get: str) -> int:
     PrimeItems.program_arguments["doing_diagram"] = save_diagram
 
     if PrimeItems.error_code > 0:
+        # We have a error.  Spit it out and exit.
         exit_program(PrimeItems.error_code)
 
     # Set up file to read if it is passed in (via rerun)

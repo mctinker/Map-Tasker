@@ -817,21 +817,3 @@ def parse_html() -> dict:
         html.close()
 
     return output_lines
-
-
-def get_the_map() -> dict:
-    r"""
-    Reads the contents of the "MapTasker.html" file and processes each line to generate a list of cleaned-up lines.
-
-    Returns:
-        output_lines (dict): A dictionary of cleaned-up lines from the "MapTasker.html" file.
-
-    This function reads the contents of the "MapTasker.html" file line by line to parse the data.
-
-    The cleaned-up lines are then appended to the `output_lines` and returned as the result.
-    """
-
-    output_lines = parse_html()
-
-    # PrimeItems.program_arguments["guiview"] = False
-    return output_lines

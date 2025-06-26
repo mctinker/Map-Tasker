@@ -99,6 +99,7 @@ def get_backup_file() -> str:
     )
 
     if return_code != 0:
+        logger.debug(f"return_code:{return_code}")
         if PrimeItems.program_arguments["gui"]:
             PrimeItems.error_code = return_code
             return None

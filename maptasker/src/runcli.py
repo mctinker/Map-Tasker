@@ -19,6 +19,7 @@ import darkdetect
 
 from maptasker.src.clip import clip_figure
 from maptasker.src.colors import get_and_set_the_color, validate_color
+from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.error import error_handler
 from maptasker.src.getputer import save_restore_args
@@ -338,6 +339,13 @@ def process_arguments(args: object) -> dict:
     get_runtime_arguments(args)
 
     # Process color arguments.
+
+    # Set the default colors first
+    PrimeItems.colors_to_use = set_color_mode(
+        PrimeItems.program_arguments["appearance_mode"],
+    )
+
+    # Alter any color specified in the settings / arguments.
     for item in TYPES_OF_COLORS:
         the_name = getattr(args, f"c{item}")
         if the_name is not None:
@@ -428,6 +436,7 @@ def unit_test() -> namedtuple:  # noqa: PYI024
         cTaskerNetInfo=None,
         cTrailingComments=None,
         cUnknownTask=None,
+        cUnnamedTask=None,
         debug=True,
         detail=3,
         directory=False,
