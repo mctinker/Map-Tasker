@@ -364,7 +364,11 @@ def restore_arguments() -> dict:
     """
     temp_arguments = temp_colors = {}
     # Get the arguments from our saved settings file.
-    temp_arguments, temp_colors = save_restore_args(temp_arguments, temp_colors, False)
+    temp_arguments, temp_colors = save_restore_args(
+        temp_arguments,
+        temp_colors,
+        to_save=False,
+    )
 
     # We will get a Keyerror if the restore file does not exist
     with contextlib.suppress(KeyError):
@@ -558,14 +562,24 @@ def process_cli() -> None:
         restore_arguments()
 
         # Restore the GUI and Map View flags.
-        PrimeItems.program_arguments["gui"] = save_gui  # Restore GUI flag from runtime options,
-        PrimeItems.program_arguments["guiview"] = save_map  # Restore GUI Map View flag from runtime options,
+        PrimeItems.program_arguments["gui"] = (
+            save_gui  # Restore GUI flag from runtime options,
+        )
+        PrimeItems.program_arguments["guiview"] = (
+            save_map  # Restore GUI Map View flag from runtime options,
+        )
 
-        PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.
+        PrimeItems.program_arguments["rerun"] = (
+            False  # Make sure this is off!  Loops otherwise.
+        )
 
     # If using the GUI and not doing a map view or version, them process the GUI.
     do_version = getattr(args, version_flag)  # See if doing version (-v)
-    if PrimeItems.program_arguments["gui"] and not PrimeItems.program_arguments["guiview"] and not do_version:
+    if (
+        PrimeItems.program_arguments["gui"]
+        and not PrimeItems.program_arguments["guiview"]
+        and not do_version
+    ):
         (
             PrimeItems.program_arguments,
             PrimeItems.colors_to_use,

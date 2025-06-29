@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "8.0.5"
+VERSION = "8.0.6"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -184,9 +184,7 @@ pattern9 = re.compile("</span></span>")
 pattern10 = re.compile("</p></p>")
 pattern11 = re.compile(".*[A-Z].*")
 pattern12 = re.compile(r"[%]\w+")  # matches any word-constituent character.
-pattern13 = (
-    r",(?=\S)"  # matches any comma followed by a non-blank character.  e.g. now is,the time, for (catches is,the)
-)
+pattern13 = r",(?=\S)"  # matches any comma followed by a non-blank character.  e.g. now is,the time, for (catches is,the)
 # pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<\\"  # Match everything after the label until a '<'
 pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<span>"
 pattern15 = re.compile("\n")
@@ -335,7 +333,7 @@ MODEL_GROUPS = {
     "Gemini": GEMINI_MODELS,
 }
 
-# DFefine the number of Profiles per line in the Diagram view.  Default = 6.
+# Define the number of Profiles per line in the Diagram view.  Default = 6.
 DIAGRAM_PROFILES_PER_LINE = 6
 
 # Number of spaces to substitute &nbsp; for <blanktab> CSS in the output. [spaces, 'pixels']

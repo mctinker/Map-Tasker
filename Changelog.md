@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.0.5] 26-June-2025
+## [8.0.6] ??-June-2025  # FIX
 
 ### Added
 
-- Added: Tasker version 6.6.0-beta is supported.
+- Added:
 
 ### Changed
 
@@ -14,6 +14,18 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: The GUI last-tab-used is not saved and restored if either 'Rerun' or 'Run and Exit' is selected.
+- Fixed: Hover over directory name shows detail in the wrong background color in GUI on Windows.
+
+### Known Issues
+
+- Unable to change any colors in GUI if using UV to manage the application (UV bug).
+
+## Older History Logs
+
+## [8.0.5]
+
+- Added: Tasker version 6.6.0-beta is supported.
 - Fixed: 'Upgrade To Latest Version' GUI button is not working on Windows 11.
 - Fixed: Program error in maputils is_color_dark when hovering over item in Map view and the background color is a hex value.
 - Fixed: Task actions are double-spacing in the Map view on Windows.
@@ -21,12 +33,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Potential AI analysis loop if it this was left on in settings due to abnormal terminal.
 - Fixed: Logging is not enabled if 'debug' is on in the saved settings at startup.
 - Fixed: Program error if a new action argument is not yet supported.
-
-### Known Issues
-
-- Unable to change any colors in GUI if using UV to manage the application (UV bug).
-
-## Older History Logs
 
 ## [8.0.4]
 

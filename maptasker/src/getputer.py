@@ -322,7 +322,7 @@ def read_arguments(
 def save_restore_args(
     program_arguments: dict,
     colors_to_use: dict,
-    to_save: bool,
+    to_save: bool = True,
 ) -> tuple[dict, dict]:
     """
     Save and restore colors to use and program arguments

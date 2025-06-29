@@ -41,6 +41,7 @@ from maptasker.src.maputils import (
     append_item_to_list,
     get_pypi_version,
     http_request,
+    is_color_dark,
     validate_ip_address,
     validate_port,
     validate_xml_file,
@@ -1818,7 +1819,7 @@ def reload_gui(self: object) -> None:
 
     # Save the settings
     temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
-    _, _ = save_restore_args(temp_args, self.color_lookup, True)
+    _, _ = save_restore_args(temp_args, self.color_lookup, to_save=True)
 
     # ReRun via a new process, which will load and run the new program/version.
     # Note: this current process will not return after this call, but simply be killed.
@@ -3016,3 +3017,19 @@ def set_tab_to_use(self: object) -> None:
         self.tabview.set(self.tab_to_use)
     else:
         self.tabview.set(TAB_NAMES[0])
+
+
+def get_foreground_background_colors(self: ctk.MyGui) -> tuple[str, str, str]:
+    """
+    Determines background and foreground colors based on the current background color's darkness.
+
+    Args:
+        self (ctk.MyGui): The instance of the MyGui class, containing color_lookup.
+
+    Returns:
+        tuple[str, str, str]: A tuple containing (background_color, foreground_color1, foreground_color2).
+    """
+    # Establish appropriate colors
+    if is_color_dark(self.color_lookup["background_color"]):
+        return "#092944", "white", "yellow"
+    return "white", "black", "darkgreen"

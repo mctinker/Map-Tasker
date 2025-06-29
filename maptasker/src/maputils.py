@@ -236,12 +236,16 @@ def validate_xml(
             # Run the XML file through the XML parser to validate it.
             try:
                 filename_location = android_file.rfind(PrimeItems.slash) + 1
-                file_to_validate = PrimeItems.program_arguments["android_file"][filename_location:]
+                file_to_validate = PrimeItems.program_arguments["android_file"][
+                    filename_location:
+                ]
                 xmlp = et.XMLParser(encoding=" iso8859_9")
                 xml_tree = et.parse(file_to_validate, parser=xmlp)
                 process_file = False  # Get out of while/loop
             except et.ParseError:  # Parsing error
-                error_message = f"Improperly formatted XML in {android_file}. Try again."
+                error_message = (
+                    f"Improperly formatted XML in {android_file}. Try again."
+                )
                 process_file = False  # Get out of while/loop
             except UnicodeDecodeError:  # Unicode error
                 rewrite_xml(file_to_validate)
@@ -251,7 +255,9 @@ def validate_xml(
                     break
                 process_file = True  # Loop one more time.
             except Exception as e:  # any other errorError out and exit  # noqa: BLE001
-                error_message = f"XML parsing error {e} in file {android_file}.\n\nTry again."
+                error_message = (
+                    f"XML parsing error {e} in file {android_file}.\n\nTry again."
+                )
                 process_file = False  # Get out of while/loop
 
     return error_message, xml_tree
@@ -593,7 +599,11 @@ def find_owning_profile(task_name: str) -> str:
         str: The name of the owning Profile, or an empty string if no matching Profile is found.
     """
     tid = next(
-        (k for k, v in PrimeItems.tasker_root_elements["all_tasks"].items() if v["name"] == task_name),
+        (
+            k
+            for k, v in PrimeItems.tasker_root_elements["all_tasks"].items()
+            if v["name"] == task_name
+        ),
         "",
     )
 
@@ -624,7 +634,9 @@ def find_owning_project(profile_name: str) -> str:
     profile_id = {v["name"]: k for k, v in profile_dict.items()}.get(profile_name)
 
     if profile_id:
-        for project_name, project_value in PrimeItems.tasker_root_elements["all_projects"].items():
+        for project_name, project_value in PrimeItems.tasker_root_elements[
+            "all_projects"
+        ].items():
             if profile_id in get_ids(True, project_value["xml"], project_name, []):
                 return project_name
     return ""
@@ -653,7 +665,9 @@ def find_task_pattern(text: str) -> bool:
 
 def close_logfile() -> None:
     """Close the log file(s)"""
-    for handler in logger.handlers[:]:  # Iterate over a copy to avoid issues during modification
+    for handler in logger.handlers[
+        :
+    ]:  # Iterate over a copy to avoid issues during modification
         handler.close()  # Close the stream associated with the handler
         logger.removeHandler(handler)  # Remove the handler from the logger
 
