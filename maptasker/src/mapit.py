@@ -234,10 +234,7 @@ def output_grand_totals() -> None:
     Output the grand totals of Projects/Profiles/Tasks/Scenes
     """
     grand_total_projects = PrimeItems.grand_totals["projects"]
-    if (
-        PrimeItems.program_arguments["single_project_name"]
-        or PrimeItems.program_arguments["single_profile_name"]
-    ):
+    if PrimeItems.program_arguments["single_project_name"] or PrimeItems.program_arguments["single_profile_name"]:
         grand_total_projects = 1
     grand_total_profiles = PrimeItems.grand_totals["profiles"]
     if PrimeItems.program_arguments["single_profile_name"]:
@@ -283,10 +280,7 @@ def initialize_everything() -> tuple[list, list, list]:
     # Check to see if we might be coming from another program (e.g. run_test.py), and we are not generating a map view.
     # If so, re-initialize PrimeItems since it is still carrying the values from the last test/run.
     if (
-        PrimeItems.colors_to_use
-        and (
-            PrimeItems.program_arguments and not PrimeItems.program_arguments["guiview"]
-        )
+        PrimeItems.colors_to_use and (PrimeItems.program_arguments and not PrimeItems.program_arguments["guiview"])
     ) or not PrimeItems.colors_to_use:
         PrimeItemsReset()
 
@@ -341,12 +335,8 @@ def process_unique_situations(
     """
     if (
         (single_task_name and PrimeItems.found_named_items["single_task_found"])
-        or (
-            single_project_name and PrimeItems.found_named_items["single_project_found"]
-        )
-        or (
-            single_profile_name and PrimeItems.found_named_items["single_profile_found"]
-        )
+        or (single_project_name and PrimeItems.found_named_items["single_project_found"])
+        or (single_profile_name and PrimeItems.found_named_items["single_profile_found"])
     ):
         return
 
@@ -390,9 +380,7 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
     # If doing the outline, let 'em know about the map file.
     if not PrimeItems.program_arguments["guiview"]:
         map_text = (
-            "The Configuration Map was saved as MapTasker_Map.txt.  "
-            if PrimeItems.program_arguments["outline"]
-            else ""
+            "The Configuration Map was saved as MapTasker_Map.txt.  " if PrimeItems.program_arguments["outline"] else ""
         )
         print("")
         print(
@@ -529,16 +517,13 @@ def display_back_matter(
     ):
         if PrimeItems.program_arguments["guiview"]:
             PrimeItems.error_code = 1
-            PrimeItems.error_msg = (
-                "Error: Single item specified but not found!  Try again."
-            )
+            PrimeItems.error_msg = "Error: Single item specified but not found!  Try again."
             return
         clean_up_and_exit("Task", single_task_name)
 
     # Display warning for Task with too many actions
     if (
-        PrimeItems.program_arguments["display_detail_level"]
-        >= DISPLAY_DETAIL_LEVEL_all_tasks
+        PrimeItems.program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_tasks
         and PrimeItems.task_action_warnings
     ):
         display_task_warnings()
@@ -742,10 +727,7 @@ def mapit_all(file_to_get: str) -> int:
         PrimeItems.file_to_get = file_to_get
 
     # Get all Tasker variables
-    if (
-        PrimeItems.program_arguments["display_detail_level"]
-        >= DISPLAY_DETAIL_LEVEL_all_variables
-    ):
+    if PrimeItems.program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
         get_variables()
 
     # Process all Projects and their Profiles

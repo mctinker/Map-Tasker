@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed: No changes.
+- Changed: Code optimized to make it easier to pick up new changes in Tasker.
 
 ### Fixed
 

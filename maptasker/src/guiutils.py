@@ -3033,3 +3033,78 @@ def get_foreground_background_colors(self: ctk.MyGui) -> tuple[str, str, str]:
     if is_color_dark(self.color_lookup["background_color"]):
         return "#092944", "white", "yellow"
     return "white", "black", "darkgreen"
+
+
+def is_tag_in_display(text_widget, tag_name):
+    """
+    Determines if any portion of text with the given tag_name is currently
+    visible (in display) within the Tkinter Text widget.
+
+    Args:
+        text_widget (tk.Text): The Tkinter Text widget instance.
+        tag_name (str): The name of the tag to check.
+
+    Returns:
+        bool: True if any part of the tagged text is in display, False otherwise.
+    """
+
+    # Helper function to convert "line.char" to a comparable float
+    # e.g., "1.0" -> 1.0, "2.5" -> 2.000005 (for precision in char part)
+    def index_to_float(idx_str):
+        # Ensure it's a string before splitting
+        idx_str = str(idx_str)
+        if "." not in idx_str:  # Handle cases like 'end' or 'insert' potentially
+            return float("inf")  # Or handle more specifically if needed
+        line, char = map(int, idx_str.split("."))
+        return (
+            float(line) + float(char) / 1000000.0
+        )  # Use a large denominator for char part
+
+    # 1. Get the current visible range of the text widget using indices.
+    # '@0,0' refers to the character index at pixel (0,0) of the viewport (top-left).
+    current_top_visible_idx = text_widget.index("@0,0")
+
+    # Get the height of the text widget in pixels.
+    widget_height = text_widget.winfo_height()
+    # '@0,widget_height' refers to the character index at pixel (0, widget_height)
+    # of the viewport (bottom-left). This gives us the last visible line (or just below).
+    current_bottom_visible_idx = text_widget.index(f"@0,{widget_height}")
+
+    # Convert visible indices to float for numerical comparison
+    visible_top_float = index_to_float(current_top_visible_idx)
+    visible_bottom_float = index_to_float(current_bottom_visible_idx)
+
+    # Debug prints (can be removed in final code)
+    # print(f"Visible range: {current_top_visible_idx} ({visible_top_float}) to {current_bottom_visible_idx} ({visible_bottom_float})")
+
+    # 2. Get all ranges where the tag is applied.
+    tag_ranges = text_widget.tag_ranges(tag_name)
+
+    if not tag_ranges:
+        # print(f"Tag '{tag_name}' not found or not applied anywhere.")
+        return False  # Tag doesn't exist or is not applied anywhere
+
+    # 3. Check for overlap between any tag range and the visible range.
+    # tag_ranges returns a flat tuple: (start1, end1, start2, end2, ...)
+    for i in range(0, len(tag_ranges), 2):
+        tag_start_index = tag_ranges[i]
+        tag_end_index = tag_ranges[i + 1]
+
+        tag_start_float = index_to_float(tag_start_index)
+        tag_end_float = index_to_float(tag_end_index)
+
+        # Debug prints
+        # print(f"  Checking tag range: {tag_start_index} ({tag_start_float}) to {tag_end_index} ({tag_end_float})")
+
+        # Overlap condition:
+        # If the tag starts before or at the bottom of the visible area
+        # AND the tag ends after or at the top of the visible area.
+        if (
+            tag_start_float <= visible_bottom_float
+            and tag_end_float >= visible_top_float
+        ):
+            # print(f"  Overlap found for {tag_name}!")
+            return True
+
+    # print(f"No overlap found for tag '{tag_name}'.")
+    return False  # No part of the tag is in display

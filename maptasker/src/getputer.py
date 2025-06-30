@@ -202,9 +202,7 @@ def process_old_formatted_file(
             temp_args = program_arguments["backup_file_http"].split(":")
             program_arguments["android_ipaddr"] = temp_args[1][2:]
             program_arguments["android_port"] = temp_args[2]
-            program_arguments["android_file"] = program_arguments[
-                "backup_file_location"
-            ]
+            program_arguments["android_file"] = program_arguments["backup_file_location"]
             del program_arguments["backup_file_http"]
             del program_arguments["backup_file_location"]
 

@@ -46,6 +46,7 @@ from maptasker.src.guiutils import (
     get_profiles_in_project,
     get_taskid_from_unnamed_task,
     get_tasks_in_project,
+    is_tag_in_display,
     kill_the_progress_bar,
     make_hex_color,
     merge_lists,
@@ -84,8 +85,6 @@ if TYPE_CHECKING:
     import defusedxml.ElementTree
 
 # Set up for access to icons
-kaka = os.getcwd()
-kaka1 = os.path.realpath(__file__)
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 ICON_DIR = os.path.join(CURRENT_PATH, f"..{PrimeItems.slash}assets", "icons")
 ICON_PATH = {"arrow": os.path.join(ICON_DIR, "arrow.png")}
@@ -1170,6 +1169,9 @@ class CTkTextview(ctk.CTkFrame):
             connector["extra_bars"].append((line_num, end_top_col))
             line_num += 1
 
+        # FIX
+        print(f"bingo, {tag} {is_tag_in_display(self.textview_textbox, tag)}")
+
         # See if there are bars directly above top left elbow, and highlight if there are.
         self.highlight_bars_above(connector, connector["start_top"], tag, bar)
 
@@ -1192,7 +1194,7 @@ class CTkTextview(ctk.CTkFrame):
             left_arrow_corner_down,
         )
 
-        # Identify this connector aas the active tag.
+        # Identify this connector as the active tag.
         connector["tag"] = tag
 
         # Now highlight the selected connector.
@@ -1774,6 +1776,7 @@ class CTkTextview(ctk.CTkFrame):
         :param char: The character to check for.
         :param direction: Direction to check, 'up' for above and 'down' for below.
         """
+        print("bingo highlight_bar", tag)
         line_num, col_num = start_position
         step = -1 if direction == "up" else 1
 
