@@ -388,11 +388,7 @@ def merge_custom_sort(lst: list) -> list:
 
     def sort_key(item: str) -> tuple:
         key = item[0]
-        return (
-            (float(key) if key.isdigit() else float("inf"), key)
-            if key.isdigit()
-            else (float("inf"), key)
-        )
+        return (float(key) if key.isdigit() else float("inf"), key) if key.isdigit() else (float("inf"), key)
 
     return sorted(lst, key=sort_key)
 
@@ -569,8 +565,7 @@ def format_columns(entries: list) -> str:
 
     # Format output
     return "".join(
-        f"{row[0]:<{col1_width}} != {row[1]:<{col2_width}} <<< {row[2]:<{col3_width}}\n"
-        for row in formatted_entries
+        f"{row[0]:<{col1_width}} != {row[1]:<{col2_width}} <<< {row[2]:<{col3_width}}\n" for row in formatted_entries
     )
 
 
@@ -629,11 +624,7 @@ def validate_states_and_events(code_type: str, url: str) -> None:
     for key, code in codes.items():
         code_name = format_string(key)
         modified_code = str(code) + code_type
-        if (
-            code != -1
-            and modified_code in action_codes
-            and code_name != action_codes[modified_code][2]
-        ):
+        if code != -1 and modified_code in action_codes and code_name != action_codes[modified_code][2]:
             mismatch_names.append(
                 f"{code_name} vs {action_codes[modified_code][2]}   <<< Tasker's name mismatch for actionc table code:{modified_code}.",
             )

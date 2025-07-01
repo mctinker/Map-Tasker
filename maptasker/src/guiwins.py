@@ -46,7 +46,7 @@ from maptasker.src.guiutils import (
     get_profiles_in_project,
     get_taskid_from_unnamed_task,
     get_tasks_in_project,
-    is_tag_in_display,
+    is_line_displayed,
     kill_the_progress_bar,
     make_hex_color,
     merge_lists,
@@ -954,7 +954,7 @@ class CTkTextview(ctk.CTkFrame):
         self.wordwrap = False
         self.search_string = ""
 
-    def add_jumpto_buttons(self, connector: dict) -> None:
+    def add_jumpto_buttons(self, connector: dict, top: bool = True) -> None:
         """
         Adds jump-to-top and jump-to-bottom buttons to the GUI.
 
@@ -966,6 +966,7 @@ class CTkTextview(ctk.CTkFrame):
         Args:
             connector (dict): A dictionary containing the start and end positions
                             for the top and bottom jump actions.
+            top (bool): A boolean indicating whether to jump to the top or bottom.
 
         Returns:
             None
@@ -974,56 +975,58 @@ class CTkTextview(ctk.CTkFrame):
         gui_view = self.master.master
 
         # Jump-to Top button
-        self.jump_top = add_button(
-            self,
-            self,
-            "#246FB6",
-            "",
-            "",
-            lambda: gui_view.event_handlers.diagram_jump_topbottom_event(
-                True,
-                connector,
-            ),
-            1,
-            "Top Task",
-            1,
-            0,
-            0,
-            (730, 0),
-            5,
-            "nw",
-        )
-        self.jump_top.configure(width=60)
-        create_tooltip(
-            self.jump_top,
-            text="Make the Task at the top of the highlighted connection visible.",
-        )
+        if top:
+            self.jump_top = add_button(
+                self,
+                self,
+                "#246FB6",
+                "",
+                "",
+                lambda: gui_view.event_handlers.diagram_jump_topbottom_event(
+                    True,
+                    connector,
+                ),
+                1,
+                "Top Task",
+                1,
+                0,
+                0,
+                (730, 0),
+                5,
+                "nw",
+            )
+            self.jump_top.configure(width=60)
+            create_tooltip(
+                self.jump_top,
+                text="Make the Task at the top of the highlighted connection visible.",
+            )
 
         # Jump-to Bottom button
-        self.jump_bottom = add_button(
-            self,
-            self,
-            "#246FB6",
-            "",
-            "",
-            lambda: gui_view.event_handlers.diagram_jump_topbottom_event(
-                False,
-                connector,
-            ),
-            1,
-            "Bottom Task",
-            1,
-            0,
-            0,
-            (815, 0),
-            5,
-            "nw",
-        )
-        self.jump_bottom.configure(width=60)
-        create_tooltip(
-            self.jump_bottom,
-            text="Make the Task at the bottom of the highlighted connection visible.",
-        )
+        else:
+            self.jump_bottom = add_button(
+                self,
+                self,
+                "#246FB6",
+                "",
+                "",
+                lambda: gui_view.event_handlers.diagram_jump_topbottom_event(
+                    False,
+                    connector,
+                ),
+                1,
+                "Bottom Task",
+                1,
+                0,
+                0,
+                (815, 0),
+                5,
+                "nw",
+            )
+            self.jump_bottom.configure(width=60)
+            create_tooltip(
+                self.jump_bottom,
+                text="Make the Task at the bottom of the highlighted connection visible.",
+            )
 
     # Text window was resized.
     def on_resize(self, event: dict) -> None:  # noqa: ARG002
@@ -1118,10 +1121,6 @@ class CTkTextview(ctk.CTkFrame):
             # Add the info to the hover tooltip.
             self.display_hover_info(tag, tag_flag, event, index)
 
-        # Add 'Jump to' buttons.
-        if connector:
-            self.add_jumpto_buttons(connector)
-
     def display_connector_details(
         self,
         tag: str,
@@ -1169,8 +1168,8 @@ class CTkTextview(ctk.CTkFrame):
             connector["extra_bars"].append((line_num, end_top_col))
             line_num += 1
 
-        # FIX
-        print(f"bingo, {tag} {is_tag_in_display(self.textview_textbox, tag)}")
+        # Display the proper jump button: top or bottom.
+        self.display_top_or_bottom_task_button(connector)
 
         # See if there are bars directly above top left elbow, and highlight if there are.
         self.highlight_bars_above(connector, connector["start_top"], tag, bar)
@@ -1205,6 +1204,58 @@ class CTkTextview(ctk.CTkFrame):
         self.textview_textbox.diagram_highlighted_connector = tag
 
         return connector
+
+    def display_top_or_bottom_task_button(self, connector: dict) -> None:
+        """Manages the visibility of the jump_top and jump_bottom buttons.
+
+        This method hides the 'jump_top' button and displays the 'jump_bottom' button,
+        provided that both button objects exist as attributes of `self.textview_textbox`.
+
+        Specifically:
+        - `self.textview_textbox.jump_top` is always hidden using `place_forget()`.
+        - `self.textview_textbox.jump_bottom` is shown using `place()` if it is not None.
+
+        This ensures that only the 'jump to bottom' option is visible after this operation.
+        """
+        # If both top and bottom connectors are displayed, then removew both buttons from display.
+        if is_line_displayed(
+            self.textview_textbox,
+            connector["start_top"][0],
+        ) and is_line_displayed(self.textview_textbox, connector["end_bottom"][0]):
+            with contextlib.suppress(AttributeError):
+                # Hide the button
+                self.hide_button(self.jump_top)
+            with contextlib.suppress(AttributeError):
+                self.hide_button(self.jump_bottom)
+
+        # If the top of the connector is visible, then hide the top button and display the bottom button.
+        elif is_line_displayed(self.textview_textbox, connector["start_top"][0]):
+            with contextlib.suppress(AttributeError):
+                # Hide the button
+                self.hide_button(self.jump_top)
+            # Display the 'jump to bottom' button
+            self.add_jumpto_buttons(connector, top=False)
+
+        # If the bottom of the connector is visible, then hide the bottom button and display the top button.
+        elif is_line_displayed(self.textview_textbox, connector["end_bottom"][0]):
+            with contextlib.suppress(AttributeError):
+                # Hide the button
+                self.hide_button(self.jump_bottom)
+            # Display the 'jump to top' button
+            self.add_jumpto_buttons(connector, top=True)
+
+    def hide_button(self, button: ctk.CTkButton) -> None:
+        """Given a butyton name, hide the button."""
+        with contextlib.suppress(AttributeError):
+            button.configure(
+                state="disabled",
+                text="",
+                width=0,
+                height=0,
+                corner_radius=0,
+                border_width=0,
+                fg_color="transparent",
+            )
 
     def display_hover_info(
         self,
@@ -1776,7 +1827,6 @@ class CTkTextview(ctk.CTkFrame):
         :param char: The character to check for.
         :param direction: Direction to check, 'up' for above and 'down' for below.
         """
-        print("bingo highlight_bar", tag)
         line_num, col_num = start_position
         step = -1 if direction == "up" else 1
 
