@@ -12,11 +12,13 @@ All notable changes to this project will be documented in this file!
 
 - Changed: Code optimized to make it easier to pick up new changes in Tasker.
 - Changed: The Diagram view jump-to-top and jump-to-bottom task buttons are now dynamic, only displaying when appropriate.
+- Changed: The AI Analysis output file is now saved with the date and time.
 
 ### Fixed
 
 - Fixed: The GUI last-tab-used is not saved and restored if either 'Rerun' or 'Run and Exit' is selected.
 - Fixed: Hover over directory name shows detail in the wrong background color in GUI on Windows.
+- Fixed: The GUI default window size is not high enough to include the 'Reset' button.
 
 ### Known Issues
 

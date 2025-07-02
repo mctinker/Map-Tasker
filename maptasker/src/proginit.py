@@ -26,15 +26,13 @@ from maptasker.src.error import error_handler
 # from maptasker.src.fonts import get_fonts
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getbakup import get_backup_file
+from maptasker.src.maputil2 import log_startup_values
 from maptasker.src.maputils import exit_program
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     COUNTER_FILE,
-    MY_VERSION,
-    NOW_TIME,
     TYPES_OF_COLOR_NAMES,
     logger,
-    logging,
 )
 from maptasker.src.taskerd import get_the_xml_data
 
@@ -60,7 +58,9 @@ def read_counter() -> int:
     """
     try:
         with open(COUNTER_FILE) as f:
-            return loads(f.read()) + 1 if Path.exists(Path(COUNTER_FILE).resolve()) else 0
+            return (
+                loads(f.read()) + 1 if Path.exists(Path(COUNTER_FILE).resolve()) else 0
+            )
     except FileNotFoundError:
         return 0
 
@@ -148,7 +148,11 @@ def open_and_get_backup_xml_file() -> dict:
     # See if we already have the file
     if PrimeItems.program_arguments["file"]:
         filename = isinstance(PrimeItems.program_arguments["file"], str)
-        filename = PrimeItems.program_arguments["file"].name if not filename else PrimeItems.program_arguments["file"]
+        filename = (
+            PrimeItems.program_arguments["file"].name
+            if not filename
+            else PrimeItems.program_arguments["file"]
+        )
 
         # We already have the file name...open it.
         try:
@@ -193,42 +197,13 @@ def setup_colors() -> dict:
             for color_argument_name in TYPES_OF_COLOR_NAMES.values():
                 try:
                     if PrimeItems.colors_to_use[color_argument_name]:
-                        colors_to_use[color_argument_name] = PrimeItems.colors_to_use[color_argument_name]
+                        colors_to_use[color_argument_name] = PrimeItems.colors_to_use[
+                            color_argument_name
+                        ]
                 except KeyError:
                     continue
 
     return colors_to_use
-
-
-# Set up logging
-def setup_logging() -> None:
-    """
-    Set up the logging: name the file and establish the log type and format
-    """
-    # Add the date and time to the log filename.
-    file_name = f"maptasker_{NOW_TIME.month}-{NOW_TIME.day}-{NOW_TIME.year}_{NOW_TIME.hour}-{NOW_TIME.minute}-{NOW_TIME.second}.log"
-    logging.basicConfig(
-        filename=file_name,
-        filemode="w",
-        format="%(asctime)s,%(msecs)d %(levelname)s %(name)s %(funcName)s %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.DEBUG,
-    )
-    logger.info(sys.version_info)
-
-
-# Log the arguments
-def log_startup_values() -> None:
-    """
-    Log the runtime arguments and color mappings
-    """
-    setup_logging()  # Get logging going
-    logger.info(f"{MY_VERSION} {str(NOW_TIME)}")  # noqa: RUF010
-    logger.info(f"sys.argv:{str(sys.argv)}")  # noqa: RUF010
-    for key, value in PrimeItems.program_arguments.items():
-        logger.info(f"{key}: {value}")
-    for key, value in PrimeItems.colors_to_use.items():
-        logger.info(f"colormap for {key} set to {value}")
 
 
 # POpen and read xml and output the introduction/heading matter
@@ -259,7 +234,9 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
         # We don't yet have the data.  Let's get it.
         if not PrimeItems.program_arguments["file"]:
             PrimeItems.program_arguments["file"] = (
-                PrimeItems.file_to_get if PrimeItems.file_to_use == "" else PrimeItems.file_to_use
+                PrimeItems.file_to_get
+                if PrimeItems.file_to_use == ""
+                else PrimeItems.file_to_use
             )
 
         # Only display message box if we don't yet have the file name,
@@ -281,7 +258,11 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
         PrimeItems.file_to_get.close()
 
     # Output the inital info: head, source, etc. ...if it hasn't already been output.
-    if return_code == 0 and do_front_matter and not PrimeItems.output_lines.output_lines:
+    if (
+        return_code == 0
+        and do_front_matter
+        and not PrimeItems.output_lines.output_lines
+    ):
         output_the_front_matter()
         return 0
 
@@ -311,9 +292,7 @@ def check_versions() -> None:
     version = str(TkVersion)
     major, minor = version.split(".")
     if int(major) < 8 or (int(major) == 8 and int(minor) < 6):
-        msg = (
-            f"{msg}  Tcl/tk (Tkinter) version {TkVersion} is not supported.  Please use Tkinter version 8.6 or greater."
-        )
+        msg = f"{msg}  Tcl/tk (Tkinter) version {TkVersion} is not supported.  Please use Tkinter version 8.6 or greater."
         logger.error(msg)
     if msg:
         logger.error("MapTasker", msg)
@@ -321,7 +300,7 @@ def check_versions() -> None:
         exit(0)  # noqa: PLR1722
 
 
-def build_action_codes(build_it_all: bool = False) -> None:
+def build_action_codes_from_json(build_it_all: bool = False) -> None:
     """
     Builds the action codes dictionary from the Tasker JSON files.
     Args:
@@ -388,7 +367,9 @@ def build_action_codes(build_it_all: bool = False) -> None:
         with open(f"{json_dir}category_descriptions.json", encoding="utf-8") as file:
             category_descriptions = json.load(file)
             for description in category_descriptions:
-                PrimeItems.tasker_category_descriptions[description["code"]] = description["name"]
+                PrimeItems.tasker_category_descriptions[description["code"]] = (
+                    description["name"]
+                )
 
         # Merge actionc with this new data to create a new dictionary
         merge_action_codes()
@@ -447,7 +428,7 @@ def start_up() -> dict:
     # Build the action codes
     # NOTE: FOR DEVELOPMENT ONLY!!! 'BUILD_ALL = TRUE' ONLY WITH NEW UPDATE OF TASKER!  See acmerge.py
     build_all = False
-    build_action_codes(build_it_all=build_all)
+    build_action_codes_from_json(build_it_all=build_all)
     if build_all:
         exit_program(0)
     # END OF DEVELOPMENT CODE

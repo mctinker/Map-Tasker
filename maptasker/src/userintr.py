@@ -46,7 +46,6 @@ from maptasker.src.guiutils import (
     display_selected_object_labels,
     fresh_message_box,
     get_api_key,
-    get_appropriate_color,
     get_xml,
     is_new_version,
     list_tasker_objects,
@@ -73,26 +72,31 @@ from maptasker.src.guiwins import (
     CTkTextview,
     CTkTreeview,
     TextWindow,
+    get_appropriate_color,
     get_rid_of_window,
     initialize_gui,
     initialize_screen,
-    save_window_position,
-    store_windows,
 )
+from maptasker.src.maputil2 import save_window_position
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapai import valid_api_key
 from maptasker.src.mapit import clean_up_memory, mapit_all
 from maptasker.src.maputils import (
+    append_to_filename,
     clear_tasker_data,
     close_logfile,
+    get_current_local_time_auto_timezone,
     is_color_dark,
+    rename_file,
     update,
     validate_xml_file,
 )
+from maptasker.src.maputil2 import store_windows
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.proginit import log_startup_values
 from maptasker.src.sysconst import (
+    ANALYSIS_FILE,
     ARGUMENT_NAMES,
     CHANGELOG_JSON_URL,
     DIAGRAM_FILE,
@@ -230,7 +234,7 @@ class MyGui(customtkinter.CTk):
 
         # CHG ME: For Development Only!
         # The following lines are for testing only.
-        self.event_handlers.diagram_event()
+        # self.event_handlers.diagram_event()
         # self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
@@ -257,13 +261,15 @@ class MyGui(customtkinter.CTk):
         self.sidebar_detail_option.configure(values=["0", "1", "2", "3", "4", "5"])
         self.sidebar_detail_option.set(str(DEFAULT_DISPLAY_DETAIL_LEVEL))
         self.display_detail_level = DEFAULT_DISPLAY_DETAIL_LEVEL
-        self.conditions = self.preferences = self.taskernet = self.debug = self.everything = self.clear_settings = (
-            self.reset
-        ) = self.restore = self.exit = self.bold = self.highlight = self.italicize = self.underline = (
-            self.go_program
-        ) = self.outline = self.rerun = self.list_files = self.runtime = self.save = self.twisty = self.directory = (
-            self.pretty
-        ) = self.fetched_backup_from_android = False
+        self.conditions = self.preferences = self.taskernet = self.debug = (
+            self.everything
+        ) = self.clear_settings = self.reset = self.restore = self.exit = self.bold = (
+            self.highlight
+        ) = self.italicize = self.underline = self.go_program = self.outline = (
+            self.rerun
+        ) = self.list_files = self.runtime = self.save = self.twisty = (
+            self.directory
+        ) = self.pretty = self.fetched_backup_from_android = False
         self.single_project_name = ""
         self.single_profile_name = ""
         self.single_task_name = ""
@@ -295,7 +301,7 @@ class MyGui(customtkinter.CTk):
             if PrimeItems.program_arguments["window_position"]:
                 self.window_position = PrimeItems.program_arguments["window_position"]
             else:
-                self.window_position = "1129x987+698+145"  # Default window position
+                self.window_position = "1129x1044+698+145"  # Default window position
         else:
             self.window_position = save_window_position(self)
 
@@ -617,7 +623,9 @@ class MyGui(customtkinter.CTk):
         # We will prompt user for XML file if it hasn't already been loaded.
         name_entered = name_entered.strip()
         if name_entered and self.check_name(name_entered, my_name):
-            self.single_project_name = self.single_profile_name = self.single_task_name = ""
+            self.single_project_name = self.single_profile_name = (
+                self.single_task_name
+            ) = ""
 
             match my_name:
                 case "Project":
@@ -953,7 +961,9 @@ class MyGui(customtkinter.CTk):
             message_func = message_map.get(key)
             if message_func:
                 # Note: display_detail_level, file, font, indent, and single object name all return a message of 'None'.
-                message = message_func()  # This calls the lambda function and takes a bit of time.
+                message = (
+                    message_func()
+                )  # This calls the lambda function and takes a bit of time.
             # Catch bug where we have a key but no lambda function to process it.
             elif self.debug:
                 logger.debug(
@@ -1348,7 +1358,9 @@ class MyGui(customtkinter.CTk):
             # We have a file identified.  We now have to read it in.
             else:
                 filename_location = self.android_file.rfind(PrimeItems.slash) + 1
-                file_to_use = PrimeItems.program_arguments["android_file"][filename_location:]
+                file_to_use = PrimeItems.program_arguments["android_file"][
+                    filename_location:
+                ]
                 if not file_to_use:
                     file_to_use = self.android_file[filename_location:]
                 try:
@@ -1447,7 +1459,10 @@ class MyGui(customtkinter.CTk):
         window_position_attribute = f"{view_type}_window_position"
         window_title = f"{view_type.capitalize()} View"
 
-        if getattr(self, window_attribute) is None or not getattr(self, window_attribute).winfo_exists():
+        if (
+            getattr(self, window_attribute) is None
+            or not getattr(self, window_attribute).winfo_exists()
+        ):
             setattr(
                 self,
                 window_attribute,
@@ -1511,7 +1526,7 @@ class MyGui(customtkinter.CTk):
     # Display Ai Analysis response in a separate top level window.
     def display_ai_response(self, error_msg: str) -> None:
         """
-        Display AI response in a GUI window.
+        Display AI response in a GUI window and rename ther anaysis file.
 
         Args:
             error_msg (str): The error message to display in the GUI.
@@ -1520,7 +1535,10 @@ class MyGui(customtkinter.CTk):
             None
         """
         # create window if its None or destroyed
-        if self.ai_analysis_window is None or not self.ai_analysis_window.winfo_exists():
+        if (
+            self.ai_analysis_window is None
+            or not self.ai_analysis_window.winfo_exists()
+        ):
             self.ai_analysis_window = TextWindow(
                 master=self,
                 window_position=self.ai_analysis_window_position,
@@ -1540,7 +1558,20 @@ class MyGui(customtkinter.CTk):
             10,
             self.ai_analysis_window.lift,
         )  # Make window jump to the front
-        analysisview.focus()
+        analysisview.focus_set()
+
+        # Rename ANALYSIS_FILE.
+        now_time = get_current_local_time_auto_timezone()
+        # X Get front part of filename ANALYSIS_FILE and plug it in as the beginning.
+        if new_file_name := append_to_filename(
+            ANALYSIS_FILE,
+            f"-{now_time.month}-{now_time.day}-{now_time.year}_{now_time.hour}-{now_time.minute}-{now_time.second}",
+        ):
+            rename_file(ANALYSIS_FILE, new_file_name)
+            self.display_message_box(
+                f"{ANALYSIS_FILE} saved as {new_file_name}",
+                "turquoise",
+            )
 
     # Set and display the file name.
     def display_and_set_file(self, filename: str) -> None:
@@ -1711,7 +1742,9 @@ class MyGui(customtkinter.CTk):
             except AttributeError:
                 temp_args[value] = ""
 
-        temp_args["ai_analyze"] = False  # Turn this off in event it was on from settings file.
+        temp_args["ai_analyze"] = (
+            False  # Turn this off in event it was on from settings file.
+        )
         _, _ = save_restore_args(temp_args, self.color_lookup, to_save=True)
 
         # force a reset of PrimeItems in mapit.py: initialize_everything.
@@ -1721,7 +1754,9 @@ class MyGui(customtkinter.CTk):
         # These flags are critical for the proper proceessing of the map.
         self.guiview = True  # Set it for save_settings
         PrimeItems.program_arguments["guiview"] = True  # Set it for mapit_all
-        PrimeItems.colors_to_use = self.color_lookup  # Make sure we have a color to use for mapit_all.
+        PrimeItems.colors_to_use = (
+            self.color_lookup
+        )  # Make sure we have a color to use for mapit_all.
 
         # Initialize a few things first
         if clear_names:
@@ -1780,7 +1815,9 @@ class EventHandlers:
         Returns:
             None
         """
-        self.parent = parent  # Save 'self' so widget event handlers can reference 'self'
+        self.parent = (
+            parent  # Save 'self' so widget event handlers can reference 'self'
+        )
 
     # Clear the message text box.
     def clear_messages_event(self) -> None:
@@ -1886,7 +1923,11 @@ class EventHandlers:
         )
 
         ### Port Number ###
-        android_port = "1821" if the_view.android_port == "" or the_view.android_port is None else the_view.android_port
+        android_port = (
+            "1821"
+            if the_view.android_port == "" or the_view.android_port is None
+            else the_view.android_port
+        )
         the_view.port_entry = the_view.port_label = None
         the_view.port_entry, the_view.port_label = the_view.display_label_and_input(
             "2-Port Number:",
@@ -2011,11 +2052,13 @@ class EventHandlers:
         if not ping_android_device(the_view, android_ipaddr, android_port):
             return
 
-        return_code, android_ipaddr, android_port, android_file = validate_or_filelist_xml(
-            the_view,
-            android_ipaddr,
-            android_port,
-            android_file,
+        return_code, android_ipaddr, android_port, android_file = (
+            validate_or_filelist_xml(
+                the_view,
+                android_ipaddr,
+                android_port,
+                android_file,
+            )
         )
 
         # Handle invalid file location or file not found.
@@ -2334,9 +2377,7 @@ class EventHandlers:
             - If the web browser is not supported, a message box is displayed.
             - If the web browser is supported, a message box is displayed with instructions for creating a new issue."""
         url = "//github.com/mctinker/Map-Tasker/issues"
-        issue_text = (
-            "Go to your browser and create a new issue or feature request, providing as much detail as possible."
-        )
+        issue_text = "Go to your browser and create a new issue or feature request, providing as much detail as possible."
         the_view = self.parent
         try:
             webbrowser.open(f"https:{PrimeItems.slash * 2}{url}", new=2)
@@ -2388,7 +2429,9 @@ class EventHandlers:
                 name_entered = "" if name_entered == "None" else name_entered
                 setattr(the_view, f"single_{my_name.lower()}_name", name_entered)
                 if name_entered:
-                    the_view.specific_name_msg = f"Display only {my_name} '{name_entered}'."
+                    the_view.specific_name_msg = (
+                        f"Display only {my_name} '{name_entered}'."
+                    )
                 else:
                     the_view.specific_name_msg = f"Display all {my_name}."
             else:
@@ -2498,7 +2541,10 @@ class EventHandlers:
         the_view.sidebar_detail_option.set(display_detail)
         the_view.inform_message("Display Detail Level", True, display_detail)
         # Disable twisty if detail level is less than 3
-        if the_view.twisty and int(display_detail) < DISPLAY_DETAIL_LEVEL_all_parameters:
+        if (
+            the_view.twisty
+            and int(display_detail) < DISPLAY_DETAIL_LEVEL_all_parameters
+        ):
             the_view.display_message_box(
                 f"Hiding Tasks with Twisty has no effect with Display Detail Level set to {display_detail}.  Twisty disabled!",
                 "Red",
@@ -2753,7 +2799,10 @@ class EventHandlers:
             the_view.twisty_checkbox,
             "Hide Task Details Under Twisty",
         )
-        if the_view.twisty and int(the_view.display_detail_level) < DISPLAY_DETAIL_LEVEL_all_parameters:
+        if (
+            the_view.twisty
+            and int(the_view.display_detail_level) < DISPLAY_DETAIL_LEVEL_all_parameters
+        ):
             the_view.display_message_box(
                 "This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!",
                 "Red",
@@ -3083,9 +3132,15 @@ class EventHandlers:
                 return
 
             # See if a valid API key was entered
-            if PrimeItems.ai[key] != value:  # If the key ent4ered doesn't matych what we already have.
+            if (
+                PrimeItems.ai[key] != value
+            ):  # If the key ent4ered doesn't matych what we already have.
                 # Validate the lngth of the key
-                if value and key in apikeys_to_validate and not valid_api_key(key, value):
+                if (
+                    value
+                    and key in apikeys_to_validate
+                    and not valid_api_key(key, value)
+                ):
                     error_msg = f"{key.replace('_key', '').title()} API key is invalid!"
                     my_gui.display_message_box(
                         error_msg,
@@ -3206,7 +3261,11 @@ class EventHandlers:
         if the_view.single_profile_name == "None or unnamed!":
             the_view.single_profile_name = ""
         # Do we have a single item identified?
-        if the_view.single_project_name or the_view.single_profile_name or the_view.single_task_name:
+        if (
+            the_view.single_project_name
+            or the_view.single_profile_name
+            or the_view.single_task_name
+        ):
             the_view.ai_analyze = True
             the_view.event_handlers.clear_messages_event()  # Clear out all displayed messages.
             the_view.display_message_box(
@@ -3328,7 +3387,9 @@ class EventHandlers:
         the_view.event_handlers.clear_messages_event()  # Clear out all displayed messages.
         # Go through loaded dictionary and display each line
         for key, value in changelog.items():
-            if "Older History" in value:  # Get out if we hit then of the the new version changes.
+            if (
+                "Older History" in value
+            ):  # Get out if we hit then of the the new version changes.
                 break
             if key == "version":
                 the_view.display_message_box(
@@ -3448,7 +3509,10 @@ class EventHandlers:
 
         # Check if we have a Project or Profile
         # If we don't already have Project, then get some XML.
-        if PrimeItems.tasker_root_elements["all_projects"] or PrimeItems.tasker_root_elements["all_profiles"]:
+        if (
+            PrimeItems.tasker_root_elements["all_projects"]
+            or PrimeItems.tasker_root_elements["all_profiles"]
+        ):
             # Process the diagram: builds the 'network' and then draws it in the GUI
             save_outline = guiview.outline
             guiview.outline = True
@@ -3480,8 +3544,12 @@ class EventHandlers:
             PrimeItems.program_arguments["doing_diagram"] = True  # Set it for mapit_all
 
             # Set our target objects since mapit-all will bypass setting these values
-            PrimeItems.program_arguments["single_project_name"] = guiview.single_project_name
-            PrimeItems.program_arguments["single_profile_name"] = guiview.single_profile_name
+            PrimeItems.program_arguments["single_project_name"] = (
+                guiview.single_project_name
+            )
+            PrimeItems.program_arguments["single_profile_name"] = (
+                guiview.single_profile_name
+            )
             PrimeItems.program_arguments["single_task_name"] = guiview.single_task_name
 
             # Re-invoke ourselves to force the html to be written
@@ -3498,12 +3566,12 @@ class EventHandlers:
                 return
 
             # Process the diagram file
-            diagram_dir = (
-                f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"  # Get the directory from which we are running.
-            )
+            diagram_dir = f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"  # Get the directory from which we are running.
             # Read the diagram file
             with open(str(diagram_dir), encoding="utf-8") as diagram_file:
-                diagram_data = [line.rstrip() for line in diagram_file]  # Read file into a list
+                diagram_data = [
+                    line.rstrip() for line in diagram_file
+                ]  # Read file into a list
 
                 # Display the diagram
                 guiview.diagramview = guiview.display_view("diagram", diagram_data)
@@ -3612,7 +3680,9 @@ class EventHandlers:
         )
 
         guiview.new_message_box(f"{title}\n\n{help_text}")
-        guiview.clear_messages = True  # Flag to tell display_message_box to clear the message box
+        guiview.clear_messages = (
+            True  # Flag to tell display_message_box to clear the message box
+        )
 
     def view_event(self: object, view_name: str) -> None:
         """
@@ -3710,7 +3780,9 @@ class EventHandlers:
                     textview.tag_items("found", f"Found: {search_input}   ")
 
                     # Add the list of matches to this entry in mygui.
-                    self.parent.items_for_selection["found"]["indecies"] = textview.search_indecies
+                    self.parent.items_for_selection["found"]["indecies"] = (
+                        textview.search_indecies
+                    )
 
                 # Mark located string by highlighting it.
                 textview.textview_textbox.tag_config(
@@ -3824,7 +3896,9 @@ class EventHandlers:
             textview.textview_textbox.see("1.0")
             display_msg = "Top"
             with contextlib.suppress(AttributeError, IndexError):
-                textview.search_current_line = textview.search_indecies[0]  # Point to first search hit.
+                textview.search_current_line = textview.search_indecies[
+                    0
+                ]  # Point to first search hit.
             textview.top = True
         else:
             # Go to bottom
@@ -3879,7 +3953,9 @@ class EventHandlers:
             bottom_line = connector["end_bottom"][0]
             for extra_bar in connector["extra_bars"]:
                 bottom_line = max(bottom_line, extra_bar[0])
-            seek_line = f"{bottom_line!s}.{connector['start_bottom'][1] - task_half_length!s}"
+            seek_line = (
+                f"{bottom_line!s}.{connector['start_bottom'][1] - task_half_length!s}"
+            )
             modifier = "bottom"
         # Display the Task
         textview.textview_textbox.see(seek_line)

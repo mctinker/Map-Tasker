@@ -25,7 +25,6 @@ from maptasker.src.sysconst import (
     logger,
     pattern14,
 )
-from maptasker.src.xmldata import tag_in_type
 
 blank = "&nbsp;"
 
@@ -64,7 +63,9 @@ def reformat_html(html_string: str) -> str:
     """
 
     def replacer(match: re.Match) -> str:
-        params = match.group(2).strip().replace(";", "\n")  # Split parameters onto new lines
+        params = (
+            match.group(2).strip().replace(";", "\n")
+        )  # Split parameters onto new lines
         return f"{match.group(1)}\n{params}\n<"  # Reinsert the opening '<' tag
 
     # pattern14 has definition for everything after 'Configuration Parameter(s):'
@@ -163,7 +164,11 @@ def entry_or_exit_task(
     indent = blank * PrimeItems.program_arguments["indent"]
 
     def append_task_line(name: str, task_type: str) -> None:
-        suffix = f"{indent}{line_left_arrow} {task_type} Task{extra}" if display_level > 0 else indent
+        suffix = (
+            f"{indent}{line_left_arrow} {task_type} Task{extra}"
+            if display_level > 0
+            else indent
+        )
         task_output_lines.append(f"{name}{suffix}")
 
     if task_name:
@@ -211,7 +216,11 @@ def get_task_name(
         tasks_that_have_been_found.append(the_task_id)
 
     # Determine if this is an "Entry" or "Exit" Task
-    extra = f"&nbsp;&nbsp;Task ID: {the_task_id}" if PrimeItems.program_arguments["debug"] else ""
+    extra = (
+        f"&nbsp;&nbsp;Task ID: {the_task_id}"
+        if PrimeItems.program_arguments["debug"]
+        else ""
+    )
     task_output_lines, task_name = entry_or_exit_task(
         task_output_lines,
         task_name,
@@ -241,8 +250,12 @@ def get_project_for_solo_task(
     all_projects = PrimeItems.tasker_root_elements["all_projects"]
     if all_projects is not None:
         for project in all_projects:
-            project_element = PrimeItems.tasker_root_elements["all_projects"][project]["xml"]
-            project_name = PrimeItems.tasker_root_elements["all_projects"][project]["name"]
+            project_element = PrimeItems.tasker_root_elements["all_projects"][project][
+                "xml"
+            ]
+            project_name = PrimeItems.tasker_root_elements["all_projects"][project][
+                "name"
+            ]
             task_ids = get_ids(
                 False,
                 project_element,
@@ -253,28 +266,6 @@ def get_project_for_solo_task(
                 return project_name, project_element
 
     return project_name, project_element
-
-
-# Identify whether the Task passed in is part of a Scene: True = yes, False = no
-def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
-    """
-    Identify whether the Task passed in is part of a Scene: True = yes, False = no
-        :param the_task_id: the id of the Task to check against
-        :param all_scenes: all Scenes in Tasker configuration
-        :return: True if Task is part of a Scene, False otherwise
-    """
-    # Go through each Scene
-    for value in all_scenes.values():
-        for child in value["xml"]:  # Go through sub-elements in the Scene element
-            if tag_in_type(child.tag, True):
-                for subchild in child:  # Go through xxxxElement sub-items
-                    # Is this Task in this specific Scene (child)?
-                    if tag_in_type(subchild.tag, False) and the_task_id == subchild.text:
-                        return True
-                    if child.tag == "Str":  # Passed any click Task
-                        break
-
-    return False
 
 
 # We're processing a single task only
@@ -331,7 +322,9 @@ def do_single_task(
         PrimeItems.output_lines.refresh_our_output(True, project_name, profile_name)
 
         temporary_task_list = (
-            [item for item in task_list if our_task_name == item[: len(our_task_name)]] if task_list else task_list
+            [item for item in task_list if our_task_name == item[: len(our_task_name)]]
+            if task_list
+            else task_list
         )
 
         if PrimeItems.program_arguments.get("pretty") and temporary_task_list:
@@ -480,7 +473,11 @@ def output_task_list(
         # fmt: on
 
         # Doing extra details?
-        if (do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks):
+        if (
+            do_extra
+            and PrimeItems.program_arguments["display_detail_level"]
+            > DISPLAY_DETAIL_LEVEL_all_tasks
+        ):
             # Get the extra details for this Task
             extra_details = get_extra_details(
                 task_item["xml"],

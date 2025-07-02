@@ -20,6 +20,7 @@ import tomli_w
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.maputil2 import log_startup_values
 from maptasker.src.maputils import reset_named_objects
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
@@ -202,7 +203,9 @@ def process_old_formatted_file(
             temp_args = program_arguments["backup_file_http"].split(":")
             program_arguments["android_ipaddr"] = temp_args[1][2:]
             program_arguments["android_port"] = temp_args[2]
-            program_arguments["android_file"] = program_arguments["backup_file_location"]
+            program_arguments["android_file"] = program_arguments[
+                "backup_file_location"
+            ]
             del program_arguments["backup_file_http"]
             del program_arguments["backup_file_location"]
 
@@ -233,9 +236,6 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
         - If the TOML file is corrupted or does not exist, the function calls the "corrupted_file" function.
 
     """
-    # Avoid circular import
-    from maptasker.src.proginit import log_startup_values
-
     program_arguments = ""
     colors_to_use = ""
     with open(new_file, "rb") as f:

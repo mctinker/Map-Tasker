@@ -15,7 +15,12 @@ import socket
 import subprocess
 import sys
 from contextlib import contextmanager
+from datetime import datetime
 from typing import TYPE_CHECKING
+from zoneinfo import (
+    ZoneInfo,
+    ZoneInfoNotFoundError,
+)  # Import ZoneInfoNotFoundError for specific error handling
 
 import defusedxml.ElementTree as et  # noqa: N813
 import requests
@@ -236,12 +241,16 @@ def validate_xml(
             # Run the XML file through the XML parser to validate it.
             try:
                 filename_location = android_file.rfind(PrimeItems.slash) + 1
-                file_to_validate = PrimeItems.program_arguments["android_file"][filename_location:]
+                file_to_validate = PrimeItems.program_arguments["android_file"][
+                    filename_location:
+                ]
                 xmlp = et.XMLParser(encoding=" iso8859_9")
                 xml_tree = et.parse(file_to_validate, parser=xmlp)
                 process_file = False  # Get out of while/loop
             except et.ParseError:  # Parsing error
-                error_message = f"Improperly formatted XML in {android_file}. Try again."
+                error_message = (
+                    f"Improperly formatted XML in {android_file}. Try again."
+                )
                 process_file = False  # Get out of while/loop
             except UnicodeDecodeError:  # Unicode error
                 rewrite_xml(file_to_validate)
@@ -251,7 +260,9 @@ def validate_xml(
                     break
                 process_file = True  # Loop one more time.
             except Exception as e:  # any other errorError out and exit  # noqa: BLE001
-                error_message = f"XML parsing error {e} in file {android_file}.\n\nTry again."
+                error_message = (
+                    f"XML parsing error {e} in file {android_file}.\n\nTry again."
+                )
                 process_file = False  # Get out of while/loop
 
     return error_message, xml_tree
@@ -530,24 +541,6 @@ def get_first_substring_match(main_string: str, substrings: list) -> str | None:
     return None
 
 
-def truncate_string(text: str, max_length: int = 30) -> str:
-    """Truncates a string to a specified maximum length.
-
-    Args:
-      text: The input string.
-      max_length: The maximum number of characters to keep (default is 30).
-
-    Returns:
-      The truncated string. If the original string is shorter than or equal to
-      max_length, it is returned unchanged. If it's longer, it's truncated and
-      an ellipsis (...) is added to the end.
-    """
-    if len(text) <= max_length:
-        return text
-
-    return text[:max_length].rstrip() + "..."
-
-
 def count_unique_substring(string_list: list, substring: str) -> int:
     """
     Counts the number of strings in a list that contain a given substring,
@@ -567,18 +560,6 @@ def count_unique_substring(string_list: list, substring: str) -> int:
     return count
 
 
-def remove_html_tags(text: str) -> str:
-    """Removes all HTML tags from a given string.
-
-    Args:
-      text: The input string containing HTML tags.
-
-    Returns:
-      A string with all HTML tags removed.
-    """
-    return re.sub(r"<[^>]+>", "", text)
-
-
 # Find the owning Profile given a Task name
 def find_owning_profile(task_name: str) -> str:
     """
@@ -593,7 +574,11 @@ def find_owning_profile(task_name: str) -> str:
         str: The name of the owning Profile, or an empty string if no matching Profile is found.
     """
     tid = next(
-        (k for k, v in PrimeItems.tasker_root_elements["all_tasks"].items() if v["name"] == task_name),
+        (
+            k
+            for k, v in PrimeItems.tasker_root_elements["all_tasks"].items()
+            if v["name"] == task_name
+        ),
         "",
     )
 
@@ -624,7 +609,9 @@ def find_owning_project(profile_name: str) -> str:
     profile_id = {v["name"]: k for k, v in profile_dict.items()}.get(profile_name)
 
     if profile_id:
-        for project_name, project_value in PrimeItems.tasker_root_elements["all_projects"].items():
+        for project_name, project_value in PrimeItems.tasker_root_elements[
+            "all_projects"
+        ].items():
             if profile_id in get_ids(True, project_value["xml"], project_name, []):
                 return project_name
     return ""
@@ -653,7 +640,9 @@ def find_task_pattern(text: str) -> bool:
 
 def close_logfile() -> None:
     """Close the log file(s)"""
-    for handler in logger.handlers[:]:  # Iterate over a copy to avoid issues during modification
+    for handler in logger.handlers[
+        :
+    ]:  # Iterate over a copy to avoid issues during modification
         handler.close()  # Close the stream associated with the handler
         logger.removeHandler(handler)  # Remove the handler from the logger
 
@@ -754,3 +743,124 @@ def is_color_dark(color_input: str, luminance_threshold: float = 0.5) -> bool:
     # print(f"Color: '{color_input}' (RGB: {r},{g},{b}) -> Luminance: {luminance:.4f}")
 
     return luminance < luminance_threshold
+
+
+def append_to_filename(original_filename_with_type: str, text_to_append: str) -> str:
+    """
+    Appends a text string to the filename part of a given filename, preserving the file type.
+
+    Args:
+        original_filename_with_type (str): The original filename including its extension (e.g., "document.pdf").
+        text_to_append (str): The text string to append to the filename (e.g., "_new").
+
+    Returns:
+        str: The new filename with the text appended, or None if the input is invalid.
+    """
+    if not isinstance(original_filename_with_type, str) or not isinstance(
+        text_to_append,
+        str,
+    ):
+        logger.error(
+            "Error: Both original_filename_with_type and text_to_append must be strings.",
+        )
+        return None
+
+    # Use os.path.splitext to separate the filename and its extension
+    filename_without_extension, file_extension = os.path.splitext(
+        original_filename_with_type,
+    )
+
+    # Append the text to the filename
+    new_filename_without_extension = filename_without_extension + text_to_append
+
+    # Combine the new filename with the original extension
+    return new_filename_without_extension + file_extension
+
+
+def get_timezone_from_ip() -> str:
+    """
+    Attempts to determine the current timezone using IP geolocation via ipinfo.io.
+    Requires an internet connection.
+
+    Returns:
+        str: The IANA timezone name (e.g., 'America/Mexico_City'), or None if not found.
+    """
+    try:
+        # Send a request to ipinfo.io to get IP details (including timezone)
+        # This will query your public IP
+        response = requests.get("https://ipinfo.io/json", timeout=5)
+        response.raise_for_status()  # Raise an exception for HTTP errors (4xx or 5xx)
+        data = response.json()
+
+        timezone_name = data.get("timezone")
+        if timezone_name:
+            logger.info(f"Discovered timezone via IP: {timezone_name}")
+            return timezone_name
+        logger.debug("Timezone information not found in IP geolocation data.")
+        return None  # noqa: TRY300
+    except requests.exceptions.RequestException as e:
+        logger.debug(f"Error connecting to geolocation service or getting data: {e}")
+        return None
+    except Exception as e:  # noqa: BLE001
+        logger.debug(f"An unexpected error occurred during IP geolocation: {e}")
+        return None
+
+
+def get_current_local_time_auto_timezone() -> str:
+    """
+    Attempts to get the current local time by first discovering the timezone
+    via IP geolocation. Works with Python 3.9+.
+    """
+    timezone_string = get_timezone_from_ip()
+
+    if timezone_string:
+        try:
+            local_tz = ZoneInfo(timezone_string)
+            now_aware = datetime.now(local_tz)
+            logger.info(f"\nAutomatically determined current local time: {now_aware}")
+            logger.info(f"Timezone info: {now_aware.tzinfo}")
+            logger.info(f"Offset from UTC: {now_aware.utcoffset()}")
+            return now_aware  # noqa: TRY300
+        except ZoneInfoNotFoundError:
+            logger.debug(
+                f"Error: Discovered timezone '{timezone_string}' is not recognized by zoneinfo.",
+            )
+            return datetime.now()  # noqa: DTZ005
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f"Error creating timezone-aware datetime: {e}")
+            return datetime.now()  # noqa: DTZ005
+    else:
+        logger.debug(
+            "\nCould not determine timezone automatically. Falling back to naive datetime.",
+        )
+        logger.debug(f"Current naive datetime: {datetime.now()}")  # noqa: DTZ005
+        return datetime.now()  # noqa: DTZ005
+
+
+def rename_file(old_file_path: str, new_file_path: str) -> bool:
+    """
+    Renames a file from an old path to a new path.
+
+    Args:
+        old_file_path (str): The current path/name of the file.
+        new_file_path (str): The desired new path/name for the file.
+
+    Returns:
+        bool: True if the file was successfully renamed, False otherwise.
+    """
+    if not isinstance(old_file_path, str) or not isinstance(new_file_path, str):
+        print("Error: Both old_file_path and new_file_path must be strings.")
+        return False
+
+    try:
+        # Check if the old file exists before attempting to rename
+        if not os.path.exists(old_file_path):
+            print(f"Error: The file '{old_file_path}' does not exist.")
+            return False
+
+        os.rename(old_file_path, new_file_path)
+        print(f"File '{old_file_path}' successfully renamed to '{new_file_path}'.")
+        return True
+    except OSError as e:
+        print(f"Error renaming file: {e}")
+        return False

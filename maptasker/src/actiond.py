@@ -70,7 +70,11 @@ def process_condition_list(
 
     condition_list, boolean_list = [], []
     for child in condition_list_str:
-        condition_list, boolean_list = get_boolean_or_condition(child, condition_list, boolean_list)
+        condition_list, boolean_list = get_boolean_or_condition(
+            child,
+            condition_list,
+            boolean_list,
+        )
 
     return condition_list, boolean_list
 
@@ -104,7 +108,6 @@ def update_action_codes(
             action_codes[the_action_code_plus].types = type_list
 
         logger.debug(
-            "update_action_codes:"
             f" {the_action_code_plus} {action_codes[the_action_code_plus]!s} numargs of {action_codes[the_action_code_plus].numargs} update to {arg_count}:  needs to be updated in actionc.py!",
         )
     return

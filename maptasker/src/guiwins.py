@@ -27,6 +27,7 @@ from maptasker.src.diagcnst import task_delimeter
 from maptasker.src.diagutil import width_and_height_calculator_in_pixel
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
+from maptasker.src.guiutil2 import configure_progress_bar
 from maptasker.src.guiutils import (
     add_button,
     add_checkbox,
@@ -1212,10 +1213,9 @@ class CTkTextview(ctk.CTkFrame):
         provided that both button objects exist as attributes of `self.textview_textbox`.
 
         Specifically:
-        - `self.textview_textbox.jump_top` is always hidden using `place_forget()`.
-        - `self.textview_textbox.jump_bottom` is shown using `place()` if it is not None.
-
-        This ensures that only the 'jump to bottom' option is visible after this operation.
+        - If both top and bottom connectors are displayed, remove both buttons from display.
+        - If the top of the connector is visible, hide the top button and display the bottom button.
+        - If the bottom of the connector is visible, hide the bottom button and display the top button.
         """
         # If both top and bottom connectors are displayed, then removew both buttons from display.
         if is_line_displayed(
@@ -2164,9 +2164,6 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None
         """
-        # Define the progress bar.  Import must stay here to avoid circular import.
-        from maptasker.src.diagram import configure_progress_bar  # noqa: PLC0415
-
         progress = configure_progress_bar(the_data, "Map")
         progress.update(
             {
@@ -3630,23 +3627,6 @@ class CTkHyperlinkManager:
         )
 
 
-# Save the positition of a window
-def save_window_position(window: CTkTextview) -> None:
-    """
-    Saves the window position by getting the geometry of the window.
-
-    Args:
-        window: The CTkTextview window to save the position of.
-
-    Returns:
-        window position or "" if no window
-    """
-    with contextlib.suppress(Exception):
-        if window is not None:
-            return window.wm_geometry()
-    return ""
-
-
 # Initialize the GUI (_init_ method)
 def initialize_gui(self: ctk) -> None:
     """Initializes the GUI by initializing variables and adding a logo.
@@ -4778,32 +4758,6 @@ def get_rid_of_window(self, delete_all: bool = True) -> None:  # noqa: ANN001
         if self.mapview_window is not None:
             self.mapview_window.destroy()
     self.quit()
-
-
-def store_windows(self: ctk) -> None:
-    """
-    Stores the positions of all of our windows.
-
-    This function saves the positions of the various windows using the `save_window_position()` function.
-
-    Returns:
-        None
-    """
-    windows = {
-        "ai_analysis_window": "ai_analysis_window_position",
-        "treeview_window": "tree_window_position",
-        "diagramview_window": "diagram_window_position",
-        "mapview_window": "map_window_position",
-        "progressbar_window": "progressbar_window_position",
-        "apikey_window": "ai_apikey_window_position",
-        "self": "window_position",
-    }
-
-    with contextlib.suppress(AttributeError):
-        for window_attr, position_attr in windows.items():
-            window_obj = getattr(self, window_attr, None)
-            if window_obj and (window_pos := save_window_position(window_obj)):
-                setattr(self, position_attr, window_pos)
 
 
 class ToolTip(object):  # noqa: UP004
