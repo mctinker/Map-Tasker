@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: Code optimized to make it easier to pick up new changes in Tasker.
-- Changed: The Diagram view jump-to-top and jump-to-bottom task buttons are now dynamic, only displaying when appropriate.
+- Changed: The Diagram view jump-to-top-task and jump-to-bottom-task buttons are now dynamic, only displaying when appropriate.
 - Changed: The AI Analysis output file is now saved with the date and time.
 
 ### Fixed

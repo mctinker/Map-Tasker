@@ -32,11 +32,7 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
     for item in all_xml:
         # Get the element name
         name_element = item.find(name_qualifier)
-        name = (
-            name_element.text.strip()
-            if name_element is not None and name_element.text
-            else ""
-        )
+        name = name_element.text.strip() if name_element is not None and name_element.text else ""
 
         # Get the Profile/Task identifier: id=number for Profiles and Tasks,
         id_element = item.find("id")
@@ -85,11 +81,7 @@ def get_the_xml_data() -> bool:
             rewrite_xml(file_to_parse)
 
     if PrimeItems.xml_tree is None:
-        return (
-            1
-            if not PrimeItems.program_arguments["gui"]
-            else _handle_gui_error("Bad XML file")
-        )
+        return 1 if not PrimeItems.program_arguments["gui"] else _handle_gui_error("Bad XML file")
 
     PrimeItems.xml_root = PrimeItems.xml_tree.getroot()
     if PrimeItems.xml_root.tag != "TaskerData":

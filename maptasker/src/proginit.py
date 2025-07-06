@@ -58,9 +58,7 @@ def read_counter() -> int:
     """
     try:
         with open(COUNTER_FILE) as f:
-            return (
-                loads(f.read()) + 1 if Path.exists(Path(COUNTER_FILE).resolve()) else 0
-            )
+            return loads(f.read()) + 1 if Path.exists(Path(COUNTER_FILE).resolve()) else 0
     except FileNotFoundError:
         return 0
 
@@ -148,11 +146,7 @@ def open_and_get_backup_xml_file() -> dict:
     # See if we already have the file
     if PrimeItems.program_arguments["file"]:
         filename = isinstance(PrimeItems.program_arguments["file"], str)
-        filename = (
-            PrimeItems.program_arguments["file"].name
-            if not filename
-            else PrimeItems.program_arguments["file"]
-        )
+        filename = PrimeItems.program_arguments["file"].name if not filename else PrimeItems.program_arguments["file"]
 
         # We already have the file name...open it.
         try:
@@ -197,9 +191,7 @@ def setup_colors() -> dict:
             for color_argument_name in TYPES_OF_COLOR_NAMES.values():
                 try:
                     if PrimeItems.colors_to_use[color_argument_name]:
-                        colors_to_use[color_argument_name] = PrimeItems.colors_to_use[
-                            color_argument_name
-                        ]
+                        colors_to_use[color_argument_name] = PrimeItems.colors_to_use[color_argument_name]
                 except KeyError:
                     continue
 
@@ -234,9 +226,7 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
         # We don't yet have the data.  Let's get it.
         if not PrimeItems.program_arguments["file"]:
             PrimeItems.program_arguments["file"] = (
-                PrimeItems.file_to_get
-                if PrimeItems.file_to_use == ""
-                else PrimeItems.file_to_use
+                PrimeItems.file_to_get if PrimeItems.file_to_use == "" else PrimeItems.file_to_use
             )
 
         # Only display message box if we don't yet have the file name,
@@ -258,11 +248,7 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
         PrimeItems.file_to_get.close()
 
     # Output the inital info: head, source, etc. ...if it hasn't already been output.
-    if (
-        return_code == 0
-        and do_front_matter
-        and not PrimeItems.output_lines.output_lines
-    ):
+    if return_code == 0 and do_front_matter and not PrimeItems.output_lines.output_lines:
         output_the_front_matter()
         return 0
 
@@ -292,7 +278,9 @@ def check_versions() -> None:
     version = str(TkVersion)
     major, minor = version.split(".")
     if int(major) < 8 or (int(major) == 8 and int(minor) < 6):
-        msg = f"{msg}  Tcl/tk (Tkinter) version {TkVersion} is not supported.  Please use Tkinter version 8.6 or greater."
+        msg = (
+            f"{msg}  Tcl/tk (Tkinter) version {TkVersion} is not supported.  Please use Tkinter version 8.6 or greater."
+        )
         logger.error(msg)
     if msg:
         logger.error("MapTasker", msg)
@@ -367,9 +355,7 @@ def build_action_codes_from_json(build_it_all: bool = False) -> None:
         with open(f"{json_dir}category_descriptions.json", encoding="utf-8") as file:
             category_descriptions = json.load(file)
             for description in category_descriptions:
-                PrimeItems.tasker_category_descriptions[description["code"]] = (
-                    description["name"]
-                )
+                PrimeItems.tasker_category_descriptions[description["code"]] = description["name"]
 
         # Merge actionc with this new data to create a new dictionary
         merge_action_codes()

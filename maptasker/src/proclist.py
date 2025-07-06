@@ -373,8 +373,8 @@ def process_item(
     Returns:
         None
     """
-    # This import must stay here to avoid error
-    from maptasker.src.scenes import process_scene
+    # This import must stay here to avoid circular import error.  Define it only when needed.
+    from maptasker.src.scenes import process_scene  # noqa: PLC0415
 
     # Given an item, format it with all of the particulars and add to output.
     format_item(list_type, the_item, the_item, the_task)

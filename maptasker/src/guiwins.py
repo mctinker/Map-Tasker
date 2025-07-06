@@ -401,9 +401,7 @@ class CTkTextview(ctk.CTkFrame):
         self._setup_appearance()
 
         # Set up the title
-        self.title = (
-            f"{title} - Drag window to desired position and rerun the {title} command."
-        )
+        self.title = f"{title} - Drag window to desired position and rerun the {title} command."
 
         # Setup the textbox.
         self._setup_textbox(master)
@@ -555,9 +553,7 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}"
-                    if len(line) > max_length
-                    else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -1156,9 +1152,7 @@ class CTkTextview(ctk.CTkFrame):
         connector_key = tag[5:]
         connector = self.diagram_connectors[connector_key]
         line_num = connector["start_top"][0]
-        number_of_lines_to_highlight = (
-            connector["start_bottom"][0] - connector["start_top"][0] + 1
-        )
+        number_of_lines_to_highlight = connector["start_bottom"][0] - connector["start_top"][0] + 1
         end_top_col = connector["end_top"][1]
         for _ in range(number_of_lines_to_highlight):
             self.textview_textbox.tag_add(
@@ -1217,7 +1211,7 @@ class CTkTextview(ctk.CTkFrame):
         - If the top of the connector is visible, hide the top button and display the bottom button.
         - If the bottom of the connector is visible, hide the bottom button and display the top button.
         """
-        # If both top and bottom connectors are displayed, then removew both buttons from display.
+        # If both top and bottom connectors are currently displayed, then removew both buttons from display.
         if is_line_displayed(
             self.textview_textbox,
             connector["start_top"][0],
@@ -1245,17 +1239,15 @@ class CTkTextview(ctk.CTkFrame):
             self.add_jumpto_buttons(connector, top=True)
 
     def hide_button(self, button: ctk.CTkButton) -> None:
-        """Given a butyton name, hide the button."""
+        """Given a button name, hide the button.
+        For whatever reason, the chain of commands below works and any suibset of them, doesn't work!
+        """
         with contextlib.suppress(AttributeError):
-            button.configure(
-                state="disabled",
-                text="",
-                width=0,
-                height=0,
-                corner_radius=0,
-                border_width=0,
-                fg_color="transparent",
-            )
+            button.destroy()
+            self.jump_top.destroy()
+            self.jump_bottom.destroy()
+            self.master.update()
+            self.update()
 
     def display_hover_info(
         self,
@@ -1339,9 +1331,7 @@ class CTkTextview(ctk.CTkFrame):
             return
 
         # Establish appropriate colors
-        background_color, foreground_color1, foreground_color2 = (
-            get_foreground_background_colors(self.master.master)
-        )
+        background_color, foreground_color1, foreground_color2 = get_foreground_background_colors(self.master.master)
 
         # Create the label.
         label = tk.Label(
@@ -1563,10 +1553,7 @@ class CTkTextview(ctk.CTkFrame):
         owning_project_name = owning_project_name.replace("<<< Owner=", "   ")
 
         # Cleanup the line and return it for display
-        return (
-            text
-            + f"\n {owning_profile_name}\n {owning_project_name}{properties}{task_item}"
-        )
+        return text + f"\n {owning_profile_name}\n {owning_project_name}{properties}{task_item}"
 
     def hover_scene(self, name: str, text: str) -> str:
         """
@@ -1589,11 +1576,7 @@ class CTkTextview(ctk.CTkFrame):
         PrimeItems.output_lines.output_lines = []
         get_details(scene_xml, [], 0)
         # Get just the elements
-        elements = [
-            line
-            for line in PrimeItems.output_lines.output_lines
-            if "Element of type" in line
-        ]
+        elements = [line for line in PrimeItems.output_lines.output_lines if "Element of type" in line]
         for num, element in enumerate(elements):
             elements[num] = remove_html_tags(element, "").replace("&nbsp;", "")
         return text + "\nElements...\n" + "\n".join(elements)
@@ -1731,9 +1714,7 @@ class CTkTextview(ctk.CTkFrame):
                     owner = prev_line.split(":")[1].split("   ")[0].strip()
                     owner = owner.split("(Not referenced by any ")[0].strip()
                     # Filter out 'Task:' that isn't a Task, and "Properties..."
-                    if _ := any(
-                        invalid_key in prev_line for invalid_key in invalid_keys
-                    ):
+                    if _ := any(invalid_key in prev_line for invalid_key in invalid_keys):
                         line_to_get = str(int(line_to_get) - 1)
                         continue
                 return (
@@ -1798,9 +1779,7 @@ class CTkTextview(ctk.CTkFrame):
         for line in PrimeItems.output_lines.output_lines:
             property_leadup = line.find(search_key)
             if property_leadup != -1:
-                properties_with_html = line[
-                    property_leadup + len(search_key) + 1 :
-                ].replace("<br>", "\n")
+                properties_with_html = line[property_leadup + len(search_key) + 1 :].replace("<br>", "\n")
                 # Get rid of html
                 properties_layed_out = re.sub(clean, "", properties_with_html)
                 properties.append(
@@ -1943,11 +1922,7 @@ class CTkTextview(ctk.CTkFrame):
         # Get the occurrences of left_arrow_corner_up "║" in the line and use it to determine start and end.
         occurrences = [i for i, c in enumerate(line) if c == "║"]
         # Get the locations of all icons in the names.
-        icons = [
-            i
-            for i, char in enumerate(line)
-            if ord(char) > 1000 and char not in ("│", "║")
-        ]
+        icons = [i for i, char in enumerate(line) if ord(char) > 1000 and char not in ("│", "║")]
         for num, occurrence in enumerate(occurrences):
             if num % 2 == 0:  # Even?
                 highlight_start = occurrence + 2
@@ -2123,9 +2098,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Make sure we have the window position set for the progress bar
         if not PrimeItems.program_arguments["map_window_position"]:
-            PrimeItems.program_arguments["map_window_position"] = (
-                self.master.master.window_position
-            )
+            PrimeItems.program_arguments["map_window_position"] = self.master.master.window_position
 
         # Go through all of the map data and format it accordingly.
         self.process_map_data(
@@ -2178,9 +2151,7 @@ class CTkTextview(ctk.CTkFrame):
         # self.master.master.progress_bar = progress
         check_bump = self.check_bump
         master_debug = self.master.master.debug
-        log_info = (
-            logger.info if master_debug else lambda *_: None
-        )  # No-op if debug is off
+        log_info = logger.info if master_debug else lambda *_: None  # No-op if debug is off
         process_directory = self.process_directory
         process_colored_text = self.process_colored_text
         PrimeItems.track_task_warnings = []
@@ -2206,9 +2177,7 @@ class CTkTextview(ctk.CTkFrame):
                 continue
 
             # If Windows, ignore blank lines: "    \n"
-            if sys.platform == "win32" and (
-                value["text"] and value["text"][0].endswith("\n")
-            ):
+            if sys.platform == "win32" and (value["text"] and value["text"][0].endswith("\n")):
                 text = value["text"][0]
                 blanks_to_check = len(text) - 1
                 if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
@@ -2236,13 +2205,11 @@ class CTkTextview(ctk.CTkFrame):
                     tags,
                 )
                 if text[0] == "Directory\n":
-                    line_num, previous_directory, previous_value, char_position = (
-                        self.one_level_up(
-                            line_num,
-                            previous_directory,
-                            previous_value,
-                            char_position,
-                        )
+                    line_num, previous_directory, previous_value, char_position = self.one_level_up(
+                        line_num,
+                        previous_directory,
+                        previous_value,
+                        char_position,
                     )
             elif "directory" in value:
                 char_position, previous_directory, line_num = process_directory(
@@ -2413,10 +2380,7 @@ class CTkTextview(ctk.CTkFrame):
         all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
 
         for project_value in PrimeItems.tasker_root_elements["all_projects"].values():
-            if any(
-                all_tasks[task_id]["name"] == task_name
-                for task_id in get_ids(False, project_value["xml"], "", [])
-            ):
+            if any(all_tasks[task_id]["name"] == task_name for task_id in get_ids(False, project_value["xml"], "", [])):
                 return project_value["name"]
         return ""
 
@@ -2533,16 +2497,9 @@ class CTkTextview(ctk.CTkFrame):
                 name_to_insert = hotlink_name[: spacing - 3] + "   "
                 # Add the Profile ID if this is a profile with no name.
                 # Make it look like: 'some_profile_name.123...'
-                if name_to_insert.startswith("*") and (
-                    prof_id := extract_number_from_line(hotlink_name)
-                ):
+                if name_to_insert.startswith("*") and (prof_id := extract_number_from_line(hotlink_name)):
                     name_to_insert = hotlink_name[: spacing - 6] + "   "
-                    name_to_insert = (
-                        name_to_insert[: spacing - 7]
-                        + "."
-                        + prof_id
-                        + name_to_insert[spacing - 6 :]
-                    )
+                    name_to_insert = name_to_insert[: spacing - 7] + "." + prof_id + name_to_insert[spacing - 6 :]
 
             else:
                 name_to_insert = hotlink_name
@@ -2573,9 +2530,7 @@ class CTkTextview(ctk.CTkFrame):
             ),
         )
 
-        char_position = (
-            0 if char_position == spacing * columns else char_position + spacing
-        )
+        char_position = 0 if char_position == spacing * columns else char_position + spacing
         previous_directory = directory_type
 
         # Add a second "up one more level" hotlink
@@ -2770,9 +2725,7 @@ class CTkTextview(ctk.CTkFrame):
             PrimeItems.track_task_warnings.append(task_name)
 
             # Add #1.
-            end_start = (
-                f"{line_num_str}.{char_position + 5!s}"  # 5 is the length of "Task "
-            )
+            end_start = f"{line_num_str}.{char_position + 5!s}"  # 5 is the length of "Task "
             if not self._insert_text_and_tag(start_idx, end_start, "Task ", tag_id):
                 return char_position
 
@@ -2806,8 +2759,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Tag items for hover and background highlight
         if ": Properties" not in message and any(
-            keyword in message
-            for keyword in ("Task: ", "Profile: ", "Project: ", "Scene: ")
+            keyword in message for keyword in ("Task: ", "Profile: ", "Project: ", "Scene: ")
         ):
             self.tag_items(tag_id, message)
             self.textview_textbox.tag_config(tag_id, background=background_color)
@@ -2840,10 +2792,7 @@ class CTkTextview(ctk.CTkFrame):
         tag_id: str,
     ) -> str:
         """Determines the color and highlighting settings for the current message."""
-        if (
-            "Color for Background set to" in message
-            or "highlighted for visibility" in message
-        ):
+        if "Color for Background set to" in message or "highlighted for visibility" in message:
             color = "White"
         else:
             color, tags = self.output_map_colors_highlighting(
@@ -3797,7 +3746,6 @@ def initialize_screen(self: object) -> None:
     _create_browser_options_section(self)
     _create_tabview_section(self)
     _add_misc_logos(self)
-    self.create_new_textbox()
 
 
 def _setup_init(self: ctk) -> None:
@@ -3807,7 +3755,7 @@ def _setup_init(self: ctk) -> None:
     self.task_action_warning_limit = 100
     # Setup routine if user deletes the window
     self.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
-    # Create textbox for information/feedback
+    # Create textbox for information/feedback: found in userintr
     self.create_new_textbox()
 
 
@@ -4657,11 +4605,7 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         "n",
     )
 
-    display_models = sorted(
-        model
-        for name, models in MODEL_GROUPS.items()
-        for model in prefix_and_sort(models, name)
-    )
+    display_models = sorted(model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name))
     (
         display_models.insert(0, PrimeItems.program_arguments["ai_model"])
         if PrimeItems.program_arguments["ai_model"]
