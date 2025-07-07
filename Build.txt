@@ -157,6 +157,7 @@ poetry version patch
 git branch -a
 
 # Publishing a New Version
+0- Check dependencies and AI models
 1- Test Test Test  > Test on Python 3.11 and 3.12
 2- Check all FIX and TODO comments are resolved
 3- Run with debug to create maptasker_changelog.json

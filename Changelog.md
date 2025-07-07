@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.0.6] ??-June-2025  # FIX
+## [8.0.6] 07-July-2025
 
 ### Added
 
-- Added:
+- Added: No additions.
 
 ### Changed
 
