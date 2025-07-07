@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.0.4] 22-June-2025
+## [8.0.6] 07-July-2025
 
 ### Added
 
@@ -10,20 +10,41 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed: Gemini model 2.5 Pro has been upgraded from the preview model to 'gemini-2.5-pro'.
+- Changed: Code optimized to make it easier to pick up new changes in Tasker.
+- Changed: The Diagram view jump-to-top-task and jump-to-bottom-task buttons are now dynamic, only displaying when appropriate.
+- Changed: The AI Analysis output file is now saved with the date and time.
 
 ### Fixed
 
-- Fixed: Ai-Analysis windoiw is not getting the focus.
-- Fixed: Numerous bugs when running on Windows 11.
-- Fixed: Diagram and Map views are not being displayed in the defined background color.
-- Fixed: The GUI 'hover tip' background and foreground colors are incorrect.
+- Fixed: The GUI last-tab-used is not saved and restored if either 'Rerun' or 'Run and Exit' is selected.
+- Fixed: Hover over directory name shows detail in the wrong background color in GUI on Windows.
+- Fixed: The GUI default window size is not high enough to include the 'Reset' button.
 
 ### Known Issues
 
 - Unable to change any colors in GUI if using UV to manage the application (UV bug).
 
 ## Older History Logs
+
+## [8.0.5]
+
+- Added: Tasker version 6.6.0-beta is supported.
+- Fixed: 'Upgrade To Latest Version' GUI button is not working on Windows 11.
+- Fixed: Program error in maputils is_color_dark when hovering over item in Map view and the background color is a hex value.
+- Fixed: Task actions are double-spacing in the Map view on Windows.
+- Fixed: AI Analysis wqindow is missing the title.
+- Fixed: Potential AI analysis loop if it this was left on in settings due to abnormal terminal.
+- Fixed: Logging is not enabled if 'debug' is on in the saved settings at startup.
+- Fixed: Program error if a new action argument is not yet supported.
+
+## [8.0.4]
+
+- Added: No additions.
+- Changed: Gemini model 2.5 Pro has been upgraded from the preview model to 'gemini-2.5-pro'.
+- Fixed: Ai-Analysis windoiw is not getting the focus.
+- Fixed: Numerous bugs when running on Windows 11.
+- Fixed: Diagram and Map views are not being displayed in the defined background color.
+- Fixed: The GUI 'hover tip' background and foreground colors are incorrect.
 
 ## [8.0.2]
 
