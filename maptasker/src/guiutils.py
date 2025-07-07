@@ -36,11 +36,14 @@ from maptasker.src.diagcnst import (
 )
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
+from maptasker.src.getputer import save_restore_args
 from maptasker.src.lineout import LineOut
+from maptasker.src.maputil2 import save_window_position, store_windows
 from maptasker.src.maputils import (
     append_item_to_list,
     get_pypi_version,
     http_request,
+    is_color_dark,
     validate_ip_address,
     validate_port,
     validate_xml_file,
@@ -50,7 +53,6 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
 from maptasker.src.sysconst import (
-    ANALYSIS_FILE,
     ARGUMENT_NAMES,
     CHANGELOG_FILE,
     CHANGELOG_JSON_FILE,
@@ -79,17 +81,17 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 8.0.5 - Change Log\n
+Version 8.0.6 - Change Log\n
 ### Added\n
-- Added: Tasker version 6.6.0-beta is supported.\n
-- Changed: No changes.\n
-- Fixed: 'Upgrade To Latest Version' GUI button is not working on Windows 11.\n
-- Fixed: Program error in maputils is_color_dark when hovering over item in Map view and the background color is a hex value.\n
-- Fixed: Task actions are double-spacing in the Map view on Windows.\n
-- Fixed: AI Analysis wqindow is missing the title.\n
-- Fixed: Potential AI analysis loop if it this was left on in settings due to abnormal terminal.\n
-- Fixed: Logging is not enabled if 'debug' is on in the saved settings at startup.\n
-- Fixed: Program error if a new action argument is not yet supported.\n
+- Added: No additions.\n
+### Changed\n
+- Changed: Code optimized to make it easier to pick up new changes in Tasker.\n
+- Changed: The Diagram view jump-to-top-task and jump-to-bottom-task buttons are now dynamic, only displaying when appropriate.\n
+- Changed: The AI Analysis output file is now saved with the date and time.\n
+### Fixed\n
+- Fixed: The GUI last-tab-used is not saved and restored if either 'Rerun' or 'Run and Exit' is selected.\n
+- Fixed: Hover over directory name shows detail in the wrong background color in GUI on Windows.\n
+- Fixed: The GUI default window size is not large enough to include the 'Reset' button.\n
 """
 
 default_font_size = 14
@@ -1575,7 +1577,7 @@ def display_messages_from_last_run(self) -> None:  # noqa: ANN001
             if "Ai Response" in error_msg:
                 self.display_ai_response(error_msg)
                 self.display_message_box(
-                    f"Analysis response is in a separate Window and saved as {ANALYSIS_FILE}.",
+                    "Analysis response is in a separate Window.",
                     "Turquoise",
                 )
                 self.tabview.set("Analyze")  # Switch to the 'Analyze' tab
@@ -1809,16 +1811,12 @@ def reload_gui(self: object) -> None:
     Returns:
         None
     """
-    # Imports are here to avoid circular import.
-    from maptasker.src.getputer import save_restore_args  # noqa: PLC0415
-    from maptasker.src.guiwins import store_windows  # noqa: PLC0415
-
     # Save windows
     store_windows(self)
 
     # Save the settings
     temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
-    _, _ = save_restore_args(temp_args, self.color_lookup, True)
+    _, _ = save_restore_args(temp_args, self.color_lookup, to_save=True)
 
     # ReRun via a new process, which will load and run the new program/version.
     # Note: this current process will not return after this call, but simply be killed.
@@ -1919,43 +1917,8 @@ def fresh_message_box(self: ctk.windows.Window) -> None:
     self.all_messages = {}
     with contextlib.suppress(AttributeError):
         self.textbox.destroy()
+    # Pick up create_new_textbox from userintr (MyGui)
     self.create_new_textbox()
-
-
-# Define the textbox for information/feedback
-def create_new_textbox(self: object) -> None:
-    """
-    Creates a new text box widget with specified dimensions and configuration.
-
-    This function initializes a new `CTkTextbox` widget with the specified height and width.
-    The widget is then added to the grid layout of the parent widget (`self`) at row 0, column 1,
-    with a padding of 20 pixels on the left and right. The widget is also configured with the
-    following properties:
-    - `state` is set to "disabled" to make the text box read-only.
-    - `font` is set to `(self.font, 14)` to use the specified font with a size of 14 points.
-    - `wrap` is set to "word" to enable word wrapping.
-    - `scrollbar_button_color` is set to "#6563ff" to set the color of the scrollbar buttons.
-
-    Parameters:
-        None
-
-    Returns:
-        None
-
-    Note: This is a duplciate of the samd function in userintr.py.
-    It can not be imported since it would cause a circular import.
-    """
-    self.textbox = ctk.CTkTextbox(self, height=650, width=250)
-    self.textbox.grid(row=0, column=1, padx=(20, 0), pady=(20, 0), sticky="ew")
-    self.textbox.configure(
-        font=(self.font, 14),
-        wrap="word",
-        scrollbar_button_color="#6563ff",
-    )
-    self.hyperlink = ctk.HyperlinkManager(
-        self.textbox,
-        text_color=get_appropriate_color(self, "blue"),
-    )
 
 
 def make_hex_color(color: str) -> str:
@@ -2558,8 +2521,6 @@ def kill_the_progress_bar(progress_bar: dict, remove_windows: bool = False) -> N
     # Make sure we have a progressbar.
     if not progress_bar:
         return
-    # Keep import here to avoid circular import
-    from maptasker.src.guiwins import save_window_position  # noqa: PLC0415
 
     # Save the window position in our main window (self=MyGui).
     if PrimeItems.progressbar:
@@ -2898,48 +2859,6 @@ def destroy_hover_tooltip(tooltip: object | list) -> None:
     tooltip = None
 
 
-def validate_tkinter_geometry(geometry_string: str) -> bool:
-    """
-    Validates a tkinter window geometry string with additional constraints.
-
-    Args:
-        geometry_string (str): The geometry string in the format
-                                 'width x height + position_x + position_y'.
-
-    Returns:
-        bool: True if the geometry string is valid and meets the constraints,
-              False otherwise.
-    """
-    pattern = re.compile(r"^\d+x\d+\+\d+\+\d+$")
-    if not pattern.match(geometry_string):
-        return False
-
-    try:
-        parts = geometry_string.replace("+", " ").replace("x", " ").split()
-        width = int(parts[0])
-        height = int(parts[1])
-        pos_x = int(parts[2])
-        pos_y = int(parts[3])
-
-        if width < 300:
-            print("Error: Window width must be at least 300.")
-            return False
-        if height < 50:
-            print("Error: Window height must be at least 50.")
-            return False
-        if pos_x < 0:
-            print("Error: Window position X must be a non-negative number.")
-            return False
-        if pos_y < 0:
-            print("Error: Window position Y must be a non-negative number.")
-            return False
-
-        return True  # noqa: TRY300
-    except ValueError:
-        print("Error: Invalid numeric value in geometry string.")
-        return False
-
-
 def extract_number_from_line(line: str) -> str | None:
     """
     Checks if a string ends with '.n' or '.nn' or '.nnn' (where 'n' represents a digit)
@@ -3016,3 +2935,77 @@ def set_tab_to_use(self: object) -> None:
         self.tabview.set(self.tab_to_use)
     else:
         self.tabview.set(TAB_NAMES[0])
+
+
+def get_foreground_background_colors(self: ctk.MyGui) -> tuple[str, str, str]:
+    """
+    Determines background and foreground colors based on the current background color's darkness.
+
+    Args:
+        self (ctk.MyGui): The instance of the MyGui class, containing color_lookup.
+
+    Returns:
+        tuple[str, str, str]: A tuple containing (background_color, foreground_color1, foreground_color2).
+    """
+    # Establish appropriate colors
+    if is_color_dark(self.color_lookup["background_color"]):
+        return "#092944", "white", "yellow"
+    return "white", "black", "darkgreen"
+
+
+def is_line_displayed(text_widget: ctk.CTkTextbox, line_number: int) -> bool:
+    """
+    Determines if a given line number in a Tkinter Text widget is currently visible.
+
+    Args:
+        text_widget (tk.Text): The Tkinter Text widget instance.
+        line_number (int): The 1-based line number to check for visibility.
+
+    Returns:
+        bool: True if the line is currently displayed, False otherwise.
+              Returns False if line_number is invalid or out of bounds.
+    """
+    if not isinstance(line_number, int) or line_number < 1:
+        print(
+            f"Error: Invalid line number '{line_number}'. Must be a positive integer.",
+        )
+        return False
+
+    # Get the total number of lines in the text widget
+    # 'end-1c' means the index before the final newline, which is the last character.
+    # The 'line' part of this index string gives the total number of lines.
+    total_lines = int(text_widget.index("end-1c").split(".")[0])
+
+    if line_number > total_lines:
+        print(
+            f"Warning: Line {line_number} is out of bounds (total lines: {total_lines}).",
+        )
+        return False
+
+    # 1. Get the current visible line range based on pixel coordinates.
+    # '@0,0' gives the index of the character at the top-left corner of the visible area.
+    top_visible_index_str = text_widget.index("@0,0")
+
+    # Get the height of the widget
+    widget_height = text_widget.winfo_height()
+
+    # '@0,widget_height' gives the index of the character at the bottom-left corner.
+    # This represents the start of the line at the very bottom of the view.
+    bottom_visible_index_str = text_widget.index(f"@0,{widget_height}")
+
+    # Extract the line numbers from these indices
+    top_visible_line = int(top_visible_index_str.split(".")[0])
+    bottom_visible_line = int(bottom_visible_index_str.split(".")[0])
+
+    # Debug prints (can be removed in final code)
+    # print(f"Visible lines range: {top_visible_line} to {bottom_visible_line}")
+
+    # 2. Compare: Check if the given line_number falls within this range.
+    # A line is considered displayed if its number is greater than or equal to
+    # the top visible line AND less than or equal to the bottom visible line.
+    if top_visible_line <= line_number <= bottom_visible_line:  # noqa: SIM103
+        # Additionally, for the last visible line, we might want to check if it's
+        # fully visible or just partially. For simplicity, we'll consider partially
+        # visible lines at the bottom as "displayed".
+        return True
+    return False

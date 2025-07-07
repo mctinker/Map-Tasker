@@ -135,14 +135,19 @@ def record_response(response: str, ai_object: str, item: str) -> None:
 
     This function opens the ANALYSIS_FILE in write mode and writes the given response to it.
     If the file does not exist, it will be created. If the file already exists, its contents will be overwritten.
+    The ERROR_FILE will be read and displayed in the GUI on ReRun, with the response handled in
+    'display_messages_from_last_run' and 'display_ai_response'
     """
-
     with open(ANALYSIS_FILE, "w") as response_file:
         response_file.write(
             f'Ai Response using model {PrimeItems.program_arguments["ai_model"]} for {ai_object} "{item}":\n\n{response}',
         )
     # QAueue up the message to display in the GUI textbox.
-    process_error(f"{response}\n\nAnalysis Response saved in file: " + ANALYSIS_FILE, ai_object, item)
+    process_error(
+        f"{response}\n\nAnalysis Response saved in file: " + ANALYSIS_FILE,
+        ai_object,
+        item,
+    )
 
 
 # Do local Ai processing.
@@ -246,7 +251,7 @@ def process_error(error: str, ai_object: str, item: str) -> None:
     # Note: "Ai Response" must be a part of the message for it to be recognized by guiutils.
     with open(ERROR_FILE, "w") as error_file:
         error_file.write(
-            f'Ai Response using model {PrimeItems.program_arguments["ai_model"]} for {ai_object} {item}:\n\n{output_error}',
+            f"Ai Response using model {PrimeItems.program_arguments['ai_model']} for {ai_object} {item}:\n\n{output_error}",
         )
 
 
@@ -379,7 +384,10 @@ def open_ai(query: str, ai_object: str, item: str) -> None:
         None: This function does not return anything.
     """
     if PrimeItems.program_arguments["ai_analyze"] and not module_is_available("openai"):
-        error_handler("Module 'openai' not found. Please install the 'openai' module.", 12)
+        error_handler(
+            "Module 'openai' not found. Please install the 'openai' module.",
+            12,
+        )
         return
 
     api_key = (
@@ -419,7 +427,10 @@ def deepseek_ai(query: str, ai_object: str, item: str) -> None:
     Returns:
         None: This function does not return anything.
     """
-    client = OpenAI(api_key=PrimeItems.program_arguments["ai_apikey"], base_url="https://api.deepseek.com")
+    client = OpenAI(
+        api_key=PrimeItems.program_arguments["ai_apikey"],
+        base_url="https://api.deepseek.com",
+    )
     process_ai_query_and_response(client, query, ai_object, item)
 
 
@@ -493,18 +504,23 @@ def map_ai() -> None:
         query += f"{line}\n"
 
     # Let the user know what is going on.
-    print(f"MapTasker analysis for {ai_object} '{item}' is running in the background.  Please wait...")
+    print(
+        f"MapTasker analysis for {ai_object} '{item}' is running in the background.  Please wait...",
+    )
 
     # Call appropriate AI routine: OpenAI or local Ollama
     model_function_map = {
-        **{model: open_ai for model in OPENAI_MODELS},
-        **{model: local_ai for model in LLAMA_MODELS},
-        **{model: claude_ai for model in CLAUDE_MODELS},
-        **{model: deepseek_ai for model in DEEPSEEK_MODELS},
-        **{model: gemini_ai for model in GEMINI_MODELS},
+        **dict.fromkeys(OPENAI_MODELS, open_ai),
+        **dict.fromkeys(LLAMA_MODELS, local_ai),
+        **dict.fromkeys(CLAUDE_MODELS, claude_ai),
+        **dict.fromkeys(DEEPSEEK_MODELS, deepseek_ai),
+        **dict.fromkeys(GEMINI_MODELS, gemini_ai),
     }
     model = PrimeItems.program_arguments["ai_model"]
-    model_function_map.get(model, lambda *args: error_handler("Invalid model selected.", 12))(
+    model_function_map.get(
+        model,
+        lambda *args: error_handler("Invalid model selected.", 12),
+    )(
         query,
         ai_object,
         item,

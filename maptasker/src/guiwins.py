@@ -27,6 +27,7 @@ from maptasker.src.diagcnst import task_delimeter
 from maptasker.src.diagutil import width_and_height_calculator_in_pixel
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
+from maptasker.src.guiutil2 import configure_progress_bar
 from maptasker.src.guiutils import (
     add_button,
     add_checkbox,
@@ -40,11 +41,13 @@ from maptasker.src.guiutils import (
     extract_number_from_line,
     find_the_line,
     get_appropriate_color,
+    get_foreground_background_colors,
     get_item_xml,
     get_monospace_fonts,
     get_profiles_in_project,
     get_taskid_from_unnamed_task,
     get_tasks_in_project,
+    is_line_displayed,
     kill_the_progress_bar,
     make_hex_color,
     merge_lists,
@@ -73,7 +76,6 @@ from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
     DIAGRAM_PROFILES_PER_LINE,
     MODEL_GROUPS,
-    TAB_NAMES,
     UNNAMED_ITEM,
     clean,
     logger,
@@ -84,11 +86,10 @@ if TYPE_CHECKING:
     import defusedxml.ElementTree
 
 # Set up for access to icons
-kaka = os.getcwd()
-kaka1 = os.path.realpath(__file__)
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 ICON_DIR = os.path.join(CURRENT_PATH, f"..{PrimeItems.slash}assets", "icons")
 ICON_PATH = {"arrow": os.path.join(ICON_DIR, "arrow.png")}
+TAB_NAMES = ["Specific Name", "Colors", "Analyze", "Debug"]
 bar = "│"
 box_line = "═"
 straight_line = "─"
@@ -412,7 +413,7 @@ class CTkTextview(ctk.CTkFrame):
         self.after(3000, self.delay_event)  # 3 second timer
         self.textview_textbox.focus_set()
 
-    def _setup_appearance(self) -> None:
+    def _setup_appearance(self: ctk) -> None:
         """
         Sets up the appearance of the text view by configuring colors based on the current theme.
         """
@@ -950,7 +951,7 @@ class CTkTextview(ctk.CTkFrame):
         self.wordwrap = False
         self.search_string = ""
 
-    def add_jumpto_buttons(self, connector: dict) -> None:
+    def add_jumpto_buttons(self, connector: dict, top: bool = True) -> None:
         """
         Adds jump-to-top and jump-to-bottom buttons to the GUI.
 
@@ -962,6 +963,7 @@ class CTkTextview(ctk.CTkFrame):
         Args:
             connector (dict): A dictionary containing the start and end positions
                             for the top and bottom jump actions.
+            top (bool): A boolean indicating whether to jump to the top or bottom.
 
         Returns:
             None
@@ -970,56 +972,58 @@ class CTkTextview(ctk.CTkFrame):
         gui_view = self.master.master
 
         # Jump-to Top button
-        self.jump_top = add_button(
-            self,
-            self,
-            "#246FB6",
-            "",
-            "",
-            lambda: gui_view.event_handlers.diagram_jump_topbottom_event(
-                True,
-                connector,
-            ),
-            1,
-            "Top Task",
-            1,
-            0,
-            0,
-            (730, 0),
-            5,
-            "nw",
-        )
-        self.jump_top.configure(width=60)
-        create_tooltip(
-            self.jump_top,
-            text="Make the Task at the top of the highlighted connection visible.",
-        )
+        if top:
+            self.jump_top = add_button(
+                self,
+                self,
+                "#246FB6",
+                "",
+                "",
+                lambda: gui_view.event_handlers.diagram_jump_topbottom_event(
+                    True,
+                    connector,
+                ),
+                1,
+                "Top Task",
+                1,
+                0,
+                0,
+                (730, 0),
+                5,
+                "nw",
+            )
+            self.jump_top.configure(width=60)
+            create_tooltip(
+                self.jump_top,
+                text="Make the Task at the top of the highlighted connection visible.",
+            )
 
         # Jump-to Bottom button
-        self.jump_bottom = add_button(
-            self,
-            self,
-            "#246FB6",
-            "",
-            "",
-            lambda: gui_view.event_handlers.diagram_jump_topbottom_event(
-                False,
-                connector,
-            ),
-            1,
-            "Bottom Task",
-            1,
-            0,
-            0,
-            (815, 0),
-            5,
-            "nw",
-        )
-        self.jump_bottom.configure(width=60)
-        create_tooltip(
-            self.jump_bottom,
-            text="Make the Task at the bottom of the highlighted connection visible.",
-        )
+        else:
+            self.jump_bottom = add_button(
+                self,
+                self,
+                "#246FB6",
+                "",
+                "",
+                lambda: gui_view.event_handlers.diagram_jump_topbottom_event(
+                    False,
+                    connector,
+                ),
+                1,
+                "Bottom Task",
+                1,
+                0,
+                0,
+                (815, 0),
+                5,
+                "nw",
+            )
+            self.jump_bottom.configure(width=60)
+            create_tooltip(
+                self.jump_bottom,
+                text="Make the Task at the bottom of the highlighted connection visible.",
+            )
 
     # Text window was resized.
     def on_resize(self, event: dict) -> None:  # noqa: ARG002
@@ -1114,10 +1118,6 @@ class CTkTextview(ctk.CTkFrame):
             # Add the info to the hover tooltip.
             self.display_hover_info(tag, tag_flag, event, index)
 
-        # Add 'Jump to' buttons.
-        if connector:
-            self.add_jumpto_buttons(connector)
-
     def display_connector_details(
         self,
         tag: str,
@@ -1163,6 +1163,9 @@ class CTkTextview(ctk.CTkFrame):
             connector["extra_bars"].append((line_num, end_top_col))
             line_num += 1
 
+        # Display the proper jump button: top or bottom.
+        self.display_top_or_bottom_task_button(connector)
+
         # See if there are bars directly above top left elbow, and highlight if there are.
         self.highlight_bars_above(connector, connector["start_top"], tag, bar)
 
@@ -1185,7 +1188,7 @@ class CTkTextview(ctk.CTkFrame):
             left_arrow_corner_down,
         )
 
-        # Identify this connector aas the active tag.
+        # Identify this connector as the active tag.
         connector["tag"] = tag
 
         # Now highlight the selected connector.
@@ -1196,6 +1199,55 @@ class CTkTextview(ctk.CTkFrame):
         self.textview_textbox.diagram_highlighted_connector = tag
 
         return connector
+
+    def display_top_or_bottom_task_button(self, connector: dict) -> None:
+        """Manages the visibility of the jump_top and jump_bottom buttons.
+
+        This method hides the 'jump_top' button and displays the 'jump_bottom' button,
+        provided that both button objects exist as attributes of `self.textview_textbox`.
+
+        Specifically:
+        - If both top and bottom connectors are displayed, remove both buttons from display.
+        - If the top of the connector is visible, hide the top button and display the bottom button.
+        - If the bottom of the connector is visible, hide the bottom button and display the top button.
+        """
+        # If both top and bottom connectors are currently displayed, then removew both buttons from display.
+        if is_line_displayed(
+            self.textview_textbox,
+            connector["start_top"][0],
+        ) and is_line_displayed(self.textview_textbox, connector["end_bottom"][0]):
+            with contextlib.suppress(AttributeError):
+                # Hide the button
+                self.hide_button(self.jump_top)
+            with contextlib.suppress(AttributeError):
+                self.hide_button(self.jump_bottom)
+
+        # If the top of the connector is visible, then hide the top button and display the bottom button.
+        elif is_line_displayed(self.textview_textbox, connector["start_top"][0]):
+            with contextlib.suppress(AttributeError):
+                # Hide the button
+                self.hide_button(self.jump_top)
+            # Display the 'jump to bottom' button
+            self.add_jumpto_buttons(connector, top=False)
+
+        # If the bottom of the connector is visible, then hide the bottom button and display the top button.
+        elif is_line_displayed(self.textview_textbox, connector["end_bottom"][0]):
+            with contextlib.suppress(AttributeError):
+                # Hide the button
+                self.hide_button(self.jump_bottom)
+            # Display the 'jump to top' button
+            self.add_jumpto_buttons(connector, top=True)
+
+    def hide_button(self, button: ctk.CTkButton) -> None:
+        """Given a button name, hide the button.
+        For whatever reason, the chain of commands below works and any suibset of them, doesn't work!
+        """
+        with contextlib.suppress(AttributeError):
+            button.destroy()
+            self.jump_top.destroy()
+            self.jump_bottom.destroy()
+            self.master.update()
+            self.update()
 
     def display_hover_info(
         self,
@@ -1248,6 +1300,7 @@ class CTkTextview(ctk.CTkFrame):
             "project": self.hover_project,
             "found": self.hover_search,
         }
+        owner_text = ""
 
         # Determine the hover type and get the text associated with it.
         if item_type in hover_handlers:
@@ -1269,7 +1322,6 @@ class CTkTextview(ctk.CTkFrame):
                     (window_width_in_pixels // char_width_in_pixels) - 30,
                 )
             else:
-                owner_text = ""
                 text = (
                     hover_handlers[item_type](tag, name, text)
                     if item_type == "task"
@@ -1279,14 +1331,7 @@ class CTkTextview(ctk.CTkFrame):
             return
 
         # Establish appropriate colors
-        if is_color_dark(mygui.color_lookup["background_color"]):
-            background_color = "#092944"
-            foreground_color1 = "white"
-            foreground_color2 = "yellow"
-        else:
-            background_color = "white"
-            foreground_color1 = "black"
-            foreground_color2 = "darkgreen"
+        background_color, foreground_color1, foreground_color2 = get_foreground_background_colors(self.master.master)
 
         # Create the label.
         label = tk.Label(
@@ -2092,9 +2137,6 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None
         """
-        # Define the progress bar.  Import must stay here to avoid circular import.
-        from maptasker.src.diagram import configure_progress_bar  # noqa: PLC0415
-
         progress = configure_progress_bar(the_data, "Map")
         progress.update(
             {
@@ -3053,7 +3095,7 @@ class CTkTextview(ctk.CTkFrame):
             return "break"
         return "break"
 
-    def delay_event(self) -> None:
+    def delay_event(self: ctk) -> None:
         """
         A method that handles the delay event for the various text views.
         It deletes the label after a certain amount of time.
@@ -3088,7 +3130,7 @@ class CTkTextview(ctk.CTkFrame):
 class ProgressbarWindow(ctk.CTk):
     """Define our top level window for the Progressbar view."""
 
-    def __init__(self) -> None:
+    def __init__(self: ctk) -> None:
         """Initialize our top level window for the Progressbar view."""
         # Call the constructor of the parent class (CTk) using super()
         super().__init__()
@@ -3224,7 +3266,7 @@ class PopupWindow(ctk.CTk):
 
     # The "after" n second timer tripped from popup window.  Close the window.
     # Note: rungui will have already completely run by this time.
-    def popup_button_event(self) -> None:
+    def popup_button_event(self: ctk) -> None:
         """
         Define the behavior of the popup button event function.  Close the window and exit.
         """
@@ -3290,6 +3332,17 @@ class CTkHyperlinkManager:
         # Set the cursor to a hand pointer.
         self.text.configure(cursor="hand2")
 
+        # Find MyGui from the top level window.  It could sbe hanging off a number of 'masters'
+        mygui = event.widget
+        while mygui:
+            if mygui.__class__.__name__ == "MyGui":
+                break
+            mygui = mygui.master
+
+        background_color, foreground_color, _ = get_foreground_background_colors(
+            mygui,
+        )
+
         # Find the tag associated with the item entered so we can add hover text.
         for tag in self.text.tag_names(ctk.CURRENT):
             # Delete any previous hover tooltip.
@@ -3302,7 +3355,8 @@ class CTkHyperlinkManager:
                     label = tk.Label(
                         event.widget.master,
                         text=f"{tasker_object[link[0]]}: {link[1]}",
-                        bg="#092944",
+                        bg=background_color,
+                        fg=foreground_color,
                         justify="left",
                         padx=5,
                         pady=5,
@@ -3522,25 +3576,8 @@ class CTkHyperlinkManager:
         )
 
 
-# Save the positition of a window
-def save_window_position(window: CTkTextview) -> None:
-    """
-    Saves the window position by getting the geometry of the window.
-
-    Args:
-        window: The CTkTextview window to save the position of.
-
-    Returns:
-        window position or "" if no window
-    """
-    with contextlib.suppress(Exception):
-        if window is not None:
-            return window.wm_geometry()
-    return ""
-
-
 # Initialize the GUI (_init_ method)
-def initialize_gui(self) -> None:  # noqa: ANN001
+def initialize_gui(self: ctk) -> None:
     """Initializes the GUI by initializing variables and adding a logo.
     Parameters:
         - self (class): The class object.
@@ -3554,82 +3591,124 @@ def initialize_gui(self) -> None:  # noqa: ANN001
 
 
 # Initialize the GUI varliables (e..g _init_ method)
-def initialize_variables(self) -> None:  # noqa: ANN001
+def initialize_variables(self: ctk) -> None:
     """
     Initialize variables for the MapTasker Runtime Options window.
     """
+    _initialize_gui_settings(self)
+    _initialize_ai_settings(self)
+    _initialize_android_settings(self)
+    _initialize_display_settings(self)
+    _initialize_feature_flags(self)
+    _initialize_window_positions(self)
+    _initialize_data_structures(self)
+    _initialize_runtime_options(self)
+    _initialize_configure(self)
+
+
+def _initialize_gui_settings(self: ctk) -> None:
+    """Initializes GUI-related appearance and display settings."""
     PrimeItems.program_arguments["gui"] = True
+    self.title("MapTasker Runtime Options")
+    self.gui = True
+    self.guiview = False
+    self.appearance_mode = None
+    self.default_font = ""
+    self.font = None
+    self.bold = None
+    self.italicize = None
+    self.underline = None
+    self.highlight = None
+    self.color_labels = None
+    self.color_lookup = None
+    self.twisty = None
+    self.indent = None
+    self.display_detail_level = None
+    self.everything = None
+    self.view_limit = 10000
+    self.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
+    self.clear_messages = False
+    self.pretty = False
+    self.task_action_warning_limit = 20
+
+
+def _initialize_ai_settings(self: ctk) -> None:
+    """Initializes AI-related variables."""
     self.ai_analysis = None
     self.ai_analysis_window = None
-    self.ai_analysis_window_position = ""
     self.ai_apikey = None
     self.ai_apikey_window = None
-    self.ai_apikey_window_position = ""
-    # self.ai_missing_module = None
     self.ai_model = ""
-    self.ai_popup_window_position = ""
     self.ai_prompt = None
-    self.all_messages = {}
+
+
+def _initialize_android_settings(self: ctk) -> None:
+    """Initializes Android device connection settings."""
     self.android_file = ""
     self.android_ipaddr = ""
     self.android_port = ""
-    self.appearance_mode = None
-    self.bold = None
-    self.clear_messages = False
-    self.color_labels = None
-    self.color_lookup = None
-    self.color_window_position = ""
-    self.conditions = None
-    self.debug = None
-    self.default_font = ""
-    self.doing_diagram = False
-    self.diagram_window_position = ""
-    self.diagramview_window = None
-    self.display_detail_level = None
-    self.everything = None
-    self.extract_in_progress = False
-    self.exit = None
     self.fetched_backup_from_android = False
-    self.file = None
-    self.first_time = True
-    self.font = None
-    self.go_program = None
-    self.gui = True
-    self.guiview = False
-    self.highlight = None
-    self.indent = None
-    self.italicize = None
-    self.list_files = False
-    self.list_unnamed_items = False
-    self.view_limit = 10000
-    self.map_window_position = ""
+
+
+def _initialize_display_settings(self: ctk) -> None:
+    """Initializes settings related to how data is displayed."""
+    self.doing_diagram = False
+    self.diagramview_window = None
     self.map_in_progress = False
     self.mapview_window = None
-    self.named_item = None
+    self.treeview_window = None
     self.outline = False
-    self.preferences = None
-    self.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
-    # self.progressbar_window_position = ""
-    self.pretty = False
-    self.rerun = None
-    self.reset = None
+
+
+def _initialize_feature_flags(self: ctk) -> None:
+    """Initializes boolean flags for various features and states."""
+    self.extract_in_progress = False
+    self.first_time = True
+    self.list_files = False
+    self.list_unnamed_items = False
     self.reset_debug_at_end = False
     self.restore = False
     self.runtime = False
     self.save = False
+
+
+def _initialize_window_positions(self: ctk) -> None:
+    """Initializes variables for storing window positions."""
+    self.ai_analysis_window_position = ""
+    self.ai_apikey_window_position = ""
+    self.ai_popup_window_position = ""
+    self.color_window_position = ""
+    self.diagram_window_position = ""
+    self.map_window_position = ""
+    # self.progressbar_window_position = "" # Uncomment if you decide to use this
+    self.tree_window_position = ""
+    self.window_position = None  # This one is generic, consider if it's needed
+
+
+def _initialize_data_structures(self: ctk) -> None:
+    """Initializes data structures used by the application."""
+    self.all_messages = {}
+    self.conditions = None  # Consider if this should be initialized to a dict or list
+    self.named_item = None  # Consider if this should be initialized to a specific type
     self.single_profile_name = None
     self.single_project_name = None
     self.single_task_name = None
-    self.task_action_warning_limit = 20
-    self.tab_to_use = None
-    self.taskernet = None
-    self.title("MapTasker Runtime Options")
-    self.tree_window_position = ""
-    self.treeview_window = None
-    self.twisty = None
-    self.underline = None
-    self.window_position = None
+    self.tab_to_use = None  # Consider if this should be initialized to a default tab
 
+
+def _initialize_runtime_options(self: ctk) -> None:
+    """Initializes variables related to runtime actions and program flow."""
+    self.debug = None
+    self.exit = None
+    self.file = None  # Consider if this should be initialized to an empty string or specific file object
+    self.go_program = None
+    self.preferences = None
+    self.rerun = None
+    self.reset = None
+    self.taskernet = None
+
+
+def _initialize_configure(self: ctk) -> None:
     # configure grid layout (4x4).  A non-zero weight causes a row or column to grow if there's extra space needed.
     # The default is a weight of zero, which means the column will not grow if there's extra space.
     self.grid_columnconfigure(1, weight=1)
@@ -3638,8 +3717,6 @@ def initialize_variables(self) -> None:  # noqa: ANN001
         (0, 3),
         weight=4,
     )  # Divvy up the extra space needed equally amonst the 4 rows: 0-thru-3
-
-    # load and create background image
 
     # create sidebar frame with widgets on the left side of the window.
     self.sidebar_frame = ctk.CTkFrame(self, width=140, corner_radius=0)
@@ -3652,29 +3729,38 @@ def initialize_variables(self) -> None:  # noqa: ANN001
     )  # Make anything in rows 20-xx stretchable.
 
 
-# Define all of the menu elements
-def initialize_screen(self: object) -> None:  # noqa: PLR0915
-    # Add grid title
-    """Initializes the screen with various display options and settings.
-    Parameters:
-        - self (object): The object to which the function belongs.
-    Returns:
-        - None: This function does not return any value.
-    Processing Logic:
-        - Creates a grid title and adds it to the sidebar frame.
-        - Defines the first grid / column for display detail level.
-        - Defines the second grid / column for checkboxes related to display options.
-        - Defines the third grid / column for buttons related to program settings.
-        - Creates a textbox for displaying help information.
-        - Creates a tabview for setting specific names, colors, and debug options.
-        - Defines the fourth grid / column for checkboxes related to debug options.
-        - Defines the sixth grid / column for checkboxes related to runtime settings."""
+def initialize_screen(self: object) -> None:
+    """Initializes the screen with various display options and settings."""
     logger.info("Initializing screen...")
+    _setup_init(self)
+    _create_display_options_section(self)
+    _create_name_display_options_section(self)
+    _create_task_action_limit_section(self)
+    _create_indentation_section(self)
+    _create_appearance_mode_section(self)
+    _create_view_buttons_section(self)
+    _create_view_limit_section(self)
+    _create_settings_buttons_section(self)
+    _create_font_section(self)
+    _create_file_and_message_buttons_section(self)
+    _create_browser_options_section(self)
+    _create_tabview_section(self)
+    _add_misc_logos(self)
 
-    # Save the window position on closure
+
+def _setup_init(self: ctk) -> None:
+    """Initialize your application window and frames here
+    # This is a minimal example to make the refactored code runnable"""
+    # self.sidebar_frame = ctk.CTkFrame(master=None)
+    self.task_action_warning_limit = 100
+    # Setup routine if user deletes the window
     self.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
+    # Create textbox for information/feedback: found in userintr
+    self.create_new_textbox()
 
-    # Display the frame title
+
+def _create_display_options_section(self: ctk) -> None:
+    """Creates the display options section in the sidebar."""
     self.logo_label = add_label(
         self,
         self.sidebar_frame,
@@ -3689,10 +3775,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "s",
     )
 
-    # Start first grid / column definitions
-
-    # Display Detail Level
-    self.detail_label = add_label(
+    add_label(
         self,
         self.sidebar_frame,
         "Display Detail Level:",
@@ -3716,135 +3799,68 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         (10, 10),
         "",
     )
-    # Display 'Everything' checkbox
-    self.everything_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.everything_event,
-        "Just Display Everything!",
-        3,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-    create_tooltip(
-        self.everything_checkbox,
-        text="Checks all of the below checkboxes except for 'twistyt' and sets the display level to the maximum detail level.",
-    )
 
-    # Display 'Condition' checkbox
-    self.conditions_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.condition_event,
-        "Display Profile and Task Action Conditions",
-        4,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
+    checkboxes = [
+        (
+            "Just Display Everything!",
+            "everything_event",
+            "everything_checkbox",
+            "Checks all of the below checkboxes except for 'twistyt' and sets the display level to the maximum detail level.",
+        ),
+        (
+            "Display Profile and Task Action Conditions",
+            "condition_event",
+            "conditions_checkbox",
+            None,
+        ),
+        ("Display TaskerNet Info", "taskernet_event", "taskernet_checkbox", None),
+        (
+            "Display Tasker Preferences",
+            "preferences_event",
+            "preferences_checkbox",
+            None,
+        ),
+        ("Hide Task Details Under Twisty", "twisty_event", "twisty_checkbox", None),
+        (
+            "Display Directory",
+            "directory_event",
+            "directory_checkbox",
+            "Display a directory of all Projects, Profiles, Tasks and Scenes with hotlinks at the begging of the output.",
+        ),
+        (
+            "Display Configuration Outline",
+            "outline_event",
+            "outline_checkbox",
+            "Display a diagram of the configuration with all Task connections your the default text editor.\nThis option only relates to the 'Run and Exit' and 'ReRun' buttons.",
+        ),
+        (
+            "Display Prettier Output",
+            "pretty_event",
+            "pretty_checkbox",
+            "Align all Task action arguments and parameters for nicer output.",
+        ),
+    ]
 
-    # Display 'TaskerNet' checkbox
-    self.taskernet_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.taskernet_event,
-        "Display TaskerNet Info",
-        5,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
+    for i, (text, event_name, attr_name, tooltip_text) in enumerate(checkboxes):
+        checkbox = add_checkbox(
+            self,
+            self.sidebar_frame,
+            getattr(self.event_handlers, event_name),
+            text,
+            3 + i,  # Row starts from 3
+            0,
+            20,
+            10,
+            "w",
+            "",
+        )
+        setattr(self, attr_name, checkbox)
+        if tooltip_text:
+            create_tooltip(checkbox, text=tooltip_text)
 
-    # Display 'Tasker Preferences' checkbox
-    self.preferences_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.preferences_event,
-        "Display Tasker Preferences",
-        6,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
 
-    # Display 'Twisty' checkbox
-    self.twisty_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.twisty_event,
-        "Hide Task Details Under Twisty",
-        7,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-
-    # Display 'directory' checkbox
-    self.directory_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.directory_event,
-        "Display Directory",
-        8,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-    create_tooltip(
-        self.directory_checkbox,
-        text="Display a directory of all Projects, Profiles, Tasks and Scenes with hotlinks at the begging of the output.",
-    )
-
-    # Outline
-    self.outline_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.outline_event,
-        "Display Configuration Outline",
-        9,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-    create_tooltip(
-        self.outline_checkbox,
-        text="Display a diagram of the configuration with all Task connections your the default text editor.\nThis option only relates to the 'Run and Exit' and 'ReRun' buttons.",
-    )
-
-    # Pretty Output
-    self.pretty_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.pretty_event,
-        "Display Prettier Output",
-        10,
-        0,
-        20,
-        10,
-        "w",
-        "",
-    )
-    create_tooltip(
-        self.pretty_checkbox,
-        text="Align all Task action arguments and parameters for nicer output.",
-    )
-
-    # Names: Bold / Highlight / Italicise / Underline
+def _create_name_display_options_section(self: ctk) -> None:
+    """Creates the section for name display options (bold, italicize, highlight, underline)."""
     self.display_names_label = add_label(
         self,
         self.sidebar_frame,
@@ -3863,7 +3879,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         text="Add highlighting to Project, Profile and Task names in the output.",
     )
 
-    # Bold
     self.bold_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
@@ -3881,7 +3896,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         text="Bold and Italicize are mutually exclusive in the Map view.",
     )
 
-    # Italicize
     self.italicize_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
@@ -3899,7 +3913,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         text="Italicize and Bold are mutually exclusive in the Map view.",
     )
 
-    # Highlight
     self.highlight_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
@@ -3913,7 +3926,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "",
     )
 
-    # Underline
     self.underline_checkbox = add_checkbox(
         self,
         self.sidebar_frame,
@@ -3927,7 +3939,9 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "",
     )
 
-    # Task 'actions' limit
+
+def _create_task_action_limit_section(self: ctk) -> None:
+    """Creates the task 'actions' limit slider."""
     self.task_action_label = add_label(
         self,
         self.sidebar_frame,
@@ -3959,7 +3973,9 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         text="Select how many actions in a Task before issuing a warning.\nThe warning appears near th4e bottom of the configuration output,\nand is intended to help identify Tasks that are too comple\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit.",
     )
 
-    # Indentation
+
+def _create_indentation_section(self: ctk) -> None:
+    """Creates the If/Then/Else indentation options."""
     self.indent_label = add_label(
         self,
         self.sidebar_frame,
@@ -3973,8 +3989,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         (80, 0),
         "n",
     )
-
-    # Indentation Amount
     self.indent_option = add_option_menu(
         self,
         self.sidebar_frame,
@@ -3991,7 +4005,9 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         text="Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.",
     )
 
-    # Screen Appearance: Light / Dark / System
+
+def _create_appearance_mode_section(self: ctk) -> None:
+    """Creates the appearance mode selection."""
     self.appearance_mode_label = add_label(
         self,
         self.sidebar_frame,
@@ -4005,7 +4021,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         (10, 0),
         "s",
     )
-
     self.appearance_mode_optionmenu = add_option_menu(
         self,
         self.sidebar_frame,
@@ -4018,29 +4033,18 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "n",
     )
 
-    # Views
-    self.appearance_mode_label = add_label(
-        self,
-        self.sidebar_frame,
-        "Views",
-        "",
-        0,
-        "normal",
-        19,
-        0,
-        0,
-        0,
-        "s",
-    )
 
-    # 'Map View' button definition
+def _create_view_buttons_section(self: ctk) -> None:
+    """Creates buttons for different views (Map, Diagram, Tree)."""
+    add_label(self, self.sidebar_frame, "Views", "", 0, "normal", 19, 0, 0, 0, "s")
+
     self.mapview_button = add_button(
         self,
         self.sidebar_frame,
         "#246FB6",
         "",
         "",
-        self.event_handlers.map_event,
+        lambda: self.event_handlers.view_event("map"),
         1,
         "Map",
         1,
@@ -4056,14 +4060,13 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         text="Show a detailed view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button, but the output is displayed inside another window rather than in a browser.",
     )
 
-    # 'Diagram View' button definition
     self.diagramview_button = add_button(
         self,
         self.sidebar_frame,
         "#246FB6",
         "",
         "",
-        self.event_handlers.diagram_event,
+        lambda: self.event_handlers.view_event("diagram"),
         2,
         "Diagram",
         1,
@@ -4079,14 +4082,13 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         text="Show a diagrammatic view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button combined with the 'Display Configuration Outline' checkbox selected,\nbut the output is displayed inside another window rather than in a text editor.",
     )
 
-    # 'Tree View' button definition
     self.treeview_button = add_button(
         self,
         self.sidebar_frame,
         "#246FB6",
         "",
         "",
-        self.event_handlers.treeview_event,
+        lambda: self.event_handlers.view_event("treeview"),
         2,
         "Tree",
         0,
@@ -4101,7 +4103,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         self.treeview_button,
         text="Show a simple hierarchical tree view of your configuration.",
     )
-    #  Query ? button
+
     self.view_query_button = add_button(
         self,
         self.sidebar_frame,
@@ -4119,7 +4121,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "s",
     )
     self.view_query_button.configure(width=20)
-    # View Limit
+
+
+def _create_view_limit_section(self: ctk) -> None:
+    """Creates the view limit dropdown."""
     self.viewlimit_label = add_label(
         self,
         self.sidebar_frame,
@@ -4148,7 +4153,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         self.viewlimit_optionmenu,
         text="Select the maximum number of items to display in the view to be allowed.\n\nAnything over this amount will stop the generation of the view as a means to throttle the program.\n\nNote: This is only for the 'Map' and 'Diagram' views, not the tree view.",
     )
-    #  Query ? button
     self.viewlimit_query_button = add_button(
         self,
         self.sidebar_frame,
@@ -4167,7 +4171,9 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
     )
     self.viewlimit_query_button.configure(width=20)
 
-    # 'Reset Settings' button definition
+
+def _create_settings_buttons_section(self: ctk) -> None:
+    """Creates buttons for resetting, saving, and restoring settings."""
     self.reset_button = add_button(
         self,
         self.sidebar_frame,
@@ -4189,51 +4195,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         text="Reset all of the options to their default values, including colors, font used, and other settings.\n\nThe currently loaded XML will be cleared out.",
     )
 
-    # Start second grid / column definitions
-
-    # Font to use
-    self.font_label = add_label(
-        self,
-        self,
-        "Font To Use In Output:",
-        "",
-        0,
-        "normal",
-        6,
-        1,
-        20,
-        10,
-        "sw",
-    )
-
-    # Get fonts from TkInter
-    font_items, res = get_monospace_fonts()
-    default_font = [value for value in font_items if "Courier" in value]
-    self.default_font = default_font[0]
-
-    # Delete the tkroot obtained by get_monospace_fonts
-    if PrimeItems.tkroot is not None:
-        del PrimeItems.tkroot
-        PrimeItems.tkroot = None
-    self.font_optionmenu = add_option_menu(
-        self,
-        self,
-        self.event_handlers.font_event,
-        font_items,
-        7,
-        1,
-        20,
-        (0, 0),
-        "nw",
-    )
-    self.font_optionmenu.set(res[0])
-    create_tooltip(
-        self.font_optionmenu,
-        text="This is a list of all of the monospaced fonts available on your system.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment.",
-    )
-
-    # Save settings button
-    _ = add_button(
+    add_button(
         self,
         self,
         "#6563ff",
@@ -4250,8 +4212,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "nw",
     )
 
-    # Restore settings button
-    _ = add_button(
+    add_button(
         self,
         self,
         "#6563ff",
@@ -4268,7 +4229,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "nw",
     )
 
-    # Report Issue
     self.report_issue_button = add_button(
         self,
         self,
@@ -4290,7 +4250,50 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         text="Report any issues and/or suggestions to the developer.\n\nThis will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue.",
     )
 
-    # 'Clear Messages' button definition
+
+def _create_font_section(self: ctk) -> None:
+    """Creates the font selection dropdown."""
+    self.font_label = add_label(
+        self,
+        self,
+        "Font To Use In Output:",
+        "",
+        0,
+        "normal",
+        6,
+        1,
+        20,
+        10,
+        "sw",
+    )
+    font_items, res = get_monospace_fonts()
+    default_font = [value for value in font_items if "Courier" in value]
+    self.default_font = default_font[0]
+
+    if PrimeItems.tkroot is not None:
+        del PrimeItems.tkroot
+        PrimeItems.tkroot = None
+
+    self.font_optionmenu = add_option_menu(
+        self,
+        self,
+        self.event_handlers.font_event,
+        font_items,
+        7,
+        1,
+        20,
+        (0, 0),
+        "nw",
+    )
+    self.font_optionmenu.set(res[0])
+    create_tooltip(
+        self.font_optionmenu,
+        text="This is a list of all of the monospaced fonts available on your system.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment.",
+    )
+
+
+def _create_file_and_message_buttons_section(self: ctk) -> None:
+    """Creates buttons for clearing messages and getting XML."""
     self.reset_button = add_button(
         self,
         self,
@@ -4307,7 +4310,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         10,
         "s",
     )
-    # 'Get Backup Settings' button definition
     self.get_backup_button = self.display_backup_button(
         "Get XML from Android Device",
         "#246FB6",
@@ -4318,7 +4320,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         self.get_backup_button,
         text="Fetch XML from an Android device.\n\nClick on the 'Get Android Help' button for more info.",
     )
-    # 'Get local XML' button
     self.getxml_button = add_button(
         self,
         self,
@@ -4340,8 +4341,10 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         text="Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands.",
     )
 
-    # 'Display Help' button definition
-    _ = add_button(
+
+def _create_browser_options_section(self: ctk) -> None:
+    """Creates browser-related buttons (Run, ReRun, Exit, Help)."""
+    add_button(
         self,
         self,
         "#246FB6",
@@ -4358,8 +4361,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "ne",
     )
 
-    # 'Backup Help' button definition
-    _ = add_button(
+    add_button(
         self,
         self,
         "#246FB6",
@@ -4376,7 +4378,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "ne",
     )
 
-    # Add "Browser" label
     self.text_message_label = add_label(
         self,
         self,
@@ -4390,7 +4391,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         (50, 0),
         "ne",
     )
-    # 'Run' button definition
     self.run_button = add_button(
         self,
         self,
@@ -4412,7 +4412,6 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         text="Generate a map of the current XML, save the results as an html file and display the map in the default browser.\n\nThe program terminates when done.",
     )
 
-    # 'ReRun' button definition
     self.rerun_button = add_button(
         self,
         self,
@@ -4434,8 +4433,7 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         text="Same as the 'Run' button, but the program does not terminate when done.",
     )
 
-    # 'Exit' button definition
-    _ = add_button(
+    add_button(
         self,
         self,
         "#246FB6",
@@ -4452,45 +4450,30 @@ def initialize_screen(self: object) -> None:  # noqa: PLR0915
         "e",
     )
 
-    # Create textbox for information/feedback
-    self.create_new_textbox()
 
-    # Start third grid / column definitions
-    # create tabview for Name, Color, Analysis and Debug
+def _create_tabview_section(self: ctk) -> None:
+    """Creates the tabview and its individual tabs."""
     self.tabview = ctk.CTkTabview(self, width=250, segmented_button_fg_color="#6563ff")
     self.tabview.grid(row=0, column=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
 
-    # Add our tabs
     for item in TAB_NAMES:
         self.tabview.add(item)
+        # Configure grid for individual tabs
+        self.tabview.tab(item).grid_columnconfigure(0, weight=1)
 
-    self.tabview.tab("Specific Name").grid_columnconfigure(
-        0,
-        weight=1,
-    )  # configure grid of individual tabs
-    self.tabview.tab("Colors").grid_columnconfigure(0, weight=1)
-    self.tabview.tab("Analyze").grid_columnconfigure(0, weight=1)
-    self.tabview.tab("Debug").grid_columnconfigure(0, weight=1)
+    _create_specific_name_tab_content(self, self.tabview.tab("Specific Name"))
+    _create_colors_tab_content(self, self.tabview.tab("Colors"))
+    _create_analyze_tab_content(self, self.tabview.tab("Analyze"))
+    _create_debug_tab_content(self, self.tabview.tab("Debug"))
 
-    # Prompt for the name
-    _ = add_label(
-        self,
-        self.tabview.tab("Specific Name"),
-        "(Pick ONLY One)",
-        "",
-        0,
-        "normal",
-        4,
-        0,
-        20,
-        (10, 10),
-        "w",
-    )
 
-    # Display 'List Unnamed Items' checkbox
+def _create_specific_name_tab_content(self: ctk, tab: ctk) -> None:
+    """Populates the 'Specific Name' tab."""
+    add_label(self, tab, "(Pick ONLY One)", "", 0, "normal", 4, 0, 20, (10, 10), "w")
+
     self.list_unnamed_items_checkbox = add_checkbox(
         self,
-        self.tabview.tab("Specific Name"),
+        tab,
         self.event_handlers.list_unnamed_items_event,
         "List Unnamed Items",
         14,
@@ -4509,10 +4492,12 @@ but the unnamed Profile and Task details will still appear in the output.
 """,
     )
 
-    # Setup to get various display colors
-    _ = add_label(
+
+def _create_colors_tab_content(self: ctk, tab: str) -> None:
+    """Populates the 'Colors' tab."""
+    add_label(
         self,
-        self.tabview.tab("Colors"),
+        tab,
         "Set Various Display Colors Here:",
         "",
         0,
@@ -4523,9 +4508,9 @@ but the unnamed Profile and Task details will still appear in the output.
         0,
         "",
     )
-    _ = add_option_menu(
+    add_option_menu(
         self,
-        self.tabview.tab("Colors"),
+        tab,
         self.event_handlers.colors_event,
         [
             "Projects",
@@ -4552,11 +4537,9 @@ but the unnamed Profile and Task details will still appear in the output.
         (10, 10),
         "",
     )
-
-    # Reset to Default Colors button
-    _ = add_button(
+    add_button(
         self,
-        self.tabview.tab("Colors"),
+        tab,
         "",
         "",
         "",
@@ -4571,46 +4554,46 @@ but the unnamed Profile and Task details will still appear in the output.
         "",
     )
 
-    # AI Tab fields
+
+def _create_analyze_tab_content(self: ctk, tab: str) -> None:
+    """Populates the 'Analyze' (AI) tab."""
     center = 50
-    # API Key
-    _ = add_button(
+    add_button(
         self,
-        self.tabview.tab("Analyze"),
-        "",  # fg_color: str,
-        "",  # text_color: str,
-        "",  # border_color: str,
-        self.event_handlers.ai_apikey_event,  # command
-        2,  # border_width: int,
-        "Show/Edit API Key(s)",  # text: str,
-        1,  # columnspan: int,
-        3,  # row: int,
-        0,  # column: int,
-        center,  # padx: tuple,
-        (10, 10),  # pady: tuple,
+        tab,
+        "",
+        "",
+        "",
+        self.event_handlers.ai_apikey_event,
+        2,
+        "Show/Edit API Key(s)",
+        1,
+        3,
+        0,
+        center,
+        (10, 10),
         "",
     )
-    # Change Prompt
-    _ = add_button(
+    add_button(
         self,
-        self.tabview.tab("Analyze"),
-        "",  # fg_color: str,
-        "",  # text_color: str,
-        "",  # border_color: str,
-        self.event_handlers.ai_prompt_event,  # command
-        2,  # border_width: int,
-        "Change Prompt",  # text: str,
-        1,  # columnspan: int,
-        4,  # row: int,
-        0,  # column: int,
-        center,  # padx: tuple,
-        (10, 10),  # pady: tuple,
+        tab,
+        "",
+        "",
+        "",
+        self.event_handlers.ai_prompt_event,
+        2,
+        "Change Prompt",
+        1,
+        4,
+        0,
+        center,
+        (10, 10),
         "",
     )
-    # Model selection
+
     self.ai_model_label = add_label(
         self,
-        self.tabview.tab("Analyze"),
+        tab,
         "Model to Use:",
         "",
         0,
@@ -4622,9 +4605,7 @@ but the unnamed Profile and Task details will still appear in the output.
         "n",
     )
 
-    # Prefix, sort, and combine the model lists
     display_models = sorted(model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name))
-
     (
         display_models.insert(0, PrimeItems.program_arguments["ai_model"])
         if PrimeItems.program_arguments["ai_model"]
@@ -4632,7 +4613,7 @@ but the unnamed Profile and Task details will still appear in the output.
     )
     self.ai_model_option = add_option_menu(
         self,
-        self.tabview.tab("Analyze"),
+        tab,
         self.event_handlers.ai_model_selected_event,
         display_models,
         6,
@@ -4642,32 +4623,32 @@ but the unnamed Profile and Task details will still appear in the output.
         "s",
     )
 
-    # Analyize button
     display_analyze_button(self, 13, first_time=True)
 
-    # Readme Help button
     self.ai_help_button = add_button(
         self,
-        self.tabview.tab("Analyze"),
+        tab,
         "#246FB6",
         ("#0BF075", "#ffd941"),
-        "#1bc9ff",  # border_color: str,
-        lambda: self.event_handlers.query_event("ai"),  # command
-        1,  # border_width: int,
-        "?",  # text: str,
-        1,  # columnspan: int,
-        13,  # row: int,
-        0,  # column: int,
-        (190, 0),  # padx: tuple, don't change this.
-        (10, 10),  # pady: tuple,
+        "#1bc9ff",
+        lambda: self.event_handlers.query_event("ai"),
+        1,
+        "?",
+        1,
+        13,
+        0,
+        (190, 0),
+        (10, 10),
         "n",
     )
     self.ai_help_button.configure(width=20)
 
-    # Debug Mode checkbox
+
+def _create_debug_tab_content(self: ctk, tab: str) -> None:
+    """Populates the 'Debug' tab."""
     self.debug_checkbox = add_checkbox(
         self,
-        self.tabview.tab("Debug"),
+        tab,
         self.event_handlers.debug_checkbox_event,
         "Debug Mode",
         4,
@@ -4677,10 +4658,9 @@ but the unnamed Profile and Task details will still appear in the output.
         "w",
         "#6563ff",
     )
-    # Runtime
     self.runtime_checkbox = add_checkbox(
         self,
-        self.tabview.tab("Debug"),
+        tab,
         self.event_handlers.runtime_checkbox_event,
         "Display Runtime Settings",
         3,
@@ -4690,10 +4670,12 @@ but the unnamed Profile and Task details will still appear in the output.
         "w",
         "#6563ff",
     )
-    # Add maptasker icon
-    _ = add_logo(self, "maptasker")
-    # Buy Me A Coffee button
-    self._dict_icon = add_logo(self, "coffee")
+
+
+def _add_misc_logos(self: ctk) -> None:
+    """Adds the Maptasker and 'Buy Me A Coffee' logos."""
+    add_logo(self, "maptasker")
+    _dict_icon = add_logo(self, "coffee")
 
 
 # Delete the windows
@@ -4720,32 +4702,6 @@ def get_rid_of_window(self, delete_all: bool = True) -> None:  # noqa: ANN001
         if self.mapview_window is not None:
             self.mapview_window.destroy()
     self.quit()
-
-
-def store_windows(self) -> None:  # noqa: ANN001
-    """
-    Stores the positions of all of our windows.
-
-    This function saves the positions of the various windows using the `save_window_position()` function.
-
-    Returns:
-        None
-    """
-    windows = {
-        "ai_analysis_window": "ai_analysis_window_position",
-        "treeview_window": "tree_window_position",
-        "diagramview_window": "diagram_window_position",
-        "mapview_window": "map_window_position",
-        "progressbar_window": "progressbar_window_position",
-        "apikey_window": "ai_apikey_window_position",
-        "self": "window_position",
-    }
-
-    with contextlib.suppress(AttributeError):
-        for window_attr, position_attr in windows.items():
-            window_obj = getattr(self, window_attr, None)
-            if window_obj and (window_pos := save_window_position(window_obj)):
-                setattr(self, position_attr, window_pos)
 
 
 class ToolTip(object):  # noqa: UP004
@@ -4821,7 +4777,7 @@ class ToolTip(object):  # noqa: UP004
 
         label.pack(ipadx=1)
 
-    def hidetip(self) -> None:
+    def hidetip(self: ctk) -> None:
         """
         Hides the tooltip.
 

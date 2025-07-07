@@ -157,7 +157,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         _, _ = save_restore_args(
             PrimeItems.program_arguments,
             PrimeItems.colors_to_use,
-            True,
+            to_save=True,
         )
         # Spit out the message and log it.
         error_handler("Program exited. Goodbye.", 0)

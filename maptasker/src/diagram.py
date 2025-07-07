@@ -55,9 +55,11 @@ from maptasker.src.getids import get_ids
 from maptasker.src.guiutils import (
     display_progress_bar,
     kill_the_progress_bar,
-    validate_tkinter_geometry,
 )
-from maptasker.src.guiwins import ProgressbarWindow
+
+# Avoid circular import error: guiwins has the proper import statement for configure_progress_bar,
+# the function, of which, is in guiutil2.
+from maptasker.src.guiwins import configure_progress_bar
 from maptasker.src.maputils import find_all_positions
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
@@ -1381,69 +1383,6 @@ def handle_calls(output_lines: list) -> None:
         kill_the_progress_bar(progress, remove_windows=False)
 
     return output_lines
-
-
-def configure_progress_bar(output_lines: list, title: str) -> tuple:
-    """
-    Configures and returns a progress bar for the GUI if the 'gui' argument is set in PrimeItems.program_arguments.
-
-    Args:
-        output_lines (list): The list of lines to process.
-        titele (str): The title of the progress bar.
-
-    Returns:
-        progress (dict): The progress bar dictionary.
-    """
-    # Display a progress bar if coming from the GUI.
-    if PrimeItems.program_arguments["gui"]:
-        # Make sure we have a geometry set for the progress bar
-        if not PrimeItems.program_arguments["map_window_position"]:
-            PrimeItems.program_arguments["map_window_position"] = "300x200+600+0"
-        # Create a progress bar widget
-        # The progress_bar will point to the ProgressbarWindow object, and progress_bar.progressbar will point to the
-        # CTkProgressBar object
-        progress_bar = ProgressbarWindow()
-        progress_bar.title(f"{title} Progress")
-        progress_bar.progressbar.set(0.0)
-        progress_bar.progressbar.start()
-        progress_bar.progressbar.focus_set()
-
-        # Set the geometry of the progress bar
-        if validate_tkinter_geometry(
-            PrimeItems.program_arguments["progressbar_window_position"],
-        ):
-            progress_bar.geometry(
-                PrimeItems.program_arguments["progressbar_window_position"],
-            )
-
-        else:
-            PrimeItems.program_arguments["progressbar_window_position"] = "300x500+100+0"
-        # Setup for our progress bar.  Use the total number of output lines as the metric.
-        # 4 times since we go thru output lines 4 times in a majore way...
-        # 1st: the Diagram, 2nd: delete_hanging_bars
-        max_data = len(output_lines) * 8
-
-        # Calculate the increment value for each 10% of progress (tenth_increment) based on the maximum value of the
-        # progress bar (max_data). If the calculated increment is 0 (which would happen if max_data is less than 10),
-        # it sets the increment to 1 to avoid division by zero issues.
-        tenth_increment = max_data // 10
-        if tenth_increment == 0:
-            tenth_increment = 1
-
-        # Save the info
-        PrimeItems.progressbar = {
-            "progress_bar": progress_bar,
-            "tenth_increment": tenth_increment,
-            "max_data": max_data,
-            "progress_counter": 0,
-            "self": None,
-        }
-
-        return PrimeItems.progressbar
-    # Not the GUI.  Just return an almost empty dictionary.
-    return {
-        "progress_counter": 0,
-    }
 
 
 # Build the Profile box.

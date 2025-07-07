@@ -11,6 +11,7 @@ import defusedxml.ElementTree as ET  # noqa: N817
 from maptasker.src import condition
 from maptasker.src.actione import get_action_code
 from maptasker.src.error import error_handler
+from maptasker.src.maputil2 import strip_html_tags, truncate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import conditions_to_name
 from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine
@@ -179,11 +180,11 @@ def get_first_action(task: ET) -> str:
         - Looks up the action code in the action_codes dictionary and returns its name.
         - Returns an empty string if no suitable action is found.
     """
-    # Build the Taskere argument codes dictionary if we don't yet have it.
+    # Build the Taskee argument codes dictionary if we don't yet have it.
     if not PrimeItems.tasker_arg_specs:
-        from maptasker.src.proginit import build_action_codes
+        from maptasker.src.proginit import build_action_codes_from_json
 
-        build_action_codes(False)
+        build_action_codes_from_json(False)
 
     task_actions = task.findall("Action")
     if task_actions is not None:
@@ -201,9 +202,7 @@ def get_first_action(task: ET) -> str:
         # Now get the Action code
         child = action.find("code")
         the_result = get_action_code(child, action, True, "t")
-        from maptasker.src.maputils import remove_html_tags
-
-        clean_text = remove_html_tags(the_result)
+        clean_text = strip_html_tags(the_result)
         clean_text = (
             clean_text.replace("&nbsp;&nbsp;", "&nbsp;")
             .replace("( ", "(")
@@ -215,7 +214,5 @@ def get_first_action(task: ET) -> str:
             .replace("&gt;", "}")
         )
         # Truncate the string at 30 charatcers.
-        from maptasker.src.maputils import truncate_string
-
         return truncate_string(clean_text, 30)
     return ""

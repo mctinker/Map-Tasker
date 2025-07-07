@@ -26,15 +26,13 @@ from maptasker.src.error import error_handler
 # from maptasker.src.fonts import get_fonts
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getbakup import get_backup_file
+from maptasker.src.maputil2 import log_startup_values
 from maptasker.src.maputils import exit_program
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     COUNTER_FILE,
-    MY_VERSION,
-    NOW_TIME,
     TYPES_OF_COLOR_NAMES,
     logger,
-    logging,
 )
 from maptasker.src.taskerd import get_the_xml_data
 
@@ -200,37 +198,6 @@ def setup_colors() -> dict:
     return colors_to_use
 
 
-# Set up logging
-def setup_logging() -> None:
-    """
-    Set up the logging: name the file and establish the log type and format
-    """
-    # Add the date and time to the log filename.
-    file_name = f"maptasker_{NOW_TIME.month}-{NOW_TIME.day}-{NOW_TIME.year}_{NOW_TIME.hour}-{NOW_TIME.minute}-{NOW_TIME.second}.log"
-    logging.basicConfig(
-        filename=file_name,
-        filemode="w",
-        format="%(asctime)s,%(msecs)d %(levelname)s %(name)s %(funcName)s %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.DEBUG,
-    )
-    logger.info(sys.version_info)
-
-
-# Log the arguments
-def log_startup_values() -> None:
-    """
-    Log the runtime arguments and color mappings
-    """
-    setup_logging()  # Get logging going
-    logger.info(f"{MY_VERSION} {str(NOW_TIME)}")  # noqa: RUF010
-    logger.info(f"sys.argv:{str(sys.argv)}")  # noqa: RUF010
-    for key, value in PrimeItems.program_arguments.items():
-        logger.info(f"{key}: {value}")
-    for key, value in PrimeItems.colors_to_use.items():
-        logger.info(f"colormap for {key} set to {value}")
-
-
 # POpen and read xml and output the introduction/heading matter
 def get_data_and_output_intro(do_front_matter: bool) -> int:
     """
@@ -321,7 +288,7 @@ def check_versions() -> None:
         exit(0)  # noqa: PLR1722
 
 
-def build_action_codes(build_it_all: bool = False) -> None:
+def build_action_codes_from_json(build_it_all: bool = False) -> None:
     """
     Builds the action codes dictionary from the Tasker JSON files.
     Args:
@@ -356,6 +323,7 @@ def build_action_codes(build_it_all: bool = False) -> None:
 
     # If building it all, then get the map of all Tasker task action codes and their arguments, states, and events.
     if build_it_all:
+        # Only do these imports if building the entire dictionary from scratch.
         from maptasker.src.acmerge import merge_action_codes, validate_states_and_events
 
         # Make sure we see the output
@@ -400,6 +368,10 @@ def build_action_codes(build_it_all: bool = False) -> None:
         url = "https://tasker.joaoapps.com/code/StateCodes.java"
         validate_states_and_events("s", url)
 
+        print("")
+        print("proginit: Build Complete.  See '/maptasker/assets/json/arg_dict.py'.")
+        print("")
+
         PrimeItems.tasker_action_codes.clear()
 
     # Put the directory back to where it should be.
@@ -442,7 +414,7 @@ def start_up() -> dict:
     # Build the action codes
     # NOTE: FOR DEVELOPMENT ONLY!!! 'BUILD_ALL = TRUE' ONLY WITH NEW UPDATE OF TASKER!  See acmerge.py
     build_all = False
-    build_action_codes(build_it_all=build_all)
+    build_action_codes_from_json(build_it_all=build_all)
     if build_all:
         exit_program(0)
     # END OF DEVELOPMENT CODE

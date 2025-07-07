@@ -25,7 +25,6 @@ from maptasker.src.sysconst import (
     logger,
     pattern14,
 )
-from maptasker.src.xmldata import tag_in_type
 
 blank = "&nbsp;"
 
@@ -255,28 +254,6 @@ def get_project_for_solo_task(
     return project_name, project_element
 
 
-# Identify whether the Task passed in is part of a Scene: True = yes, False = no
-def task_in_scene(the_task_id: str, all_scenes: dict) -> bool:
-    """
-    Identify whether the Task passed in is part of a Scene: True = yes, False = no
-        :param the_task_id: the id of the Task to check against
-        :param all_scenes: all Scenes in Tasker configuration
-        :return: True if Task is part of a Scene, False otherwise
-    """
-    # Go through each Scene
-    for value in all_scenes.values():
-        for child in value["xml"]:  # Go through sub-elements in the Scene element
-            if tag_in_type(child.tag, True):
-                for subchild in child:  # Go through xxxxElement sub-items
-                    # Is this Task in this specific Scene (child)?
-                    if tag_in_type(subchild.tag, False) and the_task_id == subchild.text:
-                        return True
-                    if child.tag == "Str":  # Passed any click Task
-                        break
-
-    return False
-
-
 # We're processing a single task only
 # Optimized
 def do_single_task(
@@ -301,7 +278,7 @@ def do_single_task(
     Returns:
         None
     """
-    # This import must reside here to avoid circular error.
+    # This import must reside here to avoid circular error.  Otherwise, get error in save_restore_args.
     from maptasker.src.proclist import process_list
 
     logger.debug(

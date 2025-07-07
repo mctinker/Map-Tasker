@@ -591,8 +591,6 @@ def do_rerun() -> None:
 
     # Now do it!  Rerun the program.
     restart_program()
-    # with contextlib.suppress(KeyError):
-    # mapit_all(filename)
 
 
 # Do the cleanup stuff: check for single name, do unique situations, and display
@@ -751,7 +749,7 @@ def mapit_all(file_to_get: str) -> int:
     _, _ = save_restore_args(
         PrimeItems.program_arguments,
         PrimeItems.colors_to_use,
-        True,
+        to_save=True,
     )
     PrimeItems.program_arguments["rerun"] = save_rerun_state
 

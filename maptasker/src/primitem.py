@@ -113,6 +113,7 @@ class PrimeItems:
     tasker_category_descriptions: ClassVar[dict] = {}
     tasker_event_codes: ClassVar[dict] = {}
     tasker_state_codes: ClassVar[dict] = {}
+    trace: ClassVar[bool] = False
 
 
 # Reset all values
