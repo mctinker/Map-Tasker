@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.0.6] 07-July-2025
+## [8.0.7] ??-July-2025. # FIX
 
 ### Added
 
@@ -10,21 +10,26 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed: Code optimized to make it easier to pick up new changes in Tasker.
-- Changed: The Diagram view jump-to-top-task and jump-to-bottom-task buttons are now dynamic, only displaying when appropriate.
-- Changed: The AI Analysis output file is now saved with the date and time.
+- Changed:
 
 ### Fixed
 
-- Fixed: The GUI last-tab-used is not saved and restored if either 'Rerun' or 'Run and Exit' is selected.
-- Fixed: Hover over directory name shows detail in the wrong background color in GUI on Windows.
-- Fixed: The GUI default window size is not high enough to include the 'Reset' button.
+- Fixed: Initial GUI displays with a jitter effect due to resizing baseed on the saved settings.
 
 ### Known Issues
 
 - Unable to change any colors in GUI if using UV to manage the application (UV bug).
 
 ## Older History Logs
+
+## [8.0.6]
+
+- Changed: Code optimized to make it easier to pick up new changes in Tasker.
+- Changed: The Diagram view jump-to-top-task and jump-to-bottom-task buttons are now dynamic, only displaying when appropriate.
+- Changed: The AI Analysis output file is now saved with the date and time.
+- Fixed: The GUI last-tab-used is not saved and restored if either 'Rerun' or 'Run and Exit' is selected.
+- Fixed: Hover over directory name shows detail in the wrong background color in GUI on Windows.
+- Fixed: The GUI default window size is not high enough to include the 'Reset' button.
 
 ## [8.0.5]
 
