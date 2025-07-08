@@ -89,7 +89,6 @@ def extract_integer(
         (child for child in code_action if child.tag == "Int" and child.attrib.get("sr") == the_arg),
         None,
     )
-
     if int_element is None:
         return ""  # No matching <Int> element found
 
@@ -101,11 +100,7 @@ def extract_integer(
     if not the_int_value:
         return ""  # No valid integer or variable name found
 
-    # If this is a boolean and the integer is 0, then return the empty string
-    if arg[3] == "3" and the_int_value == "0":
-        return ""
-
-    # Process the integer evaluation
+    # Aeguement evaluation is a list
     if isinstance(argeval, list):
         result = []
         if len(argeval) > 1:
@@ -119,10 +114,28 @@ def extract_integer(
         # Process the argument evaluation
         process_xml_list([new_argeval], 0, the_int_value, result, [the_arg])
         final_result = " ".join(result)
+
+    # Argument evaluation is a string.
     elif isinstance(argeval, str):
-        if argeval[-1] != "=":
-            argeval += "="
-        final_result = argeval + the_int_value
+        # If eval is missing, just use the argujment name.
+        if not argeval:
+            argeval = arg.arg_name
+
+        # If boolean and this is a plain text string, then determine if 'selected' or 'Set'
+        if arg.arg_type == "3":
+            # Selected
+            if the_int_value == "1":
+                final_result = argeval + " (selected)" if argeval != "Set" else ",Set"
+            # Unselected
+            elif argeval == "Set":
+                final_result = ",Unset"
+            else:
+                final_result = ""
+        else:
+            # If it doesn't have an '=', then. add it.
+            if argeval[-1] != "=":
+                argeval += "="
+            final_result = argeval + the_int_value
     else:
         final_result = argeval + the_int_value
 

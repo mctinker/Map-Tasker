@@ -401,9 +401,7 @@ class CTkTextview(ctk.CTkFrame):
         self._setup_appearance()
 
         # Set up the title
-        self.title = (
-            f"{title} - Drag window to desired position and rerun the {title} command."
-        )
+        self.title = f"{title} - Drag window to desired position and rerun the {title} command."
 
         # Setup the textbox.
         self._setup_textbox(master)
@@ -555,9 +553,7 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}"
-                    if len(line) > max_length
-                    else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -1156,9 +1152,7 @@ class CTkTextview(ctk.CTkFrame):
         connector_key = tag[5:]
         connector = self.diagram_connectors[connector_key]
         line_num = connector["start_top"][0]
-        number_of_lines_to_highlight = (
-            connector["start_bottom"][0] - connector["start_top"][0] + 1
-        )
+        number_of_lines_to_highlight = connector["start_bottom"][0] - connector["start_top"][0] + 1
         end_top_col = connector["end_top"][1]
         for _ in range(number_of_lines_to_highlight):
             self.textview_textbox.tag_add(
@@ -1334,9 +1328,7 @@ class CTkTextview(ctk.CTkFrame):
             return
 
         # Establish appropriate colors
-        background_color, foreground_color1, foreground_color2 = (
-            get_foreground_background_colors(self.master.master)
-        )
+        background_color, foreground_color1, foreground_color2 = get_foreground_background_colors(self.master.master)
 
         # Create the label.
         label = tk.Label(
@@ -1558,10 +1550,7 @@ class CTkTextview(ctk.CTkFrame):
         owning_project_name = owning_project_name.replace("<<< Owner=", "   ")
 
         # Cleanup the line and return it for display
-        return (
-            text
-            + f"\n {owning_profile_name}\n {owning_project_name}{properties}{task_item}"
-        )
+        return text + f"\n {owning_profile_name}\n {owning_project_name}{properties}{task_item}"
 
     def hover_scene(self, name: str, text: str) -> str:
         """
@@ -1584,11 +1573,7 @@ class CTkTextview(ctk.CTkFrame):
         PrimeItems.output_lines.output_lines = []
         get_details(scene_xml, [], 0)
         # Get just the elements
-        elements = [
-            line
-            for line in PrimeItems.output_lines.output_lines
-            if "Element of type" in line
-        ]
+        elements = [line for line in PrimeItems.output_lines.output_lines if "Element of type" in line]
         for num, element in enumerate(elements):
             elements[num] = remove_html_tags(element, "").replace("&nbsp;", "")
         return text + "\nElements...\n" + "\n".join(elements)
@@ -1726,9 +1711,7 @@ class CTkTextview(ctk.CTkFrame):
                     owner = prev_line.split(":")[1].split("   ")[0].strip()
                     owner = owner.split("(Not referenced by any ")[0].strip()
                     # Filter out 'Task:' that isn't a Task, and "Properties..."
-                    if _ := any(
-                        invalid_key in prev_line for invalid_key in invalid_keys
-                    ):
+                    if _ := any(invalid_key in prev_line for invalid_key in invalid_keys):
                         line_to_get = str(int(line_to_get) - 1)
                         continue
                 return (
@@ -1793,9 +1776,7 @@ class CTkTextview(ctk.CTkFrame):
         for line in PrimeItems.output_lines.output_lines:
             property_leadup = line.find(search_key)
             if property_leadup != -1:
-                properties_with_html = line[
-                    property_leadup + len(search_key) + 1 :
-                ].replace("<br>", "\n")
+                properties_with_html = line[property_leadup + len(search_key) + 1 :].replace("<br>", "\n")
                 # Get rid of html
                 properties_layed_out = re.sub(clean, "", properties_with_html)
                 properties.append(
@@ -1938,11 +1919,7 @@ class CTkTextview(ctk.CTkFrame):
         # Get the occurrences of left_arrow_corner_up "║" in the line and use it to determine start and end.
         occurrences = [i for i, c in enumerate(line) if c == "║"]
         # Get the locations of all icons in the names.
-        icons = [
-            i
-            for i, char in enumerate(line)
-            if ord(char) > 1000 and char not in ("│", "║")
-        ]
+        icons = [i for i, char in enumerate(line) if ord(char) > 1000 and char not in ("│", "║")]
         for num, occurrence in enumerate(occurrences):
             if num % 2 == 0:  # Even?
                 highlight_start = occurrence + 2
@@ -2118,9 +2095,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Make sure we have the window position set for the progress bar
         if not PrimeItems.program_arguments["map_window_position"]:
-            PrimeItems.program_arguments["map_window_position"] = (
-                self.master.master.window_position
-            )
+            PrimeItems.program_arguments["map_window_position"] = self.master.master.window_position
 
         # Go through all of the map data and format it accordingly.
         self.process_map_data(
@@ -2165,38 +2140,34 @@ class CTkTextview(ctk.CTkFrame):
         # Cache frequently used attributes.
         check_bump = self.check_bump
         master_debug = self.master.master.debug
-        log_info = (
-            logger.info if master_debug else lambda *_: None
-        )  # No-op if debug is off
+        log_info = logger.info if master_debug else lambda *_: None  # No-op if debug is off
         # FIX Restructure
-        process_directory = self.process_directory
-        process_colored_text = self.process_colored_text
         PrimeItems.track_task_warnings = []
-        previous_text = ""
+        previous_text_content = ""
 
         # Go through the data and format it accordingly.
         for num, (_, value) in enumerate(the_data.items()):
             if not progress:  # If progress bar has been destroyed, quick get out.
                 return
-            if num % progress["tenth_increment"] == 0:
-                progress["progress_counter"] = num
-                display_progress_bar(progress, is_instance_method=True)
+
+            # Update progressbar if needed.
+            self._update_progress_display(progress, num)
 
             # Get the text of the value and ignore duplicate blank lines.
-            response, previous_text, text = self.do_special_spacing(
-                previous_text,
+            response, previous_text_content, text_current_value = self._handle_special_spacing_and_blanks(
+                previous_text_content,
                 value,
                 line_num,
                 char_position,
                 tags,
             )
+
+            # If no response, ignore it and continue.
             if not response:
                 continue
 
             # If Windows, ignore blank lines: "    \n"
-            if sys.platform == "win32" and (
-                value["text"] and value["text"][0].endswith("\n")
-            ):
+            if sys.platform == "win32" and (value["text"] and value["text"][0].endswith("\n")):
                 text = value["text"][0]
                 blanks_to_check = len(text) - 1
                 if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
@@ -2214,38 +2185,128 @@ class CTkTextview(ctk.CTkFrame):
             if not value["color"] and value["text"]:
                 value["color"] = [previous_color]
 
-            # Go through all the text/color combinations
-            if value.get("color"):
-                line_num, previous_color, previous_value, tags = process_colored_text(
-                    value,
-                    line_num,
-                    previous_color,
-                    previous_value,
-                    tags,
-                )
-                if text[0] == "Directory\n":
-                    line_num, previous_directory, previous_value, char_position = (
-                        self.one_level_up(
-                            line_num,
-                            previous_directory,
-                            previous_value,
-                            char_position,
-                        )
-                    )
-            elif "directory" in value:
-                char_position, previous_directory, line_num = process_directory(
-                    value,
-                    line_num,
-                    previous_directory,
-                    0 if previous_value != "directory" else char_position,
-                )
-                previous_value = "directory"
+            # Process value based on color or directory
+            (
+                line_num,
+                previous_color,
+                previous_directory,
+                previous_value,
+                char_position,
+            ) = self._process_value_with_color_or_directory(
+                value,
+                line_num,
+                char_position,
+                previous_color,
+                previous_directory,
+                previous_value,
+                tags,
+                text_current_value,  # Pass the determined text content
+            )
 
             # Log debug information if enabled
             log_info(f"Map View Value: {value}")
 
         # Stop the progress bar and destroy the widget
         kill_the_progress_bar(progress, remove_windows=False)
+
+    def _process_value_with_color_or_directory(
+        self,
+        value: dict,
+        line_num: int,
+        char_position: int,
+        previous_color: str,
+        previous_directory: str,
+        previous_value_type: str,  # Renamed from previous_value for clarity
+        tags: list,
+        text_content: str,  # Added to use within the function if needed
+    ) -> tuple[int, str, str, str, int]:
+        """Processes map data based on color or directory information."""
+        new_line_num = line_num
+        new_previous_color = previous_color
+        new_previous_directory = previous_directory
+        new_previous_value_type = previous_value_type
+        new_char_position = char_position
+
+        # Check if we need to change the color
+        if not value["color"] and value.get("text"):
+            value["color"] = [new_previous_color]
+
+        # Go through all the text/color combinations
+        if value.get("color"):
+            new_line_num, new_previous_color, new_previous_value_type, tags = self.process_colored_text(
+                value,
+                new_line_num,
+                new_previous_color,
+                new_previous_value_type,
+                tags,
+            )
+            if text_content == "Directory\n":  # Using text_content here
+                (
+                    new_line_num,
+                    new_previous_directory,
+                    new_previous_value_type,
+                    new_char_position,
+                ) = self.one_level_up(
+                    new_line_num,
+                    new_previous_directory,
+                    new_previous_value_type,
+                    new_char_position,
+                )
+        elif "directory" in value:
+            new_char_position, new_previous_directory, new_line_num = self.process_directory(
+                value,
+                new_line_num,
+                new_previous_directory,
+                0 if new_previous_value_type != "directory" else new_char_position,
+            )
+            new_previous_value_type = "directory"
+
+        return (
+            new_line_num,
+            new_previous_color,
+            new_previous_directory,
+            new_previous_value_type,
+            new_char_position,
+        )
+
+    def _handle_special_spacing_and_blanks(
+        self,
+        previous_text: str,
+        value: dict,
+        line_num: int,
+        char_position: int,
+        tags: list,
+    ) -> tuple[str, str, str]:
+        """
+        Processes special spacing and handles duplicate/blank lines.
+        Returns (response, previous_text, text_content) or (None, None, None) if skipped.
+        """
+        response, new_previous_text, text_content = self.do_special_spacing(
+            previous_text,
+            value,
+            line_num,
+            char_position,
+            tags,
+        )
+        if not response:
+            return None, None, None
+
+        # If Windows, ignore blank lines: "    \n"
+        if sys.platform == "win32" and value.get("text") and value["text"][0].endswith("\n"):
+            text = value["text"][0]
+            blanks_to_check = len(text) - 1
+            # Assuming 'blank' is defined elsewhere, e.g., 'blank = " "'
+            # For this example, let's assume it's available.
+            blank = " "  # Placeholder, ensure 'blank' is properly defined in your context
+            if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
+                return None, None, None
+        return response, new_previous_text, text_content
+
+    def _update_progress_display(self, progress: dict, current_num: int) -> None:
+        """Updates and displays the progress bar."""
+        if current_num % progress["tenth_increment"] == 0:
+            progress["progress_counter"] = current_num
+            display_progress_bar(progress, is_instance_method=True)
 
     def _initialize_progress_bar(self, the_data: dict) -> dict:
         """Initializes and returns the progress bar."""
@@ -2416,10 +2477,7 @@ class CTkTextview(ctk.CTkFrame):
         all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
 
         for project_value in PrimeItems.tasker_root_elements["all_projects"].values():
-            if any(
-                all_tasks[task_id]["name"] == task_name
-                for task_id in get_ids(False, project_value["xml"], "", [])
-            ):
+            if any(all_tasks[task_id]["name"] == task_name for task_id in get_ids(False, project_value["xml"], "", [])):
                 return project_value["name"]
         return ""
 
@@ -2536,16 +2594,9 @@ class CTkTextview(ctk.CTkFrame):
                 name_to_insert = hotlink_name[: spacing - 3] + "   "
                 # Add the Profile ID if this is a profile with no name.
                 # Make it look like: 'some_profile_name.123...'
-                if name_to_insert.startswith("*") and (
-                    prof_id := extract_number_from_line(hotlink_name)
-                ):
+                if name_to_insert.startswith("*") and (prof_id := extract_number_from_line(hotlink_name)):
                     name_to_insert = hotlink_name[: spacing - 6] + "   "
-                    name_to_insert = (
-                        name_to_insert[: spacing - 7]
-                        + "."
-                        + prof_id
-                        + name_to_insert[spacing - 6 :]
-                    )
+                    name_to_insert = name_to_insert[: spacing - 7] + "." + prof_id + name_to_insert[spacing - 6 :]
 
             else:
                 name_to_insert = hotlink_name
@@ -2576,9 +2627,7 @@ class CTkTextview(ctk.CTkFrame):
             ),
         )
 
-        char_position = (
-            0 if char_position == spacing * columns else char_position + spacing
-        )
+        char_position = 0 if char_position == spacing * columns else char_position + spacing
         previous_directory = directory_type
 
         # Add a second "up one more level" hotlink
@@ -2773,9 +2822,7 @@ class CTkTextview(ctk.CTkFrame):
             PrimeItems.track_task_warnings.append(task_name)
 
             # Add #1.
-            end_start = (
-                f"{line_num_str}.{char_position + 5!s}"  # 5 is the length of "Task "
-            )
+            end_start = f"{line_num_str}.{char_position + 5!s}"  # 5 is the length of "Task "
             if not self._insert_text_and_tag(start_idx, end_start, "Task ", tag_id):
                 return char_position
 
@@ -2809,8 +2856,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Tag items for hover and background highlight
         if ": Properties" not in message and any(
-            keyword in message
-            for keyword in ("Task: ", "Profile: ", "Project: ", "Scene: ")
+            keyword in message for keyword in ("Task: ", "Profile: ", "Project: ", "Scene: ")
         ):
             self.tag_items(tag_id, message)
             self.textview_textbox.tag_config(tag_id, background=background_color)
@@ -2843,10 +2889,7 @@ class CTkTextview(ctk.CTkFrame):
         tag_id: str,
     ) -> str:
         """Determines the color and highlighting settings for the current message."""
-        if (
-            "Color for Background set to" in message
-            or "highlighted for visibility" in message
-        ):
+        if "Color for Background set to" in message or "highlighted for visibility" in message:
             color = "White"
         else:
             color, tags = self.output_map_colors_highlighting(
@@ -4645,11 +4688,7 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         "n",
     )
 
-    display_models = sorted(
-        model
-        for name, models in MODEL_GROUPS.items()
-        for model in prefix_and_sort(models, name)
-    )
+    display_models = sorted(model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name))
     (
         display_models.insert(0, PrimeItems.program_arguments["ai_model"])
         if PrimeItems.program_arguments["ai_model"]

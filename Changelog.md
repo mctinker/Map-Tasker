@@ -6,7 +6,8 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: No additions.
+- Added: Tasker version 6.6.2-beta is supported.
+- Added: 'SecureTask Airplane Mode' plugin has been added.
 
 ### Changed
 
@@ -15,6 +16,8 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Initial GUI displays with a jitter effect due to resizing baseed on the saved settings.
+- Fixed: Task action 'Call' is not appearing correctly.
+- Fixed: Some Task action selected checkboxes are identified as '=1' rather than as '(selected)'.
 
 ### Known Issues
 

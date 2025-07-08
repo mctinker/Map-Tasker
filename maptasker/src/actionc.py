@@ -24,11 +24,11 @@
 from collections import namedtuple
 
 # Define the namedtuples
-ActionCode = namedtuple(
+ActionCode = namedtuple(  # noqa: PYI024
     "ActionCode",
     ["redirect", "args", "name", "category", "canfail"],
 )
-ArgumentCode = namedtuple(
+ArgumentCode = namedtuple(  # noqa: PYI024
     "ArgumentCode",
     ["arg_id", "arg_required", "arg_name", "arg_type", "arg_eval"],
 )
@@ -38,16 +38,15 @@ action_codes = {
     "1000e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["Priority=", "l", "4s"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Priority=", "l", "4s"],
+            ),
         ],
         name="Display Unlocked",
-        category="",
-        canfail="",
-    ),
-    "1000s": ActionCode(
-        redirect="",
-        args=[],
-        name="Plugin",
         category="",
         canfail="",
     ),
@@ -68,8 +67,20 @@ action_codes = {
     "100t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="For", arg_type="1", arg_eval="Number="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Web Search", arg_type="3", arg_eval=["e", "Info"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="For",
+                arg_type="1",
+                arg_eval="Number=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Web Search",
+                arg_type="3",
+                arg_eval=["e", "Info"],
+            ),
         ],
         name="Search",
         category="104",
@@ -78,22 +89,76 @@ action_codes = {
     "101t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Camera", arg_type="0", arg_eval="Camera"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Filename", arg_type="1", arg_eval="Filename"),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Naming Sequence", arg_type="0", arg_eval="Naming Sequence"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Camera",
+                arg_type="0",
+                arg_eval="Camera",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Insert In Gallery", arg_type="3", arg_eval="Insert In Gallery"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Filename",
+                arg_type="1",
+                arg_eval="Filename",
             ),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Discreet", arg_type="3", arg_eval="Discreet"),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="Resolution", arg_type="1", arg_eval="Resolution"),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="Scene Mode", arg_type="0", arg_eval="Scene Mode"),
             ArgumentCode(
-                arg_id="7", arg_required=True, arg_name="White Balance", arg_type="0", arg_eval="White Balance"
+                arg_id="2",
+                arg_required=True,
+                arg_name="Naming Sequence",
+                arg_type="0",
+                arg_eval="Naming Sequence",
             ),
-            ArgumentCode(arg_id="8", arg_required=True, arg_name="Flash Mode", arg_type="0", arg_eval="Flash Mode"),
-            ArgumentCode(arg_id="9", arg_required=True, arg_name="Focus Mode", arg_type="0", arg_eval="Focus Mode"),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Insert In Gallery",
+                arg_type="3",
+                arg_eval="Insert In Gallery",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Discreet",
+                arg_type="3",
+                arg_eval="Discreet",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Resolution",
+                arg_type="1",
+                arg_eval="Resolution",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="Scene Mode",
+                arg_type="0",
+                arg_eval="Scene Mode",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=True,
+                arg_name="White Balance",
+                arg_type="0",
+                arg_eval="White Balance",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=True,
+                arg_name="Flash Mode",
+                arg_type="0",
+                arg_eval="Flash Mode",
+            ),
+            ArgumentCode(
+                arg_id="9",
+                arg_required=True,
+                arg_name="Focus Mode",
+                arg_type="0",
+                arg_eval="Focus Mode",
+            ),
         ],
         name="Take Photo",
         category="65",
@@ -102,8 +167,20 @@ action_codes = {
     "102t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File"),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Mime Type", arg_type="1", arg_eval="Mime Type"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Mime Type",
+                arg_type="1",
+                arg_eval="Mime Type",
+            ),
         ],
         name="Open File",
         category="50",
@@ -112,7 +189,13 @@ action_codes = {
     "103s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval="Level="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval="Level=",
+            ),
         ],
         name="Light Level",
         category="",
@@ -121,8 +204,20 @@ action_codes = {
     "1040876951t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval="Timeout="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Timeout=",
+            ),
             ArgumentCode(
                 arg_id="4",
                 arg_required=True,
@@ -152,9 +247,19 @@ action_codes = {
     "104t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="URL", arg_type="1", arg_eval="URL="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Package/App Name", arg_type="2", arg_eval="Package/App Name="
+                arg_id="0",
+                arg_required=True,
+                arg_name="URL",
+                arg_type="1",
+                arg_eval="URL=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Package/App Name",
+                arg_type="2",
+                arg_eval="Package/App Name=",
             ),
             ArgumentCode(
                 arg_id="2",
@@ -185,11 +290,33 @@ action_codes = {
     "105t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Text", arg_type="1", arg_eval="Text="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Add", arg_type="3", arg_eval=["e", ", Add"]),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Image", arg_type="1", arg_eval="Image="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Is Sensitive Data", arg_type="3", arg_eval="Is Sensitive Data"
+                arg_id="0",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval="Text=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Add",
+                arg_type="3",
+                arg_eval=["e", ", Add"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Image",
+                arg_type="1",
+                arg_eval="Image=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Is Sensitive Data",
+                arg_type="3",
+                arg_eval="Is Sensitive Data",
             ),
         ],
         name="Set Clipboard",
@@ -234,11 +361,41 @@ action_codes = {
     "109t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "109"]),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Image", arg_type="1", arg_eval="Image"),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Scale", arg_type="3", arg_eval=["e", ", Scale"]),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Crop", arg_type="3", arg_eval=["e", ", Crop"]),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Center", arg_type="3", arg_eval=["e", ", Center"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "109"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Image",
+                arg_type="1",
+                arg_eval="Image",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Scale",
+                arg_type="3",
+                arg_eval=["e", ", Scale"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Crop",
+                arg_type="3",
+                arg_eval=["e", ", Crop"],
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Center",
+                arg_type="3",
+                arg_eval=["e", ", Center"],
+            ),
         ],
         name="Set Wallpaper",
         category="40",
@@ -247,7 +404,13 @@ action_codes = {
     "10s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["Set=", "l", "10s"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Set=", "l", "10s"],
+            ),
         ],
         name="Power",
         category="",
@@ -256,12 +419,48 @@ action_codes = {
     "110s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", "2G"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", "3G"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", "3G-HSPA"]),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", "4G"]),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", "5G"]),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Active=", "l", "160"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", "2G"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", "3G"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", "3G-HSPA"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", "4G"],
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", "5G"],
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=[", Active=", "l", "160"],
+            ),
         ],
         name="Mobile Network",
         category="",
@@ -271,11 +470,33 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=False, arg_name="Recipient(s)", arg_type="1", arg_eval="Recipient(s)"
+                arg_id="0",
+                arg_required=False,
+                arg_name="Recipient(s)",
+                arg_type="1",
+                arg_eval="Recipient(s)",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Subject", arg_type="1", arg_eval="Subject"),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Message", arg_type="1", arg_eval="Message"),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Attachment", arg_type="1", arg_eval="Attachment"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Subject",
+                arg_type="1",
+                arg_eval="Subject",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Message",
+                arg_type="1",
+                arg_eval="Message",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Attachment",
+                arg_type="1",
+                arg_eval="Attachment",
+            ),
         ],
         name="Compose MMS",
         category="90",
@@ -291,10 +512,26 @@ action_codes = {
     "112t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Terminal", arg_type="3", arg_eval="Terminal"),
             ArgumentCode(
-                arg_id="2", arg_required=False, arg_name="Pass Variables", arg_type="1", arg_eval="Pass Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Terminal",
+                arg_type="3",
+                arg_eval="Terminal",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Pass Variables",
+                arg_type="1",
+                arg_eval="Pass Variables",
             ),
         ],
         name="Run SL4A Script",
@@ -318,7 +555,13 @@ action_codes = {
     "1133159835e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -334,7 +577,13 @@ action_codes = {
     "1138194991s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -357,7 +606,13 @@ action_codes = {
     "113t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval="Set"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval="Set",
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=True,
@@ -373,7 +628,13 @@ action_codes = {
     "114t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval="Set"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval="Set",
+            ),
         ],
         name="USB Tether",
         category="80",
@@ -389,9 +650,27 @@ action_codes = {
     "115t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=""),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Data", arg_type="1", arg_eval=""),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval="",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval="",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval="",
+            ),
         ],
         name="Test",
         category="140",
@@ -414,16 +693,62 @@ action_codes = {
     "116t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Server:Port", arg_type="1", arg_eval="Server:Port"),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Path", arg_type="1", arg_eval="Path"),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Data / File", arg_type="1", arg_eval="Data / File"),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Cookies", arg_type="1", arg_eval="Cookies"),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="User Agent", arg_type="1", arg_eval="User Agent"),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Timeout", arg_type="0", arg_eval="Timeout"),
             ArgumentCode(
-                arg_id="6", arg_required=False, arg_name="Content Type", arg_type="1", arg_eval="Content Type"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Server:Port",
+                arg_type="1",
+                arg_eval="Server:Port",
             ),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Output File", arg_type="1", arg_eval="Output File"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Path",
+                arg_type="1",
+                arg_eval="Path",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Data / File",
+                arg_type="1",
+                arg_eval="Data / File",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Cookies",
+                arg_type="1",
+                arg_eval="Cookies",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="User Agent",
+                arg_type="1",
+                arg_eval="User Agent",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Timeout",
+                arg_type="0",
+                arg_eval="Timeout",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Content Type",
+                arg_type="1",
+                arg_eval="Content Type",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Output File",
+                arg_type="1",
+                arg_eval="Output File",
+            ),
             ArgumentCode(
                 arg_id="8",
                 arg_required=True,
@@ -443,15 +768,58 @@ action_codes = {
         category="",
         canfail="",
     ),
+    "1171570176t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="SecureTask Airplane Mode",
+        category="",
+        canfail="",
+    ),
     "117t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Server:Port", arg_type="1", arg_eval="Server:Port"),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Path", arg_type="1", arg_eval="Path"),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Attributes", arg_type="1", arg_eval="Attributes"),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Cookies", arg_type="1", arg_eval="Cookies"),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="User Agent", arg_type="1", arg_eval="User Agent"),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Timeout", arg_type="0", arg_eval="Timeout"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Server:Port",
+                arg_type="1",
+                arg_eval="Server:Port",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Path",
+                arg_type="1",
+                arg_eval="Path",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Attributes",
+                arg_type="1",
+                arg_eval="Attributes",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Cookies",
+                arg_type="1",
+                arg_eval="Cookies",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="User Agent",
+                arg_type="1",
+                arg_eval="User Agent",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Timeout",
+                arg_type="0",
+                arg_eval="Timeout",
+            ),
             ArgumentCode(
                 arg_id="6",
                 arg_required=True,
@@ -474,14 +842,62 @@ action_codes = {
     "118t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Server:Port", arg_type="1", arg_eval="Server:Port"),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Path", arg_type="1", arg_eval="Path"),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Attributes", arg_type="1", arg_eval="Attributes"),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Cookies", arg_type="1", arg_eval="Cookies"),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="User Agent", arg_type="1", arg_eval="User Agent"),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Timeout", arg_type="0", arg_eval="Timeout"),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Mime Type", arg_type="1", arg_eval="Mime Type"),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Output File", arg_type="1", arg_eval="Output File"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Server:Port",
+                arg_type="1",
+                arg_eval="Server:Port",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Path",
+                arg_type="1",
+                arg_eval="Path",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Attributes",
+                arg_type="1",
+                arg_eval="Attributes",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Cookies",
+                arg_type="1",
+                arg_eval="Cookies",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="User Agent",
+                arg_type="1",
+                arg_eval="User Agent",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Timeout",
+                arg_type="0",
+                arg_eval="Timeout",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Mime Type",
+                arg_type="1",
+                arg_eval="Mime Type",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Output File",
+                arg_type="1",
+                arg_eval="Output File",
+            ),
             ArgumentCode(
                 arg_id="8",
                 arg_required=True,
@@ -497,11 +913,41 @@ action_codes = {
     "119t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "119"]),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Address", arg_type="1", arg_eval=", Address="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Lat,Long", arg_type="1", arg_eval=", Lat, Long="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Zoom", arg_type="0", arg_eval=", Zoom="),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Label", arg_type="1", arg_eval=", Label="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "119"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Address",
+                arg_type="1",
+                arg_eval=", Address=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Lat,Long",
+                arg_type="1",
+                arg_eval=", Lat, Long=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Zoom",
+                arg_type="0",
+                arg_eval=", Zoom=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Label",
+                arg_type="1",
+                arg_eval=", Label=",
+            ),
         ],
         name="Open Map",
         category="60",
@@ -510,7 +956,13 @@ action_codes = {
     "120s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["Is=", "l", "120s"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Is=", "l", "120s"],
+            ),
         ],
         name="Orientation",
         category="",
@@ -526,7 +978,13 @@ action_codes = {
     "122s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["Is=", "l", "122s"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Is=", "l", "122s"],
+            ),
         ],
         name="Display Orientation",
         category="",
@@ -535,7 +993,13 @@ action_codes = {
     "123s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval=["", "e", "switch_set"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=["", "e", "switch_set"],
+            ),
         ],
         name="Display State",
         category="",
@@ -544,21 +1008,47 @@ action_codes = {
     "123t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Command", arg_type="1", arg_eval="Command="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Timeout (Seconds)", arg_type="0", arg_eval=", Timeout="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Command",
+                arg_type="1",
+                arg_eval="Command=",
             ),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Use Root", arg_type="3", arg_eval=["e", ", Use Root"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Timeout (Seconds)",
+                arg_type="0",
+                arg_eval=", Timeout=",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=False, arg_name="Store Output In", arg_type="1", arg_eval=", Store Output In="
+                arg_id="2",
+                arg_required=True,
+                arg_name="Use Root",
+                arg_type="3",
+                arg_eval=["e", ", Use Root"],
             ),
             ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Store Errors In", arg_type="1", arg_eval=", Store Errors In="
+                arg_id="3",
+                arg_required=False,
+                arg_name="Store Output In",
+                arg_type="1",
+                arg_eval=", Store Output In=",
             ),
             ArgumentCode(
-                arg_id="5", arg_required=False, arg_name="Store Result In", arg_type="1", arg_eval=", Timeout="
+                arg_id="4",
+                arg_required=False,
+                arg_name="Store Errors In",
+                arg_type="1",
+                arg_eval=", Store Errors In=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Timeout=",
             ),
             ArgumentCode(
                 arg_id="6",
@@ -573,6 +1063,13 @@ action_codes = {
                 arg_name="Use Tasker Settings",
                 arg_type="3",
                 arg_eval="Use Tasker Settings",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=True,
+                arg_name="Use Shizuku",
+                arg_type="3",
+                arg_eval="",
             ),
         ],
         name="Run Shell",
@@ -589,8 +1086,20 @@ action_codes = {
     "124t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Path", arg_type="0", arg_eval="Path"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Writeable", arg_type="3", arg_eval="Writeable"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Path",
+                arg_type="0",
+                arg_eval="Path",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Writeable",
+                arg_type="3",
+                arg_eval="Writeable",
+            ),
         ],
         name="Remount",
         category="50",
@@ -621,10 +1130,26 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=False, arg_name="Recipient(s)", arg_type="1", arg_eval="Recipient(s)="
+                arg_id="0",
+                arg_required=False,
+                arg_name="Recipient(s)",
+                arg_type="1",
+                arg_eval="Recipient(s)=",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Subject", arg_type="1", arg_eval=", Subject="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Message", arg_type="1", arg_eval=", Message="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Subject",
+                arg_type="1",
+                arg_eval=", Subject=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Message",
+                arg_type="1",
+                arg_eval=", Message=",
+            ),
         ],
         name="Compose Email",
         category="80",
@@ -640,8 +1165,20 @@ action_codes = {
     "126t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Value", arg_type="1", arg_eval="Value="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Stop", arg_type="3", arg_eval=["e", ", Stop"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Value",
+                arg_type="1",
+                arg_eval="Value=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Stop",
+                arg_type="3",
+                arg_eval=["e", ", Stop"],
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -671,13 +1208,33 @@ action_codes = {
     "129t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Code", arg_type="1", arg_eval="Code="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Libraries", arg_type="1", arg_eval=", Libraries="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Auto Exit", arg_type="3", arg_eval=["e", ", Auto Exit"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Code",
+                arg_type="1",
+                arg_eval="Code=",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Timeout (Seconds)", arg_type="0", arg_eval=", Timeout="
+                arg_id="1",
+                arg_required=False,
+                arg_name="Libraries",
+                arg_type="1",
+                arg_eval=", Libraries=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Auto Exit",
+                arg_type="3",
+                arg_eval=["e", ", Auto Exit"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Timeout (Seconds)",
+                arg_type="0",
+                arg_eval=", Timeout=",
             ),
         ],
         name="JavaScriptlet",
@@ -701,13 +1258,33 @@ action_codes = {
     "130t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Priority", arg_type="0", arg_eval=", Priority="),
             ArgumentCode(
-                arg_id="2", arg_required=False, arg_name="Parameter 1 (%par1)", arg_type="1", arg_eval=", Parameter 1="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=False, arg_name="Parameter 2 (%par2)", arg_type="1", arg_eval=", Parameter 2="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Priority",
+                arg_type="0",
+                arg_eval=", Priority=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Parameter 1 (%par1)",
+                arg_type="1",
+                arg_eval=", Parameter 1=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Parameter 2 (%par2)",
+                arg_type="1",
+                arg_eval=", Parameter 2=",
             ),
             ArgumentCode(
                 arg_id="4",
@@ -716,7 +1293,13 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Return Value Variable=",
             ),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Stop", arg_type="3", arg_eval=["e", ", Stop"]),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Stop",
+                arg_type="3",
+                arg_eval=["e", ", Stop"],
+            ),
             ArgumentCode(
                 arg_id="6",
                 arg_required=True,
@@ -760,13 +1343,33 @@ action_codes = {
     "131t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Path", arg_type="1", arg_eval="Path="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Libraries", arg_type="1", arg_eval=", Libraries="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Auto Exit", arg_type="3", arg_eval=["e", ", Auto Exit"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Path",
+                arg_type="1",
+                arg_eval="Path=",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Timeout (Seconds)", arg_type="0", arg_eval="Timeout (Seconds)"
+                arg_id="1",
+                arg_required=False,
+                arg_name="Libraries",
+                arg_type="1",
+                arg_eval=", Libraries=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Auto Exit",
+                arg_type="3",
+                arg_eval=["e", ", Auto Exit"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Timeout (Seconds)",
+                arg_type="0",
+                arg_eval="Timeout (Seconds)",
             ),
         ],
         name="JavaScript",
@@ -790,9 +1393,27 @@ action_codes = {
     "133t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="0", arg_eval=["Set=", "l", "133"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Value", arg_type="0", arg_eval="Value"),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Value", arg_type="3", arg_eval=["e", ", Value"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="0",
+                arg_eval=["Set=", "l", "133"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Value",
+                arg_type="0",
+                arg_eval="Value",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Value",
+                arg_type="3",
+                arg_eval=["e", ", Value"],
+            ),
         ],
         name="Set Tasker Pref",
         category="110",
@@ -801,7 +1422,13 @@ action_codes = {
     "1344888481e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -824,7 +1451,13 @@ action_codes = {
     "134t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Action", arg_type="1", arg_eval="Action="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="Action",
+                arg_type="1",
+                arg_eval="Action=",
+            ),
         ],
         name="Query Action",
         category="110",
@@ -847,9 +1480,27 @@ action_codes = {
     "135t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Set=", "l", "135"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Number", arg_type="0", arg_eval=", Number="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Label", arg_type="1", arg_eval=", Label="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Set=", "l", "135"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Number",
+                arg_type="0",
+                arg_eval=", Number=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Label",
+                arg_type="1",
+                arg_eval=", Label=",
+            ),
         ],
         name="Goto",
         category="105",
@@ -873,7 +1524,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
         ],
         name="Sound Effects",
@@ -883,8 +1538,20 @@ action_codes = {
     "137t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="With Error", arg_type="3", arg_eval=["e", "Stop"]),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Task", arg_type="1", arg_eval=" Task="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="With Error",
+                arg_type="3",
+                arg_eval=["e", "Stop"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Task",
+                arg_type="1",
+                arg_eval=" Task=",
+            ),
         ],
         name="Stop",
         category="105",
@@ -900,7 +1567,13 @@ action_codes = {
     "138t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Icon", arg_type="4", arg_eval="Icon="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Icon",
+                arg_type="4",
+                arg_eval="Icon=",
+            ),
         ],
         name="Set Tasker Icon",
         category="110",
@@ -923,8 +1596,20 @@ action_codes = {
     "140s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval="From="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=", To="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval="From=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", To=",
+            ),
         ],
         name="Battery Level",
         category="",
@@ -933,8 +1618,20 @@ action_codes = {
     "140t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Old", arg_type="1", arg_eval="Old="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="New", arg_type="1", arg_eval=", New="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="Old",
+                arg_type="1",
+                arg_eval="Old=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="New",
+                arg_type="1",
+                arg_eval=", New=",
+            ),
         ],
         name="Change Icon Set",
         category="110",
@@ -964,7 +1661,13 @@ action_codes = {
     "142s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
         ],
         name="Profile Active",
         category="",
@@ -973,8 +1676,20 @@ action_codes = {
     "142t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Task", arg_type="1", arg_eval="Task="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Action", arg_type="1", arg_eval=", Action="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Task",
+                arg_type="1",
+                arg_eval="Task=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Action",
+                arg_type="1",
+                arg_eval=", Action=",
+            ),
         ],
         name="Edit Task",
         category="110",
@@ -983,7 +1698,13 @@ action_codes = {
     "143s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
         ],
         name="Task Running",
         category="",
@@ -992,8 +1713,20 @@ action_codes = {
     "143t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Element", arg_type="1", arg_eval=", Element="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
         ],
         name="Edit Scene",
         category="110",
@@ -1073,7 +1806,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Section", arg_type="0", arg_eval=["Section=", "l", "147"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Section",
+                arg_type="0",
+                arg_eval=["Section=", "l", "147"],
             ),
         ],
         name="Show Prefs",
@@ -1125,7 +1862,13 @@ action_codes = {
     "150s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["Is=", "l", "150s"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Is=", "l", "150s"],
+            ),
         ],
         name="USB Connected",
         category="",
@@ -1134,7 +1877,13 @@ action_codes = {
     "150t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval="Set"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval="Set",
+            ),
         ],
         name="Keyguard",
         category="40",
@@ -1143,7 +1892,13 @@ action_codes = {
     "1520257414e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -1159,8 +1914,20 @@ action_codes = {
     "152t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Icon", arg_type="4", arg_eval=", Icon="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Icon",
+                arg_type="4",
+                arg_eval=", Icon=",
+            ),
         ],
         name="Set Widget Icon",
         category="110",
@@ -1169,11 +1936,27 @@ action_codes = {
     "153t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "153"]),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Source", arg_type="0", arg_eval=["Source=", "l", "153a"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "153"],
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Variable", arg_type="1", arg_eval=", Variable="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Source",
+                arg_type="0",
+                arg_eval=["Source=", "l", "153a"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Variable",
+                arg_type="1",
+                arg_eval=", Variable=",
+            ),
         ],
         name="Import Data",
         category="110",
@@ -1189,8 +1972,20 @@ action_codes = {
     "155t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Label", arg_type="1", arg_eval=", Label="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Label",
+                arg_type="1",
+                arg_eval=", Label=",
+            ),
         ],
         name="Set Widget Label",
         category="110",
@@ -1214,15 +2009,33 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Format", arg_type="0", arg_eval=["Format=", "l", "156"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Format",
+                arg_type="0",
+                arg_eval=["Format=", "l", "156"],
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Locality", arg_type="0", arg_eval=["Locality=", "l", "156a"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Locality",
+                arg_type="0",
+                arg_eval=["Locality=", "l", "156a"],
             ),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Beat Timing", arg_type="0", arg_eval=", Best Timing="
+                arg_id="2",
+                arg_required=True,
+                arg_name="Beat Timing",
+                arg_type="0",
+                arg_eval=", Best Timing=",
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Score", arg_type="1", arg_eval=", Score="),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Score",
+                arg_type="1",
+                arg_eval=", Score=",
+            ),
         ],
         name="MIDI Play",
         category="65",
@@ -1231,8 +2044,20 @@ action_codes = {
     "157t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Label", arg_type="1", arg_eval="Label"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Icon", arg_type="4", arg_eval="Icon"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Label",
+                arg_type="1",
+                arg_eval="Label",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Icon",
+                arg_type="4",
+                arg_eval="Icon",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -1248,7 +2073,13 @@ action_codes = {
     "158t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Label", arg_type="1", arg_eval="Label"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Label",
+                arg_type="1",
+                arg_eval="Label",
+            ),
         ],
         name="Quick Setting Remove",
         category="104",
@@ -1257,9 +2088,19 @@ action_codes = {
     "159t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Set", arg_type="0", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="0",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
         ],
         name="Profile Status",
@@ -1269,10 +2110,26 @@ action_codes = {
     "15t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Title", arg_type="1", arg_eval="Title"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Code", arg_type="1", arg_eval="Code"),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Allow Cancel", arg_type="3", arg_eval=["e", "Allow Cancel"]
+                arg_id="0",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Code",
+                arg_type="1",
+                arg_eval="Code",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Allow Cancel",
+                arg_type="3",
+                arg_eval=["e", "Allow Cancel"],
             ),
             ArgumentCode(
                 arg_id="3",
@@ -1282,7 +2139,11 @@ action_codes = {
                 arg_eval=["e", "Remember Till Off"],
             ),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Full Screen", arg_type="3", arg_eval=["e", "Full Screen"]
+                arg_id="4",
+                arg_required=True,
+                arg_name="Full Screen",
+                arg_type="3",
+                arg_eval=["e", "Full Screen"],
             ),
             ArgumentCode(
                 arg_id="5",
@@ -1291,7 +2152,13 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Background Image=",
             ),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="Layout", arg_type="1", arg_eval=", Layout="),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="Layout",
+                arg_type="1",
+                arg_eval=", Layout=",
+            ),
         ],
         name="Lock",
         category="40",
@@ -1307,10 +2174,34 @@ action_codes = {
     "160s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="SSID="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", MAC="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", IP"),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=["Active=", "l", "160"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="SSID=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", MAC=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", IP",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Active=", "l", "160"],
+            ),
         ],
         name="Wifi Connected",
         category="",
@@ -1326,10 +2217,34 @@ action_codes = {
     "161t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Task", arg_type="1", arg_eval="Task="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Task", arg_type="1", arg_eval=", Task="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Task", arg_type="1", arg_eval=", Task="),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Task", arg_type="1", arg_eval=", Task="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="Task",
+                arg_type="1",
+                arg_eval="Task=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Task",
+                arg_type="1",
+                arg_eval=", Task=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Task",
+                arg_type="1",
+                arg_eval=", Task=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Task",
+                arg_type="1",
+                arg_eval=", Task=",
+            ),
         ],
         name="Setup App Shortcuts",
         category="110",
@@ -1346,11 +2261,25 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Number", arg_type="0", arg_eval=["Number=", "l", "162"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Number",
+                arg_type="0",
+                arg_eval=["Number=", "l", "162"],
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Task", arg_type="1", arg_eval=", Task="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Status", arg_type="0", arg_eval=[", Status=", "l", "162a"]
+                arg_id="1",
+                arg_required=False,
+                arg_name="Task",
+                arg_type="1",
+                arg_eval=", Task=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Status",
+                arg_type="0",
+                arg_eval=[", Status=", "l", "162a"],
             ),
             ArgumentCode(
                 arg_id="3",
@@ -1360,7 +2289,11 @@ action_codes = {
                 arg_eval=["e", ", Can Use On Locked Device"],
             ),
             ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Long Click Task", arg_type="1", arg_eval=", Long Click Task="
+                arg_id="4",
+                arg_required=False,
+                arg_name="Long Click Task",
+                arg_type="1",
+                arg_eval=", Long Click Task=",
             ),
             ArgumentCode(
                 arg_id="5",
@@ -1369,10 +2302,34 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Double Click Task=",
             ),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Subtitle", arg_type="1", arg_eval=", Subtitle="),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Icon", arg_type="1", arg_eval=", Icon="),
-            ArgumentCode(arg_id="8", arg_required=False, arg_name="Label", arg_type="1", arg_eval=", Label="),
-            ArgumentCode(arg_id="9", arg_required=False, arg_name="Command", arg_type="1", arg_eval=", Command="),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Subtitle",
+                arg_type="1",
+                arg_eval=", Subtitle=",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Icon",
+                arg_type="1",
+                arg_eval=", Icon=",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=False,
+                arg_name="Label",
+                arg_type="1",
+                arg_eval=", Label=",
+            ),
+            ArgumentCode(
+                arg_id="9",
+                arg_required=False,
+                arg_name="Command",
+                arg_type="1",
+                arg_eval=", Command=",
+            ),
             ArgumentCode(
                 arg_id="10",
                 arg_required=False,
@@ -1388,7 +2345,11 @@ action_codes = {
                 arg_eval=", Double Click Command=",
             ),
             ArgumentCode(
-                arg_id="12", arg_required=False, arg_name="Command Prefix", arg_type="1", arg_eval=", Command Prefix="
+                arg_id="12",
+                arg_required=False,
+                arg_name="Command Prefix",
+                arg_type="1",
+                arg_eval=", Command Prefix=",
             ),
         ],
         name="Set up Quick Setting Tile",
@@ -1433,10 +2394,34 @@ action_codes = {
     "165t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "165"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Hours", arg_type="0", arg_eval=", Minutes="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Minutes", arg_type="0", arg_eval="Minutes"),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Label", arg_type="1", arg_eval="Label"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "165"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Hours",
+                arg_type="0",
+                arg_eval=", Minutes=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Minutes",
+                arg_type="0",
+                arg_eval="Minutes",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Label",
+                arg_type="1",
+                arg_eval="Label",
+            ),
         ],
         name="Cancel Alarm",
         category="104",
@@ -1467,7 +2452,13 @@ action_codes = {
     "1668911626e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -1497,7 +2488,13 @@ action_codes = {
     "1687767515t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -1513,7 +2510,13 @@ action_codes = {
     "1691829355e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
         ],
         name="SharpTools Thing",
         category="",
@@ -1550,13 +2553,41 @@ action_codes = {
     "171t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Frequency", arg_type="0", arg_eval="Frequency="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Duration", arg_type="0", arg_eval=", Duration="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Amplitude", arg_type="0", arg_eval=", Amplitude"),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Stream", arg_type="0", arg_eval=["Stream=", "l", "171"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Frequency",
+                arg_type="0",
+                arg_eval="Frequency=",
             ),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Do At Time", arg_type="1", arg_eval="Do At Time"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Duration",
+                arg_type="0",
+                arg_eval=", Duration=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Amplitude",
+                arg_type="0",
+                arg_eval=", Amplitude",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Stream",
+                arg_type="0",
+                arg_eval=["Stream=", "l", "171"],
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Do At Time",
+                arg_type="1",
+                arg_eval="Do At Time",
+            ),
         ],
         name="Beep",
         category="10",
@@ -1565,12 +2596,40 @@ action_codes = {
     "172t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Text", arg_type="1", arg_eval="Text="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Frequency", arg_type="0", arg_eval=", Frequency="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Speed", arg_type="0", arg_eval=", Speed="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Amplitude", arg_type="0", arg_eval=", Amplitude="),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Stream", arg_type="0", arg_eval=[", Stream=", "l", "171"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval="Text=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Frequency",
+                arg_type="0",
+                arg_eval=", Frequency=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Speed",
+                arg_type="0",
+                arg_eval=", Speed=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Amplitude",
+                arg_type="0",
+                arg_eval=", Amplitude=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Stream",
+                arg_type="0",
+                arg_eval=[", Stream=", "l", "171"],
             ),
         ],
         name="Morse",
@@ -1587,9 +2646,19 @@ action_codes = {
     "173t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "173"]),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Package/App Name", arg_type="2", arg_eval="Package/App Name"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "173"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Package/App Name",
+                arg_type="2",
+                arg_eval="Package/App Name",
             ),
         ],
         name="Network Access",
@@ -1613,7 +2682,13 @@ action_codes = {
     "175t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "175"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "175"],
+            ),
         ],
         name="Power Mode",
         category="104",
@@ -1629,7 +2704,13 @@ action_codes = {
     "176t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=True,
@@ -1646,7 +2727,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
         ],
         name="Haptic Feedback",
@@ -1656,7 +2741,13 @@ action_codes = {
     "1788518030e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -1707,7 +2798,13 @@ action_codes = {
     "1825107102e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -1765,8 +2862,20 @@ action_codes = {
     "185t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "185"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Value", arg_type="0", arg_eval=", Threshold="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "185"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Value",
+                arg_type="0",
+                arg_eval=", Threshold=",
+            ),
         ],
         name="Filter Image",
         category="52",
@@ -1775,7 +2884,13 @@ action_codes = {
     "1861978578e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -1798,11 +2913,41 @@ action_codes = {
     "186s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["Test=", "l", "235"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Name="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Value="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", "Use Root"]),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=", Read Setting To="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Test=", "l", "235"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Name=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Value=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", "Use Root"],
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Read Setting To=",
+            ),
         ],
         name="Custom Setting",
         category="",
@@ -1825,9 +2970,19 @@ action_codes = {
     "187t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Image Quality", arg_type="0", arg_eval=", Image Quality="
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Image Quality",
+                arg_type="0",
+                arg_eval=", Image Quality=",
             ),
             ArgumentCode(
                 arg_id="2",
@@ -1851,7 +3006,13 @@ action_codes = {
     "188t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Source", arg_type="4", arg_eval="Source="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="Source",
+                arg_type="4",
+                arg_eval="Source=",
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=True,
@@ -1897,16 +3058,32 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="From Left (%)", arg_type="0", arg_eval="From Left (%)="
+                arg_id="0",
+                arg_required=True,
+                arg_name="From Left (%)",
+                arg_type="0",
+                arg_eval="From Left (%)=",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="From Right (%)", arg_type="0", arg_eval=", From Right (%)="
+                arg_id="1",
+                arg_required=True,
+                arg_name="From Right (%)",
+                arg_type="0",
+                arg_eval=", From Right (%)=",
             ),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="From Top (%)", arg_type="0", arg_eval=", From Top (%)="
+                arg_id="2",
+                arg_required=True,
+                arg_name="From Top (%)",
+                arg_type="0",
+                arg_eval=", From Top (%)=",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="From Bottom (%)", arg_type="0", arg_eval=", From Bottom (%)="
+                arg_id="3",
+                arg_required=True,
+                arg_name="From Bottom (%)",
+                arg_type="0",
+                arg_eval=", From Bottom (%)=",
             ),
         ],
         name="Crop Image",
@@ -1916,8 +3093,20 @@ action_codes = {
     "18t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="App", arg_type="2", arg_eval=["a", "", "App="]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Use Root", arg_type="3", arg_eval=["e", "Use Root"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="App",
+                arg_type="2",
+                arg_eval=["a", "", "App="],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Use Root",
+                arg_type="3",
+                arg_eval=["e", "Use Root"],
+            ),
         ],
         name="Kill App",
         category="15",
@@ -1934,7 +3123,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Direction", arg_type="0", arg_eval=["Direction=", "l", "190"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Direction",
+                arg_type="0",
+                arg_eval=["Direction=", "l", "190"],
             ),
         ],
         name="Flip Image",
@@ -1981,10 +3174,18 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Direction", arg_type="0", arg_eval=["Direction=", "l", "191"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Direction",
+                arg_type="0",
+                arg_eval=["Direction=", "l", "191"],
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Degrees", arg_type="0", arg_eval=[", Degrees=", "l", "191a"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Degrees",
+                arg_type="0",
+                arg_eval=[", Degrees=", "l", "191a"],
             ),
         ],
         name="Rotate Image",
@@ -2001,7 +3202,13 @@ action_codes = {
     "192s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="5", arg_eval="Device IDs/Names="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="Device IDs/Names=",
+            ),
         ],
         name="Matter Light (Experimental)",
         category="",
@@ -2011,11 +3218,25 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Direction=", "l", "192"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Direction=", "l", "192"],
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Sound", arg_type="1", arg_eval=", Sound="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Stream", arg_type="0", arg_eval=[", Stream=", "l", "171"]
+                arg_id="1",
+                arg_required=False,
+                arg_name="Sound",
+                arg_type="1",
+                arg_eval=", Sound=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Stream",
+                arg_type="0",
+                arg_eval=[", Stream=", "l", "171"],
             ),
         ],
         name="Play Ringtone",
@@ -2032,8 +3253,20 @@ action_codes = {
     "193t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Width", arg_type="0", arg_eval="Width="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Height", arg_type="0", arg_eval=", Height="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Width",
+                arg_type="0",
+                arg_eval="Width=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Height",
+                arg_type="0",
+                arg_eval=", Height=",
+            ),
         ],
         name="Resize Image",
         category="52",
@@ -2049,12 +3282,26 @@ action_codes = {
     "194t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Test", arg_type="0", arg_eval=[", Test=", "l", "194"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
             ),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval=", Store Result In="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Test",
+                arg_type="0",
+                arg_eval=[", Test=", "l", "194"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Store Result In=",
             ),
         ],
         name="Test Scene",
@@ -2071,7 +3318,13 @@ action_codes = {
     "1957681000e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -2094,13 +3347,33 @@ action_codes = {
     "195t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Test", arg_type="0", arg_eval=[", Test=", "l", "195"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval=", Store Result In="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Test",
+                arg_type="0",
+                arg_eval=[", Test=", "l", "195"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Store Result In=",
             ),
         ],
         name="Test Element",
@@ -2152,8 +3425,20 @@ action_codes = {
     "2000e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="2", arg_eval="Owner Application="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Title="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="2",
+                arg_eval="Owner Application=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Title=",
+            ),
         ],
         name="Notification Click",
         category="",
@@ -2197,10 +3482,34 @@ action_codes = {
     "201e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="2", arg_eval="App="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", URL="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Texts="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=", Extras="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="2",
+                arg_eval="App=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", URL=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Texts=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Extras=",
+            ),
         ],
         name="Assistance Request",
         category="",
@@ -2230,7 +3539,13 @@ action_codes = {
     "203e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval=["Priority=", "l", "4s"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=["Priority=", "l", "4s"],
+            ),
         ],
         name="Battery Changed",
         category="",
@@ -2309,9 +3624,27 @@ action_codes = {
     "2075e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["Type=", "l", "235"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Name="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Value="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Type=", "l", "235"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Name=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Value=",
+            ),
         ],
         name="Custom Setting",
         category="",
@@ -2320,8 +3653,20 @@ action_codes = {
     "2076e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="ID="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Content="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="ID=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Content=",
+            ),
         ],
         name="NFC Tag",
         category="",
@@ -2337,7 +3682,13 @@ action_codes = {
     "2078e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="5", arg_eval="Package="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="Package=",
+            ),
         ],
         name="App Changed",
         category="",
@@ -2346,8 +3697,20 @@ action_codes = {
     "2079e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["Type=", "l", "2079e"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Additional Time="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Type=", "l", "2079e"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Additional Time=",
+            ),
         ],
         name="Volume Long Press",
         category="",
@@ -2356,8 +3719,20 @@ action_codes = {
     "2080e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="5", arg_eval="Name="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Address="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Address=",
+            ),
         ],
         name="BT Connected",
         category="",
@@ -2366,11 +3741,41 @@ action_codes = {
     "2081e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="5", arg_eval="Track="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Album="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=", Artist"),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=", Package="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=[", Type=", "l", "2081e"]),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="Track=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Album=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Artist",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Package=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=[", Type=", "l", "2081e"],
+            ),
         ],
         name="Music Track Changed",
         category="",
@@ -2400,9 +3805,27 @@ action_codes = {
     "2085e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval="Component="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Filter="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", Grep Filter"]),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Component=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Filter=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", ", Grep Filter"],
+            ),
         ],
         name="Logcat Entry",
         category="",
@@ -2425,16 +3848,54 @@ action_codes = {
     "2089e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="5", arg_eval="Port="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=", Method="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=", Path="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=", Quick Response"),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=", Timeout="),
             ArgumentCode(
-                arg_id="6", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", Only On Wifi"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="Port=",
             ),
             ArgumentCode(
-                arg_id="7", arg_required=True, arg_name="", arg_type="0", arg_eval=", Network Name/MAC Address="
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Method=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Path=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Quick Response",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Timeout=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", ", Only On Wifi"],
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Network Name/MAC Address=",
             ),
         ],
         name="HTTP Request",
@@ -2444,7 +3905,13 @@ action_codes = {
     "208e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval=["Priority=", "l", "4s"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=["Priority=", "l", "4s"],
+            ),
         ],
         name="Display On",
         category="",
@@ -2467,10 +3934,26 @@ action_codes = {
     "2091e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval="Component="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Variables="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", Last Variable Is Array"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Component=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Variables=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", ", Last Variable Is Array"],
             ),
         ],
         name="Command",
@@ -2487,7 +3970,13 @@ action_codes = {
     "2093e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="2", arg_eval="Command="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="2",
+                arg_eval="Command=",
+            ),
         ],
         name="Assistant Action",
         category="",
@@ -2503,7 +3992,13 @@ action_codes = {
     "2095e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="5", arg_eval="Interval (ms)="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="Interval (ms)=",
+            ),
         ],
         name="Tick",
         category="",
@@ -2512,9 +4007,27 @@ action_codes = {
     "2096e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="5", arg_eval="Minimum Confidence="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=", Maximum Light="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=", Maximum Motion="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="Minimum Confidence=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Maximum Light=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Maximum Motion=",
+            ),
         ],
         name="Sleeping",
         category="",
@@ -2524,7 +4037,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="", arg_type="5", arg_eval=["", "e", "Ignore Set By Tasker"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval=["", "e", "Ignore Set By Tasker"],
             ),
         ],
         name="Clipboard Changed",
@@ -2549,9 +4066,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Package/App Name", arg_type="2", arg_eval=["a", "", "App="]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Package/App Name",
+                arg_type="2",
+                arg_eval=["a", "", "App="],
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Data", arg_type="1", arg_eval=", Data="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval=", Data=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -2581,15 +4108,69 @@ action_codes = {
     "2101e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="", arg_type="5", arg_eval=""),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Package Name"),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Share Trigger"),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="", arg_type="1", arg_eval=", Subject"),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="", arg_type="1", arg_eval=", Text"),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="", arg_type="1", arg_eval=", Files"),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="", arg_type="1", arg_eval=", Mime Type"),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="", arg_type="1", arg_eval=", Action"),
-            ArgumentCode(arg_id="8", arg_required=False, arg_name="", arg_type="1", arg_eval=", Category"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Package Name",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Share Trigger",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Subject",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Text",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Files",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Mime Type",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Action",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=False,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Category",
+            ),
         ],
         name="Received Share",
         category="",
@@ -2598,11 +4179,41 @@ action_codes = {
     "2102e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="", arg_type="5", arg_eval=""),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="0", arg_eval=["e", "Added"]),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="0", arg_eval=["e", "Updated"]),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="", arg_type="0", arg_eval=["e", "Deleted"]),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="", arg_type="0", arg_eval=["e", "Other"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["e", "Added"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["e", "Updated"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["e", "Deleted"],
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["e", "Other"],
+            ),
         ],
         name="Calendar Changed",
         category="",
@@ -2611,7 +4222,13 @@ action_codes = {
     "210e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval=["Priority=", "l", "4s"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=["Priority=", "l", "4s"],
+            ),
         ],
         name="Display Off",
         category="",
@@ -2711,7 +4328,13 @@ action_codes = {
     "216t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="App", arg_type="1", arg_eval="App"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="App",
+                arg_type="1",
+                arg_eval="App",
+            ),
         ],
         name="App Settings",
         category="30",
@@ -2748,8 +4371,20 @@ action_codes = {
     "222e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name=", File", arg_type="1", arg_eval="File="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Event", arg_type="1", arg_eval=", Event="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name=", File",
+                arg_type="1",
+                arg_eval="File=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Event",
+                arg_type="1",
+                arg_eval=", Event=",
+            ),
         ],
         name="File Modified",
         category="",
@@ -2870,12 +4505,40 @@ action_codes = {
     "235t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Test=", "l", "235"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Name", arg_type="1", arg_eval=", Name="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Value", arg_type="1", arg_eval=", Value="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Use Root", arg_type="3", arg_eval=["e", "Use Root"]),
             ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Read Setting To", arg_type="1", arg_eval=", Read Setting To="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Test=", "l", "235"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval=", Name=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Value",
+                arg_type="1",
+                arg_eval=", Value=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Use Root",
+                arg_type="3",
+                arg_eval=["e", "Use Root"],
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Read Setting To",
+                arg_type="1",
+                arg_eval=", Read Setting To=",
             ),
         ],
         name="Custom Setting",
@@ -2948,8 +4611,20 @@ action_codes = {
     "248t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Dim", arg_type="3", arg_eval="File="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Lock", arg_type="3", arg_eval=["e", "Dim"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Dim",
+                arg_type="3",
+                arg_eval="File=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Lock",
+                arg_type="3",
+                arg_eval=["e", "Dim"],
+            ),
         ],
         name="Turn Off",
         category="40",
@@ -2966,9 +4641,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=False, arg_name="Recipient(s)", arg_type="1", arg_eval="Recipient(s)="
+                arg_id="0",
+                arg_required=False,
+                arg_name="Recipient(s)",
+                arg_type="1",
+                arg_eval="Recipient(s)=",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Message", arg_type="1", arg_eval="Message="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Message",
+                arg_type="1",
+                arg_eval="Message=",
+            ),
         ],
         name="Compose SMS",
         category="90",
@@ -2984,7 +4669,13 @@ action_codes = {
     "252t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="App", arg_type="2", arg_eval="App="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="App",
+                arg_type="2",
+                arg_eval="App=",
+            ),
         ],
         name="Set SMS App",
         category="90",
@@ -2994,7 +4685,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
         ],
         name="Speakerphone",
@@ -3005,7 +4700,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
         ],
         name="Vibrate On Ringer",
@@ -3022,7 +4721,13 @@ action_codes = {
     "258t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval="Set"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval="Set",
+            ),
         ],
         name="Vibrate On Notify",
         category="20",
@@ -3032,7 +4737,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
         ],
         name="Notification Pulse",
@@ -3042,8 +4751,20 @@ action_codes = {
     "25t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Page", arg_type="0", arg_eval="Page"),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Package", arg_type="1", arg_eval="Package"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Page",
+                arg_type="0",
+                arg_eval="Page",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Package",
+                arg_type="1",
+                arg_eval="Package",
+            ),
         ],
         name="Go Home",
         category="15",
@@ -3074,7 +4795,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
         ],
         name="Bluetooth",
@@ -3084,7 +4809,13 @@ action_codes = {
     "295t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
         ],
         name="Bluetooth ID",
         category="80",
@@ -3094,7 +4825,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
         ],
         name="Bluetooth Voice",
@@ -3112,7 +4847,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["Status=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Status=", "l", "switch_set"],
             ),
         ],
         name="BT Status",
@@ -3129,12 +4868,26 @@ action_codes = {
     "3001e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["Axis=", "l", "3001e"]),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=["Sensitivity=", "l", "3001ea"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Axis=", "l", "3001e"],
             ),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=["Duration=", "l", "3001eb"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Sensitivity=", "l", "3001ea"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Duration=", "l", "3001eb"],
             ),
         ],
         name="Shake",
@@ -3158,7 +4911,13 @@ action_codes = {
     "301t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval="Set"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval="Set",
+            ),
         ],
         name="Mic Mute",
         category="20",
@@ -3181,9 +4940,27 @@ action_codes = {
     "303t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Level", arg_type="0", arg_eval="Level="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Display", arg_type="3", arg_eval=["e", ", Display"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Sound", arg_type="3", arg_eval=["e", ", Sound"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Level",
+                arg_type="0",
+                arg_eval="Level=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Display",
+                arg_type="3",
+                arg_eval=["e", ", Display"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Sound",
+                arg_type="3",
+                arg_eval=["e", ", Sound"],
+            ),
         ],
         name="Alarm Volume",
         category="20",
@@ -3199,9 +4976,27 @@ action_codes = {
     "304t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Level", arg_type="0", arg_eval="Level="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Display", arg_type="3", arg_eval=["e", ", Display"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Sound", arg_type="3", arg_eval=["e", ", Sound"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Level",
+                arg_type="0",
+                arg_eval="Level=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Display",
+                arg_type="3",
+                arg_eval=["e", ", Display"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Sound",
+                arg_type="3",
+                arg_eval=["e", ", Sound"],
+            ),
         ],
         name="Ringer Volume",
         category="20",
@@ -3210,10 +5005,26 @@ action_codes = {
     "3050e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval=", Variable="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Value="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", User Variables Only"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Variable=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Value=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", ", User Variables Only"],
             ),
         ],
         name="Variable Set",
@@ -3230,9 +5041,27 @@ action_codes = {
     "305t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Level", arg_type="0", arg_eval="Level="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Display", arg_type="3", arg_eval=["e", ", Display"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Sound", arg_type="3", arg_eval=["e", ", Sound"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Level",
+                arg_type="0",
+                arg_eval="Level=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Display",
+                arg_type="3",
+                arg_eval=["e", ", Display"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Sound",
+                arg_type="3",
+                arg_eval=["e", ", Sound"],
+            ),
         ],
         name="Notification Volume",
         category="20",
@@ -3255,9 +5084,27 @@ action_codes = {
     "306t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Level", arg_type="0", arg_eval="Level"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Display", arg_type="3", arg_eval="Display"),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Sound", arg_type="3", arg_eval="Sound"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Level",
+                arg_type="0",
+                arg_eval="Level",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Display",
+                arg_type="3",
+                arg_eval="Display",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Sound",
+                arg_type="3",
+                arg_eval="Sound",
+            ),
         ],
         name="In-Call Volume",
         category="20",
@@ -3280,9 +5127,27 @@ action_codes = {
     "307t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Level", arg_type="0", arg_eval="Level="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Display", arg_type="3", arg_eval=["e", ", Display"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Sound", arg_type="3", arg_eval=["e", ", Sound"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Level",
+                arg_type="0",
+                arg_eval="Level=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Display",
+                arg_type="3",
+                arg_eval=["e", ", Display"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Sound",
+                arg_type="3",
+                arg_eval=["e", ", Sound"],
+            ),
         ],
         name="Media Volume",
         category="20",
@@ -3291,9 +5156,27 @@ action_codes = {
     "308t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Level", arg_type="0", arg_eval="Level="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Display", arg_type="3", arg_eval=["e", ", Display"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Sound", arg_type="3", arg_eval=["e", ", Sound"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Level",
+                arg_type="0",
+                arg_eval="Level=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Display",
+                arg_type="3",
+                arg_eval=["e", ", Display"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Sound",
+                arg_type="3",
+                arg_eval=["e", ", Sound"],
+            ),
         ],
         name="System Volume",
         category="20",
@@ -3309,9 +5192,27 @@ action_codes = {
     "309t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Level", arg_type="0", arg_eval="Level"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Display", arg_type="3", arg_eval="Display"),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Sound", arg_type="3", arg_eval="Sound"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Level",
+                arg_type="0",
+                arg_eval="Level",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Display",
+                arg_type="3",
+                arg_eval="Display",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Sound",
+                arg_type="3",
+                arg_eval="Sound",
+            ),
         ],
         name="DTMF Volume",
         category="20",
@@ -3320,7 +5221,13 @@ action_codes = {
     "30s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["Type=", "l", "30s"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Type=", "l", "30s"],
+            ),
         ],
         name="Headset Plugged",
         category="",
@@ -3329,11 +5236,41 @@ action_codes = {
     "30t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="MS", arg_type="0", arg_eval="MS="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Seconds", arg_type="0", arg_eval=", Seconds="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Minutes", arg_type="0", arg_eval=", Minutes="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Hours", arg_type="0", arg_eval=", Hours="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Days", arg_type="0", arg_eval=", Days="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="MS",
+                arg_type="0",
+                arg_eval="MS=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Seconds",
+                arg_type="0",
+                arg_eval=", Seconds=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Minutes",
+                arg_type="0",
+                arg_eval=", Minutes=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Hours",
+                arg_type="0",
+                arg_eval=", Hours=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Days",
+                arg_type="0",
+                arg_eval=", Days=",
+            ),
         ],
         name="Wait",
         category="105",
@@ -3342,7 +5279,13 @@ action_codes = {
     "310t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "310"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "310"],
+            ),
         ],
         name="Silent Mode",
         category="20",
@@ -3351,9 +5294,27 @@ action_codes = {
     "311t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Level", arg_type="0", arg_eval="Level="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Display", arg_type="3", arg_eval=["e", ", Display"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Sound", arg_type="3", arg_eval=["e", ", Sound"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Level",
+                arg_type="0",
+                arg_eval="Level=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Display",
+                arg_type="3",
+                arg_eval=["e", ", Display"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Sound",
+                arg_type="3",
+                arg_eval=["e", ", Sound"],
+            ),
         ],
         name="BT Voice Volume",
         category="20",
@@ -3362,9 +5323,19 @@ action_codes = {
     "312t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "312"]),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Allow Callers", arg_type="0", arg_eval="Allow Callers"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "312"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Allow Callers",
+                arg_type="0",
+                arg_eval="Allow Callers",
             ),
             ArgumentCode(
                 arg_id="2",
@@ -3374,10 +5345,18 @@ action_codes = {
                 arg_eval="Allow Repeat Callers",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Allow SMS Senders", arg_type="0", arg_eval="Allow SMS Senders"
+                arg_id="3",
+                arg_required=True,
+                arg_name="Allow SMS Senders",
+                arg_type="0",
+                arg_eval="Allow SMS Senders",
             ),
             ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Allow Categories", arg_type="1", arg_eval="Allow Categories"
+                arg_id="4",
+                arg_required=False,
+                arg_name="Allow Categories",
+                arg_type="1",
+                arg_eval="Allow Categories",
             ),
             ArgumentCode(
                 arg_id="5",
@@ -3387,7 +5366,11 @@ action_codes = {
                 arg_eval="Suppressed Effects",
             ),
             ArgumentCode(
-                arg_id="6", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="6",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="Interrupt Mode",
@@ -3397,9 +5380,19 @@ action_codes = {
     "313t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "313"]),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Ignore DND", arg_type="3", arg_eval=["e", ", Ignore DND"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "313"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Ignore DND",
+                arg_type="3",
+                arg_eval=["e", ", Ignore DND"],
             ),
         ],
         name="Sound Mode",
@@ -3409,11 +5402,33 @@ action_codes = {
     "314t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "314"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Title", arg_type="1", arg_eval=", Title="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Subtitle", arg_type="1", arg_eval=", Subtitle="),
             ArgumentCode(
-                arg_id="3", arg_required=False, arg_name="Description", arg_type="1", arg_eval=", Description="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "314"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval=", Title=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Subtitle",
+                arg_type="1",
+                arg_eval=", Subtitle=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Description",
+                arg_type="1",
+                arg_eval=", Description=",
             ),
             ArgumentCode(
                 arg_id="4",
@@ -3430,7 +5445,11 @@ action_codes = {
                 arg_eval=", Number of Attempts=",
             ),
             ArgumentCode(
-                arg_id="6", arg_required=False, arg_name="Read Result To", arg_type="1", arg_eval=", Read Result Into="
+                arg_id="6",
+                arg_required=False,
+                arg_name="Read Result To",
+                arg_type="1",
+                arg_eval=", Read Result Into=",
             ),
             ArgumentCode(
                 arg_id="7",
@@ -3461,8 +5480,20 @@ action_codes = {
     "316t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Size", arg_type="0", arg_eval=["Size=", "l", "316"]),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Manual", arg_type="1", arg_eval=", Manual="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Size",
+                arg_type="0",
+                arg_eval=["Size=", "l", "316"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Manual",
+                arg_type="1",
+                arg_eval=", Manual=",
+            ),
         ],
         name="Display Size",
         category="40",
@@ -3472,10 +5503,18 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="NFC",
@@ -3485,7 +5524,13 @@ action_codes = {
     "318t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "318"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "318"],
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=True,
@@ -3530,8 +5575,20 @@ action_codes = {
     "320t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Host", arg_type="1", arg_eval=", Host="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Number", arg_type="0", arg_eval=", Number="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Host",
+                arg_type="1",
+                arg_eval=", Host=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Number",
+                arg_type="0",
+                arg_eval=", Number=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=False,
@@ -3562,7 +5619,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
                 arg_id="1",
@@ -3571,7 +5632,13 @@ action_codes = {
                 arg_type="1",
                 arg_eval="Google Drive/Account=",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Data / File", arg_type="1", arg_eval=", Data/File="),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Data / File",
+                arg_type="1",
+                arg_eval=", Data/File=",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=False,
@@ -3580,7 +5647,11 @@ action_codes = {
                 arg_eval=", Remote File Name=",
             ),
             ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Remote Folder", arg_type="1", arg_eval=", Remote Folder="
+                arg_id="4",
+                arg_required=False,
+                arg_name="Remote Folder",
+                arg_type="1",
+                arg_eval=", Remote Folder=",
             ),
             ArgumentCode(
                 arg_id="5",
@@ -3603,7 +5674,13 @@ action_codes = {
                 arg_type="3",
                 arg_eval=["e", ", Publicly Share File"],
             ),
-            ArgumentCode(arg_id="8", arg_required=False, arg_name="Mime Type", arg_type="1", arg_eval=", Mime Type="),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=False,
+                arg_name="Mime Type",
+                arg_type="1",
+                arg_eval=", Mime Type=",
+            ),
         ],
         name="GD Upload",
         category="51",
@@ -3612,7 +5689,13 @@ action_codes = {
     "322t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Path", arg_type="1", arg_eval="Path="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Path",
+                arg_type="1",
+                arg_eval="Path=",
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=False,
@@ -3636,12 +5719,40 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Bluetooth", arg_type="3", arg_eval=["e", "Bluetooth"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Bluetooth",
+                arg_type="3",
+                arg_eval=["e", "Bluetooth"],
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Cell", arg_type="3", arg_eval=["e", ", Cell"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="NFC", arg_type="3", arg_eval=["e", ", NFC"]),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Wifi", arg_type="3", arg_eval=["e", ", Wifi"]),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Wimax", arg_type="3", arg_eval=["e", ", Wimax"]),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Cell",
+                arg_type="3",
+                arg_eval=["e", ", Cell"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="NFC",
+                arg_type="3",
+                arg_eval=["e", ", NFC"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Wifi",
+                arg_type="3",
+                arg_eval=["e", ", Wifi"],
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Wimax",
+                arg_type="3",
+                arg_eval=["e", ", Wimax"],
+            ),
         ],
         name="Airplane Radios",
         category="80",
@@ -3651,7 +5762,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
                 arg_id="1",
@@ -3661,7 +5776,11 @@ action_codes = {
                 arg_eval="Google Drive Account=",
             ),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Type", arg_type="0", arg_eval=[", Type=", "l", "324"]
+                arg_id="2",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=[", Type=", "l", "324"],
             ),
             ArgumentCode(
                 arg_id="3",
@@ -3671,9 +5790,19 @@ action_codes = {
                 arg_eval=[", Files or Folders=", "l", "324a"],
             ),
             ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Remote Folder", arg_type="1", arg_eval="Remote Folder"
+                arg_id="4",
+                arg_required=False,
+                arg_name="Remote Folder",
+                arg_type="1",
+                arg_eval="Remote Folder",
             ),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Query", arg_type="1", arg_eval=", Query="),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Query",
+                arg_type="1",
+                arg_eval=", Query=",
+            ),
         ],
         name="GD List",
         category="51",
@@ -3683,7 +5812,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
                 arg_id="1",
@@ -3700,10 +5833,26 @@ action_codes = {
                 arg_eval=[", Trash Value=", "l", "325"],
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Type", arg_type="0", arg_eval=[", Type=", "l", "325a"]
+                arg_id="3",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=[", Type=", "l", "325a"],
             ),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="File Id", arg_type="1", arg_eval=", File ID="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Remote Folder", arg_type="1", arg_eval=", Path="),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="File Id",
+                arg_type="1",
+                arg_eval=", File ID=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Remote Folder",
+                arg_type="1",
+                arg_eval=", Path=",
+            ),
             ArgumentCode(
                 arg_id="6",
                 arg_required=False,
@@ -3711,7 +5860,13 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Remote File Name=",
             ),
-            ArgumentCode(arg_id="7", arg_required=True, arg_name="Remote Name", arg_type="1", arg_eval="Remote Name"),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=True,
+                arg_name="Remote Name",
+                arg_type="1",
+                arg_eval="Remote Name",
+            ),
         ],
         name="GD Trash",
         category="51",
@@ -3721,7 +5876,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
                 arg_id="1",
@@ -3731,11 +5890,25 @@ action_codes = {
                 arg_eval="Google Drive Account=",
             ),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Type", arg_type="0", arg_eval=[", Type=", "l", "325a"]
+                arg_id="2",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=[", Type=", "l", "325a"],
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="File Id", arg_type="1", arg_eval=", File ID="),
             ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Remote Folder", arg_type="1", arg_eval=", Remote Folder="
+                arg_id="3",
+                arg_required=True,
+                arg_name="File Id",
+                arg_type="1",
+                arg_eval=", File ID=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Remote Folder",
+                arg_type="1",
+                arg_eval=", Remote Folder=",
             ),
             ArgumentCode(
                 arg_id="5",
@@ -3744,7 +5917,13 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Remote File Name=",
             ),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="Local Path", arg_type="1", arg_eval=", Local Path="),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="Local Path",
+                arg_type="1",
+                arg_eval=", Local Path=",
+            ),
         ],
         name="GD Download",
         category="51",
@@ -3754,7 +5933,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
                 arg_id="1",
@@ -3764,7 +5947,11 @@ action_codes = {
                 arg_eval="Google Drive Account=",
             ),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Full Access", arg_type="3", arg_eval=["e", ", Full Access"]
+                arg_id="2",
+                arg_required=True,
+                arg_name="Full Access",
+                arg_type="3",
+                arg_eval=["e", ", Full Access"],
             ),
         ],
         name="GD Sign In",
@@ -3775,9 +5962,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Input", arg_type="1", arg_eval="Input"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Input",
+                arg_type="1",
+                arg_eval="Input",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -3800,9 +5997,27 @@ action_codes = {
     "329t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Left", arg_type="1", arg_eval="Left="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Center", arg_type="1", arg_eval="Center="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Right", arg_type="1", arg_eval="Right="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="Left",
+                arg_type="1",
+                arg_eval="Left=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Center",
+                arg_type="1",
+                arg_eval="Center=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Right",
+                arg_type="1",
+                arg_eval="Right=",
+            ),
         ],
         name="Navigation Bar",
         category="55",
@@ -3812,13 +6027,25 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=False, arg_name="Payload To Write", arg_type="1", arg_eval="Payload To Write="
+                arg_id="1",
+                arg_required=False,
+                arg_name="Payload To Write",
+                arg_type="1",
+                arg_eval="Payload To Write=",
             ),
             ArgumentCode(
-                arg_id="2", arg_required=False, arg_name="Payload Type", arg_type="1", arg_eval=", Payload Type="
+                arg_id="2",
+                arg_required=False,
+                arg_name="Payload Type",
+                arg_type="1",
+                arg_eval=", Payload Type=",
             ),
         ],
         name="NFC Tag",
@@ -3829,7 +6056,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
         ],
         name="Auto-Sync",
@@ -3839,20 +6070,35 @@ action_codes = {
     "332t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval="Set"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval="Set",
+            ),
         ],
         name="GPS",
         category="60",
         canfail="True",
     ),
+    # FIX
     "333t": ActionCode(
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="Airplane Mode",
@@ -3862,13 +6108,41 @@ action_codes = {
     "334t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Text/SSML", arg_type="1", arg_eval="Test/SSML="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Voice", arg_type="1", arg_eval=", Voice="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Stream", arg_type="0", arg_eval=[", Type=", "l", "171"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Text/SSML",
+                arg_type="1",
+                arg_eval="Test/SSML=",
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Pitch", arg_type="0", arg_eval=", Pitch="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Speed", arg_type="0", arg_eval=", Speed="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Voice",
+                arg_type="1",
+                arg_eval=", Voice=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Stream",
+                arg_type="0",
+                arg_eval=[", Type=", "l", "171"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Pitch",
+                arg_type="0",
+                arg_eval=", Pitch=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Speed",
+                arg_type="0",
+                arg_eval=", Speed=",
+            ),
             ArgumentCode(
                 arg_id="5",
                 arg_required=True,
@@ -3876,7 +6150,13 @@ action_codes = {
                 arg_type="3",
                 arg_eval=["e", ", Continue Task Immediately"],
             ),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="File", arg_type="1", arg_eval=", File="),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="File",
+                arg_type="1",
+                arg_eval=", File=",
+            ),
             ArgumentCode(
                 arg_id="7",
                 arg_required=False,
@@ -3900,13 +6180,25 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=False, arg_name="Package/App Name", arg_type="1", arg_eval="Package/App Name="
+                arg_id="1",
+                arg_required=False,
+                arg_name="Package/App Name",
+                arg_type="1",
+                arg_eval="Package/App Name=",
             ),
             ArgumentCode(
-                arg_id="2", arg_required=False, arg_name="Ignore Packages", arg_type="1", arg_eval=", Ignore Packages="
+                arg_id="2",
+                arg_required=False,
+                arg_name="Ignore Packages",
+                arg_type="1",
+                arg_eval=", Ignore Packages=",
             ),
             ArgumentCode(
                 arg_id="3",
@@ -3930,8 +6222,20 @@ action_codes = {
     "337t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Package", arg_type="1", arg_eval="Package="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Category", arg_type="1", arg_eval=", Category="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="Package",
+                arg_type="1",
+                arg_eval="Package=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Category",
+                arg_type="1",
+                arg_eval=", Category=",
+            ),
         ],
         name="Notification Settings",
         category="30",
@@ -3941,9 +6245,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Category", arg_type="1", arg_eval="Category="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Category",
+                arg_type="1",
+                arg_eval="Category=",
+            ),
         ],
         name="Notification Category Info",
         category="30",
@@ -3953,13 +6267,33 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Method", arg_type="0", arg_eval=["Method=", "l", "339"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Method",
+                arg_type="0",
+                arg_eval=["Method=", "l", "339"],
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="URL", arg_type="1", arg_eval=", URL="),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Headers", arg_type="1", arg_eval=", Headers="),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="URL",
+                arg_type="1",
+                arg_eval=", URL=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Headers",
+                arg_type="1",
+                arg_eval=", Headers=",
+            ),
             ArgumentCode(
                 arg_id="4",
                 arg_required=False,
@@ -3967,9 +6301,19 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Query Parameters=",
             ),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="Body", arg_type="1", arg_eval=", Body="),
             ArgumentCode(
-                arg_id="6", arg_required=False, arg_name="File To Send", arg_type="1", arg_eval=", File To Send="
+                arg_id="5",
+                arg_required=False,
+                arg_name="Body",
+                arg_type="1",
+                arg_eval=", Body=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="File To Send",
+                arg_type="1",
+                arg_eval=", File To Send=",
             ),
             ArgumentCode(
                 arg_id="7",
@@ -3979,7 +6323,11 @@ action_codes = {
                 arg_eval=", File/Directory To Save With Output=",
             ),
             ArgumentCode(
-                arg_id="8", arg_required=True, arg_name="Timeout (Seconds)", arg_type="0", arg_eval=", Timeout="
+                arg_id="8",
+                arg_required=True,
+                arg_name="Timeout (Seconds)",
+                arg_type="0",
+                arg_eval=", Timeout=",
             ),
             ArgumentCode(
                 arg_id="9",
@@ -3996,7 +6344,11 @@ action_codes = {
                 arg_eval=["e", ", Automatically Follow Redirects"],
             ),
             ArgumentCode(
-                arg_id="11", arg_required=True, arg_name="Use Cookies", arg_type="3", arg_eval=["e", ", Use Cookies"]
+                arg_id="11",
+                arg_required=True,
+                arg_name="Use Cookies",
+                arg_type="3",
+                arg_eval=["e", ", Use Cookies"],
             ),
             ArgumentCode(
                 arg_id="12",
@@ -4014,14 +6366,32 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Action", arg_type="0", arg_eval=["Action=", "l", "340"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Action",
+                arg_type="0",
+                arg_eval=["Action=", "l", "340"],
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Device", arg_type="1", arg_eval=", Device="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Timeout (Seconds)", arg_type="0", arg_eval=", Timeout="
+                arg_id="2",
+                arg_required=True,
+                arg_name="Device",
+                arg_type="1",
+                arg_eval=", Device=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Timeout (Seconds)",
+                arg_type="0",
+                arg_eval=", Timeout=",
             ),
         ],
         name="Bluetooth Connection",
@@ -4031,10 +6401,26 @@ action_codes = {
     "341t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "341"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Data", arg_type="1", arg_eval="Data"),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval=", Store Result In="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "341"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval="Data",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Store Result In=",
             ),
         ],
         name="Test Net",
@@ -4044,13 +6430,33 @@ action_codes = {
     "342t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "342"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Data", arg_type="1", arg_eval=", Data="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval=", Store Result In="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "342"],
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Use Root", arg_type="3", arg_eval=["e", ", Use Root"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval=", Data=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Store Result In=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Use Root",
+                arg_type="3",
+                arg_eval=["e", ", Use Root"],
             ),
             ArgumentCode(
                 arg_id="4",
@@ -4067,10 +6473,26 @@ action_codes = {
     "343t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "343"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Data", arg_type="1", arg_eval=", Data="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval=", Store Result In="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "343"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval=", Data=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Store Result In=",
             ),
         ],
         name="Test Media",
@@ -4087,10 +6509,26 @@ action_codes = {
     "344t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "344"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Data", arg_type="1", arg_eval=", Data="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval=", Store Result In="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "344"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval=", Data=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Store Result In=",
             ),
         ],
         name="Test App",
@@ -4100,10 +6538,26 @@ action_codes = {
     "345t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "345"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Data", arg_type="1", arg_eval=", Data="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval=", Store Results In="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "345"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval=", Data=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Store Results In=",
             ),
         ],
         name="Test Variable",
@@ -4113,10 +6567,26 @@ action_codes = {
     "346t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "346"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Data", arg_type="1", arg_eval=", Data="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval=", Store Result In="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "346"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval=", Data=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Store Result In=",
             ),
         ],
         name="Test Phone",
@@ -4126,10 +6596,26 @@ action_codes = {
     "347t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "347"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Data", arg_type="1", arg_eval=", Data="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval=", Store Result In="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "347"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval=", Data=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Store Result In=",
             ),
         ],
         name="Test Tasker",
@@ -4139,7 +6625,13 @@ action_codes = {
     "34829087e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -4155,10 +6647,26 @@ action_codes = {
     "348t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "348"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Data", arg_type="1", arg_eval=", Store Result In="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval="Store Result In"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "348"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval=", Store Result In=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval="Store Result In",
             ),
         ],
         name="Test Display",
@@ -4168,10 +6676,26 @@ action_codes = {
     "349t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "349"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Data", arg_type="1", arg_eval=", Store Result In="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval="Store Result In"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "349"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval=", Store Result In=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval="Store Result In",
             ),
         ],
         name="Test System",
@@ -4182,14 +6706,32 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Method", arg_type="0", arg_eval=["Method=", "l", "351"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Method",
+                arg_type="0",
+                arg_eval=["Method=", "l", "351"],
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Client ID", arg_type="1", arg_eval=", Client ID="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Client Secret", arg_type="1", arg_eval=", Client Secret="
+                arg_id="2",
+                arg_required=True,
+                arg_name="Client ID",
+                arg_type="1",
+                arg_eval=", Client ID=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Client Secret",
+                arg_type="1",
+                arg_eval=", Client Secret=",
             ),
             ArgumentCode(
                 arg_id="4",
@@ -4205,7 +6747,13 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Endpoint To Get Refresh Token=",
             ),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Scopes", arg_type="1", arg_eval=", Scopes="),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Scopes",
+                arg_type="1",
+                arg_eval=", Scopes=",
+            ),
             ArgumentCode(
                 arg_id="7",
                 arg_required=True,
@@ -4214,10 +6762,26 @@ action_codes = {
                 arg_eval=["e", "Force Re-Authentication"],
             ),
             ArgumentCode(
-                arg_id="8", arg_required=True, arg_name="Timeout (Seconds)", arg_type="0", arg_eval=", Timeout="
+                arg_id="8",
+                arg_required=True,
+                arg_name="Timeout (Seconds)",
+                arg_type="0",
+                arg_eval=", Timeout=",
             ),
-            ArgumentCode(arg_id="9", arg_required=True, arg_name="Username", arg_type="1", arg_eval=", Username="),
-            ArgumentCode(arg_id="10", arg_required=True, arg_name="Password", arg_type="1", arg_eval=", Password="),
+            ArgumentCode(
+                arg_id="9",
+                arg_required=True,
+                arg_name="Username",
+                arg_type="1",
+                arg_eval=", Username=",
+            ),
+            ArgumentCode(
+                arg_id="10",
+                arg_required=True,
+                arg_name="Password",
+                arg_type="1",
+                arg_eval=", Password=",
+            ),
         ],
         name="HTTP Auth",
         category="80",
@@ -4227,7 +6791,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
                 arg_id="1",
@@ -4236,10 +6804,34 @@ action_codes = {
                 arg_type="0",
                 arg_eval=["Network Type=", "l", "352"],
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="From", arg_type="1", arg_eval=", From="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="To", arg_type="1", arg_eval=", To="),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Package", arg_type="1", arg_eval=", Package="),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="SIM Card", arg_type="1", arg_eval="SIM Card"),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="From",
+                arg_type="1",
+                arg_eval=", From=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="To",
+                arg_type="1",
+                arg_eval=", To=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Package",
+                arg_type="1",
+                arg_eval=", Package=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="SIM Card",
+                arg_type="1",
+                arg_eval="SIM Card",
+            ),
         ],
         name="Get Network Data Usage",
         category="80",
@@ -4249,10 +6841,26 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Variable Array", arg_type="1", arg_eval="Variable Array="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Variable Array",
+                arg_type="1",
+                arg_eval="Variable Array=",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Values", arg_type="1", arg_eval=", Values="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Splitter", arg_type="1", arg_eval=", Splitter="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Values",
+                arg_type="1",
+                arg_eval=", Values=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Splitter",
+                arg_type="1",
+                arg_eval=", Splitter=",
+            ),
         ],
         name="Array Set",
         category="120",
@@ -4262,12 +6870,32 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Variable Array", arg_type="1", arg_eval="Variable Array="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Variable Array",
+                arg_type="1",
+                arg_eval="Variable Array=",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Position", arg_type="0", arg_eval=", Position="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Value", arg_type="1", arg_eval=", Value="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Fill Spaces", arg_type="3", arg_eval=["e", ", Fill Spaces"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Position",
+                arg_type="0",
+                arg_eval=", Position=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Value",
+                arg_type="1",
+                arg_eval=", Value=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Fill Spaces",
+                arg_type="3",
+                arg_eval=["e", ", Fill Spaces"],
             ),
         ],
         name="Array Push",
@@ -4278,10 +6906,26 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Variable Array", arg_type="1", arg_eval="Variable Array="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Variable Array",
+                arg_type="1",
+                arg_eval="Variable Array=",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Position", arg_type="0", arg_eval=", Position="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="To Var", arg_type="1", arg_eval=", To Var="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Position",
+                arg_type="0",
+                arg_eval=", Position=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="To Var",
+                arg_type="1",
+                arg_eval=", To Var=",
+            ),
         ],
         name="Array Pop",
         category="120",
@@ -4291,7 +6935,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Variable Array", arg_type="1", arg_eval="Variable Array="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Variable Array",
+                arg_type="1",
+                arg_eval="Variable Array=",
             ),
         ],
         name="Array Clear",
@@ -4302,12 +6950,32 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "358"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Device", arg_type="1", arg_eval=", Device="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Timeout (Seconds)", arg_type="0", arg_eval=", Timeout="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "358"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Device",
+                arg_type="1",
+                arg_eval=", Device=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Timeout (Seconds)",
+                arg_type="0",
+                arg_eval=", Timeout=",
             ),
         ],
         name="Bluetooth Info",
@@ -4317,11 +6985,41 @@ action_codes = {
     "35t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="MS", arg_type="0", arg_eval=["if"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Seconds", arg_type="0", arg_eval="MS="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Minutes", arg_type="0", arg_eval=", Seconds="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Hours", arg_type="0", arg_eval=", Minutes="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Days", arg_type="0", arg_eval=", Hours="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="MS",
+                arg_type="0",
+                arg_eval=["if"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Seconds",
+                arg_type="0",
+                arg_eval="MS=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Minutes",
+                arg_type="0",
+                arg_eval=", Seconds=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Hours",
+                arg_type="0",
+                arg_eval=", Minutes=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Days",
+                arg_type="0",
+                arg_eval=", Hours=",
+            ),
         ],
         name="Wait Until",
         category="105",
@@ -4331,12 +7029,32 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Title", arg_type="1", arg_eval="Title="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Text", arg_type="1", arg_eval=", Text="),
             ArgumentCode(
-                arg_id="3", arg_required=False, arg_name="Default Input", arg_type="1", arg_eval=", Default Input="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Default Input",
+                arg_type="1",
+                arg_eval=", Default Input=",
             ),
             ArgumentCode(
                 arg_id="4",
@@ -4345,9 +7063,19 @@ action_codes = {
                 arg_type="0",
                 arg_eval=", Close After (Seconds)=",
             ),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="Input Type", arg_type="1", arg_eval=", Input Type="),
             ArgumentCode(
-                arg_id="6", arg_required=True, arg_name="Use HTML", arg_type="3", arg_eval=["e", ", Use HTML"]
+                arg_id="5",
+                arg_required=False,
+                arg_name="Input Type",
+                arg_type="1",
+                arg_eval=", Input Type=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="Use HTML",
+                arg_type="3",
+                arg_eval=["e", ", Use HTML"],
             ),
             ArgumentCode(
                 arg_id="7",
@@ -4372,10 +7100,18 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="Dark Mode",
@@ -4385,7 +7121,13 @@ action_codes = {
     "362t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Assistant", arg_type="1", arg_eval="Assistant="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Assistant",
+                arg_type="1",
+                arg_eval="Assistant=",
+            ),
         ],
         name="Set Assistant",
         category="104",
@@ -4395,9 +7137,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="SIM Card", arg_type="1", arg_eval="SIM Card"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="SIM Card",
+                arg_type="1",
+                arg_eval="SIM Card",
+            ),
         ],
         name="Mobile Network Type",
         category="80",
@@ -4407,7 +7159,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
                 arg_id="1",
@@ -4425,9 +7181,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Function", arg_type="1", arg_eval="Function="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Function",
+                arg_type="1",
+                arg_eval="Function=",
+            ),
         ],
         name="Tasker Function",
         category="110",
@@ -4437,10 +7203,18 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Timeout (Seconds)", arg_type="0", arg_eval="Timeout (Seconds)="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Timeout (Seconds)",
+                arg_type="0",
+                arg_eval="Timeout (Seconds)=",
             ),
             ArgumentCode(
                 arg_id="2",
@@ -4464,7 +7238,11 @@ action_codes = {
                 arg_eval=", Altitude (meters)=",
             ),
             ArgumentCode(
-                arg_id="5", arg_required=False, arg_name="Near Location", arg_type="1", arg_eval=", Near Location="
+                arg_id="5",
+                arg_required=False,
+                arg_name="Near Location",
+                arg_type="1",
+                arg_eval=", Near Location=",
             ),
             ArgumentCode(
                 arg_id="6",
@@ -4503,10 +7281,18 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="Camera",
@@ -4517,11 +7303,25 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Title", arg_type="1", arg_eval="Title="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Select Radius", arg_type="3", arg_eval=["e", ", Select Radius"]
+                arg_id="1",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Select Radius",
+                arg_type="3",
+                arg_eval=["e", ", Select Radius"],
             ),
             ArgumentCode(
                 arg_id="3",
@@ -4530,7 +7330,13 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Initial Location=",
             ),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Type", arg_type="0", arg_eval=[", Set=", "l", "368"]),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=[", Set=", "l", "368"],
+            ),
         ],
         name="Pick Location",
         category="60",
@@ -4540,10 +7346,18 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Variable Array", arg_type="1", arg_eval="Variable Array="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Variable Array",
+                arg_type="1",
+                arg_eval="Variable Array=",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Type", arg_type="0", arg_eval=[", Type=", "l", "369"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=[", Type=", "l", "369"],
             ),
         ],
         name="Array Process",
@@ -4554,9 +7368,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Shortcut="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Shortcut=",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Shortcut", arg_type="1", arg_eval="Shortcut"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Shortcut",
+                arg_type="1",
+                arg_eval="Shortcut",
+            ),
         ],
         name="Shortcut",
         category="15",
@@ -4565,7 +7389,13 @@ action_codes = {
     "371t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Cmd", arg_type="0", arg_eval="Cmd"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Cmd",
+                arg_type="0",
+                arg_eval="Cmd",
+            ),
         ],
         name="Astrid",
         category="130",
@@ -4575,9 +7405,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Type", arg_type="1", arg_eval="Type="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="1",
+                arg_eval="Type=",
+            ),
         ],
         name="Sensor Info",
         category="104",
@@ -4587,9 +7427,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Type", arg_type="1", arg_eval="Type="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="1",
+                arg_eval="Type=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -4613,22 +7463,60 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
-            ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Type=", "l", "374"]),
-            ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Output File", arg_type="1", arg_eval=", Output File="
-            ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Sound", arg_type="3", arg_eval=["e", ", Sound"]),
-            ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Video Encoder", arg_type="1", arg_eval=", Video Encoder="
-            ),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="Resolution", arg_type="1", arg_eval=", Resolution="),
-            ArgumentCode(
-                arg_id="6", arg_required=False, arg_name="Video Bitrate", arg_type="1", arg_eval=", Video Bitrate="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="7", arg_required=False, arg_name="Video Framerate", arg_type="1", arg_eval="Video Framerate"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Type=", "l", "374"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Output File",
+                arg_type="1",
+                arg_eval=", Output File=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Sound",
+                arg_type="3",
+                arg_eval=["e", ", Sound"],
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Video Encoder",
+                arg_type="1",
+                arg_eval=", Video Encoder=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Resolution",
+                arg_type="1",
+                arg_eval=", Resolution=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Video Bitrate",
+                arg_type="1",
+                arg_eval=", Video Bitrate=",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Video Framerate",
+                arg_type="1",
+                arg_eval="Video Framerate",
             ),
         ],
         name="Screen Capture",
@@ -4639,13 +7527,39 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Command", arg_type="1", arg_eval="Command"),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Host", arg_type="1", arg_eval="Host"),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Port", arg_type="1", arg_eval="Port"),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Timeout (Seconds)", arg_type="0", arg_eval="Timeout (Seconds)"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Command",
+                arg_type="1",
+                arg_eval="Command",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Host",
+                arg_type="1",
+                arg_eval="Host",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Port",
+                arg_type="1",
+                arg_eval="Port",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Timeout (Seconds)",
+                arg_type="0",
+                arg_eval="Timeout (Seconds)",
             ),
             ArgumentCode(
                 arg_id="5",
@@ -4655,7 +7569,11 @@ action_codes = {
                 arg_eval="Enable Debugging (Check Help)",
             ),
             ArgumentCode(
-                arg_id="6", arg_required=False, arg_name="Result Encoding", arg_type="1", arg_eval="Result Encoding"
+                arg_id="6",
+                arg_required=False,
+                arg_name="Result Encoding",
+                arg_type="1",
+                arg_eval="Result Encoding",
             ),
         ],
         name="ADB Wifi",
@@ -4665,8 +7583,20 @@ action_codes = {
     "376t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Mime Type", arg_type="1", arg_eval=", Mime Type="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Mime Type",
+                arg_type="1",
+                arg_eval=", Mime Type=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -4690,13 +7620,47 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Title", arg_type="1", arg_eval="Title="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Text", arg_type="1", arg_eval=", Text="),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Button 1", arg_type="1", arg_eval=", Button 1="),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Button 2", arg_type="1", arg_eval=", Button 2="),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="Button 3", arg_type="1", arg_eval=", Button 3="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Button 1",
+                arg_type="1",
+                arg_eval=", Button 1=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Button 2",
+                arg_type="1",
+                arg_eval=", Button 2=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Button 3",
+                arg_type="1",
+                arg_eval=", Button 3=",
+            ),
             ArgumentCode(
                 arg_id="6",
                 arg_required=True,
@@ -4705,9 +7669,19 @@ action_codes = {
                 arg_eval=", Close After (Seconds)=",
             ),
             ArgumentCode(
-                arg_id="7", arg_required=True, arg_name="Use HTML", arg_type="3", arg_eval=["e", ", Use HTML"]
+                arg_id="7",
+                arg_required=True,
+                arg_name="Use HTML",
+                arg_type="3",
+                arg_eval=["e", ", Use HTML"],
             ),
-            ArgumentCode(arg_id="8", arg_required=False, arg_name="Image", arg_type="1", arg_eval=", Image="),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=False,
+                arg_name="Image",
+                arg_type="1",
+                arg_eval=", Image=",
+            ),
             ArgumentCode(
                 arg_id="9",
                 arg_required=False,
@@ -4724,20 +7698,68 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
-            ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "378"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Title", arg_type="1", arg_eval=", Title="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Items", arg_type="1", arg_eval=", Items="),
-            ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Selected Items", arg_type="1", arg_eval=", Long Click Task="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="5", arg_required=False, arg_name="Long Click Task", arg_type="1", arg_eval="Long Click Task"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "378"],
             ),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Button 1", arg_type="1", arg_eval=", Button 1="),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Button 2", arg_type="1", arg_eval=", Button 2="),
-            ArgumentCode(arg_id="8", arg_required=False, arg_name="Button 3", arg_type="1", arg_eval=", Button 3="),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval=", Title=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Items",
+                arg_type="1",
+                arg_eval=", Items=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Selected Items",
+                arg_type="1",
+                arg_eval=", Long Click Task=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Long Click Task",
+                arg_type="1",
+                arg_eval="Long Click Task",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Button 1",
+                arg_type="1",
+                arg_eval=", Button 1=",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Button 2",
+                arg_type="1",
+                arg_eval=", Button 2=",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=False,
+                arg_name="Button 3",
+                arg_type="1",
+                arg_eval=", Button 3=",
+            ),
             ArgumentCode(
                 arg_id="9",
                 arg_required=True,
@@ -4746,7 +7768,11 @@ action_codes = {
                 arg_eval=", Close After (Seconds)=",
             ),
             ArgumentCode(
-                arg_id="10", arg_required=True, arg_name="Use HTML", arg_type="3", arg_eval=["e", ", Use HTML"]
+                arg_id="10",
+                arg_required=True,
+                arg_name="Use HTML",
+                arg_type="3",
+                arg_eval=["e", ", Use HTML"],
             ),
             ArgumentCode(
                 arg_id="11",
@@ -4756,9 +7782,19 @@ action_codes = {
                 arg_eval=", First Visible Index=",
             ),
             ArgumentCode(
-                arg_id="12", arg_required=True, arg_name="Hide Filter", arg_type="3", arg_eval=["e", ", Hide Filter"]
+                arg_id="12",
+                arg_required=True,
+                arg_name="Hide Filter",
+                arg_type="3",
+                arg_eval=["e", ", Hide Filter"],
             ),
-            ArgumentCode(arg_id="13", arg_required=False, arg_name="Text", arg_type="1", arg_eval=", Text="),
+            ArgumentCode(
+                arg_id="13",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
         ],
         name="List Dialog",
         category="55",
@@ -4768,29 +7804,58 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Action", arg_type="0", arg_eval=["Action=", "l", "379"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Action",
+                arg_type="0",
+                arg_eval=["Action=", "l", "379"],
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Package/App Name", arg_type="2", arg_eval=", App="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Function", arg_type="1", arg_eval=", Function="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Enable", arg_type="3", arg_eval=["e", ", Enable"]),
             ArgumentCode(
-                arg_id="5", arg_required=False, arg_name="User Restrictions", arg_type="1", arg_eval=", Restrictions="
+                arg_id="2",
+                arg_required=True,
+                arg_name="Package/App Name",
+                arg_type="2",
+                arg_eval=", App=",
             ),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Permission", arg_type="1", arg_eval="Permission"),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Function",
+                arg_type="1",
+                arg_eval=", Function=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Enable",
+                arg_type="3",
+                arg_eval=["e", ", Enable"],
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="User Restrictions",
+                arg_type="1",
+                arg_eval=", Restrictions=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Permission",
+                arg_type="1",
+                arg_eval="Permission",
+            ),
         ],
         name="Device Admin/Owner",
         category="104",
         canfail="True",
-    ),
-    "37s": ActionCode(
-        redirect="",
-        args=[],
-        name="Variable Set",
-        category="",
-        canfail="",
     ),
     "37t": ActionCode(
         redirect="",
@@ -4803,21 +7868,75 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Request ID", arg_type="1", arg_eval="Request ID="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Status Code", arg_type="1", arg_eval=", Status Code="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Request ID",
+                arg_type="1",
+                arg_eval="Request ID=",
             ),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Headers", arg_type="1", arg_eval=", Headers="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "380"]),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="Body", arg_type="1", arg_eval=""),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="File", arg_type="1", arg_eval=", File="),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Mime Type", arg_type="1", arg_eval=", Mime Type="),
             ArgumentCode(
-                arg_id="8", arg_required=True, arg_name="File Inline", arg_type="3", arg_eval=["e", ", File Inline"]
+                arg_id="2",
+                arg_required=True,
+                arg_name="Status Code",
+                arg_type="1",
+                arg_eval=", Status Code=",
             ),
-            ArgumentCode(arg_id="9", arg_required=True, arg_name="URL", arg_type="1", arg_eval="URL"),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Headers",
+                arg_type="1",
+                arg_eval=", Headers=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "380"],
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Body",
+                arg_type="1",
+                arg_eval="",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval=", File=",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Mime Type",
+                arg_type="1",
+                arg_eval=", Mime Type=",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=True,
+                arg_name="File Inline",
+                arg_type="3",
+                arg_eval=["e", ", File Inline"],
+            ),
+            ArgumentCode(
+                arg_id="9",
+                arg_required=True,
+                arg_name="URL",
+                arg_type="1",
+                arg_eval="URL",
+            ),
         ],
         name="HTTP Response",
         category="80",
@@ -4826,11 +7945,41 @@ action_codes = {
     "381t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Contact="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Contact", arg_type="1", arg_eval=", App="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="App", arg_type="1", arg_eval="App"),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Text", arg_type="1", arg_eval="Text"),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Back Out", arg_type="3", arg_eval="Back Out"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Contact=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Contact",
+                arg_type="1",
+                arg_eval=", App=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="App",
+                arg_type="1",
+                arg_eval="App",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval="Text",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Back Out",
+                arg_type="3",
+                arg_eval="Back Out",
+            ),
         ],
         name="Contact Via App",
         category="90",
@@ -4840,7 +7989,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Contact=", "l", "383"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Contact=", "l", "383"],
             ),
             ArgumentCode(
                 arg_id="1",
@@ -4858,28 +8011,102 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="ID", arg_type="1", arg_eval="ID="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Action", arg_type="0", arg_eval=[", Action=", "l", "384"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="ID",
+                arg_type="1",
+                arg_eval="ID=",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Type", arg_type="0", arg_eval=[", Type=", "l", "384a"]
+                arg_id="2",
+                arg_required=True,
+                arg_name="Action",
+                arg_type="0",
+                arg_eval=[", Action=", "l", "384"],
             ),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Title", arg_type="1", arg_eval=", Title="),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="Subtitle", arg_type="1", arg_eval=", Subtitle="),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Icon", arg_type="1", arg_eval=", Icon="),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Command", arg_type="1", arg_eval=", Command="),
-            ArgumentCode(arg_id="8", arg_required=False, arg_name="Active", arg_type="1", arg_eval=", Active="),
-            ArgumentCode(arg_id="9", arg_required=False, arg_name="Range Min", arg_type="1", arg_eval=", Range Min="),
-            ArgumentCode(arg_id="10", arg_required=False, arg_name="Range Max", arg_type="1", arg_eval=", Range Max="),
             ArgumentCode(
-                arg_id="11", arg_required=False, arg_name="Range Current", arg_type="1", arg_eval=", Range Current="
+                arg_id="3",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=[", Type=", "l", "384a"],
             ),
-            ArgumentCode(arg_id="12", arg_required=False, arg_name="Range Step", arg_type="1", arg_eval="Range Step="),
             ArgumentCode(
-                arg_id="13", arg_required=False, arg_name="Range Format", arg_type="1", arg_eval=", Range Format="
+                arg_id="4",
+                arg_required=True,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval=", Title=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Subtitle",
+                arg_type="1",
+                arg_eval=", Subtitle=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Icon",
+                arg_type="1",
+                arg_eval=", Icon=",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Command",
+                arg_type="1",
+                arg_eval=", Command=",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=False,
+                arg_name="Active",
+                arg_type="1",
+                arg_eval=", Active=",
+            ),
+            ArgumentCode(
+                arg_id="9",
+                arg_required=False,
+                arg_name="Range Min",
+                arg_type="1",
+                arg_eval=", Range Min=",
+            ),
+            ArgumentCode(
+                arg_id="10",
+                arg_required=False,
+                arg_name="Range Max",
+                arg_type="1",
+                arg_eval=", Range Max=",
+            ),
+            ArgumentCode(
+                arg_id="11",
+                arg_required=False,
+                arg_name="Range Current",
+                arg_type="1",
+                arg_eval=", Range Current=",
+            ),
+            ArgumentCode(
+                arg_id="12",
+                arg_required=False,
+                arg_name="Range Step",
+                arg_type="1",
+                arg_eval="Range Step=",
+            ),
+            ArgumentCode(
+                arg_id="13",
+                arg_required=False,
+                arg_name="Range Format",
+                arg_type="1",
+                arg_eval=", Range Format=",
             ),
             ArgumentCode(
                 arg_id="14",
@@ -4896,7 +8123,13 @@ action_codes = {
     "385t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Command", arg_type="1", arg_eval="Command="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Command",
+                arg_type="1",
+                arg_eval="Command=",
+            ),
         ],
         name="Command",
         category="110",
@@ -4906,7 +8139,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval=["ID=", "l", "386"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval=["ID=", "l", "386"],
             ),
             ArgumentCode(
                 arg_id="1",
@@ -4916,14 +8153,32 @@ action_codes = {
                 arg_eval=["e", ", Skip Call Log"],
             ),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Reject", arg_type="3", arg_eval=["e", ", Skip Notification"]
+                arg_id="2",
+                arg_required=True,
+                arg_name="Reject",
+                arg_type="3",
+                arg_eval=["e", ", Skip Notification"],
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Silence", arg_type="3", arg_eval="Silence"),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Skip Call Log", arg_type="3", arg_eval="Skip Call Log"
+                arg_id="3",
+                arg_required=True,
+                arg_name="Silence",
+                arg_type="3",
+                arg_eval="Silence",
             ),
             ArgumentCode(
-                arg_id="5", arg_required=True, arg_name="Skip Notification", arg_type="3", arg_eval="Skip Notification"
+                arg_id="4",
+                arg_required=True,
+                arg_name="Skip Call Log",
+                arg_type="3",
+                arg_eval="Skip Call Log",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Skip Notification",
+                arg_type="3",
+                arg_eval="Skip Notification",
             ),
         ],
         name="Call Screening",
@@ -4933,9 +8188,27 @@ action_codes = {
     "387t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Level", arg_type="0", arg_eval="Level="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Display", arg_type="3", arg_eval=["e", ", Display"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Sound", arg_type="3", arg_eval=["e", ", Sound"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Level",
+                arg_type="0",
+                arg_eval="Level=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Display",
+                arg_type="3",
+                arg_eval=["e", ", Display"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Sound",
+                arg_type="3",
+                arg_eval=["e", ", Sound"],
+            ),
         ],
         name="Accessibility Volume",
         category="20",
@@ -4952,9 +8225,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Names", arg_type="1", arg_eval="Names="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Names",
+                arg_type="1",
+                arg_eval="Names=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=False,
@@ -4962,12 +8245,26 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Variable Name Splitter=",
             ),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Values", arg_type="1", arg_eval=", Values="),
             ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Values Splitter", arg_type="1", arg_eval=", Values Splitter="
+                arg_id="3",
+                arg_required=False,
+                arg_name="Values",
+                arg_type="1",
+                arg_eval=", Values=",
             ),
             ArgumentCode(
-                arg_id="5", arg_required=True, arg_name="Do Maths", arg_type="3", arg_eval=["e", ", Do Maths"]
+                arg_id="4",
+                arg_required=False,
+                arg_name="Values Splitter",
+                arg_type="1",
+                arg_eval=", Values Splitter=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Do Maths",
+                arg_type="3",
+                arg_eval=["e", ", Do Maths"],
             ),
             ArgumentCode(
                 arg_id="6",
@@ -5006,13 +8303,39 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Type", arg_type="1", arg_eval="Type="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Title", arg_type="1", arg_eval=", Title="),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Text", arg_type="1", arg_eval=", Text="),
             ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Default Input", arg_type="1", arg_eval=", Default Input="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="1",
+                arg_eval="Type=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval=", Title=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Default Input",
+                arg_type="1",
+                arg_eval=", Default Input=",
             ),
             ArgumentCode(
                 arg_id="5",
@@ -5030,15 +8353,39 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Action", arg_type="0", arg_eval=["Action=", "l", "391"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Action",
+                arg_type="0",
+                arg_eval=["Action=", "l", "391"],
             ),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Title", arg_type="1", arg_eval=", Title="),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Text", arg_type="1", arg_eval=", Text="),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Type", arg_type="0", arg_eval=[", Type=", "l", "391a"]
+                arg_id="2",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval=", Title=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=[", Type=", "l", "391a"],
             ),
             ArgumentCode(
                 arg_id="5",
@@ -5048,14 +8395,40 @@ action_codes = {
                 arg_eval=", Animation Images=",
             ),
             ArgumentCode(
-                arg_id="6", arg_required=False, arg_name="Animation Tint", arg_type="1", arg_eval=", Animation Tint="
+                arg_id="6",
+                arg_required=False,
+                arg_name="Animation Tint",
+                arg_type="1",
+                arg_eval=", Animation Tint=",
             ),
             ArgumentCode(
-                arg_id="7", arg_required=True, arg_name="Frame Duration", arg_type="0", arg_eval=", Frame Duration="
+                arg_id="7",
+                arg_required=True,
+                arg_name="Frame Duration",
+                arg_type="0",
+                arg_eval=", Frame Duration=",
             ),
-            ArgumentCode(arg_id="8", arg_required=True, arg_name="Progress", arg_type="0", arg_eval=", Progress="),
-            ArgumentCode(arg_id="9", arg_required=True, arg_name="Max", arg_type="0", arg_eval=", Max="),
-            ArgumentCode(arg_id="10", arg_required=True, arg_name="Use HTML", arg_type="3", arg_eval="Use HTML"),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=True,
+                arg_name="Progress",
+                arg_type="0",
+                arg_eval=", Progress=",
+            ),
+            ArgumentCode(
+                arg_id="9",
+                arg_required=True,
+                arg_name="Max",
+                arg_type="0",
+                arg_eval=", Max=",
+            ),
+            ArgumentCode(
+                arg_id="10",
+                arg_required=True,
+                arg_name="Use HTML",
+                arg_type="3",
+                arg_eval="Use HTML",
+            ),
         ],
         name="Progress Dialog",
         category="55",
@@ -5065,11 +8438,25 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Structure Type", arg_type="1", arg_eval=", Structure Type="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Structure Type",
+                arg_type="1",
+                arg_eval=", Structure Type=",
             ),
             ArgumentCode(
                 arg_id="3",
@@ -5087,17 +8474,53 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Names", arg_type="1", arg_eval="Names="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Merge Type", arg_type="0", arg_eval=[", Title=", "l", "393"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Names",
+                arg_type="1",
+                arg_eval="Names=",
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Joiner", arg_type="1", arg_eval=", Joiner="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Format", arg_type="1", arg_eval=", Format="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Output", arg_type="1", arg_eval=", Output="),
             ArgumentCode(
-                arg_id="6", arg_required=False, arg_name="Join Output", arg_type="1", arg_eval=", Join Output="
+                arg_id="2",
+                arg_required=True,
+                arg_name="Merge Type",
+                arg_type="0",
+                arg_eval=[", Title=", "l", "393"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Joiner",
+                arg_type="1",
+                arg_eval=", Joiner=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Format",
+                arg_type="1",
+                arg_eval=", Format=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Output",
+                arg_type="1",
+                arg_eval=", Output=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Join Output",
+                arg_type="1",
+                arg_eval=", Join Output=",
             ),
         ],
         name="Arrays Merge",
@@ -5108,20 +8531,46 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Input Type", arg_type="0", arg_eval=["Input Type=", "l", "394"]
-            ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Input", arg_type="1", arg_eval=", Input="),
-            ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Input Format", arg_type="1", arg_eval=", Input Format="
-            ),
-            ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Input Separator", arg_type="1", arg_eval=", Input Separator="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Input Type",
+                arg_type="0",
+                arg_eval=["Input Type=", "l", "394"],
             ),
             ArgumentCode(
-                arg_id="5", arg_required=False, arg_name="Output Format", arg_type="1", arg_eval=", Output Format="
+                arg_id="2",
+                arg_required=True,
+                arg_name="Input",
+                arg_type="1",
+                arg_eval=", Input=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Input Format",
+                arg_type="1",
+                arg_eval=", Input Format=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Input Separator",
+                arg_type="1",
+                arg_eval=", Input Separator=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Output Format",
+                arg_type="1",
+                arg_eval=", Output Format=",
             ),
             ArgumentCode(
                 arg_id="6",
@@ -5145,7 +8594,11 @@ action_codes = {
                 arg_eval=["e", ", Get All Details"],
             ),
             ArgumentCode(
-                arg_id="9", arg_required=True, arg_name="Do Maths", arg_type="3", arg_eval=["e", ", Do Maths"]
+                arg_id="9",
+                arg_required=True,
+                arg_name="Do Maths",
+                arg_type="3",
+                arg_eval=["e", ", Do Maths"],
             ),
             ArgumentCode(
                 arg_id="10",
@@ -5155,9 +8608,19 @@ action_codes = {
                 arg_eval=[", Output Offset Type=", "l", "394a"],
             ),
             ArgumentCode(
-                arg_id="11", arg_required=True, arg_name="Output Offset", arg_type="1", arg_eval=", Output Offset="
+                arg_id="11",
+                arg_required=True,
+                arg_name="Output Offset",
+                arg_type="1",
+                arg_eval=", Output Offset=",
             ),
-            ArgumentCode(arg_id="12", arg_required=False, arg_name="Time Zone", arg_type="1", arg_eval=", Time Zone="),
+            ArgumentCode(
+                arg_id="12",
+                arg_required=False,
+                arg_name="Time Zone",
+                arg_type="1",
+                arg_eval=", Time Zone=",
+            ),
         ],
         name="Parse/Format DateTime",
         category="120",
@@ -5166,7 +8629,13 @@ action_codes = {
     "395t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval="Set"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval="Set",
+            ),
         ],
         name="JD Status",
         category="130",
@@ -5176,15 +8645,39 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "396"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Text", arg_type="1", arg_eval=", Text="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Regex", arg_type="1", arg_eval=", Match Pattern/Regex="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "396"],
             ),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Match Pattern", arg_type="1", arg_eval="Match Pattern"
+                arg_id="2",
+                arg_required=True,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Regex",
+                arg_type="1",
+                arg_eval=", Match Pattern/Regex=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Match Pattern",
+                arg_type="1",
+                arg_eval="Match Pattern",
             ),
         ],
         name="Simple Match/Regex",
@@ -5195,7 +8688,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
                 arg_id="1",
@@ -5212,7 +8709,13 @@ action_codes = {
     "398t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="SSID", arg_type="1", arg_eval="SSID="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="SSID",
+                arg_type="1",
+                arg_eval="SSID=",
+            ),
         ],
         name="Connect To WiFi",
         category="80",
@@ -5222,24 +8725,60 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
-            ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Input", arg_type="1", arg_eval="Input="),
-            ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Input Minimum", arg_type="1", arg_eval=", Input Minimum="
-            ),
-            ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Input Maximum", arg_type="1", arg_eval=", Input Maximum="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Output Minimum", arg_type="1", arg_eval=", Output Minimum="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Input",
+                arg_type="1",
+                arg_eval="Input=",
             ),
             ArgumentCode(
-                arg_id="5", arg_required=True, arg_name="Output Maximum", arg_type="1", arg_eval=", Output Maximum="
+                arg_id="2",
+                arg_required=True,
+                arg_name="Input Minimum",
+                arg_type="1",
+                arg_eval=", Input Minimum=",
             ),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="Invert", arg_type="3", arg_eval="Invert"),
             ArgumentCode(
-                arg_id="7", arg_required=True, arg_name="Restrict Range", arg_type="3", arg_eval=["e", ", Invert"]
+                arg_id="3",
+                arg_required=True,
+                arg_name="Input Maximum",
+                arg_type="1",
+                arg_eval=", Input Maximum=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Output Minimum",
+                arg_type="1",
+                arg_eval=", Output Minimum=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Output Maximum",
+                arg_type="1",
+                arg_eval=", Output Maximum=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="Invert",
+                arg_type="3",
+                arg_eval="Invert",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=True,
+                arg_name="Restrict Range",
+                arg_type="3",
+                arg_eval=["e", ", Invert"],
             ),
             ArgumentCode(
                 arg_id="8",
@@ -5263,8 +8802,20 @@ action_codes = {
     "39t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Variable", arg_type="1", arg_eval="Variable="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Items", arg_type="1", arg_eval=", Items="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Variable",
+                arg_type="1",
+                arg_eval="Variable=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Items",
+                arg_type="1",
+                arg_eval=", Items=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -5280,8 +8831,20 @@ action_codes = {
     "3s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Address="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Address=",
+            ),
         ],
         name="BT Connected",
         category="",
@@ -5290,10 +8853,26 @@ action_codes = {
     "400t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="From", arg_type="1", arg_eval="From="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="To", arg_type="1", arg_eval=", To="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Use Root", arg_type="3", arg_eval=["e", ", Use Root"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="From",
+                arg_type="1",
+                arg_eval="From=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="To",
+                arg_type="1",
+                arg_eval=", To=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Use Root",
+                arg_type="3",
+                arg_eval=["e", ", Use Root"],
             ),
             ArgumentCode(
                 arg_id="3",
@@ -5311,7 +8890,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="Get Clipboard",
@@ -5321,10 +8904,26 @@ action_codes = {
     "404t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="From", arg_type="1", arg_eval="From="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="To", arg_type="1", arg_eval=", To="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Use Root", arg_type="3", arg_eval=["e", ", Use Root"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="From",
+                arg_type="1",
+                arg_eval="From=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="To",
+                arg_type="1",
+                arg_eval=", To=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Use Root",
+                arg_type="3",
+                arg_eval=["e", ", Use Root"],
             ),
             ArgumentCode(
                 arg_id="3",
@@ -5341,10 +8940,26 @@ action_codes = {
     "405t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="From", arg_type="1", arg_eval="From="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="To", arg_type="1", arg_eval=", To="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Use Root", arg_type="3", arg_eval=["e", ", Use Root"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="From",
+                arg_type="1",
+                arg_eval="From=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="To",
+                arg_type="1",
+                arg_eval=", To=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Use Root",
+                arg_type="3",
+                arg_eval=["e", ", Use Root"],
             ),
             ArgumentCode(
                 arg_id="3",
@@ -5361,11 +8976,27 @@ action_codes = {
     "406t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Shred Level", arg_type="0", arg_eval=["e", ", Use Root"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Use Root", arg_type="3", arg_eval="Use Root"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Shred Level",
+                arg_type="0",
+                arg_eval=["e", ", Use Root"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Use Root",
+                arg_type="3",
+                arg_eval="Use Root",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -5382,12 +9013,32 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Max Number", arg_type="1", arg_eval=",Max Number="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Mime Type", arg_type="1", arg_eval=", Mime Type="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Copy To Cache", arg_type="3", arg_eval=["e", ", Copy To Cache"]
+                arg_id="1",
+                arg_required=False,
+                arg_name="Max Number",
+                arg_type="1",
+                arg_eval=",Max Number=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Mime Type",
+                arg_type="1",
+                arg_eval=", Mime Type=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Copy To Cache",
+                arg_type="3",
+                arg_eval=["e", ", Copy To Cache"],
             ),
         ],
         name="Pick Photos",
@@ -5397,7 +9048,13 @@ action_codes = {
     "40830242s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval="Configuration="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="Configuration=",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -5413,10 +9070,26 @@ action_codes = {
     "408t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Directory", arg_type="1", arg_eval="Directory="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Recurse", arg_type="3", arg_eval=["e", ", Recurse"]),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Use Root", arg_type="3", arg_eval=["e", ", Use Root"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Directory",
+                arg_type="1",
+                arg_eval="Directory=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Recurse",
+                arg_type="3",
+                arg_eval=["e", ", Recurse"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Use Root",
+                arg_type="3",
+                arg_eval=["e", ", Use Root"],
             ),
             ArgumentCode(
                 arg_id="3",
@@ -5440,12 +9113,26 @@ action_codes = {
     "409t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Directory", arg_type="1", arg_eval="Directory="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Create All", arg_type="3", arg_eval=["e", ", Create All"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Directory",
+                arg_type="1",
+                arg_eval="Directory=",
             ),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Use Root", arg_type="3", arg_eval=["e", ", Use Root"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Create All",
+                arg_type="3",
+                arg_eval=["e", ", Create All"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Use Root",
+                arg_type="3",
+                arg_eval=["e", ", Use Root"],
             ),
             ArgumentCode(
                 arg_id="3",
@@ -5462,8 +9149,20 @@ action_codes = {
     "40s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval="Type="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Number="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Type=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Number=",
+            ),
         ],
         name="Call",
         category="",
@@ -5479,11 +9178,33 @@ action_codes = {
     "410t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Text", arg_type="1", arg_eval=", Text="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Append", arg_type="3", arg_eval=["e", ", Append"]),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Add Newline", arg_type="3", arg_eval=["e", ", Add New Line"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Append",
+                arg_type="3",
+                arg_eval=["e", ", Append"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Add Newline",
+                arg_type="3",
+                arg_eval=["e", ", Add New Line"],
             ),
         ],
         name="Write File",
@@ -5500,8 +9221,20 @@ action_codes = {
     "412t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Directory", arg_type="1", arg_eval="Directory="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Match", arg_type="1", arg_eval=", Match="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Directory",
+                arg_type="1",
+                arg_eval="Directory=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Match",
+                arg_type="1",
+                arg_eval=", Match=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -5510,7 +9243,11 @@ action_codes = {
                 arg_eval=["e", ", Include Hidden Files"],
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Use Root", arg_type="3", arg_eval=["e", ", Use Root"]
+                arg_id="3",
+                arg_required=True,
+                arg_name="Use Root",
+                arg_type="3",
+                arg_eval=["e", ", Use Root"],
             ),
             ArgumentCode(
                 arg_id="4",
@@ -5520,7 +9257,11 @@ action_codes = {
                 arg_eval=[", Sort Selection=", "l", "412"],
             ),
             ArgumentCode(
-                arg_id="5", arg_required=True, arg_name="Variable Array", arg_type="1", arg_eval=", Variable Array="
+                arg_id="5",
+                arg_required=True,
+                arg_name="Variable Array",
+                arg_type="1",
+                arg_eval=", Variable Array=",
             ),
             ArgumentCode(
                 arg_id="6",
@@ -5545,11 +9286,33 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Tile To Add", arg_type="1", arg_eval="Tile To Add="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Title", arg_type="1", arg_eval="Title="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Icon", arg_type="1", arg_eval="Icon="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Tile To Add",
+                arg_type="1",
+                arg_eval="Tile To Add=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Icon",
+                arg_type="1",
+                arg_eval="Icon=",
+            ),
         ],
         name="Request Add Tile",
         category="55",
@@ -5566,9 +9329,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Image", arg_type="1", arg_eval="Image="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Image",
+                arg_type="1",
+                arg_eval="Image=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -5584,9 +9357,27 @@ action_codes = {
     "415t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File"),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Line", arg_type="1", arg_eval="Line"),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="To Var", arg_type="1", arg_eval="To Var"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Line",
+                arg_type="1",
+                arg_eval="Line",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="To Var",
+                arg_type="1",
+                arg_eval="To Var",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -5617,9 +9408,27 @@ action_codes = {
     "416t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Para", arg_type="1", arg_eval=", Para="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="To Var", arg_type="1", arg_eval=", To Var="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Para",
+                arg_type="1",
+                arg_eval=", Para=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="To Var",
+                arg_type="1",
+                arg_eval=", To Var=",
+            ),
         ],
         name="Read Paragraph",
         category="50",
@@ -5628,8 +9437,20 @@ action_codes = {
     "417t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="To Var", arg_type="1", arg_eval=", To Var="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="To Var",
+                arg_type="1",
+                arg_eval=", To Var=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -5646,17 +9467,61 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval=", Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval=", Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Event ID", arg_type="1", arg_eval=", Calendar"),
             ArgumentCode(
-                arg_id="2", arg_required=False, arg_name="Number Of Events", arg_type="1", arg_eval=", Start Time"
+                arg_id="1",
+                arg_required=False,
+                arg_name="Event ID",
+                arg_type="1",
+                arg_eval=", Calendar",
             ),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Calendar", arg_type="1", arg_eval=", End Time"),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Start Time", arg_type="1", arg_eval=""),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="End Time", arg_type="1", arg_eval=""),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Title", arg_type="1", arg_eval=""),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Description", arg_type="1", arg_eval=""),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Number Of Events",
+                arg_type="1",
+                arg_eval=", Start Time",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Calendar",
+                arg_type="1",
+                arg_eval=", End Time",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Start Time",
+                arg_type="1",
+                arg_eval="",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="End Time",
+                arg_type="1",
+                arg_eval="",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Description",
+                arg_type="1",
+                arg_eval="",
+            ),
         ],
         name="Get Calendar Events",
         category="142",
@@ -5665,8 +9530,20 @@ action_codes = {
     "41t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Number", arg_type="1", arg_eval="Number="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Message", arg_type="1", arg_eval=", Message="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Number",
+                arg_type="1",
+                arg_eval="Number=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Message",
+                arg_type="1",
+                arg_eval=", Message=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -5674,7 +9551,13 @@ action_codes = {
                 arg_type="3",
                 arg_eval="Store In Messaging App",
             ),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="SIM Card", arg_type="1", arg_eval=", SIM Card="),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="SIM Card",
+                arg_type="1",
+                arg_eval=", SIM Card=",
+            ),
             ArgumentCode(
                 arg_id="4",
                 arg_required=True,
@@ -5690,13 +9573,33 @@ action_codes = {
     "420t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Delete Orig", arg_type="3", arg_eval=["e", ", Delete Dialog"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Level", arg_type="0", arg_eval=", Level="),
             ArgumentCode(
-                arg_id="3", arg_required=False, arg_name="Output File", arg_type="1", arg_eval=", Output File="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Delete Orig",
+                arg_type="3",
+                arg_eval=["e", ", Delete Dialog"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Level",
+                arg_type="0",
+                arg_eval=", Level=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Output File",
+                arg_type="1",
+                arg_eval=", Output File=",
             ),
         ],
         name="Zip",
@@ -5707,7 +9610,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="Get Screen Info (Assistant)",
@@ -5724,9 +9631,19 @@ action_codes = {
     "422t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Delete Zip", arg_type="3", arg_eval=["e", ", Delete Zip"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Delete Zip",
+                arg_type="3",
+                arg_eval=["e", ", Delete Zip"],
             ),
         ],
         name="UnZip",
@@ -5751,7 +9668,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="Get Battery Info",
@@ -5769,7 +9690,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
         ],
         name="WiFi",
@@ -5787,9 +9712,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Action", arg_type="0", arg_eval=["Action=", "l", "426"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Action",
+                arg_type="0",
+                arg_eval=["Action=", "l", "426"],
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Force", arg_type="3", arg_eval=["e", ", Force"]),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Force",
+                arg_type="3",
+                arg_eval=["e", ", Force"],
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -5820,7 +9755,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Policy", arg_type="0", arg_eval=["Policy=", "l", "427"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Policy",
+                arg_type="0",
+                arg_eval=["Policy=", "l", "427"],
             ),
         ],
         name="WiFi Sleep",
@@ -5858,9 +9797,27 @@ action_codes = {
     "42t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Number", arg_type="1", arg_eval="Number="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Port", arg_type="0", arg_eval=", Port="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Data", arg_type="1", arg_eval=", Data="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Number",
+                arg_type="1",
+                arg_eval="Number=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Port",
+                arg_type="0",
+                arg_eval=", Port=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval=", Data=",
+            ),
         ],
         name="Send Data SMS",
         category="90",
@@ -5876,7 +9833,13 @@ action_codes = {
                 arg_type="5",
                 arg_eval=["e", ", Only Monitor"],
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Only Monitor", arg_type="3", arg_eval="Only Monitor"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Only Monitor",
+                arg_type="3",
+                arg_eval="Only Monitor",
+            ),
         ],
         name="Restart Tasker",
         category="110",
@@ -5886,13 +9849,33 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Action", arg_type="0", arg_eval=["Action=", "l", "431"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Action",
+                arg_type="0",
+                arg_eval=["Action=", "l", "431"],
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Services", arg_type="1", arg_eval=", Services"),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Services", arg_type="1", arg_eval="Services"),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Services",
+                arg_type="1",
+                arg_eval=", Services",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Services",
+                arg_type="1",
+                arg_eval="Services",
+            ),
         ],
         name="Accessibility Services",
         category="104",
@@ -5902,7 +9885,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="Get Network Info",
@@ -5913,10 +9900,18 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="Mobile Data",
@@ -5927,14 +9922,40 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Device IDs/Names", arg_type="1", arg_eval="Device IDs/Name="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Device IDs/Names",
+                arg_type="1",
+                arg_eval="Device IDs/Name=",
             ),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Set", arg_type="1", arg_eval=", Set="),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Colour", arg_type="1", arg_eval=", Color="),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Brightness", arg_type="1", arg_eval=", Brightness="),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Set",
+                arg_type="1",
+                arg_eval=", Set=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Colour",
+                arg_type="1",
+                arg_eval=", Color=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Brightness",
+                arg_type="1",
+                arg_eval=", Brightness=",
+            ),
         ],
         name="Matter Light (Experimental)",
         category="141",
@@ -5943,7 +9964,13 @@ action_codes = {
     "439t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval="Set"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval="Set",
+            ),
         ],
         name="WiMax",
         category="80",
@@ -5959,7 +9986,13 @@ action_codes = {
     "440t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="To", arg_type="1", arg_eval="To"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="To",
+                arg_type="1",
+                arg_eval="To",
+            ),
         ],
         name="Set Timezone",
         category="104",
@@ -5969,10 +10002,18 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="Work Profile",
@@ -5982,8 +10023,20 @@ action_codes = {
     "442t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Punch", arg_type="0", arg_eval="Punch"),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Note", arg_type="1", arg_eval="Note"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Punch",
+                arg_type="0",
+                arg_eval="Punch",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Note",
+                arg_type="1",
+                arg_eval="Note",
+            ),
         ],
         name="SleepBot",
         category="130",
@@ -5992,7 +10045,13 @@ action_codes = {
     "443t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Cmd", arg_type="0", arg_eval=["Cmd=", "l", "443"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Cmd",
+                arg_type="0",
+                arg_eval=["Cmd=", "l", "443"],
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=True,
@@ -6001,7 +10060,11 @@ action_codes = {
                 arg_eval=["e", ", Simulate Media Button"],
             ),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Package/App Name", arg_type="2", arg_eval=", Package/App Name="
+                arg_id="2",
+                arg_required=True,
+                arg_name="Package/App Name",
+                arg_type="2",
+                arg_eval=", Package/App Name=",
             ),
             ArgumentCode(
                 arg_id="3",
@@ -6025,9 +10088,19 @@ action_codes = {
     "444t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="0", arg_eval="Set"),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Strobe (Hertz)", arg_type="0", arg_eval="Strobe (Hertz)"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="0",
+                arg_eval="Set",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Strobe (Hertz)",
+                arg_type="0",
+                arg_eval="Strobe (Hertz)",
             ),
         ],
         name="TeslaLED",
@@ -6044,10 +10117,34 @@ action_codes = {
     "445t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Start", arg_type="0", arg_eval=", Start="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Loop", arg_type="3", arg_eval=["e", ", Loop"]),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Stream", arg_type="0", arg_eval=["Cmd=", "l", "171"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Start",
+                arg_type="0",
+                arg_eval=", Start=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Loop",
+                arg_type="3",
+                arg_eval=["e", ", Loop"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Stream",
+                arg_type="0",
+                arg_eval=["Cmd=", "l", "171"],
+            ),
             ArgumentCode(
                 arg_id="4",
                 arg_required=True,
@@ -6071,10 +10168,26 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Path", arg_type="1", arg_eval="Path="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Type", arg_type="1", arg_eval=", Type="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Path",
+                arg_type="1",
+                arg_eval="Path=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="1",
+                arg_eval=", Type=",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=False,
@@ -6083,10 +10196,26 @@ action_codes = {
                 arg_eval=", Name/Path Filter=",
             ),
             ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Other Filters", arg_type="1", arg_eval=", Other Filters="
+                arg_id="4",
+                arg_required=False,
+                arg_name="Other Filters",
+                arg_type="1",
+                arg_eval=", Other Filters=",
             ),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Recurse", arg_type="3", arg_eval=["e", ", Recurse"]),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Sort", arg_type="1", arg_eval="Sort"),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Recurse",
+                arg_type="3",
+                arg_eval=["e", ", Recurse"],
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Sort",
+                arg_type="1",
+                arg_eval="Sort",
+            ),
         ],
         name="Get Files/Folders Properties",
         category="50",
@@ -6102,15 +10231,47 @@ action_codes = {
     "447t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Directory", arg_type="1", arg_eval="Directory="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Subdirs", arg_type="3", arg_eval=["e", ", Subdirs"]),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Audio Only", arg_type="3", arg_eval=["e", ", Audio Only"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Directory",
+                arg_type="1",
+                arg_eval="Directory=",
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Random", arg_type="3", arg_eval=["e", ", Random"]),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Flash", arg_type="3", arg_eval=["e", ", Flash"]),
             ArgumentCode(
-                arg_id="5", arg_required=True, arg_name="Maximum Tracks", arg_type="0", arg_eval=", Maximum Tracks="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Subdirs",
+                arg_type="3",
+                arg_eval=["e", ", Subdirs"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Audio Only",
+                arg_type="3",
+                arg_eval=["e", ", Audio Only"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Random",
+                arg_type="3",
+                arg_eval=["e", ", Random"],
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Flash",
+                arg_type="3",
+                arg_eval=["e", ", Flash"],
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Maximum Tracks",
+                arg_type="0",
+                arg_eval=", Maximum Tracks=",
             ),
         ],
         name="Music Play Dir",
@@ -6128,9 +10289,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Names", arg_type="1", arg_eval="Names="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Names",
+                arg_type="1",
+                arg_eval="Names=",
+            ),
         ],
         name="Array Compare",
         category="120",
@@ -6140,7 +10311,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Clear Dir", arg_type="3", arg_eval=["e", ", Clear Dir"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Clear Dir",
+                arg_type="3",
+                arg_eval=["e", ", Clear Dir"],
             ),
         ],
         name="Music Stop",
@@ -6150,8 +10325,20 @@ action_codes = {
     "450e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval=",Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Package="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=",Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Package=",
+            ),
         ],
         name="New Package",
         category="",
@@ -6160,9 +10347,27 @@ action_codes = {
     "450t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Enable", arg_type="3", arg_eval="Enable"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Keep MMS", arg_type="3", arg_eval="Keep MMS"),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Notify", arg_type="3", arg_eval="Notify"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Enable",
+                arg_type="3",
+                arg_eval="Enable",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Keep MMS",
+                arg_type="3",
+                arg_eval="Keep MMS",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Notify",
+                arg_type="3",
+                arg_eval="Notify",
+            ),
         ],
         name="APN Droid",
         category="130",
@@ -6171,7 +10376,13 @@ action_codes = {
     "451e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Package="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Package=",
+            ),
         ],
         name="Package Removed",
         category="",
@@ -6180,7 +10391,13 @@ action_codes = {
     "451t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Jump", arg_type="0", arg_eval="Jump="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Jump",
+                arg_type="0",
+                arg_eval="Jump=",
+            ),
         ],
         name="Music Skip",
         category="65",
@@ -6196,8 +10413,20 @@ action_codes = {
     "453e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Package="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Package=",
+            ),
         ],
         name="Package Updated",
         category="",
@@ -6206,7 +10435,13 @@ action_codes = {
     "453t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Jump", arg_type="0", arg_eval="Jump="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Jump",
+                arg_type="0",
+                arg_eval="Jump=",
+            ),
         ],
         name="Music Back",
         category="65",
@@ -6222,15 +10457,41 @@ action_codes = {
     "455t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Source", arg_type="0", arg_eval=[", Source=", "l", "455"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="MaxSize", arg_type="0", arg_eval=", MaxSize="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Codec", arg_type="0", arg_eval=[", Format=", "l", "455a"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Source",
+                arg_type="0",
+                arg_eval=[", Source=", "l", "455"],
             ),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Format", arg_type="0", arg_eval="Format"),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="MaxSize",
+                arg_type="0",
+                arg_eval=", MaxSize=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Codec",
+                arg_type="0",
+                arg_eval=[", Format=", "l", "455a"],
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Format",
+                arg_type="0",
+                arg_eval="Format",
+            ),
         ],
         name="Record Audio",
         category="65",
@@ -6239,7 +10500,13 @@ action_codes = {
     "456t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="0", arg_eval="Set"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="0",
+                arg_eval="Set",
+            ),
         ],
         name="JD APN",
         category="130",
@@ -6248,8 +10515,20 @@ action_codes = {
     "457t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval="Type"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Sound", arg_type="1", arg_eval="Sound"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval="Type",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Sound",
+                arg_type="1",
+                arg_eval="Sound",
+            ),
         ],
         name="Default Ringtone",
         category="20",
@@ -6258,7 +10537,13 @@ action_codes = {
     "458t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Cmd", arg_type="0", arg_eval="Cmd"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Cmd",
+                arg_type="0",
+                arg_eval="Cmd",
+            ),
         ],
         name="WidgetLocker",
         category="130",
@@ -6267,7 +10552,13 @@ action_codes = {
     "459t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="File", arg_type="1", arg_eval="File="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
+            ),
         ],
         name="Scan Media",
         category="65",
@@ -6284,10 +10575,18 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Grayscale", arg_type="3", arg_eval=["e", ", 'Grayscale' On"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Grayscale",
+                arg_type="3",
+                arg_eval=["e", ", 'Grayscale' On"],
             ),
             ArgumentCode(
                 arg_id="2",
@@ -6311,14 +10610,62 @@ action_codes = {
     "461e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="2", arg_eval="Owner Application="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Title="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Text="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=", Subtext="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=", Messages="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=", Other Text="),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="", arg_type="1", arg_eval=", Cat="),
-            ArgumentCode(arg_id="7", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", New Only"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="2",
+                arg_eval="Owner Application=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Title=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Subtext=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Messages=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Other Text=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Cat=",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", ", New Only"],
+            ),
         ],
         name="Notification",
         category="",
@@ -6328,10 +10675,26 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Widget Name", arg_type="1", arg_eval="Widget Name="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Layout", arg_type="1", arg_eval=", Layout="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Widget Name",
+                arg_type="1",
+                arg_eval="Widget Name=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Layout",
+                arg_type="1",
+                arg_eval=", Layout=",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=False,
@@ -6339,25 +10702,75 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Background Color=",
             ),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Title", arg_type="1", arg_eval=", Title="),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="Texts", arg_type="1", arg_eval=", Texts="),
             ArgumentCode(
-                arg_id="6", arg_required=False, arg_name="Text Styles", arg_type="1", arg_eval=", Text Styles="
-            ),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Images", arg_type="1", arg_eval=", Images="),
-            ArgumentCode(
-                arg_id="8", arg_required=False, arg_name="Image Tints", arg_type="1", arg_eval=", Image Tint="
+                arg_id="4",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval=", Title=",
             ),
             ArgumentCode(
-                arg_id="9", arg_required=False, arg_name="Image Sizes", arg_type="1", arg_eval=", Image Sizes="
+                arg_id="5",
+                arg_required=False,
+                arg_name="Texts",
+                arg_type="1",
+                arg_eval=", Texts=",
             ),
-            ArgumentCode(arg_id="10", arg_required=False, arg_name="Tasks", arg_type="1", arg_eval=", Tasks="),
-            ArgumentCode(arg_id="11", arg_required=False, arg_name="Commands", arg_type="1", arg_eval=", Commands="),
             ArgumentCode(
-                arg_id="12", arg_required=False, arg_name="Command Prefix", arg_type="1", arg_eval=", Command Prefix="
+                arg_id="6",
+                arg_required=False,
+                arg_name="Text Styles",
+                arg_type="1",
+                arg_eval=", Text Styles=",
             ),
             ArgumentCode(
-                arg_id="13", arg_required=False, arg_name="Custom Layout", arg_type="1", arg_eval=", Command Layout="
+                arg_id="7",
+                arg_required=False,
+                arg_name="Images",
+                arg_type="1",
+                arg_eval=", Images=",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=False,
+                arg_name="Image Tints",
+                arg_type="1",
+                arg_eval=", Image Tint=",
+            ),
+            ArgumentCode(
+                arg_id="9",
+                arg_required=False,
+                arg_name="Image Sizes",
+                arg_type="1",
+                arg_eval=", Image Sizes=",
+            ),
+            ArgumentCode(
+                arg_id="10",
+                arg_required=False,
+                arg_name="Tasks",
+                arg_type="1",
+                arg_eval=", Tasks=",
+            ),
+            ArgumentCode(
+                arg_id="11",
+                arg_required=False,
+                arg_name="Commands",
+                arg_type="1",
+                arg_eval=", Commands=",
+            ),
+            ArgumentCode(
+                arg_id="12",
+                arg_required=False,
+                arg_name="Command Prefix",
+                arg_type="1",
+                arg_eval=", Command Prefix=",
+            ),
+            ArgumentCode(
+                arg_id="13",
+                arg_required=False,
+                arg_name="Custom Layout",
+                arg_type="1",
+                arg_eval=", Command Layout=",
             ),
             ArgumentCode(
                 arg_id="14",
@@ -6396,9 +10809,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "462"]),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "462"],
+            ),
         ],
         name="Remote Action Execution",
         category="110",
@@ -6415,7 +10838,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval=", Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval=", Output Variables",
             ),
             ArgumentCode(
                 arg_id="1",
@@ -6424,14 +10851,48 @@ action_codes = {
                 arg_type="3",
                 arg_eval=", Continue Task Immediately",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Action", arg_type="1", arg_eval=", Action"),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Event ID", arg_type="1", arg_eval=", Event ID"),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Title", arg_type="1", arg_eval=", Title"),
             ArgumentCode(
-                arg_id="5", arg_required=False, arg_name="Description", arg_type="1", arg_eval=", Description"
+                arg_id="2",
+                arg_required=True,
+                arg_name="Action",
+                arg_type="1",
+                arg_eval=", Action",
             ),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Start Time", arg_type="1", arg_eval=", Start Time"),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="End Time", arg_type="1", arg_eval=", End Time"),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Event ID",
+                arg_type="1",
+                arg_eval=", Event ID",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval=", Title",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Description",
+                arg_type="1",
+                arg_eval=", Description",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Start Time",
+                arg_type="1",
+                arg_eval=", Start Time",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="End Time",
+                arg_type="1",
+                arg_eval=", End Time",
+            ),
         ],
         name="Edit Calendar Via App",
         category="142",
@@ -6440,12 +10901,48 @@ action_codes = {
     "464e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="2", arg_eval="Owner Application="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Title="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Text="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=", Subtext="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=", Messages="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=", Other Text="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="2",
+                arg_eval="Owner Application=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Title=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Subtext=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Messages=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Other Text=",
+            ),
         ],
         name="Notification Removal",
         category="",
@@ -6455,24 +10952,96 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval=", Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval=", Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Action", arg_type="1", arg_eval=", Calendar"),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Calendar", arg_type="1", arg_eval=", Action"),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Event ID", arg_type="1", arg_eval=", Event ID"),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Title", arg_type="1", arg_eval=", Title"),
             ArgumentCode(
-                arg_id="5", arg_required=False, arg_name="Description", arg_type="1", arg_eval=", Description"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Action",
+                arg_type="1",
+                arg_eval=", Calendar",
             ),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="All Day", arg_type="1", arg_eval=", All Day"),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Start Time", arg_type="1", arg_eval=", Start Time"),
-            ArgumentCode(arg_id="8", arg_required=False, arg_name="End Time", arg_type="1", arg_eval=", End Time"),
-            ArgumentCode(arg_id="9", arg_required=False, arg_name="Organizer", arg_type="1", arg_eval=", Organizer"),
-            ArgumentCode(arg_id="10", arg_required=False, arg_name="Location", arg_type="1", arg_eval=", Location"),
             ArgumentCode(
-                arg_id="11", arg_required=False, arg_name="Availability", arg_type="1", arg_eval=", Availability"
+                arg_id="2",
+                arg_required=True,
+                arg_name="Calendar",
+                arg_type="1",
+                arg_eval=", Action",
             ),
-            ArgumentCode(arg_id="12", arg_required=False, arg_name="Colour", arg_type="1", arg_eval=""),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Event ID",
+                arg_type="1",
+                arg_eval=", Event ID",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval=", Title",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Description",
+                arg_type="1",
+                arg_eval=", Description",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="All Day",
+                arg_type="1",
+                arg_eval=", All Day",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Start Time",
+                arg_type="1",
+                arg_eval=", Start Time",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=False,
+                arg_name="End Time",
+                arg_type="1",
+                arg_eval=", End Time",
+            ),
+            ArgumentCode(
+                arg_id="9",
+                arg_required=False,
+                arg_name="Organizer",
+                arg_type="1",
+                arg_eval=", Organizer",
+            ),
+            ArgumentCode(
+                arg_id="10",
+                arg_required=False,
+                arg_name="Location",
+                arg_type="1",
+                arg_eval=", Location",
+            ),
+            ArgumentCode(
+                arg_id="11",
+                arg_required=False,
+                arg_name="Availability",
+                arg_type="1",
+                arg_eval=", Availability",
+            ),
+            ArgumentCode(
+                arg_id="12",
+                arg_required=False,
+                arg_name="Colour",
+                arg_type="1",
+                arg_eval="",
+            ),
         ],
         name="Edit Calendar Event",
         category="142",
@@ -6482,15 +11051,47 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval=", Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval=", Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Action", arg_type="1", arg_eval=", Action"),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Event ID", arg_type="1", arg_eval=", Event ID"),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Reminder ID", arg_type="1", arg_eval=", Reminder ID"),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Minutes Prior", arg_type="1", arg_eval=", Minutes Prior"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Action",
+                arg_type="1",
+                arg_eval=", Action",
             ),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Method", arg_type="1", arg_eval=", Method"),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Event ID",
+                arg_type="1",
+                arg_eval=", Event ID",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Reminder ID",
+                arg_type="1",
+                arg_eval=", Reminder ID",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Minutes Prior",
+                arg_type="1",
+                arg_eval=", Minutes Prior",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Method",
+                arg_type="1",
+                arg_eval=", Method",
+            ),
         ],
         name="Edit Calendar Reminder",
         category="142",
@@ -6500,11 +11101,33 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval=", Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval=", Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Reminder ID", arg_type="1", arg_eval=", Calendar"),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Event ID", arg_type="1", arg_eval=", Event ID"),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Calendar", arg_type="1", arg_eval=", Reminder ID"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Reminder ID",
+                arg_type="1",
+                arg_eval=", Calendar",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Event ID",
+                arg_type="1",
+                arg_eval=", Event ID",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Calendar",
+                arg_type="1",
+                arg_eval=", Reminder ID",
+            ),
         ],
         name="Get Calendar Reminders",
         category="142",
@@ -6514,18 +11137,68 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval=", Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval=", Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Action", arg_type="1", arg_eval=", Action"),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Event ID", arg_type="1", arg_eval=", Event ID"),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Attendee ID", arg_type="1", arg_eval=", Attendee ID"),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Name", arg_type="1", arg_eval=", Name"),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="Email", arg_type="1", arg_eval=", Email"),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Status", arg_type="1", arg_eval=", Status"),
             ArgumentCode(
-                arg_id="7", arg_required=False, arg_name="Relationship", arg_type="1", arg_eval=", Relationship"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Action",
+                arg_type="1",
+                arg_eval=", Action",
             ),
-            ArgumentCode(arg_id="8", arg_required=False, arg_name="Type", arg_type="1", arg_eval=", Type"),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Event ID",
+                arg_type="1",
+                arg_eval=", Event ID",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Attendee ID",
+                arg_type="1",
+                arg_eval=", Attendee ID",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval=", Name",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Email",
+                arg_type="1",
+                arg_eval=", Email",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Status",
+                arg_type="1",
+                arg_eval=", Status",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Relationship",
+                arg_type="1",
+                arg_eval=", Relationship",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=False,
+                arg_name="Type",
+                arg_type="1",
+                arg_eval=", Type",
+            ),
         ],
         name="Edit Calendar Attendee",
         category="142",
@@ -6535,11 +11208,33 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval=", Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval=", Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Attendee ID", arg_type="1", arg_eval=", Calendar"),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Event ID", arg_type="1", arg_eval=", Event ID"),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Calendar", arg_type="1", arg_eval=", Attendee ID"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Attendee ID",
+                arg_type="1",
+                arg_eval=", Calendar",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Event ID",
+                arg_type="1",
+                arg_eval=", Event ID",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Calendar",
+                arg_type="1",
+                arg_eval=", Attendee ID",
+            ),
         ],
         name="Get Calendar Attendees",
         category="142",
@@ -6548,7 +11243,13 @@ action_codes = {
     "469t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Keyboard", arg_type="1", arg_eval=", Keyboard"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Keyboard",
+                arg_type="1",
+                arg_eval=", Keyboard",
+            ),
         ],
         name="Set Keyboard",
         category="104",
@@ -6557,7 +11258,13 @@ action_codes = {
     "46t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
         ],
         name="Create Scene",
         category="102",
@@ -6567,7 +11274,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval=", Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval=", Output Variables",
             ),
         ],
         name="Get Keyboard Info",
@@ -6578,10 +11289,40 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval=", Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval=", Output Variables",
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Latitude", arg_type="1", arg_eval=", Latitude"),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Longitude", arg_type="1", arg_eval=", Longitude"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Latitude",
+                arg_type="1",
+                arg_eval=", Latitude",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Longitude",
+                arg_type="1",
+                arg_eval=", Longitude",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Seconds Since Epoch",
+                arg_type="1",
+                arg_eval="",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Custom Sun Elevation Angle",
+                arg_type="1",
+                arg_eval="",
+            ),
         ],
         name="Get Sunrise/Sunset Times",
         category="60",
@@ -6590,9 +11331,19 @@ action_codes = {
     "475t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Delete Orig", arg_type="3", arg_eval=["e", ", Delete Orig"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Delete Orig",
+                arg_type="3",
+                arg_eval=["e", ", Delete Orig"],
             ),
         ],
         name="GZip",
@@ -6602,9 +11353,19 @@ action_codes = {
     "476t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Delete Zip", arg_type="3", arg_eval=["e", ", Delete Zip"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Delete Zip",
+                arg_type="3",
+                arg_eval=["e", ", Delete Zip"],
             ),
         ],
         name="GUnzip",
@@ -6614,7 +11375,13 @@ action_codes = {
     "47t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=True,
@@ -6630,11 +11397,25 @@ action_codes = {
                 arg_eval="Horizontal Position",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Vertical Position", arg_type="0", arg_eval="Vertical Position"
+                arg_id="3",
+                arg_required=True,
+                arg_name="Vertical Position",
+                arg_type="0",
+                arg_eval="Vertical Position",
             ),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Animation", arg_type="0", arg_eval="Animation"),
             ArgumentCode(
-                arg_id="5", arg_required=True, arg_name="Show Exit Button", arg_type="3", arg_eval="Show Exit Button"
+                arg_id="4",
+                arg_required=True,
+                arg_name="Animation",
+                arg_type="0",
+                arg_eval="Animation",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Show Exit Button",
+                arg_type="3",
+                arg_eval="Show Exit Button",
             ),
             ArgumentCode(
                 arg_id="6",
@@ -6664,7 +11445,13 @@ action_codes = {
                 arg_type="3",
                 arg_eval=["e", ", Blocking Overlay +"],
             ),
-            ArgumentCode(arg_id="10", arg_required=True, arg_name="Overlay +", arg_type="3", arg_eval="Overlay +"),
+            ArgumentCode(
+                arg_id="10",
+                arg_required=True,
+                arg_name="Overlay +",
+                arg_type="3",
+                arg_eval="Overlay +",
+            ),
         ],
         name="Show Scene",
         category="102",
@@ -6673,9 +11460,19 @@ action_codes = {
     "48t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Animation", arg_type="0", arg_eval=["Animation=", "l", "48"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Animation",
+                arg_type="0",
+                arg_eval=["Animation=", "l", "48"],
             ),
         ],
         name="Hide Scene",
@@ -6686,10 +11483,18 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Action", arg_type="0", arg_eval=["File=", "l", "490"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Action",
+                arg_type="0",
+                arg_eval=["File=", "l", "490"],
             ),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Use New API", arg_type="3", arg_eval=["e", ", Use New API"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Use New API",
+                arg_type="3",
+                arg_eval=["e", ", Use New API"],
             ),
         ],
         name="Media Button Events",
@@ -6699,7 +11504,13 @@ action_codes = {
     "49t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
         ],
         name="Destroy Scene",
         category="102",
@@ -6715,22 +11526,54 @@ action_codes = {
     "4s": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval="Address"),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=["Major Device Class=", "l", "4"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=["e", ", Standard Devices"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Address",
             ),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="", arg_type="0", arg_eval=["e", ", Low Energy (LE) Devices"]
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Major Device Class=", "l", "4"],
             ),
             ArgumentCode(
-                arg_id="5", arg_required=True, arg_name="", arg_type="0", arg_eval=["e", ", Unpaired Devices"]
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["e", ", Standard Devices"],
             ),
             ArgumentCode(
-                arg_id="6", arg_required=True, arg_name="", arg_type="0", arg_eval=["e", ", Toggle Bluetooth"]
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["e", ", Low Energy (LE) Devices"],
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["e", ", Unpaired Devices"],
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["e", ", Toggle Bluetooth"],
             ),
         ],
         name="BT Near",
@@ -6761,9 +11604,27 @@ action_codes = {
     "50t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element Match", arg_type="1", arg_eval=", Element="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Value", arg_type="0", arg_eval=", Value="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element Match",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Value",
+                arg_type="0",
+                arg_eval=", Value=",
+            ),
         ],
         name="Element Value",
         category="102",
@@ -6773,9 +11634,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=[", File=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=[", File=", "l", "switch_set"],
             ),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Level", arg_type="1", arg_eval="Level"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Level",
+                arg_type="1",
+                arg_eval="Level",
+            ),
         ],
         name="Torch",
         category="10",
@@ -6784,7 +11655,13 @@ action_codes = {
     "512t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="0", arg_eval=[", File=", "l", "512"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="0",
+                arg_eval=[", File=", "l", "512"],
+            ),
         ],
         name="Status Bar",
         category="40",
@@ -6800,13 +11677,41 @@ action_codes = {
     "51t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Position", arg_type="0", arg_eval=[", Position=", "l", "51"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
             ),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Text", arg_type="1", arg_eval=", Text="),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Selection", arg_type="1", arg_eval=", Selection="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Position",
+                arg_type="0",
+                arg_eval=[", Position=", "l", "51"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Selection",
+                arg_type="1",
+                arg_eval=", Selection=",
+            ),
         ],
         name="Element Text",
         category="102",
@@ -6815,16 +11720,54 @@ action_codes = {
     "523t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Title", arg_type="1", arg_eval="Title="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Text", arg_type="1", arg_eval=", Text="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Icon", arg_type="4", arg_eval=", Icon="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Number", arg_type="0", arg_eval="Number"),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Permanent", arg_type="3", arg_eval=["e", ", Permanent"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title=",
             ),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Priority", arg_type="0", arg_eval=", Priority="),
             ArgumentCode(
-                arg_id="6", arg_required=True, arg_name="Repeat Alert", arg_type="3", arg_eval=["e", ", Repeat Alert"]
+                arg_id="1",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Icon",
+                arg_type="4",
+                arg_eval=", Icon=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Number",
+                arg_type="0",
+                arg_eval="Number",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Permanent",
+                arg_type="3",
+                arg_eval=["e", ", Permanent"],
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Priority",
+                arg_type="0",
+                arg_eval=", Priority=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="Repeat Alert",
+                arg_type="3",
+                arg_eval=["e", ", Repeat Alert"],
             ),
             ArgumentCode(
                 arg_id="7",
@@ -6833,8 +11776,20 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", LED Color=", "l", "523"],
             ),
-            ArgumentCode(arg_id="8", arg_required=True, arg_name="LED Rate", arg_type="0", arg_eval=", LED Rate="),
-            ArgumentCode(arg_id="9", arg_required=False, arg_name="Sound File", arg_type="1", arg_eval=", Sound File="),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=True,
+                arg_name="LED Rate",
+                arg_type="0",
+                arg_eval=", LED Rate=",
+            ),
+            ArgumentCode(
+                arg_id="9",
+                arg_required=False,
+                arg_name="Sound File",
+                arg_type="1",
+                arg_eval=", Sound File=",
+            ),
             ArgumentCode(
                 arg_id="10",
                 arg_required=False,
@@ -6842,7 +11797,13 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Vibration Pattern=",
             ),
-            ArgumentCode(arg_id="11", arg_required=False, arg_name="Category", arg_type="1", arg_eval=", Category="),
+            ArgumentCode(
+                arg_id="11",
+                arg_required=False,
+                arg_name="Category",
+                arg_type="1",
+                arg_eval=", Category=",
+            ),
             ArgumentCode(
                 arg_id="12",
                 arg_required=False,
@@ -6858,17 +11819,61 @@ action_codes = {
     "525t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Title", arg_type="1", arg_eval=":Title="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Text", arg_type="1", arg_eval=", Text="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Icon", arg_type="4", arg_eval=", Icon="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Number", arg_type="0", arg_eval=""),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Colour", arg_type="0", arg_eval=[", LED Color=", "l", "523"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval=":Title=",
             ),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Rate", arg_type="0", arg_eval=", Rate="),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="Priority", arg_type="0", arg_eval=", Priority="),
             ArgumentCode(
-                arg_id="7", arg_required=True, arg_name="Repeat Alert", arg_type="3", arg_eval=["e", ", Repeat Alert"]
+                arg_id="1",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Icon",
+                arg_type="4",
+                arg_eval=", Icon=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Number",
+                arg_type="0",
+                arg_eval="",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Colour",
+                arg_type="0",
+                arg_eval=[", LED Color=", "l", "523"],
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Rate",
+                arg_type="0",
+                arg_eval=", Rate=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="Priority",
+                arg_type="0",
+                arg_eval=", Priority=",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=True,
+                arg_name="Repeat Alert",
+                arg_type="3",
+                arg_eval=["e", ", Repeat Alert"],
             ),
         ],
         name="Notify LED",
@@ -6878,14 +11883,54 @@ action_codes = {
     "536t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Title", arg_type="1", arg_eval="Title="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Text", arg_type="1", arg_eval=", Text="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Icon", arg_type="4", arg_eval=", Icon="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Number", arg_type="0", arg_eval="Number"),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Pattern", arg_type="1", arg_eval=", Pattern="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Priority", arg_type="0", arg_eval=", Priority="),
             ArgumentCode(
-                arg_id="6", arg_required=True, arg_name="Repeat Alert", arg_type="3", arg_eval=["e", ", Repeat Alert"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Icon",
+                arg_type="4",
+                arg_eval=", Icon=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Number",
+                arg_type="0",
+                arg_eval="Number",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Pattern",
+                arg_type="1",
+                arg_eval=", Pattern=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Priority",
+                arg_type="0",
+                arg_eval=", Priority=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="Repeat Alert",
+                arg_type="3",
+                arg_eval=["e", ", Repeat Alert"],
             ),
         ],
         name="Notify Vibrate",
@@ -6895,13 +11940,55 @@ action_codes = {
     "538t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Title", arg_type="1", arg_eval="Title="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Text", arg_type="1", arg_eval=", Text="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Icon", arg_type="4", arg_eval=", Icon="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Number", arg_type="0", arg_eval="Number"),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Sound File", arg_type="1", arg_eval=", Sound File="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Priority", arg_type="0", arg_eval=", Priority="),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="Repeat Alert", arg_type="3", arg_eval="Repeat Alert"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Icon",
+                arg_type="4",
+                arg_eval=", Icon=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Number",
+                arg_type="0",
+                arg_eval="Number",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Sound File",
+                arg_type="1",
+                arg_eval=", Sound File=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Priority",
+                arg_type="0",
+                arg_eval=", Priority=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="Repeat Alert",
+                arg_type="3",
+                arg_eval="Repeat Alert",
+            ),
         ],
         name="Notify Sound",
         category="10",
@@ -6910,10 +11997,34 @@ action_codes = {
     "53t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=[", Mode=", "l", "53"]),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Value", arg_type="1", arg_eval="Value"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=[", Mode=", "l", "53"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Value",
+                arg_type="1",
+                arg_eval="Value",
+            ),
         ],
         name="Element Web Control",
         category="102",
@@ -6922,9 +12033,27 @@ action_codes = {
     "543t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Seconds", arg_type="0", arg_eval="Seconds="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Message", arg_type="1", arg_eval=", Message="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Show UI", arg_type="3", arg_eval=["e", ", Show UI"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Seconds",
+                arg_type="0",
+                arg_eval="Seconds=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Message",
+                arg_type="1",
+                arg_eval=", Message=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Show UI",
+                arg_type="3",
+                arg_eval=["e", ", Show UI"],
+            ),
         ],
         name="Start System Timer",
         category="104",
@@ -6933,9 +12062,19 @@ action_codes = {
     "544t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Type", arg_type="0", arg_eval=[", Type=", "l", "544"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=[", Type=", "l", "544"],
             ),
         ],
         name="Timer Widget Control",
@@ -6945,9 +12084,27 @@ action_codes = {
     "545t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Min", arg_type="0", arg_eval=", Min="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Max", arg_type="0", arg_eval=", Max="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Min",
+                arg_type="0",
+                arg_eval=", Min=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Max",
+                arg_type="0",
+                arg_eval=", Max=",
+            ),
         ],
         name="Variable Randomize",
         category="120",
@@ -6956,11 +12113,41 @@ action_codes = {
     "546t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Seconds", arg_type="0", arg_eval=", Seconds="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Minutes", arg_type="0", arg_eval=", Minutes="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Hours", arg_type="0", arg_eval=", Hours="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Days", arg_type="0", arg_eval=", Days="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Seconds",
+                arg_type="0",
+                arg_eval=", Seconds=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Minutes",
+                arg_type="0",
+                arg_eval=", Minutes=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Hours",
+                arg_type="0",
+                arg_eval=", Hours=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Days",
+                arg_type="0",
+                arg_eval=", Days=",
+            ),
         ],
         name="Timer Widget Set",
         category="110",
@@ -6969,8 +12156,20 @@ action_codes = {
     "547t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="To", arg_type="1", arg_eval=", To="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="To",
+                arg_type="1",
+                arg_eval=", To=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -6979,9 +12178,19 @@ action_codes = {
                 arg_eval=["e", ", Recursive Variables"],
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Do Maths", arg_type="3", arg_eval=["e", ", Do Maths"]
+                arg_id="3",
+                arg_required=True,
+                arg_name="Do Maths",
+                arg_type="3",
+                arg_eval=["e", ", Do Maths"],
             ),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Append", arg_type="3", arg_eval=["e", ", Append"]),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Append",
+                arg_type="3",
+                arg_eval=["e", ", Append"],
+            ),
             ArgumentCode(
                 arg_id="5",
                 arg_required=True,
@@ -7004,14 +12213,48 @@ action_codes = {
     "548t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Text", arg_type="1", arg_eval="Text="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Long", arg_type="3", arg_eval=["e", ", Long"]),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Tasker Layout", arg_type="3", arg_eval=["e", ", Tasker Layout"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval="Text=",
             ),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Title", arg_type="1", arg_eval=", Title="),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Icon", arg_type="1", arg_eval=", Icon="),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="Icon Size", arg_type="1", arg_eval=" Icon Size="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Long",
+                arg_type="3",
+                arg_eval=["e", ", Long"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Tasker Layout",
+                arg_type="3",
+                arg_eval=["e", ", Tasker Layout"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval=", Title=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Icon",
+                arg_type="1",
+                arg_eval=", Icon=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Icon Size",
+                arg_type="1",
+                arg_eval=" Icon Size=",
+            ),
             ArgumentCode(
                 arg_id="6",
                 arg_required=False,
@@ -7019,8 +12262,20 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Background Color=",
             ),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Task", arg_type="1", arg_eval=", Task="),
-            ArgumentCode(arg_id="8", arg_required=False, arg_name="Timeout", arg_type="1", arg_eval=", Timeout="),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Task",
+                arg_type="1",
+                arg_eval=", Task=",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=False,
+                arg_name="Timeout",
+                arg_type="1",
+                arg_eval=", Timeout=",
+            ),
             ArgumentCode(
                 arg_id="9",
                 arg_required=True,
@@ -7029,7 +12284,11 @@ action_codes = {
                 arg_eval=["e", ", Continue Task Immediately"],
             ),
             ArgumentCode(
-                arg_id="10", arg_required=False, arg_name="Text Colour", arg_type="1", arg_eval=", Text Color="
+                arg_id="10",
+                arg_required=False,
+                arg_name="Text Colour",
+                arg_type="1",
+                arg_eval=", Text Color=",
             ),
             ArgumentCode(
                 arg_id="11",
@@ -7045,11 +12304,27 @@ action_codes = {
                 arg_type="3",
                 arg_eval=["e", ", Show Over Everything"],
             ),
-            ArgumentCode(arg_id="13", arg_required=False, arg_name="Position", arg_type="1", arg_eval=", Position="),
             ArgumentCode(
-                arg_id="14", arg_required=True, arg_name="Use HTML", arg_type="3", arg_eval=["e", ", Use HTML"]
+                arg_id="13",
+                arg_required=False,
+                arg_name="Position",
+                arg_type="1",
+                arg_eval=", Position=",
             ),
-            ArgumentCode(arg_id="15", arg_required=False, arg_name="ID", arg_type="1", arg_eval="ID"),
+            ArgumentCode(
+                arg_id="14",
+                arg_required=True,
+                arg_name="Use HTML",
+                arg_type="3",
+                arg_eval=["e", ", Use HTML"],
+            ),
+            ArgumentCode(
+                arg_id="15",
+                arg_required=False,
+                arg_name="ID",
+                arg_type="1",
+                arg_eval="ID",
+            ),
         ],
         name="Flash",
         category="10",
@@ -7058,7 +12333,13 @@ action_codes = {
     "549t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Name", arg_type="1", arg_eval="Name="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=True,
@@ -7088,9 +12369,27 @@ action_codes = {
     "54t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Colour", arg_type="1", arg_eval=" Colour="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Colour",
+                arg_type="1",
+                arg_eval=" Colour=",
+            ),
         ],
         name="Element Text Colour",
         category="102",
@@ -7099,8 +12398,20 @@ action_codes = {
     "550t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Title", arg_type="1", arg_eval="Title="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Text", arg_type="1", arg_eval=", Text="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=False,
@@ -7108,9 +12419,19 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Background Image=",
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Layout", arg_type="1", arg_eval="Layout"),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Timeout (Seconds)", arg_type="0", arg_eval=", Layout="
+                arg_id="3",
+                arg_required=True,
+                arg_name="Layout",
+                arg_type="1",
+                arg_eval="Layout",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Timeout (Seconds)",
+                arg_type="0",
+                arg_eval=", Layout=",
             ),
             ArgumentCode(
                 arg_id="5",
@@ -7127,13 +12448,33 @@ action_codes = {
     "551t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Title", arg_type="1", arg_eval="Title"),
             ArgumentCode(
-                arg_id="1", arg_required=False, arg_name="Background Image", arg_type="1", arg_eval="Background Image"
+                arg_id="0",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Layout", arg_type="1", arg_eval="Layout"),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Timeout (Seconds)", arg_type="0", arg_eval="Timeout (Seconds)"
+                arg_id="1",
+                arg_required=False,
+                arg_name="Background Image",
+                arg_type="1",
+                arg_eval="Background Image",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Layout",
+                arg_type="1",
+                arg_eval="Layout",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Timeout (Seconds)",
+                arg_type="0",
+                arg_eval="Timeout (Seconds)",
             ),
             ArgumentCode(
                 arg_id="4",
@@ -7150,13 +12491,41 @@ action_codes = {
     "552t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Text", arg_type="1", arg_eval="Text="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=[", Mode=", "l", "552"]
+                arg_id="0",
+                arg_required=False,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval="Text=",
             ),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Task", arg_type="1", arg_eval=", Task="),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Task", arg_type="1", arg_eval=", Task="),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Task", arg_type="1", arg_eval=", Task="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=[", Mode=", "l", "552"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Task",
+                arg_type="1",
+                arg_eval=", Task=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Task",
+                arg_type="1",
+                arg_eval=", Task=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Task",
+                arg_type="1",
+                arg_eval=", Task=",
+            ),
             ArgumentCode(
                 arg_id="5",
                 arg_required=False,
@@ -7164,7 +12533,13 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Background Image=",
             ),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="Layout", arg_type="1", arg_eval=", Layout="),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="Layout",
+                arg_type="1",
+                arg_eval=", Layout=",
+            ),
             ArgumentCode(
                 arg_id="7",
                 arg_required=True,
@@ -7194,7 +12569,13 @@ action_codes = {
     "555t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Cmd", arg_type="0", arg_eval="Cmd"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Cmd",
+                arg_type="0",
+                arg_eval="Cmd",
+            ),
         ],
         name="BeyondPod",
         category="130",
@@ -7203,7 +12584,13 @@ action_codes = {
     "556t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Cmd", arg_type="0", arg_eval="Cmd"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Cmd",
+                arg_type="0",
+                arg_eval="Cmd",
+            ),
         ],
         name="GrazeRSS",
         category="130",
@@ -7219,8 +12606,20 @@ action_codes = {
     "558t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Title", arg_type="1", arg_eval="Title"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Message", arg_type="1", arg_eval="Message"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Message",
+                arg_type="1",
+                arg_eval="Message",
+            ),
         ],
         name="Android Notifier",
         category="130",
@@ -7229,15 +12628,41 @@ action_codes = {
     "559t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Text", arg_type="1", arg_eval="Text="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Engine:Voice", arg_type="1", arg_eval=", Engine Voice="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval="Text=",
             ),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Stream", arg_type="0", arg_eval=[", Stream=", "l", "171"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Engine:Voice",
+                arg_type="1",
+                arg_eval=", Engine Voice=",
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Pitch", arg_type="0", arg_eval=", Pitch="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Speed", arg_type="0", arg_eval=", Speed="),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Stream",
+                arg_type="0",
+                arg_eval=[", Stream=", "l", "171"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Pitch",
+                arg_type="0",
+                arg_eval=", Pitch=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Speed",
+                arg_type="0",
+                arg_eval=", Speed=",
+            ),
             ArgumentCode(
                 arg_id="5",
                 arg_required=True,
@@ -7245,7 +12670,13 @@ action_codes = {
                 arg_type="3",
                 arg_eval=["e", ", Respect Audio Focus"],
             ),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="Network", arg_type="3", arg_eval=["e", ", Network"]),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="Network",
+                arg_type="3",
+                arg_eval=["e", ", Network"],
+            ),
             ArgumentCode(
                 arg_id="7",
                 arg_required=True,
@@ -7261,10 +12692,34 @@ action_codes = {
     "55t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Colour", arg_type="1", arg_eval=" Colour="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="End Colour", arg_type="1", arg_eval=" End Colour="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Colour",
+                arg_type="1",
+                arg_eval=" Colour=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="End Colour",
+                arg_type="1",
+                arg_eval=" End Colour=",
+            ),
         ],
         name="Element Back Colour",
         category="102",
@@ -7287,14 +12742,48 @@ action_codes = {
     "566t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Hours", arg_type="0", arg_eval="Hours="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Minutes", arg_type="0", arg_eval=", Minutes="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Label", arg_type="1", arg_eval=", Label="),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Sound", arg_type="1", arg_eval=", Sound="),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Vibrate", arg_type="0", arg_eval=[", Vibrate=", "l", "566"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Hours",
+                arg_type="0",
+                arg_eval="Hours=",
             ),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Confirm", arg_type="3", arg_eval=["e", ", Confirm"]),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Minutes",
+                arg_type="0",
+                arg_eval=", Minutes=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Label",
+                arg_type="1",
+                arg_eval=", Label=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Sound",
+                arg_type="1",
+                arg_eval=", Sound=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Vibrate",
+                arg_type="0",
+                arg_eval=[", Vibrate=", "l", "566"],
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Confirm",
+                arg_type="3",
+                arg_eval=["e", ", Confirm"],
+            ),
         ],
         name="Set Alarm",
         category="104",
@@ -7304,18 +12793,54 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=False, arg_name="In / For (Minutes)", arg_type="1", arg_eval="In/For Minutes="
+                arg_id="0",
+                arg_required=False,
+                arg_name="In / For (Minutes)",
+                arg_type="1",
+                arg_eval="In/For Minutes=",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Calendar", arg_type="1", arg_eval=", Calendar="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Title", arg_type="1", arg_eval=", Title="),
             ArgumentCode(
-                arg_id="3", arg_required=False, arg_name="Description", arg_type="1", arg_eval=", Description="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Calendar",
+                arg_type="1",
+                arg_eval=", Calendar=",
             ),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Location", arg_type="1", arg_eval=", Location="),
             ArgumentCode(
-                arg_id="5", arg_required=True, arg_name="Available", arg_type="3", arg_eval=["e", ", Available"]
+                arg_id="2",
+                arg_required=True,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval=", Title=",
             ),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="All Day", arg_type="3", arg_eval=["e", ", All Day"]),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Description",
+                arg_type="1",
+                arg_eval=", Description=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Location",
+                arg_type="1",
+                arg_eval=", Location=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Available",
+                arg_type="3",
+                arg_eval=["e", ", Available"],
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="All Day",
+                arg_type="3",
+                arg_eval=["e", ", All Day"],
+            ),
         ],
         name="Calendar Insert",
         category="142",
@@ -7324,7 +12849,13 @@ action_codes = {
     "5683503e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -7340,7 +12871,13 @@ action_codes = {
     "568t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Cmd", arg_type="0", arg_eval="Cmd"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Cmd",
+                arg_type="0",
+                arg_eval="Cmd",
+            ),
         ],
         name="DailyRoads Voyager",
         category="130",
@@ -7349,10 +12886,34 @@ action_codes = {
     "56t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Width", arg_type="0", arg_eval=", Width="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Colour", arg_type="1", arg_eval=", Colour="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Width",
+                arg_type="0",
+                arg_eval=", Width=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Colour",
+                arg_type="1",
+                arg_eval=", Colour=",
+            ),
         ],
         name="Element Border",
         category="102",
@@ -7368,8 +12929,20 @@ action_codes = {
     "57t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -7377,8 +12950,20 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", Orientation=", "l", "57"],
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="X", arg_type="0", arg_eval=", X="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Y", arg_type="0", arg_eval=", Y="),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="X",
+                arg_type="0",
+                arg_eval=", X=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Y",
+                arg_type="0",
+                arg_eval=", Y=",
+            ),
             ArgumentCode(
                 arg_id="5",
                 arg_required=True,
@@ -7409,8 +12994,20 @@ action_codes = {
     "58t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -7418,8 +13015,20 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", Orientation=", "l", "57"],
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Width", arg_type="0", arg_eval=", Width="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Height", arg_type="0", arg_eval=", Height="),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Width",
+                arg_type="0",
+                arg_eval=", Width=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Height",
+                arg_type="0",
+                arg_eval=", Height=",
+            ),
             ArgumentCode(
                 arg_id="5",
                 arg_required=True,
@@ -7435,12 +13044,34 @@ action_codes = {
     "590t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Splitter", arg_type="1", arg_eval=", Splitter="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Delete Base", arg_type="3", arg_eval=["e", ", Delete Base"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Regex", arg_type="3", arg_eval=["e", ", Regex"]),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Splitter",
+                arg_type="1",
+                arg_eval=", Splitter=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Delete Base",
+                arg_type="3",
+                arg_eval=["e", ", Delete Base"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Regex",
+                arg_type="3",
+                arg_eval=["e", ", Regex"],
+            ),
         ],
         name="Variable Split",
         category="120",
@@ -7449,10 +13080,26 @@ action_codes = {
     "592t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Joiner", arg_type="1", arg_eval=", Joiner="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Delete Parts", arg_type="3", arg_eval=["e", ", Delete Parts"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Joiner",
+                arg_type="1",
+                arg_eval=", Joiner=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Delete Parts",
+                arg_type="3",
+                arg_eval=["e", ", Delete Parts"],
             ),
         ],
         name="Variable Join",
@@ -7462,8 +13109,20 @@ action_codes = {
     "595t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Title", arg_type="1", arg_eval="Title="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Variable", arg_type="1", arg_eval=", Variable="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Variable",
+                arg_type="1",
+                arg_eval=", Variable=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -7471,7 +13130,13 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", Input Type=", "l", "595"],
             ),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Default", arg_type="1", arg_eval=", Default="),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Default",
+                arg_type="1",
+                arg_eval=", Default=",
+            ),
             ArgumentCode(
                 arg_id="4",
                 arg_required=False,
@@ -7479,7 +13144,13 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Background Image=",
             ),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Layout", arg_type="1", arg_eval=", Layout="),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Layout",
+                arg_type="1",
+                arg_eval=", Layout=",
+            ),
             ArgumentCode(
                 arg_id="6",
                 arg_required=True,
@@ -7502,14 +13173,34 @@ action_codes = {
     "596t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Function", arg_type="0", arg_eval=[", Function=", "l", "596"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
             ),
             ArgumentCode(
-                arg_id="2", arg_required=False, arg_name="Store Result In", arg_type="1", arg_eval=", Store Result In="
+                arg_id="1",
+                arg_required=True,
+                arg_name="Function",
+                arg_type="0",
+                arg_eval=[", Function=", "l", "596"],
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Mode", arg_type="0", arg_eval="Mode"),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Store Result In=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval="Mode",
+            ),
         ],
         name="Variable Convert",
         category="120",
@@ -7518,14 +13209,40 @@ action_codes = {
     "597t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="From", arg_type="0", arg_eval=", From="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Length", arg_type="0", arg_eval=", Length="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Adapt To Fit", arg_type="3", arg_eval=["e", ", Adopt To Fit"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
             ),
             ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Store Result In", arg_type="1", arg_eval=", Store Result In="
+                arg_id="1",
+                arg_required=True,
+                arg_name="From",
+                arg_type="0",
+                arg_eval=", From=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Length",
+                arg_type="0",
+                arg_eval=", Length=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Adapt To Fit",
+                arg_type="3",
+                arg_eval=["e", ", Adopt To Fit"],
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Store Result In=",
             ),
         ],
         name="Variable Section",
@@ -7535,13 +13252,33 @@ action_codes = {
     "598t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Variable", arg_type="1", arg_eval="Variable="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Search", arg_type="1", arg_eval=", Search="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Ignore Case", arg_type="3", arg_eval=["e", ", Ignore Case"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Variable",
+                arg_type="1",
+                arg_eval="Variable=",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Multi-Line", arg_type="3", arg_eval=["e", ", Multi-Line"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Search",
+                arg_type="1",
+                arg_eval=", Search=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Ignore Case",
+                arg_type="3",
+                arg_eval=["e", ", Ignore Case"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Multi-Line",
+                arg_type="3",
+                arg_eval=["e", ", Multi-Line"],
             ),
             ArgumentCode(
                 arg_id="4",
@@ -7565,7 +13302,11 @@ action_codes = {
                 arg_eval=["e", ", Replace Matches"],
             ),
             ArgumentCode(
-                arg_id="7", arg_required=False, arg_name="Replace With", arg_type="1", arg_eval="Replace With"
+                arg_id="7",
+                arg_required=False,
+                arg_name="Replace With",
+                arg_type="1",
+                arg_eval="Replace With",
             ),
         ],
         name="Variable Search Replace",
@@ -7575,13 +13316,55 @@ action_codes = {
     "599e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Action="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Cat=", "l", "877"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Cat=", "l", "877"]),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="", arg_type="1", arg_eval=", Schema="),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="", arg_type="1", arg_eval=", Mime Type="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="0", arg_eval=", Priority="),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="", arg_type="1", arg_eval=["", "e", ", Stop Event"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Action=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=[", Cat=", "l", "877"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=[", Cat=", "l", "877"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Schema=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Mime Type=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Priority=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=["", "e", ", Stop Event"],
+            ),
         ],
         name="Intent Received",
         category="",
@@ -7590,7 +13373,13 @@ action_codes = {
     "599t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Cmd", arg_type="0", arg_eval="Cmd"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Cmd",
+                arg_type="0",
+                arg_eval="Cmd",
+            ),
         ],
         name="Due Today",
         category="130",
@@ -7599,7 +13388,13 @@ action_codes = {
     "59t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval="Type"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval="Type",
+            ),
         ],
         name="Reboot",
         category="104",
@@ -7615,14 +13410,48 @@ action_codes = {
     "60t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Lat,Long", arg_type="1", arg_eval=", Lat,Long="),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Label", arg_type="1", arg_eval=", Label="),
             ArgumentCode(
-                arg_id="4", arg_required=False, arg_name="Text Colour", arg_type="1", arg_eval=", Spot Radius (Meters)="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
             ),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Text Size", arg_type="0", arg_eval=", Spot Color="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Lat,Long",
+                arg_type="1",
+                arg_eval=", Lat,Long=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Label",
+                arg_type="1",
+                arg_eval=", Label=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Text Colour",
+                arg_type="1",
+                arg_eval=", Spot Radius (Meters)=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Text Size",
+                arg_type="0",
+                arg_eval=", Spot Color=",
+            ),
             ArgumentCode(
                 arg_id="6",
                 arg_required=True,
@@ -7630,8 +13459,20 @@ action_codes = {
                 arg_type="0",
                 arg_eval="Spot Radius (Metres)",
             ),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Spot Colour", arg_type="1", arg_eval="Spot Colour"),
-            ArgumentCode(arg_id="8", arg_required=True, arg_name="Icon", arg_type="4", arg_eval="Icon"),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Spot Colour",
+                arg_type="1",
+                arg_eval="Spot Colour",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=True,
+                arg_name="Icon",
+                arg_type="4",
+                arg_eval="Icon",
+            ),
         ],
         name="Element Add GeoMarker",
         category="102",
@@ -7654,12 +13495,34 @@ action_codes = {
     "612t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=[", Mode=", "l", "612"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Value", arg_type="1", arg_eval=", MilliSeconds="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=[", Mode=", "l", "612"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Value",
+                arg_type="1",
+                arg_eval=", MilliSeconds=",
+            ),
         ],
         name="Element Video Control",
         category="102",
@@ -7668,7 +13531,13 @@ action_codes = {
     "61t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Time", arg_type="0", arg_eval="Time="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Time",
+                arg_type="0",
+                arg_eval="Time=",
+            ),
         ],
         name="Vibrate",
         category="10",
@@ -7677,9 +13546,19 @@ action_codes = {
     "62t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Pattern", arg_type="1", arg_eval="Pattern="),
             ArgumentCode(
-                arg_id="1", arg_required=False, arg_name="Intensity Pattern", arg_type="1", arg_eval="Intensity Pattern"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Pattern",
+                arg_type="1",
+                arg_eval="Pattern=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Intensity Pattern",
+                arg_type="1",
+                arg_eval="Intensity Pattern",
             ),
         ],
         name="Vibrate Pattern",
@@ -7689,10 +13568,34 @@ action_codes = {
     "63t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Lat,Long", arg_type="1", arg_eval=" Lat,Long="),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Label", arg_type="1", arg_eval=" Label="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Lat,Long",
+                arg_type="1",
+                arg_eval=" Lat,Long=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Label",
+                arg_type="1",
+                arg_eval=" Label=",
+            ),
         ],
         name="Element Delete GeoMarker",
         category="102",
@@ -7701,8 +13604,20 @@ action_codes = {
     "643t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Cmd", arg_type="0", arg_eval="Cmd"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Status", arg_type="0", arg_eval="Status"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Cmd",
+                arg_type="0",
+                arg_eval="Cmd",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Status",
+                arg_type="0",
+                arg_eval="Status",
+            ),
         ],
         name="OfficeTalk",
         category="130",
@@ -7711,10 +13626,34 @@ action_codes = {
     "64t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=[", Mode=", "l", "64"]),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Value", arg_type="1", arg_eval="Value"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=[", Mode=", "l", "64"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Value",
+                arg_type="1",
+                arg_eval="Value",
+            ),
         ],
         name="Element Map Control",
         category="102",
@@ -7737,11 +13676,27 @@ action_codes = {
     "65t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Element Match", arg_type="1", arg_eval=", Element Match="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Set", arg_type="3", arg_eval=[", Set=", "l", "65"]),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element Match",
+                arg_type="1",
+                arg_eval=", Element Match=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=[", Set=", "l", "65"],
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -7764,18 +13719,76 @@ action_codes = {
     "664t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Return", arg_type="1", arg_eval="Class or Object="),
             ArgumentCode(
-                arg_id="1", arg_required=False, arg_name="Class Or Object", arg_type="1", arg_eval=", Function="
+                arg_id="0",
+                arg_required=False,
+                arg_name="Return",
+                arg_type="1",
+                arg_eval="Class or Object=",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Function", arg_type="1", arg_eval="Function"),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Param", arg_type="1", arg_eval="Param"),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Param", arg_type="1", arg_eval="Param"),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="Param", arg_type="1", arg_eval="Param"),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Param", arg_type="1", arg_eval="Param"),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Param", arg_type="1", arg_eval="Param"),
-            ArgumentCode(arg_id="8", arg_required=False, arg_name="Param", arg_type="1", arg_eval="Param"),
-            ArgumentCode(arg_id="9", arg_required=False, arg_name="Param", arg_type="1", arg_eval="Param"),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Class Or Object",
+                arg_type="1",
+                arg_eval=", Function=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Function",
+                arg_type="1",
+                arg_eval="Function",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Param",
+                arg_type="1",
+                arg_eval="Param",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Param",
+                arg_type="1",
+                arg_eval="Param",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Param",
+                arg_type="1",
+                arg_eval="Param",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Param",
+                arg_type="1",
+                arg_eval="Param",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Param",
+                arg_type="1",
+                arg_eval="Param",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=False,
+                arg_name="Param",
+                arg_type="1",
+                arg_eval="Param",
+            ),
+            ArgumentCode(
+                arg_id="9",
+                arg_required=False,
+                arg_name="Param",
+                arg_type="1",
+                arg_eval="Param",
+            ),
         ],
         name="Java Function",
         category="35",
@@ -7784,8 +13797,20 @@ action_codes = {
     "665t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "665"]),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Name", arg_type="1", arg_eval=", Name="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "665"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval=", Name=",
+            ),
         ],
         name="Java Object",
         category="35",
@@ -7794,11 +13819,41 @@ action_codes = {
     "667t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval="Mode"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="File", arg_type="1", arg_eval="File"),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Table", arg_type="1", arg_eval="Table"),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Columns", arg_type="1", arg_eval="Columns"),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Query", arg_type="1", arg_eval="Query"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval="Mode",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Table",
+                arg_type="1",
+                arg_eval="Table",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Columns",
+                arg_type="1",
+                arg_eval="Columns",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Query",
+                arg_type="1",
+                arg_eval="Query",
+            ),
             ArgumentCode(
                 arg_id="5",
                 arg_required=False,
@@ -7806,7 +13861,13 @@ action_codes = {
                 arg_type="1",
                 arg_eval="Selection Parameters",
             ),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Order By", arg_type="1", arg_eval="Order By"),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Order By",
+                arg_type="1",
+                arg_eval="Order By",
+            ),
             ArgumentCode(
                 arg_id="7",
                 arg_required=False,
@@ -7815,9 +13876,19 @@ action_codes = {
                 arg_eval="Output Column Divider",
             ),
             ArgumentCode(
-                arg_id="8", arg_required=True, arg_name="Variable Array", arg_type="1", arg_eval="Variable Array"
+                arg_id="8",
+                arg_required=True,
+                arg_name="Variable Array",
+                arg_type="1",
+                arg_eval="Variable Array",
             ),
-            ArgumentCode(arg_id="9", arg_required=True, arg_name="Use Root", arg_type="3", arg_eval="Use Root"),
+            ArgumentCode(
+                arg_id="9",
+                arg_required=True,
+                arg_name="Use Root",
+                arg_type="3",
+                arg_eval="Use Root",
+            ),
             ArgumentCode(
                 arg_id="10",
                 arg_required=True,
@@ -7833,9 +13904,27 @@ action_codes = {
     "66t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Image", arg_type="4", arg_eval=", Image="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Image",
+                arg_type="4",
+                arg_eval=", Image=",
+            ),
         ],
         name="Element Image",
         category="102",
@@ -7844,9 +13933,27 @@ action_codes = {
     "67t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Set Depth", arg_type="0", arg_eval=", Set Depth="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Set Depth",
+                arg_type="0",
+                arg_eval=", Set Depth=",
+            ),
         ],
         name="Element Depth",
         category="102",
@@ -7855,9 +13962,27 @@ action_codes = {
     "68t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["e", ", Set"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["e", ", Set"],
+            ),
         ],
         name="Element Focus",
         category="102",
@@ -7873,14 +13998,48 @@ action_codes = {
     "699t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Text", arg_type="1", arg_eval="Text="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Engine:Voice", arg_type="1", arg_eval=", Engine/Voice="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval="Text=",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="File", arg_type="1", arg_eval=", File="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Pitch", arg_type="0", arg_eval=", Pitch="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="Speed", arg_type="0", arg_eval=", Speed="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="Network", arg_type="3", arg_eval=["e", ", Network"]),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Engine:Voice",
+                arg_type="1",
+                arg_eval=", Engine/Voice=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval=", File=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Pitch",
+                arg_type="0",
+                arg_eval=", Pitch=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Speed",
+                arg_type="0",
+                arg_eval=", Speed=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Network",
+                arg_type="3",
+                arg_eval=["e", ", Network"],
+            ),
             ArgumentCode(
                 arg_id="6",
                 arg_required=True,
@@ -7896,10 +14055,34 @@ action_codes = {
     "69t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Type", arg_type="0", arg_eval=[", Set=", "l", "69"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Visible", arg_type="3", arg_eval=["e", ", Visible"]),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Content", arg_type="1", arg_eval=", Content="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=[", Set=", "l", "69"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Visible",
+                arg_type="3",
+                arg_eval=["e", ", Visible"],
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Content",
+                arg_type="1",
+                arg_eval=", Content=",
+            ),
         ],
         name="Element Create",
         category="102",
@@ -7912,20 +14095,23 @@ action_codes = {
         category="",
         canfail="",
     ),
-    "6s": ActionCode(
-        redirect="",
-        args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Contact="),
-        ],
-        name="Phone Ringing",
-        category="",
-        canfail="",
-    ),
     "701t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Button", arg_type="0", arg_eval="Button"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Repeat Times", arg_type="0", arg_eval="Repeat Times"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Button",
+                arg_type="0",
+                arg_eval="Button",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Repeat Times",
+                arg_type="0",
+                arg_eval="Repeat Times",
+            ),
         ],
         name="Dpad",
         category="55",
@@ -7934,7 +14120,13 @@ action_codes = {
     "702624035e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval="Gesture"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="5",
+                arg_eval="Gesture",
+            ),
         ],
         name="Fingerprint Gesture",
         category="",
@@ -7943,8 +14135,20 @@ action_codes = {
     "702t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Text", arg_type="1", arg_eval="Text"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Repeat Times", arg_type="0", arg_eval="Repeat Times"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval="Text",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Repeat Times",
+                arg_type="0",
+                arg_eval="Repeat Times",
+            ),
         ],
         name="Type",
         category="55",
@@ -7960,7 +14164,13 @@ action_codes = {
     "703t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Button", arg_type="0", arg_eval="Button"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Button",
+                arg_type="0",
+                arg_eval="Button",
+            ),
         ],
         name="Button",
         category="55",
@@ -7969,9 +14179,27 @@ action_codes = {
     "71t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Text Size", arg_type="0", arg_eval=", Text Size="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Text Size",
+                arg_type="0",
+                arg_eval=", Text Size=",
+            ),
         ],
         name="Element Text Size",
         category="102",
@@ -7980,8 +14208,20 @@ action_codes = {
     "721t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Element", arg_type="1", arg_eval="Element="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["e", ", Set"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval="Element=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["e", ", Set"],
+            ),
         ],
         name="Zoom Visibility",
         category="125",
@@ -7997,7 +14237,13 @@ action_codes = {
     "732t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval="Set"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval="Set",
+            ),
         ],
         name="Radio",
         category="90",
@@ -8007,7 +14253,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="0",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="End Call",
@@ -8024,7 +14274,13 @@ action_codes = {
     "735t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval="Mode"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval="Mode",
+            ),
         ],
         name="Mobile Data 2G/3G",
         category="80",
@@ -8033,8 +14289,20 @@ action_codes = {
     "73t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Scene Name", arg_type="1", arg_eval="Scene Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Element", arg_type="1", arg_eval=", Element="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Scene Name",
+                arg_type="1",
+                arg_eval="Scene Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval=", Element=",
+            ),
         ],
         name="Element Destroy",
         category="102",
@@ -8043,8 +14311,20 @@ action_codes = {
     "740t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Element", arg_type="1", arg_eval="Element="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Text", arg_type="1", arg_eval=", Text="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval="Element=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Text",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
         ],
         name="Zoom Text",
         category="125",
@@ -8053,8 +14333,20 @@ action_codes = {
     "741t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Element", arg_type="1", arg_eval="Element="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Text Size", arg_type="0", arg_eval=", Text Size="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval="Element=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Text Size",
+                arg_type="0",
+                arg_eval=", Text Size=",
+            ),
         ],
         name="Zoom Text Size",
         category="125",
@@ -8063,8 +14355,20 @@ action_codes = {
     "742t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Element", arg_type="1", arg_eval="Element="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Colour", arg_type="1", arg_eval=", Text Color="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval="Element=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Colour",
+                arg_type="1",
+                arg_eval=", Text Color=",
+            ),
         ],
         name="Zoom Text Colour",
         category="125",
@@ -8073,8 +14377,20 @@ action_codes = {
     "760t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Element", arg_type="1", arg_eval="Element="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Set", arg_type="0", arg_eval=", Set="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval="Element=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="0",
+                arg_eval=", Set=",
+            ),
         ],
         name="Zoom Alpha",
         category="125",
@@ -8083,8 +14399,20 @@ action_codes = {
     "761t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Element", arg_type="1", arg_eval="Element="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="URI", arg_type="1", arg_eval=", URL="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval="Element=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="URI",
+                arg_type="1",
+                arg_eval=", URL=",
+            ),
         ],
         name="Zoom Image",
         category="125",
@@ -8093,9 +14421,27 @@ action_codes = {
     "762t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Element", arg_type="1", arg_eval="Element="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Colour", arg_type="1", arg_eval=", Color="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="End Colour", arg_type="1", arg_eval=", End Color="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval="Element=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Colour",
+                arg_type="1",
+                arg_eval=", Color=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="End Colour",
+                arg_type="1",
+                arg_eval=", End Color=",
+            ),
         ],
         name="Zoom Colour",
         category="125",
@@ -8111,8 +14457,20 @@ action_codes = {
     "775t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Variable", arg_type="1", arg_eval="Variable="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="File", arg_type="1", arg_eval=", File="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Variable",
+                arg_type="1",
+                arg_eval="Variable=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval=", File=",
+            ),
         ],
         name="Write Binary",
         category="50",
@@ -8121,8 +14479,20 @@ action_codes = {
     "776t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="File", arg_type="1", arg_eval="File"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="To Var", arg_type="1", arg_eval="To Var"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="File",
+                arg_type="1",
+                arg_eval="File",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="To Var",
+                arg_type="1",
+                arg_eval="To Var",
+            ),
         ],
         name="Read Binary",
         category="50",
@@ -8138,9 +14508,19 @@ action_codes = {
     "779t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Title", arg_type="1", arg_eval="Title="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Warn Not Exist", arg_type="3", arg_eval="Warn Not Exist"
+                arg_id="0",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Warn Not Exist",
+                arg_type="3",
+                arg_eval="Warn Not Exist",
             ),
         ],
         name="Notify Cancel",
@@ -8150,8 +14530,20 @@ action_codes = {
     "793t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Element", arg_type="1", arg_eval="Element="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="State", arg_type="0", arg_eval=", State="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval="Element=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="State",
+                arg_type="0",
+                arg_eval=", State=",
+            ),
         ],
         name="Zoom State",
         category="125",
@@ -8167,7 +14559,13 @@ action_codes = {
     "794t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Element", arg_type="1", arg_eval="Element="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval="Element=",
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=True,
@@ -8175,8 +14573,20 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", Orientation=", "l", "57"],
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="X", arg_type="0", arg_eval=", X="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Y", arg_type="0", arg_eval=", Y="),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="X",
+                arg_type="0",
+                arg_eval=", X=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Y",
+                arg_type="0",
+                arg_eval=", Y=",
+            ),
         ],
         name="Zoom Position",
         category="125",
@@ -8185,7 +14595,13 @@ action_codes = {
     "795t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Element", arg_type="1", arg_eval="Element="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Element",
+                arg_type="1",
+                arg_eval="Element=",
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=True,
@@ -8193,8 +14609,20 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", Orientation=", "l", "57"],
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Width", arg_type="0", arg_eval=", Width="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="Height", arg_type="0", arg_eval=", Height="),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Width",
+                arg_type="0",
+                arg_eval=", Width=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Height",
+                arg_type="0",
+                arg_eval=", Height=",
+            ),
         ],
         name="Zoom Size",
         category="125",
@@ -8203,11 +14631,41 @@ action_codes = {
     "7e": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=["Type=", "l", "7e"]),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Sender="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Content="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=", SIM Card="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=", MMS Body="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["Type=", "l", "7e"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Sender=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Content=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", SIM Card=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", MMS Body=",
+            ),
         ],
         name="Received Text",
         category="",
@@ -8238,7 +14696,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Block Time (Check Help)", arg_type="0", arg_eval="Block Time="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Block Time (Check Help)",
+                arg_type="0",
+                arg_eval="Block Time=",
             ),
         ],
         name="Turn On",
@@ -8249,7 +14711,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
         ],
         name="Auto Brightness",
@@ -8266,7 +14732,13 @@ action_codes = {
     "810t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Level", arg_type="0", arg_eval="Level="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Level",
+                arg_type="0",
+                arg_eval="Level=",
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=True,
@@ -8282,7 +14754,11 @@ action_codes = {
                 arg_eval=["e", ", Ignore Current Level"],
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Immediate Effect", arg_type="3", arg_eval="Immediate Effect"
+                arg_id="3",
+                arg_required=True,
+                arg_name="Immediate Effect",
+                arg_type="3",
+                arg_eval="Immediate Effect",
             ),
         ],
         name="Display Brightness",
@@ -8299,9 +14775,27 @@ action_codes = {
     "812t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Secs", arg_type="0", arg_eval="Secs="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Mins", arg_type="0", arg_eval=", Mins="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Hours", arg_type="0", arg_eval=", Hours="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Secs",
+                arg_type="0",
+                arg_eval="Secs=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Mins",
+                arg_type="0",
+                arg_eval=", Mins=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Hours",
+                arg_type="0",
+                arg_eval=", Hours=",
+            ),
         ],
         name="Display Timeout",
         category="40",
@@ -8310,10 +14804,26 @@ action_codes = {
     "815t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Type=", "l", "815"]),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Match", arg_type="1", arg_eval=", Match="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Store Result In", arg_type="1", arg_eval=", Store Result In="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Type=", "l", "815"],
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Match",
+                arg_type="1",
+                arg_eval=", Match=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Store Result In",
+                arg_type="1",
+                arg_eval=", Store Result In=",
             ),
         ],
         name="List Apps",
@@ -8330,7 +14840,13 @@ action_codes = {
     "820t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "820"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "820"],
+            ),
         ],
         name="Stay On",
         category="40",
@@ -8340,7 +14856,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
         ],
         name="Display AutoRotate",
@@ -8364,17 +14884,75 @@ action_codes = {
     "877t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Action", arg_type="1", arg_eval="Action="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Cat", arg_type="0", arg_eval=[", Mode=", "l", "877"]),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Mime Type", arg_type="1", arg_eval=", Mime Type="),
-            ArgumentCode(arg_id="3", arg_required=False, arg_name="Data", arg_type="1", arg_eval=", Data="),
-            ArgumentCode(arg_id="4", arg_required=False, arg_name="Extra", arg_type="1", arg_eval=", Extra="),
-            ArgumentCode(arg_id="5", arg_required=False, arg_name="Extra", arg_type="1", arg_eval=", Extra="),
-            ArgumentCode(arg_id="6", arg_required=False, arg_name="Extra", arg_type="1", arg_eval=", Extra="),
-            ArgumentCode(arg_id="7", arg_required=False, arg_name="Package", arg_type="1", arg_eval=", Package="),
-            ArgumentCode(arg_id="8", arg_required=False, arg_name="Class", arg_type="1", arg_eval=", Class="),
             ArgumentCode(
-                arg_id="9", arg_required=True, arg_name="Target", arg_type="0", arg_eval=[", Target=", "l", "877a"]
+                arg_id="0",
+                arg_required=False,
+                arg_name="Action",
+                arg_type="1",
+                arg_eval="Action=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Cat",
+                arg_type="0",
+                arg_eval=[", Mode=", "l", "877"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="Mime Type",
+                arg_type="1",
+                arg_eval=", Mime Type=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=False,
+                arg_name="Data",
+                arg_type="1",
+                arg_eval=", Data=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=False,
+                arg_name="Extra",
+                arg_type="1",
+                arg_eval=", Extra=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=False,
+                arg_name="Extra",
+                arg_type="1",
+                arg_eval=", Extra=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=False,
+                arg_name="Extra",
+                arg_type="1",
+                arg_eval=", Extra=",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=False,
+                arg_name="Package",
+                arg_type="1",
+                arg_eval=", Package=",
+            ),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=False,
+                arg_name="Class",
+                arg_type="1",
+                arg_eval=", Class=",
+            ),
+            ArgumentCode(
+                arg_id="9",
+                arg_required=True,
+                arg_name="Target",
+                arg_type="0",
+                arg_eval=[", Target=", "l", "877a"],
             ),
         ],
         name="Send Intent",
@@ -8384,10 +14962,26 @@ action_codes = {
     "888t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Value", arg_type="0", arg_eval=", Value="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Wrap Around", arg_type="0", arg_eval=", Wrap Around="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Value",
+                arg_type="0",
+                arg_eval=", Value=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Wrap Around",
+                arg_type="0",
+                arg_eval=", Wrap Around=",
             ),
         ],
         name="Variable Add",
@@ -8397,10 +14991,26 @@ action_codes = {
     "890t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Name", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Value", arg_type="0", arg_eval=", Value="),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Wrap Around", arg_type="0", arg_eval=", Wrap Around="
+                arg_id="0",
+                arg_required=True,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Value",
+                arg_type="0",
+                arg_eval=", Value=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Wrap Around",
+                arg_type="0",
+                arg_eval=", Wrap Around=",
             ),
         ],
         name="Variable Subtract",
@@ -8417,8 +15027,20 @@ action_codes = {
     "900t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Directory", arg_type="1", arg_eval="Directory="),
-            ArgumentCode(arg_id="1", arg_required=False, arg_name="Match", arg_type="1", arg_eval=", Match="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="Directory",
+                arg_type="1",
+                arg_eval="Directory=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=False,
+                arg_name="Match",
+                arg_type="1",
+                arg_eval=", Match=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -8434,7 +15056,13 @@ action_codes = {
     "901t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Source", arg_type="0", arg_eval=["Set=", "l", "901"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Source",
+                arg_type="0",
+                arg_eval=["Set=", "l", "901"],
+            ),
         ],
         name="Stop Location",
         category="60",
@@ -8443,7 +15071,13 @@ action_codes = {
     "902t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Source", arg_type="0", arg_eval=["Set=", "l", "901"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Source",
+                arg_type="0",
+                arg_eval=["Set=", "l", "901"],
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=True,
@@ -8459,7 +15093,11 @@ action_codes = {
                 arg_eval=["e", ", Continue Task Immediately"],
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Keep Tracking", arg_type="3", arg_eval=["e", ", Keep Tracking"]
+                arg_id="3",
+                arg_required=True,
+                arg_name="Keep Tracking",
+                arg_type="3",
+                arg_eval=["e", ", Keep Tracking"],
             ),
         ],
         name="Get Location",
@@ -8469,22 +15107,54 @@ action_codes = {
     "903t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Title", arg_type="1", arg_eval="Title="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Language Model", arg_type="0", arg_eval=[", Mode=", "l", "903"]
-            ),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="Language", arg_type="1", arg_eval=", Language="),
-            ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Maximum Results", arg_type="0", arg_eval=", Maximum Results="
-            ),
-            ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="Timeout (Seconds)", arg_type="0", arg_eval=", Timeout="
+                arg_id="0",
+                arg_required=False,
+                arg_name="Title",
+                arg_type="1",
+                arg_eval="Title=",
             ),
             ArgumentCode(
-                arg_id="5", arg_required=True, arg_name="Hide Dialog", arg_type="3", arg_eval=["e", ", Hide Dialog"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="Language Model",
+                arg_type="0",
+                arg_eval=[", Mode=", "l", "903"],
             ),
             ArgumentCode(
-                arg_id="6", arg_required=True, arg_name="Output Variables", arg_type="5", arg_eval="Output Variables"
+                arg_id="2",
+                arg_required=False,
+                arg_name="Language",
+                arg_type="1",
+                arg_eval=", Language=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Maximum Results",
+                arg_type="0",
+                arg_eval=", Maximum Results=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="Timeout (Seconds)",
+                arg_type="0",
+                arg_eval=", Timeout=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="Hide Dialog",
+                arg_type="3",
+                arg_eval=["e", ", Hide Dialog"],
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="Output Variables",
+                arg_type="5",
+                arg_eval="Output Variables",
             ),
         ],
         name="Get Voice",
@@ -8501,7 +15171,13 @@ action_codes = {
     "905t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "905"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "905"],
+            ),
         ],
         name="Location Mode",
         category="60",
@@ -8524,7 +15200,13 @@ action_codes = {
     "906t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval=["Mode=", "l", "906"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "906"],
+            ),
         ],
         name="Immersive Mode",
         category="40",
@@ -8541,7 +15223,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=False, arg_name="Icons To Hide", arg_type="1", arg_eval="Icons To Hide="
+                arg_id="0",
+                arg_required=False,
+                arg_name="Icons To Hide",
+                arg_type="1",
+                arg_eval="Icons To Hide=",
             ),
         ],
         name="Status Bar Icons",
@@ -8551,7 +15237,13 @@ action_codes = {
     "909t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Type", arg_type="0", arg_eval=["Mode=", "l", "909"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Type",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "909"],
+            ),
         ],
         name="Contacts",
         category="90",
@@ -8560,11 +15252,27 @@ action_codes = {
     "90t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Number", arg_type="1", arg_eval="Number="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="Auto Dial", arg_type="3", arg_eval=["e", ", Auto Dial"]
+                arg_id="0",
+                arg_required=False,
+                arg_name="Number",
+                arg_type="1",
+                arg_eval="Number=",
             ),
-            ArgumentCode(arg_id="2", arg_required=False, arg_name="SIM Card", arg_type="1", arg_eval=", Sim Card="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Auto Dial",
+                arg_type="3",
+                arg_eval=["e", ", Auto Dial"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=False,
+                arg_name="SIM Card",
+                arg_type="1",
+                arg_eval=", Sim Card=",
+            ),
         ],
         name="Call",
         category="90",
@@ -8574,7 +15282,11 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Action", arg_type="0", arg_eval=["Mode=", "l", "910"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Action",
+                arg_type="0",
+                arg_eval=["Mode=", "l", "910"],
             ),
         ],
         name="Call Log",
@@ -8584,8 +15296,20 @@ action_codes = {
     "911t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Name", arg_type="1", arg_eval="Name"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Set", arg_type="3", arg_eval="Set"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="Name",
+                arg_type="1",
+                arg_eval="Name",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval="Set",
+            ),
         ],
         name="Gentle Alarm",
         category="130",
@@ -8594,13 +15318,33 @@ action_codes = {
     "915t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="CPU", arg_type="0", arg_eval="CPU"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Governor", arg_type="1", arg_eval="Governor"),
             ArgumentCode(
-                arg_id="2", arg_required=True, arg_name="Min. Frequency", arg_type="0", arg_eval="Min. Frequency"
+                arg_id="0",
+                arg_required=True,
+                arg_name="CPU",
+                arg_type="0",
+                arg_eval="CPU",
             ),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="Max. Frequency", arg_type="0", arg_eval="Max. Frequency"
+                arg_id="1",
+                arg_required=True,
+                arg_name="Governor",
+                arg_type="1",
+                arg_eval="Governor",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Min. Frequency",
+                arg_type="0",
+                arg_eval="Min. Frequency",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="Max. Frequency",
+                arg_type="0",
+                arg_eval="Max. Frequency",
             ),
         ],
         name="CPU",
@@ -8638,8 +15382,20 @@ action_codes = {
     "941t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Code", arg_type="1", arg_eval="Code="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Layout", arg_type="1", arg_eval=", Layout="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Code",
+                arg_type="1",
+                arg_eval="Code=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Layout",
+                arg_type="1",
+                arg_eval=", Layout=",
+            ),
             ArgumentCode(
                 arg_id="2",
                 arg_required=True,
@@ -8691,9 +15447,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=False, arg_name="Number Match", arg_type="1", arg_eval="Number Match="
+                arg_id="0",
+                arg_required=False,
+                arg_name="Number Match",
+                arg_type="1",
+                arg_eval="Number Match=",
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Info", arg_type="3", arg_eval=["e", "Info"]),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Info",
+                arg_type="3",
+                arg_eval=["e", "Info"],
+            ),
         ],
         name="Call Block",
         category="90",
@@ -8716,9 +15482,27 @@ action_codes = {
     "97t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="From Match", arg_type="1", arg_eval="From Match="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="To", arg_type="1", arg_eval=", To="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="Info", arg_type="3", arg_eval=["e", ", Info"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="From Match",
+                arg_type="1",
+                arg_eval="From Match=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="To",
+                arg_type="1",
+                arg_eval=", To=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Info",
+                arg_type="3",
+                arg_eval=["e", ", Info"],
+            ),
         ],
         name="Call Divert",
         category="90",
@@ -8742,9 +15526,19 @@ action_codes = {
         redirect="",
         args=[
             ArgumentCode(
-                arg_id="0", arg_required=True, arg_name="Set", arg_type="3", arg_eval=["Set=", "l", "switch_set"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="3",
+                arg_eval=["Set=", "l", "switch_set"],
             ),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Go Home", arg_type="3", arg_eval=["e", ", Go Home"]),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Go Home",
+                arg_type="3",
+                arg_eval=["e", ", Go Home"],
+            ),
         ],
         name="Car Mode",
         category="40",
@@ -8753,7 +15547,13 @@ action_codes = {
     "989t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Mode", arg_type="0", arg_eval="Mode"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Mode",
+                arg_type="0",
+                arg_eval="Mode",
+            ),
         ],
         name="Night Mode",
         category="40",
@@ -8762,8 +15562,20 @@ action_codes = {
     "999t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="Set", arg_type="1", arg_eval="Set"),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="To", arg_type="0", arg_eval="To"),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="Set",
+                arg_type="1",
+                arg_eval="Set",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="To",
+                arg_type="0",
+                arg_eval="To",
+            ),
         ],
         name="Set Light",
         category="10",
@@ -8772,8 +15584,20 @@ action_codes = {
     "99t": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=False, arg_name="Number", arg_type="1", arg_eval="Number="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="Info", arg_type="3", arg_eval=["e", "Info"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=False,
+                arg_name="Number",
+                arg_type="1",
+                arg_eval="Number=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="Info",
+                arg_type="3",
+                arg_eval=["e", "Info"],
+            ),
         ],
         name="Call Revert",
         category="90",
@@ -8782,16 +15606,62 @@ action_codes = {
     "ButtonElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Label="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=", Label Size="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=", Label Width Scale %="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=", Label Color="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=", Font="),
             ArgumentCode(
-                arg_id="6", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Position=", "l", "TextElement1"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
             ),
-            ArgumentCode(arg_id="7", arg_required=True, arg_name="", arg_type="8", arg_eval=", Icon="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Label=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Label Size=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Label Width Scale %=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Label Color=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Font=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=[", Position=", "l", "TextElement1"],
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=True,
+                arg_name="",
+                arg_type="8",
+                arg_eval=", Icon=",
+            ),
         ],
         name="",
         category="",
@@ -8800,8 +15670,20 @@ action_codes = {
     "CheckBoxElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=["1", "e", ", Checked"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["1", "e", ", Checked"],
+            ),
         ],
         name="",
         category="",
@@ -8810,9 +15692,27 @@ action_codes = {
     "DoodleElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=", Doodle="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=", Alpha="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Doodle=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Alpha=",
+            ),
         ],
         name="",
         category="",
@@ -8821,16 +15721,54 @@ action_codes = {
     "EditTextElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Text="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=", Text Size="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=", Text Width Scale Percent="
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
             ),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=", Text Color="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=", Font="),
             ArgumentCode(
-                arg_id="6", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Position=", "l", "TextElement1"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Text Size=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Text Width Scale Percent=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Text Color=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Font=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=[", Position=", "l", "TextElement1"],
             ),
             ArgumentCode(
                 arg_id="7",
@@ -8839,7 +15777,13 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", Input Type=", "l", "EditTextElement"],
             ),
-            ArgumentCode(arg_id="8", arg_required=True, arg_name="", arg_type="0", arg_eval=", Maximum Characters="),
+            ArgumentCode(
+                arg_id="8",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Maximum Characters=",
+            ),
         ],
         name="",
         category="",
@@ -8848,9 +15792,27 @@ action_codes = {
     "ImageElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="8", arg_eval=", Image="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=", Alpha="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="8",
+                arg_eval=", Image=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Alpha=",
+            ),
         ],
         name="",
         category="",
@@ -8859,9 +15821,19 @@ action_codes = {
     "ListElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Source=", "l", "ListElement1"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=[", Source=", "l", "ListElement1"],
             ),
             ArgumentCode(
                 arg_id="2",
@@ -8877,8 +15849,20 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", Selection Mode=", "l", "ListElement2"],
             ),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="0", arg_eval=", Horizontal Space="),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="", arg_type="0", arg_eval=", Vertical Space="),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Horizontal Space=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Vertical Space=",
+            ),
         ],
         name="",
         category="",
@@ -8894,9 +15878,19 @@ action_codes = {
     "MenuElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Source=", "l", "ListElement1"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=[", Source=", "l", "ListElement1"],
             ),
             ArgumentCode(
                 arg_id="2",
@@ -8905,8 +15899,20 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", Selection Mode=", "l", "ListElement2"],
             ),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=", Horizontal Space="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="0", arg_eval=", Vertical Space="),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Horizontal Space=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Vertical Space=",
+            ),
         ],
         name="",
         category="",
@@ -8915,14 +15921,48 @@ action_codes = {
     "OvalElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Shader=", "l", "RectElement1"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Color="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=", End Color="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="0", arg_eval=", Border Width="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=", Border Color="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=[", Shader=", "l", "RectElement1"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Color=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", End Color=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Border Width=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Border Color=",
+            ),
         ],
         name="",
         category="",
@@ -8931,11 +15971,41 @@ action_codes = {
     "PickerElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Min="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Max="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=", Default="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", Wrap Around"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Min=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Max=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Default=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", ", Wrap Around"],
+            ),
             ArgumentCode(
                 arg_id="5",
                 arg_required=True,
@@ -8965,7 +16035,13 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", Orientation=", "l", "PropertyElement2"],
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Background_Color="),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Background_Color=",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -8973,10 +16049,34 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", Property Type=", "l", "PropertyElement3"],
             ),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=", Title="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=", Subtitle="),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="", arg_type="8", arg_eval=", Icon="),
-            ArgumentCode(arg_id="7", arg_required=True, arg_name="", arg_type="1", arg_eval=", Tab Labels="),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Title=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Subtitle=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="8",
+                arg_eval=", Icon=",
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Tab Labels=",
+            ),
         ],
         name="",
         category="",
@@ -8985,15 +16085,55 @@ action_codes = {
     "RectElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Shader=", "l", "RectElement1"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Color="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=", End Color="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="0", arg_eval=", Border Width="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=", Border XColor="),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="", arg_type="0", arg_eval=", Corner Radius="),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=[", Shader=", "l", "RectElement1"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Color=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", End Color=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Border Width=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Border XColor=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Corner Radius=",
+            ),
             ArgumentCode(
                 arg_id="7",
                 arg_required=True,
@@ -9009,16 +16149,48 @@ action_codes = {
     "SceneElement": ActionCode(
         redirect="Map",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Lat/Long="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=", Zoom="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", Show Traffic"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
             ),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", Show Satellite"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Lat/Long=",
             ),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", Show Roads"]),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Zoom=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", ", Show Traffic"],
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", ", Show Satellite"],
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", ", Show Roads"],
+            ),
         ],
         name="Map",
         category="",
@@ -9027,7 +16199,13 @@ action_codes = {
     "SliderElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
             ArgumentCode(
                 arg_id="1",
                 arg_required=True,
@@ -9035,9 +16213,27 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", Orientation=", "l", "SliderElement1"],
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=", Min="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=", Max="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="0", arg_eval=", Default="),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Min=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Max=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Default=",
+            ),
             ArgumentCode(
                 arg_id="5",
                 arg_required=True,
@@ -9045,7 +16241,13 @@ action_codes = {
                 arg_type="0",
                 arg_eval=[", Show Indicators=", "l", "SliderElement2"],
             ),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="", arg_type="8", arg_eval=", Icon="),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="8",
+                arg_eval=", Icon=",
+            ),
         ],
         name="",
         category="",
@@ -9054,13 +16256,33 @@ action_codes = {
     "SpinnerElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Source=", "l", "ListElement1"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Variable="),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="", arg_type="None", arg_eval=", Popup Background Color="
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=[", Source=", "l", "ListElement1"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Variable=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="None",
+                arg_eval=", Popup Background Color=",
             ),
         ],
         name="",
@@ -9070,8 +16292,20 @@ action_codes = {
     "SwitchElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", Checked"]),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", ", Checked"],
+            ),
         ],
         name="",
         category="",
@@ -9080,9 +16314,27 @@ action_codes = {
     "TextElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", Text="),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="0", arg_eval=", Text Size="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Text=",
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Text Size=",
+            ),
             ArgumentCode(
                 arg_id="3",
                 arg_required=True,
@@ -9090,10 +16342,26 @@ action_codes = {
                 arg_type="0",
                 arg_eval=", Text Width Scale Percent (100=0%)=",
             ),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=", Text Color="),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=", Font="),
             ArgumentCode(
-                arg_id="6", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Position=", "l", "TextElement1"]
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Text Color=",
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Font=",
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=[", Position=", "l", "TextElement1"],
             ),
             ArgumentCode(
                 arg_id="7",
@@ -9117,11 +16385,41 @@ action_codes = {
     "ToggleElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
-            ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", On"]),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Off Label="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=", On Label="),
-            ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="0", arg_eval=", Label Size="),
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
+            ),
+            ArgumentCode(
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", ", On"],
+            ),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Off Label=",
+            ),
+            ArgumentCode(
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", On Label=",
+            ),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", Label Size=",
+            ),
             ArgumentCode(
                 arg_id="5",
                 arg_required=True,
@@ -9129,7 +16427,13 @@ action_codes = {
                 arg_type="0",
                 arg_eval=", Label Width Width Scale Percent (100=0%)=",
             ),
-            ArgumentCode(arg_id="6", arg_required=True, arg_name="", arg_type="1", arg_eval=", Label Color="),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Label Color=",
+            ),
         ],
         name="",
         category="",
@@ -9138,22 +16442,62 @@ action_codes = {
     "WebElement": ActionCode(
         redirect="",
         args=[
-            ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="Name="),
             ArgumentCode(
-                arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Mode=", "l", "WebElement"]
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Name=",
             ),
-            ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Source="),
             ArgumentCode(
-                arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", Allow Phone Access"]
+                arg_id="1",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=[", Mode=", "l", "WebElement"],
             ),
             ArgumentCode(
-                arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=["", "e", ", Self Handle Links"]
+                arg_id="2",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=", Source=",
             ),
-            ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=["", "e", ", DB API"]),
             ArgumentCode(
-                arg_id="6", arg_required=True, arg_name="", arg_type="1", arg_eval=["", "e", ", Support Popups"]
+                arg_id="3",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=["", "e", ", Allow Phone Access"],
             ),
-            ArgumentCode(arg_id="7", arg_required=True, arg_name="", arg_type="0", arg_eval=", User Agent="),
+            ArgumentCode(
+                arg_id="4",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=["", "e", ", Self Handle Links"],
+            ),
+            ArgumentCode(
+                arg_id="5",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=["", "e", ", DB API"],
+            ),
+            ArgumentCode(
+                arg_id="6",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval=["", "e", ", Support Popups"],
+            ),
+            ArgumentCode(
+                arg_id="7",
+                arg_required=True,
+                arg_name="",
+                arg_type="0",
+                arg_eval=", User Agent=",
+            ),
         ],
         name="",
         category="",

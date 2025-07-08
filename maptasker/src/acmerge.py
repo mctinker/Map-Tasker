@@ -629,6 +629,7 @@ def validate_states_and_events(code_type: str, url: str) -> None:
                 f"{code_name} vs {action_codes[modified_code][2]}   <<< Tasker's name mismatch for actionc table code:{modified_code}.",
             )
     if mismatch_names:
+        debug_print("Tasdker Code ... vs ... Our Code")
         debug_print(format_columns(mismatch_names))
 
 
