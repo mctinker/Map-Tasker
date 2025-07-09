@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file!
 
 - Added: Tasker version 6.6.2-beta is supported.
 - Added: 'SecureTask Airplane Mode' plugin has been added.
+- Added: Additional tooltips have been added to ther GUI.
 
 ### Changed
 

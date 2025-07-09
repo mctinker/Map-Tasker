@@ -7857,6 +7857,13 @@ action_codes = {
         category="104",
         canfail="True",
     ),
+    "37s": ActionCode(
+        redirect="",
+        args=[],
+        name="Variable Set",
+        category="",
+        canfail="",
+    ),
     "37t": ActionCode(
         redirect="",
         args=[],
@@ -13404,6 +13411,21 @@ action_codes = {
         redirect="",
         args=[],
         name="Calendar Entry",
+        category="",
+        canfail="",
+    ),
+    "6s": ActionCode(
+        redirect="",
+        args=[
+            ArgumentCode(
+                arg_id="0",
+                arg_required=True,
+                arg_name="",
+                arg_type="1",
+                arg_eval="Contact=",
+            ),
+        ],
+        name="Phone Ringing",
         category="",
         canfail="",
     ),

@@ -600,9 +600,7 @@ def validate_states_and_events(code_type: str, url: str) -> None:
     for key, code in codes.items():
         modified_code = str(code) + code_type
         if code != -1 and modified_code not in action_codes:
-            debug_print(
-                f"Tasker's {key} {code_name} code {code!s} not found in actionc table!  Needs to be added.",
-            )
+            debug_print(f"Tasker's {key} {code_name} code {code!s} not found in actionc table!  Needs to be added.")
 
     # Reverse the dictionary of Tasker codes
     reverse_codes = {v: k for k, v in codes.items()}
@@ -615,9 +613,8 @@ def validate_states_and_events(code_type: str, url: str) -> None:
             missing_codes.append(f"{code}{code_type}")
 
     if missing_codes:
-        debug_print(
-            f"Our action codes (actionc) not found in Tasker's {code_name} table: {', '.join(missing_codes)}",
-        )
+        debug_print("Note: Codes '6s' and '37s' are for older versions of Tasker (Prior to version 6)")
+        debug_print(f"Our action codes (actionc) not found in Tasker's {code_name} table: {', '.join(missing_codes)}")
 
     # Make sure Tasker code 'names' are the same as our actionc code 'names'
     mismatch_names = []
@@ -629,7 +626,7 @@ def validate_states_and_events(code_type: str, url: str) -> None:
                 f"{code_name} vs {action_codes[modified_code][2]}   <<< Tasker's name mismatch for actionc table code:{modified_code}.",
             )
     if mismatch_names:
-        debug_print("Tasdker Code ... vs ... Our Code")
+        debug_print("Tasker Code ... vs ... Our actionc Code")
         debug_print(format_columns(mismatch_names))
 
 

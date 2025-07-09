@@ -3858,7 +3858,7 @@ def _create_display_options_section(self: ctk) -> None:
         "s",
     )
 
-    add_label(
+    detail_level_label = add_label(
         self,
         self.sidebar_frame,
         "Display Detail Level:",
@@ -3870,6 +3870,10 @@ def _create_display_options_section(self: ctk) -> None:
         20,
         (10, 0),
         "",
+    )
+    create_tooltip(
+        detail_level_label,
+        text="This determines the amount of detail displayed in the output.\n\nLevel 0 = the least detail, 5 = the most detail.",
     )
     self.sidebar_detail_option = add_option_menu(
         self,
@@ -3894,14 +3898,14 @@ def _create_display_options_section(self: ctk) -> None:
             "Display Profile and Task Action Conditions",
             "condition_event",
             "conditions_checkbox",
-            None,
+            "Display the conditions such as 'State', 'Event', 'Time', etc. in the output.",
         ),
         ("Display TaskerNet Info", "taskernet_event", "taskernet_checkbox", None),
         (
             "Display Tasker Preferences",
             "preferences_event",
             "preferences_checkbox",
-            None,
+            "Include the Tasker 'preferences' in the output, if available in the XML file.",
         ),
         ("Hide Task Details Under Twisty", "twisty_event", "twisty_checkbox", None),
         (
@@ -4552,7 +4556,15 @@ def _create_tabview_section(self: ctk) -> None:
 
 def _create_specific_name_tab_content(self: ctk, tab: ctk) -> None:
     """Populates the 'Specific Name' tab."""
-    add_label(self, tab, "(Pick ONLY One)", "", 0, "normal", 4, 0, 20, (10, 10), "w")
+    pick_one = add_label(self, tab, "(Pick ONLY One)", "", 0, "normal", 4, 0, 20, (10, 10), "w")
+    create_tooltip(
+        pick_one,
+        text="""
+Select either a single Project, Profile, or Task to display (Map and Diagram views, and browser).
+If a single Project is selected, all of it's Projects, Tasks and Scenes will be included.
+If a single Profile is selected, it and all of it's Tasks will be displayed.
+""",
+    )
 
     self.list_unnamed_items_checkbox = add_checkbox(
         self,
@@ -4752,6 +4764,10 @@ def _create_debug_tab_content(self: ctk, tab: str) -> None:
         10,
         "w",
         "#6563ff",
+    )
+    create_tooltip(
+        self.runtime_checkbox,
+        text="Display this program's settings at the front of the configuration output (Map view and browser).",
     )
 
 
