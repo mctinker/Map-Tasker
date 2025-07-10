@@ -2153,7 +2153,7 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None
 
-        The data consists of a list of dictionary values (formatted by guimap)...
+        The data consists of a dictionary of values (formatted by guimap)...
            'text': list of text values
                     special flag of '\nn' in front of text element indicates that this is a directory heading.
            'color': list of colors to apply to each element in 'text'
@@ -2233,7 +2233,7 @@ class CTkTextview(ctk.CTkFrame):
             )
 
             # Log debug information if enabled
-            log_info(f"Value: {value}")
+            log_info(f"Map View Value: {value}")
 
         # Stop the progress bar and destroy the widget
         kill_the_progress_bar(progress, remove_windows=False)
@@ -2269,9 +2269,7 @@ class CTkTextview(ctk.CTkFrame):
                 new_previous_value_type,
                 tags,
             )
-            # Are we about to do the directory?
-            if text_content[0] == "Directory\n":  # Using text_content here
-                # Handle the hotlink for going up one or more levels.
+            if text_content == "Directory\n":  # Using text_content here
                 (
                     new_line_num,
                     new_previous_directory,
@@ -2469,6 +2467,7 @@ class CTkTextview(ctk.CTkFrame):
         if not any([single_project, single_profile, single_task]):
             return line_num, previous_directory, previous_value, char_position
 
+        # FIX Not resetting single names in GUI once we go up a level.
         if single_project:
             value = {"directory": ["%%", ""]}
         elif single_profile:
@@ -2616,7 +2615,6 @@ class CTkTextview(ctk.CTkFrame):
         # Check for special "Up One Level" hotlink and modify the text to be displayed if it is.
         up_one_level = False
         if directory_type.startswith("%%"):
-            # This is a 'up-one-level' hotlink.
             up_one_level = True
             directory_type = f"{directory_type[2:]}_up"
             object_name = directory_type[:-3].capitalize() if hotlink_name else ""

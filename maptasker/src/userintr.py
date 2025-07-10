@@ -237,7 +237,7 @@ class MyGui(customtkinter.CTk):
         # CHG ME: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        self.event_handlers.map_event()
+        # self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
 

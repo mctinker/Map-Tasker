@@ -684,7 +684,7 @@ def process_html_lines(
         lines (list): A list of HTML lines to be processed.
         output_lines (list): A list to store the processed lines.
         spacing (int): The spacing value for formatting.
-        iterate (bool): A flag indicating whether to iterate through the lines.F
+        iterate (bool): A flag indicating whether to iterate through the lines.
 
     Returns:
         list: The updated output_lines list.

@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: Tasker version 6.6.2-beta is supported.
+- Added: Tasker version 6.6.3-beta is supported.
 - Added: 'SecureTask Airplane Mode' plugin has been added.
 - Added: Additional tooltips have been added to ther GUI.
 
@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Initial GUI displays with a jitter effect due to resizing baseed on the saved settings.
 - Fixed: Task action 'Call' is not appearing correctly.
 - Fixed: Some Task action selected checkboxes are identified as '=1' rather than as '(selected)'.
+- Fixed: The directory hotlink 'Up One Level' is not displaying in trhe Map View.
 
 ### Known Issues
 
