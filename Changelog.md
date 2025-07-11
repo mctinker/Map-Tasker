@@ -22,7 +22,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Some Task action selected checkboxes are identified as '=1' rather than as '(selected)'.
 - Fixed: The directory hotlink 'Up One Level' is not displaying in the Map View.
 - Fixed: Incorrect output color in Map view if '_color' is part of a variable name in a Task.
-- FIxed: Caveat at the bottom referring to inactive and unreferenced global variables is not appearing if the display level is 5.
+- Fixed: Caveat at the bottom referring to inactive and unreferenced global variables is not appearing if the display level is 5.
 
 ### Known Issues
 

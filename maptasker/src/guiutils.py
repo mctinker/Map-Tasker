@@ -81,17 +81,21 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 8.0.6 - Change Log\n
+Version 8.0.7 - Change Log\n
 ### Added\n
-- Added: No additions.\n
+- Added: Tasker version 6.6.3-beta is supported.\n
+- Added: 'SecureTask Airplane Mode' plugin has been added.\n
+- Added: Additional tooltips have been added to the GUI.\n
+- Added: AI Llama model 'qwen3:1.7b' has been added.\n
 ### Changed\n
-- Changed: Code optimized to make it easier to pick up new changes in Tasker.\n
-- Changed: The Diagram view jump-to-top-task and jump-to-bottom-task buttons are now dynamic, only displaying when appropriate.\n
-- Changed: The AI Analysis output file is now saved with the date and time.\n
+- Changed: Tasks identified in Map view by hovering over a Project or Profile are listed as 'sorted'.\n
 ### Fixed\n
-- Fixed: The GUI last-tab-used is not saved and restored if either 'Rerun' or 'Run and Exit' is selected.\n
-- Fixed: Hover over directory name shows detail in the wrong background color in GUI on Windows.\n
-- Fixed: The GUI default window size is not large enough to include the 'Reset' button.\n
+- Fixed: Initial GUI displays with a jitter effect due to resizing based on the saved settings.\n
+- Fixed: Task action 'Call' is not appearing correctly.\n
+- Fixed: Some Task action selected checkboxes are identified as '=1' rather than as '(selected)'.\n
+- Fixed: The directory hotlink 'Up One Level' is not displaying in the Map View.\n
+- Fixed: Incorrect output color in Map view if '_color' is part of a variable name in a Task.\n
+- Fixed: Caveat at the bottom referring to inactive and unreferenced global variables is not appearing if the display level is 5.\n
 """
 
 default_font_size = 14
