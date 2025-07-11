@@ -58,6 +58,7 @@ from maptasker.src.guiutils import (
     remove_tags_from_bars_and_names,
     reset_primeitems_single_names,
     search_substring_in_list,
+    set_tasker_object_names,
     update_tasker_object_menus,
 )
 from maptasker.src.lineout import LineOut
@@ -1462,7 +1463,7 @@ class CTkTextview(ctk.CTkFrame):
         max_profile_length = max((len(s) for s in profiles), default=0)
         max_task_length = max((len(s) for s in tasks), default=0)
         profile_header = f"{'Profiles'.ljust(max_profile_length, '.')}"
-        task_header = f"{' Tasks in Project'.ljust(max_task_length, '.')}"
+        task_header = f"{'  Tasks in Project (sorted)'.ljust(max_task_length, '.')}"
         profiles_and_tasks.insert(0, [f"\n\n{profile_header}", task_header])
 
         # Convert to columns.
@@ -1491,7 +1492,7 @@ class CTkTextview(ctk.CTkFrame):
         tasks = get_tasks_in_project(project)
 
         # Can't combine the following into opne large 'f-string' since can not have '\' in f-string.
-        temp = f"\n  In Project: {project}\n  Tasks in Project...\n"
+        temp = f"\n  In Project: {project}\n Tasks in Project (sorted)...\n"
         all_tasks = "\n   ".join(tasks)
         return text + f"{temp}   {all_tasks}"
 
@@ -2441,6 +2442,7 @@ class CTkTextview(ctk.CTkFrame):
         char_position: int,
     ) -> tuple:
         """
+        Set up the 'Up One Level' directory item.
         Process a single item (project, profile, or task) differently than normal items.
 
         If a single item is specified, then we need to process it differently than normal items.
@@ -3612,17 +3614,22 @@ class CTkHyperlinkManager:
             guiself.single_project_name = ""
             guiself.single_profile_name = ""
             guiself.single_task_name = ""
+
             # Set up for single item
-            PrimeItems.program_arguments[f"single_{action}_name"] = name
             single_name_parm = action[0 : len(action) - 1]
             # Update self.single_xxx_name
             setattr(guiself, f"single_{single_name_parm}_name", name)
-            # Reset single item menus
+            PrimeItems.program_arguments[f"single_{single_name_parm}_name"] = name
+
+            # Reset single item labels
             update_tasker_object_menus(
                 guiself,
-                get_data=False,
+                get_data=True,
                 reset_single_names=False,
             )
+            # Reset the single item pulldown (this has to go after reset of labels!).
+            set_tasker_object_names(guiself)
+
             # Remap it.
             guiself.remapit(clear_names=False)
 
@@ -3688,10 +3695,7 @@ class CTkHyperlinkManager:
 
         # Highlight the string so it is easy to find.
         # Delete old tag and add new tag.
-        if "(Scene)" in orig_name:
-            length_to_use = len(search_string) - 6
-        else:
-            length_to_use = len(search_string)
+        length_to_use = len(search_string) - 6 if "(Scene)" in orig_name else len(search_string)
         our_view.textview_textbox.tag_remove("inlist", "1.0", "end")
         our_view.textview_textbox.tag_add(
             "inlist",

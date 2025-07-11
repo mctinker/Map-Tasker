@@ -300,6 +300,7 @@ LLAMA_MODELS = [
     "qwen2",
     "qwen2.5-coder",
     "qwen2.5",
+    "qwen3:1.7b",
     "tinyllama",
 ]
 CLAUDE_MODELS = [

@@ -1673,6 +1673,7 @@ def _set_single_project_name(self: object, defaults: dict) -> None:
     self.ai_profile_optionmenu.set(defaults["profile"])
     self.specific_task_optionmenu.set(defaults["task"])
     self.ai_task_optionmenu.set(defaults["task"])
+    self.update()
 
 
 def _set_single_profile_name(self: object, defaults: dict) -> None:

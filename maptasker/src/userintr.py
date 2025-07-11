@@ -199,7 +199,8 @@ class MyGui(customtkinter.CTk):
         # See if we have any current messages to display.
         self.process_current_messages()
 
-        # The following line is equivalent to a call to update_tasker_object_menus but only when the Analysis tab is clicked.
+        # The following line is equivalent to a call to update_tasker_object_menus,
+        # but only when the Analysis tab is clicked.
         self.tabview.configure(
             "Analyze",
             command=update_tasker_object_menus(
@@ -243,8 +244,7 @@ class MyGui(customtkinter.CTk):
 
     # Establish all the default values used
     def set_defaults(self) -> None:
-        # Item names must be the same as their value in
-        #  PrimeItems.program_arguments
+        # Item names must be the same as their value in PrimeItems.program_arguments
         """
                 Sets default values for attributes.
         the api key        Args:
