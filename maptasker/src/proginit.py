@@ -411,8 +411,8 @@ def start_up() -> dict:
     # Validate runtime versions for python and tkinter
     check_versions()
 
-    # Build the action codes
     # NOTE: FOR DEVELOPMENT ONLY!!! 'BUILD_ALL = TRUE' ONLY WITH NEW UPDATE OF TASKER!  See acmerge.py
+    # Build the action codes
     build_all = False
     build_action_codes_from_json(build_it_all=build_all)
     if build_all:

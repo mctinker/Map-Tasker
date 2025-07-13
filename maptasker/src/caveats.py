@@ -32,18 +32,17 @@ def display_caveats() -> None:
         ),
         ("- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"),
         (
-            '- All attempts are made to retain embedded HTML (e.g. color=...>") in Tasker'
-            " fields, but is stripped out of Action labels and TaskerNet comments.\n"
+            "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker"
+            " fields, but it is stripped out of Action labels and TaskerNet comments.\n"
         ),
+        ("- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"),
         (
-            "- Profile names starting with '*' are anonymous/unnamed, and the name consists of"
-            " the Profile conditions.\n"
-        ),
-        (
-            "- Task names that consist of the first action that has embed html will have all '<' and '>' characters"
+            "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters"
             " converted to '{' and '}' respectively.\n"
         ),
     ]
+
+    # Conditional caveats start here...
 
     # Let 'em know about Google API key
     if PrimeItems.program_arguments["preferences"]:
@@ -71,7 +70,7 @@ def display_caveats() -> None:
         )
 
     if (
-        PrimeItems.program_arguments["display_detail_level"] == 4
+        PrimeItems.program_arguments["display_detail_level"] >= 4
     ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
         caveats.extend(
             (

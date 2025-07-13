@@ -3,6 +3,7 @@
 
 #                                                                                      #
 # guimap: reverse engineer the mapped html file and return just the data as a list.    #
+#         This data is then to be processed by guiwins for the map configuration.      #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 from __future__ import annotations
@@ -16,6 +17,16 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import pattern8
 from maptasker.src.xmldata import remove_html_tags
 
+r"""
+The data consists of a list of dictionary values (formatted by guimap)...
+        'text': list of text values
+                special flag of '\nn' in front of text element indicates that this is a directory heading.
+        'color': list of colors to apply to each element in 'text'
+        'directory' (optional): list [element 0=Tasker object type ('projects', 'profiles', 'tasks', 'scenes'),
+                                        element 1=object name]
+                    'text' and 'color' are empty if directory is present.
+        'highlights': list of highlights to apply to the text elements (e.g. bold, underline, etc..)
+"""
 glob_spacing = 15
 
 
@@ -673,7 +684,7 @@ def process_html_lines(
         lines (list): A list of HTML lines to be processed.
         output_lines (list): A list to store the processed lines.
         spacing (int): The spacing value for formatting.
-        iterate (bool): A flag indicating whether to iterate through the lines.
+        iterate (bool): A flag indicating whether to iterate through the lines.F
 
     Returns:
         list: The updated output_lines list.

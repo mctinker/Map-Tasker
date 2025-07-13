@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "8.0.6"
+VERSION = "8.1.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -300,6 +300,7 @@ LLAMA_MODELS = [
     "qwen2",
     "qwen2.5-coder",
     "qwen2.5",
+    "qwen3:1.7b",
     "tinyllama",
 ]
 CLAUDE_MODELS = [

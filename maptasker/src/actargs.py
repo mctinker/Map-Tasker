@@ -111,7 +111,9 @@ def get_bundle(
         clean_string = f"Output Variables={pref}{clean_string}"
 
     # Separate configuration parameter arguments by commas.
+    save_returning = evaluated_results["returning_something"]
     process_clean_string(clean_string, code_action, arg, evaluated_results, blank)
+    evaluated_results["returning_something"] = save_returning
 
     return evaluated_results
 
@@ -383,6 +385,8 @@ def action_args(
         # Get the Action arguments
         evaluated_results[f"arg{arg[0]}"] = {}
         evaluated_results[f"arg{arg[0]}"]["type"] = argtype
+
+        # Evaluate the argument.
         evaluated_results = evaluate_argument(
             evaluated_results,
             arg,

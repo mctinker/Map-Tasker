@@ -58,6 +58,7 @@ from maptasker.src.guiutils import (
     remove_tags_from_bars_and_names,
     reset_primeitems_single_names,
     search_substring_in_list,
+    set_tasker_object_names,
     update_tasker_object_menus,
 )
 from maptasker.src.lineout import LineOut
@@ -527,7 +528,8 @@ class CTkTextview(ctk.CTkFrame):
 
     def output_list(self, the_data: list) -> None:
         """
-        Output the text data to the text box, adding line numbers if in debug mode.
+        Output the list data to the text box, adding line numbers if in debug mode: Diagram or AI Analysis
+
         If the title contains 'Diagram', then color the text, and if the title contains
         'Analysis', then add the analysis CustomTkinter widgets.
 
@@ -553,7 +555,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -565,71 +569,87 @@ class CTkTextview(ctk.CTkFrame):
         # Clear the Text widget once
         self.textview_textbox.delete("1.0", "end")
 
-        # Insert in a single call all of the lines of data.
+        # Insert, in a single call, all of the lines of data.
         self.textview_textbox.insert("1.0", big_block_of_text)
 
+        # Output the data either as a diagram or AI analysis.
         if is_diagram:
-            # -------------------------------------------------------------------------
-            # Go thru the data:
-            #    - Add tags (aka highlight) for Project/Profile/Task name colors
-            #    - Build the Task-to-Task connectors
-            # -------------------------------------------------------------------------
-            self.diagram_connectors = {}
-            for i, line in enumerate(the_data):
-                self.highlight_text(line, i + 1)
-                self.diagram_connectors = build_connectors(
-                    the_data,
-                    i,
-                    self.diagram_connectors,
-                )
-
-            # Configure tag colors once if a highlight was applied
-            guiview = self.master.master
-            # In order for the map to work, we need to ensure that we have the colors defined.
-            if not getattr(guiview, "color_lookup", None):
-                guiview.color_lookup = set_color_mode(guiview.appearance_mode)
-            color_lookup = guiview.color_lookup
-            self.textview_textbox.tag_config(
-                "project",
-                foreground=color_lookup["project_color"],
-            )
-            self.textview_textbox.tag_config(
-                "profile",
-                foreground=color_lookup["profile_color"],
-            )
-            self.textview_textbox.tag_config(
-                "task",
-                foreground=color_lookup["task_color"],
-            )
-            self.textview_textbox.tag_config(
-                "scene",
-                foreground=color_lookup["scene_color"],
-            )
-
-            # Add connector tags so theey can be highlighted when clicked.
-            self.add_connector_tags(self.diagram_connectors)
-
-        # Add the CustomTkinter widgets
-        if "Analysis" in self.title:
-            self.add_view_widgets("Analysis")
+            self.output_diagram(the_data)
         else:
-            self.add_view_widgets("Diagram")
-            # Force courier new for diagram view if just Courier...perfect character alignment.
-            background_color = make_hex_color(
-                self.master.master.color_lookup["background_color"],
-            )
-            if getattr(self.master.master, "font", "Arial") == "Courier":
-                self.textview_textbox.configure(
-                    self,
-                    font=("Courier New", 12),
-                    fg_color=background_color,
-                )
+            self.add_view_widgets("Analysis")
 
         # Save a pointer to the data.
         self.data = the_data
 
         # Make it the focus
         self.focus_set()
+
+    def output_diagram(self, the_data: list) -> None:
+        """
+        Processes and displays diagram-specific content in the text box.
+
+        This function iterates through the provided data to:
+        - Apply syntax highlighting (tags) for 'Project', 'Profile', 'Task', and 'Scene' names.
+        - Build and manage task-to-task connectors for visual representation.
+        - Configure the display colors for the defined text tags.
+        - Add interactive tags to connectors, allowing them to be highlighted on click.
+
+        Args:
+            the_data (list): A list of strings, where each string represents a line
+                             of data to be processed for diagram display.
+        """
+        # -------------------------------------------------------------------------
+        # Go thru the data:
+        #    - Add tags (aka highlight) for Project/Profile/Task name colors
+        #    - Build the Task-to-Task connectors
+        # -------------------------------------------------------------------------
+        self.diagram_connectors = {}
+        for i, line in enumerate(the_data):
+            self.highlight_text(line, i + 1)
+            self.diagram_connectors = build_connectors(
+                the_data,
+                i,
+                self.diagram_connectors,
+            )
+
+        # Configure tag colors for the Tasker objects: Project, Profile, Task, Scene
+        guiview = self.master.master
+        # In order for the map to work, we need to ensure that we have the colors defined.
+        if not getattr(guiview, "color_lookup", None):
+            guiview.color_lookup = set_color_mode(guiview.appearance_mode)
+        color_lookup = guiview.color_lookup
+        self.textview_textbox.tag_config(
+            "project",
+            foreground=color_lookup["project_color"],
+        )
+        self.textview_textbox.tag_config(
+            "profile",
+            foreground=color_lookup["profile_color"],
+        )
+        self.textview_textbox.tag_config(
+            "task",
+            foreground=color_lookup["task_color"],
+        )
+        self.textview_textbox.tag_config(
+            "scene",
+            foreground=color_lookup["scene_color"],
+        )
+
+        # Add the CustomTkinter widgets
+        self.add_view_widgets("Diagram")
+        # Force courier new for diagram view if just Courier...perfect character alignment.
+        background_color = make_hex_color(
+            self.master.master.color_lookup["background_color"],
+        )
+        if getattr(self.master.master, "font", "Arial") == "Courier":
+            self.textview_textbox.configure(
+                self,
+                font=("Courier New", 12),
+                fg_color=background_color,
+            )
+
+        # Add connector tags so they can be highlighted when clicked.
+        self.add_connector_tags(self.diagram_connectors)
 
     def add_view_widgets(self, title: str) -> None:
         """
@@ -1207,47 +1227,44 @@ class CTkTextview(ctk.CTkFrame):
         provided that both button objects exist as attributes of `self.textview_textbox`.
 
         Specifically:
-        - If both top and bottom connectors are displayed, remove both buttons from display.
-        - If the top of the connector is visible, hide the top button and display the bottom button.
-        - If the bottom of the connector is visible, hide the bottom button and display the top button.
+        - Hide both buttons from the display.
+        - If both top and bottom connectors are displayed, return.
+        - If the top of the connector is visible, display the bottom button.
+        - If the bottom of the connector is visible, display the top button.
         """
-        # If both top and bottom connectors are currently displayed, then removew both buttons from display.
-        if is_line_displayed(
+        # Start off by hiding both the top and bottom buttons.
+        self.hide_buttons()
+
+        # Determine if the top and bottom of the connectors are visible.
+        top_line_displayed = is_line_displayed(
             self.textview_textbox,
             connector["start_top"][0],
-        ) and is_line_displayed(self.textview_textbox, connector["end_bottom"][0]):
-            with contextlib.suppress(AttributeError):
-                # Hide the button
-                self.hide_button(self.jump_top)
-            with contextlib.suppress(AttributeError):
-                self.hide_button(self.jump_bottom)
+        )
+        bottom_line_displayed = is_line_displayed(
+            self.textview_textbox,
+            connector["end_bottom"][0],
+        )
 
-        # If the top of the connector is visible, then hide the top button and display the bottom button.
-        elif is_line_displayed(self.textview_textbox, connector["start_top"][0]):
-            with contextlib.suppress(AttributeError):
-                # Hide the button
-                self.hide_button(self.jump_top)
-            # Display the 'jump to bottom' button
+        # If both top and bottom connectors are currently displayed, then just return.
+        if top_line_displayed and bottom_line_displayed:
+            return
+
+        # If the top of the connector is visible, then display the bottom button.
+        if top_line_displayed:
             self.add_jumpto_buttons(connector, top=False)
 
-        # If the bottom of the connector is visible, then hide the bottom button and display the top button.
-        elif is_line_displayed(self.textview_textbox, connector["end_bottom"][0]):
-            with contextlib.suppress(AttributeError):
-                # Hide the button
-                self.hide_button(self.jump_bottom)
-            # Display the 'jump to top' button
+        # If the bottom of the connector is visible, then display the top button.
+        elif bottom_line_displayed:
             self.add_jumpto_buttons(connector, top=True)
 
-    def hide_button(self, button: ctk.CTkButton) -> None:
+    def hide_buttons(self) -> None:
         """Given a button name, hide the button.
         For whatever reason, the chain of commands below works and any suibset of them, doesn't work!
         """
         with contextlib.suppress(AttributeError):
-            button.destroy()
             self.jump_top.destroy()
+        with contextlib.suppress(AttributeError):
             self.jump_bottom.destroy()
-            self.master.update()
-            self.update()
 
     def display_hover_info(
         self,
@@ -1446,7 +1463,7 @@ class CTkTextview(ctk.CTkFrame):
         max_profile_length = max((len(s) for s in profiles), default=0)
         max_task_length = max((len(s) for s in tasks), default=0)
         profile_header = f"{'Profiles'.ljust(max_profile_length, '.')}"
-        task_header = f"{' Tasks in Project'.ljust(max_task_length, '.')}"
+        task_header = f"{'  Tasks in Project (sorted)'.ljust(max_task_length, '.')}"
         profiles_and_tasks.insert(0, [f"\n\n{profile_header}", task_header])
 
         # Convert to columns.
@@ -1475,7 +1492,7 @@ class CTkTextview(ctk.CTkFrame):
         tasks = get_tasks_in_project(project)
 
         # Can't combine the following into opne large 'f-string' since can not have '\' in f-string.
-        temp = f"\n  In Project: {project}\n  Tasks in Project...\n"
+        temp = f"\n  In Project: {project}\n Tasks in Project (sorted)...\n"
         all_tasks = "\n   ".join(tasks)
         return text + f"{temp}   {all_tasks}"
 
@@ -2088,7 +2105,7 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None
         """
-        # Iterate through dictionary of lines and insert into textbox
+        # Set up to iterate through dictionary of lines and insert into textbox
         line_num = 1
         tags = []
         previous_color = "white"
@@ -2122,7 +2139,7 @@ class CTkTextview(ctk.CTkFrame):
         previous_value: str,
         the_data: dict,
     ) -> None:
-        """
+        r"""
         Process the given map data and output the text lines and colors to a text box.
 
         Parameters:
@@ -2136,43 +2153,46 @@ class CTkTextview(ctk.CTkFrame):
 
         Returns:
             None
+
+        The data consists of a list of dictionary values (formatted by guimap)...
+           'text': list of text values
+                    special flag of '\nn' in front of text element indicates that this is a directory heading.
+           'color': list of colors to apply to each element in 'text'
+           'directory' (optional): list [element 0=Tasker object type ('projects', 'profiles', 'tasks', 'scenes'),
+                                         element 1=object name]
+                        'text' and 'color' are empty if directory is present.
+           'highlights': list of highlights to apply to the text elements (e.g. bold, underline, etc..)
         """
-        progress = configure_progress_bar(the_data, "Map")
-        progress.update(
-            {
-                "max_data": len(the_data),
-                "tenth_increment": max(
-                    1,
-                    len(the_data) // 10,
-                ),  # Avoid division by zero
-                "self": self.master.master,
-            },
-        )
-        # self.master.master.progress_bar = progress
+        # Setup the progressbar
+        progress = self._initialize_progress_bar(the_data)
+
+        # Cache frequently used attributes.
         check_bump = self.check_bump
         master_debug = self.master.master.debug
         log_info = logger.info if master_debug else lambda *_: None  # No-op if debug is off
-        process_directory = self.process_directory
-        process_colored_text = self.process_colored_text
+
+        # Setup for the loop to kickoff.
         PrimeItems.track_task_warnings = []
-        previous_text = ""
+        previous_text_content = ""
 
         # Go through the data and format it accordingly.
         for num, (_, value) in enumerate(the_data.items()):
             if not progress:  # If progress bar has been destroyed, quick get out.
                 return
-            if num % progress["tenth_increment"] == 0:
-                progress["progress_counter"] = num
-                display_progress_bar(progress, is_instance_method=True)
+
+            # Update progressbar if needed.
+            self._update_progress_display(progress, num)
 
             # Get the text of the value and ignore duplicate blank lines.
-            response, previous_text, text = self.do_special_spacing(
-                previous_text,
+            response, previous_text_content, text_current_value = self._handle_special_spacing_and_blanks(
+                previous_text_content,
                 value,
                 line_num,
                 char_position,
                 tags,
             )
+
+            # If no response, ignore it and continue.
             if not response:
                 continue
 
@@ -2195,36 +2215,145 @@ class CTkTextview(ctk.CTkFrame):
             if not value["color"] and value["text"]:
                 value["color"] = [previous_color]
 
-            # Go through all the text/color combinations
-            if value.get("color"):
-                line_num, previous_color, previous_value, tags = process_colored_text(
-                    value,
-                    line_num,
-                    previous_color,
-                    previous_value,
-                    tags,
-                )
-                if text[0] == "Directory\n":
-                    line_num, previous_directory, previous_value, char_position = self.one_level_up(
-                        line_num,
-                        previous_directory,
-                        previous_value,
-                        char_position,
-                    )
-            elif "directory" in value:
-                char_position, previous_directory, line_num = process_directory(
-                    value,
-                    line_num,
-                    previous_directory,
-                    0 if previous_value != "directory" else char_position,
-                )
-                previous_value = "directory"
+            # Process value based on color or directory
+            (
+                line_num,
+                previous_color,
+                previous_directory,
+                previous_value,
+                char_position,
+            ) = self._process_value_with_color_or_directory(
+                value,
+                line_num,
+                char_position,
+                previous_color,
+                previous_directory,
+                previous_value,
+                tags,
+                text_current_value,  # Pass the determined text content
+            )
 
             # Log debug information if enabled
-            log_info(f"Map View Value: {value}")
+            log_info(f"Value: {value}")
 
         # Stop the progress bar and destroy the widget
         kill_the_progress_bar(progress, remove_windows=False)
+
+    def _process_value_with_color_or_directory(
+        self,
+        value: dict,
+        line_num: int,
+        char_position: int,
+        previous_color: str,
+        previous_directory: str,
+        previous_value_type: str,  # Renamed from previous_value for clarity
+        tags: list,
+        text_content: str,  # Added to use within the function if needed
+    ) -> tuple[int, str, str, str, int]:
+        """Processes map data based on color or directory information."""
+        new_line_num = line_num
+        new_previous_color = previous_color
+        new_previous_directory = previous_directory
+        new_previous_value_type = previous_value_type
+        new_char_position = char_position
+
+        # Check if we need to change the color
+        if not value["color"] and value.get("text"):
+            value["color"] = [new_previous_color]
+
+        # Go through all the text/color combinations
+        if value.get("color"):
+            new_line_num, new_previous_color, new_previous_value_type, tags = self.process_colored_text(
+                value,
+                new_line_num,
+                new_previous_color,
+                new_previous_value_type,
+                tags,
+            )
+            # Are we about to do the directory?
+            if text_content[0] == "Directory\n":  # Using text_content here
+                # Handle the hotlink for going up one or more levels.
+                (
+                    new_line_num,
+                    new_previous_directory,
+                    new_previous_value_type,
+                    new_char_position,
+                ) = self.one_level_up(
+                    new_line_num,
+                    new_previous_directory,
+                    new_previous_value_type,
+                    new_char_position,
+                )
+        elif "directory" in value:
+            new_char_position, new_previous_directory, new_line_num = self.process_directory(
+                value,
+                new_line_num,
+                new_previous_directory,
+                0 if new_previous_value_type != "directory" else new_char_position,
+            )
+            new_previous_value_type = "directory"
+
+        return (
+            new_line_num,
+            new_previous_color,
+            new_previous_directory,
+            new_previous_value_type,
+            new_char_position,
+        )
+
+    def _handle_special_spacing_and_blanks(
+        self,
+        previous_text: str,
+        value: dict,
+        line_num: int,
+        char_position: int,
+        tags: list,
+    ) -> tuple[str, str, str]:
+        """
+        Processes special spacing and handles duplicate/blank lines.
+        Returns (response, previous_text, text_content) or (None, None, None) if skipped.
+        """
+        response, new_previous_text, text_content = self.do_special_spacing(
+            previous_text,
+            value,
+            line_num,
+            char_position,
+            tags,
+        )
+        if not response:
+            return None, None, None
+
+        # If Windows, ignore blank lines: "    \n"
+        if sys.platform == "win32" and value.get("text") and value["text"][0].endswith("\n"):
+            text = value["text"][0]
+            blanks_to_check = len(text) - 1
+            # Assuming 'blank' is defined elsewhere, e.g., 'blank = " "'
+            # For this example, let's assume it's available.
+            blank = " "  # Placeholder, ensure 'blank' is properly defined in your context
+            if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
+                return None, None, None
+        return response, new_previous_text, text_content
+
+    def _update_progress_display(self, progress: dict, current_num: int) -> None:
+        """Updates and displays the progress bar."""
+        if current_num % progress["tenth_increment"] == 0:
+            progress["progress_counter"] = current_num
+            display_progress_bar(progress, is_instance_method=True)
+
+    def _initialize_progress_bar(self, the_data: dict) -> dict:
+        """Initializes and returns the progress bar."""
+        progress = configure_progress_bar(the_data, "Map")
+        progress.update(
+            {
+                "max_data": len(the_data),
+                "tenth_increment": max(
+                    1,
+                    len(the_data) // 10,
+                ),  # Avoid division by zero
+                "self": self.master.master,
+            },
+        )
+        return progress
 
     def do_special_spacing(
         self: object,
@@ -2250,13 +2379,14 @@ class CTkTextview(ctk.CTkFrame):
         """
         text = value.get("text", [])
         if text and isinstance(text, list):
+            # Skip back-to-back blanks
             if previous_text == "\n" and text[0] == "\n":
                 return False, previous_text, text
             previous_text = text[0]
             # Handle special spacing for directory headings
             if text[0].startswith("\nn"):
                 # If dictionary header, then let's add a leading blank line.
-                # Add hyperlink directory entry
+                # Add hyperlink directory entry and make sure the background color is set.
                 tag_id = self._generate_unique_tag_id(line_num, char_position, tags)
                 self.textview_textbox.tag_config(
                     tag_id,
@@ -2276,6 +2406,7 @@ class CTkTextview(ctk.CTkFrame):
     ) -> tuple:
         """
         Check if we need to bump the line number based on the current and previous value.
+        The intent is to provide a 4-up directory list.
 
         If the current value is not a directory and the previous value was a directory, then
         bump the line number and set the character position to 0.
@@ -2311,6 +2442,7 @@ class CTkTextview(ctk.CTkFrame):
         char_position: int,
     ) -> tuple:
         """
+        Set up the 'Up One Level' directory item.
         Process a single item (project, profile, or task) differently than normal items.
 
         If a single item is specified, then we need to process it differently than normal items.
@@ -2486,6 +2618,7 @@ class CTkTextview(ctk.CTkFrame):
         # Check for special "Up One Level" hotlink and modify the text to be displayed if it is.
         up_one_level = False
         if directory_type.startswith("%%"):
+            # This is a 'up-one-level' hotlink.
             up_one_level = True
             directory_type = f"{directory_type[2:]}_up"
             object_name = directory_type[:-3].capitalize() if hotlink_name else ""
@@ -3481,17 +3614,22 @@ class CTkHyperlinkManager:
             guiself.single_project_name = ""
             guiself.single_profile_name = ""
             guiself.single_task_name = ""
+
             # Set up for single item
-            PrimeItems.program_arguments[f"single_{action}_name"] = name
             single_name_parm = action[0 : len(action) - 1]
             # Update self.single_xxx_name
             setattr(guiself, f"single_{single_name_parm}_name", name)
-            # Reset single item menus
+            PrimeItems.program_arguments[f"single_{single_name_parm}_name"] = name
+
+            # Reset single item labels
             update_tasker_object_menus(
                 guiself,
-                get_data=False,
+                get_data=True,
                 reset_single_names=False,
             )
+            # Reset the single item pulldown (this has to go after reset of labels!).
+            set_tasker_object_names(guiself)
+
             # Remap it.
             guiself.remapit(clear_names=False)
 
@@ -3557,10 +3695,7 @@ class CTkHyperlinkManager:
 
         # Highlight the string so it is easy to find.
         # Delete old tag and add new tag.
-        if "(Scene)" in orig_name:
-            length_to_use = len(search_string) - 6
-        else:
-            length_to_use = len(search_string)
+        length_to_use = len(search_string) - 6 if "(Scene)" in orig_name else len(search_string)
         our_view.textview_textbox.tag_remove("inlist", "1.0", "end")
         our_view.textview_textbox.tag_add(
             "inlist",
@@ -3576,22 +3711,8 @@ class CTkHyperlinkManager:
         )
 
 
-# Initialize the GUI (_init_ method)
-def initialize_gui(self: ctk) -> None:
-    """Initializes the GUI by initializing variables and adding a logo.
-    Parameters:
-        - self (class): The class object.
-    Returns:
-        - None: Does not return anything.
-    Processing Logic:
-        - Calls initialize_variables function.
-        - Calls add_logo function."""
-    logger.info("Initializing GUI...")
-    initialize_variables(self)
-
-
 # Initialize the GUI varliables (e..g _init_ method)
-def initialize_variables(self: ctk) -> None:
+def initialize_gui(self: ctk) -> None:
     """
     Initialize variables for the MapTasker Runtime Options window.
     """
@@ -3775,7 +3896,7 @@ def _create_display_options_section(self: ctk) -> None:
         "s",
     )
 
-    add_label(
+    detail_level_label = add_label(
         self,
         self.sidebar_frame,
         "Display Detail Level:",
@@ -3787,6 +3908,10 @@ def _create_display_options_section(self: ctk) -> None:
         20,
         (10, 0),
         "",
+    )
+    create_tooltip(
+        detail_level_label,
+        text="This determines the amount of detail displayed in the output.\n\nLevel 0 = the least detail, 5 = the most detail.",
     )
     self.sidebar_detail_option = add_option_menu(
         self,
@@ -3811,14 +3936,14 @@ def _create_display_options_section(self: ctk) -> None:
             "Display Profile and Task Action Conditions",
             "condition_event",
             "conditions_checkbox",
-            None,
+            "Display the conditions such as 'State', 'Event', 'Time', etc. in the output.",
         ),
         ("Display TaskerNet Info", "taskernet_event", "taskernet_checkbox", None),
         (
             "Display Tasker Preferences",
             "preferences_event",
             "preferences_checkbox",
-            None,
+            "Include the Tasker 'preferences' in the output, if available in the XML file.",
         ),
         ("Hide Task Details Under Twisty", "twisty_event", "twisty_checkbox", None),
         (
@@ -4469,7 +4594,15 @@ def _create_tabview_section(self: ctk) -> None:
 
 def _create_specific_name_tab_content(self: ctk, tab: ctk) -> None:
     """Populates the 'Specific Name' tab."""
-    add_label(self, tab, "(Pick ONLY One)", "", 0, "normal", 4, 0, 20, (10, 10), "w")
+    pick_one = add_label(self, tab, "(Pick ONLY One)", "", 0, "normal", 4, 0, 20, (10, 10), "w")
+    create_tooltip(
+        pick_one,
+        text="""
+Select either a single Project, Profile, or Task to display (Map and Diagram views, and browser).
+If a single Project is selected, all of it's Projects, Tasks and Scenes will be included.
+If a single Profile is selected, it and all of it's Tasks will be displayed.
+""",
+    )
 
     self.list_unnamed_items_checkbox = add_checkbox(
         self,
@@ -4669,6 +4802,10 @@ def _create_debug_tab_content(self: ctk, tab: str) -> None:
         10,
         "w",
         "#6563ff",
+    )
+    create_tooltip(
+        self.runtime_checkbox,
+        text="Display this program's settings at the front of the configuration output (Map view and browser).",
     )
 
 
