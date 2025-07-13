@@ -2,23 +2,27 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.0.6] 07-July-2025
+## [8.1.0] 13-July-2025
 
 ### Added
 
-- Added: No additions.
+- Added: Tasker version 6.6.3-beta is supported.
+- Added: 'SecureTask Airplane Mode' plugin has been added.
+- Added: Additional tooltips have been added to the GUI.
+- Added: AI Llama model 'qwen3:1.7b' has been added.
 
 ### Changed
 
-- Changed: Code optimized to make it easier to pick up new changes in Tasker.
-- Changed: The Diagram view jump-to-top-task and jump-to-bottom-task buttons are now dynamic, only displaying when appropriate.
-- Changed: The AI Analysis output file is now saved with the date and time.
+- Changed: Tasks identified in Map view by hovering over a Project or Profile are listed as 'sorted'.
 
 ### Fixed
 
-- Fixed: The GUI last-tab-used is not saved and restored if either 'Rerun' or 'Run and Exit' is selected.
-- Fixed: Hover over directory name shows detail in the wrong background color in GUI on Windows.
-- Fixed: The GUI default window size is not high enough to include the 'Reset' button.
+- Fixed: Initial GUI displays with a jitter effect due to resizing based on the saved settings.
+- Fixed: Task action 'Call' is not appearing correctly.
+- Fixed: Some Task action selected checkboxes are identified as '=1' rather than as '(selected)'.
+- Fixed: The directory hotlink 'Up One Level' is not displaying in the Map View.
+- Fixed: Incorrect output color in Map view if '_color' is part of a variable name in a Task.
+- Fixed: Caveat at the bottom referring to inactive and unreferenced global variables is not appearing if the display level is 5.
 
 ### Known Issues
 
@@ -26,13 +30,22 @@ All notable changes to this project will be documented in this file!
 
 ## Older History Logs
 
+## [8.0.6]
+
+- Changed: Code optimized to make it easier to pick up new changes in Tasker.
+- Changed: The Diagram view jump-to-top-task and jump-to-bottom-task buttons are now dynamic, only displaying when appropriate.
+- Changed: The AI Analysis output file is now saved with the date and time.
+- Fixed: The GUI last-tab-used is not saved and restored if either 'Rerun' or 'Run and Exit' is selected.
+- Fixed: Hover over directory name shows detail in the wrong background color in GUI on Windows.
+- Fixed: The GUI default window size is not high enough to include the 'Reset' button.
+
 ## [8.0.5]
 
 - Added: Tasker version 6.6.0-beta is supported.
 - Fixed: 'Upgrade To Latest Version' GUI button is not working on Windows 11.
 - Fixed: Program error in maputils is_color_dark when hovering over item in Map view and the background color is a hex value.
 - Fixed: Task actions are double-spacing in the Map view on Windows.
-- Fixed: AI Analysis wqindow is missing the title.
+- Fixed: AI Analysis window is missing the title.
 - Fixed: Potential AI analysis loop if it this was left on in settings due to abnormal terminal.
 - Fixed: Logging is not enabled if 'debug' is on in the saved settings at startup.
 - Fixed: Program error if a new action argument is not yet supported.
@@ -41,7 +54,7 @@ All notable changes to this project will be documented in this file!
 
 - Added: No additions.
 - Changed: Gemini model 2.5 Pro has been upgraded from the preview model to 'gemini-2.5-pro'.
-- Fixed: Ai-Analysis windoiw is not getting the focus.
+- Fixed: Ai-Analysis window is not getting the focus.
 - Fixed: Numerous bugs when running on Windows 11.
 - Fixed: Diagram and Map views are not being displayed in the defined background color.
 - Fixed: The GUI 'hover tip' background and foreground colors are incorrect.
@@ -61,7 +74,7 @@ All notable changes to this project will be documented in this file!
 - Added: If selecting an unnamed Task to display from the single-name pulldown menu, display the owning Profile and Project names as well.
 - Fixed: Clicking a directory hotlink can inadvertently go to a partial match of the Tasker object name.
 - Fixed: Unable to change the color for unnamed Tasks.
-- Fixed: Non-GUI mode abends in diagram.py
+- Fixed: Non-GUI mode abnormally terminates in diagram.py
 
 ## [8.0.0]
 

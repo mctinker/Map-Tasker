@@ -1,7 +1,7 @@
 [project]
 name = "maptasker"
 dynamic = [ "version" ]
-version = "8.0.6"
+version = "8.1.0"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 requires-python = ">=3.11,<4.0"
 authors = [
@@ -45,7 +45,7 @@ dependencies = [
     "defusedxml>=0.7.1",  # More secure xml parser
     "google-generativeai>=0.8.5",  #  Ai Google Generative support
     "ollama>=0.5.1",  #  Ai Ollama support > cria rquires this
-    "openai>=1.93.0",  #  Ai OpenAi support
+    "openai>=1.95.0",  #  Ai OpenAi support
     "pillow==11.3.0",  # Image support in GUI.  Revert back to 11.2.0 to avoid UV bug with tkinter.
     "psutil>=7.0.0",  #  System monitoring
     "requests>=2.32.4",  # HTTP Server function request
@@ -77,6 +77,7 @@ priority = "primary"
 [tool.ruff]
 include = ["pyproject.toml", "maptasker/custom_overrides/**/*.py", "maptasker/src/**/*.py", "scripts/**/*.py"]
 respect-gitignore = true
+line-length = 120
 # editor.formatOnSaveMode = "modificationsIfAvailable"
 select = [
     'A',    # Builtins
@@ -174,7 +175,7 @@ ignore = [
 show-fixes = true
 src = ['src',]
 
-[tool.ruff.pycodestyle]
+[tool.ruff.lint.pycodestyle]
 ignore-overlong-task-comments = true
 
 [tool.ruff.flake8-quotes]
@@ -190,11 +191,13 @@ max-complexity = 15
 '__init__.py' = ['F401','F403','F405',]
 'tests/*' = ['ANN', 'ARG', 'INP001', 'S101',]
 
-[tool.ruff.pylint]
+[tool.ruff.lint.pylint]
 max-args = 15
 max-branches = 20
 max-returns = 10
-max-statements = 80
+max-statements = 120
+max-locals = 20
+max-nested-blocks = 10
 
 [tool.ruff.flake8-tidy-imports]
 ban-relative-imports = 'all'
@@ -233,6 +236,7 @@ pytest-mock = "*"
 files = ["maptasker/src/sysconst.py"]
 search = 'VERSION = "{current_version}"'
 replace = 'VERSION = "{new_version}"'
+
 
 
 [tool.poetry.group.dev.dependencies]
