@@ -2,33 +2,39 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.1.0] 14-July-2025
+## [8.1.1] ??-July-2025. # FIX
 
 ### Added
 
-- Added: Tasker version 6.6.3-beta is supported.
-- Added: 'SecureTask Airplane Mode' plugin has been added.
-- Added: Additional tooltips have been added to the GUI.
-- Added: AI Llama model 'qwen3:1.7b' has been added.
+- Added:
 
 ### Changed
 
-- Changed: Tasks identified in Map view by hovering over a Project or Profile are listed as 'sorted'.
+- Changed:
 
 ### Fixed
 
-- Fixed: Initial GUI displays with a jitter effect due to resizing based on the saved settings.
-- Fixed: Task action 'Call' is not appearing correctly.
-- Fixed: Some Task action selected checkboxes are identified as '=1' rather than as '(selected)'.
-- Fixed: The directory hotlink 'Up One Level' is not displaying in the Map View.
-- Fixed: Incorrect output color in Map view if '_color' is part of a variable name in a Task.
-- Fixed: Caveat at the bottom referring to inactive and unreferenced global variables is not appearing if the display level is 5.
+- Fixed: Program error in the GUI if 'None' is selected as the AI model.
 
 ### Known Issues
 
 - Unable to change any colors in GUI if using UV to manage the application (UV bug).
 
 ## Older History Logs
+
+## [8.1.0]
+
+- Added: Tasker version 6.6.3-beta is supported.
+- Added: 'SecureTask Airplane Mode' plugin has been added.
+- Added: Additional tooltips have been added to the GUI.
+- Added: AI Llama model 'qwen3:1.7b' has been added.
+- Changed: Tasks identified in Map view by hovering over a Project or Profile are listed as 'sorted'.
+- Fixed: Initial GUI displays with a jitter effect due to resizing based on the saved settings.
+- Fixed: Task action 'Call' is not appearing correctly.
+- Fixed: Some Task action selected checkboxes are identified as '=1' rather than as '(selected)'.
+- Fixed: The directory hotlink 'Up One Level' is not displaying in the Map View.
+- Fixed: Incorrect output color in Map view if '_color' is part of a variable name in a Task.
+- Fixed: Caveat at the bottom referring to inactive and unreferenced global variables is not appearing if the display level is 5.
 
 ## [8.0.6]
 

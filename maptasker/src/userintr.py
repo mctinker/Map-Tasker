@@ -2822,7 +2822,24 @@ class EventHandlers:
             "Display Names in Bold",
         )
 
-    # Process the 'Highlight Names' checkbox
+    # Process the 'EXtended' checkbox: Display Extended AI Model List
+    def extended_models_event(self) -> None:
+        """
+        Get input to display names in bold and put message
+        Args:
+            self: The class instance
+        Returns:
+            None: No value is returned
+        - Get input value from bold_checkbox attribute
+        - Put message "Display Names in Bold" based on input
+        - No return value, function updates attribute on class instance"""
+        the_view = self.parent
+        # FIX Save and restore this setting.
+        the_view.ai_model_extended_list = the_view.get_input_and_put_message(
+            the_view.aimodel_extend_checkbox,
+            "Display The Extended List of AI Models",
+        )
+
     def names_highlight_event(self) -> None:
         """
         Get input and put message for names highlight checkbox
@@ -3099,7 +3116,7 @@ class EventHandlers:
                 return
 
             # See if a valid API key was entered
-            if PrimeItems.ai[key] != value:  # If the key ent4ered doesn't matych what we already have.
+            if PrimeItems.ai[key] != value:  # If the key entered doesn't matych what we already have.
                 # Validate the lngth of the key
                 if value and key in apikeys_to_validate and not valid_api_key(key, value):
                     error_msg = f"{key.replace('_key', '').title()} API key is invalid!"
@@ -3166,12 +3183,12 @@ class EventHandlers:
         the_view = self.parent
 
         #  model:  OpenAI: GPT-3.5
-        model = modelplus.split(": ")[1]
-        if model == "None":
+        if modelplus == "None":
             the_view.display_message_box("No model selected.", "Orange")
             the_view.ai_model = ""
             display_analyze_button(the_view, 13, first_time=False)
             return
+        model = modelplus.split(": ")[1]
         the_view.ai_model = model
         the_view.display_message_box("Model set to " + model + ".", "Green")
 

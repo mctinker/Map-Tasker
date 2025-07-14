@@ -26,6 +26,7 @@ from maptasker.src.colrmode import set_color_mode
 from maptasker.src.diagcnst import task_delimeter
 from maptasker.src.diagutil import width_and_height_calculator_in_pixel
 from maptasker.src.error import rutroh_error
+from maptasker.src.getaimdl import get_anthropic_models, get_gemini_models, get_openai_models
 from maptasker.src.getids import get_ids
 from maptasker.src.guiutil2 import configure_progress_bar
 from maptasker.src.guiutils import (
@@ -40,6 +41,7 @@ from maptasker.src.guiutils import (
     display_progress_bar,
     extract_number_from_line,
     find_the_line,
+    get_api_key,
     get_appropriate_color,
     get_foreground_background_colors,
     get_item_xml,
@@ -3760,6 +3762,7 @@ def _initialize_ai_settings(self: ctk) -> None:
     self.ai_apikey = None
     self.ai_apikey_window = None
     self.ai_model = ""
+    self.ai_model_extended_list = False
     self.ai_prompt = None
 
 
@@ -4724,7 +4727,7 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         "",
     )
 
-    self.ai_model_label = add_label(
+    _ = add_label(
         self,
         tab,
         "Model to Use:",
@@ -4733,12 +4736,45 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         "normal",
         6,
         0,
-        center,
+        (center, 5),
         (0, 0),
-        "n",
+        "nw",
     )
 
-    display_models = sorted(model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name))
+    # Add the list of models.  If this is a request for an extended list, then get the extended list.
+    if self.ai_model_extended_list:
+        # FIX Move thjis code to guiutils.
+        _ = get_api_key()
+        openai_models = get_openai_models()
+        anthropic_models = get_anthropic_models()
+        gemini_models = get_gemini_models()
+        extended_model_groups = {
+            "OpenAI": openai_models,
+            "Anthropic": anthropic_models,
+            "Gemini": gemini_models,
+        }
+        # all_models = openai_models + anthropic_models + gemini_models
+
+        # Create an empty list to store the display models
+        display_models = []
+
+        # Iterate through the items in extended_model_groups
+        for name, models in extended_model_groups.items():
+            # Apply prefix_and_sort to the current group of models
+            sorted_models_with_prefix = prefix_and_sort(models, name)
+
+            # Extend the display_models list with the processed models
+            display_models.extend(sorted_models_with_prefix)
+
+        # Finally, sort the entire list of display models
+        display_models = sorted(display_models)
+    # Just display the pre-defined model names.
+    else:
+        display_models = sorted(
+            model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
+        )
+
+    # Insert the saved model name or 'None'.
     (
         display_models.insert(0, PrimeItems.program_arguments["ai_model"])
         if PrimeItems.program_arguments["ai_model"]
@@ -4751,9 +4787,32 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         display_models,
         6,
         0,
-        center,
+        center - 30,
         (30, 0),
-        "s",
+        "sw",
+    )
+
+    # Extra model list checkbox
+    self.aimodel_extend_checkbox = add_checkbox(
+        self,
+        tab,
+        self.event_handlers.extended_models_event,
+        "Extended",
+        6,
+        0,
+        (260, 0),
+        (0, 0),
+        "ne",
+        "",
+    )
+    create_tooltip(
+        self.aimodel_extend_checkbox,
+        text=(
+            "Display an extended list of ALL available models.\n\n"
+            "Note: If the API key is not set for OpenAI or Gemini,\n"
+            "then the default model list for the respective\n"
+            "AI provider will be displayed."
+        ),
     )
 
     display_analyze_button(self, 13, first_time=True)

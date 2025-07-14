@@ -81,7 +81,7 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 
 # TODO Change this 'changelog' with each release!  New lines (\n) must be added.
 CHANGELOG = """
-Version 8.1.0 - Change Log\n
+Version 8.1.1 - Change Log\n
 ### Added\n
 - Added: Tasker version 6.6.3-beta is supported.\n
 - Added: 'SecureTask Airplane Mode' plugin has been added.\n
@@ -2766,7 +2766,7 @@ def set_ai_key(self: object, model: str) -> None:
     Returns:
         None
     """
-    # Set the appropriate API key based on the mdeol chosen.
+    # Set the appropriate API key based on the model chosen.
     model_keys = {
         **dict.fromkeys(OPENAI_MODELS, "openai_key"),
         **dict.fromkeys(CLAUDE_MODELS, "claude_key"),

@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "8.1.0"
+VERSION = "8.1.1"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -108,6 +108,7 @@ ARGUMENT_NAMES = {
     "ai_analyze": "Analyze AI",
     "ai_apikey": "AI Api Key",
     "ai_model": "AI Model",
+    "ai_model_extended_list": "AI Model Extended List",
     "ai_popup_window_position": "Last Ai Popup Window Position",
     "ai_prompt": "AI Prompt",
     "android_file": "Android Backup File location on Android device",
