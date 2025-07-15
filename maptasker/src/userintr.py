@@ -42,6 +42,7 @@ from maptasker.src.guiutils import (
     display_analyze_button,
     display_current_file,
     display_messages_from_last_run,
+    display_model_pulldown,
     display_no_xml_message,
     display_selected_object_labels,
     fresh_message_box,
@@ -292,6 +293,7 @@ class MyGui(customtkinter.CTk):
         self.ai_model = ""
         self.ai_analyze = False
         self.ai_model = ""
+        self.ai_model_extended_list = False
         self.ai_prompt = AI_PROMPT
         self.specific_name_msg = ""
         self.current_file_display_message = True
@@ -841,6 +843,7 @@ class MyGui(customtkinter.CTk):
             "appearance_mode": lambda: self.event_handlers.change_appearance_mode_event(
                 value,
             ),
+            "ai_model_extended_list": lambda: self.event_handlers.extended_models_event(),
             "bold": lambda: self.select_deselect_checkbox(
                 self.bold_checkbox,
                 value,
@@ -1662,6 +1665,7 @@ class MyGui(customtkinter.CTk):
             self.ai_prompt = prompt
 
         # Now that we have loaded our settings, reconfigure the ai analyze button
+        # FIX This logic looks incomplete
         if ((self.ai_model in OPENAI_MODELS and self.ai_apikey) or self.ai_model) and (
             self.single_task_name or self.single_profile_name
         ):
@@ -2835,10 +2839,16 @@ class EventHandlers:
         - No return value, function updates attribute on class instance"""
         the_view = self.parent
         # FIX Save and restore this setting.
+        # FIX Re-display pulldown list.
         the_view.ai_model_extended_list = the_view.get_input_and_put_message(
             the_view.aimodel_extend_checkbox,
             "Display The Extended List of AI Models",
         )
+
+        # Delete the existing pulldown and redisplay it.
+        with contextlib.suppress(AttributeError):
+            the_view.ai_model_option.destroy()
+        display_model_pulldown(self, 50)
 
     def names_highlight_event(self) -> None:
         """
@@ -3075,12 +3085,12 @@ class EventHandlers:
         Args:
             apikey_window (customtkinter): The API key dialog window.
             cancel (bool): Indicates if the operation was canceled.
-            clear (str): "openai_key", "claude_key", etc.
+            clear (str): "openai_key", "anthropic_key", etc.
 
         Returns:
             None
         """
-        apikeys_to_validate = ["openai_key", "claude_key"]
+        apikeys_to_validate = ["openai_key", "anthropic_key"]
         # self points to the 'event_handlers'; apikey_window is the dialog box window (APIKeyDialog).
         my_gui = self.parent
         # Bail out if user hit 'Cancel' button.
@@ -3097,7 +3107,7 @@ class EventHandlers:
         # Get the API keys and update PrimeItems if necessary: key and length of key.
         api_keys = {
             "openai_key": apikey_window.openai_key.get(),
-            "claude_key": apikey_window.claude_key.get(),
+            "anthropic_key": apikey_window.anthropic_key.get(),
             "deepseek_key": apikey_window.deepseek_key.get(),
             "gemini_key": apikey_window.gemini_key.get(),
         }
@@ -3226,6 +3236,7 @@ class EventHandlers:
             the_view.display_message_box("No model selected.", "Orange")
             return
         # Set the AI API key based on the model selected.
+        # FIX This logic doesn't look complete
         if the_view.ai_model not in LLAMA_MODELS and not set_ai_key(
             the_view,
             the_view.ai_model,

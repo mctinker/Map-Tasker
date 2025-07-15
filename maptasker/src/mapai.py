@@ -51,7 +51,7 @@ def valid_api_key(ai: str, api_key: str) -> bool:
         except OpenAIError:
             return False
 
-    elif ai == "claude_key":
+    elif ai == "anthropic_key":
         try:
             client = anthropic.Anthropic(api_key=api_key)
             client.models.list()
@@ -276,6 +276,7 @@ def process_ai_query_and_response(
     model = PrimeItems.program_arguments["ai_model"]
     role = "You are a Tasker programmer on Android"
     try:
+        # FIX
         if model in OPENAI_MODELS:
             roletype = "user" if "o1" in PrimeItems.program_arguments["ai_model"] else "system"
             stream_feed = client.chat.completions.create(
@@ -337,6 +338,7 @@ def handle_ai_error(error: Exception) -> str:
         str: The formatted error message.
     """
     # Determine the AI being used.
+    # FIX
     model = PrimeItems.program_arguments["ai_model"]
     ai = next(
         (
@@ -509,6 +511,7 @@ def map_ai() -> None:
     )
 
     # Call appropriate AI routine: OpenAI or local Ollama
+    # FIX
     model_function_map = {
         **dict.fromkeys(OPENAI_MODELS, open_ai),
         **dict.fromkeys(LLAMA_MODELS, local_ai),

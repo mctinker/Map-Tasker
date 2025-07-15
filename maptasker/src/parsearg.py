@@ -15,7 +15,15 @@ from tkinter import font
 from maptasker.src.error import error_handler
 from maptasker.src.maputils import validate_ip_address, validate_port
 from maptasker.src.nameattr import get_tk
-from maptasker.src.sysconst import LLAMA_MODELS, OPENAI_MODELS, TYPES_OF_COLORS, logger
+from maptasker.src.sysconst import (
+    CLAUDE_MODELS,
+    DEEPSEEK_MODELS,
+    GEMINI_MODELS,
+    LLAMA_MODELS,
+    OPENAI_MODELS,
+    TYPES_OF_COLORS,
+    logger,
+)
 
 
 # Validate mutually inclusive variables
@@ -195,7 +203,8 @@ def runtime_parser() -> None:
     )
 
     # Ai arguments
-    models = OPENAI_MODELS + LLAMA_MODELS
+    # FIX
+    models = OPENAI_MODELS + LLAMA_MODELS + CLAUDE_MODELS + DEEPSEEK_MODELS + GEMINI_MODELS
     parser.add_argument(
         "-ai_model",
         help="The model to use for Profiles and Tasks Ai analysis.",

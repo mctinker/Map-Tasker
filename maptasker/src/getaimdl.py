@@ -6,6 +6,7 @@
 import contextlib
 
 import google.generativeai as genai
+import ollama
 from openai import OpenAI
 
 from maptasker.src.error import rutroh_error
@@ -174,8 +175,106 @@ def get_gemini_models() -> list:
         #     print(f"  Top K: {model.top_k:.2f}")
         #     print("-" * 40)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         rutroh_error(f"An error occurred trying to list OpenAi models: {e}")
         return GEMINI_MODELS
 
     return models_to_keep
+
+
+def modify_list_elements(list1: list[str], list2: list[str], suffix: str) -> list[str]:
+    """
+    Modifies elements in the first list if they are found in the second list.
+
+    For each string in `list2`, if it matches an element in `list1`, the
+    matching element in `list1` will have the `suffix` appended to it.
+    The modification happens in place, and the modified list1 is also returned.
+
+    Args:
+        list1 (list[str]): The list of strings to be modified.
+        list2 (list[str]): The list of strings to check against `list1`.
+        suffix (str): The string to append to matching elements in `list1`.
+
+    Returns:
+        list[str]: The modified list1.
+    """
+    # Create a set from list2 for efficient lookups.
+    # This makes checking if an element from list1 is in list2 much faster,
+    # especially with large lists.
+    list2_set = set(list2)
+
+    # Iterate through list1 using an index so we can modify elements in place.
+    for i in range(len(list1)):
+        # Check if the current element of list1 exists in list2_set.
+        if list1[i] in list2_set:
+            # If it matches, append the suffix to the element.
+            list1[i] += suffix
+    return list1
+
+
+def get_llama_models() -> list:
+    """
+    Returns a list of names of Ollama AI models that are typically used for coding.
+
+    This function fetches all locally available Ollama models and filters them
+    based on keywords commonly found in the names of coding-oriented models.
+
+    Returns:
+        list[str]: A list of model names (e.g., "codellama", "deepseek-coder").
+    """
+    extended_list = [
+        "aya",
+        "codegemma",
+        "codellama",
+        "deepseek-coder",
+        "deepseek-coder-v2",
+        "deepseek-r1",
+        "deepseek-r1:1.5b",
+        # "deepseek-v3",  # This model is huge...404gb!
+        # "devstral",     # This model is 14gb!
+        "exaone-deep",
+        "gemma",
+        "gemma2:latest",
+        "gemma2:2b",
+        "gemma3",
+        "gemma3:1b",
+        "gemma3n",
+        "llama2",
+        "llama3:latest",
+        "llama3.1:latest",
+        "llama3.2",
+        "llama3.3",
+        "mistral",
+        "mistral-nemo",
+        "phi3",
+        "phi4",
+        "phi4-mini",
+        "qwen",
+        "qwen2",
+        "qwen2.5-coder",
+        "qwen2.5vl:3b",
+        "qwen2.5",
+        "qwen3:1.7b",
+        "tinyllama",
+    ]
+
+    try:
+        # Get all locally available models
+        all_models = ollama.list()
+        loaded_models = []
+
+        # Get the model names into a list.
+        for model_info in all_models["models"]:
+            loaded_models.append(model_info["name"])
+
+        # Remove duplicates and sort for cleaner output
+        return sorted(list(set(modify_list_elements(extended_list, loaded_models, " (loaded)"))))
+
+    except ollama.ResponseError as e:
+        rutroh_error(f"Error connecting to Ollama: {e}")
+        rutroh_error(
+            "Please ensure the Ollama server is running. You can usually start it by running 'ollama serve' in your terminal.",
+        )
+        return []
+    except Exception as e:  # noqa: BLE001
+        rutroh_error(f"An unexpected error occurred: {e}")

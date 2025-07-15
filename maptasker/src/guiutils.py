@@ -35,6 +35,7 @@ from maptasker.src.diagcnst import (
     straight_line,
 )
 from maptasker.src.error import rutroh_error
+from maptasker.src.getaimdl import get_anthropic_models, get_gemini_models, get_llama_models, get_openai_models
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.lineout import LineOut
@@ -56,11 +57,10 @@ from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     CHANGELOG_FILE,
     CHANGELOG_JSON_FILE,
-    CLAUDE_MODELS,
     DEEPSEEK_MODELS,
     ERROR_FILE,
-    GEMINI_MODELS,
     KEYFILE,
+    LLAMA_MODELS,
     MODEL_GROUPS,
     NOW_TIME,
     OPENAI_MODELS,
@@ -1041,7 +1041,6 @@ def get_api_key() -> tuple:
         if kind_of_file == "pickle":
             PrimeItems.ai["api_key"] = contents["api_key"]
             PrimeItems.ai["openai_key"] = contents["openai_key"]
-            PrimeItems.ai["claude_key"] = contents["claude_key"]
             PrimeItems.ai["deepseek_key"] = contents["deepseek_key"]
             with contextlib.suppress(KeyError):
                 PrimeItems.ai["gemini_key"] = contents["gemini_key"]
@@ -2766,12 +2765,12 @@ def set_ai_key(self: object, model: str) -> None:
     Returns:
         None
     """
-    # Set the appropriate API key based on the model chosen.
+    # Set the appropriate API key based on the model chosen.  This doesn't apply to llama (no apikey).
     model_keys = {
-        **dict.fromkeys(OPENAI_MODELS, "openai_key"),
-        **dict.fromkeys(CLAUDE_MODELS, "claude_key"),
-        **dict.fromkeys(DEEPSEEK_MODELS, "deepseek_key"),
-        **dict.fromkeys(GEMINI_MODELS, "gemini_key"),
+        **dict.fromkeys(PrimeItems.ai["openai_models"], "openai_key"),
+        **dict.fromkeys(PrimeItems.ai["anthropic_models"], "anthropic_key"),
+        **dict.fromkeys(PrimeItems.ai["deepseek_models"], "deepseek_key"),
+        **dict.fromkeys(PrimeItems.ai["gemini_models"], "gemini_key"),
     }
     self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
     return bool(self.ai_apikey)
@@ -2960,3 +2959,111 @@ def is_line_displayed(text_widget: ctk.CTkTextbox, line_number: int) -> bool:
 
     # 2. Compare: Check if the given line_number falls within this range.
     return top_visible_line <= line_number <= bottom_visible_line
+
+
+def get_extended_ai_model_list() -> list:
+    """Retrieves and compiles an extended list of available AI models from various providers.
+
+    This function fetches models from OpenAI, Anthropic, and Gemini (assuming respective
+    API keys are configured or default lists are available). It groups these models
+    by their provider, applies a prefix and sorts them within their groups,
+    and then consolidates them into a single, sorted list.
+
+    The process involves:
+    1. Attempting to retrieve API keys (though the result is not directly used here).
+    2. Fetching available models from OpenAI.
+    3. Fetching available models from Anthropic.
+    4. Fetching available models from Gemini.
+    5. Organizing these models into a dictionary, keyed by provider name.
+    6. Iterating through each provider's models, applying 'prefix_and_sort'
+       (which is expected to add a provider-specific prefix and sort them).
+    7. Consolidating all processed models into a single list.
+    8. Performing a final sort on the entire consolidated list.
+
+    Returns:
+        list: A sorted list of strings, where each string represents an AI model,
+              potentially prefixed with its provider name (e.g., "OpenAI/gpt-4o",
+              "Anthropic/claude-3-opus-20240229", "Gemini/gemini-pro").
+              Returns an empty list if no models are retrieved.
+    """
+    _ = get_api_key()
+    PrimeItems.ai["openai_models"] = get_openai_models()
+    PrimeItems.ai["anthropic_models"] = get_anthropic_models()
+    PrimeItems.ai["gemini_models"] = get_gemini_models()
+    PrimeItems.ai["llama_models"] = get_llama_models()
+    # FIX Add a get_llama_models and get_deepseek_medels
+    extended_model_groups = {
+        "OpenAI": PrimeItems.ai["openai_models"],
+        "Anthropic": PrimeItems.ai["openai_models"],
+        "Gemini": PrimeItems.ai["gemini_models"],
+        "LLAMA": LLAMA_MODELS,
+        "DeepSeek": DEEPSEEK_MODELS,
+    }
+    # all_models = openai_models + anthropic_models + gemini_models
+
+    # Create an empty list to store the display models
+    display_models = []
+
+    # Iterate through the items in extended_model_groups
+    for name, models in extended_model_groups.items():
+        # Apply prefix_and_sort to the current group of models
+        sorted_models_with_prefix = prefix_and_sort(models, name)
+
+        # Extend the display_models list with the processed models
+        display_models.extend(sorted_models_with_prefix)
+
+    # Finally, sort the entire list of display models
+    return sorted(display_models)
+
+
+def display_model_pulldown(self: ctk, center: int) -> None:
+    """Displays a pulldown menu of AI models.
+
+    This function dynamically creates and displays an option menu containing a list of AI models.
+    The list of models can be either a pre-defined set or an extended list, depending on the
+    `guiwin.ai_model_extended_list` flag. It also handles the initial selection in the pulldown
+    based on a saved model name from program arguments.
+
+    Args:
+        self: The instance of the calling class, which can be a `guiwin` object or an
+            `event_handler` object that contains a `parent` attribute referencing the `guiwin`.
+        center (int): The x-coordinate for centering the pulldown menu on the display.
+    """
+    # Determine if we are coming from guiwins (valid 'self') or userintr ('event_handler')
+    try:
+        guiwin = self
+        if self.ai_model:
+            pass
+    except AttributeError:
+        guiwin = self.parent
+
+    # Set the window tab
+    tab = guiwin.tabview.tab("Analyze")
+
+    # Add the list of models.  If this is a request for an extended list, then get the extended list.
+    if guiwin.ai_model_extended_list:
+        display_models = get_extended_ai_model_list()
+
+    # Just display the pre-defined model names.
+    else:
+        display_models = sorted(
+            model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
+        )
+
+    # Insert the saved model name or 'None'.
+    (
+        display_models.insert(0, PrimeItems.program_arguments["ai_model"])
+        if PrimeItems.program_arguments["ai_model"]
+        else display_models.insert(0, "None")
+    )
+    guiwin.ai_model_option = add_option_menu(
+        guiwin,
+        tab,
+        guiwin.event_handlers.ai_model_selected_event,
+        display_models,
+        6,
+        0,
+        center - 30,
+        (30, 0),
+        "sw",
+    )
