@@ -136,6 +136,9 @@ def my_trace_function(frame, event, arg) -> None:  # noqa: ANN001
     Custom trace function that logs execution details.
 
     Invoked with:
+    import sys
+    from maptasker.src.guiutil2 import my_trace_function
+    sys.settrace(my_trace_function)
         if PrimeItems.program_arguments["debug"]:
                 PrimeItems.trace = True
                 sys.settrace(my_trace_function)

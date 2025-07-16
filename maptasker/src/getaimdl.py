@@ -224,37 +224,55 @@ def get_llama_models() -> list:
     """
     extended_list = [
         "aya",
-        "codegemma",
-        "codellama",
+        "codegemma:latest",
+        "codegemma:2b",
+        "codegemma:7b",
+        "codellama:latest",
+        "codellama:7b",
+        "codellama:13b",
         "deepseek-coder",
-        "deepseek-coder-v2",
+        "deepseek-coder-v2:latest",
         "deepseek-r1",
         "deepseek-r1:1.5b",
         # "deepseek-v3",  # This model is huge...404gb!
         # "devstral",     # This model is 14gb!
+        "dolphin3",
         "exaone-deep",
         "gemma",
         "gemma2:latest",
         "gemma2:2b",
         "gemma3",
         "gemma3:1b",
-        "gemma3n",
-        "llama2",
+        "gemma3n:latest",
+        "gemma3n:e2bllama2",
+        "gemma3n:e4b",
         "llama3:latest",
         "llama3.1:latest",
-        "llama3.2",
+        "llama3:l:8b",
+        "llama3.2:latest",
+        "llama3.2:1b",
         "llama3.3",
         "mistral",
         "mistral-nemo",
-        "phi3",
+        "olmo2",
+        "phi3:latest",
         "phi4",
         "phi4-mini",
         "qwen",
         "qwen2",
-        "qwen2.5-coder",
+        "qwen2.5-coder:latest",
+        "qwen2.5-coder:0.5b",
+        "qwen2.5-coder:1.5b",
+        "qwen2.5-coder:3b",
         "qwen2.5vl:3b",
-        "qwen2.5",
+        "qwen2.5:0.5b",
+        "qwen2.5:1.5b",
+        "qwen2.5:latest",
+        "qwen3:0.6b",
+        "qwen3:latest",
         "qwen3:1.7b",
+        "qwen3:4b",
+        "starcoder2:latest",
         "tinyllama",
     ]
 
@@ -264,17 +282,39 @@ def get_llama_models() -> list:
         loaded_models = []
 
         # Get the model names into a list.
-        for model_info in all_models["models"]:
-            loaded_models.append(model_info["name"])
+        loaded_models = [model_info["model"] for model_info in all_models["models"]]
 
         # Remove duplicates and sort for cleaner output
-        return sorted(list(set(modify_list_elements(extended_list, loaded_models, " (loaded)"))))
+        return sorted(list(set(modify_list_elements(extended_list, loaded_models, " (installed)"))))
 
     except ollama.ResponseError as e:
         rutroh_error(f"Error connecting to Ollama: {e}")
         rutroh_error(
             "Please ensure the Ollama server is running. You can usually start it by running 'ollama serve' in your terminal.",
         )
-        return []
+        return extended_list
     except Exception as e:  # noqa: BLE001
         rutroh_error(f"An unexpected error occurred: {e}")
+        return extended_list
+
+
+def get_deepseek_models() -> list:
+    """
+    Get the list of deepseek AI models.
+
+    Returns:
+        list: _description_
+    """
+    return [
+        "deepseek-coder",  # General DeepSeek Coder
+        "deepseek-coder:1.3b",
+        "deepseek-coder:6.7b",
+        "deepseek-coder:33b",
+        "deepseek-coder-v2",  # Newer DeepSeek Coder V2
+        "deepseek-coder-v2-lite-base",
+        "deepseek-coder-v2-lite-instruct",
+        "deepseek-coder-v2-base",
+        "deepseek-coder-v2-instruct",
+        "deepseek-reasoner",  # Good for reasoning, math, and coding tasks
+        # Note: deepseek-chat (DeepSeek-V3) is general purpose, less specialized for coding
+    ]

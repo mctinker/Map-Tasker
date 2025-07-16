@@ -35,7 +35,13 @@ from maptasker.src.diagcnst import (
     straight_line,
 )
 from maptasker.src.error import rutroh_error
-from maptasker.src.getaimdl import get_anthropic_models, get_gemini_models, get_llama_models, get_openai_models
+from maptasker.src.getaimdl import (
+    get_anthropic_models,
+    get_deepseek_models,
+    get_gemini_models,
+    get_llama_models,
+    get_openai_models,
+)
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.lineout import LineOut
@@ -57,13 +63,10 @@ from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     CHANGELOG_FILE,
     CHANGELOG_JSON_FILE,
-    DEEPSEEK_MODELS,
     ERROR_FILE,
     KEYFILE,
-    LLAMA_MODELS,
     MODEL_GROUPS,
     NOW_TIME,
-    OPENAI_MODELS,
     TAB_NAMES,
     UNNAMED_ITEM,
     VERSION,
@@ -822,13 +825,28 @@ def display_analyze_button(self, row: int, first_time: bool) -> None:  # noqa: A
     if self.ai_model == "None":
         self.ai_model = ""
     # Highlight the button if we have everything to run the Analysis.
-    if ((self.ai_model in OPENAI_MODELS and self.ai_apikey) or self.ai_model) and (
-        self.single_task_name or self.single_profile_name or self.single_project_name
-    ):
+    if (
+        (
+            any(
+                self.ai_model in category
+                for category in [
+                    PrimeItems.ai["openai_models"],
+                    PrimeItems.ai["deepseek_models"],
+                    PrimeItems.ai["gemini_models"],
+                    PrimeItems.ai["anthropic_models"],
+                ]
+            )
+            and self.ai_apikey
+        )
+        or (self.ai_model in PrimeItems.ai["llama_models"] and self.ai_apikey)
+    ) and (self.single_task_name or self.single_profile_name or self.single_project_name):
+        # Make it pink
+        print("bingo highlight")
         fg_color = "#f55dff"
         text_color = "#FFFFFF"
     # Otherwise, use the default colors.
     else:
+        print("bingo nop hilight")
         fg_color = "#246FB6"
         text_color = "#FFFFFF"
     # First time only, add the button
@@ -883,11 +901,20 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
     # Read the api key.
     self.ai_apikey = get_api_key()
 
+    # Get all available models
+    all_models = {
+        "OpenAI": PrimeItems.ai["openai_models"],
+        "anthropic": PrimeItems.ai["anthropic_models"],
+        "LLAMA": PrimeItems.ai["llama_models"],
+        "DeepSeek": PrimeItems.ai["deepseek_models"],
+        "Gemini": PrimeItems.ai["gemini_models"],
+    }
+
     # Set up for the display line of the API key and model details.
     key_model = PrimeItems.program_arguments["ai_model"]
     # key_to_display = "Unset" if self.ai_apikey == "None" or not self.ai_apikey else "Set"
     key_to_display = "N/A"
-    for ai, models in MODEL_GROUPS.items():
+    for ai, models in all_models.items():
         if self.ai_model in models:
             key_model = ai
             if ai == "LLAMA":
@@ -1042,6 +1069,11 @@ def get_api_key() -> tuple:
             PrimeItems.ai["api_key"] = contents["api_key"]
             PrimeItems.ai["openai_key"] = contents["openai_key"]
             PrimeItems.ai["deepseek_key"] = contents["deepseek_key"]
+            # For snthropic, try the old key name first.
+            try:
+                PrimeItems.ai["anthropic_key"] = contents["claude_key"]
+            except KeyError:  # New key name.
+                PrimeItems.ai["anthropic_key"] = contents["anthropic_key"]
             with contextlib.suppress(KeyError):
                 PrimeItems.ai["gemini_key"] = contents["gemini_key"]
             return PrimeItems.ai["api_key"]
@@ -1556,6 +1588,7 @@ def display_messages_from_last_run(self) -> None:  # noqa: ANN001
                     "Turquoise",
                 )
                 self.tabview.set("Analyze")  # Switch to the 'Analyze' tab
+
             # Some other message.  Just display it in the message box and break it up if needed.
             elif "\n" in error_msg:
                 messages = error_msg.split("\n")
@@ -1612,6 +1645,7 @@ def display_current_file(self, file_name: str) -> None:  # noqa: ANN001
     )
     # Update UI elements
     update_tasker_object_menus(self, get_data=False, reset_single_names=False)
+    # X Do we need this call here?
     display_analyze_button(self, 13, first_time=False)
 
 
@@ -2991,13 +3025,15 @@ def get_extended_ai_model_list() -> list:
     PrimeItems.ai["anthropic_models"] = get_anthropic_models()
     PrimeItems.ai["gemini_models"] = get_gemini_models()
     PrimeItems.ai["llama_models"] = get_llama_models()
-    # FIX Add a get_llama_models and get_deepseek_medels
+    PrimeItems.ai["deepseek_models"] = get_deepseek_models()
+
+    # Define the models
     extended_model_groups = {
         "OpenAI": PrimeItems.ai["openai_models"],
         "Anthropic": PrimeItems.ai["openai_models"],
         "Gemini": PrimeItems.ai["gemini_models"],
-        "LLAMA": LLAMA_MODELS,
-        "DeepSeek": DEEPSEEK_MODELS,
+        "LLAMA": PrimeItems.ai["llama_models"],
+        "DeepSeek": PrimeItems.ai["deepseek_models"],
     }
     # all_models = openai_models + anthropic_models + gemini_models
 

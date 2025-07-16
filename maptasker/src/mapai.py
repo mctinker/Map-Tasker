@@ -21,13 +21,9 @@ from maptasker.src.guiwins import PopupWindow
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ANALYSIS_FILE,
-    CLAUDE_MODELS,
     DEEPSEEK_MODELS,
     ERROR_FILE,
-    GEMINI_MODELS,
     KEYFILE,
-    LLAMA_MODELS,
-    OPENAI_MODELS,
 )
 
 
@@ -276,8 +272,7 @@ def process_ai_query_and_response(
     model = PrimeItems.program_arguments["ai_model"]
     role = "You are a Tasker programmer on Android"
     try:
-        # FIX
-        if model in OPENAI_MODELS:
+        if model in PrimeItems.ai["openai_models"]:
             roletype = "user" if "o1" in PrimeItems.program_arguments["ai_model"] else "system"
             stream_feed = client.chat.completions.create(
                 model=model,
@@ -289,7 +284,7 @@ def process_ai_query_and_response(
                 response_format={"type": "text"},
             )
             response = "".join(chunk.choices[0].delta.content or "" for chunk in stream_feed)
-        elif model in CLAUDE_MODELS:
+        elif model in PrimeItems.ai["anthropic_models"]:
             message = client.messages.create(
                 model=PrimeItems.program_arguments["ai_model"],
                 max_tokens=1024,
@@ -299,7 +294,7 @@ def process_ai_query_and_response(
                 ],
             )
             response = message.content[0].text
-        elif model in DEEPSEEK_MODELS:
+        elif model in PrimeItems.ai["deepseek_models"]:
             message = client.chat.completions.create(
                 model=model,
                 messages=[
@@ -311,7 +306,7 @@ def process_ai_query_and_response(
                 stream=False,
             )
             response = message.choices[0].message.content
-        elif model in GEMINI_MODELS:
+        elif model in PrimeItems.ai["gemini_models"]:
             # Suppress logging warnings
             message = client.GenerativeModel(model)
             response1 = message.generate_content(role + query)
@@ -338,17 +333,16 @@ def handle_ai_error(error: Exception) -> str:
         str: The formatted error message.
     """
     # Determine the AI being used.
-    # FIX
     model = PrimeItems.program_arguments["ai_model"]
     ai = next(
         (
             name
             for name, models in {
-                "OpenAI": OPENAI_MODELS,
-                "Claude": CLAUDE_MODELS,
-                "DeepSeek": DEEPSEEK_MODELS,
-                "Llama": LLAMA_MODELS,
-                "Gemini": GEMINI_MODELS,
+                "OpenAI": PrimeItems.ai["openai_models"],
+                "Claude": PrimeItems.ai["anthropic_models"],
+                "DeepSeek": PrimeItems.ai["deepseek_models"],
+                "Llama": PrimeItems.ai["llama_models"],
+                "Gemini": PrimeItems.ai["gemini_models"],
             }.items()
             if model in models
         ),
@@ -511,13 +505,12 @@ def map_ai() -> None:
     )
 
     # Call appropriate AI routine: OpenAI or local Ollama
-    # FIX
     model_function_map = {
-        **dict.fromkeys(OPENAI_MODELS, open_ai),
-        **dict.fromkeys(LLAMA_MODELS, local_ai),
-        **dict.fromkeys(CLAUDE_MODELS, claude_ai),
-        **dict.fromkeys(DEEPSEEK_MODELS, deepseek_ai),
-        **dict.fromkeys(GEMINI_MODELS, gemini_ai),
+        **dict.fromkeys(PrimeItems.ai["openai_models"], open_ai),
+        **dict.fromkeys(PrimeItems.ai["llama_models"], local_ai),
+        **dict.fromkeys(PrimeItems.ai["anthropic_models"], claude_ai),
+        **dict.fromkeys(PrimeItems.ai["deepseek_models"], deepseek_ai),
+        **dict.fromkeys(PrimeItems.ai["gemini_models"], gemini_ai),
     }
     model = PrimeItems.program_arguments["ai_model"]
     model_function_map.get(

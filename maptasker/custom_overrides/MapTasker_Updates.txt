@@ -1,0 +1,4 @@
+MapTasker Updates...
+
+ctk_tk.py lines 103-106 commented out due to bug on Windows.
+          lines  107-109 to fix premature exit.

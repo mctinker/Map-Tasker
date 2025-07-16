@@ -16,7 +16,7 @@ from maptasker.src.error import error_handler
 from maptasker.src.maputils import validate_ip_address, validate_port
 from maptasker.src.nameattr import get_tk
 from maptasker.src.sysconst import (
-    CLAUDE_MODELS,
+    ANTHROPIC_MODELS,
     DEEPSEEK_MODELS,
     GEMINI_MODELS,
     LLAMA_MODELS,
@@ -203,8 +203,7 @@ def runtime_parser() -> None:
     )
 
     # Ai arguments
-    # FIX
-    models = OPENAI_MODELS + LLAMA_MODELS + CLAUDE_MODELS + DEEPSEEK_MODELS + GEMINI_MODELS
+    models = OPENAI_MODELS + LLAMA_MODELS + ANTHROPIC_MODELS + DEEPSEEK_MODELS + GEMINI_MODELS
     parser.add_argument(
         "-ai_model",
         help="The model to use for Profiles and Tasks Ai analysis.",

@@ -846,7 +846,7 @@ def rename_file(old_file_path: str, new_file_path: str) -> bool:
 
         os.rename(old_file_path, new_file_path)
         print(f"File '{old_file_path}' successfully renamed to '{new_file_path}'.")
-        return True
+        return True  # noqa: TRY300
     except OSError as e:
         print(f"Error renaming file: {e}")
         return False

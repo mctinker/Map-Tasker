@@ -2838,8 +2838,8 @@ class EventHandlers:
         - Put message "Display Names in Bold" based on input
         - No return value, function updates attribute on class instance"""
         the_view = self.parent
-        # FIX Save and restore this setting.
-        # FIX Re-display pulldown list.
+
+        # Re-display pulldown list.
         the_view.ai_model_extended_list = the_view.get_input_and_put_message(
             the_view.aimodel_extend_checkbox,
             "Display The Extended List of AI Models",
@@ -3203,7 +3203,7 @@ class EventHandlers:
         the_view.display_message_box("Model set to " + model + ".", "Green")
 
         # Set the appropriate API key based on the mdeol chosen.
-        set_ai_key(self, model)
+        _ = set_ai_key(self, model)
 
         # Redisplay the Analyze button.
         display_analyze_button(the_view, 13, first_time=False)

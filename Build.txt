@@ -105,6 +105,14 @@ poetry run black --config pyproject.toml maptasker/src
 semgrep security check on ~/kaka/maptasker-test:
 semgrep --config=auto /Users/mikrubin/Kaka/maptasker_test/venv/lib/python3.10/site-packages/maptasker/src
 
+ADDING A RUNTIME ARGUMENT
+1- add variable to guiwins initialize_gui _initialize... settings
+2- Add the GUI function guiwins initialize_screen
+3- Add the variable to sysconst ARGUMENT_NAMES
+4- Set the default for variable in userintr set_defaults
+5- Add the variable/function-call to userinter restore_display 'message_map'
+6- Add the event to userintr event handler
+
 # Git list dimensions
 git count-objects -v
 

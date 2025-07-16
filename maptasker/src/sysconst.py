@@ -276,13 +276,12 @@ OPENAI_MODELS = [
 ]
 LLAMA_MODELS = [
     "aya",
-    "codegemma",
-    "codellama",
+    "codegemma:2b",
+    "codellama:latest",
     "deepseek-r1:1.5b",
     # "deepseek-v3",  # This model is huge...404gb!
     # "devstral",     # This model is 14gb!
     "exaone-deep",
-    "gemma2:2b",
     "gemma3:1b",
     "llama2",
     "llama3.2",
@@ -290,17 +289,14 @@ LLAMA_MODELS = [
     "mistral",
     "mistral-nemo",
     "phi3",
-    "phi4",
     "phi4-mini",
     "qwen3:1.7b",
     "tinyllama",
 ]
-CLAUDE_MODELS = [
+ANTHROPIC_MODELS = [
     "claude-3-7-sonnet-latest",
     "claude-3-5-sonnet-latest",
     "claude-3-5-haiku-latest",
-    "claude-3-opus-latest",
-    "claude-3-sonnet-20240229",
     "claude-opus-4-20250514",
     "claude-sonnet-4-20250514",
 ]
@@ -310,9 +306,6 @@ DEEPSEEK_MODELS = [
 ]
 GEMINI_MODELS = [
     # TODO 1.5 going away in Sept. 24th 2025
-    "gemini-1.5-flash",
-    "gemini-1.5-flash-8b",
-    "gemini-1.5-pro",
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
     "gemini-2.5-flash",
@@ -321,7 +314,7 @@ GEMINI_MODELS = [
 ]
 MODEL_GROUPS = {
     "OpenAI": OPENAI_MODELS,
-    "Claude": CLAUDE_MODELS,
+    "Claude": ANTHROPIC_MODELS,
     "LLAMA": LLAMA_MODELS,
     "DeepSeek": DEEPSEEK_MODELS,
     "Gemini": GEMINI_MODELS,
