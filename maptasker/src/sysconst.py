@@ -109,6 +109,7 @@ ARGUMENT_NAMES = {
     "ai_apikey": "AI Api Key",
     "ai_model": "AI Model",
     "ai_model_extended_list": "AI Model Extended List",
+    "ai_name": "Name of the AI",
     "ai_popup_window_position": "Last Ai Popup Window Position",
     "ai_prompt": "AI Prompt",
     "android_file": "Android Backup File location on Android device",

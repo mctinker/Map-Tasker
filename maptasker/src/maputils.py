@@ -27,6 +27,7 @@ import requests
 import webcolors
 from requests.exceptions import ConnectionError, InvalidSchema, Timeout  # noqa: A004
 
+from maptasker.src.error import rutroh_error
 from maptasker.src.format import format_html
 from maptasker.src.getbakup import write_out_backup_file
 from maptasker.src.getids import get_ids
@@ -835,18 +836,19 @@ def rename_file(old_file_path: str, new_file_path: str) -> bool:
         bool: True if the file was successfully renamed, False otherwise.
     """
     if not isinstance(old_file_path, str) or not isinstance(new_file_path, str):
-        print("Error: Both old_file_path and new_file_path must be strings.")
+        rutroh_error("Error: Both old_file_path and new_file_path must be strings.")
         return False
 
     try:
         # Check if the old file exists before attempting to rename
         if not os.path.exists(old_file_path):
-            print(f"Error: The file '{old_file_path}' does not exist.")
+            rutroh_error(f"Error: The file '{old_file_path}' does not exist.")
             return False
 
         os.rename(old_file_path, new_file_path)
-        print(f"File '{old_file_path}' successfully renamed to '{new_file_path}'.")
+        rutroh_error(f"File '{old_file_path}' successfully renamed to '{new_file_path}'.")
+
         return True  # noqa: TRY300
     except OSError as e:
-        print(f"Error renaming file: {e}")
+        rutroh_error(f"Error renaming file: {e}")
         return False

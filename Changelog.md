@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added:
+- Added: 'Extended' AI Model List is now available to include many more AI models in the GUI.
 
 ### Changed
 

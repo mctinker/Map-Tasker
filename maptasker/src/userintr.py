@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING
 import customtkinter
 import requests
 
+from maptasker.src.aiutils import get_api_key
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
 
@@ -46,7 +47,6 @@ from maptasker.src.guiutils import (
     display_no_xml_message,
     display_selected_object_labels,
     fresh_message_box,
-    get_api_key,
     get_xml,
     is_new_version,
     list_tasker_objects,
@@ -67,6 +67,7 @@ from maptasker.src.guiutils import (
     valid_item,
     validate_or_filelist_xml,
 )
+from maptasker.src.guiutil2 import is_valid_ai_config
 from maptasker.src.guiwins import (
     APIKeyDialog,
     CTkHyperlinkManager,
@@ -103,7 +104,6 @@ from maptasker.src.sysconst import (
     DIAGRAM_FILE,
     KEYFILE,
     LLAMA_MODELS,
-    OPENAI_MODELS,
     TAB_NAMES,
     TYPES_OF_COLOR_NAMES,
     DISPLAY_DETAIL_LEVEL_all_parameters,
@@ -210,6 +210,9 @@ class MyGui(customtkinter.CTk):
                 reset_single_names=False,
             ),
         )
+
+        # Display the model list. Do this here since now we have the exended model list setting restored.
+        display_model_pulldown(self, 50)
 
         # Update the analysis button
         logger.info("Updating analysis button")
@@ -843,7 +846,12 @@ class MyGui(customtkinter.CTk):
             "appearance_mode": lambda: self.event_handlers.change_appearance_mode_event(
                 value,
             ),
-            "ai_model_extended_list": lambda: self.event_handlers.extended_models_event(),
+            "ai_model_extended_list": lambda: self.select_deselect_checkbox(
+                self.aimodel_extend_checkbox,
+                value,
+                "Display Profile/Task Conditions",
+                display=False,
+            ),
             "bold": lambda: self.select_deselect_checkbox(
                 self.bold_checkbox,
                 value,
@@ -1030,7 +1038,8 @@ class MyGui(customtkinter.CTk):
         - Loops through color lookup and builds message of color changes
         - Displays message box with all setting changes
         """
-        # Indicate that an extraction is in progress so we don't inadvertently change the colors already set via the 'appearance_mode' setting.
+        # Indicate that an extraction is in progress so we don't inadvertently change the colors already set
+        # via the 'appearance_mode' setting.
         self.extract_in_progress = True
         for key, value in temp_args.items():
             if key is not None:
@@ -1665,10 +1674,8 @@ class MyGui(customtkinter.CTk):
             self.ai_prompt = prompt
 
         # Now that we have loaded our settings, reconfigure the ai analyze button
-        # FIX This logic looks incomplete
-        if ((self.ai_model in OPENAI_MODELS and self.ai_apikey) or self.ai_model) and (
-            self.single_task_name or self.single_profile_name
-        ):
+        # Highlight the button if we have everything to run the Analysis.
+        if (is_valid_ai_config(self)) and (self.single_task_name or self.single_profile_name):
             self.ai_analyze_button.configure(fg_color="#f55dff", text_color="#5554ff")
 
     # Set up the main window's geometry
@@ -2845,9 +2852,7 @@ class EventHandlers:
             "Display The Extended List of AI Models",
         )
 
-        # Delete the existing pulldown and redisplay it.
-        with contextlib.suppress(AttributeError):
-            the_view.ai_model_option.destroy()
+        # Display the model pulldown list.
         display_model_pulldown(self, 50)
 
     def names_highlight_event(self) -> None:
@@ -3198,9 +3203,13 @@ class EventHandlers:
             the_view.ai_model = ""
             display_analyze_button(the_view, 13, first_time=False)
             return
-        model = modelplus.split(": ")[1]
+        selection = modelplus.split(": ")
+        model = selection[1]
+        name = selection[0]
+        # FIX antrhopic and openai have iodentical-named models.  Need to save AI name as well.
         the_view.ai_model = model
-        the_view.display_message_box("Model set to " + model + ".", "Green")
+        the_view.ai_name = name
+        the_view.display_message_box(f"{name} model set to {model}.", "Green")
 
         # Set the appropriate API key based on the mdeol chosen.
         _ = set_ai_key(self, model)
@@ -3235,8 +3244,8 @@ class EventHandlers:
         if the_view.ai_model in ("None", ""):
             the_view.display_message_box("No model selected.", "Orange")
             return
+
         # Set the AI API key based on the model selected.
-        # FIX This logic doesn't look complete
         if the_view.ai_model not in LLAMA_MODELS and not set_ai_key(
             the_view,
             the_view.ai_model,

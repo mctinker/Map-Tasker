@@ -4,6 +4,8 @@
 # mapai: Ai support                                                                    #
 #                                                                                      #
 import contextlib
+import os
+import pickle
 
 import google.generativeai as genai
 import ollama
@@ -13,6 +15,7 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     GEMINI_MODELS,
+    KEYFILE,
     OPENAI_MODELS,
 )
 
@@ -50,24 +53,45 @@ def get_openai_models() -> list:
             "o",
             "text",  # Embedding model, not for text generation but good to be aware of
         ]
+        bad_models = [
+            "audio",
+            "transcribe",
+            "tts",
+            "moderation",
+            "embedded",
+            "embedding",
+            "image",
+            "realtime",
+            "research",
+        ]
 
-        # Create a dictionary for quick lookup and to maintain order
-        model_details = {m.id: m for m in all_models.data}
-
-        # Filter and sort models based on preference
-        sorted_models = []
-        for model in sorted(model_details.keys()):
-            for model_prefix in preferred_model_prefix:
-                if model.startswith(model_prefix):
-                    # print(model_details[model])
-                    sorted_models.append(model)
-                    break
+        # Filter and sort models based on preference using list comprehension
+        sorted_models = [
+            model.id
+            for model in sorted(all_models.data, key=lambda m: m.id)  # Sort by model.id
+            if any(model.id.startswith(prefix) for prefix in preferred_model_prefix)
+            and not contains_any_substring_loop(model.id, bad_models)
+        ]
 
     except Exception as e:  # noqa: BLE001
         rutroh_error(f"An error occurred trying to list OpenAi models: {e}")
         return OPENAI_MODELS
 
     return sorted_models
+
+
+def contains_any_substring_loop(main_string: str, substrings: str) -> bool:
+    """
+    Checks if a main_string contains any of the provided substrings using a for loop.
+
+    Args:
+        main_string (str): The string to search within.
+        substrings (list): A list of strings to search for.
+
+    Returns:
+        bool: True if main_string contains at least one of the substrings, False otherwise.
+    """
+    return any(sub in main_string for sub in substrings)  # No substring was found
 
 
 def get_anthropic_models() -> list:
@@ -318,3 +342,63 @@ def get_deepseek_models() -> list:
         "deepseek-reasoner",  # Good for reasoning, math, and coding tasks
         # Note: deepseek-chat (DeepSeek-V3) is general purpose, less specialized for coding
     ]
+
+
+# Get the Ai api key
+def get_api_key() -> tuple:
+    """
+    Retrieves the API key from the specified file.
+
+    This function checks if the KEYFILE exists and if it does, it opens the file and reads the first line. The first line is assumed to be the API key. If the KEYFILE does not exist, it returns the string "None".
+
+    Returns:
+        tuple: The file type and the API key if it exists, otherwise "None".
+    """
+    if os.path.isfile(KEYFILE):
+        kind_of_file, contents = detect_and_read_file(KEYFILE)
+        if kind_of_file == "text":  # Legacy?
+            return contents
+        if kind_of_file == "pickle":
+            PrimeItems.ai["api_key"] = contents["api_key"]
+            PrimeItems.ai["openai_key"] = contents["openai_key"]
+            PrimeItems.ai["deepseek_key"] = contents["deepseek_key"]
+            # For snthropic, try the old key name first.
+            try:
+                PrimeItems.ai["anthropic_key"] = contents["claude_key"]
+            except KeyError:  # New key name.
+                PrimeItems.ai["anthropic_key"] = contents["anthropic_key"]
+            with contextlib.suppress(KeyError):
+                PrimeItems.ai["gemini_key"] = contents["gemini_key"]
+            with contextlib.suppress(KeyError):
+                PrimeItems.ai["ai_name"] = contents["ai_name"]
+            return PrimeItems.ai["api_key"]
+    return "None"
+
+
+def detect_and_read_file(file_path: object) -> tuple:
+    """
+    Detects the file type and reads its content.
+
+    Args:
+        file_path (object): The path to the file to be read.
+
+    Returns:
+        tuple: A tuple containing the file type and its content.
+    """
+    try:
+        # Try opening the file as a pickle
+        with open(file_path, "rb") as file:
+            content = pickle.load(file)  # noqa: S301
+        return "pickle", content  # noqa: TRY300
+    except (pickle.UnpicklingError, EOFError):
+        pass
+
+    try:
+        # Try opening the file as text
+        with open(file_path, encoding="utf-8") as file:
+            content = file.read()
+        return "text", content  # noqa: TRY300
+    except UnicodeDecodeError:
+        pass
+
+    return "None", None

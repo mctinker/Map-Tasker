@@ -104,9 +104,6 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
         # MapTasker mod: comment out...causes an error
         # if sys.platform.startswith("win"):
         #     self.after(200, self._windows_set_titlebar_icon)
-        # Added lines 108-109 to fix premature exit.
-        if sys.platform == "darwin":
-            self.after(200, self._windows_set_titlebar_icon)
 
         # set titlebar color (Windows only)
         if sys.platform.startswith("win"):

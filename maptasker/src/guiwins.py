@@ -554,7 +554,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -3757,7 +3759,9 @@ def _initialize_ai_settings(self: ctk) -> None:
     self.ai_apikey = None
     self.ai_apikey_window = None
     self.ai_model = ""
+    self.ai_name = ""
     self.ai_model_extended_list = False
+    self.displaying_extended_list = None
     self.ai_prompt = None
 
 
@@ -4736,7 +4740,7 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         "nw",
     )
 
-    # Display the model list
+    # # Display the default model list
     display_model_pulldown(self, center)
 
     # Extra model list checkbox
@@ -4762,6 +4766,7 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         ),
     )
 
+    # Set up the initial analyze button with default models.
     display_analyze_button(self, 13, first_time=True)
 
     self.ai_help_button = add_button(

@@ -106,6 +106,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # Process the GUI
     user_input.mainloop()
+
     # Get rid of window
     MyGui.quit(user_input)
     del MyGui

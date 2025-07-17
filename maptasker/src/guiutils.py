@@ -23,6 +23,14 @@ import customtkinter as ctk
 import darkdetect
 from PIL import Image
 
+from maptasker.src.aiutils import (
+    get_anthropic_models,
+    get_api_key,
+    get_deepseek_models,
+    get_gemini_models,
+    get_llama_models,
+    get_openai_models,
+)
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.diagcnst import (
     angle,
@@ -35,15 +43,9 @@ from maptasker.src.diagcnst import (
     straight_line,
 )
 from maptasker.src.error import rutroh_error
-from maptasker.src.getaimdl import (
-    get_anthropic_models,
-    get_deepseek_models,
-    get_gemini_models,
-    get_llama_models,
-    get_openai_models,
-)
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
+from maptasker.src.guiutil2 import is_valid_ai_config
 from maptasker.src.lineout import LineOut
 from maptasker.src.maputil2 import save_window_position, store_windows
 from maptasker.src.maputils import (
@@ -64,7 +66,6 @@ from maptasker.src.sysconst import (
     CHANGELOG_FILE,
     CHANGELOG_JSON_FILE,
     ERROR_FILE,
-    KEYFILE,
     MODEL_GROUPS,
     NOW_TIME,
     TAB_NAMES,
@@ -825,28 +826,12 @@ def display_analyze_button(self, row: int, first_time: bool) -> None:  # noqa: A
     if self.ai_model == "None":
         self.ai_model = ""
     # Highlight the button if we have everything to run the Analysis.
-    if (
-        (
-            any(
-                self.ai_model in category
-                for category in [
-                    PrimeItems.ai["openai_models"],
-                    PrimeItems.ai["deepseek_models"],
-                    PrimeItems.ai["gemini_models"],
-                    PrimeItems.ai["anthropic_models"],
-                ]
-            )
-            and self.ai_apikey
-        )
-        or (self.ai_model in PrimeItems.ai["llama_models"] and self.ai_apikey)
-    ) and (self.single_task_name or self.single_profile_name or self.single_project_name):
+    if (is_valid_ai_config(self)) and (self.single_task_name or self.single_profile_name or self.single_project_name):
         # Make it pink
-        print("bingo highlight")
         fg_color = "#f55dff"
         text_color = "#FFFFFF"
     # Otherwise, use the default colors.
     else:
-        print("bingo nop hilight")
         fg_color = "#246FB6"
         text_color = "#FFFFFF"
     # First time only, add the button
@@ -898,37 +883,41 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
     # Delete previous labels since they may be longer than new labels
     delete_ai_labels(self)
 
-    # Read the api key.
-    self.ai_apikey = get_api_key()
+    # # Read the api key.
+    # self.ai_apikey = get_api_key()
 
     # Get all available models
-    all_models = {
-        "OpenAI": PrimeItems.ai["openai_models"],
-        "anthropic": PrimeItems.ai["anthropic_models"],
-        "LLAMA": PrimeItems.ai["llama_models"],
-        "DeepSeek": PrimeItems.ai["deepseek_models"],
-        "Gemini": PrimeItems.ai["gemini_models"],
-    }
+    # all_models = {
+    #     "OpenAI": PrimeItems.ai["openai_models"],
+    #     "anthropic": PrimeItems.ai["anthropic_models"],
+    #     "LLAMA": PrimeItems.ai["llama_models"],
+    #     "DeepSeek": PrimeItems.ai["deepseek_models"],
+    #     "Gemini": PrimeItems.ai["gemini_models"],
+    # }
 
     # Set up for the display line of the API key and model details.
-    key_model = PrimeItems.program_arguments["ai_model"]
+    # key_model = PrimeItems.program_arguments["ai_model"]
     # key_to_display = "Unset" if self.ai_apikey == "None" or not self.ai_apikey else "Set"
-    key_to_display = "N/A"
-    for ai, models in all_models.items():
-        if self.ai_model in models:
-            key_model = ai
-            if ai == "LLAMA":
-                key_to_display = "N/A"
-            else:
-                apikey_name = f"{key_model.lower()}_key"
-                key_to_display = "Unset" if not PrimeItems.ai[apikey_name] else "Set"
-            break
+    # key_to_display = "N/A"
+    # for ai, models in all_models.items():
+    #     if self.ai_model in models:
+    #         key_model = ai
+    #         if ai == "LLAMA":
+    #             key_to_display = "N/A"
+    #         else:
+    #             apikey_name = f"{key_model.lower()}_key"
+    #             key_to_display = "Unset" if not PrimeItems.ai[apikey_name] else "Set"
+    #         break
+    # FIX don't have the 'ai' details
+    if not self.ai_apikey:
+        self.ai_apikey = get_api_key()
+    key_to_display = "N/A" if self.ai_model == "llama" else "Unset" if not self.ai_apikey else "Set"
     model_to_display = self.ai_model if self.ai_model else "None"
 
     self.ai_set_label1 = add_label(
         self,
         self.tabview.tab("Analyze"),
-        f"{key_model} API Key: {key_to_display}, Model: {model_to_display}",
+        f"{self.ai_name} API Key: {key_to_display}, Model: {model_to_display}",
         "",
         0,
         "normal",
@@ -1051,33 +1040,33 @@ def update_tasker_object_menus(self, get_data: bool, reset_single_names: bool) -
     display_selected_object_labels(self)
 
 
-# Get the Ai api key
-def get_api_key() -> tuple:
-    """
-    Retrieves the API key from the specified file.
+# # Get the Ai api key
+# def get_api_key() -> tuple:
+#     """
+#     Retrieves the API key from the specified file.
 
-    This function checks if the KEYFILE exists and if it does, it opens the file and reads the first line. The first line is assumed to be the API key. If the KEYFILE does not exist, it returns the string "None".
+#     This function checks if the KEYFILE exists and if it does, it opens the file and reads the first line. The first line is assumed to be the API key. If the KEYFILE does not exist, it returns the string "None".
 
-    Returns:
-        tuple: The file type and the API key if it exists, otherwise "None".
-    """
-    if os.path.isfile(KEYFILE):
-        kind_of_file, contents = detect_and_read_file(KEYFILE)
-        if kind_of_file == "text":
-            return contents
-        if kind_of_file == "pickle":
-            PrimeItems.ai["api_key"] = contents["api_key"]
-            PrimeItems.ai["openai_key"] = contents["openai_key"]
-            PrimeItems.ai["deepseek_key"] = contents["deepseek_key"]
-            # For snthropic, try the old key name first.
-            try:
-                PrimeItems.ai["anthropic_key"] = contents["claude_key"]
-            except KeyError:  # New key name.
-                PrimeItems.ai["anthropic_key"] = contents["anthropic_key"]
-            with contextlib.suppress(KeyError):
-                PrimeItems.ai["gemini_key"] = contents["gemini_key"]
-            return PrimeItems.ai["api_key"]
-    return "None"
+#     Returns:
+#         tuple: The file type and the API key if it exists, otherwise "None".
+#     """
+#     if os.path.isfile(KEYFILE):
+#         kind_of_file, contents = detect_and_read_file(KEYFILE)
+#         if kind_of_file == "text":
+#             return contents
+#         if kind_of_file == "pickle":
+#             PrimeItems.ai["api_key"] = contents["api_key"]
+#             PrimeItems.ai["openai_key"] = contents["openai_key"]
+#             PrimeItems.ai["deepseek_key"] = contents["deepseek_key"]
+#             # For snthropic, try the old key name first.
+#             try:
+#                 PrimeItems.ai["anthropic_key"] = contents["claude_key"]
+#             except KeyError:  # New key name.
+#                 PrimeItems.ai["anthropic_key"] = contents["anthropic_key"]
+#             with contextlib.suppress(KeyError):
+#                 PrimeItems.ai["gemini_key"] = contents["gemini_key"]
+#             return PrimeItems.ai["api_key"]
+#     return "None"
 
 
 # Either validate the file location provided or provide a filelist of XML files
@@ -1646,7 +1635,7 @@ def display_current_file(self, file_name: str) -> None:  # noqa: ANN001
     # Update UI elements
     update_tasker_object_menus(self, get_data=False, reset_single_names=False)
     # X Do we need this call here?
-    display_analyze_button(self, 13, first_time=False)
+    # display_analyze_button(self, 13, first_time=False)
 
 
 # Set up error message for single Project/Profile/Task name that was entered.  Called by check_name in userintr.
@@ -2718,38 +2707,6 @@ def on_closing(self: object) -> None:
     self.destroy()
 
 
-import pickle
-
-
-def detect_and_read_file(file_path: object) -> tuple:
-    """
-    Detects the file type and reads its content.
-
-    Args:
-        file_path (object): The path to the file to be read.
-
-    Returns:
-        tuple: A tuple containing the file type and its content.
-    """
-    try:
-        # Try opening the file as a pickle
-        with open(file_path, "rb") as file:
-            content = pickle.load(file)  # noqa: S301
-        return "pickle", content  # noqa: TRY300
-    except (pickle.UnpicklingError, EOFError):
-        pass
-
-    try:
-        # Try opening the file as text
-        with open(file_path, encoding="utf-8") as file:
-            content = file.read()
-        return "text", content  # noqa: TRY300
-    except UnicodeDecodeError:
-        pass
-
-    return "None", None
-
-
 def prefix_and_sort(strings: list[str], name: str) -> list[str]:
     """
     Prefixes each string in a list with a given name and returns the modified list sorted.
@@ -3078,13 +3035,27 @@ def display_model_pulldown(self: ctk, center: int) -> None:
 
     # Add the list of models.  If this is a request for an extended list, then get the extended list.
     if guiwin.ai_model_extended_list:
+        if guiwin.displaying_extended_list is not None and guiwin.displaying_extended_list:
+            return  # Return if we are already displaying it.
+        # Destroy the old window if it is last to be displayed.
+        if guiwin.displaying_extended_list is not None:
+            with contextlib.suppress(AttributeError):
+                guiwin.ai_model_option.destroy()
         display_models = get_extended_ai_model_list()
+        guiwin.displaying_extended_list = True
 
     # Just display the pre-defined model names.
     else:
+        if guiwin.displaying_extended_list is not None and not guiwin.displaying_extended_list:
+            return  # Return if we are already displaying it.
+        # Destroy the old window if it is last to be displayed.
+        if guiwin.displaying_extended_list is not None:
+            with contextlib.suppress(AttributeError):
+                guiwin.ai_model_option.destroy()
         display_models = sorted(
             model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
         )
+        guiwin.displaying_extended_list = False
 
     # Insert the saved model name or 'None'.
     (

@@ -61,6 +61,7 @@ class PrimeItems:
 
     ai: ClassVar = {
         "do_ai": False,
+        "ai_name": "",
         "model": "",
         "output_lines": [],  # Saved output results if doing an AI run.
         "api_key": "",
@@ -190,6 +191,8 @@ class PrimeItemsReset:
         PrimeItems.tkroot = None
         PrimeItems.ai = {
             "do_ai": False,
+            "ai_name": "",
+            "model": "",
             "output_lines": [],
             "api_key": "",
             "openai_key": "",

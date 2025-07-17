@@ -14,9 +14,9 @@ import google.generativeai as genai
 from openai import OpenAI, OpenAIError
 
 from maptasker.src import cria
+from maptasker.src.aiutils import get_api_key
 from maptasker.src.config import AI_PROMPT
 from maptasker.src.error import error_handler
-from maptasker.src.guiutils import get_api_key
 from maptasker.src.guiwins import PopupWindow
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
