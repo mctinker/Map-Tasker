@@ -883,35 +883,29 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
     # Delete previous labels since they may be longer than new labels
     delete_ai_labels(self)
 
-    # # Read the api key.
-    # self.ai_apikey = get_api_key()
+    # FIX Test this out.
+    # FIX Make it work for common models (antrhropic and openai)
+    # If we don't have a model yet, find out which model this key belongs to.
+    if not self.ai_model:
+        # Get all available models
+        all_models = {
+            "OpenAI": PrimeItems.ai["openai_models"],
+            "anthropic": PrimeItems.ai["anthropic_models"],
+            "LLAMA": PrimeItems.ai["llama_models"],
+            "DeepSeek": PrimeItems.ai["deepseek_models"],
+            "Gemini": PrimeItems.ai["gemini_models"],
+        }
+        # Set up for the display line of the API key and model details.
+        for ai, models in all_models.items():
+            if self.ai_model in models:
+                self.ai_model = ai
 
-    # Get all available models
-    # all_models = {
-    #     "OpenAI": PrimeItems.ai["openai_models"],
-    #     "anthropic": PrimeItems.ai["anthropic_models"],
-    #     "LLAMA": PrimeItems.ai["llama_models"],
-    #     "DeepSeek": PrimeItems.ai["deepseek_models"],
-    #     "Gemini": PrimeItems.ai["gemini_models"],
-    # }
+                break
 
-    # Set up for the display line of the API key and model details.
-    # key_model = PrimeItems.program_arguments["ai_model"]
-    # key_to_display = "Unset" if self.ai_apikey == "None" or not self.ai_apikey else "Set"
-    # key_to_display = "N/A"
-    # for ai, models in all_models.items():
-    #     if self.ai_model in models:
-    #         key_model = ai
-    #         if ai == "LLAMA":
-    #             key_to_display = "N/A"
-    #         else:
-    #             apikey_name = f"{key_model.lower()}_key"
-    #             key_to_display = "Unset" if not PrimeItems.ai[apikey_name] else "Set"
-    #         break
     # FIX don't have the 'ai' details
     if not self.ai_apikey:
         self.ai_apikey = get_api_key()
-    key_to_display = "N/A" if self.ai_model == "llama" else "Unset" if not self.ai_apikey else "Set"
+    key_to_display = "N/A" if self.ai_name == "LLAMA" else "Unset" if not self.ai_apikey else "Set"
     model_to_display = self.ai_model if self.ai_model else "None"
 
     self.ai_set_label1 = add_label(
@@ -1570,7 +1564,7 @@ def display_messages_from_last_run(self) -> None:  # noqa: ANN001
             #     self.ai_missing_module = "openai"
 
             # Handle Ai Response and display it in a new toplevel window
-            if "Ai Response" in error_msg:
+            if "AI Response" in error_msg:
                 self.display_ai_response(error_msg)
                 self.display_message_box(
                     "Analysis response is in a separate Window.",

@@ -24,6 +24,7 @@ def initialize_runtime_arguments() -> dict:
         "ai_apikey": "",  # AI API key
         "ai_apikey_window_position": "",  # Last-used APIKey Options window position
         "ai_model": "",  # AI model
+        "ai_name": "",  # AI name
         "ai_popup_window_position": "",  # Last-used ai popup window position (currently not used)
         "ai_prompt": "",  # AI prompt
         "android_file": ANDROID_FILE,

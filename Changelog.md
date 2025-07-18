@@ -10,15 +10,17 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed:
+- Changed: Restructured the AI model handler to allow for the extended model list.
 
 ### Fixed
 
 - Fixed: Program error in the GUI if 'None' is selected as the AI model.
+- Fixed: Entering an API key into the GUI does not update the 'Set' or 'Unset' message.
 
 ### Known Issues
 
 - Unable to change any colors in GUI if using UV to manage the application (UV bug).
+- MapTasker may unexpectedly terminate normally immediately after an AI Analysis.  The analysis file is saved for viewing offline.
 
 ## Older History Logs
 

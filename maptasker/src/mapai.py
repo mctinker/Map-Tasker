@@ -136,7 +136,7 @@ def record_response(response: str, ai_object: str, item: str) -> None:
     """
     with open(ANALYSIS_FILE, "w") as response_file:
         response_file.write(
-            f'Ai Response using model {PrimeItems.program_arguments["ai_model"]} for {ai_object} "{item}":\n\n{response}',
+            f'{PrimeItems.program_arguments["ai_name"]} AI Response using model {PrimeItems.program_arguments["ai_model"]} for {ai_object} "{item}":\n\n{response}',
         )
     # QAueue up the message to display in the GUI textbox.
     process_error(
@@ -247,7 +247,7 @@ def process_error(error: str, ai_object: str, item: str) -> None:
     # Note: "Ai Response" must be a part of the message for it to be recognized by guiutils.
     with open(ERROR_FILE, "w") as error_file:
         error_file.write(
-            f"Ai Response using model {PrimeItems.program_arguments['ai_model']} for {ai_object} {item}:\n\n{output_error}",
+            f"'{PrimeItems.program_arguments['ai_name']} AI Response using model {PrimeItems.program_arguments['ai_model']} for {ai_object} {item}:\n\n{output_error}",
         )
 
 
@@ -505,6 +505,8 @@ def map_ai() -> None:
     )
 
     # Call appropriate AI routine: OpenAI or local Ollama
+    # FIX Fails on ollama.
+    # FIX: Modify to use ai_name.
     model_function_map = {
         **dict.fromkeys(PrimeItems.ai["openai_models"], open_ai),
         **dict.fromkeys(PrimeItems.ai["llama_models"], local_ai),

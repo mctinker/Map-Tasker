@@ -243,6 +243,10 @@ def is_valid_ai_config(self: ctk) -> bool:
         key_to_check = PrimeItems.ai.get(config["key"], None)
         api_key = key_to_check if provider != "llama" and key_to_check == PrimeItems.ai[f"{provider}_key"] else None
 
+        # If llama, then we need to strip " (Installed)" off the name.
+        if provider == "llama":
+            models = [item.replace(" (installed)", "") for item in models]
+
         if self.ai_model in models:
             if provider != "llama" and not api_key:
                 # We have found the model but it doesn't have the api key.

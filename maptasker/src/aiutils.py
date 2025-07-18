@@ -14,6 +14,7 @@ from openai import OpenAI
 from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
+    DEEPSEEK_MODELS,
     GEMINI_MODELS,
     KEYFILE,
     OPENAI_MODELS,
@@ -329,19 +330,7 @@ def get_deepseek_models() -> list:
     Returns:
         list: _description_
     """
-    return [
-        "deepseek-coder",  # General DeepSeek Coder
-        "deepseek-coder:1.3b",
-        "deepseek-coder:6.7b",
-        "deepseek-coder:33b",
-        "deepseek-coder-v2",  # Newer DeepSeek Coder V2
-        "deepseek-coder-v2-lite-base",
-        "deepseek-coder-v2-lite-instruct",
-        "deepseek-coder-v2-base",
-        "deepseek-coder-v2-instruct",
-        "deepseek-reasoner",  # Good for reasoning, math, and coding tasks
-        # Note: deepseek-chat (DeepSeek-V3) is general purpose, less specialized for coding
-    ]
+    return DEEPSEEK_MODELS
 
 
 # Get the Ai api key

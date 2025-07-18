@@ -4762,7 +4762,9 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
             "Display an extended list of ALL available models.\n\n"
             "Note: If the API key is not set for OpenAI or Gemini,\n"
             "then the default model list for the respective\n"
-            "AI provider will be displayed."
+            "AI provider will be displayed.\n\n"
+            "Note: Not all models have been validated and\n"
+            "      one or more may return an error on analysis."
         ),
     )
 

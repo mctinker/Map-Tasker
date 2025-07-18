@@ -103,7 +103,6 @@ from maptasker.src.sysconst import (
     CHANGELOG_JSON_URL,
     DIAGRAM_FILE,
     KEYFILE,
-    LLAMA_MODELS,
     TAB_NAMES,
     TYPES_OF_COLOR_NAMES,
     DISPLAY_DETAIL_LEVEL_all_parameters,
@@ -294,8 +293,8 @@ class MyGui(customtkinter.CTk):
         self.color_row = 4
         self.message = ""
         self.ai_model = ""
+        self.ai_name = ""
         self.ai_analyze = False
-        self.ai_model = ""
         self.ai_model_extended_list = False
         self.ai_prompt = AI_PROMPT
         self.specific_name_msg = ""
@@ -827,13 +826,19 @@ class MyGui(customtkinter.CTk):
             "rerun",
             "reset",
             "window_position",
+            "Analyze",
+            "ai_analyze",
             "ai_analysis_window_position",
             "ai_apikey_window_position",
+            "ai_model",
+            "ai_name",
             "ai_popup_window_position",
+            "ai_prompt",
             "color_window_position",
             "diagram_window_position",
             "map_window_position",
             "progressbar_window_position",
+            "tab_to_use",
             "tree_window_position",
             "guiview",
             "fetched_backup_from_android",
@@ -1044,6 +1049,10 @@ class MyGui(customtkinter.CTk):
         for key, value in temp_args.items():
             if key is not None:
                 setattr(self, key, value)
+                # Start log if debug
+                if key == "debug":
+                    log_startup_values()
+                # Now display the setting and act on it if neccesary.
                 if new_message := self.restore_display(key, value):
                     self.display_message_box(f"{new_message}\n", "Green")
 
@@ -1281,6 +1290,7 @@ class MyGui(customtkinter.CTk):
             - If XML is valid, exit and return to process_gui.
             - If XML is not valid, return to GUI."""
         # Save our last window position and last tab used.
+        print("bingo3", self.ai_model)
         self.window_position = self.winfo_geometry()
         self.tab_to_use = self.tabview.get()
 
@@ -1297,6 +1307,7 @@ class MyGui(customtkinter.CTk):
                 return
 
         # Do the final cleanup of windows and exit.
+        print("bingo4", self.ai_model)
         self.cleanup(run_only)
 
     # Prompt for and get the XML file from the local drive.
@@ -2256,6 +2267,8 @@ class EventHandlers:
         # Reset AI settings
         the_view.ai_prompt = AI_PROMPT
         the_view.ai_model = ""
+        the_view.ai_analyze = False
+        the_view.ai_name = ""
 
         # Reset Tasker-related option menus
         tasker_optionmenus = []
@@ -3175,6 +3188,9 @@ class EventHandlers:
             with open(KEYFILE, "wb") as key_file:
                 pickle.dump(PrimeItems.ai, key_file)
 
+            # Redisplay the Analyze button.
+            display_analyze_button(my_gui, 13, first_time=False)
+
             # Redisplay ai settings with new key.
             display_selected_object_labels(my_gui)
         else:
@@ -3201,17 +3217,18 @@ class EventHandlers:
         if modelplus == "None":
             the_view.display_message_box("No model selected.", "Orange")
             the_view.ai_model = ""
+            the_view.ai_name = ""
             display_analyze_button(the_view, 13, first_time=False)
             return
         selection = modelplus.split(": ")
-        model = selection[1]
+        model = selection[1].replace(" (installed)", "")
         name = selection[0]
         # FIX antrhopic and openai have iodentical-named models.  Need to save AI name as well.
         the_view.ai_model = model
         the_view.ai_name = name
         the_view.display_message_box(f"{name} model set to {model}.", "Green")
 
-        # Set the appropriate API key based on the mdeol chosen.
+        # Set the appropriate API key based on the model chosen.
         _ = set_ai_key(self, model)
 
         # Redisplay the Analyze button.
@@ -3246,7 +3263,7 @@ class EventHandlers:
             return
 
         # Set the AI API key based on the model selected.
-        if the_view.ai_model not in LLAMA_MODELS and not set_ai_key(
+        if the_view.ai_name != "LLAMA" and not set_ai_key(
             the_view,
             the_view.ai_model,
         ):
@@ -3263,7 +3280,7 @@ class EventHandlers:
             the_view.ai_analyze = True
             the_view.event_handlers.clear_messages_event()  # Clear out all displayed messages.
             the_view.display_message_box(
-                f"Running analysis with model {the_view.ai_model}.",
+                f"Running {the_view.ai_name} analysis with model {the_view.ai_model}.",
                 "Green",
             )
             the_view.tab_to_use = the_view.tabview.get()
@@ -3275,6 +3292,7 @@ class EventHandlers:
 
             # Ok, run the analysis by rerunning the program with our ai_analyze = True
             # The analysis output file will be created and displayed upon reentry to MyGui.
+            print("bingo1", the_view.ai_model)
             the_view.event_handlers.rerun_event()
         # Test if no XML data loaded
         elif (
@@ -3439,6 +3457,7 @@ class EventHandlers:
         - Calls withdraw() to reset the program state
         - Calls quit() twice to ensure program exits"""
         the_view = self.parent
+        print("bingo2", the_view.ai_model)
         # Reset the program state since it may have been previously set by the 'Map' view.
         reset_primeitems_single_names()
         the_view.rerun = True
