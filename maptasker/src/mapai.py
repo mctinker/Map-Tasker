@@ -270,9 +270,11 @@ def process_ai_query_and_response(
         None: This function does not return anything.
     """
     model = PrimeItems.program_arguments["ai_model"]
+    name = PrimeItems.program_arguments["ai_name"]
     role = "You are a Tasker programmer on Android"
+    # FIX Refactor
     try:
-        if model in PrimeItems.ai["openai_models"]:
+        if name == "OpenAI":
             roletype = "user" if "o1" in PrimeItems.program_arguments["ai_model"] else "system"
             stream_feed = client.chat.completions.create(
                 model=model,
@@ -284,7 +286,7 @@ def process_ai_query_and_response(
                 response_format={"type": "text"},
             )
             response = "".join(chunk.choices[0].delta.content or "" for chunk in stream_feed)
-        elif model in PrimeItems.ai["anthropic_models"]:
+        elif name == "Anthropic":
             message = client.messages.create(
                 model=PrimeItems.program_arguments["ai_model"],
                 max_tokens=1024,
@@ -294,7 +296,7 @@ def process_ai_query_and_response(
                 ],
             )
             response = message.content[0].text
-        elif model in PrimeItems.ai["deepseek_models"]:
+        elif name == "deepSeek":
             message = client.chat.completions.create(
                 model=model,
                 messages=[
@@ -306,7 +308,7 @@ def process_ai_query_and_response(
                 stream=False,
             )
             response = message.choices[0].message.content
-        elif model in PrimeItems.ai["gemini_models"]:
+        elif name == "Gemini":
             # Suppress logging warnings
             message = client.GenerativeModel(model)
             response1 = message.generate_content(role + query)
@@ -317,7 +319,7 @@ def process_ai_query_and_response(
     except OpenAIError as e:
         process_error(str(e), ai_object, item)
     except Exception as e:  # noqa: BLE001
-        error_message = handle_ai_error(e)
+        error_message = handle_ai_error(e.message)
         with open(ERROR_FILE, "w") as response_file:
             response_file.write(error_message)
 
@@ -505,19 +507,19 @@ def map_ai() -> None:
     )
 
     # Call appropriate AI routine: OpenAI or local Ollama
-    # FIX Fails on ollama.
+    # FIX Fails on ollama...need to remove ' (installed)'
     # FIX: Modify to use ai_name.
-    model_function_map = {
-        **dict.fromkeys(PrimeItems.ai["openai_models"], open_ai),
-        **dict.fromkeys(PrimeItems.ai["llama_models"], local_ai),
-        **dict.fromkeys(PrimeItems.ai["anthropic_models"], claude_ai),
-        **dict.fromkeys(PrimeItems.ai["deepseek_models"], deepseek_ai),
-        **dict.fromkeys(PrimeItems.ai["gemini_models"], gemini_ai),
+    name_function_map = {
+        "OpenAI": open_ai,
+        "Anthropic": claude_ai,
+        "DeepSeek": deepseek_ai,
+        "Gemini": gemini_ai,
+        "LLAMA": local_ai,
     }
-    model = PrimeItems.program_arguments["ai_model"]
-    model_function_map.get(
-        model,
-        lambda *args: error_handler("Invalid model selected.", 12),
+    ai_name = PrimeItems.program_arguments["ai_name"]
+    name_function_map.get(
+        ai_name,
+        lambda *args: error_handler("Invalid model selected.", 12),  # noqa: ARG005
     )(
         query,
         ai_object,

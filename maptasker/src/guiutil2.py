@@ -234,7 +234,7 @@ def is_valid_ai_config(self: ctk) -> bool:
         return False  # Don't do anything if there is no model to check against.
 
     # Make sure we have read in the api keys.
-    if not self.ai_apikey:
+    if not self.ai_apikey or self.ai_apikey == "Hidden":
         self.ai_apikey = get_api_key()
 
     is_valid_config = False

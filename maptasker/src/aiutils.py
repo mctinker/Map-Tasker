@@ -64,6 +64,7 @@ def get_openai_models() -> list:
             "image",
             "realtime",
             "research",
+            "instruct",
         ]
 
         # Filter and sort models based on preference using list comprehension
@@ -109,17 +110,17 @@ def get_anthropic_models() -> list:
     """
     # From : https://docs.anthropic.com/en/api/client-sdks
     return [
-        "claude-opus-4-20250514",
+        # "claude-opus-4-20250514",
         "claude-opus-4-0",  # alias
-        "claude-sonnet-4-20250514",
+        # "claude-sonnet-4-20250514",
         "claude-sonnet-4-0",  # alias
         # Claude 3.7 Models
-        "claude-3-7-sonnet-20250219",
+        # "claude-3-7-sonnet-20250219",
         "claude-3-7-sonnet-latest",  # alias
         # Claude 3.5 Models
-        "claude-3-5-haiku-20241022",
+        # "claude-3-5-haiku-20241022",
         "claude-3-5-haiku-latest",  # alias
-        "claude-3-5-sonnet-20241022",
+        # "claude-3-5-sonnet-20241022",
         "claude-3-5-sonnet-latest",  # alias
         "claude-3-5-sonnet-20240620",  # previous version
         # Claude 3 Models
@@ -138,6 +139,7 @@ def get_gemini_models() -> list:
     Requires your Google Cloud API key to be set as an environment variable:
     export GOOGLE_API_KEY='YOUR_API_KEY'
     """
+    bad_models = {"text", "image"}
     try:
         # Get the API key
         with contextlib.suppress(KeyError):
@@ -151,7 +153,12 @@ def get_gemini_models() -> list:
         models = []
 
         # List all available models
-        models = [m for m in genai.list_models() if "generateContent" in m.supported_generation_methods]
+        models = [
+            m
+            for m in genai.list_models()
+            if "generateContent" in m.supported_generation_methods
+            and not contains_any_substring_loop(m.name, bad_models)
+        ]
 
         if not models:
             # print("No Gemini models found that support text generation.")
@@ -159,46 +166,6 @@ def get_gemini_models() -> list:
 
         # Now get just the names
         models_to_keep = [m.name.replace("models/", "") for m in models]
-
-        # print("\nAvailable Gemini models for programming hints (ordered by general capability):\n")
-        # # Sort models to prioritize more capable ones, though the exact ordering might evolve
-        # # We'll also consider models that are generally good for coding/reasoning.
-
-        # # Define a desired order of preference for models
-        # # These are generally the most capable for reasoning and complex tasks
-        # preferred_order = [
-        #     "gemini-1.5-pro",
-        #     "gemini-1.5-flash",
-        #     "gemini-2.5-pro",  # Note: 2.5 models might be preview/experimental
-        #     "gemini-2.5-flash",
-        #     "gemini-2.0-flash",  # Older but stable "Flash"
-        #     "gemini-pro",  # Original stable Pro model
-        # ]
-
-        # # Create a dictionary for quick lookup and to maintain order
-        # model_details = {m.name: m for m in models}
-
-        # # Filter and sort models based on preference
-        # sorted_models = []
-        # for model_name in preferred_order:
-        #     if model_name in model_details:
-        #         sorted_models.append(model_details[model_name])
-        #         del model_details[model_name]  # Remove to avoid duplicates
-
-        # # Add any remaining models that weren't in the preferred list
-        # for model_name in sorted(model_details.keys()):
-        #     sorted_models.append(model_details[model_name])
-
-        # for model in sorted_models:
-        #     description = model.description if model.description else "No description available."
-        #     print(f"  Model Name: {model.name}")
-        #     print(f"  Description: {description}")
-        #     print(f"  Input Modalities: {model.input_token_limit} tokens for input")
-        #     print(f"  Output Tokens: {model.output_token_limit} tokens for output")
-        #     print(f"  Temperature: {model.temperature:.2f}")
-        #     print(f"  Top P: {model.top_p:.2f}")
-        #     print(f"  Top K: {model.top_k:.2f}")
-        #     print("-" * 40)
 
     except Exception as e:  # noqa: BLE001
         rutroh_error(f"An error occurred trying to list OpenAi models: {e}")

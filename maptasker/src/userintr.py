@@ -1290,7 +1290,6 @@ class MyGui(customtkinter.CTk):
             - If XML is valid, exit and return to process_gui.
             - If XML is not valid, return to GUI."""
         # Save our last window position and last tab used.
-        print("bingo3", self.ai_model)
         self.window_position = self.winfo_geometry()
         self.tab_to_use = self.tabview.get()
 
@@ -1307,7 +1306,6 @@ class MyGui(customtkinter.CTk):
                 return
 
         # Do the final cleanup of windows and exit.
-        print("bingo4", self.ai_model)
         self.cleanup(run_only)
 
     # Prompt for and get the XML file from the local drive.
@@ -3292,7 +3290,6 @@ class EventHandlers:
 
             # Ok, run the analysis by rerunning the program with our ai_analyze = True
             # The analysis output file will be created and displayed upon reentry to MyGui.
-            print("bingo1", the_view.ai_model)
             the_view.event_handlers.rerun_event()
         # Test if no XML data loaded
         elif (
@@ -3457,7 +3454,6 @@ class EventHandlers:
         - Calls withdraw() to reset the program state
         - Calls quit() twice to ensure program exits"""
         the_view = self.parent
-        print("bingo2", the_view.ai_model)
         # Reset the program state since it may have been previously set by the 'Map' view.
         reset_primeitems_single_names()
         the_view.rerun = True

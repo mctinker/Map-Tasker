@@ -2981,7 +2981,7 @@ def get_extended_ai_model_list() -> list:
     # Define the models
     extended_model_groups = {
         "OpenAI": PrimeItems.ai["openai_models"],
-        "Anthropic": PrimeItems.ai["openai_models"],
+        "Anthropic": PrimeItems.ai["anthropic_models"],
         "Gemini": PrimeItems.ai["gemini_models"],
         "LLAMA": PrimeItems.ai["llama_models"],
         "DeepSeek": PrimeItems.ai["deepseek_models"],

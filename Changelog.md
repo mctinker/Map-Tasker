@@ -11,11 +11,13 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: Restructured the AI model handler to allow for the extended model list.
+- Changed: 'Claude' AI models renamed to 'Anthropic'.
 
 ### Fixed
 
 - Fixed: Program error in the GUI if 'None' is selected as the AI model.
 - Fixed: Entering an API key into the GUI does not update the 'Set' or 'Unset' message.
+- Fixed: The error code message Gemini has extraneous information.
 
 ### Known Issues
 

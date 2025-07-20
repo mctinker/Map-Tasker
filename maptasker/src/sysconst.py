@@ -296,15 +296,11 @@ LLAMA_MODELS = [
 ]
 ANTHROPIC_MODELS = [
     "claude-3-7-sonnet-latest",
-    "claude-3-5-sonnet-latest",
     "claude-3-5-haiku-latest",
-    "claude-opus-4-20250514",
-    "claude-sonnet-4-20250514",
+    "claude-opus-4-0",
+    "claude-sonnet-4-0",
 ]
-DEEPSEEK_MODELS = [
-    "deepseek-chat",
-    "deepseek-reasoner",
-]
+DEEPSEEK_MODELS = ["deepseek-chat"]
 GEMINI_MODELS = [
     # TODO 1.5 going away in Sept. 24th 2025
     "gemini-2.0-flash",
@@ -315,7 +311,7 @@ GEMINI_MODELS = [
 ]
 MODEL_GROUPS = {
     "OpenAI": OPENAI_MODELS,
-    "Claude": ANTHROPIC_MODELS,
+    "Anthropic": ANTHROPIC_MODELS,
     "LLAMA": LLAMA_MODELS,
     "DeepSeek": DEEPSEEK_MODELS,
     "Gemini": GEMINI_MODELS,
