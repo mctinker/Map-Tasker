@@ -1050,7 +1050,7 @@ class MyGui(customtkinter.CTk):
             if key is not None:
                 setattr(self, key, value)
                 # Start log if debug
-                if key == "debug":
+                if key == "debug" and value:
                     log_startup_values()
                 # Now display the setting and act on it if neccesary.
                 if new_message := self.restore_display(key, value):

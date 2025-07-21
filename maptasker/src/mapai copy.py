@@ -1,9 +1,8 @@
-"""Ai Analysis Support
-Take the Tasker object, ai model and key and feed it into the approiate AI service.
-The response will be saved as a file, which will then be read in by userintr and displayed in a separate textbox
-upon reinvocation of the application.
-"""
+"""Ai Analysis Support"""
 
+#                                                                                      #
+# mapai: Ai support                                                                    #
+#                                                                                      #
 import contextlib
 import importlib.util
 import os
@@ -252,63 +251,6 @@ def process_error(error: str, ai_object: str, item: str) -> None:
         )
 
 
-def _process_openai_response(client: object, query: str) -> str:
-    """Helper function to process OpenAI responses."""
-    model = PrimeItems.program_arguments["ai_model"]
-    role = "You are a Tasker programmer on Android"
-    roletype = "user" if "o1" in PrimeItems.program_arguments["ai_model"] else "system"
-    stream_feed = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": roletype, "content": role},
-            {"role": "user", "content": [{"type": "text", "text": query}]},
-        ],
-        stream=True,
-        response_format={"type": "text"},
-    )
-    return "".join(chunk.choices[0].delta.content or "" for chunk in stream_feed)
-
-
-def _process_anthropic_response(client: object, query: str) -> str:
-    """Helper function to process Anthropic (Claude) responses."""
-    role = "You are a Tasker programmer on Android"
-    message = client.messages.create(
-        model=PrimeItems.program_arguments["ai_model"],
-        max_tokens=1024,
-        messages=[
-            {"role": "user", "content": f"{role} {query}"},
-        ],
-    )
-    return message.content[0].text
-
-
-def _process_deepseek_response(client: object, query: str) -> str:
-    """Helper function to process DeepSeek responses."""
-    model = PrimeItems.program_arguments["ai_model"]
-    role = "You are a Tasker programmer on Android"
-    message = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": role},
-            {"role": "user", "content": query},
-        ],
-        max_tokens=1024,
-        temperature=0.0,  # Changed from 0.7 to 0.0 for more deterministic output.
-        stream=False,
-    )
-    return message.choices[0].message.content
-
-
-def _process_gemini_response(client: object, query: str) -> str:
-    """Helper function to process Gemini responses."""
-    model = PrimeItems.program_arguments["ai_model"]
-    role = "You are a Tasker programmer on Android"
-    # Suppress logging warnings
-    message = client.GenerativeModel(model)
-    response1 = message.generate_content(role + query)
-    return response1.text
-
-
 def process_ai_query_and_response(
     client: object,
     query: str,
@@ -316,10 +258,10 @@ def process_ai_query_and_response(
     item: str,
 ) -> None:
     """
-    Generic function to process AI responses from various AI services.
+    Generic function to process AI responses from OpenAI or Claude.
 
     Args:
-        client: The AI client (OpenAI, Claude, DeepSeek, Gemini).
+        client: The AI client (OpenAI or Claude).
         query (str): The query to send to the AI.
         ai_object (str): The object being processed.
         item (str): The name of the object being processed.
@@ -327,28 +269,57 @@ def process_ai_query_and_response(
     Returns:
         None: This function does not return anything.
     """
+    model = PrimeItems.program_arguments["ai_model"]
     name = PrimeItems.program_arguments["ai_name"]
-
-    # Map AI names to their respective processing functions
-    ai_processors = {
-        "OpenAI": _process_openai_response,
-        "Anthropic": _process_anthropic_response,
-        "DeepSeek": _process_deepseek_response,
-        "Gemini": _process_gemini_response,
-    }
-
+    role = "You are a Tasker programmer on Android"
+    # FIX Refactor
     try:
-        # Get the appropriate processing function and call it
-        process_function = ai_processors.get(name)
-        if process_function:
-            response = process_function(client, query)
-            record_response(response, ai_object, item)
-        else:
-            error_handler("Invalid AI name selected.", 12)
+        if name == "OpenAI":
+            roletype = "user" if "o1" in PrimeItems.program_arguments["ai_model"] else "system"
+            stream_feed = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": roletype, "content": role},
+                    {"role": "user", "content": [{"type": "text", "text": query}]},
+                ],
+                stream=True,
+                response_format={"type": "text"},
+            )
+            response = "".join(chunk.choices[0].delta.content or "" for chunk in stream_feed)
+        elif name == "Anthropic":
+            message = client.messages.create(
+                model=PrimeItems.program_arguments["ai_model"],
+                max_tokens=1024,
+                # temperature=0.7,
+                messages=[
+                    {"role": "user", "content": f"{role} {query}"},
+                ],
+            )
+            response = message.content[0].text
+        elif name == "deepSeek":
+            message = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": role},
+                    {"role": "user", "content": query},
+                ],
+                max_tokens=1024,
+                temperature=0.7,
+                stream=False,
+            )
+            response = message.choices[0].message.content
+        elif name == "Gemini":
+            # Suppress logging warnings
+            message = client.GenerativeModel(model)
+            response1 = message.generate_content(role + query)
+            response = response1.text
+
+        record_response(response, ai_object, item)
+    # Handle all OpenAI API errors
     except OpenAIError as e:
         process_error(str(e), ai_object, item)
     except Exception as e:  # noqa: BLE001
-        error_message = handle_ai_error(e)  # Pass the exception object directly
+        error_message = handle_ai_error(e.message)
         with open(ERROR_FILE, "w") as response_file:
             response_file.write(error_message)
 
@@ -370,7 +341,7 @@ def handle_ai_error(error: Exception) -> str:
             name
             for name, models in {
                 "OpenAI": PrimeItems.ai["openai_models"],
-                "Anthropic": PrimeItems.ai["anthropic_models"],
+                "Claude": PrimeItems.ai["anthropic_models"],
                 "DeepSeek": PrimeItems.ai["deepseek_models"],
                 "Llama": PrimeItems.ai["llama_models"],
                 "Gemini": PrimeItems.ai["gemini_models"],
@@ -381,16 +352,19 @@ def handle_ai_error(error: Exception) -> str:
     )
 
     # Capture the specific error message, if there is one.
-    message = str(error)  # Get the string representation of the exception.
+    try:
+        message = error.message
+    except AttributeError:
+        message = ""
 
     # Return the appropriate error message.
     if ai == "OpenAI":
         return f"OpenAI failed with error: {error!s}"
-    if "invalid x-api-key" in message or "API key not valid" in message:
+    if "invalid x-api-key" in str(error) or "API key not valid" in message:
         return (
             f"Invalid {ai} API key provided: key='{PrimeItems.program_arguments['ai_apikey']}' for model {model}!\n\n"
         )
-    if "Connection error" in message:
+    if "Connection error" in str(error):
         return "Connection Error: Check your firewall. If this is not the issue, try another Anthropic API key.  Also check out their 'Initial Setup' steps.\n\n"
     return f"{ai} failed with error: {error!s}"
 
@@ -533,8 +507,6 @@ def map_ai() -> None:
     )
 
     # Call appropriate AI routine: OpenAI or local Ollama
-    # FIX Fails on ollama...need to remove ' (installed)'
-    # FIX: Modify to use ai_name.
     name_function_map = {
         "OpenAI": open_ai,
         "Anthropic": claude_ai,

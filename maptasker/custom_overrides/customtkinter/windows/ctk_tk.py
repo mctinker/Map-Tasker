@@ -100,10 +100,14 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
         # save focus before calling withdraw
         self.focused_widget_before_widthdraw = None
 
+        # <<<<<<< MapTasker modifications start here >>>>>>>
         # set CustomTkinter titlebar icon (Windows only)
         # MapTasker mod: comment out...causes an error
         # if sys.platform.startswith("win"):
         #     self.after(200, self._windows_set_titlebar_icon)
+        if sys.platform.startswith("darwin"):
+            self.after(200, self._windows_set_titlebar_icon)
+        # <<<<<<< MapTasker modifications end here >>>>>>>
 
         # set titlebar color (Windows only)
         if sys.platform.startswith("win"):

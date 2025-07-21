@@ -139,7 +139,7 @@ def get_gemini_models() -> list:
     Requires your Google Cloud API key to be set as an environment variable:
     export GOOGLE_API_KEY='YOUR_API_KEY'
     """
-    bad_models = {"text", "image"}
+    bad_models = {"text", "image", "vision"}
     try:
         # Get the API key
         with contextlib.suppress(KeyError):
