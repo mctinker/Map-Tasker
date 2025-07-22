@@ -139,7 +139,7 @@ def record_response(response: str, ai_object: str, item: str) -> None:
         response_file.write(
             f'{PrimeItems.program_arguments["ai_name"]} AI Response using model {PrimeItems.program_arguments["ai_model"]} for {ai_object} "{item}":\n\n{response}',
         )
-    # QAueue up the message to display in the GUI textbox.
+    # Queue up the message to display in the GUI textbox.
     process_error(
         f"{response}\n\nAnalysis Response saved in file: " + ANALYSIS_FILE,
         ai_object,
@@ -250,6 +250,7 @@ def process_error(error: str, ai_object: str, item: str) -> None:
         error_file.write(
             f"'{PrimeItems.program_arguments['ai_name']} AI Response using model {PrimeItems.program_arguments['ai_model']} for {ai_object} {item}:\n\n{output_error}",
         )
+    error_file.close()
 
 
 def _process_openai_response(client: object, query: str) -> str:
@@ -500,13 +501,19 @@ def map_ai() -> None:
 
     Does the setup for the query by concatenating the lines in PrimeItems.ai["output_lines"].
     """
+    if sys.platform.startswith("win"):
+        delay = 2000
+    else:
+        delay = 500
+
     # Display a popup window telling user we are analyzing
     popup = PopupWindow(
         title="MapTasker Analysis",
         message="Analysis is running in the background.  Please stand by...",
         exit_when_done=True,
-        delay=500,
+        delay=delay,
     )
+
     popup.mainloop()
 
     # Clean up the output list since it has all the front matter and we only need the object (Project/Profile/Task)
@@ -533,8 +540,6 @@ def map_ai() -> None:
     )
 
     # Call appropriate AI routine: OpenAI or local Ollama
-    # FIX Fails on ollama...need to remove ' (installed)'
-    # FIX: Modify to use ai_name.
     name_function_map = {
         "OpenAI": open_ai,
         "Anthropic": claude_ai,
@@ -557,3 +562,5 @@ def map_ai() -> None:
 
     # Indicate that we are done
     PrimeItems.program_arguments["ai_analyze"] = False
+
+    # FIX Delete the popup window here rathert than using the 'wait' in the popup class.

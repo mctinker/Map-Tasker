@@ -1581,10 +1581,14 @@ def display_messages_from_last_run(self) -> None:  # noqa: ANN001
             else:
                 self.clear_messages = True
                 self.display_message_box(error_msg, "Red")
-            # Get rid of error message so we don't display it again.
-            os.remove(
-                ERROR_FILE,
-            )  # Get rid of error message so we don't display it again.
+        # Get rid of error message so we don't display it again.
+        try:
+            os.remove(ERROR_FILE)
+        except PermissionError:
+            # If the error file is locked up by us, then just rename the file.
+            print(f"Unable to delete the error file: {ERROR_FILE}.  You must delete it manually!")
+        except FileNotFoundError:
+            pass
 
     # Display any error message from other rountines
     if PrimeItems.error_msg:
@@ -1826,7 +1830,7 @@ def restart_program_subprocess() -> None:
 
         # Create a new process (detaching it is often desired for restarts)
         # creationflags=subprocess.DETACHED_PROCESS is for Windows only
-        if sys.platform == "win32":
+        if sys.platform.startswith == "win":
             command = f"{script_path} {','.join(sys.argv[1:])}"
             subprocess.Popen(  # noqa: S603
                 command,

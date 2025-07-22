@@ -554,7 +554,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -3330,7 +3332,7 @@ class PopupWindow(ctk.CTk):
 
         # Set popup window wait time to .5 seconds, after which popup_button_event will be called.
         if exit_when_done:
-            delay = 0  # Override delay since we are not doing the animation (it doesn't work)
+            # delay = 0  # Override delay since we are not doing the animation (it doesn't work)
             self.after(delay, self.popup_button_event)
 
         # Label widget

@@ -573,6 +573,40 @@ def restart_program() -> None:
     exit_program(0)  # This should never be called.
 
 
+def rerun_process():
+    """
+    Restarts the current Python program on Windows.
+    """
+    import subprocess
+    # sys.executable is the path to the Python interpreter
+    # sys.argv are the command-line arguments of the current script,
+    # including the script name itself (sys.argv[0]).
+    # We pass these to the new process to ensure it starts with the same context.
+
+    try:
+        # Get the absolute path of the current script file
+        # This is more robust than relying directly on sys.argv[0]
+        script_path = os.path.abspath(__file__)
+        # FIX Strip off last subsrting:  'C:\\Users\\mikrubin\\venv\\Lib\\site-packages\\maptasker\\src\\mapit.py'
+        # FIX And replace it with "main.py"
+        script_path = script_path.replace(r"src\mapit.py", "main.py")
+
+        # Prepare the arguments for the new process
+        # The first argument is the Python interpreter
+        # The second is the absolute path to the script
+        # The rest are any original command-line arguments (excluding the script name itself)
+        new_process_args = [sys.executable, script_path] + sys.argv[1:]
+
+        print(f"Launching new instance with command: {new_process_args}")
+
+        subprocess.Popen(new_process_args)
+        print("New instance launched. Exiting current instance.")
+        sys.exit(0)  # Exit the current script cleanly
+    except Exception as e:
+        print(f"Error restarting program: {e}")
+        sys.exit(1)  # Exit with an error code
+
+
 # Handle "rerun" request
 def do_rerun() -> None:
     """
@@ -590,7 +624,10 @@ def do_rerun() -> None:
     clean_up_memory()
 
     # Now do it!  Rerun the program.
-    restart_program()
+    if sys.platform.startswith("win"):
+        rerun_process()
+    else:
+        restart_program()
 
 
 # Do the cleanup stuff: check for single name, do unique situations, and display
