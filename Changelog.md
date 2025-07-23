@@ -12,12 +12,15 @@ All notable changes to this project will be documented in this file!
 
 - Changed: Restructured the AI model handler to allow for the extended model list.
 - Changed: 'Claude' AI models renamed to 'Anthropic'.
+- Changed: Don't show the configuration in the web browser if doing an AI Analysis.
 
 ### Fixed
 
 - Fixed: Program error in the GUI if 'None' is selected as the AI model.
 - Fixed: Entering an API key into the GUI does not update the 'Set' or 'Unset' message.
 - Fixed: The error code message Gemini has extraneous information.
+- Fixed: AI Analysis is not working on Windows.
+- Fixed: 'Upgrade to New Version' button is not automatically restarting MapTasker on Windows after the upgrade.
 
 ### Known Issues
 

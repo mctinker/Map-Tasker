@@ -1,13 +1,16 @@
-"""Ai Analysis Support"""
+"""Ai Analysis Support
+Take the Tasker object, ai model and key and feed it into the approiate AI service.
+The response will be saved as a file, which will then be read in by userintr and displayed in a separate textbox
+upon reinvocation of the application.
+"""
 
-#                                                                                      #
-# mapai: Ai support                                                                    #
-#                                                                                      #
 import contextlib
 import importlib.util
 import os
+import queue  # Used for thread-safe communications.
 import re
 import sys
+import threading
 
 import anthropic
 import google.generativeai as genai
@@ -15,7 +18,6 @@ from openai import OpenAI, OpenAIError
 
 from maptasker.src import cria
 from maptasker.src.aiutils import get_api_key
-from maptasker.src.config import AI_PROMPT
 from maptasker.src.error import error_handler
 from maptasker.src.guiwins import PopupWindow
 from maptasker.src.primitem import PrimeItems
@@ -138,7 +140,7 @@ def record_response(response: str, ai_object: str, item: str) -> None:
         response_file.write(
             f'{PrimeItems.program_arguments["ai_name"]} AI Response using model {PrimeItems.program_arguments["ai_model"]} for {ai_object} "{item}":\n\n{response}',
         )
-    # QAueue up the message to display in the GUI textbox.
+    # Queue up the message to display in the GUI textbox.
     process_error(
         f"{response}\n\nAnalysis Response saved in file: " + ANALYSIS_FILE,
         ai_object,
@@ -249,6 +251,64 @@ def process_error(error: str, ai_object: str, item: str) -> None:
         error_file.write(
             f"'{PrimeItems.program_arguments['ai_name']} AI Response using model {PrimeItems.program_arguments['ai_model']} for {ai_object} {item}:\n\n{output_error}",
         )
+    error_file.close()
+
+
+def _process_openai_response(client: object, query: str) -> str:
+    """Helper function to process OpenAI responses."""
+    model = PrimeItems.program_arguments["ai_model"]
+    role = "You are a Tasker programmer on Android"
+    roletype = "user" if "o1" in PrimeItems.program_arguments["ai_model"] else "system"
+    stream_feed = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": roletype, "content": role},
+            {"role": "user", "content": [{"type": "text", "text": query}]},
+        ],
+        stream=True,
+        response_format={"type": "text"},
+    )
+    return "".join(chunk.choices[0].delta.content or "" for chunk in stream_feed)
+
+
+def _process_anthropic_response(client: object, query: str) -> str:
+    """Helper function to process Anthropic (Claude) responses."""
+    role = "You are a Tasker programmer on Android"
+    message = client.messages.create(
+        model=PrimeItems.program_arguments["ai_model"],
+        max_tokens=1024,
+        messages=[
+            {"role": "user", "content": f"{role} {query}"},
+        ],
+    )
+    return message.content[0].text
+
+
+def _process_deepseek_response(client: object, query: str) -> str:
+    """Helper function to process DeepSeek responses."""
+    model = PrimeItems.program_arguments["ai_model"]
+    role = "You are a Tasker programmer on Android"
+    message = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": role},
+            {"role": "user", "content": query},
+        ],
+        max_tokens=1024,
+        temperature=0.0,  # Changed from 0.7 to 0.0 for more deterministic output.
+        stream=False,
+    )
+    return message.choices[0].message.content
+
+
+def _process_gemini_response(client: object, query: str) -> str:
+    """Helper function to process Gemini responses."""
+    model = PrimeItems.program_arguments["ai_model"]
+    role = "You are a Tasker programmer on Android"
+    # Suppress logging warnings
+    message = client.GenerativeModel(model)
+    response1 = message.generate_content(role + query)
+    return response1.text
 
 
 def process_ai_query_and_response(
@@ -258,10 +318,10 @@ def process_ai_query_and_response(
     item: str,
 ) -> None:
     """
-    Generic function to process AI responses from OpenAI or Claude.
+    Generic function to process AI responses from various AI services.
 
     Args:
-        client: The AI client (OpenAI or Claude).
+        client: The AI client (OpenAI, Claude, DeepSeek, Gemini).
         query (str): The query to send to the AI.
         ai_object (str): The object being processed.
         item (str): The name of the object being processed.
@@ -269,57 +329,28 @@ def process_ai_query_and_response(
     Returns:
         None: This function does not return anything.
     """
-    model = PrimeItems.program_arguments["ai_model"]
     name = PrimeItems.program_arguments["ai_name"]
-    role = "You are a Tasker programmer on Android"
-    # FIX Refactor
-    try:
-        if name == "OpenAI":
-            roletype = "user" if "o1" in PrimeItems.program_arguments["ai_model"] else "system"
-            stream_feed = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": roletype, "content": role},
-                    {"role": "user", "content": [{"type": "text", "text": query}]},
-                ],
-                stream=True,
-                response_format={"type": "text"},
-            )
-            response = "".join(chunk.choices[0].delta.content or "" for chunk in stream_feed)
-        elif name == "Anthropic":
-            message = client.messages.create(
-                model=PrimeItems.program_arguments["ai_model"],
-                max_tokens=1024,
-                # temperature=0.7,
-                messages=[
-                    {"role": "user", "content": f"{role} {query}"},
-                ],
-            )
-            response = message.content[0].text
-        elif name == "deepSeek":
-            message = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": role},
-                    {"role": "user", "content": query},
-                ],
-                max_tokens=1024,
-                temperature=0.7,
-                stream=False,
-            )
-            response = message.choices[0].message.content
-        elif name == "Gemini":
-            # Suppress logging warnings
-            message = client.GenerativeModel(model)
-            response1 = message.generate_content(role + query)
-            response = response1.text
 
-        record_response(response, ai_object, item)
-    # Handle all OpenAI API errors
+    # Map AI names to their respective processing functions
+    ai_processors = {
+        "OpenAI": _process_openai_response,
+        "Anthropic": _process_anthropic_response,
+        "DeepSeek": _process_deepseek_response,
+        "Gemini": _process_gemini_response,
+    }
+
+    try:
+        # Get the appropriate processing function and call it
+        process_function = ai_processors.get(name)
+        if process_function:
+            response = process_function(client, query)
+            record_response(response, ai_object, item)
+        else:
+            error_handler("Invalid AI name selected.", 12)
     except OpenAIError as e:
         process_error(str(e), ai_object, item)
     except Exception as e:  # noqa: BLE001
-        error_message = handle_ai_error(e.message)
+        error_message = handle_ai_error(e)  # Pass the exception object directly
         with open(ERROR_FILE, "w") as response_file:
             response_file.write(error_message)
 
@@ -341,7 +372,7 @@ def handle_ai_error(error: Exception) -> str:
             name
             for name, models in {
                 "OpenAI": PrimeItems.ai["openai_models"],
-                "Claude": PrimeItems.ai["anthropic_models"],
+                "Anthropic": PrimeItems.ai["anthropic_models"],
                 "DeepSeek": PrimeItems.ai["deepseek_models"],
                 "Llama": PrimeItems.ai["llama_models"],
                 "Gemini": PrimeItems.ai["gemini_models"],
@@ -352,19 +383,16 @@ def handle_ai_error(error: Exception) -> str:
     )
 
     # Capture the specific error message, if there is one.
-    try:
-        message = error.message
-    except AttributeError:
-        message = ""
+    message = str(error)  # Get the string representation of the exception.
 
     # Return the appropriate error message.
     if ai == "OpenAI":
         return f"OpenAI failed with error: {error!s}"
-    if "invalid x-api-key" in str(error) or "API key not valid" in message:
+    if "invalid x-api-key" in message or "API key not valid" in message:
         return (
             f"Invalid {ai} API key provided: key='{PrimeItems.program_arguments['ai_apikey']}' for model {model}!\n\n"
         )
-    if "Connection error" in str(error):
+    if "Connection error" in message:
         return "Connection Error: Check your firewall. If this is not the issue, try another Anthropic API key.  Also check out their 'Initial Setup' steps.\n\n"
     return f"{ai} failed with error: {error!s}"
 
@@ -466,6 +494,91 @@ def get_ai_object() -> tuple:
         ("", ""),
     )
 
+    # Create an Event object to signal when the analysis is done.
+
+
+# This will be used to tell the popup thread to exit its mainloop.
+# analysis_done_event = threading.Event()
+
+
+# Using a Queue to pass the popup instance from its thread back to the main thread
+popup_queue = queue.Queue()
+AI_PROMPT = "analyze the following data"
+
+
+def _create_and_run_popup(title: str, message: str, exit_when_done: bool, delay: int, q: queue.Queue) -> None:
+    """
+    Function to be run in the popup thread.
+    It creates the PopupWindow instance and runs its mainloop.
+    """
+    print("bingo create")
+    try:
+        popup_instance = PopupWindow(title, message, exit_when_done, delay, q)
+        q.put(popup_instance)  # Send the instance back to the main thread
+        popup_instance.mainloop()
+    except Exception as e:  # noqa: BLE001
+        print(f"Error in popup thread: {e}")
+        # Ensure something is put in the queue even on error, to unblock main thread
+        q.put(None)
+
+
+def _run_analysis_in_background(popup_instance: PopupWindow, done_event: threading.Event) -> None:
+    """
+    This function contains the main analysis logic that will run in a separate thread.
+    It takes the popup window object and a threading.Event object as arguments.
+    """
+    try:
+        # Clean up the output list since it has all the front matter and we only need the object (Project/Profile/Task)
+        temp_output = cleanup_output()
+
+        # Save the ai popup window position
+        with contextlib.suppress(AttributeError):
+            # Now safe to access popup_instance properties as it's a valid object
+            PrimeItems.program_arguments["ai_popup_window_position"] = popup_instance.ai_popup_window_position
+
+        # Setup the query: ai_object (Task, Profile or Project) and item (name of the object)
+        ai_object, item = get_ai_object()
+
+        # Put the query together
+        prompt = PrimeItems.program_arguments["ai_prompt"] if PrimeItems.program_arguments["ai_prompt"] else AI_PROMPT
+        if not prompt.endswith(":"):
+            prompt = f"{prompt}:"
+        query = f"Given the following {ai_object} in Tasker, an Android automation tool, {prompt}"
+        for line in temp_output:
+            query += f"{line}\n"
+
+        # Let the user know what is going on.
+        print(
+            f"MapTasker analysis for {ai_object} '{item}' is running in the background.  Please wait...",
+        )
+
+        # Call appropriate AI routine: OpenAI or local Ollama
+        name_function_map = {
+            "OpenAI": open_ai,
+            "Anthropic": claude_ai,
+            "DeepSeek": deepseek_ai,
+            "Gemini": gemini_ai,
+            "LLAMA": local_ai,
+        }
+        ai_name = PrimeItems.program_arguments["ai_name"]
+        name_function_map.get(
+            ai_name,
+            lambda *args: error_handler("Invalid model selected.", 12),  # noqa: ARG005
+        )(
+            query,
+            ai_object,
+            item,
+        )
+
+        # We're done
+        print(f"MapTasker analysis for {ai_object} '{item}' is done.")
+
+    finally:
+        # Signal that the analysis is done so the popup can close
+        done_event.set()
+        # Indicate that we are done
+        PrimeItems.program_arguments["ai_analyze"] = False
+
 
 # Map Ai: set up Ai query and call appropriate function based on the model.
 def map_ai() -> None:
@@ -474,58 +587,57 @@ def map_ai() -> None:
 
     Does the setup for the query by concatenating the lines in PrimeItems.ai["output_lines"].
     """
-    # Display a popup window telling user we are analyzing
-    popup = PopupWindow(
-        title="MapTasker Analysis",
-        message="Analysis is running in the background.  Please stand by...",
-        exit_when_done=True,
-        delay=500,
+    if sys.platform.startswith("win"):
+        delay = 2000
+    else:
+        delay = 500
+
+    # Create an event object to signal when the analysis is done.
+    analysis_done_event_for_this_run = threading.Event()
+
+    # --- Start Popup Thread ---
+    # Create the popup in its own thread
+    popup_args = (
+        "MapTasker Analysis",
+        "Analysis is running in the background.  Please stand by...",
+        True,
+        delay,
+        popup_queue,
     )
-    popup.mainloop()
+    popup_thread = threading.Thread(target=_create_and_run_popup, args=popup_args, daemon=True)
+    popup_thread.start()
 
-    # Clean up the output list since it has all the front matter and we only need the object (Project/Profile/Task)
-    temp_output = cleanup_output()
+    # Wait for the popup thread to create the popup instance (via a 'put') and put it in the queue.
+    # This will equate to invoking the PopupWindow class.
+    # This ensures we have a reference to the actual popup object created in the GUI thread
+    popup_instance = popup_queue.get()
+    if popup_instance is None:
+        print("Failed to create popup window. Aborting analysis.")
+        return  # Exit if popup creation failed
 
-    # Save the ai popup window position
-    with contextlib.suppress(AttributeError):
-        PrimeItems.program_arguments["ai_popup_window_position"] = popup.ai_popup_window_position
+    PrimeItems.popup = popup_instance  # Store the reference to the actual popup object
 
-    # Setup the query: ai_object (Task, Profile or Project) and item (name of the object)
-    ai_object, item = get_ai_object()
-
-    # Put the query together
-    prompt = PrimeItems.program_arguments["ai_prompt"] if PrimeItems.program_arguments["ai_prompt"] else AI_PROMPT
-    if not prompt.endswith(":"):
-        prompt = f"{prompt}:"
-    query = f"Given the following {ai_object} in Tasker, an Android automation tool, {prompt}"
-    for line in temp_output:
-        query += f"{line}\n"
-
-    # Let the user know what is going on.
-    print(
-        f"MapTasker analysis for {ai_object} '{item}' is running in the background.  Please wait...",
+    # --- Start Analysis Thread ---
+    analysis_thread = threading.Thread(
+        target=_run_analysis_in_background,
+        args=(popup_instance, analysis_done_event_for_this_run),
+        daemon=True,
     )
+    analysis_thread.start()
 
-    # Call appropriate AI routine: OpenAI or local Ollama
-    name_function_map = {
-        "OpenAI": open_ai,
-        "Anthropic": claude_ai,
-        "DeepSeek": deepseek_ai,
-        "Gemini": gemini_ai,
-        "LLAMA": local_ai,
-    }
-    ai_name = PrimeItems.program_arguments["ai_name"]
-    name_function_map.get(
-        ai_name,
-        lambda *args: error_handler("Invalid model selected.", 12),  # noqa: ARG005
-    )(
-        query,
-        ai_object,
-        item,
-    )
+    # Wait for the analysis thread to complete...
+    # This will call mainloop repeatedly.
+    analysis_done_event_for_this_run.wait()
 
-    # We're done
-    print(f"MapTasker analysis for {ai_object} '{item}' is done.")
+    # Once analysis is done, tell the popup to exit its loop (safely from main thread if possible, or via after)
+    # Since popup.exit_loop() uses .destroy() which must be on the mainloop thread,
+    # and popup_instance.mainloop() IS the mainloop for this particular popup,
+    # calling popup_instance.exit_loop() should work directly here because the main thread
+    # of your *application* (if you have one) is waiting, but the popup's own thread is running its mainloop.
+    popup_instance.exit_loop(popup_instance)
 
-    # Indicate that we are done
-    PrimeItems.program_arguments["ai_analyze"] = False
+    # It's good practice to join the threads
+    analysis_thread.join()
+    # popup_thread.join() # Don't join popup_thread immediately if mainloop is still running,
+    # but it will naturally exit after exit_loop() and destroy() are processed.
+    # If you join it, it might block until the destroy is complete.

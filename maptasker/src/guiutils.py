@@ -1817,7 +1817,8 @@ def reload_gui(self: object) -> None:
     # os.execl(sys.executable, "python", *sys.argv)
 
 
-# Or, if you prefer spawning a new process and then exiting the old one:
+# Or, if you prefer spawning a new process and then exiting the old one.
+# NOTE: We can not use the subprocess routine in mapit due to circular import error.
 def restart_program_subprocess() -> None:
     """
     Restarts the current program by spawning a new process and exiting the old one.
@@ -1830,7 +1831,8 @@ def restart_program_subprocess() -> None:
 
         # Create a new process (detaching it is often desired for restarts)
         # creationflags=subprocess.DETACHED_PROCESS is for Windows only
-        if sys.platform.startswith == "win":
+        if sys.platform.startswith("win"):
+            script_path = script_path.replace(r"src\mapit.py", "main.py")
             command = f"{script_path} {','.join(sys.argv[1:])}"
             subprocess.Popen(  # noqa: S603
                 command,

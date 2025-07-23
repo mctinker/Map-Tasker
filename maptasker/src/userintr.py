@@ -75,7 +75,7 @@ from maptasker.src.guiwins import (
     CTkTreeview,
     TextWindow,
     get_appropriate_color,
-    get_rid_of_window,
+    get_rid_of_windows_and_exit,
     initialize_gui,
     initialize_screen,
 )
@@ -1271,7 +1271,7 @@ class MyGui(customtkinter.CTk):
             self.quit()
         else:
             # ReRun
-            get_rid_of_window(self, delete_all=True)
+            get_rid_of_windows_and_exit(self, delete_all=True)
             # Now get rid of stuff we don't want around anymore
             self.sidebar_frame.destroy()
             with contextlib.suppress(AttributeError):

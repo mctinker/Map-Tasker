@@ -9,6 +9,7 @@ import importlib.util
 import os
 import re
 import sys
+import threading
 
 import anthropic
 import google.generativeai as genai
@@ -16,7 +17,6 @@ from openai import OpenAI, OpenAIError
 
 from maptasker.src import cria
 from maptasker.src.aiutils import get_api_key
-from maptasker.src.config import AI_PROMPT
 from maptasker.src.error import error_handler
 from maptasker.src.guiwins import PopupWindow
 from maptasker.src.primitem import PrimeItems
@@ -493,14 +493,76 @@ def get_ai_object() -> tuple:
         ("", ""),
     )
 
+    # Create an Event object to signal when the analysis is done.
 
-# Map Ai: set up Ai query and call appropriate function based on the model.
-def map_ai() -> None:
-    """
-    A function that determines whether to call the OpenAI or local AI routine based on the model specified in PrimeItems.
 
-    Does the setup for the query by concatenating the lines in PrimeItems.ai["output_lines"].
+# This will be used to tell the popup thread to exit its mainloop.
+analysis_done_event = threading.Event()
+AI_PROMPT = "Analyze the following Tasker data"
+
+
+def _run_analysis_in_background(done_event: threading.Event) -> None:
     """
+    This function contains the main analysis logic that will run in a separate thread.
+    It takes the popup window object and a threading.Event object as arguments.
+    """
+    try:
+        # Clean up the output list since it has all the front matter and we only need the object (Project/Profile/Task)
+        temp_output = cleanup_output()
+
+        # Save the ai popup window position
+        with contextlib.suppress(AttributeError):
+            PrimeItems.program_arguments["ai_popup_window_position"] = PrimeItems.mygui.ai_popup_window_position
+
+        # Setup the query: ai_object (Task, Profile or Project) and item (name of the object)
+        ai_object, item = get_ai_object()
+
+        # Put the query together
+        prompt = PrimeItems.program_arguments["ai_prompt"] if PrimeItems.program_arguments["ai_prompt"] else AI_PROMPT
+        if not prompt.endswith(":"):
+            prompt = f"{prompt}:"
+        query = f"Given the following {ai_object} in Tasker, an Android automation tool, {prompt}"
+        for line in temp_output:
+            query += f"{line}\n"
+
+        # Let the user know what is going on.
+        print(
+            f"MapTasker analysis for {ai_object} '{item}' is running in the background.  Please wait...",
+        )
+        # FIX This isn't working.
+        # PrimeItems.mygui.display_message_box("AI Analysis has started.  Please wait...", "limegreen")
+        # PrimeItems.mygui.update()
+        # PrimeItems.mygui.textbox.focus_set()
+
+        # Call appropriate AI routine: OpenAI or local Ollama
+        name_function_map = {
+            "OpenAI": open_ai,
+            "Anthropic": claude_ai,
+            "DeepSeek": deepseek_ai,
+            "Gemini": gemini_ai,
+            "LLAMA": local_ai,
+        }
+        ai_name = PrimeItems.program_arguments["ai_name"]
+        name_function_map.get(
+            ai_name,
+            lambda *args: error_handler("Invalid model selected.", 12),  # noqa: ARG005
+        )(
+            query,
+            ai_object,
+            item,
+        )
+
+        # We're done
+        print(f"MapTasker analysis for {ai_object} '{item}' is done.")
+
+    finally:
+        # No matter what, signal that the analysis is done so the popup can close
+        done_event.set()
+        # Indicate that we are done
+        PrimeItems.program_arguments["ai_analyze"] = False
+
+
+def _pop_the_window() -> None:
     if sys.platform.startswith("win"):
         delay = 2000
     else:
@@ -514,53 +576,92 @@ def map_ai() -> None:
         delay=delay,
     )
 
+    # Display the popup
     popup.mainloop()
 
-    # Clean up the output list since it has all the front matter and we only need the object (Project/Profile/Task)
-    temp_output = cleanup_output()
 
-    # Save the ai popup window position
-    with contextlib.suppress(AttributeError):
-        PrimeItems.program_arguments["ai_popup_window_position"] = popup.ai_popup_window_position
+# Map Ai: set up Ai query and call appropriate function based on the model.
+def map_ai() -> None:
+    """
+    A function that determines whether to call the OpenAI or local AI routine based on the model specified in PrimeItems.
 
-    # Setup the query: ai_object (Task, Profile or Project) and item (name of the object)
-    ai_object, item = get_ai_object()
+    Does the setup for the query by concatenating the lines in PrimeItems.ai["output_lines"].
+    """
+    # # Display the popup
+    # popup.mainloop()
 
-    # Put the query together
-    prompt = PrimeItems.program_arguments["ai_prompt"] if PrimeItems.program_arguments["ai_prompt"] else AI_PROMPT
-    if not prompt.endswith(":"):
-        prompt = f"{prompt}:"
-    query = f"Given the following {ai_object} in Tasker, an Android automation tool, {prompt}"
-    for line in temp_output:
-        query += f"{line}\n"
+    # # Clean up the output list since it has all the front matter and we only need the object (Project/Profile/Task)
+    # temp_output = cleanup_output()
 
-    # Let the user know what is going on.
-    print(
-        f"MapTasker analysis for {ai_object} '{item}' is running in the background.  Please wait...",
+    # # Save the ai popup window position
+    # with contextlib.suppress(AttributeError):
+    #     PrimeItems.program_arguments["ai_popup_window_position"] = popup.ai_popup_window_position
+
+    # # Setup the query: ai_object (Task, Profile or Project) and item (name of the object)
+    # ai_object, item = get_ai_object()
+
+    # # Put the query together
+    # prompt = PrimeItems.program_arguments["ai_prompt"] if PrimeItems.program_arguments["ai_prompt"] else AI_PROMPT
+    # if not prompt.endswith(":"):
+    #     prompt = f"{prompt}:"
+    # query = f"Given the following {ai_object} in Tasker, an Android automation tool, {prompt}"
+    # for line in temp_output:
+    #     query += f"{line}\n"
+
+    # # Let the user know what is going on.
+    # print(
+    #     f"MapTasker analysis for {ai_object} '{item}' is running in the background.  Please wait...",
+    # )
+
+    # # Call appropriate AI routine: OpenAI or local Ollama
+    # name_function_map = {
+    #     "OpenAI": open_ai,
+    #     "Anthropic": claude_ai,
+    #     "DeepSeek": deepseek_ai,
+    #     "Gemini": gemini_ai,
+    #     "LLAMA": local_ai,
+    # }
+    # ai_name = PrimeItems.program_arguments["ai_name"]
+    # name_function_map.get(
+    #     ai_name,
+    #     lambda *args: error_handler("Invalid model selected.", 12),
+    # )(
+    #     query,
+    #     ai_object,
+    #     item,
+    # )
+
+    # # We're done
+    # print(f"MapTasker analysis for {ai_object} '{item}' is done.")
+
+    # # Indicate that we are done
+    # PrimeItems.program_arguments["ai_analyze"] = False
+
+    # Create the event object within map_ai to ensure it's fresh for each call
+    analysis_done_event_for_this_run = threading.Event()
+
+    # Thread for the popup window
+    # FIX Create a routine and move the popup.mainloop call into there.
+    popup_thread = threading.Thread(target=_pop_the_window, daemon=True)
+    popup_thread.start()
+
+    # Thread for the background analysis
+    analysis_thread = threading.Thread(
+        target=_run_analysis_in_background,
+        args=(analysis_done_event_for_this_run),
+        daemon=True,  # Daemon threads are terminated automatically when the main program exits
     )
+    analysis_thread.start()
 
-    # Call appropriate AI routine: OpenAI or local Ollama
-    name_function_map = {
-        "OpenAI": open_ai,
-        "Anthropic": claude_ai,
-        "DeepSeek": deepseek_ai,
-        "Gemini": gemini_ai,
-        "LLAMA": local_ai,
-    }
-    ai_name = PrimeItems.program_arguments["ai_name"]
-    name_function_map.get(
-        ai_name,
-        lambda *args: error_handler("Invalid model selected.", 12),  # noqa: ARG005
-    )(
-        query,
-        ai_object,
-        item,
-    )
+    # Wait for the analysis thread to complete
+    analysis_done_event_for_this_run.wait()  # This will block the current (main) thread until analysis_done_event_for_this_run.set() is called
 
-    # We're done
-    print(f"MapTasker analysis for {ai_object} '{item}' is done.")
+    # Once analysis is done, tell the popup to exit its loop
+    popup.popup_button_event()
 
-    # Indicate that we are done
-    PrimeItems.program_arguments["ai_analyze"] = False
-
-    # FIX Delete the popup window here rathert than using the 'wait' in the popup class.
+    # It's good practice to join the threads if you need to ensure they've finished
+    # before the main program potentially exits. For daemon threads, it's not strictly
+    # necessary as they will be terminated with the main program, but for robust
+    # control, joining can be useful.
+    # popup_thread.join() # Not strictly needed for daemon threads if we just want it to disappear
+    analysis_thread.join()  # Wait for the analysis thread to finish cleanly

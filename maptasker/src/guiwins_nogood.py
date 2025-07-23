@@ -3295,106 +3295,28 @@ class ProgressbarWindow(ctk.CTk):
 
 
 # Define the Ai Popup window
-class PopupWindow(ctk.CTk):
-    """Define our top level window for the Popup view."""
-
-    def __init__(
-        self,
-        title: str = "",
-        message: str = "",
-        exit_when_done: bool = False,
-        delay: int = 500,
-        *args,  # noqa: ANN002
-        **kwargs,  # noqa: ANN003
-    ) -> None:
-        """
-        Initializes the PopupWindow object.
-
-        Parameters:
-            title (str): The title of the popup window. Default is an empty string.
-            message (str): The message to be displayed in the popup window. Default is an empty string.
-            exit_when_done (bool): Whether the popup window should exit when done. Default is False.
-            delay (int): The delay in milliseconds before the popup window exits. Default is 500.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-
-        Returns:
-            None
-        """
-        super().__init__(*args, **kwargs)
-
+class PopupWindow:
+    def __init__(self, title, message, exit_when_done, delay, result_queue=None):
+        # Tkinter root/Toplevel should be created here, in the thread where mainloop runs
+        self.root = tk.cTk()  # Or tk.Tk() if this is meant to be the main window
+        self.root.title(title)
         # Position the widget over our main GUI
-        self.geometry(PrimeItems.program_arguments["window_position"])
+        self.root.geometry(PrimeItems.program_arguments["window_position"])
+        self.message = message
+        self.exit_when_done = exit_when_done
+        self.delay = delay
+        self.ai_popup_window_position = "SomePositionInfo"  # Placeholder
+        self.result_queue = result_queue  # To communicate the popup object back
 
-        self.title(title)
+        self.label = tk.Label(self.root, text=self.message, font=("Arial", 12))
+        self.label.pack(expand=True, padx=20, pady=20)
 
-        self.grid_columnconfigure(0, weight=1)
+        # If exit_when_done, we'll need a way to close it
+        # We'll use a method that updates itself via .after() and checks a flag
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)  # Handle window close button
+        self.root.focus_set()
 
-        # Set popup window wait time to .5 seconds, after which popup_button_event will be called and we will exit.
-        # if exit_when_done:
-        #     # delay = 0  # Override delay since we are not doing the animation (it doesn't work)
-        #     self.after(delay, self.popup_button_event)
-
-        # Label widget
-        # our_label = message
-        self.text = ""
-        self.count = 0
-        self.Popup_label = ctk.CTkLabel(
-            master=self,
-            text=self.text,
-            font=("", 24),
-            text_color="turquoise",
-        )
-        self.Popup_label.grid(row=0, column=0, padx=0, pady=10, sticky="n")
-
-        # Basic appearance for text, foreground and background.
-        self.Popup_bg_color = self._apply_appearance_mode(
-            ctk.ThemeManager.theme["CTkFrame"]["fg_color"],
-        )
-        self.Popup_text_color = self._apply_appearance_mode(
-            ctk.ThemeManager.theme["CTkLabel"]["text_color"],
-        )
-        self.selected_color = self._apply_appearance_mode(
-            ctk.ThemeManager.theme["CTkButton"]["fg_color"],
-        )
-
-        # Set up the style/theme
-        self.Popup_style = ttk.Style(self)
-        self.Popup_style.theme_use("default")
-
-        # Display the message
-        self.Popup_label.configure(text=message)
-        self.Popup_label.focus_set()
-
-        ## Animate the text so it is more visable
-        # def slider() -> None:
-        #    """
-        #    Animates the text on the Popup_label widget by gradually displaying each character from the `our_label` string.
-
-        #    This function is called recursively using the `after` method to create a sliding effect. It checks if the
-        #    current index `count` has reached the length of `our_label`. If it has, it resets the `count` to -1 and
-        #    clears the `text` variable. If not, it appends the character at the current index to the `text` variable
-        #    and updates the `Popup_label` widget with the new text. The `count` is incremented and the `slider`
-        #    function is called again after a delay of 5 milliseconds.
-
-        #    Parameters:
-        #        None
-
-        #    Returns:
-        #        None
-        #    """
-        #    if self.count >= len(our_label):
-        #        self.count = -1
-        #        self.text = ""
-        #        return
-        #    self.text = self.text + our_label[self.count]
-        #    self.Popup_label.configure(text=self.text)
-        #    self.count += 1
-        #    self.after(1, slider)
-
-        ## Set the focus on our popup window and start the animation.
-        # self.Popup_label.focus_set()
-        # slider()
+        print(f"Popup window '{title}' created with message: {message}, delay: {delay}")
 
     # The "after" n second timer tripped from popup window.  Close the windows and exit.
     # Note: rungui will have already completely run by this time.
@@ -3403,6 +3325,28 @@ class PopupWindow(ctk.CTk):
         Define the behavior of the popup button event function.  Close the window and exit.
         """
         get_rid_of_windows_and_exit(self, delete_all=False)
+
+    def mainloop(self) -> None:
+        # This is where the Tkinter event loop runs
+        print("Popup mainloop started...")
+        if self.result_queue:
+            self.result_queue.put(self)  # Send the created popup object back to the main thread
+        if hasattr(self, "started") and self.started:
+            print("bingo mainloop[ already started.  Returning")
+            return
+        self.started = True
+        self.root.mainloop()
+        print("Popup mainloop exited.")
+
+    def exit_loop(self) -> None:
+        print("Popup exiting loop...")
+        # Tkinter needs root.destroy() or root.quit()
+        self.after(0, self.destroy)  # Schedule destruction on the mainloop thread
+        self.quit()
+
+    def on_closing(self) -> None:
+        # Handle the window close button
+        self.exit_loop()
 
 
 # Hyperlink in textbox support

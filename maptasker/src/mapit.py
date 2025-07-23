@@ -31,6 +31,7 @@ import contextlib
 import gc
 import os
 import platform
+import subprocess
 import sys
 import webbrowser
 from subprocess import run
@@ -365,7 +366,7 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
     logger.debug("MapTasker program ended normally")
 
     # Only invoke the browser if not doing a Map View from the GUI.
-    if not PrimeItems.program_arguments["guiview"]:
+    if not PrimeItems.program_arguments["guiview"] and not PrimeItems.program_arguments["ai_analyze"]:
         try:
             webbrowser.open(
                 f"file:{PrimeItems.slash * 2}{my_output_dir}{my_file_name}",
@@ -573,37 +574,33 @@ def restart_program() -> None:
     exit_program(0)  # This should never be called.
 
 
-def rerun_process():
+def rerun_process() -> None:
     """
     Restarts the current Python program on Windows.
     """
-    import subprocess
     # sys.executable is the path to the Python interpreter
     # sys.argv are the command-line arguments of the current script,
     # including the script name itself (sys.argv[0]).
     # We pass these to the new process to ensure it starts with the same context.
-
     try:
         # Get the absolute path of the current script file
         # This is more robust than relying directly on sys.argv[0]
         script_path = os.path.abspath(__file__)
-        # FIX Strip off last subsrting:  'C:\\Users\\mikrubin\\venv\\Lib\\site-packages\\maptasker\\src\\mapit.py'
-        # FIX And replace it with "main.py"
         script_path = script_path.replace(r"src\mapit.py", "main.py")
 
         # Prepare the arguments for the new process
         # The first argument is the Python interpreter
         # The second is the absolute path to the script
         # The rest are any original command-line arguments (excluding the script name itself)
-        new_process_args = [sys.executable, script_path] + sys.argv[1:]
+        new_process_args = [sys.executable, script_path, *sys.argv[1:]]
 
-        print(f"Launching new instance with command: {new_process_args}")
+        # print(f"Launching new instance with command: {new_process_args}")
 
-        subprocess.Popen(new_process_args)
-        print("New instance launched. Exiting current instance.")
+        subprocess.Popen(new_process_args)  # noqa: S603
+        print("New instance of MapTasker launched. Exiting current instance.  PLease stand by...")
         sys.exit(0)  # Exit the current script cleanly
-    except Exception as e:
-        print(f"Error restarting program: {e}")
+    except Exception as e:  # noqa: BLE001
+        print(f"Error restarting program: {e}.  Please restart it manuualy.")
         sys.exit(1)  # Exit with an error code
 
 
