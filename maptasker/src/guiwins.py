@@ -3295,15 +3295,12 @@ class ProgressbarWindow(ctk.CTk):
 
 
 # Define the Ai Popup window
-class PopupWindow(ctk.CTk):
+class PopupWindow(ctk.CTkToplevel):
     """Define our top level window for the Popup view."""
 
     def __init__(
         self,
         title: str = "",
-        message: str = "",
-        exit_when_done: bool = False,
-        delay: int = 500,
         *args,  # noqa: ANN002
         **kwargs,  # noqa: ANN003
     ) -> None:
@@ -3313,8 +3310,6 @@ class PopupWindow(ctk.CTk):
         Parameters:
             title (str): The title of the popup window. Default is an empty string.
             message (str): The message to be displayed in the popup window. Default is an empty string.
-            exit_when_done (bool): Whether the popup window should exit when done. Default is False.
-            delay (int): The delay in milliseconds before the popup window exits. Default is 500.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
 
@@ -3329,23 +3324,6 @@ class PopupWindow(ctk.CTk):
         self.title(title)
 
         self.grid_columnconfigure(0, weight=1)
-
-        # Set popup window wait time to .5 seconds, after which popup_button_event will be called and we will exit.
-        # if exit_when_done:
-        #     # delay = 0  # Override delay since we are not doing the animation (it doesn't work)
-        #     self.after(delay, self.popup_button_event)
-
-        # Label widget
-        # our_label = message
-        self.text = ""
-        self.count = 0
-        self.Popup_label = ctk.CTkLabel(
-            master=self,
-            text=self.text,
-            font=("", 24),
-            text_color="turquoise",
-        )
-        self.Popup_label.grid(row=0, column=0, padx=0, pady=10, sticky="n")
 
         # Basic appearance for text, foreground and background.
         self.Popup_bg_color = self._apply_appearance_mode(
@@ -3362,9 +3340,8 @@ class PopupWindow(ctk.CTk):
         self.Popup_style = ttk.Style(self)
         self.Popup_style.theme_use("default")
 
-        # Display the message
-        self.Popup_label.configure(text=message)
-        self.Popup_label.focus_set()
+        # Force the window to the front.
+        self.focus()
 
         ## Animate the text so it is more visable
         # def slider() -> None:

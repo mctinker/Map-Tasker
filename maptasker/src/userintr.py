@@ -179,7 +179,7 @@ class MyGui(customtkinter.CTk):
             self.debug_checkbox.select()
 
         # Set the window's geometry
-        self.set_main_window_geometry()
+        window_position = self.set_main_window_geometry()
 
         # See if we have any carryover error messages from last run (rerun).
         # Note: this must go after the settings restoration.
@@ -235,8 +235,14 @@ class MyGui(customtkinter.CTk):
         # Save ourself
         PrimeItems.mygui = self
 
+        # Ensure proper window geometry for windows 11
+        # FIX Not adjusting window properly
+        self.geometry(window_position)
+
         # Finally, show the window. It was hidden in initialize_screen.
         self.deiconify()
+
+        print("bingo final window:", window_position)
 
         # CHG ME: For Development Only!
         # The following lines are for testing only.
@@ -1688,25 +1694,34 @@ class MyGui(customtkinter.CTk):
             self.ai_analyze_button.configure(fg_color="#f55dff", text_color="#5554ff")
 
     # Set up the main window's geometry
-    def set_main_window_geometry(self) -> None:
+    def set_main_window_geometry(self) -> str:
         """
         Set the main window geometry
         Args:
             self: The class instance
         Returns:
-            None
+            self.window_position: The window position
         """
-        logger.info("Setting main window geometry")
+        if PrimeItems.program_arguments["window_position"]:
+            self.window_position = PrimeItems.program_arguments["window_position"]
+
         # Set the window geometry.  Use saved coordinates if available.
         if self.window_position:
             self.geometry(self.window_position)
+            print("bingo", self.window_position)
         else:
             # Get the screen size
+            print("bingo default window size")
             screen_width = self.winfo_screenwidth()
             screen_height = self.winfo_screenheight()
 
             # Overall window dimensions: width x height + x offset + y offset
-            self.geometry(f"1129x1188+{screen_width // 4}+{screen_height // 6}")
+            position = f"1129x1188+{screen_width // 4}+{screen_height // 6}"
+            self.geometry(position)
+            self.window_position = position
+
+        logger.info(f"Set main window geometry: {self.window_position}")
+        return self.window_position
 
     # Re-invoke mapit.
 

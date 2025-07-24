@@ -729,6 +729,7 @@ def mapit_all(file_to_get: str) -> int:
     Cleans up memory after completing processing.
     If coming from the GUI, then PrimeItems may already be primed with data.
     """
+
     # Save our mapview and doing_diagram flags since 'initialize_everything' would otherwise wipe it out.
     try:
         save_map = PrimeItems.program_arguments["guiview"]
