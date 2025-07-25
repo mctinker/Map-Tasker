@@ -11,6 +11,7 @@ import contextlib
 import json
 import os
 import pickle
+from screeninfo import get_monitors, Enumerator
 import webbrowser
 from pathlib import Path
 from tkinter import *  # noqa: F403
@@ -159,6 +160,7 @@ class MyGui(customtkinter.CTk):
         # Hide the window since initialize_screen would otherwise display an incomplete window
         # until the geometry is properly set.
         self.withdraw()
+        self.resizable(height=False, width=False)
 
         # Add menu elements
         initialize_screen(self)
@@ -236,13 +238,44 @@ class MyGui(customtkinter.CTk):
         PrimeItems.mygui = self
 
         # Ensure proper window geometry for windows 11
-        # FIX Not adjusting window properly
-        self.geometry(window_position)
+        # FIX Not adjusting window properlyfrom screeninfo import get_monitors, Enumerator
+        if sys.platform == "darwin":
+            for m in get_monitors(Enumerator.OSX):
+                print("bingo OSX Monitors:", str(m))
+        if sys.platform.startswith("win"):
+            user32 = ctypes.windll.user32
+            # Set index numbers
+            SM_CXSIZEFRAME = 32
+            SM_CYSIZEFRAME = 33
+            SM_CXDLGFRAME = 7
+            SM_CXFULLSCREEN = 16
+
+            border_width = user32.GetSystemMetrics(SM_CXSIZEFRAME)
+            border_height = user32.GetSystemMetrics(SM_CYSIZEFRAME)
+            print("bingo ctypes:", user32.GetSystemMetrics(SM_CXDLGFRAME), user32.GetSystemMetrics(SM_CXFULLSCREEN))
+            for m in get_monitors(Enumerator.Windows):
+                print("bingo Windows Monitors:", str(m))
+
+        # self.geometry("400x400+0+0")
+        # print("bingo0 final window:", self.wm_geometry())
+        # self.update()
+        # print("bingo1 final window:", self.wm_geometry())
 
         # Finally, show the window. It was hidden in initialize_screen.
+        print("bingo0 final window:", self.wm_geometry())
         self.deiconify()
-
-        print("bingo final window:", window_position)
+        print("bingo1.5 final window:", self.wm_geometry())
+        self.geometry(window_position)
+        print("bingo2 final window:", self.wm_geometry())
+        self.update()
+        print("bingo2.5 final window:", self.wm_geometry())
+        self.resizable(height=True, width=True)
+        # self.geometry("400x400+0+0")
+        # print("bingo1.5 final window:", self.wm_geometry())
+        # self.resizable(height=True, width=True)
+        # print("bingo2 final window:", self.wm_geometry())
+        # self.geometry("400x400+0+0")
+        print("bingo3 final window:", self.wm_geometry())
 
         # CHG ME: For Development Only!
         # The following lines are for testing only.
@@ -313,7 +346,7 @@ class MyGui(customtkinter.CTk):
             else:
                 self.window_position = "1129x1044+698+145"  # Default window position
         else:
-            self.window_position = save_window_position(self)
+            self.window_position = save_window_position(self, self)
 
         # Display current Items setting.
         with contextlib.suppress(
@@ -1707,6 +1740,8 @@ class MyGui(customtkinter.CTk):
 
         # Set the window geometry.  Use saved coordinates if available.
         if self.window_position:
+            # Don't allow negative displacements.
+            self.window_position = self.window_position
             self.geometry(self.window_position)
             print("bingo", self.window_position)
         else:
@@ -3131,7 +3166,7 @@ class EventHandlers:
                 "Orange",
             )
             # Save the window position and delete the window.  Then return.
-            my_gui.ai_apikey_window_position = save_window_position(apikey_window)
+            my_gui.ai_apikey_window_position = save_window_position(self, apikey_window)
             apikey_window.destroy()
             return
 
@@ -3210,7 +3245,7 @@ class EventHandlers:
             my_gui.display_message_box("No API keys changed.", "LimeGreen")
 
         # Save window position and destroy the window.
-        my_gui.ai_apikey_window_position = save_window_position(apikey_window)
+        my_gui.ai_apikey_window_position = save_window_position(self, apikey_window)
         apikey_window.destroy()
 
     # Show for edit the AI API Key

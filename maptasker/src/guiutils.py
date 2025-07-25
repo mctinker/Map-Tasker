@@ -883,8 +883,6 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
     # Delete previous labels since they may be longer than new labels
     delete_ai_labels(self)
 
-    # FIX Test this out.
-    # FIX Make it work for common models (antrhropic and openai)
     # If we don't have a model yet, find out which model this key belongs to.
     if not self.ai_model:
         # Get all available models
@@ -902,7 +900,7 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
 
                 break
 
-    # FIX don't have the 'ai' details
+    # Load the api_keys if we don't have 'em yet and get the model name to display
     if not self.ai_apikey:
         self.ai_apikey = get_api_key()
     key_to_display = "N/A" if self.ai_name == "LLAMA" else "Unset" if not self.ai_apikey else "Set"
@@ -2515,7 +2513,8 @@ def kill_the_progress_bar(progress_bar: dict, remove_windows: bool = False) -> N
     # Save the window position in our main window (self=MyGui).
     if PrimeItems.progressbar:
         PrimeItems.mygui.progressbar_window_position = save_window_position(
-            progress_bar["progress_bar"],
+            progress_bar["self"],
+            "progressbar_window",
         )
         # Get rid of the progressbar
         progress_bar["progress_bar"].progressbar.stop()

@@ -3829,6 +3829,36 @@ def _initialize_configure(self: ctk) -> None:
     )  # Make anything in rows 20-xx stretchable.
 
 
+def on_resize(self: ctk) -> None:
+    """
+    Resizes the Diagram window based on the event width and height.
+
+    Args:
+        event (any): The event object containing the width and height of the window.
+
+    Returns:
+        None: This function does not return anything.
+
+    Raises:
+        None: This function does not raise any exceptions.
+
+    This function is called when the window is resized. It retrieves the current window position from
+    `self.master.master.{view}_window_position`,
+    splits it into width, height, and x and y coordinates. It then updates the window geometry with the new width,
+    height, and x and y coordinates
+    based on the event width and height.
+
+    Note: The code snippet provided is incomplete and does not contain the implementation of the function.
+    """
+    position_key = "window_position"
+
+    # Get the current window position
+    window_position = self.wm_geometry()
+    print("bingo resized:", window_position)
+    # Set the 'view' new window position in our GUI self.
+    setattr(self, position_key, window_position)
+
+
 def initialize_screen(self: object) -> None:
     """Initializes the screen with various display options and settings."""
     logger.info("Initializing screen...")
@@ -3849,8 +3879,7 @@ def initialize_screen(self: object) -> None:
 
 
 def _setup_init(self: ctk) -> None:
-    """Initialize your application window and frames here
-    # This is a minimal example to make the refactored code runnable"""
+    """Initialize main GUI window"""
     # self.sidebar_frame = ctk.CTkFrame(master=None)
     self.task_action_warning_limit = 100
     # Setup routine if user deletes the window

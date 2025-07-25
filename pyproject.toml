@@ -50,6 +50,7 @@ dependencies = [
     "pillow==11.3.0",  # Image support in GUI.  Revert back to 11.2.0 to avoid UV bug with tkinter.
     "psutil>=7.0.0",  #  System monitoring
     "requests>=2.32.4",  # HTTP Server function request
+    "screeninfo>=0.8.1",  # Needed for Windows 11 window sizing.
     "tomli_w>=1.2.0",  # Write toml file
     "webcolors>=24.11.1", # For color matching
 ]
