@@ -75,11 +75,7 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
         self._max_height: int = 1_000_000
         self._last_resizable_args: tuple[list, dict] | None = None  # (args, kwargs)
 
-        self._fg_color = (
-            ThemeManager.theme["CTk"]["fg_color"]
-            if fg_color is None
-            else self._check_color_type(fg_color)
-        )
+        self._fg_color = ThemeManager.theme["CTk"]["fg_color"] if fg_color is None else self._check_color_type(fg_color)
 
         # set bg of tkinter.Tk
         super().configure(bg=self._apply_appearance_mode(self._fg_color))
@@ -88,22 +84,30 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
         self.title("CTk")
 
         # indicator variables
-        self._iconbitmap_method_called = (
-            False  # indicates if wm_iconbitmap method got called
-        )
+        self._iconbitmap_method_called = False  # indicates if wm_iconbitmap method got called
         self._state_before_windows_set_titlebar_color = None
-        self._window_exists = False  # indicates if the window is already shown through update() or mainloop() after init
-        self._withdraw_called_before_window_exists = False  # indicates if withdraw() was called before window is first shown through update() or mainloop()
-        self._iconify_called_before_window_exists = False  # indicates if iconify() was called before window is first shown through update() or mainloop()
+        self._window_exists = (
+            False  # indicates if the window is already shown through update() or mainloop() after init
+        )
+        self._withdraw_called_before_window_exists = (
+            False  # indicates if withdraw() was called before window is first shown through update() or mainloop()
+        )
+        self._iconify_called_before_window_exists = (
+            False  # indicates if iconify() was called before window is first shown through update() or mainloop()
+        )
         self._block_update_dimensions_event = False
 
         # save focus before calling withdraw
         self.focused_widget_before_widthdraw = None
 
+        # <<<<<<< MapTasker modifications start here >>>>>>>
         # set CustomTkinter titlebar icon (Windows only)
         # MapTasker mod: comment out...causes an error
         # if sys.platform.startswith("win"):
         #     self.after(200, self._windows_set_titlebar_icon)
+        if sys.platform.startswith("darwin"):
+            self.after(200, self._windows_set_titlebar_icon)
+        # <<<<<<< MapTasker modifications end here >>>>>>>
 
         # set titlebar color (Windows only)
         if sys.platform.startswith("win"):
@@ -198,10 +202,7 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
     def update(self):
         if self._window_exists is False:
             if sys.platform.startswith("win"):
-                if (
-                    not self._withdraw_called_before_window_exists
-                    and not self._iconify_called_before_window_exists
-                ):
+                if not self._withdraw_called_before_window_exists and not self._iconify_called_before_window_exists:
                     # print("window dont exists -> deiconify in update")
                     self.deiconify()
 
@@ -214,10 +215,7 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
             if sys.platform.startswith("win"):
                 self._windows_set_titlebar_color(self._get_appearance_mode())
                 # print("Windows")
-                if (
-                    not self._withdraw_called_before_window_exists
-                    and not self._iconify_called_before_window_exists
-                ):
+                if not self._withdraw_called_before_window_exists and not self._iconify_called_before_window_exists:
                     # print("window dont exists -> deiconify in mainloop")
                     self.deiconify()
 
@@ -321,10 +319,7 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
 
     @classmethod
     def _enable_macos_dark_title_bar(cls):
-        if (
-            sys.platform == "darwin"
-            and not cls._deactivate_macos_window_header_manipulation
-        ):  # macOS
+        if sys.platform == "darwin" and not cls._deactivate_macos_window_header_manipulation:  # macOS
             if version.parse(platform.python_version()) < version.parse("3.10"):
                 if version.parse(
                     tkinter.Tcl().call("info", "patchlevel"),
@@ -336,10 +331,7 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
 
     @classmethod
     def _disable_macos_dark_title_bar(cls):
-        if (
-            sys.platform == "darwin"
-            and not cls._deactivate_macos_window_header_manipulation
-        ):  # macOS
+        if sys.platform == "darwin" and not cls._deactivate_macos_window_header_manipulation:  # macOS
             if version.parse(platform.python_version()) < version.parse("3.10"):
                 if version.parse(
                     tkinter.Tcl().call("info", "patchlevel"),
@@ -358,10 +350,7 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
         https://docs.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
         """
 
-        if (
-            sys.platform.startswith("win")
-            and not self._deactivate_windows_window_header_manipulation
-        ):
+        if sys.platform.startswith("win") and not self._deactivate_windows_window_header_manipulation:
             if self._window_exists:
                 self._state_before_windows_set_titlebar_color = self.state()
                 # print(
