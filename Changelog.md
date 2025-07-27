@@ -2,33 +2,49 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.1.0] 13-July-2025
+## [8.1.1] 28-July-2025
 
 ### Added
+
+- Added: 'Extended' AI Model List is now available to include many more AI models in the GUI.
+
+### Changed
+
+- Changed: Restructured the AI model handler to allow for the extended model list.
+- Changed: 'Claude' AI models renamed to 'Anthropic'.
+- Changed: Don't show the configuration in the web browser if doing an AI Analysis.
+- Changed: Removed the 'please wait...' popup window for AI Analysis on Windows to eliminate a delay in the analysis.
+
+### Fixed
+
+- Fixed: Program error in the GUI if 'None' is selected as the AI model.
+- Fixed: Entering an API key into the GUI does not update the 'Set' or 'Unset' message.
+- Fixed: The error code message from Gemini has extraneous information.
+- Fixed: AI Analysis is not working on Windows.
+- Fixed: 'Upgrade to New Version' button is not automatically restarting MapTasker on Windows after the upgrade.
+- Fixed: Saving the AI API key dialog can cause a program error when trying to save the window position.
+
+### Known Issues
+
+- Unable to change any colors in GUI if using UV to manage the application (UV bug).
+- MapTasker may unexpectedly terminate normally immediately after an AI Analysis.  The analysis file is saved for viewing offline.
+- GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settingsa for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
+
+## Older History Logs
+
+## [8.1.0]
 
 - Added: Tasker version 6.6.3-beta is supported.
 - Added: 'SecureTask Airplane Mode' plugin has been added.
 - Added: Additional tooltips have been added to the GUI.
 - Added: AI Llama model 'qwen3:1.7b' has been added.
-
-### Changed
-
 - Changed: Tasks identified in Map view by hovering over a Project or Profile are listed as 'sorted'.
-
-### Fixed
-
 - Fixed: Initial GUI displays with a jitter effect due to resizing based on the saved settings.
 - Fixed: Task action 'Call' is not appearing correctly.
 - Fixed: Some Task action selected checkboxes are identified as '=1' rather than as '(selected)'.
 - Fixed: The directory hotlink 'Up One Level' is not displaying in the Map View.
 - Fixed: Incorrect output color in Map view if '_color' is part of a variable name in a Task.
 - Fixed: Caveat at the bottom referring to inactive and unreferenced global variables is not appearing if the display level is 5.
-
-### Known Issues
-
-- Unable to change any colors in GUI if using UV to manage the application (UV bug).
-
-## Older History Logs
 
 ## [8.0.6]
 
