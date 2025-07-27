@@ -179,8 +179,9 @@ git branch -a
 8- poetry build
 9- ./publishtest.sh
 10- Install test-pypi package:
-brew uninstall pipx
+
 python3.11 -m pip install --extra-index-url https://test.pypi.org/simple/ maptasker==8.0.1
+
 ...or...
 uv pip install --extra-index-url https://test.pypi.org/simple/ --index-strategy unsafe-best-match maptasker==6.0.2
 source .venv/bin/activate.fish
@@ -188,7 +189,6 @@ source .venv/bin/activate.fish
 12- On Github, make new release the new master
 13- ./publishprod.sh to pypi
 14- Test production maptasker on kaka
-    'brew install pipx' when done testing.
 15- GIT Merge / Go to Next Version (below)
 16- Update changelog.md
 DONE
