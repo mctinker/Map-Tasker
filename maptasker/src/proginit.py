@@ -198,7 +198,7 @@ def setup_colors() -> dict:
     return colors_to_use
 
 
-# POpen and read xml and output the introduction/heading matter
+# Open and read xml and output the introduction/heading matter
 def get_data_and_output_intro(do_front_matter: bool) -> int:
     """
     Gets data from Tasker backup file and outputs introductory information.

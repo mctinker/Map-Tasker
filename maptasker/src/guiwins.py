@@ -37,6 +37,7 @@ from maptasker.src.guiutils import (
     build_connectors,
     destroy_hover_tooltip,
     display_analyze_button,
+    display_model_pulldown,
     display_progress_bar,
     extract_number_from_line,
     find_the_line,
@@ -54,7 +55,6 @@ from maptasker.src.guiutils import (
     on_closing,
     output_label,
     parse_pairs_to_columns,
-    prefix_and_sort,
     remove_tags_from_bars_and_names,
     reset_primeitems_single_names,
     search_substring_in_list,
@@ -76,7 +76,6 @@ from maptasker.src.scenes import get_details
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
     DIAGRAM_PROFILES_PER_LINE,
-    MODEL_GROUPS,
     UNNAMED_ITEM,
     clean,
     logger,
@@ -555,9 +554,7 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}"
-                    if len(line) > max_length
-                    else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -3296,15 +3293,12 @@ class ProgressbarWindow(ctk.CTk):
 
 
 # Define the Ai Popup window
-class PopupWindow(ctk.CTk):
+class PopupWindow(ctk.CTkToplevel):
     """Define our top level window for the Popup view."""
 
     def __init__(
         self,
         title: str = "",
-        message: str = "",
-        exit_when_done: bool = False,
-        delay: int = 500,
         *args,  # noqa: ANN002
         **kwargs,  # noqa: ANN003
     ) -> None:
@@ -3314,8 +3308,6 @@ class PopupWindow(ctk.CTk):
         Parameters:
             title (str): The title of the popup window. Default is an empty string.
             message (str): The message to be displayed in the popup window. Default is an empty string.
-            exit_when_done (bool): Whether the popup window should exit when done. Default is False.
-            delay (int): The delay in milliseconds before the popup window exits. Default is 500.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
 
@@ -3330,23 +3322,6 @@ class PopupWindow(ctk.CTk):
         self.title(title)
 
         self.grid_columnconfigure(0, weight=1)
-
-        # Set popup window wait time to .5 seconds, after which popup_button_event will be called.
-        if exit_when_done:
-            delay = 0  # Override delay since we are not doing the animation (it doesn't work)
-            self.after(delay, self.popup_button_event)
-
-        # Label widget
-        # our_label = message
-        self.text = ""
-        self.count = 0
-        self.Popup_label = ctk.CTkLabel(
-            master=self,
-            text=self.text,
-            font=("", 24),
-            text_color="turquoise",
-        )
-        self.Popup_label.grid(row=0, column=0, padx=0, pady=10, sticky="n")
 
         # Basic appearance for text, foreground and background.
         self.Popup_bg_color = self._apply_appearance_mode(
@@ -3363,47 +3338,16 @@ class PopupWindow(ctk.CTk):
         self.Popup_style = ttk.Style(self)
         self.Popup_style.theme_use("default")
 
-        # Display the message
-        self.Popup_label.configure(text=message)
-        self.Popup_label.focus_set()
+        # Force the window to the front.
+        self.focus()
 
-        ## Animate the text so it is more visable
-        # def slider() -> None:
-        #    """
-        #    Animates the text on the Popup_label widget by gradually displaying each character from the `our_label` string.
-
-        #    This function is called recursively using the `after` method to create a sliding effect. It checks if the
-        #    current index `count` has reached the length of `our_label`. If it has, it resets the `count` to -1 and
-        #    clears the `text` variable. If not, it appends the character at the current index to the `text` variable
-        #    and updates the `Popup_label` widget with the new text. The `count` is incremented and the `slider`
-        #    function is called again after a delay of 5 milliseconds.
-
-        #    Parameters:
-        #        None
-
-        #    Returns:
-        #        None
-        #    """
-        #    if self.count >= len(our_label):
-        #        self.count = -1
-        #        self.text = ""
-        #        return
-        #    self.text = self.text + our_label[self.count]
-        #    self.Popup_label.configure(text=self.text)
-        #    self.count += 1
-        #    self.after(1, slider)
-
-        ## Set the focus on our popup window and start the animation.
-        # self.Popup_label.focus_set()
-        # slider()
-
-    # The "after" n second timer tripped from popup window.  Close the window.
+    # The "after" n second timer tripped from popup window.  Close the windows and exit.
     # Note: rungui will have already completely run by this time.
     def popup_button_event(self: ctk) -> None:
         """
         Define the behavior of the popup button event function.  Close the window and exit.
         """
-        get_rid_of_window(self, delete_all=False)
+        get_rid_of_windows_and_exit(self, delete_all=False)
 
 
 # Hyperlink in textbox support
@@ -3760,6 +3704,9 @@ def _initialize_ai_settings(self: ctk) -> None:
     self.ai_apikey = None
     self.ai_apikey_window = None
     self.ai_model = ""
+    self.ai_name = ""
+    self.ai_model_extended_list = False
+    self.displaying_extended_list = None
     self.ai_prompt = None
 
 
@@ -3850,6 +3797,36 @@ def _initialize_configure(self: ctk) -> None:
     )  # Make anything in rows 20-xx stretchable.
 
 
+def on_resize(self: ctk) -> None:
+    """
+    Resizes the Diagram window based on the event width and height.
+
+    Args:
+        event (any): The event object containing the width and height of the window.
+
+    Returns:
+        None: This function does not return anything.
+
+    Raises:
+        None: This function does not raise any exceptions.
+
+    This function is called when the window is resized. It retrieves the current window position from
+    `self.master.master.{view}_window_position`,
+    splits it into width, height, and x and y coordinates. It then updates the window geometry with the new width,
+    height, and x and y coordinates
+    based on the event width and height.
+
+    Note: The code snippet provided is incomplete and does not contain the implementation of the function.
+    """
+    position_key = "window_position"
+
+    # Get the current window position
+    window_position = self.wm_geometry()
+
+    # Set the 'view' new window position in our GUI self.
+    setattr(self, position_key, window_position)
+
+
 def initialize_screen(self: object) -> None:
     """Initializes the screen with various display options and settings."""
     logger.info("Initializing screen...")
@@ -3870,8 +3847,7 @@ def initialize_screen(self: object) -> None:
 
 
 def _setup_init(self: ctk) -> None:
-    """Initialize your application window and frames here
-    # This is a minimal example to make the refactored code runnable"""
+    """Initialize main GUI window"""
     # self.sidebar_frame = ctk.CTkFrame(master=None)
     self.task_action_warning_limit = 100
     # Setup routine if user deletes the window
@@ -4724,7 +4700,7 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         "",
     )
 
-    self.ai_model_label = add_label(
+    _ = add_label(
         self,
         tab,
         "Model to Use:",
@@ -4733,29 +4709,40 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         "normal",
         6,
         0,
-        center,
+        (center, 5),
         (0, 0),
-        "n",
+        "nw",
     )
 
-    display_models = sorted(model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name))
-    (
-        display_models.insert(0, PrimeItems.program_arguments["ai_model"])
-        if PrimeItems.program_arguments["ai_model"]
-        else display_models.insert(0, "None")
-    )
-    self.ai_model_option = add_option_menu(
+    # # Display the default model list
+    display_model_pulldown(self, center)
+
+    # Extra model list checkbox
+    self.aimodel_extend_checkbox = add_checkbox(
         self,
         tab,
-        self.event_handlers.ai_model_selected_event,
-        display_models,
+        self.event_handlers.extended_models_event,
+        "Extended",
         6,
         0,
-        center,
-        (30, 0),
-        "s",
+        (260, 0),
+        (0, 0),
+        "ne",
+        "",
+    )
+    create_tooltip(
+        self.aimodel_extend_checkbox,
+        text=(
+            "Display an extended list of ALL available models.\n\n"
+            "Note: If the API key is not set for OpenAI or Gemini,\n"
+            "then the default model list for the respective\n"
+            "AI provider will be displayed.\n\n"
+            "Note: Not all models have been validated and\n"
+            "      one or more may return an error on analysis."
+        ),
     )
 
+    # Set up the initial analyze button with default models.
     display_analyze_button(self, 13, first_time=True)
 
     self.ai_help_button = add_button(
@@ -4816,7 +4803,7 @@ def _add_misc_logos(self: ctk) -> None:
 
 
 # Delete the windows
-def get_rid_of_window(self, delete_all: bool = True) -> None:  # noqa: ANN001
+def get_rid_of_windows_and_exit(self, delete_all: bool = True) -> None:  # noqa: ANN001
     """
     Hides open windows and terminates the application.
 
@@ -5037,7 +5024,7 @@ class APIKeyDialog(ctk.CTkToplevel):
 
         # Get the server-based keys
         self.openai_key = self.create_key_entry(0, "OpenAI API Key:", "openai_key")
-        self.claude_key = self.create_key_entry(1, "Claude API Key:", "claude_key")
+        self.anthropic_key = self.create_key_entry(1, "Claude API Key:", "anthropic_key")
         self.deepseek_key = self.create_key_entry(
             2,
             "DeepSeek API Key:",

@@ -46,7 +46,14 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from maptasker.src.sysconst import NOW_TIME
+from maptasker.src.sysconst import (
+    ANTHROPIC_MODELS,
+    DEEPSEEK_MODELS,
+    GEMINI_MODELS,
+    LLAMA_MODELS,
+    NOW_TIME,
+    OPENAI_MODELS,
+)
 
 
 class PrimeItems:
@@ -54,13 +61,19 @@ class PrimeItems:
 
     ai: ClassVar = {
         "do_ai": False,
+        "ai_name": "",
         "model": "",
         "output_lines": [],  # Saved output results if doing an AI run.
         "api_key": "",
         "openai_key": "",
-        "claude_key": "",
+        "anthropic_key": "",
         "deepseek_key": "",
         "gemini_key": "",
+        "openai_models": OPENAI_MODELS,
+        "anthropic_models": ANTHROPIC_MODELS,
+        "deepseek_models": DEEPSEEK_MODELS,
+        "gemini_models": GEMINI_MODELS,
+        "llama_models": LLAMA_MODELS,
     }
     xml_tree = None
     xml_root = None
@@ -178,11 +191,18 @@ class PrimeItemsReset:
         PrimeItems.tkroot = None
         PrimeItems.ai = {
             "do_ai": False,
+            "ai_name": "",
+            "model": "",
             "output_lines": [],
             "api_key": "",
             "openai_key": "",
-            "claude_key": "",
+            "anthropic_key": "",
             "deepseek_key": "",
             "gemini_key": "",
+            "openai_models": OPENAI_MODELS,
+            "anthropic_models": ANTHROPIC_MODELS,
+            "deepseek_models": DEEPSEEK_MODELS,
+            "gemini_models": GEMINI_MODELS,
+            "llama_models": LLAMA_MODELS,
         }
         PrimeItems.task_action_warnings = {}

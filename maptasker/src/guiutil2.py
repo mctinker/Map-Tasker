@@ -11,6 +11,9 @@ import error.
 import os
 import re
 
+import customtkinter as ctk
+
+from maptasker.src.aiutils import get_api_key
 from maptasker.src.primitem import PrimeItems
 
 
@@ -136,9 +139,11 @@ def my_trace_function(frame, event, arg) -> None:  # noqa: ANN001
     Custom trace function that logs execution details.
 
     Invoked with:
-        if PrimeItems.program_arguments["debug"]:
-                PrimeItems.trace = True
-                sys.settrace(my_trace_function)
+    import sys
+    from maptasker.src.guiutil2 import my_trace_function
+    if PrimeItems.program_arguments["debug"]:
+            PrimeItems.trace = True
+            sys.settrace(my_trace_function)
     """
     # Only start logging if the 'start_tracing' flag is True
     if not PrimeItems.trace:
@@ -197,3 +202,59 @@ def my_trace_function(frame, event, arg) -> None:  # noqa: ANN001
     # Important: The trace function must return itself (or another trace function)
     # to continue tracing in the current or new scope.
     return my_trace_function
+
+
+def is_valid_ai_config(self: ctk) -> bool:
+    """
+    Validates the AI model and API key against predefined configurations in PrimeItems.
+
+    This method iterates through a list of known AI providers (e.g., OpenAI, Anthropic, Gemini)
+    and checks if the instance's `self.ai_model` exists within any provider's model list.
+    If a matching model is found, it further checks if the `self.ai_apikey` matches
+    the corresponding API key stored in `PrimeItems.ai` for that provider.
+    Some providers (like 'llama' in this example) may not require an API key check.
+
+    The method prints a message indicating whether the AI model and API key combination
+    is considered valid based on the configurations.
+
+    Returns:
+        bool: True if the `self.ai_model` and `self.ai_apikey` (if required)
+              are valid according to `PrimeItems.ai` configurations; False otherwise.
+    """
+    # Dictionary mapping provider names to their models and key attributes in PrimeItems.ai
+    # If 'llama_models' needs an API key, add 'llama_key' here.
+    ai_providers = {
+        "openai": {"models": "openai_models", "key": "openai_key"},
+        "anthropic": {"models": "anthropic_models", "key": "anthropic_key"},
+        "gemini": {"models": "gemini_models", "key": "gemini_key"},
+        "deepseek": {"models": "deepseek_models", "key": "deepseek_key"},
+        "llama": {"models": "llama_models", "key": None},  # Assuming no key for llama based on original if
+    }
+    if not self.ai_model:
+        return False  # Don't do anything if there is no model to check against.
+
+    # Make sure we have read in the api keys.
+    if not self.ai_apikey or self.ai_apikey == "Hidden":
+        self.ai_apikey = get_api_key()
+
+    is_valid_config = False
+    for provider, config in ai_providers.items():
+        models = PrimeItems.ai.get(config["models"], [])
+        key_to_check = PrimeItems.ai.get(config["key"], None)
+        api_key = key_to_check if provider != "llama" and key_to_check == PrimeItems.ai[f"{provider}_key"] else None
+
+        # If llama, then we need to strip " (Installed)" off the name.
+        if provider == "llama":
+            models = [item.replace(" (installed)", "") for item in models]
+
+        if self.ai_model in models:
+            if provider != "llama" and not api_key:
+                # We have found the model but it doesn't have the api key.
+                break
+            if api_key is None or PrimeItems.ai[config["key"]] == api_key:  # No key check needed for this provider
+                is_valid_config = True
+                self.ai_apikey = api_key
+                break
+            break
+
+    return is_valid_config

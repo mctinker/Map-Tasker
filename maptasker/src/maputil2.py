@@ -11,6 +11,7 @@ import error.
 import contextlib
 import re
 import sys
+from tkinter import TclError
 
 import customtkinter as ctk
 
@@ -100,23 +101,34 @@ def store_windows(self: ctk) -> None:
 
     with contextlib.suppress(AttributeError):
         for window_attr, position_attr in windows.items():
-            window_obj = getattr(self, window_attr, None)
-            if window_obj and (window_pos := save_window_position(window_obj)):
+            window_obj = getattr(self, position_attr, None)
+            if window_obj and (window_pos := save_window_position(self, window_attr)):
                 setattr(self, position_attr, window_pos)
 
 
 # Save the position of a window
-def save_window_position(window: ctk.CTkTextbox) -> None:
+def save_window_position(self: ctk, window_name: str) -> None:
     """
     Saves the window position by getting the geometry of the window.
 
     Args:
-        window: The CTkTextview window to save the position of.
+        self: The MyGui object.
+        window_name: The name of the window to save the position of.
 
     Returns:
         window position or "" if no window
     """
-    with contextlib.suppress(Exception):
-        if window is not None:
-            return window.wm_geometry()
+    # Check to see if it our main window
+    if window_name == "self":
+        return self.wm_geometry()
+
+    # Process other windows.
+    window_object = getattr(self, window_name, None)
+
+    if window_object is not None and hasattr(window_object, "wm_geometry"):
+        # Capture the situation in which the window has been closed already, causing a tclerror.
+        try:
+            return window_object.wm_geometry()
+        except TclError:
+            return ""
     return ""

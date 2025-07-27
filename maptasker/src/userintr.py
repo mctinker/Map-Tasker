@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING
 import customtkinter
 import requests
 
+from maptasker.src.aiutils import get_api_key
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
 
@@ -42,10 +43,10 @@ from maptasker.src.guiutils import (
     display_analyze_button,
     display_current_file,
     display_messages_from_last_run,
+    display_model_pulldown,
     display_no_xml_message,
     display_selected_object_labels,
     fresh_message_box,
-    get_api_key,
     get_xml,
     is_new_version,
     list_tasker_objects,
@@ -66,6 +67,7 @@ from maptasker.src.guiutils import (
     valid_item,
     validate_or_filelist_xml,
 )
+from maptasker.src.guiutil2 import is_valid_ai_config
 from maptasker.src.guiwins import (
     APIKeyDialog,
     CTkHyperlinkManager,
@@ -73,7 +75,7 @@ from maptasker.src.guiwins import (
     CTkTreeview,
     TextWindow,
     get_appropriate_color,
-    get_rid_of_window,
+    get_rid_of_windows_and_exit,
     initialize_gui,
     initialize_screen,
 )
@@ -101,8 +103,6 @@ from maptasker.src.sysconst import (
     CHANGELOG_JSON_URL,
     DIAGRAM_FILE,
     KEYFILE,
-    LLAMA_MODELS,
-    OPENAI_MODELS,
     TAB_NAMES,
     TYPES_OF_COLOR_NAMES,
     DISPLAY_DETAIL_LEVEL_all_parameters,
@@ -159,6 +159,7 @@ class MyGui(customtkinter.CTk):
         # Hide the window since initialize_screen would otherwise display an incomplete window
         # until the geometry is properly set.
         self.withdraw()
+        # self.resizable(height=False, width=False)
 
         # Add menu elements
         initialize_screen(self)
@@ -179,7 +180,7 @@ class MyGui(customtkinter.CTk):
             self.debug_checkbox.select()
 
         # Set the window's geometry
-        self.set_main_window_geometry()
+        window_position = self.set_main_window_geometry()
 
         # See if we have any carryover error messages from last run (rerun).
         # Note: this must go after the settings restoration.
@@ -210,6 +211,9 @@ class MyGui(customtkinter.CTk):
             ),
         )
 
+        # Display the model list. Do this here since now we have the exended model list setting restored.
+        display_model_pulldown(self, 50)
+
         # Update the analysis button
         logger.info("Updating analysis button")
         display_analyze_button(self, 13, first_time=True)
@@ -232,8 +236,10 @@ class MyGui(customtkinter.CTk):
         # Save ourself
         PrimeItems.mygui = self
 
-        # Finally, show the window. It was hidden in initialize_screen.
+        # # Finally, show the window. It was hidden in initialize_screen.
         self.deiconify()
+        # Reestabslish the window size since it might get changed by the deiconify call.
+        self.geometry(window_position)
 
         # CHG ME: For Development Only!
         # The following lines are for testing only.
@@ -290,8 +296,9 @@ class MyGui(customtkinter.CTk):
         self.color_row = 4
         self.message = ""
         self.ai_model = ""
+        self.ai_name = ""
         self.ai_analyze = False
-        self.ai_model = ""
+        self.ai_model_extended_list = False
         self.ai_prompt = AI_PROMPT
         self.specific_name_msg = ""
         self.current_file_display_message = True
@@ -303,7 +310,7 @@ class MyGui(customtkinter.CTk):
             else:
                 self.window_position = "1129x1044+698+145"  # Default window position
         else:
-            self.window_position = save_window_position(self)
+            self.window_position = save_window_position(self, self)
 
         # Display current Items setting.
         with contextlib.suppress(
@@ -822,13 +829,19 @@ class MyGui(customtkinter.CTk):
             "rerun",
             "reset",
             "window_position",
+            "Analyze",
+            "ai_analyze",
             "ai_analysis_window_position",
             "ai_apikey_window_position",
+            "ai_model",
+            "ai_name",
             "ai_popup_window_position",
+            "ai_prompt",
             "color_window_position",
             "diagram_window_position",
             "map_window_position",
             "progressbar_window_position",
+            "tab_to_use",
             "tree_window_position",
             "guiview",
             "fetched_backup_from_android",
@@ -840,6 +853,12 @@ class MyGui(customtkinter.CTk):
             "android_file": lambda: f"Android Get XML File Location set to {value}\n",
             "appearance_mode": lambda: self.event_handlers.change_appearance_mode_event(
                 value,
+            ),
+            "ai_model_extended_list": lambda: self.select_deselect_checkbox(
+                self.aimodel_extend_checkbox,
+                value,
+                "Display Profile/Task Conditions",
+                display=False,
             ),
             "bold": lambda: self.select_deselect_checkbox(
                 self.bold_checkbox,
@@ -1027,11 +1046,16 @@ class MyGui(customtkinter.CTk):
         - Loops through color lookup and builds message of color changes
         - Displays message box with all setting changes
         """
-        # Indicate that an extraction is in progress so we don't inadvertently change the colors already set via the 'appearance_mode' setting.
+        # Indicate that an extraction is in progress so we don't inadvertently change the colors already set
+        # via the 'appearance_mode' setting.
         self.extract_in_progress = True
         for key, value in temp_args.items():
             if key is not None:
                 setattr(self, key, value)
+                # Start log if debug
+                if key == "debug" and value:
+                    log_startup_values()
+                # Now display the setting and act on it if neccesary.
                 if new_message := self.restore_display(key, value):
                     self.display_message_box(f"{new_message}\n", "Green")
 
@@ -1250,7 +1274,7 @@ class MyGui(customtkinter.CTk):
             self.quit()
         else:
             # ReRun
-            get_rid_of_window(self, delete_all=True)
+            get_rid_of_windows_and_exit(self, delete_all=True)
             # Now get rid of stuff we don't want around anymore
             self.sidebar_frame.destroy()
             with contextlib.suppress(AttributeError):
@@ -1597,7 +1621,7 @@ class MyGui(customtkinter.CTk):
         logger.info("Checking for new version...")
         # If so, add a button to enable user to update.
         # TODO For testing only = True.  False for production
-        test_button = False
+        test_button = True
         if is_new_version() or test_button:
             self.new_version = True
             # We have a new version.  Let user upgrade.
@@ -1662,31 +1686,37 @@ class MyGui(customtkinter.CTk):
             self.ai_prompt = prompt
 
         # Now that we have loaded our settings, reconfigure the ai analyze button
-        if ((self.ai_model in OPENAI_MODELS and self.ai_apikey) or self.ai_model) and (
-            self.single_task_name or self.single_profile_name
-        ):
+        # Highlight the button if we have everything to run the Analysis.
+        if (is_valid_ai_config(self)) and (self.single_task_name or self.single_profile_name):
             self.ai_analyze_button.configure(fg_color="#f55dff", text_color="#5554ff")
 
     # Set up the main window's geometry
-    def set_main_window_geometry(self) -> None:
+    def set_main_window_geometry(self) -> str:
         """
         Set the main window geometry
         Args:
             self: The class instance
         Returns:
-            None
+            self.window_position: The window position
         """
-        logger.info("Setting main window geometry")
+        if PrimeItems.program_arguments["window_position"]:
+            self.window_position = PrimeItems.program_arguments["window_position"]
+
         # Set the window geometry.  Use saved coordinates if available.
         if self.window_position:
             self.geometry(self.window_position)
         else:
-            # Get the screen size
+            # Get the screen size and set it to the default window size.
             screen_width = self.winfo_screenwidth()
             screen_height = self.winfo_screenheight()
 
             # Overall window dimensions: width x height + x offset + y offset
-            self.geometry(f"1129x1188+{screen_width // 4}+{screen_height // 6}")
+            position = f"1129x1188+{screen_width // 4}+{screen_height // 6}"
+            self.geometry(position)
+            self.window_position = position
+
+        logger.info(f"Set main window geometry: {self.window_position}")
+        return self.window_position
 
     # Re-invoke mapit.
 
@@ -2245,6 +2275,8 @@ class EventHandlers:
         # Reset AI settings
         the_view.ai_prompt = AI_PROMPT
         the_view.ai_model = ""
+        the_view.ai_analyze = False
+        the_view.ai_name = ""
 
         # Reset Tasker-related option menus
         tasker_optionmenus = []
@@ -2822,7 +2854,28 @@ class EventHandlers:
             "Display Names in Bold",
         )
 
-    # Process the 'Highlight Names' checkbox
+    # Process the 'EXtended' checkbox: Display Extended AI Model List
+    def extended_models_event(self) -> None:
+        """
+        Get input to display names in bold and put message
+        Args:
+            self: The class instance
+        Returns:
+            None: No value is returned
+        - Get input value from bold_checkbox attribute
+        - Put message "Display Names in Bold" based on input
+        - No return value, function updates attribute on class instance"""
+        the_view = self.parent
+
+        # Re-display pulldown list.
+        the_view.ai_model_extended_list = the_view.get_input_and_put_message(
+            the_view.aimodel_extend_checkbox,
+            "Display The Extended List of AI Models",
+        )
+
+        # Display the model pulldown list.
+        display_model_pulldown(self, 50)
+
     def names_highlight_event(self) -> None:
         """
         Get input and put message for names highlight checkbox
@@ -3058,12 +3111,12 @@ class EventHandlers:
         Args:
             apikey_window (customtkinter): The API key dialog window.
             cancel (bool): Indicates if the operation was canceled.
-            clear (str): "openai_key", "claude_key", etc.
+            clear (str): "openai_key", "anthropic_key", etc.
 
         Returns:
             None
         """
-        apikeys_to_validate = ["openai_key", "claude_key"]
+        apikeys_to_validate = ["openai_key", "anthropic_key"]
         # self points to the 'event_handlers'; apikey_window is the dialog box window (APIKeyDialog).
         my_gui = self.parent
         # Bail out if user hit 'Cancel' button.
@@ -3073,14 +3126,14 @@ class EventHandlers:
                 "Orange",
             )
             # Save the window position and delete the window.  Then return.
-            my_gui.ai_apikey_window_position = save_window_position(apikey_window)
+            my_gui.ai_apikey_window_position = save_window_position(self, apikey_window)
             apikey_window.destroy()
             return
 
         # Get the API keys and update PrimeItems if necessary: key and length of key.
         api_keys = {
             "openai_key": apikey_window.openai_key.get(),
-            "claude_key": apikey_window.claude_key.get(),
+            "anthropic_key": apikey_window.anthropic_key.get(),
             "deepseek_key": apikey_window.deepseek_key.get(),
             "gemini_key": apikey_window.gemini_key.get(),
         }
@@ -3099,7 +3152,7 @@ class EventHandlers:
                 return
 
             # See if a valid API key was entered
-            if PrimeItems.ai[key] != value:  # If the key ent4ered doesn't matych what we already have.
+            if PrimeItems.ai[key] != value:  # If the key entered doesn't matych what we already have.
                 # Validate the lngth of the key
                 if value and key in apikeys_to_validate and not valid_api_key(key, value):
                     error_msg = f"{key.replace('_key', '').title()} API key is invalid!"
@@ -3143,13 +3196,16 @@ class EventHandlers:
             with open(KEYFILE, "wb") as key_file:
                 pickle.dump(PrimeItems.ai, key_file)
 
+            # Redisplay the Analyze button.
+            display_analyze_button(my_gui, 13, first_time=False)
+
             # Redisplay ai settings with new key.
             display_selected_object_labels(my_gui)
         else:
             my_gui.display_message_box("No API keys changed.", "LimeGreen")
 
         # Save window position and destroy the window.
-        my_gui.ai_apikey_window_position = save_window_position(apikey_window)
+        my_gui.ai_apikey_window_position = save_window_position(self.parent, "ai_apikey_window")
         apikey_window.destroy()
 
     # Show for edit the AI API Key
@@ -3166,17 +3222,22 @@ class EventHandlers:
         the_view = self.parent
 
         #  model:  OpenAI: GPT-3.5
-        model = modelplus.split(": ")[1]
-        if model == "None":
+        if modelplus == "None":
             the_view.display_message_box("No model selected.", "Orange")
             the_view.ai_model = ""
+            the_view.ai_name = ""
             display_analyze_button(the_view, 13, first_time=False)
             return
+        selection = modelplus.split(": ")
+        model = selection[1].replace(" (installed)", "")
+        name = selection[0]
+        # Save the model and name of the AI.
         the_view.ai_model = model
-        the_view.display_message_box("Model set to " + model + ".", "Green")
+        the_view.ai_name = name
+        the_view.display_message_box(f"{name} model set to {model}.", "Green")
 
-        # Set the appropriate API key based on the mdeol chosen.
-        set_ai_key(self, model)
+        # Set the appropriate API key based on the model chosen.
+        _ = set_ai_key(self, model)
 
         # Redisplay the Analyze button.
         display_analyze_button(the_view, 13, first_time=False)
@@ -3208,8 +3269,9 @@ class EventHandlers:
         if the_view.ai_model in ("None", ""):
             the_view.display_message_box("No model selected.", "Orange")
             return
+
         # Set the AI API key based on the model selected.
-        if the_view.ai_model not in LLAMA_MODELS and not set_ai_key(
+        if the_view.ai_name != "LLAMA" and not set_ai_key(
             the_view,
             the_view.ai_model,
         ):
@@ -3226,7 +3288,7 @@ class EventHandlers:
             the_view.ai_analyze = True
             the_view.event_handlers.clear_messages_event()  # Clear out all displayed messages.
             the_view.display_message_box(
-                f"Running analysis with model {the_view.ai_model}.",
+                f"Running {the_view.ai_name} analysis with model {the_view.ai_model}.",
                 "Green",
             )
             the_view.tab_to_use = the_view.tabview.get()

@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "8.1.0"
+VERSION = "8.1.1"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -108,6 +108,8 @@ ARGUMENT_NAMES = {
     "ai_analyze": "Analyze AI",
     "ai_apikey": "AI Api Key",
     "ai_model": "AI Model",
+    "ai_model_extended_list": "AI Model Extended List",
+    "ai_name": "Name of the AI",
     "ai_popup_window_position": "Last Ai Popup Window Position",
     "ai_prompt": "AI Prompt",
     "android_file": "Android Backup File location on Android device",
@@ -275,53 +277,32 @@ OPENAI_MODELS = [
 ]
 LLAMA_MODELS = [
     "aya",
-    "codegemma",
-    "codellama",
-    "deepseek-coder",
-    "deepseek-coder-v2",
-    "deepseek-r1",
+    "codegemma:2b",
+    "codellama:latest",
+    "deepseek-r1:1.5b",
     # "deepseek-v3",  # This model is huge...404gb!
     # "devstral",     # This model is 14gb!
     "exaone-deep",
-    "gemma",
-    "gemma2",
-    "gemma3",
+    "gemma3:1b",
     "llama2",
-    "llama3",
-    "llama3.1",
     "llama3.2",
     "llama3.3",
     "mistral",
     "mistral-nemo",
     "phi3",
-    "phi4",
     "phi4-mini",
-    "qwen",
-    "qwen2",
-    "qwen2.5-coder",
-    "qwen2.5",
     "qwen3:1.7b",
     "tinyllama",
 ]
-CLAUDE_MODELS = [
+ANTHROPIC_MODELS = [
     "claude-3-7-sonnet-latest",
-    "claude-3-5-sonnet-latest",
     "claude-3-5-haiku-latest",
-    "claude-3-opus-latest",
-    "claude-3-sonnet-20240229",
-    "claude-3-sonnet-20240229",
-    "claude-opus-4-20250514",
-    "claude-sonnet-4-20250514",
+    "claude-opus-4-0",
+    "claude-sonnet-4-0",
 ]
-DEEPSEEK_MODELS = [
-    "deepseek-chat",
-    "deepseek-reasoner",
-]
+DEEPSEEK_MODELS = ["deepseek-chat"]
 GEMINI_MODELS = [
     # TODO 1.5 going away in Sept. 24th 2025
-    "gemini-1.5-flash",
-    "gemini-1.5-flash-8b",
-    "gemini-1.5-pro",
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
     "gemini-2.5-flash",
@@ -330,7 +311,7 @@ GEMINI_MODELS = [
 ]
 MODEL_GROUPS = {
     "OpenAI": OPENAI_MODELS,
-    "Claude": CLAUDE_MODELS,
+    "Anthropic": ANTHROPIC_MODELS,
     "LLAMA": LLAMA_MODELS,
     "DeepSeek": DEEPSEEK_MODELS,
     "Gemini": GEMINI_MODELS,
