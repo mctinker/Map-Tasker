@@ -87,19 +87,19 @@ all_objects = "Display all Projects, Profiles, and Tasks."
 CHANGELOG = """
 Version 8.1.1 - Change Log\n
 ### Added\n
-- Added: Tasker version 6.6.3-beta is supported.\n
-- Added: 'SecureTask Airplane Mode' plugin has been added.\n
-- Added: Additional tooltips have been added to the GUI.\n
-- Added: AI Llama model 'qwen3:1.7b' has been added.\n
+- Added: 'Extended' AI Model List is now available to include many more AI models in the GUI.\n
 ### Changed\n
-- Changed: Tasks identified in Map view by hovering over a Project or Profile are listed as 'sorted'.\n
+- Changed: Restructured the AI model handler to allow for the extended model list.\n
+- Changed: 'Claude' AI models renamed to 'Anthropic'.\n
+- Changed: Don't show the configuration in the web browser if doing an AI Analysis.\n
+- Changed: Removed the 'please wait...' popup window for AI Analysis on Windows to eliminate a delay in the analysis.\n
 ### Fixed\n
-- Fixed: Initial GUI displays with a jitter effect due to resizing based on the saved settings.\n
-- Fixed: Task action 'Call' is not appearing correctly.\n
-- Fixed: Some Task action selected checkboxes are identified as '=1' rather than as '(selected)'.\n
-- Fixed: The directory hotlink 'Up One Level' is not displaying in the Map View.\n
-- Fixed: Incorrect output color in Map view if '_color' is part of a variable name in a Task.\n
-- Fixed: Caveat at the bottom referring to inactive and unreferenced global variables is not appearing if the display level is 5.\n
+- Fixed: Program error in the GUI if 'None' is selected as the AI model.\n
+- Fixed: Entering an API key into the GUI does not update the 'Set' or 'Unset' message.\n
+- Fixed: The error code message from Gemini has extraneous information.\n
+- Fixed: AI Analysis is not working on Windows.\n
+- Fixed: 'Upgrade to New Version' button is not automatically restarting MapTasker on Windows after the upgrade.\n
+- Fixed: Saving the AI API key dialog can cause a program error when trying to save the window position.\n
 """
 
 default_font_size = 14

@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.1.1] ??-July-2025. # FIX
+## [8.1.1] 27-July-2025
 
 ### Added
 
@@ -22,11 +22,13 @@ All notable changes to this project will be documented in this file!
 - Fixed: The error code message from Gemini has extraneous information.
 - Fixed: AI Analysis is not working on Windows.
 - Fixed: 'Upgrade to New Version' button is not automatically restarting MapTasker on Windows after the upgrade.
+- Fixed: Saving the AI API key dialog can cause a program error when trying to save the window position.
 
 ### Known Issues
 
 - Unable to change any colors in GUI if using UV to manage the application (UV bug).
 - MapTasker may unexpectedly terminate normally immediately after an AI Analysis.  The analysis file is saved for viewing offline.
+- GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settingsa for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
 

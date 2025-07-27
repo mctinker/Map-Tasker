@@ -576,10 +576,9 @@ def display_the_popup() -> ctk.CTkToplevel:
     """
     # Display a popup window telling user we are analyzing
     popup = PopupWindow(
-        title="MapTasker Analysis",
+        title="MapTasker Analysis >>>>>>>>>> Please stand by...",
     )
 
-    # self.count = 0  # Needed for animate
     popup.Popup_label = ctk.CTkLabel(
         master=popup,
         text="Analysis is running in the background.  Please stand by...",
@@ -616,32 +615,16 @@ def map_ai() -> None:
         popup.focus()
 
         # Add a slight pause to give the popup window time to display the label.
-        time.sleep(0.250)
+        time.sleep(0.500)
 
         # Create the event object within map_ai to ensure it's fresh for each call
         analysis_done_event_for_this_run = threading.Event()
 
-        # Thread for the popup window via the popup mainloop
-        popup_thread = threading.Thread(target=popup.mainloop, daemon=True)
-        popup_thread.start()
-
-        # Thread for the background analysis
-        analysis_thread = threading.Thread(
-            target=_run_analysis_in_background,
-            args=(popup, analysis_done_event_for_this_run),
-            daemon=True,  # Daemon threads are terminated automatically when the main program exits
-        )
-        analysis_thread.start()
+        # Run the AI analysis
+        _run_analysis_in_background(popup, analysis_done_event_for_this_run)
 
         # Wait for the analysis thread to complete
         analysis_done_event_for_this_run.wait()  # This will block the current (main) thread until analysis_done_event_for_this_run.set() is called
 
-        # Once analysis is done, tell the popup to exit its loop
+        # Once analysis is done, remove the popup window
         popup.popup_button_event()
-
-        # It's good practice to join the threads if you need to ensure they've finished
-        # before the main program potentially exits. For daemon threads, it's not strictly
-        # necessary as they will be terminated with the main program, but for robust
-        # control, joining can be useful.
-        popup_thread.join()  # Not strictly needed for daemon threads if we just want it to disappear
-        analysis_thread.join()  # Wait for the analysis thread to finish cleanly

@@ -170,7 +170,7 @@ git branch -a
 2- Check all FIX and TODO comments are resolved
 3- Run with debug to create maptasker_changelog.json
 <<<< HERE >>>>
-4- push code to mctinker GitHub, and include maptasker_changelog.json, and any 'assets'
+4- push code to mctinker GitHub, and include maptasker_changelog.json, requirements.txt, and any 'assets'
 5- Commit final changes
 5a- run brewupdate and rename zipped file xxx-Version-v.r.u
 5b- Copy to ~/MyStuff and My Drive/AMyStuff/Backups/MapTasker Older Copies

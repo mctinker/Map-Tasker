@@ -554,9 +554,7 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}"
-                    if len(line) > max_length
-                    else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -3343,36 +3341,6 @@ class PopupWindow(ctk.CTkToplevel):
         # Force the window to the front.
         self.focus()
 
-        ## Animate the text so it is more visable
-        # def slider() -> None:
-        #    """
-        #    Animates the text on the Popup_label widget by gradually displaying each character from the `our_label` string.
-
-        #    This function is called recursively using the `after` method to create a sliding effect. It checks if the
-        #    current index `count` has reached the length of `our_label`. If it has, it resets the `count` to -1 and
-        #    clears the `text` variable. If not, it appends the character at the current index to the `text` variable
-        #    and updates the `Popup_label` widget with the new text. The `count` is incremented and the `slider`
-        #    function is called again after a delay of 5 milliseconds.
-
-        #    Parameters:
-        #        None
-
-        #    Returns:
-        #        None
-        #    """
-        #    if self.count >= len(our_label):
-        #        self.count = -1
-        #        self.text = ""
-        #        return
-        #    self.text = self.text + our_label[self.count]
-        #    self.Popup_label.configure(text=self.text)
-        #    self.count += 1
-        #    self.after(1, slider)
-
-        ## Set the focus on our popup window and start the animation.
-        # self.Popup_label.focus_set()
-        # slider()
-
     # The "after" n second timer tripped from popup window.  Close the windows and exit.
     # Note: rungui will have already completely run by this time.
     def popup_button_event(self: ctk) -> None:
@@ -3854,7 +3822,7 @@ def on_resize(self: ctk) -> None:
 
     # Get the current window position
     window_position = self.wm_geometry()
-    print("bingo resized:", window_position)
+
     # Set the 'view' new window position in our GUI self.
     setattr(self, position_key, window_position)
 

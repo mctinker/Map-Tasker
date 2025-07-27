@@ -11,7 +11,6 @@ import contextlib
 import json
 import os
 import pickle
-from screeninfo import get_monitors, Enumerator
 import webbrowser
 from pathlib import Path
 from tkinter import *  # noqa: F403
@@ -160,7 +159,7 @@ class MyGui(customtkinter.CTk):
         # Hide the window since initialize_screen would otherwise display an incomplete window
         # until the geometry is properly set.
         self.withdraw()
-        self.resizable(height=False, width=False)
+        # self.resizable(height=False, width=False)
 
         # Add menu elements
         initialize_screen(self)
@@ -237,45 +236,10 @@ class MyGui(customtkinter.CTk):
         # Save ourself
         PrimeItems.mygui = self
 
-        # Ensure proper window geometry for windows 11
-        # FIX Not adjusting window properlyfrom screeninfo import get_monitors, Enumerator
-        if sys.platform == "darwin":
-            for m in get_monitors(Enumerator.OSX):
-                print("bingo OSX Monitors:", str(m))
-        if sys.platform.startswith("win"):
-            user32 = ctypes.windll.user32
-            # Set index numbers
-            SM_CXSIZEFRAME = 32
-            SM_CYSIZEFRAME = 33
-            SM_CXDLGFRAME = 7
-            SM_CXFULLSCREEN = 16
-
-            border_width = user32.GetSystemMetrics(SM_CXSIZEFRAME)
-            border_height = user32.GetSystemMetrics(SM_CYSIZEFRAME)
-            print("bingo ctypes:", user32.GetSystemMetrics(SM_CXDLGFRAME), user32.GetSystemMetrics(SM_CXFULLSCREEN))
-            for m in get_monitors(Enumerator.Windows):
-                print("bingo Windows Monitors:", str(m))
-
-        # self.geometry("400x400+0+0")
-        # print("bingo0 final window:", self.wm_geometry())
-        # self.update()
-        # print("bingo1 final window:", self.wm_geometry())
-
-        # Finally, show the window. It was hidden in initialize_screen.
-        print("bingo0 final window:", self.wm_geometry())
+        # # Finally, show the window. It was hidden in initialize_screen.
         self.deiconify()
-        print("bingo1.5 final window:", self.wm_geometry())
+        # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
-        print("bingo2 final window:", self.wm_geometry())
-        self.update()
-        print("bingo2.5 final window:", self.wm_geometry())
-        self.resizable(height=True, width=True)
-        # self.geometry("400x400+0+0")
-        # print("bingo1.5 final window:", self.wm_geometry())
-        # self.resizable(height=True, width=True)
-        # print("bingo2 final window:", self.wm_geometry())
-        # self.geometry("400x400+0+0")
-        print("bingo3 final window:", self.wm_geometry())
 
         # CHG ME: For Development Only!
         # The following lines are for testing only.
@@ -1657,7 +1621,7 @@ class MyGui(customtkinter.CTk):
         logger.info("Checking for new version...")
         # If so, add a button to enable user to update.
         # TODO For testing only = True.  False for production
-        test_button = False
+        test_button = True
         if is_new_version() or test_button:
             self.new_version = True
             # We have a new version.  Let user upgrade.
@@ -1740,13 +1704,9 @@ class MyGui(customtkinter.CTk):
 
         # Set the window geometry.  Use saved coordinates if available.
         if self.window_position:
-            # Don't allow negative displacements.
-            self.window_position = self.window_position
             self.geometry(self.window_position)
-            print("bingo", self.window_position)
         else:
-            # Get the screen size
-            print("bingo default window size")
+            # Get the screen size and set it to the default window size.
             screen_width = self.winfo_screenwidth()
             screen_height = self.winfo_screenheight()
 
@@ -3245,7 +3205,7 @@ class EventHandlers:
             my_gui.display_message_box("No API keys changed.", "LimeGreen")
 
         # Save window position and destroy the window.
-        my_gui.ai_apikey_window_position = save_window_position(self, apikey_window)
+        my_gui.ai_apikey_window_position = save_window_position(self.parent, "ai_apikey_window")
         apikey_window.destroy()
 
     # Show for edit the AI API Key
@@ -3271,7 +3231,7 @@ class EventHandlers:
         selection = modelplus.split(": ")
         model = selection[1].replace(" (installed)", "")
         name = selection[0]
-        # FIX antrhopic and openai have iodentical-named models.  Need to save AI name as well.
+        # Save the model and name of the AI.
         the_view.ai_model = model
         the_view.ai_name = name
         the_view.display_message_box(f"{name} model set to {model}.", "Green")
