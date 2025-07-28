@@ -6,7 +6,6 @@
 # userintr: provide GUI and process input for program arguments                        #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
-from maptasker.src.guiutils import CHANGELOG
 from maptasker.src.sysconst import VERSION
 
 # NOTE: The textbox is used for help information via new_message_box, normal one-liner messages via display_message_box
@@ -180,4 +179,4 @@ APIKEY_HELP_TEXT = (
     "Click on the 'Clear' button to clear a specific API key entry.\n\n"
     "Select 'Ok' to save the changes or 'Cancel' to back out of the changes.\n\n"
 )
-HELP = f"MapTasker {VERSION} Help\n\n{INFO_TEXT}{CHANGELOG}"
+HELP = f"MapTasker {VERSION} Help\n\n{INFO_TEXT}"

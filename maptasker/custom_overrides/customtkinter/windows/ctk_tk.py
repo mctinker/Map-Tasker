@@ -105,7 +105,7 @@ class CTk(CTK_PARENT_CLASS, CTkAppearanceModeBaseClass, CTkScalingBaseClass):
         # MapTasker mod: comment out...causes an error
         # if sys.platform.startswith("win"):
         #     self.after(200, self._windows_set_titlebar_icon)
-        if sys.platform.startswith("darwin"):
+        if sys.platform.startswith("darwin") and self.__class__.__name__ == "MyGui":
             self.after(200, self._windows_set_titlebar_icon)
         # <<<<<<< MapTasker modifications end here >>>>>>>
 

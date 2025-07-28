@@ -10,7 +10,6 @@
 from __future__ import annotations
 
 import contextlib
-import json
 import os
 import re
 import subprocess
@@ -45,7 +44,7 @@ from maptasker.src.diagcnst import (
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
-from maptasker.src.guiutil2 import is_valid_ai_config
+from maptasker.src.guiutil2 import get_changelog_file, is_valid_ai_config
 from maptasker.src.lineout import LineOut
 from maptasker.src.maputil2 import save_window_position, store_windows
 from maptasker.src.maputils import (
@@ -64,7 +63,7 @@ from maptasker.src.proginit import get_data_and_output_intro
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     CHANGELOG_FILE,
-    CHANGELOG_JSON_FILE,
+    CHANGELOG_URL,
     ERROR_FILE,
     MODEL_GROUPS,
     NOW_TIME,
@@ -82,26 +81,6 @@ if TYPE_CHECKING:
 
 
 all_objects = "Display all Projects, Profiles, and Tasks."
-
-# TODO Change this 'changelog' with each release!  New lines (\n) must be added.
-CHANGELOG = """
-Version 8.1.1 - Change Log\n
-### Added\n
-- Added: 'Extended' AI Model List is now available to include many more AI models in the GUI.\n
-### Changed\n
-- Changed: Restructured the AI model handler to allow for the extended model list.\n
-- Changed: 'Claude' AI models renamed to 'Anthropic'.\n
-- Changed: Don't show the configuration in the web browser if doing an AI Analysis.\n
-- Changed: Removed the 'please wait...' popup window for AI Analysis on Windows to eliminate a delay in the analysis.\n
-### Fixed\n
-- Fixed: Program error in the GUI if 'None' is selected as the AI model.\n
-- Fixed: Entering an API key into the GUI does not update the 'Set' or 'Unset' message.\n
-- Fixed: The error code message from Gemini has extraneous information.\n
-- Fixed: AI Analysis is not working on Windows.\n
-- Fixed: 'Upgrade to New Version' button is not automatically restarting MapTasker on Windows after the upgrade.\n
-- Fixed: Saving the AI API key dialog can cause a program error when trying to save the window position.\n
-"""
-
 default_font_size = 14
 
 
@@ -430,50 +409,13 @@ def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tupl
     return return_code, file_contents
 
 
-# Write out the changelog
+# Write out the changelog defined in guiutils after updating the app from pypi.
 def create_changelog() -> None:
     """Create changelog file."""
+    changes = get_changelog_file(CHANGELOG_URL, "##", 11)
     with open(CHANGELOG_FILE, "w") as changelog_file:
-        changelog_file.write(CHANGELOG)
-
-
-# Parse the changelog and dump it as a json file.
-def save_changelog_as_json(self) -> None:  # noqa: ANN001
-    """
-    Save the changelog from a markdown file to a JSON file.
-
-    This function reads the contents of the "changelog.md" file and parses it to create a dictionary representing the changelog. The dictionary contains the version number as the key and the changes as the value. The function then writes the dictionary to a JSON file named "changelog.json".
-
-    Parameters:
-        None
-
-    Returns:
-        None
-    """
-    version_indicator = "## ["
-    if os.path.isfile("Changelog.md"):
-        changelog_dict = {}
-        have_first_bracket = False
-        change_count = 0
-        with open("Changelog.md") as changelog:
-            lines = changelog.readlines()
-            for line in lines:
-                if version_indicator in line or "## Older History Logs" in line:
-                    if have_first_bracket:  # If we already have the bracket and encounter another, stop reading
-                        break
-                    have_first_bracket = True
-                    bracket_start_pos = line.find(version_indicator)
-                    if bracket_start_pos == -1:
-                        continue
-                    bracket_end_pos = line.find("]", bracket_start_pos + 4)
-                    changelog_dict["version"] = line[bracket_start_pos + 4 : bracket_end_pos]
-                elif line != "\n" and have_first_bracket:
-                    changelog_dict[f"change{change_count!s}"] = line
-                    change_count += 1
-        with open(CHANGELOG_JSON_FILE, "w") as changelog_file:
-            json.dump(changelog_dict, changelog_file)
-
-        self.display_message_box(f"{CHANGELOG_JSON_FILE} file saved.", "Turquoise")
+        for change in changes:
+            changelog_file.write(f"{change}\n")
 
 
 # Read the change log file, add it to the messages to be displayed and then remove it.
@@ -491,17 +433,12 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
     logger.info("Checking for changelog file.")
     # TODO Test changelog before posting to PyPi.  Comment it out after testing.
     # self.message = CHANGELOG
-
+    self.message = "\n\n"
     if os.path.isfile(CHANGELOG_FILE):
         with open(CHANGELOG_FILE) as changelog_file:
             for line in changelog_file:
-                self.message += f"{line}\n"
+                self.message = f"{self.message}{line}"
         os.remove(CHANGELOG_FILE)
-
-    # Write changelog out as json file if in debug mode.
-    # TODO Set debug on and rerun to create the 'maptasker_changelog.json' file
-    if self.debug:
-        save_changelog_as_json(self)
 
 
 def add_logo(self, logo_type: str) -> None:  # noqa: ANN001

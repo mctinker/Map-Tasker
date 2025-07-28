@@ -8,7 +8,6 @@
 from __future__ import annotations  # noqa: I001
 
 import contextlib
-import json
 import os
 import pickle
 import webbrowser
@@ -21,7 +20,6 @@ from tkinter.ttk import *  # noqa: F403
 from typing import TYPE_CHECKING
 
 import customtkinter
-import requests
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.colrmode import set_color_mode
@@ -67,7 +65,7 @@ from maptasker.src.guiutils import (
     valid_item,
     validate_or_filelist_xml,
 )
-from maptasker.src.guiutil2 import is_valid_ai_config
+from maptasker.src.guiutil2 import is_valid_ai_config, get_changelog_file
 from maptasker.src.guiwins import (
     APIKeyDialog,
     CTkHyperlinkManager,
@@ -91,7 +89,7 @@ from maptasker.src.maputils import (
     get_current_local_time_auto_timezone,
     is_color_dark,
     rename_file,
-    update,
+    update_maptasker,
     validate_xml_file,
 )
 from maptasker.src.maputil2 import store_windows
@@ -100,7 +98,7 @@ from maptasker.src.proginit import log_startup_values
 from maptasker.src.sysconst import (
     ANALYSIS_FILE,
     ARGUMENT_NAMES,
-    CHANGELOG_JSON_URL,
+    CHANGELOG_URL,
     DIAGRAM_FILE,
     KEYFILE,
     TAB_NAMES,
@@ -1621,7 +1619,7 @@ class MyGui(customtkinter.CTk):
         logger.info("Checking for new version...")
         # If so, add a button to enable user to update.
         # TODO For testing only = True.  False for production
-        test_button = True
+        test_button = False
         if is_new_version() or test_button:
             self.new_version = True
             # We have a new version.  Let user upgrade.
@@ -1673,7 +1671,7 @@ class MyGui(customtkinter.CTk):
         Returns:
             None
         """
-        logger.info("Processing current messages...")
+        logger.info("Processing current messages...\n")
         # See if we have any current messages to display.
         if self.message:
             self.display_message_box(self.message, "Green")
@@ -2361,7 +2359,7 @@ class EventHandlers:
             - Calls the update function.
             - Reruns the program to pick up the update."""
         the_view = self.parent
-        update()
+        update_maptasker()
         the_view.display_message_box("Program updated.  Restarting...", "Green")
         # Create the Change Log file to be read and displayed after a program update.
         create_changelog()
@@ -3389,7 +3387,11 @@ class EventHandlers:
         """
         Retrieves the latest changelog from the Map-Tasker GitHub repository and displays it in the user interface.
 
-        This function sends a GET request to the specified URL to retrieve the changelog in JSON format. It then iterates through the changelog dictionary and displays each line in the user interface using the `display_message_box` method. The changelog is displayed starting from the latest version until the "Older History" section is reached. The function also clears any previously displayed messages before displaying the changelog.
+        This function sends a GET request to the specified URL to retrieve the changelog in text format.
+        It then iterates through the changelog dictionary and displays each line in the user interface
+        using the `display_message_box` method. The changelog is displayed starting from the latest version
+        until the "Older History" section is reached. The function also clears any previously displayed messages
+        before displaying the changelog.
 
         Parameters:
             self (object): The instance of the class.
@@ -3398,31 +3400,19 @@ class EventHandlers:
             None
         """
         the_view = self.parent
-        try:
-            changelog = requests.get(CHANGELOG_JSON_URL).json()  # noqa: S113
-        except (json.decoder.JSONDecodeError, ConnectionError, Exception):
-            the_view.display_message_box("Failed to get changelog.", "Red")
-            return
+        number_of_versions = 11
+        changes = get_changelog_file(CHANGELOG_URL, "##", number_of_versions)
         the_view.event_handlers.clear_messages_event()  # Clear out all displayed messages.
-        # Go through loaded dictionary and display each line
-        for key, value in changelog.items():
-            if "Older History" in value:  # Get out if we hit then of the the new version changes.
-                break
-            if key == "version":
-                the_view.display_message_box(
-                    f"Changes in the new version {value}:",
-                    "Green",
-                )
-                the_view.display_message_box("", "Green")
-            elif "##" in value:
-                # Add spaces as needed to make it more readible
-                the_view.display_message_box("", "Green")
-                the_view.display_message_box(f"{value}", "Green")
-                the_view.display_message_box("", "Green")
-            else:
-                the_view.display_message_box(f"{value}", "Green")
+        if changes:
+            for change_line in changes:
+                the_view.display_message_box(f"{change_line}", "Green")
+        else:
+            the_view.display_message_box("An error occurred reading the changelog file.", "Red")
 
-        the_view.display_message_box("End of changelog.", "Green")
+        the_view.display_message_box(
+            f"End of changelog. The latest {number_of_versions - 1} versions displayed.",
+            "Green",
+        )
 
     # The 'Run' program button has been pressed.  Set the run flag and close the GUI
     def run_program_event(self) -> None:
@@ -3688,6 +3678,10 @@ class EventHandlers:
             query_name,
             ("", "No help available for this query."),
         )
+        # Add the changelog to the help text.
+        if query_name == "help":
+            changes = get_changelog_file(CHANGELOG_URL, "##", 11)
+            help_text = help_text + "\n".join(changes)
 
         guiview.new_message_box(f"{title}\n\n{help_text}")
         guiview.clear_messages = True  # Flag to tell display_message_box to clear the message box

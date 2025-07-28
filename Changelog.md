@@ -2,27 +2,19 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.1.1] 27-July-2025
+## [8.1.2] 29-July-2025
 
 ### Added
 
-- Added: 'Extended' AI Model List is now available to include many more AI models in the GUI.
+- Added:
 
 ### Changed
 
-- Changed: Restructured the AI model handler to allow for the extended model list.
-- Changed: 'Claude' AI models renamed to 'Anthropic'.
-- Changed: Don't show the configuration in the web browser if doing an AI Analysis.
-- Changed: Removed the 'please wait...' popup window for AI Analysis on Windows to eliminate a delay in the analysis.
+- Changed:  'What's New' now displays the new and previous 9 versions of the changelog rather than just the new version.
 
 ### Fixed
 
-- Fixed: Program error in the GUI if 'None' is selected as the AI model.
-- Fixed: Entering an API key into the GUI does not update the 'Set' or 'Unset' message.
-- Fixed: The error code message from Gemini has extraneous information.
-- Fixed: AI Analysis is not working on Windows.
-- Fixed: 'Upgrade to New Version' button is not automatically restarting MapTasker on Windows after the upgrade.
-- Fixed: Saving the AI API key dialog can cause a program error when trying to save the window position.
+- Fixed: 'What's New' and 'Program Upgrade...' buttons always appear in the GUI even if no new version is available.
 
 ### Known Issues
 
@@ -32,7 +24,21 @@ All notable changes to this project will be documented in this file!
 
 ## Older History Logs
 
-## [8.1.0]
+## [8.1.1] 27-July-2025
+
+- Added: 'Extended' AI Model List is now available to include many more AI models in the GUI.
+- Changed: Restructured the AI model handler to allow for the extended model list.
+- Changed: 'Claude' AI models renamed to 'Anthropic'.
+- Changed: Don't show the configuration in the web browser if doing an AI Analysis.
+- Changed: Removed the 'please wait...' popup window for AI Analysis on Windows to eliminate a delay in the analysis.
+- Fixed: Program error in the GUI if 'None' is selected as the AI model.
+- Fixed: Entering an API key into the GUI does not update the 'Set' or 'Unset' message.
+- Fixed: The error code message from Gemini has extraneous information.
+- Fixed: AI Analysis is not working on Windows.
+- Fixed: 'Upgrade to New Version' button is not automatically restarting MapTasker on Windows after the upgrade.
+- Fixed: Saving the AI API key dialog can cause a program error when trying to save the window position.
+
+## [8.1.0] 13-July-2025
 
 - Added: Tasker version 6.6.3-beta is supported.
 - Added: 'SecureTask Airplane Mode' plugin has been added.
@@ -46,7 +52,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Incorrect output color in Map view if '_color' is part of a variable name in a Task.
 - Fixed: Caveat at the bottom referring to inactive and unreferenced global variables is not appearing if the display level is 5.
 
-## [8.0.6]
+## [8.0.6]. 07-July-2025
 
 - Changed: Code optimized to make it easier to pick up new changes in Tasker.
 - Changed: The Diagram view jump-to-top-task and jump-to-bottom-task buttons are now dynamic, only displaying when appropriate.

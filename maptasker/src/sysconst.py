@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "8.1.1"
+VERSION = "8.1.2"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -30,8 +30,7 @@ OLD_ARGUMENTS_FILE = ".MapTasker_arguments.json"
 ARGUMENTS_FILE = "MapTasker_Settings.toml"
 FONT_FAMILY = ";font-family:"
 CHANGELOG_FILE = ".maptasker_changelog.txt"
-CHANGELOG_JSON_FILE = "maptasker_changelog.json"
-CHANGELOG_JSON_URL = "https://raw.githubusercontent.com/mctinker/Map-Tasker/Master/maptasker_changelog.json"
+CHANGELOG_URL = "https://raw.githubusercontent.com/mctinker/Map-Tasker/Master/Changelog.md"
 KEYFILE = ".maptasker.pkl"
 ERROR_FILE = ".maptasker_error.txt"
 ANALYSIS_FILE = "MapTasker_Analysis.txt"
