@@ -113,7 +113,7 @@ def validate_port(address: str, port_number: int) -> bool:
 
 
 # Auto Update our code
-def update() -> None:
+def update_maptasker() -> None:
     """Update this package."""
     version = get_pypi_version()
     packageversion = "maptasker" + version
