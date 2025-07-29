@@ -272,7 +272,7 @@ OPENAI_MODELS = [
     "o1-pro",
     "o3",
     "o3-mini",
-    "04-mini",
+    "04-mini",  # Depricated as of 11/27/2025
 ]
 LLAMA_MODELS = [
     "aya",
@@ -301,7 +301,6 @@ ANTHROPIC_MODELS = [
 ]
 DEEPSEEK_MODELS = ["deepseek-chat"]
 GEMINI_MODELS = [
-    # TODO 1.5 going away in Sept. 24th 2025
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
     "gemini-2.5-flash",
