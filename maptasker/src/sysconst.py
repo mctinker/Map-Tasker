@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "8.1.2"
+VERSION = "8.1.3"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -260,14 +260,9 @@ OPENAI_MODELS = [
     "gpt-4o",
     "gpt-4o-latest",
     "gpt-4o-mini",
-    "gpt-4",
-    "gpt-4-turbo",
-    "gpt-4-turbo-preview",
     "gpt-4.1",
     "gpt-4.1-mini",
     "gpt-4.1-nano",
-    "gpt-4.5-preview",
-    "o1",
     "o1-mini",
     "o1-pro",
     "o3",

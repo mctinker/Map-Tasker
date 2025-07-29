@@ -2683,7 +2683,7 @@ def get_item_xml(item_type: str, item_name: str) -> defusedxml.Element | None:
 
 def set_ai_key(self: object, model: str) -> None:
     """
-    Set the API key for the AI service.
+    Set the API key for the AI service based on the selected model.
 
     Args:
         self (object): The instance of the class.
@@ -2700,6 +2700,13 @@ def set_ai_key(self: object, model: str) -> None:
         **dict.fromkeys(PrimeItems.ai["gemini_models"], "gemini_key"),
     }
     self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
+
+    # If we didn't find the key, then see if we are using the extended list and need to get the key.
+    if not self.ai_apikey and self.ai_model_extended_list:
+        self.ai_apikey = get_api_key()
+        # Try again using the updated model list.
+        self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
+
     return bool(self.ai_apikey)
 
 

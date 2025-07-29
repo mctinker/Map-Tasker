@@ -9,7 +9,6 @@ import importlib.util
 import os
 import re
 import sys
-import threading
 import time
 
 import anthropic
@@ -142,8 +141,9 @@ def record_response(response: str, ai_object: str, item: str) -> None:
             f'{PrimeItems.program_arguments["ai_name"]} AI Response using model {PrimeItems.program_arguments["ai_model"]} for {ai_object} "{item}":\n\n{response}',
         )
     # Queue up the message to display in the GUI textbox.
+    analysis_file_name = ANALYSIS_FILE.split(".")
     process_error(
-        f"{response}\n\nAnalysis Response saved in file: " + ANALYSIS_FILE,
+        f"{response}\n\nAnalysis Response saved in file: {analysis_file_name[0]}-date-time.{analysis_file_name[1]}",
         ai_object,
         item,
     )
@@ -498,15 +498,13 @@ def get_ai_object() -> tuple:
     # Create an Event object to signal when the analysis is done.
 
 
-# This will be used to tell the popup thread to exit its mainloop.
-analysis_done_event = threading.Event()
+# Default AI prompt..
 AI_PROMPT = "Analyze the following Tasker data"
 
 
-def _run_analysis_in_background(popup: PopupWindow, done_event: threading.Event) -> None:
+def _run_analysis_in_background(popup: PopupWindow) -> None:
     """
-    This function contains the main analysis logic that will run in a separate thread.
-    It takes the popup window object and a threading.Event object as arguments.
+    This function contains the main analysis logic.
     """
     try:
         # Clean up the output list since it has all the front matter and we only need the object (Project/Profile/Task)
@@ -555,9 +553,6 @@ def _run_analysis_in_background(popup: PopupWindow, done_event: threading.Event)
         print(f"MapTasker analysis for {ai_object} '{item}' is done.")
 
     finally:
-        # No matter what, signal that the analysis is done so the popup can close
-        if done_event:
-            done_event.set()
         # Indicate that we are done
         PrimeItems.program_arguments["ai_analyze"] = False
 
@@ -603,9 +598,9 @@ def map_ai() -> None:
     # If windows, just run the analysis.
     if sys.platform.startswith("win"):
         # popup.after(5000, popup.popup_button_event)
-        _run_analysis_in_background(None, None)
+        _run_analysis_in_background(None)
 
-    # Not windows.  Thread the popup window display and background ai processing...doesn't work on Windows.
+    # Not windows.  Display the popup window display and run the background ai processing...doesn't work on Windows.
     else:
         # Display a popup window telling user we are analyzing
         popup = display_the_popup()
@@ -617,14 +612,8 @@ def map_ai() -> None:
         # Add a slight pause to give the popup window time to display the label.
         time.sleep(0.500)
 
-        # Create the event object within map_ai to ensure it's fresh for each call
-        analysis_done_event_for_this_run = threading.Event()
-
         # Run the AI analysis
-        _run_analysis_in_background(popup, analysis_done_event_for_this_run)
-
-        # Wait for the analysis thread to complete
-        analysis_done_event_for_this_run.wait()  # This will block the current (main) thread until analysis_done_event_for_this_run.set() is called
+        _run_analysis_in_background(popup)
 
         # Once analysis is done, remove the popup window
         popup.popup_button_event()

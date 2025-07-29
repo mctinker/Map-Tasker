@@ -117,11 +117,13 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     }
 
     # Write out the guidance for the file.
+    logger.info("Saving settings file...")
     with open(new_file, "wb") as settings_file:
         tomli_w.dump(guidance, settings_file)
-        settings_file.close()
+        # settings_file.close()
 
     # Write out the user program arguments in TOML format.  Open in binary append format (ab).
+    logger.info("Saving program args and colors file...")
     with open(new_file, "ab") as settings_file:
         settings["program_arguments"] = dict(
             sorted(user_args.items()),
@@ -134,13 +136,14 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
         except TypeError as e:
             logger.debug(f"getputer tomli failure: {e}")
             print(f"getputer tomli failure: {e}...one or more settings is 'None'!")
-        settings_file.close()
+        # settings_file.close()
 
     # Write out the system program arguments (e.g. window positions) in PICKLE format.
+    logger.info("Saving system args file...")
     with open(SYSTEM_SETTINGS_FILE, "wb") as settings_file:
         # dump information to that file
         pickle.dump(sys_args, settings_file)
-        settings_file.close()
+        # settings_file.close()
 
 
 # User still has setting file in older unsupported format.  Convert the info and delete it.

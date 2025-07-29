@@ -2,27 +2,35 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.1.2] 29-July-2025
+## [8.1.3] ??-July-2025. # FIX
 
 ### Added
 
-- Added:
+- Added: No new features have been added.
 
 ### Changed
 
-- Changed:  'What's New' now displays the new and previous 9 versions of the changelog rather than just the new version.
+- Changed: Depricated OpenAI default models have been removed.
+- Changed: The color of the text in the Diagram 'Top Task' and 'Bottom Task' buttons has been changed to make these more visible when each button appears.
 
 ### Fixed
 
-- Fixed: 'What's New' and 'Program Upgrade...' buttons always appear in the GUI even if no new version is available.
+- Fixed: The GUI labels identifying the current single-named item are not being updated when going up one or more levels in the Map view.
+- Fixed: 'Threading' error on exit after AI Analysis.
+- Fixed: 'Invalid API Key' message appears for AI Analysis even though the API key is valid.
+- Fixed: Unexpected program (normal) termination immediately after AI Analysis.
 
 ### Known Issues
 
 - Unable to change any colors in GUI if using UV to manage the application (UV bug).
-- MapTasker may unexpectedly terminate normally immediately after an AI Analysis.  The analysis file is saved for viewing offline.
 - GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settingsa for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [8.1.2] 29-July-2025
+
+- Changed:  'What's New' now displays the new and previous 9 versions of the changelog rather than just the new version.
+- Fixed: 'What's New' and 'Program Upgrade...' buttons always appear in the GUI even if no new version is available.
 
 ## [8.1.1] 27-July-2025
 
