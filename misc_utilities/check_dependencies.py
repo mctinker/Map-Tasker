@@ -15,9 +15,7 @@ def check_dependency_updates(dependencies: list) -> None:
         match = re.match(r"([a-zA-Z0-9_-]+)([<>=~!]=?)(.+)?", dep)
         if match:
             package_name = match.group(1)
-            operator = (
-                match.group(2) if match.group(2) else "=="
-            )  # Default to exact match if no operator
+            operator = match.group(2) if match.group(2) else "=="  # Default to exact match if no operator
             current_version_str = match.group(3) if match.group(3) else None
 
             try:
@@ -60,13 +58,13 @@ def check_dependency_updates(dependencies: list) -> None:
 # Your list of dependencies
 # FIX Grab current list of dependencies fromproject.toml
 dependencies = [
-    "anthropic>=0.57.1",  #  Ai Anthropics support
+    "anthropic>=0.60.0",  #  Ai Anthropics support
     # "customtkinter>=5.2.2",  # GUI
     "darkdetect>=0.8.0",  # Appearance mode detection
     "defusedxml>=0.7.1",  # More secure xml parser
     "google-generativeai>=0.8.5",  #  Ai Google Generative support
     "ollama>=0.5.1",  #  Ai Ollama support > cria rquires this
-    "openai>=1.95.0",  #  Ai OpenAi support
+    "openai>=1.98.0",  #  Ai OpenAi support
     "packaging>=25.0",  # Customtkinter needs this
     "pillow==11.3.0",  # Image support in GUI.  Revert back to 11.2.0 to avoid UV bug with tkinter.
     "psutil>=7.0.0",  #  System monitoring
