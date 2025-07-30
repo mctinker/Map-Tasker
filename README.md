@@ -69,13 +69,13 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ### - TKinter 8.6 or higher (see [Note 3](#3))
 
-### - Tasker full or partial full backup or other exported Tasker XML file
+### - Tasker full or partial XML file: backup.xml or other exported XML file
 
-&nbsp;&nbsp;You will be prompted to locate and identify your Tasker exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
+&nbsp;&nbsp;&nbsp;You will be prompted to locate and identify your Tasker exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
 
 ### - Ai Analysis
 
-&nbsp;&nbsp;This requires a valid API key if using the server-based analysis and/or Ollama to be installed for local analysis  (See [Note 5](#5)).
+&nbsp;&nbsp;&nbsp;This requires a valid API key if using the server-based analysis and/or Ollama to be installed for local analysis  (See [Note 5](#5)).
 
 ## Project Structure
 
@@ -306,6 +306,8 @@ Llama based models are supported via [Ollama](https://ollama.com/), which you mu
 - [x] Fix minor formatting issues.
 
 - [x] If Profile has no name, display the same name as that of Tasker
+
+- [ ] Properly handle Task anchors with embedded HTML
 
 - [ ] Support additional plugins
 
