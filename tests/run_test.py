@@ -36,12 +36,22 @@ def test_main():
     """
     Test main function to test various scenarios using patch to simulate different sys.argv inputs.
     """
-    ip = "62"
+    ip = "59"
     file_to_use = "/Users/mikrubin/MapTasker/My_Apps.prj.xml"
+    file_to_use1 = "/Users/mikrubin/MapTasker/backup.xml"
 
     # # Test name attributes
     print("test 0")
-    with patch("sys.argv", ["-test=yes", "reset", "debug", "outline"]):
+    with patch(
+        "sys.argv",
+        [
+            "-test=yes",
+            "reset",
+            "debug",
+            "outline",
+            f"file={file_to_use}",
+        ],
+    ):
         test_it()
     # Test name attributes
     print("test 1")
@@ -139,12 +149,14 @@ def test_main():
         test_it()
     # Test limited detail 1
     with patch(
-        "sys.argv", ["-test=yes", "reset", "detail=1", "debug", f"file={file_to_use}"]
+        "sys.argv",
+        ["-test=yes", "reset", "detail=1", "debug", f"file={file_to_use}"],
     ):
         test_it()
     # Test no detail
     with patch(
-        "sys.argv", ["-test=yes", "reset", "detail=0", "debug", f"file={file_to_use}"]
+        "sys.argv",
+        ["-test=yes", "reset", "detail=0", "debug", f"file={file_to_use}"],
     ):
         test_it()
     # Test by Project name
@@ -153,11 +165,11 @@ def test_main():
         [
             "-test=yes",
             "reset",
-            "project=Base",
+            "projectBase",
             "debug",
             "conditions",
             "taskernet",
-            f"file={file_to_use}",
+            f"file={file_to_use1}",
         ],
     ):
         test_it()
@@ -167,11 +179,11 @@ def test_main():
         [
             "-test=yes",
             "reset",
-            "profile=Call Volume",
+            "profile=SUS 2 - UPDATE NOTIFICATION",
             "detail=3",
             "debug",
             "pretty",
-            f"file={file_to_use}",
+            f"file={file_to_use1}",
         ],
     ):
         test_it()
@@ -181,7 +193,7 @@ def test_main():
         [
             "-test=yes",
             "reset",
-            "task=Check Batteries",
+            "task=App Removed",
             "debug",
             "detail=4",
             f"file={file_to_use}",
@@ -253,8 +265,8 @@ def test_main():
             "reset",
             f"android_ipaddr=192.168.0.{ip}",
             "android_port=1821",
-            "android_file=/Tasker/tasks/Setup_ADB_Permissions.tsk.xml",
-            f"file={file_to_use}",
+            "android_file=/Tasker/tasks/SUS_12___SET_YOUR_LANGUAGE.tsk.xml",
+            # f"file={file_to_use}",
         ],
     ):
         test_it()
@@ -265,10 +277,10 @@ def test_main():
             "-test=yes",
             "reset",
             "pretty",
+            "detail=5",
             f"android_ipaddr=192.168.0.{ip}",
             "android_port=1821",
             "android_file=/Tasker/scenes/Lock.scn.xml",
-            f"file={file_to_use}",
         ],
     ):
         test_it()
@@ -298,7 +310,7 @@ def test_main():
             "cTrailingComments=LightGoldenrodYellow",
             "e",
             "debug",
-            f"file={file_to_use}",
+            f"file={file_to_use1}",
         ],
     ):
         test_it()
