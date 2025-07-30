@@ -39,6 +39,7 @@ from maptasker.src.guiutils import (
     display_analyze_button,
     display_model_pulldown,
     display_progress_bar,
+    display_selected_object_labels,
     extract_number_from_line,
     find_the_line,
     get_appropriate_color,
@@ -994,7 +995,7 @@ class CTkTextview(ctk.CTkFrame):
                 self,
                 self,
                 "#246FB6",
-                "",
+                "limegreen",
                 "",
                 lambda: gui_view.event_handlers.diagram_jump_topbottom_event(
                     True,
@@ -1021,7 +1022,7 @@ class CTkTextview(ctk.CTkFrame):
                 self,
                 self,
                 "#246FB6",
-                "",
+                "limegreen",
                 "",
                 lambda: gui_view.event_handlers.diagram_jump_topbottom_event(
                     False,
@@ -3573,6 +3574,9 @@ class CTkHyperlinkManager:
             )
             # Reset the single item pulldown (this has to go after reset of labels!).
             set_tasker_object_names(guiself)
+
+            # Redo the labels
+            display_selected_object_labels(guiself)
 
             # Remap it.
             guiself.remapit(clear_names=False)

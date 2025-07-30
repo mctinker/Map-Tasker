@@ -431,8 +431,12 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
     Note: The changelog file is created immediately after the program is updated (userintr upgrade_event)
     """
     logger.info("Checking for changelog file.")
-    # TODO Test changelog before posting to PyPi.  Comment it out after testing.
-    # self.message = CHANGELOG
+
+    # # TODO Test changelog before posting to PyPi.  Comment it out after testing.
+    # self.message = "\n".join(get_changelog_file(CHANGELOG_URL, "##", 11))
+    # return
+    # # TODO END Test
+
     self.message = "\n\n"
     if os.path.isfile(CHANGELOG_FILE):
         with open(CHANGELOG_FILE) as changelog_file:
@@ -2683,7 +2687,7 @@ def get_item_xml(item_type: str, item_name: str) -> defusedxml.Element | None:
 
 def set_ai_key(self: object, model: str) -> None:
     """
-    Set the API key for the AI service.
+    Set the API key for the AI service based on the selected model.
 
     Args:
         self (object): The instance of the class.
@@ -2700,6 +2704,13 @@ def set_ai_key(self: object, model: str) -> None:
         **dict.fromkeys(PrimeItems.ai["gemini_models"], "gemini_key"),
     }
     self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
+
+    # If we didn't find the key, then see if we are using the extended list and need to get the key.
+    if not self.ai_apikey and self.ai_model_extended_list:
+        self.ai_apikey = get_api_key()
+        # Try again using the updated model list.
+        self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
+
     return bool(self.ai_apikey)
 
 

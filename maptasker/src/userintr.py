@@ -1554,6 +1554,13 @@ class MyGui(customtkinter.CTk):
         else:
             self.ai_analysis_window.focus()  # if window exists focus it
 
+        # Get our date and time and save it for the file name.
+        now_time = get_current_local_time_auto_timezone()
+        date_and_time = (
+            f"-{now_time.month}-{now_time.day}-{now_time.year}_{now_time.hour}-{now_time.minute}-{now_time.second}"
+        )
+        error_msg = error_msg.replace("-date-time", date_and_time)
+
         # Display the analysis in the toplevel window.
         analysisview = CTkTextview(
             master=self.ai_analysis_window,
@@ -1565,15 +1572,12 @@ class MyGui(customtkinter.CTk):
             10,
             self.ai_analysis_window.lift,
         )  # Make window jump to the front
+        analysisview.lift()
         analysisview.focus_set()
 
         # Rename ANALYSIS_FILE.
-        now_time = get_current_local_time_auto_timezone()
         # X Get front part of filename ANALYSIS_FILE and plug it in as the beginning.
-        if new_file_name := append_to_filename(
-            ANALYSIS_FILE,
-            f"-{now_time.month}-{now_time.day}-{now_time.year}_{now_time.hour}-{now_time.minute}-{now_time.second}",
-        ):
+        if new_file_name := append_to_filename(ANALYSIS_FILE, date_and_time):
             rename_file(ANALYSIS_FILE, new_file_name)
             self.display_message_box(
                 f"{ANALYSIS_FILE} saved as {new_file_name}",
@@ -1617,11 +1621,10 @@ class MyGui(customtkinter.CTk):
         Returns:
             None"""
         logger.info("Checking for new version...")
-        # If so, add a button to enable user to update.
+        # Add a button to enable user to update.
         # TODO For testing only = True.  False for production
         test_button = False
         if is_new_version() or test_button:
-            self.new_version = True
             # We have a new version.  Let user upgrade.
             self.upgrade_button = add_button(
                 self,
@@ -1639,7 +1642,7 @@ class MyGui(customtkinter.CTk):
                 (0, 10),
                 "w",
             )
-            #  Query ? button
+            #  'Whats New' button
             self.whats_new_button = add_button(
                 self,
                 self,
@@ -1659,8 +1662,6 @@ class MyGui(customtkinter.CTk):
                 "",
             )
             self.message = self.message + "\n\nA new version of MapTasker is available."
-        else:
-            self.new_version = False
 
     # Display any messages we may currently have..
     def process_current_messages(self) -> None:
@@ -3235,7 +3236,7 @@ class EventHandlers:
         the_view.display_message_box(f"{name} model set to {model}.", "Green")
 
         # Set the appropriate API key based on the model chosen.
-        _ = set_ai_key(self, model)
+        _ = set_ai_key(the_view, model)
 
         # Redisplay the Analyze button.
         display_analyze_button(the_view, 13, first_time=False)
