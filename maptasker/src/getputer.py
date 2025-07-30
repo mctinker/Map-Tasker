@@ -101,9 +101,13 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     sys_args = {}
     for argument in ARGUMENT_NAMES:
         # TOML chokes on 'None" values.
-        if program_arguments[argument] is None:
-            logger.debug(f"{argument} is None.  Fix it!")
+        try:
+            if program_arguments[argument] is None:
+                logger.debug(f"{argument} is None.  Fix it!")
+                program_arguments[argument] = ""
+        except KeyError:
             program_arguments[argument] = ""
+
         if argument in SYSTEM_ARGUMENTS:
             sys_args[argument] = program_arguments[argument]
         else:

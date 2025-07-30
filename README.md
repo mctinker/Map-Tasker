@@ -307,6 +307,8 @@ Llama based models are supported via [Ollama](https://ollama.com/), which you mu
 
 - [x] If Profile has no name, display the same name as that of Tasker
 
+- [ ] Properly handle Task anchors with embedded HTML
+
 - [ ] Support additional plugins
 
 - [ ] Map remaining Tasker preferences

@@ -431,8 +431,12 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
     Note: The changelog file is created immediately after the program is updated (userintr upgrade_event)
     """
     logger.info("Checking for changelog file.")
-    # TODO Test changelog before posting to PyPi.  Comment it out after testing.
-    # self.message = CHANGELOG
+
+    # # TODO Test changelog before posting to PyPi.  Comment it out after testing.
+    # self.message = "\n".join(get_changelog_file(CHANGELOG_URL, "##", 11))
+    # return
+    # # TODO END Test
+
     self.message = "\n\n"
     if os.path.isfile(CHANGELOG_FILE):
         with open(CHANGELOG_FILE) as changelog_file:

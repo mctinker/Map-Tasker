@@ -1572,6 +1572,7 @@ class MyGui(customtkinter.CTk):
             10,
             self.ai_analysis_window.lift,
         )  # Make window jump to the front
+        analysisview.lift()
         analysisview.focus_set()
 
         # Rename ANALYSIS_FILE.
@@ -3269,7 +3270,6 @@ class EventHandlers:
             return
 
         # Set the AI API key based on the model selected.
-        # FIX set_ai_api keys doesn't have full model list.
         if the_view.ai_name != "LLAMA" and not set_ai_key(
             the_view,
             the_view.ai_model,

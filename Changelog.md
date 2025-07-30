@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.1.3] ??-July-2025. # FIX
+## [8.1.3] 30-July-2025
 
 ### Added
 
@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed: Depricated OpenAI default models have been removed.
+- Changed: Deprecated OpenAI default models have been removed.
 - Changed: The color of the text in the Diagram 'Top Task' and 'Bottom Task' buttons has been changed to make these more visible when each button appears.
 
 ### Fixed
@@ -19,11 +19,13 @@ All notable changes to this project will be documented in this file!
 - Fixed: 'Threading' error on exit after AI Analysis.
 - Fixed: 'Invalid API Key' message appears for AI Analysis even though the API key is valid.
 - Fixed: Unexpected program (normal) termination immediately after AI Analysis.
+- Fixed: The 'Analysis is running in the background' message doesn't always appear.
+- Fixed: Program error if running in non-GUI mode.
 
 ### Known Issues
 
 - Unable to change any colors in GUI if using UV to manage the application (UV bug).
-- GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settingsa for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
+- GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
 

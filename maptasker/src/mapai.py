@@ -9,7 +9,6 @@ import importlib.util
 import os
 import re
 import sys
-import time
 
 import anthropic
 import customtkinter as ctk
@@ -556,6 +555,10 @@ def _run_analysis_in_background(popup: PopupWindow) -> None:
         # Indicate that we are done
         PrimeItems.program_arguments["ai_analyze"] = False
 
+        # Remove the popup window
+        if popup:
+            popup.popup_button_event()
+
 
 def display_the_popup() -> ctk.CTkToplevel:
     """Displays a popup window indicating that an analysis is running.
@@ -581,10 +584,18 @@ def display_the_popup() -> ctk.CTkToplevel:
         text_color="turquoise",
     )
     popup.Popup_label.grid(row=0, column=0, padx=0, pady=10, sticky="n")
+
+    # Start the background analysis after so many milliseconds.
+    popup.after(200, _run_analysis_in_background, popup)
+    # Force the label/window to appear.
     popup.Popup_label.pack(side="top", padx=20, pady=20)
+    # popup.update_idletasks()
+    # Ok, sstart the loop to wait for user input.
+    # NOTE: _run_analysis_in_background will remove this window at the end of the function.
+    popup.mainloop()
 
     # Return the toplevel popup window.
-    return popup
+    return
 
 
 # Map Ai: set up Ai query and call appropriate function based on the model.
@@ -594,26 +605,7 @@ def map_ai() -> None:
 
     Does the setup for the query by concatenating the lines in PrimeItems.ai["output_lines"].
     """
-
-    # If windows, just run the analysis.
-    if sys.platform.startswith("win"):
-        # popup.after(5000, popup.popup_button_event)
-        _run_analysis_in_background(None)
-
-    # Not windows.  Display the popup window display and run the background ai processing...doesn't work on Windows.
-    else:
-        # Display a popup window telling user we are analyzing
-        popup = display_the_popup()
-
-        # Force an update so the popup actually displays correctly.
-        popup.update()
-        popup.focus()
-
-        # Add a slight pause to give the popup window time to display the label.
-        time.sleep(0.500)
-
-        # Run the AI analysis
-        _run_analysis_in_background(popup)
-
-        # Once analysis is done, remove the popup window
-        popup.popup_button_event()
+    # Display a popup window telling user we are analyzing
+    # NOTE: popup calls _run_analysais_in_background via popup.after,
+    #       and which then destroys the popup window when done.
+    display_the_popup()
