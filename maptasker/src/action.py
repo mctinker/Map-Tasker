@@ -18,7 +18,7 @@ import contextlib
 
 from maptasker.src.actiont import lookup_values
 from maptasker.src.error import error_handler
-from maptasker.src.format import format_html
+from maptasker.src.format import format_html, format_label
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
@@ -267,8 +267,8 @@ def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
     # Get the label, if any
     if child.find("label") is not None:
         lbl = child.find("label").text
-        # Make sure the label doesn't have any HTML crap in it
-        task_label = clean_label(lbl)
+        task_label = format_label(lbl)
+
     # See if Action is disabled
     action_disabled = (
         format_html(
@@ -363,6 +363,8 @@ def clean_label(lbl: str) -> str:
         :return: the cleaned up label with added html tags for a label's color
     """
     # Remove html tags associated with label, and then add our own.
+    # FIX Add code here to convert html??
+    print("bingo", lbl)
     lbl = lbl.replace("<", "&lt;").replace(">", "&gt;")
     lbl = remove_html_tags(lbl, "")
     return format_html(

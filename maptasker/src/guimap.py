@@ -139,6 +139,12 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
         else:
             rutroh_error(f"guimap error: '{text_list[0]}' missing '>'!")
 
+    # Handle html in labels
+    # FIX
+    for text in text_list:
+        if "...with label:" in text:
+            print("bingo", text)
+
     # Use list comprehension for better performance
     new_text_list = [
         text.replace("&nbsp;", " ")
