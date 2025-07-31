@@ -168,7 +168,7 @@ git branch -a
 0- Check dependencies, requirements.txt and AI models
 1- Test Test Test  > Test on Python 3.11 and 3.12
 2- Check all FIX and TODO comments are resolved
-3- Run with debug to create maptasker_changelog.json
+3- (no longer used)
 4- push code to mctinker GitHub, and include maptasker_changelog.json, requirements.txt, and any 'assets'
 5- Commit final changes
 5a- run brewupdate and rename zipped file xxx-Version-v.r.u
@@ -185,6 +185,9 @@ python3.11 -m pip install --extra-index-url https://test.pypi.org/simple/ maptas
 uv pip install --extra-index-url https://test.pypi.org/simple/ --index-strategy unsafe-best-match maptasker==6.0.2
 source .venv/bin/activate.fish
 11- validate the test code from #8
+
+<<<<<< HERE >>>>>>
+
 12- On Github, make new release the new master
 13- ./publishprod.sh to pypi
 14- Test production maptasker on kaka
