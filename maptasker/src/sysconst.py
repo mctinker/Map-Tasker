@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "8.1.3"
+VERSION = "8.1.4"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"

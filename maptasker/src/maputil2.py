@@ -102,6 +102,7 @@ def store_windows(self: ctk) -> None:
     with contextlib.suppress(AttributeError):
         for window_attr, position_attr in windows.items():
             window_obj = getattr(self, position_attr, None)
+            # Get the window position if a valid window.
             if window_obj and (window_pos := save_window_position(self, window_attr)):
                 setattr(self, position_attr, window_pos)
 
@@ -122,7 +123,7 @@ def save_window_position(self: ctk, window_name: str) -> None:
     if window_name == "self":
         return self.wm_geometry()
 
-    # Process other windows.
+    # Process other windows.)
     window_object = getattr(self, window_name, None)
 
     if window_object is not None and hasattr(window_object, "wm_geometry"):

@@ -3125,7 +3125,7 @@ class EventHandlers:
                 "Orange",
             )
             # Save the window position and delete the window.  Then return.
-            my_gui.ai_apikey_window_position = save_window_position(self, apikey_window)
+            my_gui.ai_apikey_window_position = save_window_position(my_gui, "apikey_window")
             apikey_window.destroy()
             return
 
