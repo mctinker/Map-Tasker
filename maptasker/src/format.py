@@ -366,37 +366,58 @@ def format_label(lbl: str) -> str:
 
         # Go through each item in the formatted list and break it into html.
         have_paren = False
-        # FIX Use previous_heading to force a new paragraph whenever there is a new heading.
-        previous_Heading = 0
+        # FIX 'Pretty' is screwing up the output.  Task: Universal Error Display Sub
+        previous_heading = 0
+        previous_text = ""
+
+        # Go through the lines in this formatted html
         for action_label in formatted_lbl:
             lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
 
             # Get the label details for this item in them label.
             lbl_style = action_label["styles"]
             lbl_color = lbl_style["color"] if lbl_style["color"] else PrimeItems.colors_to_use["action_label_color"]
-            if "REDIRECT URIs" in lbl_text:
+            if "OUTPUT TEMPLATE" in lbl_text:
                 print("bingo")
-            lbl_heading = (lbl_style["heading_level"] * 2) if lbl_style["is_heading"] else 0
+            # lbl_heading = (lbl_style["heading_level"] * 2) if lbl_style["is_heading"] else 0
+            lbl_heading = lbl_style["heading_level"] if lbl_style["is_heading"] else 0
+            # If we have a color, then format it accordingly.
             if lbl_color:
                 if not have_paren:
-                    task_label = task_label + "<p>"
-                # Concatenate all of the text lines with the color kina.
+                    task_label = task_label + '<div class="text-box"><p>\n'
+                # Reset fontsize back to normal if we havew a new heading and this is a \n.
+                if lbl_text == "\n" and lbl_heading != previous_heading:
+                    lbl_text = " "
+                    lbl_heading = 0
+                    task_label = task_label + "<br><span class='h0-text'></span>"
+                    continue
+
+                # If we have a new heading, force a break if we didn't just do one.
+                if lbl_heading != previous_heading and previous_text != "\n":
+                    task_label = task_label + "<br>"
+
+                # Concatenate all of the text lines with the color.
+                print("bingo", lbl_heading, lbl_text)
                 task_label = (
                     task_label
+                    # + f'<span class="h{lbl_heading}tab style="color:'
                     + '<span style="color:'
                     + lbl_color
-                    + '">'
-                    + f"{blank * lbl_heading}"
+                    # + '">'
+                    + f'" class="h{lbl_heading}-text">{lbl_heading}'
+                    # + f"{blank * lbl_heading}"
                     + lbl_text
                     + "</span>"
                 )
-                print("bingo", lbl_color, lbl_heading, lbl_text)
                 have_paren = True
+                previous_heading = lbl_heading
+                previous_text = lbl_text
+
             # No color
             else:
                 task_label = task_label + f"{blank * lbl_heading}" + lbl_text
         if have_paren:
-            task_label = task_label + "</p>"
+            task_label = task_label + "</p></div>"
 
     # No embedded html
     else:
