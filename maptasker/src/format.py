@@ -377,8 +377,7 @@ def format_label(lbl: str) -> str:
             # Get the label details for this item in them label.
             lbl_style = action_label["styles"]
             lbl_color = lbl_style["color"] if lbl_style["color"] else PrimeItems.colors_to_use["action_label_color"]
-            if "OUTPUT TEMPLATE" in lbl_text:
-                print("bingo")
+
             # lbl_heading = (lbl_style["heading_level"] * 2) if lbl_style["is_heading"] else 0
             lbl_heading = lbl_style["heading_level"] if lbl_style["is_heading"] else 0
             # If we have a color, then format it accordingly.
@@ -397,14 +396,13 @@ def format_label(lbl: str) -> str:
                     task_label = task_label + "<br>"
 
                 # Concatenate all of the text lines with the color.
-                print("bingo", lbl_heading, lbl_text)
                 task_label = (
                     task_label
                     # + f'<span class="h{lbl_heading}tab style="color:'
                     + '<span style="color:'
                     + lbl_color
                     # + '">'
-                    + f'" class="h{lbl_heading}-text">{lbl_heading}'
+                    + f'" class="h{lbl_heading}-text">'
                     # + f"{blank * lbl_heading}"
                     + lbl_text
                     + "</span>"

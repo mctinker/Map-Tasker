@@ -155,6 +155,7 @@ def fix_json(line_to_fix: str, text_to_match: str) -> str:
 
 
 # Make the action line pretty by aligning the arguments.
+# FIX Don't pretty label text.
 def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     """
     Makes the given task code line prettier by adding line breaks and indentation.
@@ -313,8 +314,8 @@ def build_action(
         indent_amt += task_code_line
         task_code_line = indent_amt
 
-    # Make the output align/pretty.
-    if PrimeItems.program_arguments["pretty"]:
+    # Make the output align/pretty.  Don't make labels pretty.
+    if PrimeItems.program_arguments["pretty"] and "...with label:" not in task_code_line:
         task_code_line, extra_blanks = make_action_pretty(task_code_line, indent_amt)
     else:
         extra_blanks = 0

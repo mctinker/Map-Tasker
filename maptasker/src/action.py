@@ -362,9 +362,7 @@ def clean_label(lbl: str) -> str:
         :param lbl: the label to clean up
         :return: the cleaned up label with added html tags for a label's color
     """
-    # Remove html tags associated with label, and then add our own.
-    # FIX Add code here to convert html??
-    print("bingo", lbl)
+    # Add appropriate html for label text with psuedo html in it to be displayed as close as possible to real html.
     lbl = lbl.replace("<", "&lt;").replace(">", "&gt;")
     lbl = remove_html_tags(lbl, "")
     return format_html(

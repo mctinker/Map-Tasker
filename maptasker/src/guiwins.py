@@ -555,7 +555,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -2761,6 +2763,7 @@ class CTkTextview(ctk.CTkFrame):
                     tag_id,
                     background_color,
                 )
+            # Process the color and highlighting
             previous_color = self._handle_color_and_highlighting(
                 value,
                 tags,
@@ -3077,15 +3080,17 @@ class CTkTextview(ctk.CTkFrame):
             "Scene: ": "Scene: ",
         }
 
-        # Find the search word context
-        search_word = next(
-            (word for word in search_word_mapping if word in message),
-            None,
-        )
-        if not search_word:
-            return tags  # No valid highlight context found
-
+        # # Find the search word context
+        # search_word = next(
+        #     (word for word in search_word_mapping if word in message),
+        #     None,
+        # )
+        # if not search_word:
+        #     return tags  # No valid highlight context found
+        # FIX TEST this out
         for highlight in value.get("highlights", []):
+            if highlight not in highlight_configurations:
+                print("bingo", highlight)
             highlight_type, highlight_text = self._parse_highlight(highlight)
 
             if not highlight_type or highlight_type not in highlight_configurations:

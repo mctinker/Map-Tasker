@@ -30,6 +30,44 @@ The data consists of a list of dictionary values (formatted by guimap)...
 glob_spacing = 15
 
 
+def process_label_html(lines: list, output_lines: dict, line_num: int) -> int:
+    """
+    Parses HTML content from a list of strings, extracting text, color, and font information.
+
+    This function iterates through a list of HTML lines, specifically looking for `<span>`
+    tags to extract text content, a 7-character color code from the 'style' attribute,
+    and a 7-character font class from the 'class' attribute. It processes lines until
+    it encounters a `<div>` tag, and populates a dictionary with the extracted data.
+
+    Args:
+        lines (list): A list of strings, where each string is a line of HTML content.
+        output_lines (dict): A dictionary to store the extracted information. The
+                             keys are line numbers and the values are dictionaries
+                             containing lists for "text", "color", and "highlights".
+        line_num (int): The starting line number (index) in `lines` to begin parsing from.
+
+    Returns:
+        int: The number of lines that were processed (skipped) by this function.
+    """
+    line_num += 1
+    lines_to_skip = 0
+    while not lines[line_num].startswith("<div "):
+        line_num_to_add = line_num
+        html_lines = lines[line_num].split("<span ")
+        for line in html_lines:
+            if line and "style=" in line:
+                color = line.split('style="')[1].split(":")[1].split('"')[0]
+                font = line.split('class="')[1][0:7]
+                text = line.split(">")[1].split("<")[0]
+                output_lines[line_num_to_add] = {"text": [text], "color": [color], "highlights": [font]}
+                line_num_to_add += 1
+        # Prepare to get the next line and indicate we need to skip the line just processed.
+        line_num += 1
+        lines_to_skip += 1
+
+    return lines_to_skip
+
+
 # Optimized
 def handle_gototop(text_list: list) -> list:
     """
@@ -138,12 +176,6 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
             remove_html = False
         else:
             rutroh_error(f"guimap error: '{text_list[0]}' missing '>'!")
-
-    # Handle html in labels
-    # FIX
-    for text in text_list:
-        if "...with label:" in text:
-            print("bingo", text)
 
     # Use list comprehension for better performance
     new_text_list = [
@@ -335,6 +367,11 @@ def process_line(
             if "_color" in color:
                 # Get the text
                 working_text = extract_working_text(temp)
+
+                # Ignore unique situation in which there is a color and no text.
+                if "...with label:" in working_text and color_to_use[0] != "action_label_color":
+                    continue
+
                 # Special handling if a Tasker preferencews key.
                 if PrimeItems.program_arguments["preferences"] and (
                     "Key Service Account" in temp[2] or "Google Cloud Firebase" in temp[2]
@@ -574,6 +611,7 @@ def additional_formatting(
 
     # Handle disabled objects
     output_lines = handle_disabled_objects(output_lines, line_num)
+
     # Determine how much spacing to add to the front of the line.
     spacing = calculate_spacing(
         spacing,
@@ -697,8 +735,14 @@ def process_html_lines(
     """
     doing_global_variables = False
     remove_html = True
+    lines_to_skip = 0
 
     for line_num, line in enumerate(lines):
+        # Are we to skip lines due to label with html having already been added?
+        if lines_to_skip > 0:
+            lines_to_skip -= 1
+            continue
+
         # Ignore lines that match the criteria
         if ignore_line(line) and not doing_global_variables:
             continue
@@ -759,6 +803,11 @@ def process_html_lines(
             spacing,
             remove_html,
         )
+
+        # FIX Handle labels with html in them
+        if "text-box" in line and ".text-box" not in line:
+            lines_to_skip = process_label_html(lines, output_lines, line_num)
+            continue
 
         # If at end of valid html, start removing html again
         if "/html" in line or "<div <span" in line:

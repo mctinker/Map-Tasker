@@ -63,39 +63,28 @@ def add_css() -> None:
 
     box = """
     <style>
-        .text-box {
-            border: 2px solid #333; /* This creates the border */
-            padding: 15px;          /* This adds space between the text and the border */
-            margin: 20px;           /* This adds space outside the box */
-            width: 100%;             /* This sets the width of the box */
-            background-color: #f9f9f9; /* This gives the box a light background color */
-        }
-    </style>
+    .text-box {
+        border: 2px solid #333;
+        padding-left: 10px;    /* Keeps the existing left padding */
+        padding-right: 10px;   /* Keeps the existing right padding */
+        padding-top: 0px;     /* Increases the space at the top */
+        padding-bottom: 10px;  /* Increases the space at the bottom */
+        margin: 10px;
+        width: 100%;
+        background-color: #f9f9f9;
+    }
+</style>
     """
 
     fontsize = """
     <style>
-        .h0-text {
-            font-size: 16px;
-        }
-        .h1-text {
-            font-size: 24px;
-        }
-        .h2-text {
-            font-size: 22px;
-        }
-        .h3-text {
-            font-size: 20px;
-        }
-        .h4-text {
-            font-size: 18px;
-        }
-        .h5-text {
-            font-size: 16px;
-        }
-        .h6-text {
-            font-size: 15px;
-        }
+        .h0-text { font-size: 16px; }
+        .h1-text { font-size: 24px; }
+        .h2-text { font-size: 22px; }
+        .h3-text { font-size: 20px; }
+        .h4-text { font-size: 18px; }
+        .h5-text { font-size: 16px; }
+        .h6-text { font-size: 15px; }
     </style>
     """
     # <style>

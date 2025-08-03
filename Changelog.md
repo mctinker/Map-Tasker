@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added:
+- Added: Task labels with embedded html are now displayed with that html surrounded by a box.
 
 ### Changed
 
