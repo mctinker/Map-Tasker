@@ -13,6 +13,7 @@ from html.parser import HTMLParser
 
 from maptasker.src.error import rutroh_error
 from maptasker.src.guiutils import align_text
+from maptasker.src.maputils import count_consecutive_substr
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import pattern8
 from maptasker.src.xmldata import remove_html_tags
@@ -30,6 +31,49 @@ The data consists of a list of dictionary values (formatted by guimap)...
 glob_spacing = 15
 
 
+# def process_label_html(lines: list, output_lines: dict, line_num: int) -> int:
+#     """
+#     Parses HTML content from a list of strings, extracting text, color, and font information.
+
+#     This function iterates through a list of HTML lines, specifically looking for `<span>`
+#     tags to extract text content, a 7-character color code from the 'style' attribute,
+#     and a 7-character font class from the 'class' attribute. It processes lines until
+#     it encounters a `<div>` tag, and populates a dictionary with the extracted data.
+
+#     Args:
+#         lines (list): A list of strings, where each string is a line of HTML content.
+#         output_lines (dict): A dictionary to store the extracted information. The
+#                              keys are line numbers and the values are dictionaries
+#                              containing lists for "text", "color", and "highlights".
+#         line_num (int): The starting line number (index) in `lines` to begin parsing from.
+
+#     Returns:
+#         int: The number of lines that were processed (skipped) by this function.
+#     """
+#     line_num += 1
+#     line_num_to_add = line_num
+#     lines_to_skip = 0
+#     while not lines[line_num].startswith("<div "):
+#         html_lines = lines[line_num].split("<span ")
+#         for line in html_lines:
+#             # Only deal with lines that have a style
+#             if line and "style=" in line:
+#                 color = line.split('style="')[1].split(":")[1].split('"')[0]
+#                 font = line.split('class="')[1][0:7]
+#                 text = line.split(">")[1].split("<")[0]
+#                 output_lines[line_num_to_add] = {
+#                     "text": [text],
+#                     "color": [color],
+#                     "highlights": [font],
+#                     "spacing": count_consecutive_substr(output_lines[line_num_to_add - 1]["text"][0], " "),
+#                 }
+#                 line_num_to_add += 1
+#         # Prepare to get the next line and indicate we need to skip the line just processed.
+#         line_num += 1
+#         lines_to_skip += 1
+
+
+# return lines_to_skip
 def process_label_html(lines: list, output_lines: dict, line_num: int) -> int:
     """
     Parses HTML content from a list of strings, extracting text, color, and font information.
@@ -38,6 +82,9 @@ def process_label_html(lines: list, output_lines: dict, line_num: int) -> int:
     tags to extract text content, a 7-character color code from the 'style' attribute,
     and a 7-character font class from the 'class' attribute. It processes lines until
     it encounters a `<div>` tag, and populates a dictionary with the extracted data.
+
+    This modified version processes and concatenates text chunks with the same color
+    and font within a single HTML line before adding it to the output dictionary.
 
     Args:
         lines (list): A list of strings, where each string is a line of HTML content.
@@ -50,18 +97,63 @@ def process_label_html(lines: list, output_lines: dict, line_num: int) -> int:
         int: The number of lines that were processed (skipped) by this function.
     """
     line_num += 1
+    line_num_to_add = line_num
     lines_to_skip = 0
-    while not lines[line_num].startswith("<div "):
-        line_num_to_add = line_num
+
+    while line_num < len(lines) and not lines[line_num].startswith("<div "):
         html_lines = lines[line_num].split("<span ")
+
+        # This will hold the processed data for the current logical line
+        processed_line_data = []
+
         for line in html_lines:
-            if line and "style=" in line:
-                color = line.split('style="')[1].split(":")[1].split('"')[0]
-                font = line.split('class="')[1][0:7]
-                text = line.split(">")[1].split("<")[0]
-                output_lines[line_num_to_add] = {"text": [text], "color": [color], "highlights": [font]}
-                line_num_to_add += 1
-        # Prepare to get the next line and indicate we need to skip the line just processed.
+            # Only deal with lines that have a style and class
+            if line and "style=" in line and "class=" in line:
+                try:
+                    # Extract the color, font, and text
+                    color = line.split('style="')[1].split(":")[1].split('"')[0]
+                    font = line.split('class="')[1].split('"')[0][0:7]
+                    text = line.split(">")[1].split("<")[0]
+
+                    # Check if there's a previous element in processed_line_data
+                    if processed_line_data:
+                        last_item = processed_line_data[-1]
+                        # Compare the current color and font with the last one
+                        if last_item["color"] == color and last_item["highlights"] == font:
+                            # If they match, concatenate the text
+                            last_item["text"] += text
+                            continue  # Skip to the next line in html_lines
+
+                    # If they don't match or it's the first element,
+                    # add a new entry to processed_line_data
+                    processed_line_data.append(
+                        {
+                            "text": text,
+                            "color": color,
+                            "highlights": font,
+                            "spacing": count_consecutive_substr(text, " "),
+                        },
+                    )
+
+                except IndexError:
+                    print(f"Skipping malformed line: {line}")
+                    continue
+
+        # Now, add the processed data for this line to the output_lines dictionary
+        # We need to restructure the data to match the expected format
+        if processed_line_data:
+            output_lines[line_num_to_add] = {
+                "text": [item["text"] for item in processed_line_data],
+                "color": [item["color"] for item in processed_line_data],
+                "highlights": [item["highlights"] for item in processed_line_data],
+                # Spacing needs to be handled on an element-by-element basis.
+                # The 'spacing' key in the outer dict might not be what you need
+                # if you have multiple text chunks per line. I'll include it here
+                # but you might want to reconsider its placement.
+                "spacing": processed_line_data[0]["spacing"],
+            }
+            line_num_to_add += 1
+
         line_num += 1
         lines_to_skip += 1
 

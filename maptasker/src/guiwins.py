@@ -2163,6 +2163,17 @@ class CTkTextview(ctk.CTkFrame):
                         'text' and 'color' are empty if directory is present.
            'highlights': list of highlights to apply to the text elements (e.g. bold, underline, etc..)
         """
+        text_to_ignore = [
+            # ".text-box",
+            ".h0-text",
+            ".h1-text",
+            ".h2-text",
+            ".h3-text",
+            ".h4-text",
+            ".h5-text",
+            ".h6-text",
+            "     \n",
+        ]
         # Setup the progressbar
         progress = self._initialize_progress_bar(the_data)
 
@@ -2174,14 +2185,32 @@ class CTkTextview(ctk.CTkFrame):
         # Setup for the loop to kickoff.
         PrimeItems.track_task_warnings = []
         previous_text_content = ""
+        ignore_line = False
 
-        # Go through the data and format it accordingly.
-        for num, (_, value) in enumerate(the_data.items()):
+        # Go through the data and format it accordingly.  Num is a sequential number.
+        for num, (_linenum_in_data, value) in enumerate(the_data.items()):
             if not progress:  # If progress bar has been destroyed, quick get out.
                 return
 
             # Update progressbar if needed.
             self._update_progress_display(progress, num)
+
+            # Ignore certain lines
+            with contextlib.suppress(IndexError):
+                if any(ignore_str in value["text"][0] for ignore_str in text_to_ignore):
+                    continue
+
+                #  Ignore our css .textbox definitions.
+                if ignore_line and "}" in value["text"][0]:
+                    ignore_line = False
+                    continue
+                if ignore_line:
+                    continue
+                if ".text-box" in value["text"][0]:
+                    ignore_line = True
+                    continue
+                if previous_text_content == "\n" and value["text"][0] == "\n":  # Ignore double blank lines.
+                    continue
 
             # Get the text of the value and ignore duplicate blank lines.
             response, previous_text_content, text_current_value = self._handle_special_spacing_and_blanks(
@@ -2203,7 +2232,7 @@ class CTkTextview(ctk.CTkFrame):
                 if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
                     continue
 
-            # Check to see if we need to bump the line number.
+            # Check to see if we need to bump the line number for directory.  If so, get get the new line number.
             line_num, char_position = check_bump(
                 line_num,
                 char_position,
@@ -2717,6 +2746,7 @@ class CTkTextview(ctk.CTkFrame):
         """
         Outputs the given map data to a text box, determining colors, highlights, and formatting.
         """
+
         spaces = " " * 20
         line_num_str = str(line_num)
         char_position = 0
@@ -2732,9 +2762,6 @@ class CTkTextview(ctk.CTkFrame):
         for num, message in enumerate(
             value["text"] if isinstance(value["text"], list) else [value["text"]],
         ):
-            # If the text is not a list, just get the string.
-            if message == "     \n":
-                continue
             # Formats the message for pretty output, debug, and specific cases.
             formatted_message = self._format_message(
                 message,
@@ -2756,6 +2783,9 @@ class CTkTextview(ctk.CTkFrame):
             if message == "\n":
                 self.textview_textbox.insert("end", "\n", tag_id)
             else:
+                with contextlib.suppress(KeyError):
+                    if value["spacing"]:
+                        formatted_message = spaces + formatted_message
                 char_position = self._insert_message(
                     line_num_str,
                     char_position,
@@ -3034,6 +3064,7 @@ class CTkTextview(ctk.CTkFrame):
         # starting_line_to_search = 1
         with contextlib.suppress(KeyError):
             if num == 0 and value["highlights"]:
+                print("bingo highlight message", message, value["highlights"])
                 tags = self.add_highlights(message, value, previous_value, tag_id, tags)
 
         # Now color the text.
@@ -3071,6 +3102,14 @@ class CTkTextview(ctk.CTkFrame):
             "italic": {"font": self.italic_font},
             "underline": {"underline": True},
             "mark": {"background": PrimeItems.colors_to_use["highlight_color"]},
+            "h0-text": {"font": 0},
+            "h1-text": {"font": 1},
+            "h2-text": {"font": 2},
+            "h3-text": {"font": 3},
+            "h4-text": {"font": 4},
+            "h5-text": {"font": 5},
+            "h6-text": {"font": 6},
+            # FIX Add functions fore h0-text, h1-text etc.
         }
 
         search_word_mapping = {
@@ -3080,18 +3119,28 @@ class CTkTextview(ctk.CTkFrame):
             "Scene: ": "Scene: ",
         }
 
-        # # Find the search word context
-        # search_word = next(
-        #     (word for word in search_word_mapping if word in message),
-        #     None,
-        # )
+        # # Find the search word context.  Default to text in message if not found.
+        search_word = next(
+            (word for word in search_word_mapping if word in message),
+            message,
+        )
         # if not search_word:
         #     return tags  # No valid highlight context found
         # FIX TEST this out
         for highlight in value.get("highlights", []):
             if highlight not in highlight_configurations:
-                print("bingo", highlight)
-            highlight_type, highlight_text = self._parse_highlight(highlight)
+                print("bingo not in highlight_configurations", highlight)
+
+            # Label?
+            if highlight[2:7] == "-text":
+                highlight_type = highlight
+                highlight_text = value["text"][0]
+                highlight_color = value["color"][0]
+                search_word = highlight_text
+                print("bingo label", highlight_text, highlight_type, highlight_color, search_word)
+            else:
+                highlight_type, highlight_text = self._parse_highlight(highlight)
+                highlight_color = ""
 
             if not highlight_type or highlight_type not in highlight_configurations:
                 rutroh_error(
@@ -3101,7 +3150,7 @@ class CTkTextview(ctk.CTkFrame):
 
             start_pos, end_pos = self._get_highlight_positions(
                 message.rstrip(),
-                highlight_text,
+                highlight_text.rstrip(),
                 previous_value,
             )
             if start_pos == -1:
@@ -3117,7 +3166,7 @@ class CTkTextview(ctk.CTkFrame):
                 )
                 continue
 
-            new_tag = f"{tag_id}{highlight_type}"
+            new_tag = f"{tag_id}{highlight_type}{highlight_color}"
             tags.append(new_tag)
             self._apply_highlight(
                 new_tag,
