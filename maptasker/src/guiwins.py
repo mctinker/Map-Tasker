@@ -438,6 +438,15 @@ class CTkTextview(ctk.CTkFrame):
             size=12,
             slant="italic",
         )
+        # Define label fonts for headings: 0=h0, 1=h1, etc.
+        self.font0 = ctk.CTkFont(font, 12)
+        self.font1 = ctk.CTkFont(font, 30)
+        self.font2 = ctk.CTkFont(font, 27)
+        self.font3 = ctk.CTkFont(font, 24)
+        self.font4 = ctk.CTkFont(font, 20)
+        self.font5 = ctk.CTkFont(font, 18)
+        self.font6 = ctk.CTkFont(font, 15)
+
         background_color = make_hex_color(
             self.master.master.color_lookup["background_color"],
         )
@@ -2778,14 +2787,24 @@ class CTkTextview(ctk.CTkFrame):
                 formatted_message += "\n"
 
             tag_id = self._generate_unique_tag_id(line_num_str, char_position, tags)
+            with contextlib.suppress(KeyError):
+                if value["spacing"]:
+                    print("bingo")
 
-            # If new line, just do it and get out.
+            # Force spacing to 0 if this is a multi-part highlight.
+            if num > 0:
+                value["spacing"] = 0
+            # If newline, handle it.
             if message == "\n":
                 self.textview_textbox.insert("end", "\n", tag_id)
+            # Not new line.  Insert the text with appropriate spacing.
             else:
-                with contextlib.suppress(KeyError):
-                    if value["spacing"]:
-                        formatted_message = spaces + formatted_message
+                # Handle labels
+                with contextlib.suppress(KeyError, IndexError):
+                    if "-text" in value["highlights"][num]:
+                        tag_id = f"{tag_id}:{value['highlights'][num]}"
+                    if value["spacing"] and value["spacing"] > 0:
+                        formatted_message = (" " * value["spacing"]) + formatted_message
                 char_position = self._insert_message(
                     line_num_str,
                     char_position,
@@ -2939,7 +2958,23 @@ class CTkTextview(ctk.CTkFrame):
     ) -> None:
         # Insert the message into the text box
         try:
-            self.textview_textbox.insert(start_idx, message, tag_id)
+            if "-text" in tag_id:
+                font_to_use = int(tag_id.split(":")[1][1])
+                font_to_use_name = f"font{font_to_use!s}"
+                # FIX Move this code to _apply_highlight
+                our_font = getattr(self, font_to_use_name)
+                size = our_font._size  # noqa: SLF001
+                self.textview_textbox.insert(start_idx, message, f"self.{font_to_use_name}")
+                self.textview_textbox.tag_config(
+                    tag_id,
+                    # background=self.master.master.color_lookup["background_color"],
+                    cnf={
+                        "font": self.master.master.font,
+                        "size": size,
+                    },
+                )
+            else:
+                self.textview_textbox.insert(start_idx, message, tag_id)
         except TclError:
             return False
         self.textview_textbox.tag_add(tag_id, start_idx, end_idx)
@@ -3102,13 +3137,13 @@ class CTkTextview(ctk.CTkFrame):
             "italic": {"font": self.italic_font},
             "underline": {"underline": True},
             "mark": {"background": PrimeItems.colors_to_use["highlight_color"]},
-            "h0-text": {"font": 0},
-            "h1-text": {"font": 1},
-            "h2-text": {"font": 2},
-            "h3-text": {"font": 3},
-            "h4-text": {"font": 4},
-            "h5-text": {"font": 5},
-            "h6-text": {"font": 6},
+            "h0-text": {"font": "h0"},
+            "h1-text": {"font": "h1"},
+            "h2-text": {"font": "h2"},
+            "h3-text": {"font": "h3"},
+            "h4-text": {"font": "h4"},
+            "h5-text": {"font": "h5"},
+            "h6-text": {"font": "h6"},
             # FIX Add functions fore h0-text, h1-text etc.
         }
 
@@ -3126,12 +3161,13 @@ class CTkTextview(ctk.CTkFrame):
         )
         # if not search_word:
         #     return tags  # No valid highlight context found
-        # FIX TEST this out
+        # FIX
         for highlight in value.get("highlights", []):
             if highlight not in highlight_configurations:
                 print("bingo not in highlight_configurations", highlight)
 
             # Label?
+            # FIX Repeating "ACCEPT"
             if highlight[2:7] == "-text":
                 highlight_type = highlight
                 highlight_text = value["text"][0]

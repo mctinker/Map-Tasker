@@ -13,7 +13,6 @@ from html.parser import HTMLParser
 
 from maptasker.src.error import rutroh_error
 from maptasker.src.guiutils import align_text
-from maptasker.src.maputils import count_consecutive_substr
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import pattern8
 from maptasker.src.xmldata import remove_html_tags
@@ -74,7 +73,7 @@ glob_spacing = 15
 
 
 # return lines_to_skip
-def process_label_html(lines: list, output_lines: dict, line_num: int) -> int:
+def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: int) -> int:
     """
     Parses HTML content from a list of strings, extracting text, color, and font information.
 
@@ -92,6 +91,8 @@ def process_label_html(lines: list, output_lines: dict, line_num: int) -> int:
                              keys are line numbers and the values are dictionaries
                              containing lists for "text", "color", and "highlights".
         line_num (int): The starting line number (index) in `lines` to begin parsing from.
+        spacing (int): The initial spacing value.
+
 
     Returns:
         int: The number of lines that were processed (skipped) by this function.
@@ -101,6 +102,9 @@ def process_label_html(lines: list, output_lines: dict, line_num: int) -> int:
     lines_to_skip = 0
 
     while line_num < len(lines) and not lines[line_num].startswith("<div "):
+        if "For further clarification of what needs" in lines[line_num]:
+            print("bingo")
+        # Breakout the html spans
         html_lines = lines[line_num].split("<span ")
 
         # This will hold the processed data for the current logical line
@@ -114,6 +118,8 @@ def process_label_html(lines: list, output_lines: dict, line_num: int) -> int:
                     color = line.split('style="')[1].split(":")[1].split('"')[0]
                     font = line.split('class="')[1].split('"')[0][0:7]
                     text = line.split(">")[1].split("<")[0]
+                    if "%par1" in text:
+                        print("bingo1", text)
 
                     # Check if there's a previous element in processed_line_data
                     if processed_line_data:
@@ -123,15 +129,18 @@ def process_label_html(lines: list, output_lines: dict, line_num: int) -> int:
                             # If they match, concatenate the text
                             last_item["text"] += text
                             continue  # Skip to the next line in html_lines
+                        # Reset spacing since we're now adding to an existing line.
+                        spacing = 0
 
                     # If they don't match or it's the first element,
                     # add a new entry to processed_line_data
+                    # print("bingo appending", text, color, font)
                     processed_line_data.append(
                         {
                             "text": text,
                             "color": color,
                             "highlights": font,
-                            "spacing": count_consecutive_substr(text, " "),
+                            "spacing": spacing,
                         },
                     )
 
@@ -142,6 +151,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int) -> int:
         # Now, add the processed data for this line to the output_lines dictionary
         # We need to restructure the data to match the expected format
         if processed_line_data:
+            # print("bingo adding to output_lines", processed_line_data)
             output_lines[line_num_to_add] = {
                 "text": [item["text"] for item in processed_line_data],
                 "color": [item["color"] for item in processed_line_data],
@@ -898,7 +908,7 @@ def process_html_lines(
 
         # FIX Handle labels with html in them
         if "text-box" in line and ".text-box" not in line:
-            lines_to_skip = process_label_html(lines, output_lines, line_num)
+            lines_to_skip = process_label_html(lines, output_lines, line_num, spacing)
             continue
 
         # If at end of valid html, start removing html again

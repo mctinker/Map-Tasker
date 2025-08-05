@@ -366,13 +366,15 @@ def format_label(lbl: str) -> str:
 
         # Go through each item in the formatted list and break it into html.
         have_paren = False
-        # FIX 'Pretty' is screwing up the output.  Task: Universal Error Display Sub
         previous_heading = 0
         previous_text = ""
 
         # Go through the lines in this formatted html
         for action_label in formatted_lbl:
             lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
+            # Handle situation in which a "\n" preceeds a name.  The \n screws up the html
+            if lbl_text.startswith("\n%"):
+                lbl_text = lbl_text[1:]
 
             # Get the label details for this item in them label.
             lbl_style = action_label["styles"]
@@ -384,7 +386,7 @@ def format_label(lbl: str) -> str:
             if lbl_color:
                 if not have_paren:
                     task_label = task_label + '<div class="text-box"><p>\n'
-                # Reset fontsize back to normal if we havew a new heading and this is a \n.
+                # Reset fontsize back to normal if we have a new heading and this is a \n.
                 if lbl_text == "\n" and lbl_heading != previous_heading:
                     lbl_text = " "
                     lbl_heading = 0
