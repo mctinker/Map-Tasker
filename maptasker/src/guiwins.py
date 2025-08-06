@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import contextlib
+import copy
 import os
 import random
 import re
@@ -104,6 +105,8 @@ left_arrow_corner_down = "╭"
 left_arrow_corner_up = "╮"
 angle = "└─ "
 blank = " "
+# Define label fonts for headings: 0=h0, 1=h1, etc.
+heading_fonts = {"0": "10", "1": "24", "2": "22", "3": "20", "4": "18", "5": "16", "6": "14"}
 
 
 class CTkTreeview(ctk.CTkFrame):
@@ -438,14 +441,6 @@ class CTkTextview(ctk.CTkFrame):
             size=12,
             slant="italic",
         )
-        # Define label fonts for headings: 0=h0, 1=h1, etc.
-        self.font0 = ctk.CTkFont(font, 12)
-        self.font1 = ctk.CTkFont(font, 30)
-        self.font2 = ctk.CTkFont(font, 27)
-        self.font3 = ctk.CTkFont(font, 24)
-        self.font4 = ctk.CTkFont(font, 20)
-        self.font5 = ctk.CTkFont(font, 18)
-        self.font6 = ctk.CTkFont(font, 15)
 
         background_color = make_hex_color(
             self.master.master.color_lookup["background_color"],
@@ -2195,14 +2190,28 @@ class CTkTextview(ctk.CTkFrame):
         PrimeItems.track_task_warnings = []
         previous_text_content = ""
         ignore_line = False
+        temp_previous_value = {}
 
         # Go through the data and format it accordingly.  Num is a sequential number.
         for num, (_linenum_in_data, value) in enumerate(the_data.items()):
-            if not progress:  # If progress bar has been destroyed, quick get out.
+            # If progress bar has been destroyed, quick get out.
+            if not progress:
                 return
 
             # Update progressbar if needed.
             self._update_progress_display(progress, num)
+
+            # Determine if we need to draw a box around the label text
+            # FIX This isn't working!!!  previous_highlights not getting picked up.
+            if _linenum_in_data == 120:
+                print("bingo")
+            if num > 2 and temp_previous_value:
+                highlights = getattr(value, "highlights", [])
+                # BUG
+                previous_highlights = getattr(temp_previous_value, "highlights", [])
+                if not highlights and previous_highlights:
+                    print("bingo box")
+            temp_previous_value = copy.copy(value)
 
             # Ignore certain lines
             with contextlib.suppress(IndexError):
@@ -2787,9 +2796,6 @@ class CTkTextview(ctk.CTkFrame):
                 formatted_message += "\n"
 
             tag_id = self._generate_unique_tag_id(line_num_str, char_position, tags)
-            with contextlib.suppress(KeyError):
-                if value["spacing"]:
-                    print("bingo")
 
             # Force spacing to 0 if this is a multi-part highlight.
             if num > 0:
@@ -2811,7 +2817,13 @@ class CTkTextview(ctk.CTkFrame):
                     formatted_message,
                     tag_id,
                     background_color,
+                    value,
+                    num,
                 )
+                # If this is a label, then just return.  We've already hanmdled the highlighting/tagging/color.
+                if "-text" in tag_id:
+                    continue
+
             # Process the color and highlighting
             previous_color = self._handle_color_and_highlighting(
                 value,
@@ -2875,6 +2887,8 @@ class CTkTextview(ctk.CTkFrame):
         message: str,
         tag_id: str,
         background_color: str,
+        value: dict,
+        num: int,
     ) -> int:
         """Inserts the formatted message into the text box and applies the necessary tags."""
         start_idx = f"{line_num_str}.{char_position}"
@@ -2885,6 +2899,8 @@ class CTkTextview(ctk.CTkFrame):
         # 2. The Task name as a hyperlink.
         # 3. After the Task name.
         # if message.startswith("Task ") and message.endswith("actions\n"):
+
+        # Checks if the pattern 'xTask x has x actions\n' exists in the given string.
         if find_task_pattern(message):
             # Get the Task name.
             got_it = False
@@ -2893,7 +2909,7 @@ class CTkTextview(ctk.CTkFrame):
                     got_it = True
                     break
             if not got_it:
-                _ = self._insert_text_and_tag(start_idx, end_idx, message, tag_id)
+                _ = self._insert_text_and_tag(start_idx, end_idx, message, tag_id, value, num)
                 return char_position
             if task_name not in message:
                 rutroh_error(f"Task {task_name} not found in the message, '{message}'!")
@@ -2909,7 +2925,7 @@ class CTkTextview(ctk.CTkFrame):
 
             # Add #1.
             end_start = f"{line_num_str}.{char_position + 5!s}"  # 5 is the length of "Task "
-            if not self._insert_text_and_tag(start_idx, end_start, "Task ", tag_id):
+            if not self._insert_text_and_tag(start_idx, end_start, "Task ", tag_id, value, num):
                 return char_position
 
             # Add #2.
@@ -2922,6 +2938,8 @@ class CTkTextview(ctk.CTkFrame):
                 taskname_end_inx,
                 task_name,
                 hyper_tag_id,
+                value,
+                num,
             ):
                 return char_position
 
@@ -2936,9 +2954,12 @@ class CTkTextview(ctk.CTkFrame):
             ):
                 return char_position
 
-        # Just normal text.  Insert it.
-        elif not self._insert_text_and_tag(start_idx, end_idx, message, tag_id):
+        # Just normal text or maybe a label.  Insert it.
+        elif not self._insert_text_and_tag(start_idx, end_idx, message, tag_id, value, num):
             return char_position
+        # Just return if this is a label.
+        if "-text" in tag_id:
+            return char_position + len(message)
 
         # Tag items for hover and background highlight
         if ": Properties" not in message and any(
@@ -2955,27 +2976,35 @@ class CTkTextview(ctk.CTkFrame):
         end_idx: str,
         message: str,
         tag_id: str,
+        value: dict,
+        num: int,
     ) -> None:
         # Insert the message into the text box
         try:
+            # If this is a label, then do it all: insert text, tag it and add the font size and colors.
             if "-text" in tag_id:
-                font_to_use = int(tag_id.split(":")[1][1])
-                font_to_use_name = f"font{font_to_use!s}"
-                # FIX Move this code to _apply_highlight
-                our_font = getattr(self, font_to_use_name)
-                size = our_font._size  # noqa: SLF001
-                self.textview_textbox.insert(start_idx, message, f"self.{font_to_use_name}")
+                font_size = heading_fonts[tag_id.split(":")[1][1]]
+
+                # Specifying the tag_id in the insert eliminates the need to do a tag_add.
+                self.textview_textbox.insert(start_idx, message, tag_id)
+                bg_color = make_hex_color(self.master.master.color_lookup["background_color"])
+                fg_color = make_hex_color(value["color"][num])
+
+                # Configure the label tag attributes.
                 self.textview_textbox.tag_config(
                     tag_id,
-                    # background=self.master.master.color_lookup["background_color"],
-                    cnf={
-                        "font": self.master.master.font,
-                        "size": size,
-                    },
+                    font=(self.master.master.font, font_size),
+                    background=bg_color,
+                    foreground=fg_color,
                 )
-            else:
-                self.textview_textbox.insert(start_idx, message, tag_id)
-        except TclError:
+                if "ACCEPTS" in message:
+                    print("bingo")
+                return True
+
+            # Just plain text.  Insert and tag it.
+            self.textview_textbox.insert(start_idx, message, tag_id)
+        except TclError as e:
+            rutroh_error(f"bingo error: {e}")
             return False
         self.textview_textbox.tag_add(tag_id, start_idx, end_idx)
         return True
@@ -3097,14 +3126,18 @@ class CTkTextview(ctk.CTkFrame):
 
         # Look for special string highlighting in value (bold, italic, underline, highlight)
         # starting_line_to_search = 1
+        # Don't addf highlight if this is a label.  We've already added it.
         with contextlib.suppress(KeyError):
-            if num == 0 and value["highlights"]:
+            if num == 0 and value["highlights"] and "-text" not in tag_id:
                 print("bingo highlight message", message, value["highlights"])
                 tags = self.add_highlights(message, value, previous_value, tag_id, tags)
 
         # Now color the text.
         try:
-            color = self.master.master.color_lookup.get(f"{value['color'][num]}")
+            if value["color"][num].startswith("#"):
+                color = value["color"][num]
+            else:
+                color = self.master.master.color_lookup.get(f"{value['color'][num]}")
 
             # If color is None, then it wasn't found in the lookup table.  It is a raw color name.
             if color is None and value["color"][num] != "n/a":
@@ -3173,7 +3206,16 @@ class CTkTextview(ctk.CTkFrame):
                 highlight_text = value["text"][0]
                 highlight_color = value["color"][0]
                 search_word = highlight_text
-                print("bingo label", highlight_text, highlight_type, highlight_color, search_word)
+                print(
+                    "bingo label text:",
+                    highlight_text,
+                    "type:",
+                    highlight_type,
+                    "color:",
+                    highlight_color,
+                    "searchword:",
+                    search_word,
+                )
             else:
                 highlight_type, highlight_text = self._parse_highlight(highlight)
                 highlight_color = ""
@@ -3204,6 +3246,7 @@ class CTkTextview(ctk.CTkFrame):
 
             new_tag = f"{tag_id}{highlight_type}{highlight_color}"
             tags.append(new_tag)
+            # FIX Modify to support label
             self._apply_highlight(
                 new_tag,
                 line_to_highlight,

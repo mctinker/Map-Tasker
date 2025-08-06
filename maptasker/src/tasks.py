@@ -117,7 +117,6 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
         # If pretty text, then reformat it.
         if "Configuration Parameter(s):" in task_code and pretty_mode:
             task_code = reformat_html(task_code)
-        # FIX Got this far in debug
         action_evaluate.build_action(
             tasklist,
             task_code,
