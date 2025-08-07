@@ -102,8 +102,6 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
     lines_to_skip = 0
 
     while line_num < len(lines) and not lines[line_num].startswith("<div "):
-        if "For further clarification of what needs" in lines[line_num]:
-            print("bingo")
         # Breakout the html spans
         html_lines = lines[line_num].split("<span ")
 
@@ -118,8 +116,6 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     color = line.split('style="')[1].split(":")[1].split('"')[0]
                     font = line.split('class="')[1].split('"')[0][0:7]
                     text = line.split(">")[1].split("<")[0]
-                    if "%par1" in text:
-                        print("bingo1", text)
 
                     # Check if there's a previous element in processed_line_data
                     if processed_line_data:
@@ -134,7 +130,6 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
 
                     # If they don't match or it's the first element,
                     # add a new entry to processed_line_data
-                    # print("bingo appending", text, color, font)
                     processed_line_data.append(
                         {
                             "text": text,
@@ -151,7 +146,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
         # Now, add the processed data for this line to the output_lines dictionary
         # We need to restructure the data to match the expected format
         if processed_line_data:
-            # print("bingo adding to output_lines", processed_line_data)
+            # Add all of the info to the output
             output_lines[line_num_to_add] = {
                 "text": [item["text"] for item in processed_line_data],
                 "color": [item["color"] for item in processed_line_data],

@@ -10,6 +10,7 @@ import error.
 
 import os
 import re
+import uuid
 
 import customtkinter as ctk
 import requests
@@ -302,3 +303,89 @@ def get_changelog_file(url: str, delimiter: str, n: int) -> list:
         lines.append(line)
 
     return lines
+
+
+def draw_box_around_text(self: ctk) -> None:
+    """
+    Applies a tag with a border to a specified range of text in a Text widget.
+
+    Args:
+        self (tk.Text): The Tkinter Text widget to modify.
+        self.draw_box (dict) has the enclosing start and end indecies.
+    """
+    # Create a tag with a border
+    tag_name = generate_unique_string()
+    # print("bingo tag", tag_name)
+    start_index = self.draw_box["start_idx"]
+    end_index = self.draw_box["end_idx"]
+    # spacing = self.draw_box["spacing"]
+
+    the_end = end_index.split(".")
+    # FIX This creates a boxed set but doesn't push the rest of the text down.
+    # box_text_with_unicode(self.textview_textbox, start_index, end_index, spacing)
+
+    end_char = str(int(the_end[1]) + 1)
+    end_index = f"{the_end[0]}.{end_char}"
+
+    background_color = self.master.master.color_lookup["background_color"]
+    if background_color.isdigit():
+        background_color = "#" + background_color
+
+    self.textview_textbox.tag_config(
+        tag_name,
+        borderwidth=2,
+        relief="ridge",
+        background=background_color,
+    )
+
+    # Apply the tag to the specified range of text
+    self.textview_textbox.tag_add(tag_name, start_index, end_index)
+
+    # Reset for next label
+    self.draw_box = {}
+
+
+def generate_unique_string() -> str:
+    """
+    Generates a unique 5-digit string using a UUID.
+
+    Returns:
+        str: A unique 5-character string.
+    """
+    # Generate a UUID (Universally Unique Identifier)
+    unique_id = uuid.uuid4()
+
+    # Convert the UUID to a hexadecimal string and take the first 5 characters
+    return unique_id.hex[:5]
+
+
+def box_text_with_unicode(text_widget: ctk, start: str = "1.0", end: str = "end-1c", left_margin_spaces: int = 0):
+    """
+    Replaces the text in the given range with a visually boxed version using Unicode box characters.
+    Adds a left margin spacer before the box.
+
+    Args:
+        text_widget: The tk.Text widget.
+        start (str): Start index of the text.
+        end (str): End index of the text.
+        left_margin_spaces (int): Number of spaces to prepend as a margin.
+    """
+    # Get the text
+    content = text_widget.get(start, end)
+    lines = content.split("\n")
+    max_len = max(len(line) for line in lines)
+
+    # Left margin spacer
+    spacer = " " * left_margin_spaces
+
+    # Build box lines
+    top = spacer + "┌" + "─" * (max_len + 2) + "┐"
+    bottom = spacer + "└" + "─" * (max_len + 2) + "┘"
+    middle = [spacer + f"│ {line.ljust(max_len)} │" for line in lines]
+
+    # Combine lines
+    boxed_text = "\n".join([top] + middle + [bottom])
+
+    # Replace text in widget
+    text_widget.delete(start, end)
+    text_widget.insert(start, boxed_text)
