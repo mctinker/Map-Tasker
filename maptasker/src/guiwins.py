@@ -105,8 +105,6 @@ left_arrow_corner_down = "╭"
 left_arrow_corner_up = "╮"
 angle = "└─ "
 blank = " "
-# Define label fonts for headings: 0=h0, 1=h1, etc.
-heading_fonts = {"0": "10", "1": "24", "2": "22", "3": "20", "4": "18", "5": "16", "6": "14"}
 
 
 class CTkTreeview(ctk.CTkFrame):
@@ -505,7 +503,7 @@ class CTkTextview(ctk.CTkFrame):
         # Initialize variables
         self.textview_textbox.diagram_highlighted_connector = ""
         self.top = False  # Used by Next / Prev buttons
-        self.draw_box = {}  # Used to draw a box around labels in Map view.
+        self.draw_box = {"all_values": [], "start_idx": None, "end_idx": None, "spacing": 0}
 
     def process_data(self, the_data: list) -> None:
         """
@@ -2148,7 +2146,7 @@ class CTkTextview(ctk.CTkFrame):
         Process the given map data and output the text lines and colors to a text box.
 
         Parameters:
-            line_num (int): The current line number.
+            line_num (int): The current line number of the data in the textbox.
             tags (list): The list of tags.
             char_position (int): The current character position.
             previous_color (str): The previous color.
@@ -2205,26 +2203,27 @@ class CTkTextview(ctk.CTkFrame):
             # Determine if we need to draw a box around the label text
             if num > 2 and temp_previous_value:
                 try:
+                    # If we have a spacing arg, then this is a label value
                     spacing = value["spacing"]
+                    if value["text"][0] == "":  # Convert empty text label to a newline.
+                        value["text"][0] = "\n"
+
+                    self.draw_box["all_values"].append(value)  # Save value
+                    temp_previous_value = copy.deepcopy(value)  # Save our value for next iteration.
+                    continue  # don't process value yet.
+
+                # No spacing...not a label.
                 except KeyError:
                     spacing = []
                 try:
                     previous_spacing = temp_previous_value["spacing"]
                 except KeyError:
                     previous_spacing = []
-                # If we don't currently have spacing but we did...
+                # If we don't currently have spacing but we did, thesdn let's draw the label with a box.
                 if not spacing and previous_spacing:
-                    # print(
-                    #     "bingo previous:",
-                    #     temp_previous_value["text"][0],
-                    #     self.draw_box["start_idx"],
-                    #     self.draw_box["end_idx"],
-                    # )
-                    draw_box_around_text(self)  # Pass MyGui
-                # Handle a "" in label
-                elif spacing and value["text"][0] == "":
-                    value["text"][0] = "\n"
-            # Saver the previous value for above code check.
+                    line_num, tags = draw_box_around_text(self, line_num, tags)
+
+            # Save the previous value for above code check.
             temp_previous_value = copy.deepcopy(value)
 
             # Ignore certain lines
@@ -2283,6 +2282,7 @@ class CTkTextview(ctk.CTkFrame):
                 previous_directory,
                 previous_value,
                 char_position,
+                # FIX Add preevious_temp_value
             ) = self._process_value_with_color_or_directory(
                 value,
                 line_num,
@@ -2817,27 +2817,16 @@ class CTkTextview(ctk.CTkFrame):
             # If newline, handle it.
             if message == "\n":
                 self.textview_textbox.insert("end", "\n", tag_id)
+
             # Not new line.  Insert the text with appropriate spacing.
             else:
-                # Handle labels
-                with contextlib.suppress(KeyError, IndexError):
-                    if "-text" in value["highlights"][num]:
-                        tag_id = f"{tag_id}:{value['highlights'][num]}"
-                        # Add indentation to label text.
-                    if value["spacing"] and value["spacing"] > 0:
-                        formatted_message = (" " * value["spacing"]) + formatted_message
                 char_position = self._insert_message(
                     line_num_str,
                     char_position,
                     formatted_message,
                     tag_id,
                     background_color,
-                    value,
-                    num,
                 )
-                # If this is a label, then just return.  We've already hanmdled the highlighting/tagging/color.
-                if "-text" in tag_id:
-                    continue
 
             # Process the color and highlighting
             previous_color = self._handle_color_and_highlighting(
@@ -2902,8 +2891,6 @@ class CTkTextview(ctk.CTkFrame):
         message: str,
         tag_id: str,
         background_color: str,
-        value: dict,
-        num: int,
     ) -> int:
         """Inserts the formatted message into the text box and applies the necessary tags."""
         start_idx = f"{line_num_str}.{char_position}"
@@ -2924,7 +2911,7 @@ class CTkTextview(ctk.CTkFrame):
                     got_it = True
                     break
             if not got_it:
-                _ = self._insert_text_and_tag(start_idx, end_idx, message, tag_id, value, num)
+                _ = self._insert_text_and_tag(start_idx, end_idx, message, tag_id)
                 return char_position
             if task_name not in message:
                 rutroh_error(f"Task {task_name} not found in the message, '{message}'!")
@@ -2940,7 +2927,7 @@ class CTkTextview(ctk.CTkFrame):
 
             # Add #1.
             end_start = f"{line_num_str}.{char_position + 5!s}"  # 5 is the length of "Task "
-            if not self._insert_text_and_tag(start_idx, end_start, "Task ", tag_id, value, num):
+            if not self._insert_text_and_tag(start_idx, end_start, "Task ", tag_id):
                 return char_position
 
             # Add #2.
@@ -2953,8 +2940,6 @@ class CTkTextview(ctk.CTkFrame):
                 taskname_end_inx,
                 task_name,
                 hyper_tag_id,
-                value,
-                num,
             ):
                 return char_position
 
@@ -2970,7 +2955,7 @@ class CTkTextview(ctk.CTkFrame):
                 return char_position
 
         # Just normal text or maybe a label.  Insert it.
-        elif not self._insert_text_and_tag(start_idx, end_idx, message, tag_id, value, num):
+        elif not self._insert_text_and_tag(start_idx, end_idx, message, tag_id):
             return char_position
         # Just return if this is a label.
         if "-text" in tag_id:
@@ -2991,52 +2976,9 @@ class CTkTextview(ctk.CTkFrame):
         end_idx: str,
         message: str,
         tag_id: str,
-        value: dict,
-        num: int,
-        # FIX Need to pass in the previous value to determine if this is the start of a new box
     ) -> None:
         # Insert the message into the text box
         try:
-            # If this is a label, then do it all: insert text, tag it and add the font size and colors.
-            if "-text" in tag_id:
-                print("bingo spacing:", value["spacing"], "text:", value["text"][num])
-                # FIX To add a virtual box around the text, triggered by "...with label:"
-                font_size = heading_fonts[tag_id.split(":")[1][1]]
-
-                # Specifying the tag_id in the insert eliminates the need to do a tag_add.
-                self.textview_textbox.insert(start_idx, message, tag_id)
-                bg_color = make_hex_color(self.master.master.color_lookup["background_color"])
-                fg_color = make_hex_color(value["color"][num])
-
-                # Configure the label tag attributes.
-                self.textview_textbox.tag_config(
-                    tag_id,
-                    font=(self.master.master.font, font_size),
-                    background=bg_color,
-                    foreground=fg_color,
-                )
-                # Save info for drawing a box around label
-                if self.draw_box:
-                    # We we already have the box defined, then update the values for the box
-                    self.draw_box["end_idx"] = max(end_idx, self.draw_box["end_idx"])
-                # Determine the details to draw a box.
-                else:
-                    # Add our spacing to the start index for the box.
-                    if value["spacing"] > 0:
-                        start = start_idx.split(".")
-                        start_index = f"{start[0]}.{(int(start[1]) + value['spacing']) - 1}"
-                    else:
-                        start_index = start_idx
-                    self.draw_box = {
-                        "tag": tag_id,
-                        "start_idx": start_index,
-                        "end_idx": end_idx,
-                        "spacing": value["spacing"],
-                    }
-
-                return True
-
-            # Just plain text.  Insert and tag it.
             self.textview_textbox.insert(start_idx, message, tag_id)
         except TclError as e:
             rutroh_error(f"TclError in _insert_text_and_tag: error: {e}")
@@ -3232,26 +3174,8 @@ class CTkTextview(ctk.CTkFrame):
         for highlight in value.get("highlights", []):
             if highlight not in highlight_configurations:
                 rutroh_error(f"Not in highlight_configurations: {highlight}")
-
-            # Label?
-            if highlight[2:7] == "-text":
-                highlight_type = highlight
-                highlight_text = value["text"][0]
-                highlight_color = value["color"][0]
-                search_word = highlight_text
-                # print(
-                #     "bingo label text:",
-                #     highlight_text,
-                #     "type:",
-                #     highlight_type,
-                #     "color:",
-                #     highlight_color,
-                #     "searchword:",
-                #     search_word,
-                # )
-            else:
-                highlight_type, highlight_text = self._parse_highlight(highlight)
-                highlight_color = ""
+            highlight_type, highlight_text = self._parse_highlight(highlight)
+            highlight_color = ""
 
             if not highlight_type or highlight_type not in highlight_configurations:
                 rutroh_error(

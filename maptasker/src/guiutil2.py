@@ -19,6 +19,9 @@ from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 
+# Define label fonts for headings: 0=h0, 1=h1, etc.
+heading_fonts = {"0": "10", "1": "24", "2": "22", "3": "20", "4": "18", "5": "16", "6": "14"}
+
 
 def validate_tkinter_geometry(geometry_string: str) -> bool:
     """
@@ -305,44 +308,76 @@ def get_changelog_file(url: str, delimiter: str, n: int) -> list:
     return lines
 
 
-def draw_box_around_text(self: ctk) -> None:
-    """
-    Applies a tag with a border to a specified range of text in a Text widget.
+def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, list]:
+    """Draws a box around text in a custom textbox widget.
+
+    This function iterates through a set of text values, formats them,
+    and inserts them into a textbox widget. It configures a tag for each
+    piece of text to apply a specific font, foreground color, and background color,
+    effectively creating a styled "box" around the text.
 
     Args:
-        self (tk.Text): The Tkinter Text widget to modify.
-        self.draw_box (dict) has the enclosing start and end indecies.
+        self: The instance of the custom textbox class (ctk).
+        line_num: The starting line number where the text will be inserted.
+        tags: A list of existing tags to ensure the generated tag ID is unique.
+
+    Returns:
+        The final line number and a list of all tags used thus far.
     """
-    # Create a tag with a border
-    tag_name = generate_unique_string()
-    # print("bingo tag", tag_name)
-    start_index = self.draw_box["start_idx"]
-    end_index = self.draw_box["end_idx"]
-    # spacing = self.draw_box["spacing"]
+    all_values = self.draw_box["all_values"]
+    line_num_str = str(line_num)
 
-    the_end = end_index.split(".")
-    # FIX This creates a boxed set but doesn't push the rest of the text down.
-    # box_text_with_unicode(self.textview_textbox, start_index, end_index, spacing)
+    # Get the background color
+    bg_color = self.master.master.color_lookup["background_color"]
+    if bg_color.isdigit():
+        bg_color = "#" + bg_color
+        begin_box = f"{line_num_str}.0"
 
-    end_char = str(int(the_end[1]) + 1)
-    end_index = f"{the_end[0]}.{end_char}"
+    # Go through all of the values in the label and output them
+    for value in all_values:
+        spacing = value["spacing"]
+        char_position = 0
 
-    background_color = self.master.master.color_lookup["background_color"]
-    if background_color.isdigit():
-        background_color = "#" + background_color
+        # Iterate over a list or a string.
+        for num, message in enumerate(value["text"]):
+            formatted_message = (" " * value["spacing"]) + message if spacing > 0 else message
 
-    self.textview_textbox.tag_config(
-        tag_name,
-        borderwidth=2,
-        relief="ridge",
-        background=background_color,
-    )
+            # Build the starr and end indecies
+            start_idx = str(line_num) + "." + str(char_position)
+            end_idx = str(line_num) + "." + str(char_position + len(message))
+            end_box = end_idx
 
-    # Apply the tag to the specified range of text
-    self.textview_textbox.tag_add(tag_name, start_index, end_index)
+            # Create a tag with a border
+            tag_id = f"{start_idx}:{value['highlights'][num]}:{value['color'][num]}"
+            tags.append(tag_id)
+            font_size = heading_fonts[tag_id.split(":")[1][1]]
+
+            # Insert the text
+            # Specifying the tag_id in the insert eliminates the need to do a tag_add.
+            print("bingo inserting:", formatted_message, "at", start_idx, "color", value["color"][num])
+            self.textview_textbox.insert(start_idx, formatted_message, tag_id)
+            fg_color = make_hex_color(value["color"][num])
+
+            # Configure the label tag attributes.
+            self.textview_textbox.tag_config(
+                tag_id,
+                font=(self.master.master.font, font_size),
+                background=bg_color,
+                foreground=fg_color,
+            )
+            char_position += len(formatted_message)
+
+        line_num += 1
+        char_position = 0
+
+    # Draw the bounding box
+    box_text_with_unicode(self.textview_textbox, begin_box, end_box, spacing)
+    line_num += 2  # Add two for the top asnd bottom of the box.
 
     # Reset for next label
-    self.draw_box = {}
+    self.draw_box = {"all_values": [], "start_idx": None, "end_idx": None, "spacing": 0}
+
+    return line_num, tags
 
 
 def generate_unique_string() -> str:
@@ -389,3 +424,19 @@ def box_text_with_unicode(text_widget: ctk, start: str = "1.0", end: str = "end-
     # Replace text in widget
     text_widget.delete(start, end)
     text_widget.insert(start, boxed_text)
+
+
+def make_hex_color(color: str) -> str:
+    """
+    Converts a given color string to a hex color string if it's a digit.
+
+    Args:
+        color (str): The color string to be converted.
+
+    Returns:
+        str: The hex color string if the input is a digit, otherwise the original color string.
+    """
+    # Add color to the tag
+    if color.isdigit():
+        return "#" + color
+    return color
