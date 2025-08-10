@@ -327,7 +327,6 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
     all_values = self.draw_box["all_values"]
     starting_line = str(line_num)
     label_text = []
-    max_len = 0
 
     # Get the background color
     bg_color = self.master.master.color_lookup["background_color"]
@@ -338,7 +337,6 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
     for value in all_values:
         spacing = value["spacing"]
         char_position = 0
-        old_value = False
 
         # Iterate over a list or a string.
         for num, message in enumerate(value["text"]):
@@ -347,37 +345,46 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
             # Build the starr and end indecies
             start_idx = str(line_num) + "." + str(char_position)
             end_idx = str(line_num) + "." + str(char_position + len(message) + spacing)
+            end_box = end_idx
 
             # Create a tag with a border
-            tag_prefix = f"{line_num + 1!s}.{char_position!s}"
-            tag_id = f"{tag_prefix}:{value['highlights'][num]}:{value['color'][num]}"
+            tag_id = f"{start_idx}:{value['highlights'][num]}:{value['color'][num]}"
             tags.append(tag_id)
             font_size = heading_fonts[tag_id.split(":")[1][1]]
+
+            print("bingo inserting:", message, "at", start_idx, "color", value["color"][num])
+
+            # Insert the text
+            # Specifying the tag_id in the insert eliminates the need to do a tag_add.
+            self.textview_textbox.insert(start_idx, message, tag_id)
             fg_color = make_hex_color(value["color"][num])
 
+            # Configure the label tag attributes.
+            self.textview_textbox.tag_config(
+                tag_id,
+                font=(self.master.master.font, font_size),
+                background=bg_color,
+                foreground=fg_color,
+            )
             # Save all of the label info for displaying later
             label_text.append(
                 {
                     "tag": tag_id,
                     "text": message,
-                    "line_num": line_num,
                     "start_idx": start_idx,
-                    "end_idx": end_idx,
                     "fg_color": fg_color,
                     "font_size": font_size,
-                    "old_value": old_value,
                 },
             )
             char_position += len(formatted_message)
-            max_len = max(max_len + 1, len(message))
-            old_value = True
 
         line_num += 1
         char_position = 0
 
     # Draw the bounding box
     begin_box = f"{starting_line}.0"
-    line_num = box_text_with_unicode(self.textview_textbox, begin_box, spacing, label_text, bg_color, max_len)
+    box_text_with_unicode(self.textview_textbox, begin_box, end_box, spacing, label_text)
+    line_num += 2  # Add two for the top asnd bottom of the box.
 
     # Reset for next label
     self.draw_box = {"all_values": [], "start_idx": None, "end_idx": None, "spacing": 0}
@@ -388,10 +395,8 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
 def box_text_with_unicode(
     text_widget: ctk,
     start: str = "1.0",
+    end: str = "end-1c",
     left_margin_spaces: int = 0,
-    label_text: list | None = None,
-    bg_color: str | None = None,
-    max_len: int | None = None,
 ) -> None:
     """
     Replaces the text in the given range with a visually boxed version using Unicode box characters.
@@ -400,76 +405,28 @@ def box_text_with_unicode(
     Args:
         text_widget: The tk.Text widget.
         start (str): Start index of the text.
+        end (str): End index of the text.
         left_margin_spaces (int): Number of spaces to prepend as a margin.
-        label_text (list): List of the text dictionary items for a label.
-        bg_color: str: Background color
-        max_len (int): Maximum length of lines ijn label_text.
     """
+    # Get the text
+    content = text_widget.get(start, end)
+    lines = content.split("\n")
+    max_len = max(len(line) for line in lines)
+
     # Left margin spacer
     spacer = " " * left_margin_spaces
-    current_line_num = int(start.split(".")[0])
 
     # Build box lines
-    total_dashes = left_margin_spaces + max_len + 2
-    top = spacer + "┌" + "─" * total_dashes + "┐\n"
-    bottom = "\n" + spacer + "└" + "─" * total_dashes + "┘\n"
+    top = spacer + "┌" + "─" * (max_len + 2) + "┐"
+    bottom = spacer + "└" + "─" * (max_len + 2) + "┘"
+    middle = [spacer + f"│ {line.ljust(max_len)} │" for line in lines]
 
-    # Insert and format the text in widget
-    text_widget.insert(start, top)
-    current_line_num += 1
+    # Combine lines
+    boxed_text = "\n".join([top] + middle + [bottom])
 
-    # Get the index of the last label element
-    last_index = len(label_text) - 1
-
-    # Go through all values in the label
-    for num, line in enumerate(label_text):
-        # Get the text and add a bar as needed/
-        text = f"{line['text'].ljust(max_len)}" if num == 0 else line["text"]
-
-        tag_id = line["tag"]
-
-        # Add two spaces to our text for the left-side bar
-        text_position = str(int(line["start_idx"].split(".")[1]) + left_margin_spaces + 2)
-        start_idx = f"{current_line_num!s}.{text_position}"
-
-        # Get other attributes
-        fg_color = line["fg_color"]
-        font_size = line["font_size"]
-
-        # Insert the leading bar
-        if num == 0:
-            text_widget.insert(f"{current_line_num!s}.0", f"{spacer}│ ")
-        if text.endswith("\n"):
-            prefix = text[:2]
-            text = prefix
-            add_ending_bar = True
-        else:
-            add_ending_bar = False
-
-        # Insert the text
-        # Specifying the tag_id in the insert eliminates the need to do a tag_add.
-        print("bingo inserting:", text, "at", start_idx, "color", fg_color, "font", font_size)
-        text_widget.insert(start_idx, text, tag_id)
-
-        # Insert trailing bar
-        if "ACCEPTS" in text:
-            print("bingo")
-        if add_ending_bar or num == last_index:
-            print("bingo len msg:", len(text), "len top:", len(top), "total dash:", total_dashes)
-            # FIX The position is having no eff3ect on the position of the bar
-            text_widget.insert(f"{current_line_num!s}.{len(top) + 31!s}", "  │")
-
-        # Configure the label tag attributes.
-        text_widget.tag_config(
-            tag_id,
-            font=(text_widget.master.master.master.font, font_size),
-            background=bg_color,
-            foreground=fg_color,
-        )
-
-    current_line_num += 1
-    text_widget.insert(f"{current_line_num!s}.0", bottom)
-    return current_line_num + 1
+    # Replace text in widget
+    text_widget.delete(start, end)
+    text_widget.insert(start, boxed_text)
 
 
 def generate_unique_string() -> str:
