@@ -18,7 +18,6 @@ All notable changes to this project will be documented in this file!
 
 ### Known Issues
 
-- Unable to change any colors in GUI if using UV to manage the application (UV bug).
 - GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs

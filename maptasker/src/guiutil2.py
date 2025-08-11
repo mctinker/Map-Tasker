@@ -20,7 +20,7 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 
 # Define label fonts for headings: 0=h0, 1=h1, etc.
-heading_fonts = {"0": "10", "1": "24", "2": "22", "3": "20", "4": "18", "5": "16", "6": "14"}
+heading_fonts = {"0": "10", "1": "20", "2": "19", "3": "17", "4": "16", "5": "15", "6": "14"}
 
 
 def validate_tkinter_geometry(geometry_string: str) -> bool:
@@ -405,18 +405,36 @@ def box_text_with_unicode(
         bg_color: str: Background color
         max_len (int): Maximum length of lines ijn label_text.
     """
+
+    # FIX Rewrite to add text only, then delete it and re-add weith box.  Then search text and add tag configs
+    # FIX Procesing the data three times.
+    def _insert_box_line(line_num: int, position: int = 0, line_content: str = "") -> None:
+        """Helper to insert a single line of the box."""
+        text_widget.insert(f"{line_num!s}.{position!s}", line_content)
+
+    def _insert_trailing_bar(line_number_to_append_to: int) -> None:
+        last_line = text_widget.get(f"{line_number_to_append_to!s}.0", "end-1c")
+        last_line_length = len(last_line)
+        top_len = len(top) - 2
+        spaces_to_add = top_len - last_line_length - left_margin_spaces + 1
+        print("bingokaka", last_line)
+        _insert_box_line(line_number_to_append_to, last_line_length + 1, f"{' ' * spaces_to_add}│")
+
     # Left margin spacer
     spacer = " " * left_margin_spaces
     current_line_num = int(start.split(".")[0])
 
     # Build box lines
-    total_dashes = left_margin_spaces + max_len + 2
+    total_dashes = left_margin_spaces + max_len + 1
     top = spacer + "┌" + "─" * total_dashes + "┐\n"
+    blank_line = spacer + "│" + " " * total_dashes + "│\n"
     bottom = "\n" + spacer + "└" + "─" * total_dashes + "┘\n"
 
     # Insert and format the text in widget
-    text_widget.insert(start, top)
+    _insert_box_line(current_line_num, 0, top)
     current_line_num += 1
+    previous_line_number = 0
+    previous_text = ""
 
     # Get the index of the last label element
     last_index = len(label_text) - 1
@@ -425,26 +443,49 @@ def box_text_with_unicode(
     for num, line in enumerate(label_text):
         # Get the text and add a bar as needed/
         text = f"{line['text'].ljust(max_len)}" if num == 0 else line["text"]
+        if "DEFAULT BACKGROUND" in text:
+            print("bingo")
 
-        tag_id = line["tag"]
+        # If we have a newline only, then add a bar to the end of current line, bump the line no. add a spacer and just do a newline.
+        if text == "\n":
+            if previous_text != "\n":
+                text_widget.insert(f"{current_line_num!s}.{len(top) + 31!s}", "  │\n")
+                current_line_num += 1
+                previous_line_number = 0
+            text_widget.insert(f"{current_line_num!s}.{len(top) + 31!s}", blank_line)
+            current_line_num += 1
+            previous_line_number = 0
+            previous_text = "\n"
+            continue
 
-        # Add two spaces to our text for the left-side bar
+        # Get the character position and add two spaces to our text for the left-side bar
         text_position = str(int(line["start_idx"].split(".")[1]) + left_margin_spaces + 2)
         start_idx = f"{current_line_num!s}.{text_position}"
 
         # Get other attributes
         fg_color = line["fg_color"]
         font_size = line["font_size"]
+        tag_id = line["tag"]
 
-        # Insert the leading bar
-        if num == 0:
-            text_widget.insert(f"{current_line_num!s}.0", f"{spacer}│ ")
+        # Insert the spacer and leading bar
+        if num == 0 or previous_line_number == 0:
+            _insert_box_line(current_line_num, 0, f"{spacer}│ ")
         if text.endswith("\n"):
             prefix = text[:2]
             text = prefix
             add_ending_bar = True
         else:
             add_ending_bar = False
+        # If we have a new line number, then we need an ending bar inserted
+        if previous_line_number != 0 and current_line_num > previous_line_number:
+            _insert_trailing_bar(previous_line_number)
+
+            # line_length = len(text_widget.get(f"{previous_line_number!s}.0", "end-1c"))
+            # spaces_to_add = len(top) - line_length - left_margin_spaces
+            # kaka = text_widget.get(f"{previous_line_number!s}.0", "end-1c")
+            # print("bingokaka", kaka)
+            # _insert_box_line(previous_line_number, line_length + 1, f"{' ' * spaces_to_add}│")
+            # text_widget.insert(f"{previous_line_number!s}.{len(top) + 31!s}", "  │")
 
         # Insert the text
         # Specifying the tag_id in the insert eliminates the need to do a tag_add.
@@ -452,12 +493,21 @@ def box_text_with_unicode(
         text_widget.insert(start_idx, text, tag_id)
 
         # Insert trailing bar
-        if "ACCEPTS" in text:
-            print("bingo")
         if add_ending_bar or num == last_index:
-            print("bingo len msg:", len(text), "len top:", len(top), "total dash:", total_dashes)
-            # FIX The position is having no eff3ect on the position of the bar
-            text_widget.insert(f"{current_line_num!s}.{len(top) + 31!s}", "  │")
+            _insert_trailing_bar(current_line_num)
+
+            # line_length = len(text_widget.get(f"{current_line_num!s}.0", "end-1c"))
+            # spaces_to_add = len(top) - line_length - 2
+            # last_line = text_widget.get(f"{current_line_num!s}.0", "end-1c")
+            # last_line_length = len(last_line)
+            # top_len = len(top) - 2
+            # spaces_to_add = top_len - last_line_length - left_margin_spaces + 1
+            # print("bingokaka", last_line)
+            # _insert_box_line(current_line_num, last_line_length + 1, f"{' ' * spaces_to_add}│")
+            # text_widget.insert(f"{current_line_num!s}.{len(top) + 31!s}", "  │")
+
+        kaka = text_widget.get(f"{current_line_num!s}.0", "end-1c")
+        print("bingokaka:", kaka)
 
         # Configure the label tag attributes.
         text_widget.tag_config(
@@ -467,8 +517,13 @@ def box_text_with_unicode(
             foreground=fg_color,
         )
 
+        # Keep tyrack of the line number so we know when to add an ending bar
+        previous_line_number = current_line_num
+        previous_text = text
+
+    # Finish up: insert the bottom and return the next line number.
     current_line_num += 1
-    text_widget.insert(f"{current_line_num!s}.0", bottom)
+    _insert_box_line(current_line_num, 0, bottom)
     return current_line_num + 1
 
 
