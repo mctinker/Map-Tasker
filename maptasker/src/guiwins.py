@@ -2203,6 +2203,8 @@ class CTkTextview(ctk.CTkFrame):
             # Determine if we need to draw a box around the label text
             if num > 2 and temp_previous_value:
                 try:
+                    if value["text"] and "PARSE CUSTOM" in value["text"][0]:
+                        print("bingo")
                     # If we have a spacing arg, then this is a label value
                     spacing = value["spacing"]
                     if value["text"][0] == "":  # Convert empty text label to a newline.

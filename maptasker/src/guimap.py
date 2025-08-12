@@ -102,6 +102,11 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
     lines_to_skip = 0
 
     while line_num < len(lines) and not lines[line_num].startswith("<div "):
+        if line_num == 164:
+            print("bingo")
+            # FIX text is split onto separate line such that lines[line_num] does not have the '<span ' in it.
+            # FIX lines[line_num] = 'background color</span><span style="color:Magenta" class="h0-text"><br>\n'
+            # FIX "BACKGROUND COLOR" IS THE TEXT
         # Breakout the html spans
         html_lines = lines[line_num].split("<span ")
 
@@ -835,6 +840,8 @@ def process_html_lines(
     lines_to_skip = 0
 
     for line_num, line in enumerate(lines):
+        if "PARSE CUSTOM" in line:
+            print("bingo")
         # Are we to skip lines due to label with html having already been added?
         if lines_to_skip > 0:
             lines_to_skip -= 1
@@ -901,7 +908,7 @@ def process_html_lines(
             remove_html,
         )
 
-        # FIX Handle labels with html in them
+        # FIX Handle labels with html in them.
         if "text-box" in line and ".text-box" not in line:
             lines_to_skip = process_label_html(lines, output_lines, line_num, spacing)
             continue

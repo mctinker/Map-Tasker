@@ -20,7 +20,7 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 
 # Define label fonts for headings: 0=h0, 1=h1, etc.
-heading_fonts = {"0": "10", "1": "24", "2": "22", "3": "20", "4": "18", "5": "16", "6": "14"}
+heading_fonts = {"0": "10", "1": "20", "2": "19", "3": "17", "4": "16", "5": "15", "6": "14"}
 
 
 def validate_tkinter_geometry(geometry_string: str) -> bool:
@@ -325,10 +325,9 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
         The final line number and a list of all tags used thus far.
     """
     all_values = self.draw_box["all_values"]
-    line_num_str = str(line_num)
-    begin_box = f"{line_num_str}.0"
-    last_line = get_last_line(self.textview_textbox)
-    print("bingo", begin_box, last_line)
+    starting_line = str(line_num)
+    label_text = []
+    max_len = 0
 
     # Get the background color
     bg_color = self.master.master.color_lookup["background_color"]
@@ -339,63 +338,46 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
     for value in all_values:
         spacing = value["spacing"]
         char_position = 0
+        old_value = False
 
         # Iterate over a list or a string.
         for num, message in enumerate(value["text"]):
-            if "PARSE CUSTOM" in message:
-                print("bingo")
-
-            # Build the starr and end indecies
-            # line_num = get_last_line(self.textview_textbox) + 1
-            start_idx = str(line_num) + "." + str(char_position)
-            end_idx = str(line_num) + "." + str(char_position + len(message))
-            end_box = end_idx
-            print("bingo current line", start_idx, get_last_line(self.textview_textbox))
-
-            # Handle a new line.
-            if message == "\n":
-                print("bingo inserting newline")
-                self.textview_textbox.insert(start_idx, message)
-                char_position = 0
-                # line_num += 1
-                continue
-
-            # Format the message
             formatted_message = (" " * value["spacing"]) + message if spacing > 0 else message
 
-            # Add a newline to string if it begins with a %
-            temp = message.lstrip()
-            if temp.startswith("%"):
-                message = message + "\n"  # noqa: PLW2901
+            # Build the starr and end indecies
+            start_idx = str(line_num) + "." + str(char_position)
+            end_idx = str(line_num) + "." + str(char_position + len(message) + spacing)
 
             # Create a tag with a border
-            tag_id = f"{start_idx}:{value['highlights'][num]}:{value['color'][num]}"
+            tag_prefix = f"{line_num + 1!s}.{char_position!s}"
+            tag_id = f"{tag_prefix}:{value['highlights'][num]}:{value['color'][num]}"
             tags.append(tag_id)
             font_size = heading_fonts[tag_id.split(":")[1][1]]
-
-            # Insert the unformatted text
-            # Specifying the tag_id in the insert eliminates the need to do a tag_add.
-            print("bingo inserting:", formatted_message, "at", start_idx, "color", value["color"][num])
-            self.textview_textbox.insert(start_idx, message)
             fg_color = make_hex_color(value["color"][num])
 
-            # # Configure the label tag attributes.
-            # self.textview_textbox.tag_config(
-            #     tag_id,
-            #     font=(self.master.master.font, font_size),
-            #     background=bg_color,
-            #     foreground=fg_color,
-            # )
+            # Save all of the label info for displaying later
+            label_text.append(
+                {
+                    "tag": tag_id,
+                    "text": message,
+                    "line_num": line_num,
+                    "start_idx": start_idx,
+                    "end_idx": end_idx,
+                    "fg_color": fg_color,
+                    "font_size": font_size,
+                    "old_value": old_value,
+                },
+            )
             char_position += len(formatted_message)
+            max_len = max(max_len + 1, len(message))
+            old_value = True
 
         line_num += 1
         char_position = 0
 
     # Draw the bounding box
-    box_text_with_unicode(self.textview_textbox, begin_box, end_box, spacing)
-
-    # Point to the next available line by geting our last l;ine number.
-    line_num = get_last_line(self.textview_textbox)
+    begin_box = f"{starting_line}.0"
+    line_num = box_text_with_unicode(self.textview_textbox, begin_box, spacing, label_text, bg_color, max_len)
 
     # Reset for next label
     self.draw_box = {"all_values": [], "start_idx": None, "end_idx": None, "spacing": 0}
@@ -406,9 +388,11 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
 def box_text_with_unicode(
     text_widget: ctk,
     start: str = "1.0",
-    end: str = "end-1c",
     left_margin_spaces: int = 0,
-) -> int:
+    label_text: list | None = None,
+    bg_color: str | None = None,
+    max_len: int | None = None,
+) -> None:
     """
     Replaces the text in the given range with a visually boxed version using Unicode box characters.
     Adds a left margin spacer before the box.
@@ -416,45 +400,115 @@ def box_text_with_unicode(
     Args:
         text_widget: The tk.Text widget.
         start (str): Start index of the text.
-        end (str): End index of the text.
         left_margin_spaces (int): Number of spaces to prepend as a margin.
+        label_text (list): List of the text dictionary items for a label.
+        bg_color: str: Background color
+        max_len (int): Maximum length of lines ijn label_text.
     """
-    # Get the text
-    content = text_widget.get(start, end)
-    lines = content.split("\n")
-    max_len = max(len(line) for line in lines)
+
+    # FIX Rewrite to add text only, then delete it and re-add weith box.  Then search text and add tag configs
+    # FIX Procesing the data three times.
+    # FIX 1- Add the text 2- delete and readd with a box. 3- read text and tag.config it.
+    def _insert_box_line(line_num: int, position: int = 0, line_content: str = "") -> None:
+        """Helper to insert a single line of the box."""
+        text_widget.insert(f"{line_num!s}.{position!s}", line_content)
+
+    def _insert_trailing_bar(line_number_to_append_to: int) -> None:
+        last_line = text_widget.get(f"{line_number_to_append_to!s}.0", "end-1c")
+        last_line_length = len(last_line)
+        top_len = len(top) - 2
+        spaces_to_add = top_len - last_line_length - left_margin_spaces + 1
+        print("bingokaka", last_line)
+        _insert_box_line(line_number_to_append_to, last_line_length + 1, f"{' ' * spaces_to_add}│")
 
     # Left margin spacer
     spacer = " " * left_margin_spaces
+    current_line_num = int(start.split(".")[0])
 
     # Build box lines
-    top = "\n" + spacer + "┌" + "─" * (max_len + 2) + "┐"
-    bottom = spacer + "└" + "─" * (max_len + 2) + "┘\n"
-    middle = [spacer + f"│ {line.ljust(max_len)} │" for line in lines]
+    total_dashes = left_margin_spaces + max_len + 1
+    top = spacer + "┌" + "─" * total_dashes + "┐\n"
+    blank_line = spacer + "│" + " " * total_dashes + "│\n"
+    bottom = "\n" + spacer + "└" + "─" * total_dashes + "┘\n"
 
-    # Combine lines
-    boxed_text = "\n".join([top, *middle, bottom])
+    # Insert and format the text in widget
+    _insert_box_line(current_line_num, 0, top)
+    current_line_num += 1
+    previous_line_number = 0
+    previous_text = ""
 
-    # Replace text in widget
-    text_widget.delete(start, end)
-    text_widget.insert(start, boxed_text)
+    # Get the index of the last label element
+    last_index = len(label_text) - 1
 
+    # Go through all values in the label
+    for num, line in enumerate(label_text):
+        # Get the text and add a bar as needed/
+        text = f"{line['text'].ljust(max_len)}" if num == 0 else line["text"]
+        if "DEFAULT BACKGROUND" in text:
+            print("bingo")
 
-def get_last_line(self: ctk) -> int:
-    """
-    Calculates the last line number in a tkinter Text widget.
+        # If we have a newline only, then add a bar to the end of current line, bump the line no. add a spacer and just do a newline.
+        if text == "\n":
+            if previous_text != "\n":
+                text_widget.insert(f"{current_line_num!s}.{len(top) + 31!s}", "  │\n")
+                current_line_num += 1
+                previous_line_number = 0
+            text_widget.insert(f"{current_line_num!s}.{len(top) + 31!s}", blank_line)
+            current_line_num += 1
+            previous_line_number = 0
+            previous_text = "\n"
+            continue
 
-    Args:
-      text_widget: The Tkinter Text widget to inspect.
+        # Get the character position and add two spaces to our text for the left-side bar
+        text_position = str(int(line["start_idx"].split(".")[1]) + left_margin_spaces + 2)
+        start_idx = f"{current_line_num!s}.{text_position}"
 
-    Returns:
-      The last line number as an integer.
-    """
-    # Get the index of the last character in the text widget.
-    last_char_index = self.index("end" + "-1c")
+        # Get other attributes
+        fg_color = line["fg_color"]
+        font_size = line["font_size"]
+        tag_id = line["tag"]
 
-    # Split the index string to get the line number.
-    return int(last_char_index.split(".")[0])
+        # Insert the spacer and leading bar
+        if num == 0 or previous_line_number == 0:
+            _insert_box_line(current_line_num, 0, f"{spacer}│ ")
+        if text.endswith("\n"):
+            prefix = text[:2]
+            text = prefix
+            add_ending_bar = True
+        else:
+            add_ending_bar = False
+        # If we have a new line number, then we need an ending bar inserted
+        if previous_line_number != 0 and current_line_num > previous_line_number:
+            _insert_trailing_bar(previous_line_number)
+
+        # Insert the text
+        # Specifying the tag_id in the insert eliminates the need to do a tag_add.
+        print("bingo inserting:", text, "at", start_idx, "color", fg_color, "font", font_size)
+        text_widget.insert(start_idx, text, tag_id)
+
+        # Insert trailing bar
+        if add_ending_bar or num == last_index:
+            _insert_trailing_bar(current_line_num)
+
+        kaka = text_widget.get(f"{current_line_num!s}.0", "end-1c")
+        print("bingokaka:", kaka)
+
+        # Configure the label tag attributes.
+        text_widget.tag_config(
+            tag_id,
+            font=(text_widget.master.master.master.font, font_size),
+            background=bg_color,
+            foreground=fg_color,
+        )
+
+        # Keep tyrack of the line number so we know when to add an ending bar
+        previous_line_number = current_line_num
+        previous_text = text
+
+    # Finish up: insert the bottom and return the next line number.
+    current_line_num += 1
+    _insert_box_line(current_line_num, 0, bottom)
+    return current_line_num + 1
 
 
 def generate_unique_string() -> str:

@@ -464,6 +464,8 @@ def output_task_list(
             )
             # Tack on the extra info since [task_output_lines[count]] it is immutable
             task_output_lines[count] += " ".join(filter(None, extra_details))
+            if "[Icon Info(name=hd_aaa" in task_output_lines[count]:
+                print("bingo")
 
         do_single_task(
             task_item["name"],

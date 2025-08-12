@@ -28,6 +28,9 @@ def format_line(item: str) -> str:
 
     # Get rid of trailing blanks
     item.rstrip()
+    # FIX Trace this
+    if "PARSE CUSTOM" in item:
+        print("bingo")
 
     # Change "Action: nn ..." to "Action nn: ..." (i.e. move the colon)
     action_position = item.find("Action: ")
@@ -43,6 +46,10 @@ def format_line(item: str) -> str:
     # No changes needed
     else:
         output_line = item
+
+    # Cleanup left-over html
+    # FIX This is a problem for task "Universal..."
+    # output_line = output_line.replace("&lt;", "<").replace("&gt;", ">")
 
     # # Format the html...add a number of blanks if some sort of list.
     if "DOCTYPE" in item:  # If imbedded html (e.g. Scene WebElement), add a break and some spacing.
@@ -112,6 +119,7 @@ class HTMLTextFormatter(HTMLParser):
             "is_h3": False,
             "is_h4": False,
             "is_h5": False,
+            "is_h6": False,
         }
         self.tag_stack = []  # To keep track of active tags and their influence
 
@@ -142,6 +150,8 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_h4"] = True
         elif tag == "h5":
             self.current_styles["is_h5"] = True
+        elif tag == "h6":
+            self.current_styles["is_h6"] = True
 
     def handle_endtag(self, tag: str) -> None:
         """
@@ -173,6 +183,8 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_h4"] = False
         elif tag == "h5":
             self.current_styles["is_h5"] = False
+        elif tag == "h6":
+            self.current_styles["is_h6"] = False
 
     def handle_data(self, data: str) -> None:
         """
@@ -223,6 +235,9 @@ class HTMLTextFormatter(HTMLParser):
         elif styles_copy["is_h5"]:
             is_heading = True
             heading_level = 5
+        elif styles_copy["is_h6"]:
+            is_heading = True
+            heading_level = 6
 
         styles_copy["is_heading"] = is_heading
         if heading_level:
@@ -234,6 +249,7 @@ class HTMLTextFormatter(HTMLParser):
         styles_copy.pop("is_h3", None)
         styles_copy.pop("is_h4", None)
         styles_copy.pop("is_h5", None)
+        styles_copy.pop("is_h6", None)
 
         self.formatted_segments.append({"text": text, "styles": styles_copy})
 
@@ -371,6 +387,9 @@ def format_label(lbl: str) -> str:
 
         # Go through the lines in this formatted html
         for action_label in formatted_lbl:
+            # FIX The '\n' in front of this string causes string to be removed in the output
+            if "background color" in action_label["text"]:
+                print("bingo")
             lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
             # Handle situation in which a "\n" preceeds a name.  The \n screws up the html
             if lbl_text.startswith("\n%"):
@@ -400,12 +419,10 @@ def format_label(lbl: str) -> str:
                 # Concatenate all of the text lines with the color.
                 task_label = (
                     task_label
-                    # + f'<span class="h{lbl_heading}tab style="color:'
                     + '<span style="color:'
                     + lbl_color
                     # + '">'
                     + f'" class="h{lbl_heading}-text">'
-                    # + f"{blank * lbl_heading}"
                     + lbl_text
                     + "</span>"
                 )
