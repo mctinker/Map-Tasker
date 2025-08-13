@@ -28,9 +28,6 @@ def format_line(item: str) -> str:
 
     # Get rid of trailing blanks
     item.rstrip()
-    # FIX Trace this
-    if "PARSE CUSTOM" in item:
-        print("bingo")
 
     # Change "Action: nn ..." to "Action nn: ..." (i.e. move the colon)
     action_position = item.find("Action: ")
@@ -368,6 +365,8 @@ def format_label(lbl: str) -> str:
         A string containing the HTML-formatted task label.
     """
     blank = "&nbsp;"
+    if "OR SOMETHING LIKE:" in lbl:
+        print("bingo")
 
     if contains_html(lbl):
         task_label = format_html(
@@ -379,6 +378,7 @@ def format_label(lbl: str) -> str:
 
         # Parse the HTML string
         formatted_lbl = parse_html_to_text_segments(lbl)
+        last_element = formatted_lbl[-1]
 
         # Go through each item in the formatted list and break it into html.
         have_paren = False
@@ -387,9 +387,10 @@ def format_label(lbl: str) -> str:
 
         # Go through the lines in this formatted html
         for action_label in formatted_lbl:
-            # FIX The '\n' in front of this string causes string to be removed in the output
-            if "background color" in action_label["text"]:
-                print("bingo")
+            # Flag the end of the label
+            label_end = ":lblend" if action_label == last_element else ""
+
+            # Get the label verbage
             lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
             # Handle situation in which a "\n" preceeds a name.  The \n screws up the html
             if lbl_text.startswith("\n%"):
@@ -413,7 +414,7 @@ def format_label(lbl: str) -> str:
                     continue
 
                 # If we have a new heading, force a break if we didn't just do one.
-                if lbl_heading != previous_heading and previous_text != "\n":
+                if lbl_heading != previous_heading and previous_text != "\n" and not task_label.endswith("\n"):
                     task_label = task_label + "<br>"
 
                 # Concatenate all of the text lines with the color.
@@ -423,7 +424,7 @@ def format_label(lbl: str) -> str:
                     + lbl_color
                     # + '">'
                     + f'" class="h{lbl_heading}-text">'
-                    + lbl_text
+                    + f"{lbl_text}{label_end}"
                     + "</span>"
                 )
                 have_paren = True
@@ -432,9 +433,9 @@ def format_label(lbl: str) -> str:
 
             # No color
             else:
-                task_label = task_label + f"{blank * lbl_heading}" + lbl_text
+                task_label = task_label + f"{blank * lbl_heading}" + f"{lbl_text}{label_end}"
         if have_paren:
-            task_label = task_label + "</p></div>"
+            task_label = task_label + label_end + "</p></div>"
 
     # No embedded html
     else:

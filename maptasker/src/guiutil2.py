@@ -342,7 +342,7 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
 
         # Iterate over a list or a string.
         for num, message in enumerate(value["text"]):
-            if "PARSE CUSTOM" in message:
+            if "For further clarification" in message:
                 print("bingo")
 
             # Build the starr and end indecies

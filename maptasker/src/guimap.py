@@ -102,18 +102,17 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
     lines_to_skip = 0
 
     while line_num < len(lines) and not lines[line_num].startswith("<div "):
-        if line_num == 164:
-            print("bingo")
-            # FIX text is split onto separate line such that lines[line_num] does not have the '<span ' in it.
-            # FIX lines[line_num] = 'background color</span><span style="color:Magenta" class="h0-text"><br>\n'
-            # FIX "BACKGROUND COLOR" IS THE TEXT
         # Breakout the html spans
         html_lines = lines[line_num].split("<span ")
 
         # This will hold the processed data for the current logical line
         processed_line_data = []
+        last_item = {}
 
         for line in html_lines:
+            if not line or line == "</span>":
+                continue
+
             # Only deal with lines that have a style and class
             if line and "style=" in line and "class=" in line:
                 try:
@@ -122,31 +121,43 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     font = line.split('class="')[1].split('"')[0][0:7]
                     text = line.split(">")[1].split("<")[0]
 
-                    # Check if there's a previous element in processed_line_data
-                    if processed_line_data:
-                        last_item = processed_line_data[-1]
-                        # Compare the current color and font with the last one
-                        if last_item["color"] == color and last_item["highlights"] == font:
-                            # If they match, concatenate the text
-                            last_item["text"] += text
-                            continue  # Skip to the next line in html_lines
-                        # Reset spacing since we're now adding to an existing line.
-                        spacing = 0
-
-                    # If they don't match or it's the first element,
-                    # add a new entry to processed_line_data
-                    processed_line_data.append(
-                        {
-                            "text": text,
-                            "color": color,
-                            "highlights": font,
-                            "spacing": spacing,
-                        },
-                    )
-
                 except IndexError:
-                    print(f"Skipping malformed line: {line}")
+                    rutroh_error(f"Skipping malformed line: {line}")
                     continue
+
+            # Slightly malformed html...the text has split away from style and class or there simply is no class/style.
+            else:
+                text = line.split("</span>")[0]
+                if text == "<br>\n":
+                    text = "\n"
+                if last_item:
+                    color = last_item["color"]
+                    font = last_item["highlights"]
+                else:
+                    color = ""
+                    font = "h0-text"
+
+            # Check if there's a previous element in processed_line_data
+            if processed_line_data:
+                last_item = processed_line_data[-1]
+                # Compare the current color and font with the last one
+                if last_item["color"] == color and last_item["highlights"] == font:
+                    # If they match, concatenate the text
+                    last_item["text"] += text
+                    continue  # Skip to the next line in html_lines
+                # Reset spacing since we're now adding to an existing line.
+                spacing = 0
+
+            # If they don't match or it's the first element,
+            # add a new entry to processed_line_data
+            processed_line_data.append(
+                {
+                    "text": text,
+                    "color": color,
+                    "highlights": font,
+                    "spacing": spacing,
+                },
+            )
 
         # Now, add the processed data for this line to the output_lines dictionary
         # We need to restructure the data to match the expected format
@@ -840,8 +851,6 @@ def process_html_lines(
     lines_to_skip = 0
 
     for line_num, line in enumerate(lines):
-        if "PARSE CUSTOM" in line:
-            print("bingo")
         # Are we to skip lines due to label with html having already been added?
         if lines_to_skip > 0:
             lines_to_skip -= 1
@@ -908,7 +917,7 @@ def process_html_lines(
             remove_html,
         )
 
-        # FIX Handle labels with html in them.
+        # Handle labels with html in them.
         if "text-box" in line and ".text-box" not in line:
             lines_to_skip = process_label_html(lines, output_lines, line_num, spacing)
             continue

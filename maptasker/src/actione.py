@@ -155,7 +155,6 @@ def fix_json(line_to_fix: str, text_to_match: str) -> str:
 
 
 # Make the action line pretty by aligning the arguments.
-# FIX Don't pretty label text.
 def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     """
     Makes the given task code line prettier by adding line breaks and indentation.

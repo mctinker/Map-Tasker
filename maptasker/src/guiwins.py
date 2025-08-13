@@ -2200,11 +2200,12 @@ class CTkTextview(ctk.CTkFrame):
             # Update progressbar if needed.
             self._update_progress_display(progress, num)
 
+            if value["text"] and "OR SOMETHING LIKE:" in value["text"][0]:
+                print("bingo")
+
             # Determine if we need to draw a box around the label text
             if num > 2 and temp_previous_value:
                 try:
-                    if value["text"] and "PARSE CUSTOM" in value["text"][0]:
-                        print("bingo")
                     # If we have a spacing arg, then this is a label value
                     spacing = value["spacing"]
                     if value["text"][0] == "":  # Convert empty text label to a newline.
@@ -2212,7 +2213,15 @@ class CTkTextview(ctk.CTkFrame):
 
                     self.draw_box["all_values"].append(value)  # Save value
                     temp_previous_value = copy.deepcopy(value)  # Save our value for next iteration.
-                    continue  # don't process value yet.
+
+                    # if text has a 'class="something" then this is the end of the label.
+                    # Do label box and then ignore the line.
+                    # if value["text"] and value["text"][0].startswith('class="'):
+                    # FIX THIS ISN'T WORKING!
+                    if value["text"] and value["text"][0].endswith(":lblend"):
+                        value["text"][0] = value["text"][0].replace(":lblend", "")
+                        line_num, tags = draw_box_around_text(self, line_num, tags)
+                    continue  # don't process value yet.  Go to next value.
 
                 # No spacing...not a label.
                 except KeyError:
@@ -2221,9 +2230,19 @@ class CTkTextview(ctk.CTkFrame):
                     previous_spacing = temp_previous_value["spacing"]
                 except KeyError:
                     previous_spacing = []
+
                 # If we don't currently have spacing but we did, thesdn let's draw the label with a box.
-                if not spacing and previous_spacing:
+                # if not spacing and previous_spacing:
+                #     if value["text"] and value["text"][0].startswith("class="):
+                #         print("bingo")
+                #     line_num, tags = draw_box_around_text(self, line_num, tags)
+                if value["text"] and value["text"][0].endswith(":lblend"):
+                    value["text"][0] = value["text"][0].replace(":lblend", "")
                     line_num, tags = draw_box_around_text(self, line_num, tags)
+
+            # Ignore bad text
+            if value["text"] and value["text"][0].startswith('class="'):
+                continue
 
             # Save the previous value for above code check.
             temp_previous_value = copy.deepcopy(value)
@@ -2284,7 +2303,6 @@ class CTkTextview(ctk.CTkFrame):
                 previous_directory,
                 previous_value,
                 char_position,
-                # FIX Add preevious_temp_value
             ) = self._process_value_with_color_or_directory(
                 value,
                 line_num,
@@ -3155,7 +3173,6 @@ class CTkTextview(ctk.CTkFrame):
             "h4-text": {"font": "h4"},
             "h5-text": {"font": "h5"},
             "h6-text": {"font": "h6"},
-            # FIX Add functions fore h0-text, h1-text etc.
         }
 
         search_word_mapping = {
@@ -3170,12 +3187,11 @@ class CTkTextview(ctk.CTkFrame):
             (word for word in search_word_mapping if word in message),
             message,
         )
-        # if not search_word:
-        #     return tags  # No valid highlight context found
-        # FIX
+        # Get the highlight
         for highlight in value.get("highlights", []):
             if highlight not in highlight_configurations:
                 rutroh_error(f"Not in highlight_configurations: {highlight}")
+
             highlight_type, highlight_text = self._parse_highlight(highlight)
             highlight_color = ""
 
@@ -3205,7 +3221,7 @@ class CTkTextview(ctk.CTkFrame):
 
             new_tag = f"{tag_id}{highlight_type}{highlight_color}"
             tags.append(new_tag)
-            # FIX Modify to support label
+            # Apply the highlight
             self._apply_highlight(
                 new_tag,
                 line_to_highlight,
@@ -3233,6 +3249,8 @@ class CTkTextview(ctk.CTkFrame):
     def _parse_highlight(self, highlight: str) -> tuple:
         """Parse a highlight string into type and text."""
         try:
+            kaka = highlight.split(",", 1)
+            print("bingo tata", kaka, highlight)
             return highlight.split(",", 1)
         except ValueError:
             return None, None

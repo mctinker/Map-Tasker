@@ -464,6 +464,7 @@ def output_task_list(
             )
             # Tack on the extra info since [task_output_lines[count]] it is immutable
             task_output_lines[count] += " ".join(filter(None, extra_details))
+            # FIX HTML output for task 'Universal Error Display Sub' action 01 parms are invalid
             if "[Icon Info(name=hd_aaa" in task_output_lines[count]:
                 print("bingo")
 
