@@ -365,8 +365,6 @@ def format_label(lbl: str) -> str:
         A string containing the HTML-formatted task label.
     """
     blank = "&nbsp;"
-    if "OR SOMETHING LIKE:" in lbl:
-        print("bingo")
 
     if contains_html(lbl):
         task_label = format_html(
@@ -378,7 +376,7 @@ def format_label(lbl: str) -> str:
 
         # Parse the HTML string
         formatted_lbl = parse_html_to_text_segments(lbl)
-        last_element = formatted_lbl[-1]
+        num_items = len(formatted_lbl)
 
         # Go through each item in the formatted list and break it into html.
         have_paren = False
@@ -386,9 +384,9 @@ def format_label(lbl: str) -> str:
         previous_text = ""
 
         # Go through the lines in this formatted html
-        for action_label in formatted_lbl:
+        for num, action_label in enumerate(formatted_lbl):
             # Flag the end of the label
-            label_end = ":lblend" if action_label == last_element else ""
+            label_end = ":lblend" if num + 1 == num_items else ""
 
             # Get the label verbage
             lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
@@ -435,7 +433,7 @@ def format_label(lbl: str) -> str:
             else:
                 task_label = task_label + f"{blank * lbl_heading}" + f"{lbl_text}{label_end}"
         if have_paren:
-            task_label = task_label + label_end + "</p></div>"
+            task_label = task_label + "</p></div>"
 
     # No embedded html
     else:

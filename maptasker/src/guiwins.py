@@ -2200,49 +2200,28 @@ class CTkTextview(ctk.CTkFrame):
             # Update progressbar if needed.
             self._update_progress_display(progress, num)
 
-            if value["text"] and "OR SOMETHING LIKE:" in value["text"][0]:
-                print("bingo")
-
             # Determine if we need to draw a box around the label text
             if num > 2 and temp_previous_value:
                 try:
                     # If we have a spacing arg, then this is a label value
-                    spacing = value["spacing"]
+                    _ = value["spacing"]
                     if value["text"][0] == "":  # Convert empty text label to a newline.
                         value["text"][0] = "\n"
 
+                    # Save the value for our box
                     self.draw_box["all_values"].append(value)  # Save value
                     temp_previous_value = copy.deepcopy(value)  # Save our value for next iteration.
 
                     # if text has a 'class="something" then this is the end of the label.
                     # Do label box and then ignore the line.
-                    # if value["text"] and value["text"][0].startswith('class="'):
-                    # FIX THIS ISN'T WORKING!
                     if value["text"] and value["text"][0].endswith(":lblend"):
                         value["text"][0] = value["text"][0].replace(":lblend", "")
                         line_num, tags = draw_box_around_text(self, line_num, tags)
-                    continue  # don't process value yet.  Go to next value.
+                    continue  # don't process value.  Go to next value.
 
                 # No spacing...not a label.
                 except KeyError:
-                    spacing = []
-                try:
-                    previous_spacing = temp_previous_value["spacing"]
-                except KeyError:
-                    previous_spacing = []
-
-                # If we don't currently have spacing but we did, thesdn let's draw the label with a box.
-                # if not spacing and previous_spacing:
-                #     if value["text"] and value["text"][0].startswith("class="):
-                #         print("bingo")
-                #     line_num, tags = draw_box_around_text(self, line_num, tags)
-                if value["text"] and value["text"][0].endswith(":lblend"):
-                    value["text"][0] = value["text"][0].replace(":lblend", "")
-                    line_num, tags = draw_box_around_text(self, line_num, tags)
-
-            # Ignore bad text
-            if value["text"] and value["text"][0].startswith('class="'):
-                continue
+                    pass
 
             # Save the previous value for above code check.
             temp_previous_value = copy.deepcopy(value)
