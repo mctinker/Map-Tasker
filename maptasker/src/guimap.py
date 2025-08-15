@@ -29,7 +29,7 @@ The data consists of a list of dictionary values (formatted by guimap)...
 """
 glob_spacing = 15
 
-
+# FIX Delete commented lines
 # def process_label_html(lines: list, output_lines: dict, line_num: int) -> int:
 #     """
 #     Parses HTML content from a list of strings, extracting text, color, and font information.
@@ -137,6 +137,9 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     color = ""
                     font = "h0-text"
 
+            # Set the ned of label flag
+            lblend = ":lblend" in line
+
             # Check if there's a previous element in processed_line_data
             if processed_line_data:
                 last_item = processed_line_data[-1]
@@ -156,6 +159,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     "color": color,
                     "highlights": font,
                     "spacing": spacing,
+                    "end": lblend,
                 },
             )
 
@@ -172,6 +176,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 # if you have multiple text chunks per line. I'll include it here
                 # but you might want to reconsider its placement.
                 "spacing": processed_line_data[0]["spacing"],
+                "end": [item["end"] for item in processed_line_data],
             }
             line_num_to_add += 1
 

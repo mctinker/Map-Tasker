@@ -386,7 +386,8 @@ def format_label(lbl: str) -> str:
         # Go through the lines in this formatted html
         for num, action_label in enumerate(formatted_lbl):
             # Flag the end of the label
-            label_end = ":lblend" if num + 1 == num_items else ""
+            # FIX label flag as commented flag
+            label_end = '<data-flag=":lblend">' if num + 1 == num_items else ""
 
             # Get the label verbage
             lbl_text = action_label["text"].replace("[", "{").replace("]", "}")

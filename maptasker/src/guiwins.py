@@ -558,9 +558,7 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}"
-                    if len(line) > max_length
-                    else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -2212,10 +2210,8 @@ class CTkTextview(ctk.CTkFrame):
                     self.draw_box["all_values"].append(value)  # Save value
                     temp_previous_value = copy.deepcopy(value)  # Save our value for next iteration.
 
-                    # if text has a 'class="something" then this is the end of the label.
-                    # Do label box and then ignore the line.
-                    if value["text"] and value["text"][0].endswith(":lblend"):
-                        value["text"][0] = value["text"][0].replace(":lblend", "")
+                    # Do label box if this is the last piece of the label.
+                    if value["end"]:
                         line_num, tags = draw_box_around_text(self, line_num, tags)
                     continue  # don't process value.  Go to next value.
 
@@ -3228,8 +3224,6 @@ class CTkTextview(ctk.CTkFrame):
     def _parse_highlight(self, highlight: str) -> tuple:
         """Parse a highlight string into type and text."""
         try:
-            kaka = highlight.split(",", 1)
-            print("bingo tata", kaka, highlight)
             return highlight.split(",", 1)
         except ValueError:
             return None, None

@@ -191,6 +191,7 @@ pattern13 = (
 # pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<\\"  # Match everything after the label until a '<'
 pattern14 = r"(;Configuration Parameter\(s\):)(.*?)<span>"
 pattern15 = re.compile("\n")
+
 RE_FONT = re.compile(r"</font>")
 
 clean = re.compile("<.*?>")
