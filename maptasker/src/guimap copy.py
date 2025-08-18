@@ -185,7 +185,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
     # This will hold the processed data for the current logical line
     processed_line_data = []
 
-    # Go through all of the data
+    # The while loop now also checks our new flag
     while line_num < len(lines) and continue_processing:
         # Check if the line starts with <div> and if so, stop processing.
         if lines[line_num].startswith("<div "):
@@ -211,7 +211,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     # Extract the color, font, and text
                     color = line.split('style="')[1].split(":")[1].split('"')[0]
                     font = line.split('class="')[1].split('"')[0][0:7]
-                    text = line.replace("<br>\n", "\n").split(">")[1].split("<")[0]
+                    text = line.split(">")[1].split("<")[0]
 
                 except IndexError:
                     rutroh_error(f"Skipping malformed line: {line}")
@@ -220,7 +220,6 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             # Slightly malformed html...the text has split away from style and class or there simply is no class/style.
             else:
                 text = line.split("</span>")[0]
-                # FIX May have to substitute "" rather than "\n"
                 if text == "<br>\n":
                     text = "\n"
                 if last_item:
@@ -238,37 +237,30 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 last_item = processed_line_data[-1]
                 # Compare the current color and font with the last one
                 if last_item["color"] == color and last_item["highlights"] == font:
-                    # If they match, concatenate the text in the processed_line_data list
+                    # If they match, concatenate the text
                     last_item["text"] += text
-                    last_item["end"] = lblend
-
                     # Process next line if this isn't the end.
                     if not lblend:
                         continue
-                elif lblend:
-                    processed_line_data = add_line_data(processed_line_data, text, color, font, spacing, lblend)
-                    break
-
                 # Reset spacing since we're now adding to an existing line.
                 spacing = 0
 
                 # Get out if this is the end of the label.
                 if lblend:
+                    processed_line_data[-1]["end"] = True
                     break
 
-            # If they don't match or it's the first element or the color/font don't match previous...
+            # If they don't match or it's the first element,
             # add a new entry to processed_line_data
-            processed_line_data = add_line_data(processed_line_data, text, color, font, spacing, lblend)
-
-        line_num += 1
-        lines_to_skip += 1
-
-        # Check if we should continue processing the next line or stop.
-        # This is where your requested logic is implemented.
-        if not lblend:
-            continue_processing = True
-            continue
-        continue_processing = False
+            processed_line_data.append(
+                {
+                    "text": text,
+                    "color": color,
+                    "highlights": font,
+                    "spacing": spacing,
+                    "end": lblend,
+                },
+            )
 
         # Now, add the processed data for this line to the output_lines dictionary
         # We need to restructure the data to match the expected format
@@ -287,45 +279,17 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             }
             line_num_to_add += 1
 
+        line_num += 1
+        lines_to_skip += 1
+
+        # Check if we should continue processing the next line or stop.
+        # This is where your requested logic is implemented.
+        if not lblend:
+            continue_processing = True
+            continue
+        continue_processing = False
+
     return lines_to_skip
-
-
-def add_line_data(processed_line_data: list, text: str, color: str, font: str, spacing: int, lblend: bool) -> None:
-    r"""
-    Splits a string by newline characters and appends a dictionary for each
-    substring to a list.
-
-    This function iterates through a given string, splits it into multiple
-    substrings based on newline characters ('\\n'), and for each substring,
-    it creates and appends a dictionary with text, color, font, spacing,
-    and end-of-label information to a provided list.
-
-    Args:
-        processed_line_data (list): The list to which the processed data
-                                     dictionaries will be appended.
-        text (str): The input string, which may contain newline characters.
-        color (str): The color code associated with the text.
-        font (str): The font class associated with the text.
-        spacing (int): The spacing value for the text.
-        lblend (bool): A flag indicating if this is the end of a label.
-    Return:
-        The list with the line(s) added.
-    """
-    for subtext in text.split("\n"):
-        text_to_add = text if text == "\n" else subtext
-        if subtext or text:
-            processed_line_data.append(
-                {
-                    "text": text_to_add,
-                    "color": color,
-                    "highlights": font,
-                    "spacing": spacing,
-                    "end": lblend,
-                },
-            )
-        if not subtext:
-            break
-    return processed_line_data
 
 
 # Optimized

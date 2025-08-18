@@ -503,7 +503,7 @@ class CTkTextview(ctk.CTkFrame):
         # Initialize variables
         self.textview_textbox.diagram_highlighted_connector = ""
         self.top = False  # Used by Next / Prev buttons
-        self.draw_box = {"all_values": [], "start_idx": None, "end_idx": None, "spacing": 0}
+        self.draw_box = {"all_values": [], "start_idx": None, "end_idx": None, "spacing": 0, "end": False}
 
     def process_data(self, the_data: list) -> None:
         """
@@ -2198,6 +2198,8 @@ class CTkTextview(ctk.CTkFrame):
             # Update progressbar if needed.
             self._update_progress_display(progress, num)
 
+            if value["text"] and "STOP THE CALLING TASK" in value["text"][0]:
+                print("bingo")
             # Determine if we need to draw a box around the label text
             if num > 2 and temp_previous_value:
                 try:
@@ -2211,7 +2213,7 @@ class CTkTextview(ctk.CTkFrame):
                     temp_previous_value = copy.deepcopy(value)  # Save our value for next iteration.
 
                     # Do label box if this is the last piece of the label.
-                    if value["end"]:
+                    if value["end"][-1]:
                         line_num, tags = draw_box_around_text(self, line_num, tags)
                     continue  # don't process value.  Go to next value.
 
