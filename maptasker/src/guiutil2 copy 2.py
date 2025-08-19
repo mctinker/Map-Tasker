@@ -22,7 +22,7 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 
 # Define label fonts for headings: 0=h0, 1=h1, etc.
-heading_fonts = {"0": "10", "1": "22", "2": "20", "3": "18", "4": "16", "5": "14", "6": "12"}
+heading_fonts = {"0": "10", "1": "24", "2": "22", "3": "20", "4": "18", "5": "16", "6": "14"}
 
 
 def validate_tkinter_geometry(geometry_string: str) -> bool:
@@ -331,17 +331,14 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
     line_num_str = str(line_num)
     begin_box = f"{line_num_str}.0"
     max_msg_len = 0
-    lookie_key = "log to clipboard"
-    end_of_label = False
     # Get the approx. number of characters that fit in the window.
-    # char_length = get_character_width(self.textview_textbox)
+    char_length = get_character_width(self.textview_textbox)
 
     # Get the background color
     bg_color = make_hex_color(mygui.color_lookup["background_color"])
 
     # Outerloop on all_valuies for all lines in label
     # Innerloop for values of label on the same line.
-    # Microloop for all newline-deliminated messages on same line.
 
     # Go through all of the values in the label and output them
     for num, value in enumerate(all_values):
@@ -353,8 +350,10 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
 
         # Iterate over a list or a string.
         for inner_num, message in enumerate(value["text"]):
+            if ":lblend" in message:
+                break
             clean_message = message.replace("\n\n", "\n")
-            if lookie_key in message:
+            if "PARSE" in message:
                 print("bingo")
             # Build the start end indecies
             start_idx = str(line_num) + "." + str(char_position)
@@ -363,40 +362,30 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
             if clean_message == "\n":
                 self.textview_textbox.insert(start_idx, clean_message)
                 char_position = 0
-                spacing = spacer_newline
-                line_num += 1
-                start_idx = str(line_num) + "." + str(char_position)
-
                 # end_box = start_idx
                 max_msg_len = _get_max_msg_len(clean_message, max_msg_len)
                 continue
 
-            # The message can have embedded newlines...handle them.
             # Break message up by newline
             all_messages = clean_message.split("\n")
 
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
-                # Bailout if we hit our end-of-label flag.
                 if ":lblend" in msg:
-                    end_of_label = True
-                    updated_msg = msg.replace('<data-flag=":lblend">', "")
-                else:
-                    updated_msg = msg
-
-                if lookie_key in updated_msg:
+                    break
+                # Ignore our end-of-label flag.
+                if "font color" in msg:
                     print("bingo")
-
-                if updated_msg == "":
-                    new_message = "\n"
-                    self.textview_textbox.insert(start_idx, new_message)
+                if msg == "":
+                    # new_message = "\n"
+                    # self.textview_textbox.insert(start_idx, new_message)
                     char_position = 0
                     spacing = spacer_newline
                     line_num += 1
                     start_idx = str(line_num) + "." + str(char_position)
                     continue
                 # Readjust the message by adding a blank at the end so it doesn't bump up against box.
-                msg_to_insert = updated_msg + " " if len(all_messages) == 1 else updated_msg
+                msg_to_insert = msg + " " if len(all_messages) == 1 else msg
 
                 # Insert and tag the message
                 max_msg_len, char_position, tags = _insert_and_tag(
@@ -411,7 +400,7 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
                     value,
                     inner_num,
                 )
-
+                # line_num += 1
                 # Reset spacing so we don't get spacers every concatenated piece of text.
                 spacing = 0
                 if len(all_messages) > 1 and msg_num < len(all_messages) - 1:
@@ -419,38 +408,30 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
                     line_num += 1
                     start_idx = str(line_num) + ".0"
                     spacing = spacer_newline
+                # # Only single line?
+                # elif len(all_messages) == 1:
+                #     spacing = spacer_newline
+                #     line_num += 1
 
-                # Bail if this is the end of the label
-                if end_of_label:
-                    break
-
-            # Bailout if end of the label
-            if end_of_label:
-                break
-
-        # Bailout if end of the label
-        if end_of_label:
-            break
-
+        # line_num += 1
         char_position = 0
 
     # Adjust the last message in block to be maximum width so bounding box will be filled out beyond the window width.
     # Get the last line in the textbox
-    # content, temp_start_idx = get_last_line(self.textview_textbox, start_idx)
-    # delta = max_msg_len - len(content)
-    # if delta > 1:
-    #     # We need to add any character beyond the end of the window for multi-line labels.
-    #     # Use the approx. character length for font to add a "|" just beyond the window.
-    #     extra_spaces = " " * (char_length - len(content) - 100) + "|"
-    #     insert_idx = temp_start_idx.split(".")[0] + "." + str(len(content))
-    #     # Insert extra spaces
-    #     self.textview_textbox.insert(insert_idx, extra_spaces)
-    #     # Recalculate the new max with the extra spaces.
-    #     max_msg_len = max(max_msg_len, (len(content) + len(extra_spaces)))
+    content, temp_start_idx = get_last_line(self.textview_textbox, start_idx)
+    delta = max_msg_len - len(content)
+    if delta > 1:
+        # We need to add any character beyond the end of the window for multi-line labels.
+        # Use the approx. character length for font to add a "|" just beyond the window.
+        extra_spaces = " " * (char_length - len(content) - 100) + "|"
+        insert_idx = temp_start_idx.split(".")[0] + "." + str(len(content))
+        # Insert extra spaces
+        self.textview_textbox.insert(insert_idx, extra_spaces)
+        # Recalculate the new max with the extra spaces.
+        max_msg_len = max(max_msg_len, (len(content) + len(extra_spaces)))
 
     # Add the bounding box as a hjighlight by adding a highlighted tag
     bbox_tag = f"{begin_box}:bbox"
-    print("bingo", bbox_tag)
     end_box = f"{line_num!s}.{max_msg_len + 1!s}"
     self.textview_textbox.tag_add(bbox_tag, begin_box, end_box)
     self.textview_textbox.tag_config(
@@ -664,20 +645,22 @@ def get_last_line(text_widget: ctk.CTkTextbox, start_idx: str) -> tuple[str, str
         calling the `rutroh_error` function.
     """
     try:
-        # Start at bottom of textbox and work backwards until we have some content
+        # 'end' refers to the position just after the last character in the buffer.
+        # '-1c' (minus one character) backs up one position to get to the character
+        # before the final newline.
+        # 'linestart' then moves the index to the beginning of that line.
         dont_have_info = True
-        last_line_index = start_idx
+        last_line_index = text_widget.index("end-1c linestart")
         line_num = int(last_line_index.split(".")[0])
         while dont_have_info:
             line_to_get = str(int(last_line_index.split(".")[0]) - 1) + ".0"
             content = text_widget.get(line_to_get, "end-1c")
-            # if content.startswith("\n") or content == "":
-            #     line_num -= 1
-            #     last_line_index = f"{line_num!s}.0"
-            # else:
-            #     # Return the content and line number.
-            #     return content.replace("\n", ""), line_to_get
-            return content.replace("\n", ""), line_to_get
+            if content.startswith("\n"):
+                line_num -= 1
+                last_line_index = f"{line_num!s}.0"
+            else:
+                # Return the content and line number.
+                return content.replace("\n", ""), line_to_get
 
         # # Print the result
         # print(f"The last line of text is: '{last_line_content}'")

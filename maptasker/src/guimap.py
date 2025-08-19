@@ -199,8 +199,8 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
         # Set the end of label flag
         lblend = False
 
-        for line in html_lines:
-            if "STOP THE CALLING TASK" in line:
+        for num, line in enumerate(html_lines):
+            if "%err" in line:
                 print("bingo")
             if not line or line == "</span>":
                 continue
@@ -220,14 +220,18 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             # Slightly malformed html...the text has split away from style and class or there simply is no class/style.
             else:
                 text = line.split("</span>")[0]
-                # FIX May have to substitute "" rather than "\n"
+                # Remove double-spaces
                 if text == "<br>\n":
                     text = "\n"
                 if last_item:
                     color = last_item["color"]
                     font = last_item["highlights"]
                 else:
-                    color = ""
+                    # Get the color from the next line.
+                    if ":lblend" not in line:
+                        color = html_lines[num + 1].split('style="')[1].split(":")[1].split('"')[0]
+                    else:
+                        color = ""
                     font = "h0-text"
 
             # Check for the end of label flag

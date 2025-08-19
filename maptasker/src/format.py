@@ -385,8 +385,7 @@ def format_label(lbl: str) -> str:
 
         # Go through the lines in this formatted html
         for num, action_label in enumerate(formatted_lbl):
-            # Flag the end of the label
-            # FIX label flag as commented flag
+            # Add end-of-label flag as a commented flag
             label_end = '<data-flag=":lblend">' if num + 1 == num_items else ""
 
             # Get the label verbage
@@ -411,6 +410,9 @@ def format_label(lbl: str) -> str:
                     lbl_heading = 0
                     task_label = task_label + "<br><span class='h0-text'></span>"
                     continue
+                # Remove leading newline...causes problems with it there.
+                if lbl_text != "\n" and lbl_text.startswith("\n"):
+                    lbl_text = lbl_text[1:]
 
                 # If we have a new heading, force a break if we didn't just do one.
                 if lbl_heading != previous_heading and previous_text != "\n" and not task_label.endswith("\n"):
