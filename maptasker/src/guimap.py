@@ -30,128 +30,6 @@ The data consists of a list of dictionary values (formatted by guimap)...
 glob_spacing = 15
 
 
-# FIX Delete commented code
-# def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: int) -> int:
-#     """
-#     Parses HTML content from a list of strings, extracting text, color, and font information.
-
-#     This function iterates through a list of HTML lines, specifically looking for `<span>`
-#     tags to extract text content, a 7-character color code from the 'style' attribute,
-#     and a 7-character font class from the 'class' attribute. It processes lines until
-#     it encounters a `<div>` tag, and populates a dictionary with the extracted data.
-
-#     This modified version processes and concatenates text chunks with the same color
-#     and font within a single HTML line before adding it to the output dictionary.
-
-#     Args:
-#         lines (list): A list of strings, where each string is a line of HTML content.
-#         output_lines (dict): A dictionary to store the extracted information. The
-#                              keys are line numbers and the values are dictionaries
-#                              containing lists for "text", "color", and "highlights".
-#         line_num (int): The starting line number (index) in `lines` to begin parsing from.
-#         spacing (int): The initial spacing value.
-
-
-#     Returns:
-#         int: The number of lines that were processed (skipped) by this function.
-#     """
-#     line_num += 1
-#     line_num_to_add = line_num
-#     lines_to_skip = 0
-
-#     while line_num < len(lines) and not lines[line_num].startswith("<div "):
-#         # Breakout the html spans
-#         html_lines = lines[line_num].split("<span ")
-
-#         # This will hold the processed data for the current logical line
-#         processed_line_data = []
-#         last_item = {}
-
-#         for line in html_lines:
-#             if "STOP THE CALLING TASK" in line:
-#                 print("bingo")
-#             if not line or line == "</span>":
-#                 continue
-
-#             # Only deal with lines that have a style and class
-#             if line and "style=" in line and "class=" in line:
-#                 try:
-#                     # Extract the color, font, and text
-#                     color = line.split('style="')[1].split(":")[1].split('"')[0]
-#                     font = line.split('class="')[1].split('"')[0][0:7]
-#                     text = line.split(">")[1].split("<")[0]
-
-#                 except IndexError:
-#                     rutroh_error(f"Skipping malformed line: {line}")
-#                     continue
-
-#             # Slightly malformed html...the text has split away from style and class or there simply is no class/style.
-#             else:
-#                 text = line.split("</span>")[0]
-#                 if text == "<br>\n":
-#                     text = "\n"
-#                 if last_item:
-#                     color = last_item["color"]
-#                     font = last_item["highlights"]
-#                 else:
-#                     color = ""
-#                     font = "h0-text"
-
-#             # Set the end of label flag
-#             lblend = ":lblend" in line
-
-#             # Check if there's a previous element in processed_line_data
-#             if processed_line_data:
-#                 last_item = processed_line_data[-1]
-#                 # Compare the current color and font with the last one
-#                 if last_item["color"] == color and last_item["highlights"] == font:
-#                     # If they match, concatenate the text
-#                     last_item["text"] += text
-#                     # Process next line if this isn't the end.
-#                     if not lblend:
-#                         continue
-#                 # Reset spacing since we're now adding to an existing line.
-#                 spacing = 0
-
-#                 # Get out if this is the end of the label.
-#                 if lblend:
-#                     processed_line_data[-1]["end"] = True
-#                     break
-
-#             # If they don't match or it's the first element,
-#             # add a new entry to processed_line_data
-#             processed_line_data.append(
-#                 {
-#                     "text": text,
-#                     "color": color,
-#                     "highlights": font,
-#                     "spacing": spacing,
-#                     "end": lblend,
-#                 },
-#             )
-
-#         # Now, add the processed data for this line to the output_lines dictionary
-#         # We need to restructure the data to match the expected format
-#         if processed_line_data:
-#             # Add all of the info to the output
-#             output_lines[line_num_to_add] = {
-#                 "text": [item["text"] for item in processed_line_data],
-#                 "color": [item["color"] for item in processed_line_data],
-#                 "highlights": [item["highlights"] for item in processed_line_data],
-#                 # Spacing needs to be handled on an element-by-element basis.
-#                 # The 'spacing' key in the outer dict might not be what you need
-#                 # if you have multiple text chunks per line. I'll include it here
-#                 # but you might want to reconsider its placement.
-#                 "spacing": processed_line_data[0]["spacing"],
-#                 "end": [item["end"] for item in processed_line_data],
-#             }
-#             line_num_to_add += 1
-
-#         line_num += 1
-#         lines_to_skip += 1
-
-
-#     return lines_to_skip
 def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: int) -> int:
     """
     Parses HTML content from a list of strings, extracting text, color, and font information.
@@ -200,8 +78,6 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
         lblend = False
 
         for num, line in enumerate(html_lines):
-            if "%err" in line:
-                print("bingo")
             if not line or line == "</span>":
                 continue
 
@@ -721,6 +597,7 @@ def calculate_spacing(
     Returns:
         int: The calculated spacing value.
     """
+    # FIX index out of range
     text = output_lines[line_num]["text"][0]
 
     # Direct returns for common conditions
@@ -773,6 +650,12 @@ def handle_disabled_objects(output_lines: list, line_num: int) -> list:
                 break
 
     # If [⛔ DISABLED] is in the line for a Profile, then move it up to the profile line and blank out the original.
+    # print("bingo", output_lines[line_num]["text"], len(output_lines[line_num]["text"]))
+    # FIX line_num > len(output_lines)
+    if line_num + 1 >= len(output_lines):
+        return output_lines
+    if len(output_lines[line_num]["text"]) == 0:
+        print("bingo")
     if (
         "[⛔ DISABLED]" in output_lines[line_num]["text"][0]
         and output_lines[prev_line_num]["color"] == ["profile_color"]

@@ -331,10 +331,7 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
     line_num_str = str(line_num)
     begin_box = f"{line_num_str}.0"
     max_msg_len = 0
-    lookie_key = "log to clipboard"
     end_of_label = False
-    # Get the approx. number of characters that fit in the window.
-    # char_length = get_character_width(self.textview_textbox)
 
     # Get the background color
     bg_color = make_hex_color(mygui.color_lookup["background_color"])
@@ -354,18 +351,13 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
         # Iterate over a list or a string.
         for inner_num, message in enumerate(value["text"]):
             clean_message = message.replace("\n\n", "\n")
-            if lookie_key in message:
-                print("bingo")
+
             # Build the start end indecies
             start_idx = str(line_num) + "." + str(char_position)
 
             # Handle a single, new line.
             if clean_message == "\n":
-                self.textview_textbox.insert(start_idx, clean_message)
-                char_position = 0
-                spacing = spacer_newline
-                line_num += 1
-                start_idx = str(line_num) + "." + str(char_position)
+                char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
 
                 # end_box = start_idx
                 max_msg_len = _get_max_msg_len(clean_message, max_msg_len)
@@ -384,19 +376,13 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
                 else:
                     updated_msg = msg
 
-                if lookie_key in updated_msg:
-                    print("bingo")
-
                 if updated_msg == "":
-                    new_message = "\n"
-                    self.textview_textbox.insert(start_idx, new_message)
-                    char_position = 0
-                    spacing = spacer_newline
-                    line_num += 1
-                    start_idx = str(line_num) + "." + str(char_position)
+                    char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
                     continue
+
                 # Readjust the message by adding a blank at the end so it doesn't bump up against box.
-                msg_to_insert = updated_msg + " " if len(all_messages) == 1 else updated_msg
+                # msg_to_insert = updated_msg + " " if len(all_messages) == 1 else updated_msg
+                msg_to_insert = updated_msg
 
                 # Insert and tag the message
                 max_msg_len, char_position, tags = _insert_and_tag(
@@ -414,6 +400,8 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
 
                 # Reset spacing so we don't get spacers every concatenated piece of text.
                 spacing = 0
+
+                # Bump everything if we doing a multiline message and we are not at the end.
                 if len(all_messages) > 1 and msg_num < len(all_messages) - 1:
                     char_position = 0
                     line_num += 1
@@ -434,23 +422,20 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
 
         char_position = 0
 
-    # Adjust the last message in block to be maximum width so bounding box will be filled out beyond the window width.
-    # Get the last line in the textbox
-    # content, temp_start_idx = get_last_line(self.textview_textbox, start_idx)
-    # delta = max_msg_len - len(content)
-    # if delta > 1:
-    #     # We need to add any character beyond the end of the window for multi-line labels.
-    #     # Use the approx. character length for font to add a "|" just beyond the window.
-    #     extra_spaces = " " * (char_length - len(content) - 100) + "|"
-    #     insert_idx = temp_start_idx.split(".")[0] + "." + str(len(content))
-    #     # Insert extra spaces
-    #     self.textview_textbox.insert(insert_idx, extra_spaces)
-    #     # Recalculate the new max with the extra spaces.
-    #     max_msg_len = max(max_msg_len, (len(content) + len(extra_spaces)))
+    # Add a final newline to even out the bottom of the box if there is text at the bottom
+    content, _ = get_last_line(self.textview_textbox, start_idx)
+    if content:
+        line_num += 1
+        start_idx = str(line_num) + ".0"
+        self.textview_textbox.insert(start_idx, "\n")
+    # If the last line is blank, delete it.
+    else:
+        self.textview_textbox.delete(start_idx)
+        line_num -= 1
+        start_idx = str(line_num) + ".0"
 
     # Add the bounding box as a hjighlight by adding a highlighted tag
     bbox_tag = f"{begin_box}:bbox"
-    print("bingo", bbox_tag)
     end_box = f"{line_num!s}.{max_msg_len + 1!s}"
     self.textview_textbox.tag_add(bbox_tag, begin_box, end_box)
     self.textview_textbox.tag_config(
@@ -460,12 +445,24 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
         borderwidth=2,
         spacing1=5,
         spacing3=5,
-        rmargin=20,
+        rmargin=10,
     )
 
     # Point to the next available line by geting our last line number.
     # line_num = begin_box.split(".")[0]
     line_num = int(line_num) + 1
+
+    # Insert a newline after the label
+    self.textview_textbox.insert(f"{line_num}.0", "\n", "bg_color")
+    line_num += 1
+
+    # Configure the tag for the background color
+    self.textview_textbox.tag_config(
+        "bg_color",
+        background=make_hex_color(
+            self.master.master.color_lookup["background_color"],
+        ),
+    )
 
     # Reset draw_box for next label
     self.draw_box = {"all_values": [], "start_idx": None, "end_idx": None, "spacing": 0, "end": False}
@@ -529,9 +526,9 @@ def _insert_and_tag(
     """
     mygui = self.master.master
     # Format the message
-    spacer = " " * value["spacing"]
+    spacer = " " * spacing
     # formatted_message = (" " * value["spacing"]) + message + "\n" if spacing > 0 else message + "\n"
-    formatted_message = spacer + message + "\n" if spacing > 0 else message
+    formatted_message = spacer + message + " \n" if spacing > 0 else message
 
     # Keep track of largest message
     max_msg_len = _get_max_msg_len(formatted_message, max_msg_len)
@@ -546,7 +543,7 @@ def _insert_and_tag(
 
     # Insert the unformatted text
     # Specifying the tag_id in the insert eliminates the need to do a tag_add.
-    print("bingo insert at", start_idx, formatted_message)
+    # print("bingo insert at", start_idx, "'", formatted_message, "'")
     self.textview_textbox.insert(start_idx, formatted_message, tag_id)
 
     # Apply the html attributes
@@ -560,6 +557,33 @@ def _insert_and_tag(
     char_position += len(formatted_message)
 
     return max_msg_len, char_position, tags
+
+
+def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tuple[int, int, int, str]:
+    """Inserts a newline character into the textbox and updates state variables.
+
+    This helper function is designed to handle the logic for adding a new line
+    to the Tkinter text widget, resetting the character position, and
+    incrementing the line number for subsequent text insertions.
+
+    Args:
+        self: The instance of the custom textbox class (ctk).
+        start_idx: The current starting index for text insertion.
+        value: A dictionary containing data, including spacing information.
+        line_num: The current line number.
+
+    Returns:
+        A tuple containing:
+        - The reset character position (always 0).
+        - The spacing value for the new line.
+        - The updated line number.
+        - The new start index string.
+    """
+    self.textview_textbox.insert(start_idx, "\n")
+    char_position = 0
+    line_num += 1
+    start_idx = str(line_num) + "." + str(char_position)
+    return 0, value["spacing"], line_num, start_idx
 
 
 def _get_max_msg_len(message: str, max_msg_len: int) -> int:

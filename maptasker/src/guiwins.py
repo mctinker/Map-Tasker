@@ -2198,8 +2198,6 @@ class CTkTextview(ctk.CTkFrame):
             # Update progressbar if needed.
             self._update_progress_display(progress, num)
 
-            if value["text"] and "STOP THE CALLING TASK" in value["text"][0]:
-                print("bingo")
             # Determine if we need to draw a box around the label text
             if num > 2 and temp_previous_value:
                 try:
