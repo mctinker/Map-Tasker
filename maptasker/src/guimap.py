@@ -8,6 +8,7 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 from __future__ import annotations
 
+import contextlib
 import re
 from html.parser import HTMLParser
 
@@ -54,9 +55,15 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
     Returns:
         int: The number of lines that were processed (skipped) by this function.
     """
-    line_num += 1
-    line_num_to_add = line_num
+    # Determine if there is html in current line (typically it is in the line after the current line)
+    temp = lines[line_num].split("text-box")
+    if "style=" not in temp[1]:
+        line_num += 1
+        line_num_to_add = line_num
+    else:
+        line_num_to_add = line_num + 1
     lines_to_skip = 0
+    print("bingo", lines[line_num])
 
     # A new flag to control the flow of the outer while loop
     continue_processing = True
@@ -65,6 +72,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
 
     # Go through all of the data
     while line_num < len(lines) and continue_processing:
+        print("bingo0", lines[line_num])
         # Check if the line starts with <div> and if so, stop processing.
         if lines[line_num].startswith("<div "):
             continue_processing = False
@@ -78,7 +86,9 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
         lblend = False
 
         for num, line in enumerate(html_lines):
-            if not line or line == "</span>":
+            print("bingo1", line)
+            # Skip empty lines or lines that are just closing span tags
+            if not line or line == "</span>" or line.endswith('text-box"><p>'):
                 continue
 
             # Only deal with lines that have a style and class
@@ -95,7 +105,11 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
 
             # Slightly malformed html...the text has split away from style and class or there simply is no class/style.
             else:
-                text = line.split("</span>")[0]
+                temp = line.split("</span>")
+                # If there is no /span, then this must be text only...no html whatsoever.
+                if len(temp) == 1:
+                    continue
+                text = temp[0]
                 # Remove double-spaces
                 if text == "<br>\n":
                     text = "\n"
@@ -105,7 +119,9 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 else:
                     # Get the color from the next line.
                     if ":lblend" not in line:
-                        color = html_lines[num + 1].split('style="')[1].split(":")[1].split('"')[0]
+                        # If index error, then the style was in previous line.  Just use existing color.
+                        with contextlib.suppress(IndexError):
+                            color = html_lines[num + 1].split('style="')[1].split(":")[1].split('"')[0]
                     else:
                         color = ""
                     font = "h0-text"
@@ -140,6 +156,10 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             # add a new entry to processed_line_data
             processed_line_data = add_line_data(processed_line_data, text, color, font, spacing, lblend)
 
+        # Indicate a newline is needed.
+        # FIX This logic isn't quite right
+        if "<br>\n" in line:
+            processed_line_data[-1]["newline"] = True
         line_num += 1
         lines_to_skip += 1
 
@@ -164,6 +184,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 # but you might want to reconsider its placement.
                 "spacing": processed_line_data[0]["spacing"],
                 "end": [item["end"] for item in processed_line_data],
+                "newline": [item["newline"] for item in processed_line_data],
             }
             line_num_to_add += 1
 
@@ -201,6 +222,7 @@ def add_line_data(processed_line_data: list, text: str, color: str, font: str, s
                     "highlights": font,
                     "spacing": spacing,
                     "end": lblend,
+                    "newline": False,
                 },
             )
         if not subtext:
@@ -509,7 +531,9 @@ def process_line(
                 working_text = extract_working_text(temp)
 
                 # Ignore unique situation in which there is a color and no text.
-                if "...with label:" in working_text and color_to_use[0] != "action_label_color":
+                if (
+                    "...with label:" in working_text and color_to_use[0] != "action_label_color"
+                ) and "Anchor" not in working_text:
                     continue
 
                 # Special handling if a Tasker preferencews key.
@@ -650,12 +674,6 @@ def handle_disabled_objects(output_lines: list, line_num: int) -> list:
                 break
 
     # If [⛔ DISABLED] is in the line for a Profile, then move it up to the profile line and blank out the original.
-    # print("bingo", output_lines[line_num]["text"], len(output_lines[line_num]["text"]))
-    # FIX line_num > len(output_lines)
-    if line_num + 1 >= len(output_lines):
-        return output_lines
-    if len(output_lines[line_num]["text"]) == 0:
-        print("bingo")
     if (
         "[⛔ DISABLED]" in output_lines[line_num]["text"][0]
         and output_lines[prev_line_num]["color"] == ["profile_color"]
@@ -885,6 +903,8 @@ def process_html_lines(
     lines_to_skip = 0
 
     for line_num, line in enumerate(lines):
+        if "FILTER FOR UNIQUE" in line:
+            print("bingo", line)
         # Are we to skip lines due to label with html having already been added?
         if lines_to_skip > 0:
             lines_to_skip -= 1

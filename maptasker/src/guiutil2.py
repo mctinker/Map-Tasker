@@ -12,7 +12,6 @@ import os
 import re
 import tkinter as tk
 import tkinter.font as tkfont
-import uuid
 
 import customtkinter as ctk
 import requests
@@ -22,7 +21,7 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 
 # Define label fonts for headings: 0=h0, 1=h1, etc.
-heading_fonts = {"0": "10", "1": "22", "2": "20", "3": "18", "4": "16", "5": "14", "6": "12"}
+heading_fonts = {"0": "10", "1": "16", "2": "15", "3": "14", "4": "13", "5": "12", "6": "11"}
 
 
 def validate_tkinter_geometry(geometry_string: str) -> bool:
@@ -342,14 +341,20 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
 
     # Go through all of the values in the label and output them
     for num, value in enumerate(all_values):
+        # value is a dictionary of lists for 'text', 'color', etc.
         # Get spacing only if this is first element.
         if num == 0:
             spacing = value["spacing"]
             spacer_newline = value["spacing"]
         char_position = 0
+        # Set our end of label if this is the end.
+        if value["end"][num]:
+            end_of_label = True
 
         # Iterate over a list or a string.
         for inner_num, message in enumerate(value["text"]):
+            if "Build List" in message:
+                print("bingo")
             clean_message = message.replace("\n\n", "\n")
 
             # Build the start end indecies
@@ -359,7 +364,7 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
             if clean_message == "\n":
                 char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
 
-                # end_box = start_idx
+                # Keep track of the maximum message length
                 max_msg_len = _get_max_msg_len(clean_message, max_msg_len)
                 continue
 
@@ -369,8 +374,10 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
 
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
+                if "Build List" in msg:
+                    print("bingo")
                 # Bailout if we hit our end-of-label flag.
-                if ":lblend" in msg:
+                if not end_of_label and (value["end"][inner_num] or ":lblend" in msg):
                     end_of_label = True
                     updated_msg = msg.replace('<data-flag=":lblend">', "")
                 else:
@@ -401,7 +408,7 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
                 # Reset spacing so we don't get spacers every concatenated piece of text.
                 spacing = 0
 
-                # Bump everything if we doing a multiline message and we are not at the end.
+                # Bump everything if we are doing a multiline message and we are not at the end.
                 if len(all_messages) > 1 and msg_num < len(all_messages) - 1:
                     char_position = 0
                     line_num += 1
@@ -415,6 +422,12 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
             # Bailout if end of the label
             if end_of_label:
                 break
+
+            # If flagged as newline needed, then add one for next iteration.
+            if value["newline"][num]:
+                line_num += 1
+                spacing = spacer_newline
+                char_position = 0
 
         # Bailout if end of the label
         if end_of_label:
@@ -525,6 +538,18 @@ def _insert_and_tag(
         - `tags` (the list with the new tag_id appended)
     """
     mygui = self.master.master
+    # Create a tag with a border
+    tag_id = f"{start_idx}:{value['highlights'][inner_num]}:{value['color'][inner_num]}"
+    tags.append(tag_id)
+
+    # Get the font size
+    font_size = heading_fonts[tag_id.split(":")[1][1]]
+    font_sizes = [int(value) for value in heading_fonts.values()]
+    max_font_size = max(font_sizes)
+    if font_size == max_font_size:
+        # If the font size is the largest, decrease the spacing
+        spacing = 1
+
     # Format the message
     spacer = " " * spacing
     # formatted_message = (" " * value["spacing"]) + message + "\n" if spacing > 0 else message + "\n"
@@ -533,17 +558,11 @@ def _insert_and_tag(
     # Keep track of largest message
     max_msg_len = _get_max_msg_len(formatted_message, max_msg_len)
 
-    # Create a tag with a border
-    tag_id = f"{start_idx}:{value['highlights'][inner_num]}:{value['color'][inner_num]}"
-    tags.append(tag_id)
-
     # Get the html attributes
-    font_size = heading_fonts[tag_id.split(":")[1][1]]
     fg_color = make_hex_color(value["color"][inner_num])
 
     # Insert the unformatted text
     # Specifying the tag_id in the insert eliminates the need to do a tag_add.
-    # print("bingo insert at", start_idx, "'", formatted_message, "'")
     self.textview_textbox.insert(start_idx, formatted_message, tag_id)
 
     # Apply the html attributes
@@ -589,57 +608,6 @@ def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tu
 def _get_max_msg_len(message: str, max_msg_len: int) -> int:
     """Get the maximum length of the messages"""
     return max(max_msg_len, len(message))
-
-
-# def box_text_with_unicode(
-#     text_widget: ctk,
-#     start: str = "1.0",
-#     end: str = "end-1c",
-#     left_margin_spaces: int = 0,
-# ) -> None:
-#     """
-#     Replaces the text in the given range with a visually boxed version using Unicode box characters.
-#     Adds a left margin spacer before the box.
-
-#     Args:
-#         text_widget: The tk.Text widget.
-#         start (str): Start index of the text.
-#         end (str): End index of the text.
-#         left_margin_spaces (int): Number of spaces to prepend as a margin.
-#     """
-#     # Get the text
-#     content = text_widget.get(start, end)
-#     lines = content.split("\n")
-#     max_len = max(len(line) for line in lines)
-
-#     # Left margin spacer
-#     spacer = " " * left_margin_spaces
-
-#     # Build box lines
-#     top = spacer + "┌" + "─" * (max_len + 2) + "┐"
-#     bottom = spacer + "└" + "─" * (max_len + 2) + "┘"
-#     middle = [spacer + f"│ {line.ljust(max_len)} │" for line in lines]
-
-#     # Combine lines
-#     boxed_text = "\n".join([top, *middle, bottom])
-
-#     # Replace text in widget
-#     text_widget.delete(start, end)
-#     text_widget.insert(start, boxed_text)
-
-
-def generate_unique_string() -> str:
-    """
-    Generates a unique 5-digit string using a UUID.
-
-    Returns:
-        str: A unique 5-character string.
-    """
-    # Generate a UUID (Universally Unique Identifier)
-    unique_id = uuid.uuid4()
-
-    # Convert the UUID to a hexadecimal string and take the first 5 characters
-    return unique_id.hex[:5]
 
 
 def make_hex_color(color: str) -> str:
@@ -691,16 +659,9 @@ def get_last_line(text_widget: ctk.CTkTextbox, start_idx: str) -> tuple[str, str
         # Start at bottom of textbox and work backwards until we have some content
         dont_have_info = True
         last_line_index = start_idx
-        line_num = int(last_line_index.split(".")[0])
         while dont_have_info:
             line_to_get = str(int(last_line_index.split(".")[0]) - 1) + ".0"
             content = text_widget.get(line_to_get, "end-1c")
-            # if content.startswith("\n") or content == "":
-            #     line_num -= 1
-            #     last_line_index = f"{line_num!s}.0"
-            # else:
-            #     # Return the content and line number.
-            #     return content.replace("\n", ""), line_to_get
             return content.replace("\n", ""), line_to_get
 
         # # Print the result
