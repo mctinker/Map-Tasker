@@ -330,6 +330,7 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
     line_num_str = str(line_num)
     begin_box = f"{line_num_str}.0"
     max_msg_len = 0
+    number_of_inserted_lines = 0
     end_of_label = False
 
     # Get the background color
@@ -353,9 +354,11 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
 
         # Iterate over a list or a string.
         for inner_num, message in enumerate(value["text"]):
-            if "Build List" in message:
-                print("bingo")
             clean_message = message.replace("\n\n", "\n")
+
+            # Handle list markers: ordered and unordered.  Leave off the leading newlines
+            if "lmrk" in clean_message:
+                clean_message = clean_message.replace("lmrk", "\n")[2:]
 
             # Build the start end indecies
             start_idx = str(line_num) + "." + str(char_position)
@@ -374,7 +377,8 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
 
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
-                if "Build List" in msg:
+                # FIX Text after this msg is not on the same line, even though line_num is the same/correct.
+                if "So an EXACT example" in msg:
                     print("bingo")
                 # Bailout if we hit our end-of-label flag.
                 if not end_of_label and (value["end"][inner_num] or ":lblend" in msg):
@@ -383,6 +387,7 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
                 else:
                     updated_msg = msg
 
+                # Handle a blank message
                 if updated_msg == "":
                     char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
                     continue
@@ -404,6 +409,19 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
                     value,
                     inner_num,
                 )
+                number_of_inserted_lines += 1
+
+                # If this is the very first message, set the beginning of the bounding box based on the textbox content.
+                if num == 0 and inner_num == 0 and msg_num == 0:
+                    # Get the line and column index of the last character in the Text widget.
+                    # The 'end-1c' index is a special index that represents the character just
+                    # before the absolute end of the widget's content.
+                    last_char_index = self.textview_textbox.index(tk.END + "-1c")
+                    line_number, _ = last_char_index.split(".")
+
+                    # Get the text from the start of the last line up to the last character.
+                    prev_num = int(line_number) - 1
+                    begin_box = f"{prev_num}.0"
 
                 # Reset spacing so we don't get spacers every concatenated piece of text.
                 spacing = 0
@@ -415,16 +433,16 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
                     start_idx = str(line_num) + ".0"
                     spacing = spacer_newline
 
-                # Bail if this is the end of the label
-                if end_of_label:
-                    break
+                # # Bail if this is the end of the label
+                # if end_of_label:
+                #     break
 
             # Bailout if end of the label
             if end_of_label:
                 break
 
             # If flagged as newline needed, then add one for next iteration.
-            if value["newline"][num]:
+            if value["newline"][inner_num]:
                 line_num += 1
                 spacing = spacer_newline
                 char_position = 0
@@ -435,17 +453,19 @@ def draw_box_around_text(self: ctk, line_num: int, tags: list) -> tuple[int, lis
 
         char_position = 0
 
-    # Add a final newline to even out the bottom of the box if there is text at the bottom
-    content, _ = get_last_line(self.textview_textbox, start_idx)
-    if content:
-        line_num += 1
-        start_idx = str(line_num) + ".0"
-        self.textview_textbox.insert(start_idx, "\n")
-    # If the last line is blank, delete it.
-    else:
-        self.textview_textbox.delete(start_idx)
-        line_num -= 1
-        start_idx = str(line_num) + ".0"
+    # Add a final newline to even out the bottom of the box if there is text at the bottom if thjis is not a one-liner.
+    if number_of_inserted_lines > 0:
+        content, _ = get_last_line(self.textview_textbox, start_idx)
+        if content:
+            line_num += 1
+            start_idx = str(line_num) + ".0"
+            self.textview_textbox.insert(start_idx, "\n")
+        # If the last line is blank, delete it.
+        else:
+            print("bingo deleting line", start_idx)
+            self.textview_textbox.delete(start_idx)
+            line_num -= 1
+            start_idx = str(line_num) + ".0"
 
     # Add the bounding box as a hjighlight by adding a highlighted tag
     bbox_tag = f"{begin_box}:bbox"
@@ -552,7 +572,6 @@ def _insert_and_tag(
 
     # Format the message
     spacer = " " * spacing
-    # formatted_message = (" " * value["spacing"]) + message + "\n" if spacing > 0 else message + "\n"
     formatted_message = spacer + message + " \n" if spacing > 0 else message
 
     # Keep track of largest message
@@ -563,6 +582,7 @@ def _insert_and_tag(
 
     # Insert the unformatted text
     # Specifying the tag_id in the insert eliminates the need to do a tag_add.
+    # print("bingo inserting '", start_idx, formatted_message, "'")
     self.textview_textbox.insert(start_idx, formatted_message, tag_id)
 
     # Apply the html attributes

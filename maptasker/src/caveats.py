@@ -40,6 +40,7 @@ def display_caveats() -> None:
             "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters"
             " converted to '{' and '}' respectively.\n"
         ),
+        ("- The formatting of labels with embedded HTML is displayed as close as possible in the Map view.\n"),
     ]
 
     # Conditional caveats start here...
@@ -75,7 +76,7 @@ def display_caveats() -> None:
         caveats.extend(
             (
                 "- Inactive variables are global variables used in a Task which has not been run/used.\n",
-                "- Unreference variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n",
+                "- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n",
             ),
         )
 

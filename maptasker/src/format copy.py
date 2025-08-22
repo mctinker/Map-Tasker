@@ -83,7 +83,7 @@ def format_html(
     # Return completed HTML with color, font and text with text after
     if text_after:
         # The following line eliminates a <span color that is immediately followed by
-        # another span color...only happens 3 out of 20,000 lines. And leaving it in
+        # another span color...only happens 3 out of 20,000 lines.  And leaving it in
         # has no adverse impact to the output other than an extra span that is overridden.
         # text_after = text_after.replace(f'<span class="{color_code}"><span', "<span")
 
@@ -119,9 +119,6 @@ class HTMLTextFormatter(HTMLParser):
             "is_h6": False,
         }
         self.tag_stack = []  # To keep track of active tags and their influence
-        self.list_indent_level = 0
-        self.list_counter = []
-        self.list_types = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
         """
@@ -138,27 +135,6 @@ class HTMLTextFormatter(HTMLParser):
             attrs_dict = dict(attrs)
             if "color" in attrs_dict:
                 self.current_styles["color"] = attrs_dict["color"].lower()
-
-        # Handle list tags
-        if tag == "ul":
-            self.list_indent_level += 1
-            self.list_types.append("ul")
-            self._add_segment("\n")  # Add a newline before the list starts
-        elif tag == "ol":
-            self.list_indent_level += 1
-            self.list_types.append("ol")
-            self.list_counter.append(0)
-            self._add_segment("\n")  # Add a newline before the list starts
-        elif tag == "li":
-            indent = "  " * (self.list_indent_level - 1)
-            list_marker = ""
-            if self.list_types and self.list_types[-1] == "ul":
-                list_marker = "lmrk* "
-            elif self.list_types and self.list_types[-1] == "ol":
-                self.list_counter[-1] += 1
-                list_marker = f"lmrk{self.list_counter[-1]}. "
-
-            self._add_segment(f"\n{indent}{list_marker}")
 
         # Handle new heading tags
         if tag == "h1":
@@ -192,15 +168,6 @@ class HTMLTextFormatter(HTMLParser):
                     break
             if not found_font:
                 self.current_styles["color"] = None
-
-        # Revert list tags
-        if tag == "ul" or tag == "ol":
-            if self.list_indent_level > 0:
-                self.list_indent_level -= 1
-            if self.list_types:
-                self.list_types.pop()
-            if tag == "ol" and self.list_counter:
-                self.list_counter.pop()
 
         # Revert new heading tags
         if tag == "h1":
@@ -408,6 +375,8 @@ def format_label(lbl: str) -> str:
         )
 
         # Parse the HTML string
+        if "Parameter 1:" in lbl:
+            print("bingo")
         formatted_lbl = parse_html_to_text_segments(lbl)
         num_items = len(formatted_lbl)
 
@@ -423,7 +392,7 @@ def format_label(lbl: str) -> str:
 
             # Get the label verbage
             lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
-            # Handle situation in which a "\n" preceeds a name. The \n screws up the html
+            # Handle situation in which a "\n" preceeds a name.  The \n screws up the html
             if lbl_text.startswith("\n%"):
                 lbl_text = lbl_text[1:]
 

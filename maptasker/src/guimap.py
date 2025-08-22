@@ -54,6 +54,8 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
 
     Returns:
         int: The number of lines that were processed (skipped) by this function.
+
+    Note: This code is really ugly!
     """
     # Determine if there is html in current line (typically it is in the line after the current line)
     temp = lines[line_num].split("text-box")
@@ -63,7 +65,6 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
     else:
         line_num_to_add = line_num + 1
     lines_to_skip = 0
-    print("bingo", lines[line_num])
 
     # A new flag to control the flow of the outer while loop
     continue_processing = True
@@ -72,7 +73,6 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
 
     # Go through all of the data
     while line_num < len(lines) and continue_processing:
-        print("bingo0", lines[line_num])
         # Check if the line starts with <div> and if so, stop processing.
         if lines[line_num].startswith("<div "):
             continue_processing = False
@@ -86,7 +86,8 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
         lblend = False
 
         for num, line in enumerate(html_lines):
-            print("bingo1", line)
+            if "So an EXACT example" in line:
+                print("bingo")
             # Skip empty lines or lines that are just closing span tags
             if not line or line == "</span>" or line.endswith('text-box"><p>'):
                 continue
@@ -137,6 +138,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     # If they match, concatenate the text in the processed_line_data list
                     last_item["text"] += text
                     last_item["end"] = lblend
+                    last_item["newline"] = "<br>\n" in line
 
                     # Process next line if this isn't the end.
                     if not lblend:
@@ -157,9 +159,8 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             processed_line_data = add_line_data(processed_line_data, text, color, font, spacing, lblend)
 
         # Indicate a newline is needed.
-        # FIX This logic isn't quite right
-        if "<br>\n" in line:
-            processed_line_data[-1]["newline"] = True
+        processed_line_data[-1]["newline"] = "<br>\n" in line
+
         line_num += 1
         lines_to_skip += 1
 
@@ -903,8 +904,6 @@ def process_html_lines(
     lines_to_skip = 0
 
     for line_num, line in enumerate(lines):
-        if "FILTER FOR UNIQUE" in line:
-            print("bingo", line)
         # Are we to skip lines due to label with html having already been added?
         if lines_to_skip > 0:
             lines_to_skip -= 1
