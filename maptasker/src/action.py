@@ -27,7 +27,6 @@ from maptasker.src.sysconst import (
     RE_FONT,
     DISPLAY_DETAIL_LEVEL_all_tasks,
 )
-from maptasker.src.xmldata import remove_html_tags
 
 
 # Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
@@ -351,26 +350,27 @@ def get_conditions(child: defusedxml, the_action_code: str) -> str:
     return result
 
 
-# Given the Task action's label, get rid of anything that could be problematic
-# for the output format
-def clean_label(lbl: str) -> str:
-    """
-    Given the Task action's label, get rid of anything that could be problematic
-    for the output format
-        :param primary_iterms: dict contining all primary items.
-            See primitem.py for details
-        :param lbl: the label to clean up
-        :return: the cleaned up label with added html tags for a label's color
-    """
-    # Add appropriate html for label text with psuedo html in it to be displayed as close as possible to real html.
-    lbl = lbl.replace("<", "&lt;").replace(">", "&gt;")
-    lbl = remove_html_tags(lbl, "")
-    return format_html(
-        "action_label_color",
-        "",
-        f" ...with label: {lbl}",
-        True,
-    )
+# FIX Delete commented code
+# # Given the Task action's label, get rid of anything that could be problematic
+# # for the output format
+# def clean_label(lbl: str) -> str:
+#     """
+#     Given the Task action's label, get rid of anything that could be problematic
+#     for the output format
+#         :param primary_iterms: dict contining all primary items.
+#             See primitem.py for details
+#         :param lbl: the label to clean up
+#         :return: the cleaned up label with added html tags for a label's color
+#     """
+#     # Add appropriate html for label text with psuedo html in it to be displayed as close as possible to real html.
+#     lbl = lbl.replace("<", "&lt;").replace(">", "&gt;")
+#     lbl = remove_html_tags(lbl, "")
+#     return format_html(
+#         "action_label_color",
+#         "",
+#         f" ...with label: {lbl}",
+#         True,
+#     )
 
 
 # Chase after relevant data after <code> Task action

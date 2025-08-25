@@ -86,8 +86,6 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
         lblend = False
 
         for num, line in enumerate(html_lines):
-            if "So an EXACT example" in line:
-                print("bingo")
             # Skip empty lines or lines that are just closing span tags
             if not line or line == "</span>" or line.endswith('text-box"><p>'):
                 continue
@@ -95,11 +93,17 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             # Only deal with lines that have a style and class
             if line and "style=" in line and "class=" in line:
                 try:
+                    # Get the style details
+                    temp = line.split('style="')
+                    style = temp[1].split(";")
                     # Extract the color, font, and text
-                    color = line.split('style="')[1].split(":")[1].split('"')[0]
-                    font = line.split('class="')[1].split('"')[0][0:7]
-                    text = line.replace("<br>\n", "\n").split(">")[1].split("<")[0]
-
+                    color = style[0].replace("color:", "").replace(";text-decoration", "")
+                    decor = style[1].replace("text-decoration: ", "")
+                    font = style[2].split('class="')[1].split('"')[0][0:7]
+                    text = style[2].replace("<br>\n", "\n\n").split(">")[1].split("<")[0]
+                    # Handle newline overflow at end
+                    if line.endswith("</span><br>\n"):
+                        text = text + "\n\n"
                 except IndexError:
                     rutroh_error(f"Skipping malformed line: {line}")
                     continue
@@ -112,8 +116,8 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     continue
                 text = temp[0]
                 # Remove double-spaces
-                if text == "<br>\n":
-                    text = "\n"
+                # if text == "<br>\n":
+                #     text = "\n"
                 if last_item:
                     color = last_item["color"]
                     font = last_item["highlights"]
@@ -122,7 +126,13 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     if ":lblend" not in line:
                         # If index error, then the style was in previous line.  Just use existing color.
                         with contextlib.suppress(IndexError):
-                            color = html_lines[num + 1].split('style="')[1].split(":")[1].split('"')[0]
+                            color = (
+                                html_lines[num + 1]
+                                .split('style="')[1]
+                                .split(":")[1]
+                                .split('"')[0]
+                                .replace(";text-decoration", "")
+                            )
                     else:
                         color = ""
                     font = "h0-text"
@@ -138,13 +148,12 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     # If they match, concatenate the text in the processed_line_data list
                     last_item["text"] += text
                     last_item["end"] = lblend
-                    last_item["newline"] = "<br>\n" in line
 
                     # Process next line if this isn't the end.
                     if not lblend:
                         continue
                 elif lblend:
-                    processed_line_data = add_line_data(processed_line_data, text, color, font, spacing, lblend)
+                    processed_line_data = add_line_data(processed_line_data, text, color, font, spacing, lblend, decor)
                     break
 
                 # Reset spacing since we're now adding to an existing line.
@@ -156,10 +165,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
 
             # If they don't match or it's the first element or the color/font don't match previous...
             # add a new entry to processed_line_data
-            processed_line_data = add_line_data(processed_line_data, text, color, font, spacing, lblend)
-
-        # Indicate a newline is needed.
-        processed_line_data[-1]["newline"] = "<br>\n" in line
+            processed_line_data = add_line_data(processed_line_data, text, color, font, spacing, lblend, decor)
 
         line_num += 1
         lines_to_skip += 1
@@ -185,14 +191,22 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 # but you might want to reconsider its placement.
                 "spacing": processed_line_data[0]["spacing"],
                 "end": [item["end"] for item in processed_line_data],
-                "newline": [item["newline"] for item in processed_line_data],
+                "decor": [item["decor"] for item in processed_line_data],
             }
             line_num_to_add += 1
 
     return lines_to_skip
 
 
-def add_line_data(processed_line_data: list, text: str, color: str, font: str, spacing: int, lblend: bool) -> None:
+def add_line_data(
+    processed_line_data: list,
+    text: str,
+    color: str,
+    font: str,
+    spacing: int,
+    lblend: bool,
+    decor: str,
+) -> None:
     r"""
     Splits a string by newline characters and appends a dictionary for each
     substring to a list.
@@ -210,6 +224,7 @@ def add_line_data(processed_line_data: list, text: str, color: str, font: str, s
         font (str): The font class associated with the text.
         spacing (int): The spacing value for the text.
         lblend (bool): A flag indicating if this is the end of a label.
+        decor (str): The text decoration style (e.g., "underline").
     Return:
         The list with the line(s) added.
     """
@@ -223,7 +238,7 @@ def add_line_data(processed_line_data: list, text: str, color: str, font: str, s
                     "highlights": font,
                     "spacing": spacing,
                     "end": lblend,
-                    "newline": False,
+                    "decor": decor,
                 },
             )
         if not subtext:

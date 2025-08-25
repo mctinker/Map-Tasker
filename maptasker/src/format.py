@@ -39,14 +39,17 @@ def format_line(item: str) -> str:
             f"Action: {action_number[0]}",
             f"{action_number[0]}:",
         )
+        # Handle list markers: ordered and unordered.  Just blank-out the leading lmrk.
+        if "lmrk" in output_line:
+            output_line = replace_second_and_subsequent(output_line, "lmrk", "<br>").replace("lmrk", "")
 
-    # No changes needed
+    # Not an 'Action:'. No changes needed
     else:
         output_line = item
 
-    # Cleanup left-over html
-    # FIX This is a problem for task "Universal..."
-    # output_line = output_line.replace("&lt;", "<").replace("&gt;", ">")
+        # Cleanup left-over html
+        # FIX This is a problem for task "Universal..."
+        # output_line = output_line.replace("&lt;", "<").replace("&gt;", ">")
 
     # # Format the html...add a number of blanks if some sort of list.
     if "DOCTYPE" in item:  # If imbedded html (e.g. Scene WebElement), add a break and some spacing.
@@ -61,6 +64,44 @@ def format_line(item: str) -> str:
     output_line = pattern9.sub("</span>", output_line)
 
     return pattern10.sub("</p>", output_line)
+
+
+def replace_second_and_subsequent(main_string: str, old_substring: str, new_substring: str) -> str:
+    """
+    Replaces the second and subsequent occurrences of a substring in a string.
+
+    Args:
+        main_string (str): The original string to modify.
+        old_substring (str): The substring to be replaced.
+        new_substring (str): The new substring to use as a replacement.
+
+    Returns:
+        str: The modified string with replacements made.
+    """
+    # Find the starting index of the first occurrence.
+    # We use `main_string.find()` because it returns -1 if the substring isn't found,
+    # and it's a good way to get the index of the first match.
+    first_occurrence_index = main_string.find(old_substring)
+
+    # If the substring is not found or it's the only occurrence,
+    # return the original string unchanged.
+    if first_occurrence_index == -1:
+        return main_string
+
+    # Slice the string into three parts:
+    # 1. The part before the first occurrence (which we keep).
+    # 2. The first occurrence itself (which we also keep).
+    # 3. The rest of the string after the first occurrence (where we will make replacements).
+
+    part_before = main_string[: first_occurrence_index + len(old_substring)]
+    part_after = main_string[first_occurrence_index + len(old_substring) :]
+
+    # Use the `replace()` method on the `part_after` string.
+    # This will replace all occurrences of `old_substring` within that segment.
+    modified_part_after = part_after.replace(old_substring, new_substring)
+
+    # Combine the parts back together to form the final result.
+    return part_before + modified_part_after
 
 
 # Plug in the html for color along with the text
@@ -117,6 +158,7 @@ class HTMLTextFormatter(HTMLParser):
             "is_h4": False,
             "is_h5": False,
             "is_h6": False,
+            "is_underline": False,  # NEW: Add underline style
         }
         self.tag_stack = []  # To keep track of active tags and their influence
         self.list_indent_level = 0
@@ -139,8 +181,13 @@ class HTMLTextFormatter(HTMLParser):
             if "color" in attrs_dict:
                 self.current_styles["color"] = attrs_dict["color"].lower()
 
+        # NEW: Handle underline tags
+        elif tag == "u":
+            self.current_styles["is_underline"] = True
+
         # Handle list tags
-        if tag == "ul":
+        # tag = "li"
+        elif tag == "ul":
             self.list_indent_level += 1
             self.list_types.append("ul")
             self._add_segment("\n")  # Add a newline before the list starts
@@ -192,6 +239,10 @@ class HTMLTextFormatter(HTMLParser):
                     break
             if not found_font:
                 self.current_styles["color"] = None
+
+        # NEW: Revert underline tag
+        elif tag == "u":
+            self.current_styles["is_underline"] = False
 
         # Revert list tags
         if tag == "ul" or tag == "ol":
@@ -399,6 +450,7 @@ def format_label(lbl: str) -> str:
     """
     blank = "&nbsp;"
 
+    # Only process labels with html here.
     if contains_html(lbl):
         task_label = format_html(
             "action_label_color",
@@ -430,6 +482,9 @@ def format_label(lbl: str) -> str:
             # Get the label details for this item in them label.
             lbl_style = action_label["styles"]
             lbl_color = lbl_style["color"] if lbl_style["color"] else PrimeItems.colors_to_use["action_label_color"]
+            lbl_underline = (
+                ";text-decoration: underline;" if lbl_style.get("is_underline") else ";text-decoration: none;"
+            )
 
             # lbl_heading = (lbl_style["heading_level"] * 2) if lbl_style["is_heading"] else 0
             lbl_heading = lbl_style["heading_level"] if lbl_style["is_heading"] else 0
@@ -456,7 +511,7 @@ def format_label(lbl: str) -> str:
                     task_label
                     + '<span style="color:'
                     + lbl_color
-                    # + '">'
+                    + lbl_underline
                     + f'" class="h{lbl_heading}-text">'
                     + f"{lbl_text}{label_end}"
                     + "</span>"

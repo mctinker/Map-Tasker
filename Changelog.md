@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: Task labels with embedded html (headings and color) are now displayed with that html (color, headings, lists) surrounded by a box.  This is a work in progress.
+- Added: Task labels with embedded html are now displayed with that html (color, headings, lists) surrounded by a box.  This is a work in progress.
 
 ### Changed
 
