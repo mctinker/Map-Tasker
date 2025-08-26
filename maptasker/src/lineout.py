@@ -409,7 +409,8 @@ class LineOut:
             # Add indentation for contination line
             tmp = start1[0].replace(
                 "Action: ...",
-                f"{indentation}continued >>> {start2[1]}",
+                # f"{indentation}continued >>> {start2[1]}",
+                f"{indentation}{start2[1]}",
             )
 
             element = tmp

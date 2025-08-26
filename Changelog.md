@@ -10,11 +10,11 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed:
+- Changed: HTML in Task actions is now displayed as with HTML tags rather than having them removed.
 
 ### Fixed
 
-- Fixed:
+- Fixed: Task actions with labels are not properly aligned if the 'pretty' option is selected.
 
 ### Known Issues
 

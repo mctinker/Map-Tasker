@@ -47,10 +47,6 @@ def format_line(item: str) -> str:
     else:
         output_line = item
 
-        # Cleanup left-over html
-        # FIX This is a problem for task "Universal..."
-        # output_line = output_line.replace("&lt;", "<").replace("&gt;", ">")
-
     # # Format the html...add a number of blanks if some sort of list.
     if "DOCTYPE" in item:  # If imbedded html (e.g. Scene WebElement), add a break and some spacing.
         output_line = pattern15.sub(f"<br>{space * 30}", output_line)

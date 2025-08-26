@@ -315,8 +315,20 @@ def remove_the_html_tags(text: str) -> str:
     Returns:
         str: The text with HTML tags removed.
     """
+    return (
+        text.replace("<span style=", "")
+        .replace("<div class=", "")
+        .replace("<em>", "")
+        .replace("</em>", "")
+        .replace("<data-flag=", "")
+    )
+    # FIX Maybe we don't need the html stripper code
+    if "<span" in text:
+        print("bingo")
     s = MLStripper()
     s.feed(text)
+    if s.get_data() != text:
+        print("bingo", text, s.get_data())
     return s.get_data()
 
 
@@ -460,6 +472,7 @@ def extract_working_text(temp: list) -> str:
     return temp[2].replace("\n\n", "\n")
 
 
+# FIXZ Delete this function if nolonger use 'Continued >>>'
 def handle_continued_text(line: str, working_text: str) -> str:
     """
     Extracts the text between "continued >>>" and "<" in the given line and returns it.
@@ -472,7 +485,7 @@ def handle_continued_text(line: str, working_text: str) -> str:
         str: The extracted text between "continued >>>" and "<", or the original working_text if "continued >>>" is not found.
     """
     if "continued >>>" in working_text:
-        continued_start = line.find(">")
+        continued_start = line.find(">>>") + 3
         continued_end = line.find("<", continued_start)
         return line[continued_start:continued_end]
     return working_text
@@ -637,7 +650,6 @@ def calculate_spacing(
     Returns:
         int: The calculated spacing value.
     """
-    # FIX index out of range
     text = output_lines[line_num]["text"][0]
 
     # Direct returns for common conditions
@@ -919,6 +931,8 @@ def process_html_lines(
     lines_to_skip = 0
 
     for line_num, line in enumerate(lines):
+        if "Name=%error_msg_template" in line:
+            print("bingo")
         # Are we to skip lines due to label with html having already been added?
         if lines_to_skip > 0:
             lines_to_skip -= 1

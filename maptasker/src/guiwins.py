@@ -558,9 +558,7 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}"
-                    if len(line) > max_length
-                    else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -2190,6 +2188,7 @@ class CTkTextview(ctk.CTkFrame):
         previous_text_content = ""
         ignore_line = False
         temp_previous_value = {}
+        self.label_tags = []
 
         # Go through the data and format it accordingly.  Num is a sequential number.
         for num, (_linenum_in_data, value) in enumerate(the_data.items()):
@@ -2214,7 +2213,7 @@ class CTkTextview(ctk.CTkFrame):
 
                     # Do label box if this is the last piece of the label.
                     if value["end"][-1]:
-                        line_num, tags = draw_box_around_text(self, line_num, tags)
+                        line_num = draw_box_around_text(self, line_num)
                     continue  # don't process value.  Go to next value.
 
                 # No spacing...not a label.
@@ -3168,8 +3167,11 @@ class CTkTextview(ctk.CTkFrame):
         for highlight in value.get("highlights", []):
             if highlight not in highlight_configurations:
                 rutroh_error(f"Not in highlight_configurations: {highlight}")
-
-            highlight_type, highlight_text = self._parse_highlight(highlight)
+            # Get the highlight details.  If value error, then there are no details.
+            try:
+                highlight_type, highlight_text = self._parse_highlight(highlight)
+            except ValueError:
+                continue
             highlight_color = ""
 
             if not highlight_type or highlight_type not in highlight_configurations:
