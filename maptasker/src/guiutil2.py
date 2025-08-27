@@ -375,6 +375,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
+                if "Perform this task" in msg:
+                    print("bingo")
                 # Bailout if we hit our end-of-label flag.
                 if not end_of_label and (value["end"][inner_num] or ":lblend" in msg):
                     end_of_label = True

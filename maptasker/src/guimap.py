@@ -86,6 +86,8 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
         lblend = False
 
         for num, line in enumerate(html_lines):
+            if "Perform this" in line:
+                print("bingo")
             # Skip empty lines or lines that are just closing span tags
             if not line or line == "</span>" or line.endswith('text-box"><p>'):
                 continue
@@ -99,8 +101,12 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     # Extract the color, font, and text
                     color = style[0].replace("color:", "").replace(";text-decoration", "")
                     decor = style[1].replace("text-decoration: ", "")
+                    # FIX text is incorrect for <p>
                     font = style[2].split('class="')[1].split('"')[0][0:7]
-                    text = style[2].replace("<br>\n", "\n\n").split(">")[1].split("<")[0]
+                    temp = style[2].split('-text">')
+                    temp = temp[1].replace("</span>", "").replace("<br>\n", "\n\n")
+                    text = temp
+                    # text = style[2].replace("<br>\n", "\n\n").split(">")[1].split("<")[0]
                     # Handle newline overflow at end
                     if line.endswith("</span><br>\n"):
                         text = text + "\n\n"
@@ -115,9 +121,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 if len(temp) == 1:
                     continue
                 text = temp[0]
-                # Remove double-spaces
-                # if text == "<br>\n":
-                #     text = "\n"
+
                 if last_item:
                     color = last_item["color"]
                     font = last_item["highlights"]
@@ -315,21 +319,21 @@ def remove_the_html_tags(text: str) -> str:
     Returns:
         str: The text with HTML tags removed.
     """
+    # FIX Remove commented lines???
     return (
         text.replace("<span style=", "")
         .replace("<div class=", "")
         .replace("<em>", "")
         .replace("</em>", "")
         .replace("<data-flag=", "")
+        .replace("<a href='#'></a>", "")
     )
     # FIX Maybe we don't need the html stripper code
-    if "<span" in text:
-        print("bingo")
-    s = MLStripper()
-    s.feed(text)
-    if s.get_data() != text:
-        print("bingo", text, s.get_data())
-    return s.get_data()
+    # if "spacing" in text:
+    #     print("bingo")
+    # s = MLStripper()
+    # s.feed(text)
+    # return s.get_data()
 
 
 # Optimized
@@ -472,7 +476,7 @@ def extract_working_text(temp: list) -> str:
     return temp[2].replace("\n\n", "\n")
 
 
-# FIXZ Delete this function if nolonger use 'Continued >>>'
+# FIX Delete this function if nolonger use 'Continued >>>'
 def handle_continued_text(line: str, working_text: str) -> str:
     """
     Extracts the text between "continued >>>" and "<" in the given line and returns it.
@@ -666,6 +670,7 @@ def calculate_spacing(
         return 7 if text.startswith("   The following Tasks in Project ") else 10
 
     # General spacing conditions
+    # FIX Get rid of 'Continued >>>' check
     if spacing == 61 or (text and text[0].isdigit()) or " continued >>>" in text:
         return 15
 
@@ -931,8 +936,6 @@ def process_html_lines(
     lines_to_skip = 0
 
     for line_num, line in enumerate(lines):
-        if "Name=%error_msg_template" in line:
-            print("bingo")
         # Are we to skip lines due to label with html having already been added?
         if lines_to_skip > 0:
             lines_to_skip -= 1

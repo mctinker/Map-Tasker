@@ -11,10 +11,12 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: HTML in Task actions is now displayed as with HTML tags rather than having them removed.
+- Changed: Lines that are very long are no longer identified with 'Continued >>>'.
 
 ### Fixed
 
 - Fixed: Task actions with labels are not properly aligned if the 'pretty' option is selected.
+- Fixed: Embedded HTML in task parameters are not appearing with their tags.
 
 ### Known Issues
 

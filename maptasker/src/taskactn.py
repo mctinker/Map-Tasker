@@ -64,7 +64,7 @@ def ensure_argument_alignment(taction: str) -> str:
 def output_list_of_actions(
     action_count: int,
     alist: list,
-    the_item: defusedxml.ElementTree,
+    the_item: str,
 ) -> None:
     """
     Output the list of Task Actions
@@ -81,8 +81,8 @@ def output_list_of_actions(
     for taction in alist:
         # 'taction' has the Action text, including all of it's arguments.
         if taction is not None:
-            # Optimize spacing if 'pretty' is enabled
-            if PrimeItems.program_arguments.get("pretty"):
+            # Optimize spacing if 'pretty' is enabled or if this is a label with html
+            if PrimeItems.program_arguments.get("pretty") or "text-box" in taction:
                 updated_action = ensure_argument_alignment(taction)
             else:
                 updated_action = taction

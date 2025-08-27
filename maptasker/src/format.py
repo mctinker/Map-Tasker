@@ -445,6 +445,8 @@ def format_label(lbl: str) -> str:
         A string containing the HTML-formatted task label.
     """
     blank = "&nbsp;"
+    if "Perform this task" in lbl:
+        print("bingo")
 
     # Only process labels with html here.
     if contains_html(lbl):
@@ -471,6 +473,7 @@ def format_label(lbl: str) -> str:
 
             # Get the label verbage
             lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
+
             # Handle situation in which a "\n" preceeds a name. The \n screws up the html
             if lbl_text.startswith("\n%"):
                 lbl_text = lbl_text[1:]
@@ -484,6 +487,20 @@ def format_label(lbl: str) -> str:
 
             # lbl_heading = (lbl_style["heading_level"] * 2) if lbl_style["is_heading"] else 0
             lbl_heading = lbl_style["heading_level"] if lbl_style["is_heading"] else 0
+            if "Realice" in lbl_text:
+                print("bingo")
+            # If we have back-to-back headings, then force a new line.
+            if lbl_heading > 0 and previous_heading > 0:
+                # Concatenate a newline.
+                task_label = (
+                    task_label
+                    + '<span style="color:'
+                    + lbl_color
+                    + lbl_underline
+                    + '" class="h0-text">'
+                    + "<p>"
+                    + "</span>"
+                )
             # If we have a color, then format it accordingly.
             if lbl_color:
                 if not have_paren:
@@ -492,7 +509,8 @@ def format_label(lbl: str) -> str:
                 if lbl_text == "\n" and lbl_heading != previous_heading:
                     lbl_text = " "
                     lbl_heading = 0
-                    task_label = task_label + "<br><span class='h0-text'></span>"
+                    task_label = task_label + "<br><span class='h0-text'>\n</span>"
+                    previous_heading = 0
                     continue
                 # Remove leading newline...causes problems with it there.
                 if lbl_text != "\n" and lbl_text.startswith("\n"):
