@@ -86,8 +86,6 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
         lblend = False
 
         for num, line in enumerate(html_lines):
-            if "Perform this" in line:
-                print("bingo")
             # Skip empty lines or lines that are just closing span tags
             if not line or line == "</span>" or line.endswith('text-box"><p>'):
                 continue
@@ -101,12 +99,16 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     # Extract the color, font, and text
                     color = style[0].replace("color:", "").replace(";text-decoration", "")
                     decor = style[1].replace("text-decoration: ", "")
-                    # FIX text is incorrect for <p>
                     font = style[2].split('class="')[1].split('"')[0][0:7]
+                    # Extract the etxt from the <style
                     temp = style[2].split('-text">')
                     temp = temp[1].replace("</span>", "").replace("<br>\n", "\n\n")
-                    text = temp
-                    # text = style[2].replace("<br>\n", "\n\n").split(">")[1].split("<")[0]
+                    # <p> is needed for html/browser.  \n\n is needed for Map view.
+                    text = "\n\n" if temp == "<p>" else temp
+                    # Cleanup the text line...possible left over garbage at end.
+                    if ":lblend" in text:
+                        text = text.replace(':lblend"></p></div></div>\n\n', ':lblend">')
+
                     # Handle newline overflow at end
                     if line.endswith("</span><br>\n"):
                         text = text + "\n\n"
@@ -319,7 +321,7 @@ def remove_the_html_tags(text: str) -> str:
     Returns:
         str: The text with HTML tags removed.
     """
-    # FIX Remove commented lines???
+    # Just replace the stuff we don't weant to see.
     return (
         text.replace("<span style=", "")
         .replace("<div class=", "")
@@ -328,9 +330,7 @@ def remove_the_html_tags(text: str) -> str:
         .replace("<data-flag=", "")
         .replace("<a href='#'></a>", "")
     )
-    # FIX Maybe we don't need the html stripper code
-    # if "spacing" in text:
-    #     print("bingo")
+    # TODO Maybe we don't need the html stripper code
     # s = MLStripper()
     # s.feed(text)
     # return s.get_data()

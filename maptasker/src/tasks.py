@@ -218,6 +218,7 @@ def get_task_name(
         duplicate_task,
         the_task_id,
     )
+
     return task, task_name
 
 

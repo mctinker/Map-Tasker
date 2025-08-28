@@ -445,8 +445,6 @@ def format_label(lbl: str) -> str:
         A string containing the HTML-formatted task label.
     """
     blank = "&nbsp;"
-    if "Perform this task" in lbl:
-        print("bingo")
 
     # Only process labels with html here.
     if contains_html(lbl):
@@ -487,8 +485,7 @@ def format_label(lbl: str) -> str:
 
             # lbl_heading = (lbl_style["heading_level"] * 2) if lbl_style["is_heading"] else 0
             lbl_heading = lbl_style["heading_level"] if lbl_style["is_heading"] else 0
-            if "Realice" in lbl_text:
-                print("bingo")
+
             # If we have back-to-back headings, then force a new line.
             if lbl_heading > 0 and previous_heading > 0:
                 # Concatenate a newline.
