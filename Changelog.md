@@ -2,32 +2,41 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.1.3-8.1.4] 31-July-2025
+## [8.2.0] 29-August-2025
 
 ### Added
 
-- Added: No new features have been added.
+- Added: Task labels with embedded html are now displayed with that html (color, headings, lists) surrounded by a rectangle.  This is a work in progress.
+- Default AI model list has been updated.
 
 ### Changed
 
-- Changed: Deprecated OpenAI default models have been removed.
-- Changed: The color of the text in the Diagram 'Top Task' and 'Bottom Task' buttons has been changed to make these more visible when each button appears.
+- Changed: HTML in Task actions is now displayed as with HTML tags rather than having them removed.
+- Changed: Lines that are very long are no longer identified with 'Continued >>>'.
 
 ### Fixed
 
+- Fixed: Task actions with labels are not properly aligned if the 'pretty' option is selected.
+- Fixed: Embedded HTML in task parameters are not appearing with their tags.
+- Fixed: Diagram view shows 'Anchor {h3}{font color=...}' if there is a Task 'Anchor' in the configuration.
+
+### Known Issues
+
+- GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
+
+## Older History Logs
+
+## [8.1.3-8.1.4] 31-July-2025
+
+- Added: No new features have been added.
+- Changed: Deprecated OpenAI default models have been removed.
+- Changed: The color of the text in the Diagram 'Top Task' and 'Bottom Task' buttons has been changed to make these more visible when each button appears.
 - Fixed: The GUI labels identifying the current single-named item are not being updated when going up one or more levels in the Map view.
 - Fixed: 'Threading' error on exit after AI Analysis.
 - Fixed: 'Invalid API Key' message appears for AI Analysis even though the API key is valid.
 - Fixed: Unexpected program (normal) termination immediately after AI Analysis.
 - Fixed: The 'Analysis is running in the background' message doesn't always appear.
 - Fixed: Program error if running in non-GUI mode.
-
-### Known Issues
-
-- Unable to change any colors in GUI if using UV to manage the application (UV bug).
-- GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
-
-## Older History Logs
 
 ## [8.1.2] 29-July-2025
 
