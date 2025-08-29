@@ -82,7 +82,7 @@ def extract_integer(
     Returns:
         str: The result of the integer evaluation.
     """
-    from maptasker.src.action import drop_trailing_comma, process_xml_list
+    from maptasker.src.action import drop_trailing_comma, process_xml_list  # noqa: PLC0415
 
     # Find the first matching <Int> element with the desired 'sr' attribute
     int_element = next(
@@ -156,7 +156,7 @@ def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> st
     Returns:
         str: Extracted string with prefix or an empty string.
     """
-    from maptasker.src.action import drop_trailing_comma
+    from maptasker.src.action import drop_trailing_comma  # noqa: PLC0415
 
     # Find the first matching <Str> element with the desired 'sr' attribute
     str_element = next(

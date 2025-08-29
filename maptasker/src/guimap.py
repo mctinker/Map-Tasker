@@ -8,6 +8,7 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 from __future__ import annotations
 
+import contextlib
 import re
 from html.parser import HTMLParser
 
@@ -28,6 +29,227 @@ The data consists of a list of dictionary values (formatted by guimap)...
         'highlights': list of highlights to apply to the text elements (e.g. bold, underline, etc..)
 """
 glob_spacing = 15
+
+
+def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: int) -> int:
+    """
+    Parses HTML content from a list of strings, extracting text, color, and font information.
+
+    This function iterates through a list of HTML lines, specifically looking for `<span>`
+    tags to extract text content, a 7-character color code from the 'style' attribute,
+    and a 7-character font class from the 'class' attribute. It processes lines until
+    it encounters a `<div>` tag, and populates a dictionary with the extracted data.
+
+    This modified version processes and concatenates text chunks with the same color
+    and font within a single HTML line before adding it to the output dictionary.
+
+    Args:
+        lines (list): A list of strings, where each string is a line of HTML content.
+        output_lines (dict): A dictionary to store the extracted information. The
+                             keys are line numbers and the values are dictionaries
+                             containing lists for "text", "color", and "highlights".
+        line_num (int): The starting line number (index) in `lines` to begin parsing from.
+        spacing (int): The initial spacing value.
+
+
+    Returns:
+        int: The number of lines that were processed (skipped) by this function.
+
+    Note: This code is really ugly!
+    """
+    # Determine if there is html in current line (typically it is in the line after the current line)
+    temp = lines[line_num].split("text-box")
+    if "style=" not in temp[1]:
+        line_num += 1
+        line_num_to_add = line_num
+    else:
+        line_num_to_add = line_num + 1
+    lines_to_skip = 0
+
+    # A new flag to control the flow of the outer while loop
+    continue_processing = True
+    # This will hold the processed data for the current logical line
+    processed_line_data = []
+
+    # Go through all of the data
+    while line_num < len(lines) and continue_processing:
+        # Check if the line starts with <div> and if so, stop processing.
+        if lines[line_num].startswith("<div "):
+            continue_processing = False
+            continue
+
+        # Breakout the html spans
+        html_lines = lines[line_num].split("<span ")
+
+        last_item = {}
+        # Set the end of label flag
+        lblend = False
+
+        for num, line in enumerate(html_lines):
+            # Skip empty lines or lines that are just closing span tags
+            if not line or line == "</span>" or line.endswith('text-box"><p>'):
+                continue
+
+            # Only deal with lines that have a style and class
+            if line and "style=" in line and "class=" in line:
+                try:
+                    # Get the style details
+                    temp = line.split('style="')
+                    style = temp[1].split(";")
+                    # Extract the color, font, and text
+                    color = style[0].replace("color:", "").replace(";text-decoration", "")
+                    decor = style[1].replace("text-decoration: ", "")
+                    font = style[2].split('class="')[1].split('"')[0][0:7]
+                    # Extract the etxt from the <style
+                    temp = style[2].split('-text">')
+                    temp = temp[1].replace("</span>", "").replace("<br>\n", "\n\n")
+                    # <p> is needed for html/browser.  \n\n is needed for Map view.
+                    text = "\n\n" if temp == "<p>" else temp
+                    # Cleanup the text line...possible left over garbage at end.
+                    if ":lblend" in text:
+                        text = text.replace(':lblend"></p></div></div>\n\n', ':lblend">')
+
+                    # Handle newline overflow at end
+                    if line.endswith("</span><br>\n"):
+                        text = text + "\n\n"
+                except IndexError:
+                    rutroh_error(f"Skipping malformed line: {line}")
+                    continue
+
+            # Slightly malformed html...the text has split away from style and class or there simply is no class/style.
+            else:
+                temp = line.split("</span>")
+                # If there is no /span, then this must be text only...no html whatsoever.
+                if len(temp) == 1:
+                    continue
+                text = temp[0]
+
+                if last_item:
+                    color = last_item["color"]
+                    font = last_item["highlights"]
+                else:
+                    # Get the color from the next line.
+                    if ":lblend" not in line:
+                        # If index error, then the style was in previous line.  Just use existing color.
+                        with contextlib.suppress(IndexError):
+                            color = (
+                                html_lines[num + 1]
+                                .split('style="')[1]
+                                .split(":")[1]
+                                .split('"')[0]
+                                .replace(";text-decoration", "")
+                            )
+                    else:
+                        color = ""
+                    font = "h0-text"
+
+            # Check for the end of label flag
+            lblend = ":lblend" in line
+
+            # Check if there's a previous element in processed_line_data
+            if processed_line_data:
+                last_item = processed_line_data[-1]
+                # Compare the current color and font with the last one
+                if last_item["color"] == color and last_item["highlights"] == font:
+                    # If they match, concatenate the text in the processed_line_data list
+                    last_item["text"] += text
+                    last_item["end"] = lblend
+
+                    # Process next line if this isn't the end.
+                    if not lblend:
+                        continue
+                elif lblend:
+                    processed_line_data = add_line_data(processed_line_data, text, color, font, spacing, lblend, decor)
+                    break
+
+                # Reset spacing since we're now adding to an existing line.
+                spacing = 0
+
+                # Get out if this is the end of the label.
+                if lblend:
+                    break
+
+            # If they don't match or it's the first element or the color/font don't match previous...
+            # add a new entry to processed_line_data
+            processed_line_data = add_line_data(processed_line_data, text, color, font, spacing, lblend, decor)
+
+        line_num += 1
+        lines_to_skip += 1
+
+        # Check if we should continue processing the next line or stop.
+        # This is where your requested logic is implemented.
+        if not lblend:
+            continue_processing = True
+            continue
+        continue_processing = False
+
+        # Now, add the processed data for this line to the output_lines dictionary
+        # We need to restructure the data to match the expected format
+        if processed_line_data:
+            # Add all of the info to the output
+            output_lines[line_num_to_add] = {
+                "text": [item["text"] for item in processed_line_data],
+                "color": [item["color"] for item in processed_line_data],
+                "highlights": [item["highlights"] for item in processed_line_data],
+                # Spacing needs to be handled on an element-by-element basis.
+                # The 'spacing' key in the outer dict might not be what you need
+                # if you have multiple text chunks per line. I'll include it here
+                # but you might want to reconsider its placement.
+                "spacing": processed_line_data[0]["spacing"],
+                "end": [item["end"] for item in processed_line_data],
+                "decor": [item["decor"] for item in processed_line_data],
+            }
+            line_num_to_add += 1
+
+    return lines_to_skip
+
+
+def add_line_data(
+    processed_line_data: list,
+    text: str,
+    color: str,
+    font: str,
+    spacing: int,
+    lblend: bool,
+    decor: str,
+) -> None:
+    r"""
+    Splits a string by newline characters and appends a dictionary for each
+    substring to a list.
+
+    This function iterates through a given string, splits it into multiple
+    substrings based on newline characters ('\\n'), and for each substring,
+    it creates and appends a dictionary with text, color, font, spacing,
+    and end-of-label information to a provided list.
+
+    Args:
+        processed_line_data (list): The list to which the processed data
+                                     dictionaries will be appended.
+        text (str): The input string, which may contain newline characters.
+        color (str): The color code associated with the text.
+        font (str): The font class associated with the text.
+        spacing (int): The spacing value for the text.
+        lblend (bool): A flag indicating if this is the end of a label.
+        decor (str): The text decoration style (e.g., "underline").
+    Return:
+        The list with the line(s) added.
+    """
+    for subtext in text.split("\n"):
+        text_to_add = text if text == "\n" else subtext
+        if subtext or text:
+            processed_line_data.append(
+                {
+                    "text": text_to_add,
+                    "color": color,
+                    "highlights": font,
+                    "spacing": spacing,
+                    "end": lblend,
+                    "decor": decor,
+                },
+            )
+        if not subtext:
+            break
+    return processed_line_data
 
 
 # Optimized
@@ -99,9 +321,19 @@ def remove_the_html_tags(text: str) -> str:
     Returns:
         str: The text with HTML tags removed.
     """
-    s = MLStripper()
-    s.feed(text)
-    return s.get_data()
+    # Just replace the stuff we don't weant to see.
+    return (
+        text.replace("<span style=", "")
+        .replace("<div class=", "")
+        .replace("<em>", "")
+        .replace("</em>", "")
+        .replace("<data-flag=", "")
+        .replace("<a href='#'></a>", "")
+    )
+    # TODO Maybe we don't need the html stripper code
+    # s = MLStripper()
+    # s.feed(text)
+    # return s.get_data()
 
 
 # Optimized
@@ -244,24 +476,6 @@ def extract_working_text(temp: list) -> str:
     return temp[2].replace("\n\n", "\n")
 
 
-def handle_continued_text(line: str, working_text: str) -> str:
-    """
-    Extracts the text between "continued >>>" and "<" in the given line and returns it.
-
-    Args:
-        line (str): The line of text to search for "continued >>>" and "<".
-        working_text (str): The text to search for "continued >>>".
-
-    Returns:
-        str: The extracted text between "continued >>>" and "<", or the original working_text if "continued >>>" is not found.
-    """
-    if "continued >>>" in working_text:
-        continued_start = line.find(">")
-        continued_end = line.find("<", continued_start)
-        return line[continued_start:continued_end]
-    return working_text
-
-
 def remove_html_spans(working_text: str) -> str:
     """
     Removes HTML spans from the working_text and returns the modified text.
@@ -329,6 +543,13 @@ def process_line(
             if "_color" in color:
                 # Get the text
                 working_text = extract_working_text(temp)
+
+                # Ignore unique situation in which there is a color and no text.
+                if (
+                    "...with label:" in working_text and color_to_use[0] != "action_label_color"
+                ) and "Anchor" not in working_text:
+                    continue
+
                 # Special handling if a Tasker preferencews key.
                 if PrimeItems.program_arguments["preferences"] and (
                     "Key Service Account" in temp[2] or "Google Cloud Firebase" in temp[2]
@@ -339,7 +560,6 @@ def process_line(
                 if working_text == previous_line:
                     continue
                 previous_line = working_text
-                working_text = handle_continued_text(line, working_text)
                 working_text = remove_html_spans(working_text)
 
                 # Get the color
@@ -430,7 +650,7 @@ def calculate_spacing(
         return 7 if text.startswith("   The following Tasks in Project ") else 10
 
     # General spacing conditions
-    if spacing == 61 or (text and text[0].isdigit()) or " continued >>>" in text:
+    if spacing == 61 or (text and text[0].isdigit()):
         return 15
 
     # Default spacing
@@ -568,6 +788,7 @@ def additional_formatting(
 
     # Handle disabled objects
     output_lines = handle_disabled_objects(output_lines, line_num)
+
     # Determine how much spacing to add to the front of the line.
     spacing = calculate_spacing(
         spacing,
@@ -691,8 +912,14 @@ def process_html_lines(
     """
     doing_global_variables = False
     remove_html = True
+    lines_to_skip = 0
 
     for line_num, line in enumerate(lines):
+        # Are we to skip lines due to label with html having already been added?
+        if lines_to_skip > 0:
+            lines_to_skip -= 1
+            continue
+
         # Ignore lines that match the criteria
         if ignore_line(line) and not doing_global_variables:
             continue
@@ -753,6 +980,11 @@ def process_html_lines(
             spacing,
             remove_html,
         )
+
+        # Handle labels with html in them.
+        if "text-box" in line and ".text-box" not in line:
+            lines_to_skip = process_label_html(lines, output_lines, line_num, spacing)
+            continue
 
         # If at end of valid html, start removing html again
         if "/html" in line or "<div <span" in line:

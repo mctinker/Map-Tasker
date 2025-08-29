@@ -117,7 +117,6 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
         # If pretty text, then reformat it.
         if "Configuration Parameter(s):" in task_code and pretty_mode:
             task_code = reformat_html(task_code)
-
         action_evaluate.build_action(
             tasklist,
             task_code,
@@ -219,6 +218,7 @@ def get_task_name(
         duplicate_task,
         the_task_id,
     )
+
     return task, task_name
 
 
@@ -457,7 +457,7 @@ def output_task_list(
         # fmt: on
 
         # Doing extra details?
-        if (do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks):
+        if do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
             # Get the extra details for this Task
             extra_details = get_extra_details(
                 task_item["xml"],

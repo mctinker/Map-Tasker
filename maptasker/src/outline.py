@@ -65,20 +65,24 @@ def update_caller_and_called_tasks(
         - Adds the caller task's name to the performed task's called_by list
     """
     # Get the Task element referred to by perform_task_name.
-    if PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]:
-        task_called = PrimeItems.tasker_root_elements["all_tasks_by_name"][
-            task["name"]
-        ]  # Get the Task element referred to by perform_task_name
+    try:
+        if PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]:
+            task_called = PrimeItems.tasker_root_elements["all_tasks_by_name"][
+                task["name"]
+            ]  # Get the Task element referred to by perform_task_name
 
-        # Add it to the list of Tasks this Task calls.
-        try:
-            if task_called["call_tasks"]:
-                task_called["call_tasks"].append(perform_task_name)
-        except KeyError:
-            task_called["call_tasks"] = [perform_task_name]
-        except AttributeError:
-            task_called["call_tasks"] = [perform_task_name]
-        PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]["call_tasks"] = task_called["call_tasks"]
+            # Add it to the list of Tasks this Task calls.
+            try:
+                if task_called["call_tasks"]:
+                    task_called["call_tasks"].append(perform_task_name)
+            except KeyError:
+                task_called["call_tasks"] = [perform_task_name]
+            except AttributeError:
+                task_called["call_tasks"] = [perform_task_name]
+            PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]["call_tasks"] = task_called["call_tasks"]
+    # We have a task name that is not valid.  Don't change anything.
+    except KeyError:
+        return
 
     # Find the Task xml element to which this Perform Task refers.  Set up the called by Task list.
     with contextlib.suppress(KeyError):

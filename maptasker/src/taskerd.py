@@ -67,6 +67,7 @@ def get_the_xml_data() -> bool:
         - Returns all data in a dictionary."""
     file_to_parse = PrimeItems.file_to_get.name
     counter = 0
+    anchor = "Anchor ...with label:\n"
 
     while True:
         try:
@@ -139,6 +140,9 @@ def get_the_xml_data() -> bool:
         if not value["name"]:
             # Get the first Task Action and user it as the Task name.
             first_action = get_first_action(value["xml"])
+            # Handle special case of 'Anchor ...with label:\n'
+            if anchor in first_action:
+                first_action = 'Anchor "' + first_action.split(anchor, 1)[1]
 
             # Put the new name back into PrimeItems.tasker_root_elements["all_tasks"]
             value["name"] = f"{first_action.rstrip()}.{key!s} (Unnamed)"

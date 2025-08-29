@@ -18,7 +18,7 @@ import contextlib
 
 from maptasker.src.actiont import lookup_values
 from maptasker.src.error import error_handler
-from maptasker.src.format import format_html
+from maptasker.src.format import format_html, format_label
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
@@ -27,7 +27,6 @@ from maptasker.src.sysconst import (
     RE_FONT,
     DISPLAY_DETAIL_LEVEL_all_tasks,
 )
-from maptasker.src.xmldata import remove_html_tags
 
 
 # Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
@@ -267,8 +266,8 @@ def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
     # Get the label, if any
     if child.find("label") is not None:
         lbl = child.find("label").text
-        # Make sure the label doesn't have any HTML crap in it
-        task_label = clean_label(lbl)
+        task_label = format_label(lbl)
+
     # See if Action is disabled
     action_disabled = (
         format_html(
@@ -351,69 +350,10 @@ def get_conditions(child: defusedxml, the_action_code: str) -> str:
     return result
 
 
-# Given the Task action's label, get rid of anything that could be problematic
-# for the output format
-def clean_label(lbl: str) -> str:
-    """
-    Given the Task action's label, get rid of anything that could be problematic
-    for the output format
-        :param primary_iterms: dict contining all primary items.
-            See primitem.py for details
-        :param lbl: the label to clean up
-        :return: the cleaned up label with added html tags for a label's color
-    """
-    # Remove html tags associated with label, and then add our own.
-    lbl = lbl.replace("<", "&lt;").replace(">", "&gt;")
-    lbl = remove_html_tags(lbl, "")
-    return format_html(
-        "action_label_color",
-        "",
-        f" ...with label: {lbl}",
-        True,
-    )
-
-
 # Chase after relevant data after <code> Task action
 # code_flag identifies the type of xml data to go after based on the specific code
 # in <code>xxx</code>
 # Get the: label, whether to continue Task after error, etc.
-"""
-Objective:
-- The objective of the 'get_extra_stuff' function is to retrieve extra details about
-    a Task Action, such as its label, disabled status, and conditions, and format
-    them for output.
-
-Inputs:
-- 'code_action': an xml element representing the Task Action code
-- 'action_type': a boolean indicating whether the code represents a Task Action or
-                    a Profile condition
-
-Flow:
-- Check if the code represents a Task Action and if the display detail level
-    is set to 3.
-- If so, retrieve the label, disabled status, and conditions of the Task Action using
-    the 'get_label_disabled_condition' function and format them for output.
-- Check if the debug mode is enabled and if the code represents a Task Action.
-- If so, add the code to the output.
-- Check if the display detail level is set to 3.
-- If so, check if the Task Action is set to continue after an error and add it
-    to the output.
-- Remove any empty '<span>' elements from the output.
-- Return the formatted output.
-
-Outputs:
-- A string containing the formatted extra details about the Task Action.
-
-Additional aspects:
-- The function uses the 'get_label_disabled_condition' function to retrieve the label,
-    disabled status, and conditions of the Task Action.
-- The function formats the output using the 'format_html' function.
-- The function removes any empty '<span>' elements from the output.
-- The function only retrieves extra details if the code represents a Task Action and
-    the display detail level is set to 3.
-"""
-
-
 # Chase after relevant data after <code> Task action
 def get_extra_stuff(
     code_action: defusedxml.ElementTree,

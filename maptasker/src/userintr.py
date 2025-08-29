@@ -8,6 +8,7 @@
 from __future__ import annotations  # noqa: I001
 
 import contextlib
+import copy
 import os
 import pickle
 import webbrowser
@@ -171,6 +172,10 @@ class MyGui(customtkinter.CTk):
         else:
             self.display_message_box("GUI started with the '-reset' option.\n", "Green")
 
+        # Make sure we have colors
+        if self.color_lookup and not PrimeItems.colors_to_use:
+            PrimeItems.colors_to_use = copy.deepcopy(self.color_lookup)
+
         # If debug set as runtime option, then set it in the GUI aswell.
         if PrimeItems.program_arguments["debug"]:
             self.reset_debug_at_end = not self.debug
@@ -239,7 +244,7 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # CHG ME: For Development Only!
+        # TODO: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
         # self.event_handlers.map_event()
