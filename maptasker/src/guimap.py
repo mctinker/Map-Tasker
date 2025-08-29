@@ -476,25 +476,6 @@ def extract_working_text(temp: list) -> str:
     return temp[2].replace("\n\n", "\n")
 
 
-# FIX Delete this function if nolonger use 'Continued >>>'
-def handle_continued_text(line: str, working_text: str) -> str:
-    """
-    Extracts the text between "continued >>>" and "<" in the given line and returns it.
-
-    Args:
-        line (str): The line of text to search for "continued >>>" and "<".
-        working_text (str): The text to search for "continued >>>".
-
-    Returns:
-        str: The extracted text between "continued >>>" and "<", or the original working_text if "continued >>>" is not found.
-    """
-    if "continued >>>" in working_text:
-        continued_start = line.find(">>>") + 3
-        continued_end = line.find("<", continued_start)
-        return line[continued_start:continued_end]
-    return working_text
-
-
 def remove_html_spans(working_text: str) -> str:
     """
     Removes HTML spans from the working_text and returns the modified text.
@@ -579,7 +560,6 @@ def process_line(
                 if working_text == previous_line:
                     continue
                 previous_line = working_text
-                working_text = handle_continued_text(line, working_text)
                 working_text = remove_html_spans(working_text)
 
                 # Get the color
@@ -670,8 +650,7 @@ def calculate_spacing(
         return 7 if text.startswith("   The following Tasks in Project ") else 10
 
     # General spacing conditions
-    # FIX Get rid of 'Continued >>>' check
-    if spacing == 61 or (text and text[0].isdigit()) or " continued >>>" in text:
+    if spacing == 61 or (text and text[0].isdigit()):
         return 15
 
     # Default spacing

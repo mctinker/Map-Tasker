@@ -425,7 +425,6 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     while msg_to_insert not in content:
                         content = self.textview_textbox.get(f"{prev_num!s}.0", f"{prev_num!s}.end")
                         if msg_to_insert not in content:
-                            # print("bingoc", prev_num, "content='", content, "' msg=", msg_to_insert)
                             prev_num -= 1
                     begin_box = f"{prev_num}.0"
 

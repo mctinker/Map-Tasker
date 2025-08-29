@@ -241,7 +241,7 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_underline"] = False
 
         # Revert list tags
-        if tag == "ul" or tag == "ol":
+        if tag in {"ul", "ol"}:
             if self.list_indent_level > 0:
                 self.list_indent_level -= 1
             if self.list_types:
@@ -487,7 +487,7 @@ def format_label(lbl: str) -> str:
             lbl_heading = lbl_style["heading_level"] if lbl_style["is_heading"] else 0
 
             # If we have back-to-back headings, then force a new line.
-            if lbl_heading > 0 and previous_heading > 0:
+            if (lbl_heading > 0 and previous_heading > 0) and (lbl_heading != previous_heading):
                 # Concatenate a newline.
                 task_label = (
                     task_label

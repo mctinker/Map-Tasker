@@ -264,6 +264,9 @@ OPENAI_MODELS = [
     "gpt-4.1",
     "gpt-4.1-mini",
     "gpt-4.1-nano",
+    "gpt-5",
+    "gpt-5-mino",
+    "gpt-5-nano",
     "o1-mini",
     "o1-pro",
     "o3",
@@ -279,6 +282,7 @@ LLAMA_MODELS = [
     # "devstral",     # This model is 14gb!
     "exaone-deep",
     "gemma3:1b",
+    "gpt-oss",
     "llama2",
     "llama3.2",
     "llama3.3",
@@ -300,7 +304,6 @@ GEMINI_MODELS = [
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
     "gemini-2.5-flash",
-    "gemini-2.5-flash-lite-preview-06-17",
     "gemini-2.5-pro",
 ]
 MODEL_GROUPS = {

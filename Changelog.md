@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.2.0] ??-August-2025. # FIX
+## [8.2.0] 29-August-2025
 
 ### Added
 
 - Added: Task labels with embedded html are now displayed with that html (color, headings, lists) surrounded by a rectangle.  This is a work in progress.
+- Default AI model list has been updated.
 
 ### Changed
 

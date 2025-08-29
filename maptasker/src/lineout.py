@@ -390,7 +390,7 @@ class LineOut:
             print(formatted_element)
 
             Output:
-            <span class="actiontab"></span><span class="indentation">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continued >>> Attribute</span><br>
+            <span class="actiontab"></span><span class="indentation">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Attribute</span><br>
         """
         blank = "&nbsp;"
 
@@ -409,8 +409,6 @@ class LineOut:
             # Add indentation for contination line
             tmp = start1[0].replace(
                 "Action: ...",
-                # FIX Delete commented line
-                # f"{indentation}continued >>> {start2[1]}",
                 f"{indentation}{start2[1]}",
             )
 
