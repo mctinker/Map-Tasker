@@ -355,6 +355,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
         # Iterate over a list or a string.
         for inner_num, message in enumerate(value["text"]):
+            if "Important Project Variables" in message:
+                print("bingo")
             # clean_message = message.replace("\n\n", "\n")
             clean_message = message
 
@@ -362,7 +364,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             start_idx = str(line_num) + "." + str(char_position)
 
             # Handle a single, new line.
-            if clean_message == "\n":
+            if clean_message == "\n" or not clean_message:
                 char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
 
                 # Keep track of the maximum message length
@@ -375,6 +377,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
+                if "Important Project Variables" in msg:
+                    print("bingo")
                 # Bailout if we hit our end-of-label flag.
                 if not end_of_label and (value["end"][inner_num] or ":lblend" in msg):
                     end_of_label = True
@@ -558,21 +562,33 @@ def _insert_and_tag(
     mygui = self.master.master
 
     # Create a tag with a border
-    tag_id = f"{value['highlights'][inner_num]}:{value['color'][inner_num]}:{value['decor'][inner_num]}"
+    tag_id = f"{value['highlights'][inner_num]}:{value['color'][inner_num]}:{value['decor'][inner_num].strip()}"
     # tags.append(tag_id)
 
-    # Get the font size
+    # Get the font size / italic flag / bold
+    italic = False
+    bold = False
+    heading_num = "0"
     temp = tag_id.split(":")
-    heading_num = temp[0].replace("-text", "")[1]
+    if temp[0] == "italic":
+        italic = True
+    elif temp[0] == "bold":
+        bold = True
+    else:
+        heading_num = temp[0].replace("-text", "")[1]
+
     try:
         font_size = heading_fonts[heading_num]
     except KeyError:
         font_size = heading_fonts["0"]  # Default to h0 if not found
     font_sizes = [int(value) for value in heading_fonts.values()]
     max_font_size = max(font_sizes)
-    if font_size == max_font_size:
+    if int(font_size) == max_font_size:
         # If the font size is the largest, decrease the spacing
         spacing = 1
+
+    # Set up for italicised text
+    font_to_use = (mygui.font, font_size, "italic" if italic else "normal", "bold" if bold else "normal")
 
     # Handle underlining: True or False
     underline = value["decor"][inner_num] == "underline"
@@ -595,7 +611,8 @@ def _insert_and_tag(
     if tag_id not in self.label_tags:
         self.textview_textbox.tag_config(
             tag_id,
-            font=(mygui.font, font_size),
+            # font=(mygui.font, font_size),
+            font=font_to_use,
             background=bg_color,
             foreground=fg_color,
             underline=underline,

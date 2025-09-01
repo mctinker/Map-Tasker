@@ -13,6 +13,7 @@ import re
 from html.parser import HTMLParser
 
 from maptasker.src.error import rutroh_error
+from maptasker.src.format import format_label
 from maptasker.src.guiutils import align_text
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import pattern8
@@ -91,20 +92,36 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 continue
 
             # Only deal with lines that have a style and class
+            font = ""
+            decor = ""
             if line and "style=" in line and "class=" in line:
                 try:
-                    # Get the style details
+                    # Get the style details: color font, heading size, bold, italicised.
                     temp = line.split('style="')
                     style = temp[1].split(";")
-                    # Extract the color, font, and text
-                    color = style[0].replace("color:", "").replace(";text-decoration", "")
-                    decor = style[1].replace("text-decoration: ", "")
-                    font = style[2].split('class="')[1].split('"')[0][0:7]
-                    # Extract the etxt from the <style
-                    temp = style[2].split('-text">')
-                    temp = temp[1].replace("</span>", "").replace("<br>\n", "\n\n")
-                    # <p> is needed for html/browser.  \n\n is needed for Map view.
-                    text = "\n\n" if temp == "<p>" else temp
+
+                    if "bold" in line and "italicised" in line:
+                        print("bingo")
+                    for specific_style in style:
+                        if "color:" in specific_style:
+                            color = specific_style.replace("color:", "")
+                        elif "text-decoration:" in specific_style:
+                            decor = specific_style.replace("text-decoration:", "")
+                        # FIX Allow for both 'bold' and 'italicised' on same text
+                        elif "font-style:" in specific_style:
+                            font = "italic"
+                        elif "class=" in specific_style:
+                            if not font:
+                                font = specific_style.split('class="')[1].split('"')[0][0:7]
+                            temp = specific_style.split('-text">')
+                            temp = temp[1].replace("</span>", "").replace("<br>\n", "\n\n")
+                            # <p> is needed for html/browser.  \n\n is needed for Map view.
+                            text = "\n\n" if temp == "<p>" else temp
+                            if "Important Project Variables" in text:
+                                print("bingo")
+                        elif "font-weight:" in specific_style:
+                            font = "bold" if "bold" in specific_style else "normal"
+
                     # Cleanup the text line...possible left over garbage at end.
                     if ":lblend" in text:
                         text = text.replace(':lblend"></p></div></div>\n\n', ':lblend">')
@@ -236,6 +253,8 @@ def add_line_data(
     """
     for subtext in text.split("\n"):
         text_to_add = text if text == "\n" else subtext
+        if not subtext:
+            text_to_add = text
         if subtext or text:
             processed_line_data.append(
                 {
@@ -913,8 +932,16 @@ def process_html_lines(
     doing_global_variables = False
     remove_html = True
     lines_to_skip = 0
+    taskernet_color = PrimeItems.colors_to_use["taskernet_color"]
+    label_color = PrimeItems.colors_to_use["action_label_color"]
+    front_matter = '<span class="action_label_color"> ...with label:'
+    front_matter_plus = f"{front_matter}</span>"
+    doing_taskernet = False
+    taskernet_text = []
 
     for line_num, line in enumerate(lines):
+        if "TaskerNet description:" in line:
+            print("bingo")
         # Are we to skip lines due to label with html having already been added?
         if lines_to_skip > 0:
             lines_to_skip -= 1
@@ -923,6 +950,73 @@ def process_html_lines(
         # Ignore lines that match the criteria
         if ignore_line(line) and not doing_global_variables:
             continue
+
+        if "TaskerNet description:" in line:
+            print("bingo")
+            doing_taskernet = True
+            continue_lines = True
+            tnet_line_num = line_num
+        if doing_taskernet:
+            # If not end of TaskerNet description...
+            if "</span>" not in line:
+                # Add the TaskerNet line to our list and remove HTML tags we had previously added.
+                taskernet_text.append(
+                    line.replace('<span class="taskernet_color projtab">', "")
+                    .replace(
+                        f'<div <span class="{taskernet_color} projtab"></span"></div>',
+                        "",
+                    )
+                    .replace("<div>", "")
+                    .replace("</div>", "")
+                    .replace("</span>", ""),
+                )
+
+                print("bingo")
+            # Last line of TaskerNet description.  Format it like a label.
+            else:
+                # Add the last line to our list and remove HTML tags we had previously added.  Get rid of our html.
+                taskernet_text.append(
+                    line.replace('<span class="taskernet_color projtab">', "")
+                    .replace(
+                        f'<div <span class="{taskernet_color} projtab"></span"></div>',
+                        "",
+                    )
+                    .replace("<div>", "")
+                    .replace("</div>", "")
+                    .replace("</span>", ""),
+                )
+
+                # Indicate that we are done.
+                doing_taskernet = False
+                taskernet_label = "".join(taskernet_text)
+                taskernet_text = []
+                # Plug the formatted TaskerNet description into the very last line of the input/TaskerNet description...
+                # We need to fake-out 'process_label_html' into thinking this is a valid label
+                formatted_line = (
+                    format_label(taskernet_label)
+                    .replace(front_matter, "")
+                    .replace(label_color, taskernet_color)
+                    .replace(front_matter_plus, "")
+                ).replace("</span>", "")
+
+                # If we have html in lines, process them
+                if "text-box" in formatted_line:
+                    if formatted_line.startswith("<div "):
+                        formatted_line = formatted_line[5:]
+                        lines[line_num] = (
+                            formatted_line.replace("<br>", "\n").replace("</div>", "").replace("lmrk", "\n\n   ")
+                        )
+                    # Format for a box.  Store results into output_lines @ line_num
+                    lines_to_skip = process_label_html(lines, output_lines, line_num, spacing)
+
+                # Just plain text.  Put the Tasker description out as is.
+                else:
+                    line_num = tnet_line_num  # noqa: PLW2901
+                    continue_lines = False
+
+            # Skip the output if TaskerNet descriptioon with html.
+            if continue_lines:
+                continue
 
         # Process directory entries
         if "<td>" in line:

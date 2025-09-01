@@ -1,3 +1,9 @@
+#! /usr/bin/env python3
+"""Text formatter."""
+#                                                                                      #
+# format: Various formatting functions,                                                #
+#                                                                                      #
+
 import html
 import re
 from html.parser import HTMLParser
@@ -148,9 +154,8 @@ class HTMLTextFormatter(HTMLParser):
             "is_h4": False,
             "is_h5": False,
             "is_h6": False,
-            "is_underline": False,
-            "is_italic": False,
-            "is_bold": False,  # ADDED: Add bold style
+            "is_underline": False,  # NEW: Add underline style
+            "is_italic": False,  # ADDED: Add italic style
         }
         self.tag_stack = []  # To keep track of active tags and their influence
         self.list_indent_level = 0
@@ -173,17 +178,13 @@ class HTMLTextFormatter(HTMLParser):
             if "color" in attrs_dict:
                 self.current_styles["color"] = attrs_dict["color"].lower()
 
-        # Handle underline tags
+        # NEW: Handle underline tags
         elif tag == "u":
             self.current_styles["is_underline"] = True
 
-        # Handle italic/emphasis tags
+        # ADDED: Handle italic/emphasis tags
         elif tag in ["i", "em"]:
             self.current_styles["is_italic"] = True
-
-        # ADDED: Handle bold tag
-        elif tag == "b":
-            self.current_styles["is_bold"] = True
 
         # Handle list tags
         # tag = "li"
@@ -240,17 +241,13 @@ class HTMLTextFormatter(HTMLParser):
             if not found_font:
                 self.current_styles["color"] = None
 
-        # Revert underline tag
+        # NEW: Revert underline tag
         elif tag == "u":
             self.current_styles["is_underline"] = False
 
-        # Revert italic/emphasis tags
+        # ADDED: Revert italic/emphasis tags
         elif tag in ["i", "em"]:
             self.current_styles["is_italic"] = False
-
-        # ADDED: Revert bold tag
-        elif tag == "b":
-            self.current_styles["is_bold"] = False
 
         # Revert list tags
         if tag in {"ul", "ol"}:
@@ -492,15 +489,12 @@ def format_label(lbl: str) -> str:
             lbl_style = action_label["styles"]
             lbl_color = lbl_style["color"] if lbl_style["color"] else PrimeItems.colors_to_use["action_label_color"]
 
-            # Create CSS for underline, italic, and bold styles
+            # UPDATED: Create CSS for both underline and italic styles
             css_styles = ";text-decoration: none;"
             if lbl_style.get("is_underline"):
                 css_styles += ";text-decoration: underline;"
             if lbl_style.get("is_italic"):
                 css_styles += "font-style: italic;"
-            if lbl_style.get("is_bold"):
-                css_styles += ";font-weight: bold;"
-            css_styles = css_styles.replace(";;", ";")
 
             lbl_heading = lbl_style["heading_level"] if lbl_style["is_heading"] else 0
 

@@ -6,25 +6,32 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: Task labels with embedded html are now displayed with that html (color, headings, lists) surrounded by a rectangle.  This is a work in progress.
-- Default AI model list has been updated.
+- Added: Labels with html now recognize italicised/emphasized and bold text.
+- Added: TaskerNet descriptions with HTML are now handled like labels with HTML.  The HTML is retained and the description is serounded by a box.
 
 ### Changed
 
-- Changed: HTML in Task actions is now displayed as with HTML tags rather than having them removed.
-- Changed: Lines that are very long are no longer identified with 'Continued >>>'.
+- Changed:
 
 ### Fixed
 
-- Fixed: Task actions with labels are not properly aligned if the 'pretty' option is selected.
-- Fixed: Embedded HTML in task parameters are not appearing with their tags.
-- Fixed: Diagram view shows 'Anchor {h3}{font color=...}' if there is a Task 'Anchor' in the configuration.
+- Fixed:
 
 ### Known Issues
 
 - GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [8.2.0] 29-Aug-2025
+
+- Added: Task labels with embedded html are now displayed with that html (color, headings, lists) surrounded by a rectangle.  This is a work in progress.
+- Default AI model list has been updated.
+- Changed: HTML in Task actions is now displayed as with HTML tags rather than having them removed.
+- Changed: Lines that are very long are no longer identified with 'Continued >>>'.
+- Fixed: Task actions with labels are not properly aligned if the 'pretty' option is selected.
+- Fixed: Embedded HTML in task parameters are not appearing with their tags.
+- Fixed: Diagram view shows 'Anchor {h3}{font color=...}' if there is a Task 'Anchor' in the configuration.
 
 ## [8.1.3-8.1.4] 31-July-2025
 

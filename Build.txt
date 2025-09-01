@@ -164,6 +164,7 @@ poetry version patch
 # List all branches
 git branch -a
 
+===================================================================================================================
 # Publishing a New Version
 0- Check dependencies, requirements.txt and AI models
 1- Test Test Test  > Test on Python 3.11 and 3.12
@@ -194,6 +195,7 @@ source .venv/bin/activate.fish
 15- GIT Merge / Go to Next Version (below)
 16- Update changelog.md
 DONE
+===================================================================================================================
 
 # GIT Merge / Go to Next Version
 git checkout master
