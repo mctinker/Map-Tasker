@@ -91,45 +91,15 @@ def description_element_output(
         :param description_element: xml element <d> TaskerNet description.
         :param tab: CSS tab class name to apply to the color HTML.
     """
-    # We need to properly format this since it has embedded stuff that screws it up
-    out_string = format_html(
-        "taskernet_color",
-        "",
-        f"TaskerNet description: {description_element.text}",
-        True,
+    # Format the description as if it is a label with embedded html/
+    out_string = (
+        format_label(f"<h6>TaskerNet description: {description_element.text}")
+        .replace("action_label_color", "taskernet_color")
+        .replace(" ...with label:", "")
+        .replace("\n", "<br>")
     )
-    # FIX Delete commented code
-    # Replace all of the Taskernet imbedded HTML with our HTML.
-    # indent_html = f'<div <span class="{PrimeItems.colors_to_use["taskernet_color"]} {tab}"></span"></div>'
-
-    # # Indent the description and override various embedded HTML attributes
-    # out_string = out_string.replace("<p>", indent_html)
-    # out_string = out_string.replace("<P>", indent_html)
-    # out_string = out_string.replace("</p>", "")
-    # out_string = out_string.replace("</P>", "")
-    # out_string = out_string.replace("<b>", "")
-    # out_string = out_string.replace("<br>", indent_html)
-    # out_string = out_string.replace("<h1>", indent_html)
-    # out_string = out_string.replace("\r", indent_html)
-    # out_string = out_string.replace("<li>", indent_html)
-    # out_string = out_string.replace("</li>", "")
-    # out_string = out_string.replace("<strong>", "")
-    # out_string = out_string.replace("\n\n", "<br><br>")  # N
-    # out_string = out_string.replace("\n", "<br>")  # New line break.
-    # out_string = out_string.replace("  ", "<br>")  # Break after two blanks.
-    # out_string = out_string.replace("- ", "<br>")  # Break after dash blank.
-
-    # out_string = out_string.replace(
-    #     "<table>",
-    #     (
-    #         "\n<style>\n.myTable2 {\n color:"
-    #         + PrimeItems.colors_to_use["taskernet_color"]
-    #         + ';}\n</style>\n<table class="myTable2 {tab}">'
-    #     ),
-    # )
-    # FIX This isn't quite working.
-    t = description_element.text
-    out_string = format_label(description_element.text)
+    if "Note: If you" in out_string:
+        print("bingo")
 
     # Add the tab CSS call to the color.
     out_string = PrimeItems.output_lines.add_tab(tab, out_string)

@@ -1,8 +1,4 @@
-#! /usr/bin/env python3
-"""Text formatter."""
-#                                                                                      #
-# format: Various formatting functions,                                                #
-#                                                                                      #
+"""Formatting logic"""
 
 import html
 import re
@@ -22,6 +18,7 @@ def format_line(item: str) -> str:
         :return: the reformatted text line for output
     """
     space = "&nbsp;"
+    three_spaces = f"{space * 3}"
     # If item is a list, then get the actual output line
     if isinstance(item, list):
         item = item[1]
@@ -39,13 +36,17 @@ def format_line(item: str) -> str:
             f"Action: {action_number[0]}",
             f"{action_number[0]}:",
         )
-        # Handle list markers: ordered and unordered.  Just blank-out the leading lmrk.
-        if "lmrk" in output_line:
-            output_line = replace_second_and_subsequent(output_line, "lmrk", "<br>").replace("lmrk", "")
 
     # Not an 'Action:'. No changes needed
     else:
         output_line = item
+
+        # Handle list markers: ordered and unordered.  Just blank-out the leading lmrk.
+        if "lmrk" in output_line:
+            output_line = replace_second_and_subsequent(output_line, "lmrk", f"<br>{three_spaces}").replace(
+                "lmrk",
+                three_spaces,
+            )
 
     # # Format the html...add a number of blanks if some sort of list.
     if "DOCTYPE" in item:  # If imbedded html (e.g. Scene WebElement), add a break and some spacing.
@@ -154,7 +155,9 @@ class HTMLTextFormatter(HTMLParser):
             "is_h4": False,
             "is_h5": False,
             "is_h6": False,
-            "is_underline": False,  # NEW: Add underline style
+            "is_underline": False,
+            "is_italic": False,
+            "is_bold": False,  # ADDED: Add bold style
         }
         self.tag_stack = []  # To keep track of active tags and their influence
         self.list_indent_level = 0
@@ -177,9 +180,17 @@ class HTMLTextFormatter(HTMLParser):
             if "color" in attrs_dict:
                 self.current_styles["color"] = attrs_dict["color"].lower()
 
-        # NEW: Handle underline tags
+        # Handle underline tags
         elif tag == "u":
             self.current_styles["is_underline"] = True
+
+        # Handle italic/emphasis tags
+        elif tag in ["i", "em"]:
+            self.current_styles["is_italic"] = True
+
+        # ADDED: Handle bold tag
+        elif tag == "b":
+            self.current_styles["is_bold"] = True
 
         # Handle list tags
         # tag = "li"
@@ -236,9 +247,17 @@ class HTMLTextFormatter(HTMLParser):
             if not found_font:
                 self.current_styles["color"] = None
 
-        # NEW: Revert underline tag
+        # Revert underline tag
         elif tag == "u":
             self.current_styles["is_underline"] = False
+
+        # Revert italic/emphasis tags
+        elif tag in ["i", "em"]:
+            self.current_styles["is_italic"] = False
+
+        # ADDED: Revert bold tag
+        elif tag == "b":
+            self.current_styles["is_bold"] = False
 
         # Revert list tags
         if tag in {"ul", "ol"}:
@@ -445,11 +464,12 @@ def format_label(lbl: str) -> str:
         A string containing the HTML-formatted task label.
     """
     blank = "&nbsp;"
+    color_to_use = "taskernet_color" if "TaskerNet description" in lbl else "action_label_color"
 
     # Only process labels with html here.
     if contains_html(lbl):
         task_label = format_html(
-            "action_label_color",
+            color_to_use,
             "",
             " ...with label:",
             True,
@@ -478,12 +498,18 @@ def format_label(lbl: str) -> str:
 
             # Get the label details for this item in them label.
             lbl_style = action_label["styles"]
-            lbl_color = lbl_style["color"] if lbl_style["color"] else PrimeItems.colors_to_use["action_label_color"]
-            lbl_underline = (
-                ";text-decoration: underline;" if lbl_style.get("is_underline") else ";text-decoration: none;"
-            )
+            lbl_color = lbl_style["color"] if lbl_style["color"] else PrimeItems.colors_to_use[color_to_use]
 
-            # lbl_heading = (lbl_style["heading_level"] * 2) if lbl_style["is_heading"] else 0
+            # Create CSS for underline, italic, and bold styles
+            css_styles = ";text-decoration: none;"
+            if lbl_style.get("is_underline"):
+                css_styles += ";text-decoration: underline;"
+            if lbl_style.get("is_italic"):
+                css_styles += "font-style: italic;"
+            if lbl_style.get("is_bold"):
+                css_styles += ";font-weight: bold;"
+            css_styles = css_styles.replace(";;", ";")
+
             lbl_heading = lbl_style["heading_level"] if lbl_style["is_heading"] else 0
 
             # If we have back-to-back headings, then force a new line.
@@ -493,7 +519,7 @@ def format_label(lbl: str) -> str:
                     task_label
                     + '<span style="color:'
                     + lbl_color
-                    + lbl_underline
+                    + css_styles
                     + '" class="h0-text">'
                     + "<p>"
                     + "</span>"
@@ -518,12 +544,10 @@ def format_label(lbl: str) -> str:
                     task_label = task_label + "<br>"
 
                 # Concatenate all of the text lines with the color.
+                # UPDATED: Use the combined css_styles string
                 task_label = (
                     task_label
-                    + '<span style="color:'
-                    + lbl_color
-                    + lbl_underline
-                    + f'" class="h{lbl_heading}-text">'
+                    + f'<span style="color:{lbl_color}{css_styles}" class="h{lbl_heading}-text">'
                     + f"{lbl_text}{label_end}"
                     + "</span>"
                 )
@@ -540,7 +564,7 @@ def format_label(lbl: str) -> str:
     # No embedded html
     else:
         task_label = format_html(
-            "action_label_color",
+            color_to_use,
             "",
             f" ...with label: {lbl}",
             True,

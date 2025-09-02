@@ -40,7 +40,9 @@ def display_caveats() -> None:
             "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters"
             " converted to '{' and '}' respectively.\n"
         ),
-        ("- The formatting of labels with embedded HTML is displayed as close as possible in the Map view.\n"),
+        (
+            "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+        ),
     ]
 
     # Conditional caveats start here...

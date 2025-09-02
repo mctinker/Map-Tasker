@@ -333,6 +333,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     end_of_label = False
     prev_msg = "---none---"
     bbox_not_yet_configured = True
+    its_a_label = True
 
     # Get the background color
     bg_color = make_hex_color(mygui.color_lookup["background_color"])
@@ -341,6 +342,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     # Innerloop for values of label on the same line.
     # Microloop for all newline-deliminated messages on same line.
 
+    # Outerloop on all_valuies for all lines in label
     # Go through all of the values in the label and output them
     for num, value in enumerate(all_values):
         # value is a dictionary of lists for 'text', 'color', etc.
@@ -353,12 +355,13 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
         if value["end"][num]:
             end_of_label = True
 
+        # Innerloop for values of label on the same line.
         # Iterate over a list or a string.
         for inner_num, message in enumerate(value["text"]):
-            if "Important Project Variables" in message:
-                print("bingo")
             # clean_message = message.replace("\n\n", "\n")
             clean_message = message
+            if clean_message == "<p>":
+                clean_message = "\n"
 
             # Build the start end indecies
             start_idx = str(line_num) + "." + str(char_position)
@@ -375,10 +378,19 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Break message up by newline
             all_messages = clean_message.split("\n")
 
+            # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
-                if "Important Project Variables" in msg:
+                if "Use ChatGPT" in msg:
                     print("bingo")
+                # Determine if this is a label vs TaskerNet description
+                if "TaskerNet description:" in msg:
+                    its_a_label = False
+
+                # If Taskernet Description, alter the color
+                if not its_a_label and value["color"][inner_num] == PrimeItems.colors_to_use["action_label_color"]:
+                    value["color"][inner_num] = PrimeItems.colors_to_use["taskernet_color"]
+
                 # Bailout if we hit our end-of-label flag.
                 if not end_of_label and (value["end"][inner_num] or ":lblend" in msg):
                     end_of_label = True
@@ -397,7 +409,11 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     continue
 
                 # Readjust the message by adding a blank at the end so it doesn't bump up against box.
-                msg_to_insert = updated_msg
+                msg_to_insert = updated_msg.replace("&nbsp;", " ").replace("<p>", "\n").replace("</p></div>", "")
+
+                # Add a blank to the front if this is and TaskerNet description and the start of a line
+                if char_position == 0 and not its_a_label and not msg_to_insert.startswith(" "):
+                    msg_to_insert = " " + msg_to_insert
 
                 # Insert and tag the message
                 max_msg_len, char_position = _insert_and_tag(
