@@ -54,12 +54,6 @@ def add_css() -> None:
 .blanktab2 {display: inline-block; margin-right: yyy;}
 .blanktab3 {display: inline-block; margin-right: zzz;}
     """
-    # Add css for box around text.  Example:
-    # <div class="text-box">
-    #     <p>This is the first line of text.</p>
-    #     <p>This is the second line of text.</p>
-    #     <p>This is the third and final line of text.</p>
-    # </div>
 
     box = """
     <style>
@@ -78,48 +72,15 @@ def add_css() -> None:
 
     fontsize = """
     <style>
-        .h0-text { font-size: 16px; }
-        .h1-text { font-size: 24px; }
-        .h2-text { font-size: 22px; }
-        .h3-text { font-size: 20px; }
-        .h4-text { font-size: 18px; }
-        .h5-text { font-size: 16px; }
-        .h6-text { font-size: 15px; }
+        .h0-text { font-size: 16px; line-height: 1.00}
+        .h1-text { font-size: 24px; line-height: 1.00}
+        .h2-text { font-size: 22px; line-height: 1.00}
+        .h3-text { font-size: 20px; line-height: 1.00}
+        .h4-text { font-size: 18px; line-height: 1.00}
+        .h5-text { font-size: 16px; line-height: 1.00}
+        .h6-text { font-size: 15px; line-height: 1.00}
     </style>
     """
-    # <style>
-    #     /*
-    #     * CSS Stylesheet
-    #     * This is the best place to define styles for your entire page.
-    #     */
-    #     .small-text {
-    #         font-size: 12px;
-    #     }
-
-    #     .large-text {
-    #         font-size: 24px;
-    #     }
-
-    #     .relative-size-em {
-    #         /* This size is 1.5 times the font size of its parent element */
-    #         font-size: 1.5em;
-    #     }
-
-    #     .relative-size-rem {
-    #         /* This size is 2 times the font size of the root HTML element */
-    #         font-size: 2rem;
-    #     }
-
-    #     .percentage-size {
-    #         /* This size is 150% of the font size of its parent element */
-    #         font-size: 150%;
-    #     }
-
-    #     p {
-    #         /* This sets a base font size for all <p> tags */
-    #         font-size: 16px;
-    #     }
-    # </style>
 
     # Modsify the tabs with appropriate spacing.
     tabs = tabs.replace("xxx", SPACE_COUNT1[1])

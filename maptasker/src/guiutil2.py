@@ -381,8 +381,6 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
-                if "Use ChatGPT" in msg:
-                    print("bingo")
                 # Determine if this is a label vs TaskerNet description
                 if "TaskerNet description:" in msg:
                     its_a_label = False
@@ -609,6 +607,23 @@ def _insert_and_tag(
     # Handle underlining: True or False
     underline = value["decor"][inner_num] == "underline"
 
+    # Handle hotlink 'href'
+    if message.startswith("<a href="):
+        temp = message.split('"')
+        href = temp[1]
+        text_len = len(temp[2]) - 4
+        message = temp[2][1:text_len]
+        # hyper_tag = mygui.textview_hyperlink.add(message, href)
+        # Add the link
+        tag_id = self.textview_hyperlink.add(href)
+        self.textview_textbox.insert(
+            start_idx,
+            message,
+            tag_id,
+        )
+    else:
+        href = ""
+
     # Format the message
     spacer = " " * spacing
     formatted_message = spacer + message if spacing > 0 else message
@@ -619,21 +634,22 @@ def _insert_and_tag(
     # Get the html attributes
     fg_color = make_hex_color(value["color"][inner_num])
 
-    # Insert the unformatted text
-    # Specifying the tag_id in the insert eliminates the need to do a tag_add.
-    self.textview_textbox.insert(start_idx, formatted_message, tag_id)
+    # Insert the unformatted text...only if it is normal text and not a hotlink
+    if not href:
+        # Specifying the tag_id in the insert eliminates the need to do a tag_add.
+        self.textview_textbox.insert(start_idx, formatted_message, tag_id)
 
-    # Apply the html attributes
-    if tag_id not in self.label_tags:
-        self.textview_textbox.tag_config(
-            tag_id,
-            # font=(mygui.font, font_size),
-            font=font_to_use,
-            background=bg_color,
-            foreground=fg_color,
-            underline=underline,
-        )
-        self.label_tags.append(tag_id)
+        # Apply the html attributes
+        if tag_id not in self.label_tags:
+            self.textview_textbox.tag_config(
+                tag_id,
+                # font=(mygui.font, font_size),
+                font=font_to_use,
+                background=bg_color,
+                foreground=fg_color,
+                underline=underline,
+            )
+            self.label_tags.append(tag_id)
 
     char_position += len(formatted_message)
 

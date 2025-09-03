@@ -98,8 +98,6 @@ def description_element_output(
         .replace(" ...with label:", "")
         .replace("\n", "<br>")
     )
-    if "Note: If you" in out_string:
-        print("bingo")
 
     # Add the tab CSS call to the color.
     out_string = PrimeItems.output_lines.add_tab(tab, out_string)

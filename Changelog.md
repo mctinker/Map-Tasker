@@ -6,8 +6,8 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: Labels with html now recognize italicised/emphasized and bold text.
 - Added: TaskerNet descriptions with HTML are now handled like labels with HTML.  The HTML is retained and the description is serounded by a box.
+- Added: Labels and TaskerNet descriptions with html now recognize italicised/emphasized and bold text, as well as hotlinks.
 
 ### Changed
 

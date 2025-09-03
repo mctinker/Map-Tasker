@@ -43,7 +43,11 @@ def format_line(item: str) -> str:
 
         # Handle list markers: ordered and unordered.  Just blank-out the leading lmrk.
         if "lmrk" in output_line:
-            output_line = replace_second_and_subsequent(output_line, "lmrk", f"<br>{three_spaces}").replace(
+            output_line = replace_second_and_subsequent(
+                output_line,
+                "lmrk",
+                f"<br>{three_spaces}",
+            ).replace(
                 "lmrk",
                 three_spaces,
             )
@@ -157,7 +161,9 @@ class HTMLTextFormatter(HTMLParser):
             "is_h6": False,
             "is_underline": False,
             "is_italic": False,
-            "is_bold": False,  # ADDED: Add bold style
+            "is_bold": False,
+            "is_link": False,
+            "href": None,
         }
         self.tag_stack = []  # To keep track of active tags and their influence
         self.list_indent_level = 0
@@ -188,9 +194,16 @@ class HTMLTextFormatter(HTMLParser):
         elif tag in ["i", "em"]:
             self.current_styles["is_italic"] = True
 
-        # ADDED: Handle bold tag
+        # Handle bold tag
         elif tag == "b":
             self.current_styles["is_bold"] = True
+
+        # Handle anchor (link) tags
+        elif tag == "a":
+            attrs_dict = dict(attrs)
+            if "href" in attrs_dict:
+                self.current_styles["is_link"] = True
+                self.current_styles["href"] = attrs_dict["href"]
 
         # Handle list tags
         # tag = "li"
@@ -255,9 +268,14 @@ class HTMLTextFormatter(HTMLParser):
         elif tag in ["i", "em"]:
             self.current_styles["is_italic"] = False
 
-        # ADDED: Revert bold tag
+        # Revert bold tag
         elif tag == "b":
             self.current_styles["is_bold"] = False
+
+        # Revert anchor tags
+        elif tag == "a":
+            self.current_styles["is_link"] = False
+            self.current_styles["href"] = None
 
         # Revert list tags
         if tag in {"ul", "ol"}:
@@ -371,7 +389,9 @@ def parse_html_to_text_segments(html_string: str) -> list[dict]:
                     {'color': 'yellow', 'is_heading': True, 'heading_level': 3}.
     """
     parser = HTMLTextFormatter()
-    parser.feed(html_string)
+
+    # The parser will ignore '\n'.  Use '<br>', and the parser will convert it back to '\n'.
+    parser.feed(html_string.replace("\n", "<br>"))
     return parser.get_formatted_text()
 
 
@@ -491,6 +511,12 @@ def format_label(lbl: str) -> str:
 
             # Get the label verbage
             lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
+            # Convert newlines to breaks
+            if lbl_text == "\n":
+                lbl_text = "<br>"
+            # Ignore double-break lines
+            if previous_text == "<br>" and lbl_text == "<br>":
+                continue
 
             # Handle situation in which a "\n" preceeds a name. The \n screws up the html
             if lbl_text.startswith("\n%"):
@@ -500,6 +526,10 @@ def format_label(lbl: str) -> str:
             lbl_style = action_label["styles"]
             lbl_color = lbl_style["color"] if lbl_style["color"] else PrimeItems.colors_to_use[color_to_use]
 
+            # Get link details
+            lbl_link = lbl_style.get("is_link", False)
+            lbl_href = lbl_style.get("href", None)
+
             # Create CSS for underline, italic, and bold styles
             css_styles = ";text-decoration: none;"
             if lbl_style.get("is_underline"):
@@ -508,6 +538,10 @@ def format_label(lbl: str) -> str:
                 css_styles += "font-style: italic;"
             if lbl_style.get("is_bold"):
                 css_styles += ";font-weight: bold;"
+            # Add default link styling if is_link is True. The text-decoration is already handled by the underline check.
+            if lbl_link:
+                lbl_text = f'<a href="{lbl_href}">{lbl_text}</a>'
+
             css_styles = css_styles.replace(";;", ";")
 
             lbl_heading = lbl_style["heading_level"] if lbl_style["is_heading"] else 0
@@ -544,7 +578,7 @@ def format_label(lbl: str) -> str:
                     task_label = task_label + "<br>"
 
                 # Concatenate all of the text lines with the color.
-                # UPDATED: Use the combined css_styles string
+                # Use the combined css_styles string and data_href_attribute
                 task_label = (
                     task_label
                     + f'<span style="color:{lbl_color}{css_styles}" class="h{lbl_heading}-text">'
@@ -558,6 +592,7 @@ def format_label(lbl: str) -> str:
             # No color
             else:
                 task_label = task_label + f"{blank * lbl_heading}" + f"{lbl_text}{label_end}"
+
         if have_paren:
             task_label = task_label + "</p></div>"
 
