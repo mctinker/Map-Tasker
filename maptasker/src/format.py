@@ -41,16 +41,16 @@ def format_line(item: str) -> str:
     else:
         output_line = item
 
-        # Handle list markers: ordered and unordered.  Just blank-out the leading lmrk.
-        if "lmrk" in output_line:
-            output_line = replace_second_and_subsequent(
-                output_line,
-                "lmrk",
-                f"<br>{three_spaces}",
-            ).replace(
-                "lmrk",
-                three_spaces,
-            )
+    # Handle list markers: ordered and unordered.  Just blank-out the leading lmrk.
+    if "lmrk" in output_line:
+        output_line = replace_second_and_subsequent(
+            output_line,
+            "lmrk",
+            f"<br>{three_spaces}",
+        ).replace(
+            "lmrk",
+            three_spaces,
+        )
 
     # # Format the html...add a number of blanks if some sort of list.
     if "DOCTYPE" in item:  # If imbedded html (e.g. Scene WebElement), add a break and some spacing.
@@ -308,6 +308,20 @@ class HTMLTextFormatter(HTMLParser):
             decoded_data = html.unescape(data)
             self._add_segment(decoded_data)
 
+    def handle_unknown_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """
+        Called when the parser finds a start tag that is not recognized by the
+        other methods. Prints a message for debugging.
+        """
+        print(f"DEBUG: Unrecognized start tag found: <{tag}>")
+
+    def handle_unknown_endtag(self, tag: str) -> None:
+        """
+        Called when the parser finds an end tag that is not recognized by the
+        other methods. Prints a message for debugging.
+        """
+        print(f"DEBUG: Unrecognized end tag found: </{tag}>")
+
     def handle_entityref(self, name: str) -> None:
         """
         Handle character entity references (e.g., &).
@@ -515,7 +529,7 @@ def format_label(lbl: str) -> str:
             if lbl_text == "\n":
                 lbl_text = "<br>"
             # Ignore double-break lines
-            if previous_text == "<br>" and lbl_text == "<br>":
+            if previous_text == "<br>" and not label_end and lbl_text == "<br>":
                 continue
 
             # Handle situation in which a "\n" preceeds a name. The \n screws up the html

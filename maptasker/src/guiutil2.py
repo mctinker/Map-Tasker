@@ -345,19 +345,20 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     # Outerloop on all_valuies for all lines in label
     # Go through all of the values in the label and output them
     for num, value in enumerate(all_values):
-        # value is a dictionary of lists for 'text', 'color', etc.
+        # value is a dictionary of lists for 'text', 'color', etc."high"
         # Get spacing only if this is first element.
         if num == 0:
             spacing = value["spacing"]
             spacer_newline = value["spacing"]
         char_position = 0
-        # Set our end of label if this is the end.
-        if value["end"][num]:
-            end_of_label = True
 
         # Innerloop for values of label on the same line.
         # Iterate over a list or a string.
         for inner_num, message in enumerate(value["text"]):
+            # Set our end of label if this is the end.
+            if value["end"][inner_num]:
+                end_of_label = True
+
             # clean_message = message.replace("\n\n", "\n")
             clean_message = message
             if clean_message == "<p>":
@@ -381,6 +382,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
+                if "OR SOMETHING" in msg:
+                    print("bingo")
                 # Determine if this is a label vs TaskerNet description
                 if "TaskerNet description:" in msg:
                     its_a_label = False
@@ -583,6 +586,8 @@ def _insert_and_tag(
     italic = False
     bold = False
     heading_num = "0"
+    bingo = value.get("highlights", "")
+    print("bingo", bingo)
     temp = tag_id.split(":")
     if temp[0] == "italic":
         italic = True
@@ -591,8 +596,9 @@ def _insert_and_tag(
     else:
         heading_num = temp[0].replace("-text", "")[1]
 
+    # Set the font size to the heading size.  If this is a list item, downsize it.
     try:
-        font_size = heading_fonts[heading_num]
+        font_size = int(heading_fonts[heading_num])
     except KeyError:
         font_size = heading_fonts["0"]  # Default to h0 if not found
     font_sizes = [int(value) for value in heading_fonts.values()]
@@ -602,7 +608,8 @@ def _insert_and_tag(
         spacing = 1
 
     # Set up for italicised text
-    font_to_use = (mygui.font, font_size, "italic" if italic else "normal", "bold" if bold else "normal")
+    # FIX split on ';' to handle multiple fonts.  Issue a second tag_config for the addiotnal font
+    font_to_use = (mygui.font, font_size, "italic" if italic else "bold" if bold else "normal")
 
     # Handle underlining: True or False
     underline = value["decor"][inner_num] == "underline"

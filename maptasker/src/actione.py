@@ -25,7 +25,7 @@ from maptasker.src.actionc import ActionCode, action_codes
 from maptasker.src.config import CONTINUE_LIMIT
 from maptasker.src.debug import not_in_dictionary
 from maptasker.src.deprecate import depricated
-from maptasker.src.format import contains_html, format_html
+from maptasker.src.format import format_html
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import pattern13
 
@@ -317,12 +317,19 @@ def build_action(
         indent_amt += task_code_line
         task_code_line = indent_amt
 
-    # Make the output align/pretty.  Don't make labels pretty if they have html.
+    # Make the output align/pretty.  Don't make label html pretty if they have html.
     if PrimeItems.program_arguments["pretty"]:
         lbl_position = task_code_line.find("...with label:")
-        lbl = task_code_line[lbl_position + 15 :].replace("</span>", "") if lbl_position != -1 else ""
-        if lbl_position == -1 or (lbl and not contains_html(lbl)):
-            task_code_line, extra_blanks = make_action_pretty(task_code_line, indent_amt)
+        temp = task_code_line.split("<div")
+        just_the_action = temp[0]
+        just_the_label = temp[1] if len(temp) > 1 else ""
+
+        # If we have a label then make it pretty.
+        if lbl_position == -1 or just_the_label:
+            # Ifg we have a label, then put it back together after separation.
+            add_on = f"<div {just_the_label}" if just_the_label else ""
+            task_code_line, extra_blanks = make_action_pretty(just_the_action, indent_amt)
+            task_code_line = f"{task_code_line}{add_on}"
         else:
             extra_blanks = 0
     else:
@@ -338,7 +345,7 @@ def build_action(
                 True,
             ),
         )
-        # Handle this
+        # Handle this situation in which we can't find the action code.
         not_in_dictionary("Action", code_element.text)
 
     # We have Task Action details

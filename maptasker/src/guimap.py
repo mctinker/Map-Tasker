@@ -62,7 +62,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
     temp = lines[line_num].split("text-box")
     if "style=" not in temp[1]:
         line_num += 1
-        lines_to_skip += 1
+        # lines_to_skip += 1
         line_num_to_add = line_num
     else:
         line_num_to_add = line_num + 1
@@ -97,7 +97,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             if line and "style=" in line and "class=" in line:
                 try:
                     # Get the style details: color font, heading size, bold, italicised.
-                    temp = line.split('style="')
+                    temp = line.replace("&nbsp;", " ").split('style="')
                     style = temp[1].split(";")
 
                     if "bold" in line and "italicised" in line:
@@ -109,16 +109,18 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                             decor = specific_style.replace("text-decoration:", "")
                         # FIX Allow for both 'bold' and 'italicised' on same text
                         elif "font-style:" in specific_style:
-                            font = "italic"
+                            font = f"{font};italic" if font else "italic"
                         elif "class=" in specific_style:
                             if not font:
                                 font = specific_style.split('class="')[1].split('"')[0][0:7]
                             temp = specific_style.split('-text">')
                             temp = temp[1].replace("</span>", "").replace("<br>\n", "\n\n")
+
                             # <p> is needed for html/browser.  \n\n is needed for Map view.
                             text = "\n\n" if temp == "<p>" else temp
                         elif "font-weight:" in specific_style:
-                            font = "bold" if "bold" in specific_style else "normal"
+                            font_to_use = "bold" if "bold" in specific_style else "normal"
+                            font = f"{font};bold" if font else font_to_use
 
                     # Cleanup the text line...possible left over garbage at end.
                     if ":lblend" in text:
@@ -234,7 +236,27 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 "end": [item["end"] for item in processed_line_data],
                 "decor": [item["decor"] for item in processed_line_data],
             }
+            # Bump our line numbers to point to next line.
+            processed_line_data = []
             line_num_to_add += 1
+
+    # End of 'While'...
+    # Now, add the last processed data for this line to the output_lines dictionary
+    # We need to restructure the data to match the expected format
+    if processed_line_data:
+        # Add all of the info to the output
+        output_lines[line_num_to_add] = {
+            "text": [item["text"] for item in processed_line_data],
+            "color": [item["color"] for item in processed_line_data],
+            "highlights": [item["highlights"] for item in processed_line_data],
+            # Spacing needs to be handled on an element-by-element basis.
+            # The 'spacing' key in the outer dict might not be what you need
+            # if you have multiple text chunks per line. I'll include it here
+            # but you might want to reconsider its placement.
+            "spacing": processed_line_data[0]["spacing"],
+            "end": [item["end"] for item in processed_line_data],
+            "decor": [item["decor"] for item in processed_line_data],
+        }
 
     return lines_to_skip
 
@@ -269,7 +291,6 @@ def add_line_data(
     Return:
         The list with the line(s) added.
     """
-    # FIX ???
     for subtext in text.split("\n"):
         text_to_add = text if text == "\n" else subtext
         # if not subtext:
@@ -363,8 +384,8 @@ def remove_the_html_tags(text: str) -> str:
     return (
         text.replace("<span style=", "")
         .replace("<div class=", "")
-        .replace("<em>", "")
-        .replace("</em>", "")
+        # .replace("<em>", "")
+        # .replace("</em>", "")
         .replace("<data-flag=", "")
         .replace("<a href='#'></a>", "")
     )
@@ -389,6 +410,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
     """
     tabs = f"{' ' * 4}"
     text_list = output_lines[line_num]["text"]
+
     # If nothing, just return.
     if not text_list:
         return output_lines
@@ -409,7 +431,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
         else:
             rutroh_error(f"guimap error: '{text_list[0]}' missing '>'!")
 
-    # Use list comprehension for better performance
+    # Cleanup all of the text elements.
     new_text_list = [
         text.replace("&nbsp;", " ")
         .replace("\n\n", "\n")
@@ -748,8 +770,14 @@ def capture_front_text(output_lines: list, line: str, line_num: int) -> list:
     Returns:
         list: The updated output lines with the extracted text and default color.
     """
+    # Find the color location
     color_location = line.find("<span class=")
-    output_lines[line_num]["text"] = [line[:color_location]]
+    # If we don't have '<span class=', then the _color is part of the text rather than part of our _color.
+    if color_location == -1:
+        output_lines[line_num]["text"] = [line]
+    else:
+        output_lines[line_num]["text"] = [line[:color_location]]
+
     # Assign the last color used as the default color
     for output_line_num in reversed(output_lines):
         if output_lines[output_line_num]["color"]:
@@ -797,7 +825,7 @@ def additional_formatting(
 
     # Capture any text before the first color tags
     color_location = line.find("_color")
-    if color_location != -1 and line.startswith("&nbsp;"):
+    if color_location != -1 and line.startswith("&nbsp;") and "<span class=" in line:
         output_lines = capture_front_text(output_lines, line, line_num)
 
     # Build coloring
@@ -815,14 +843,25 @@ def additional_formatting(
         ]
         output_lines[line_num]["color"] = ["Turquoise"]
 
-    # Handle the rest of the lines
+    # Just a plain line of text
+    # Check top see if we have already added this text, which is the case if '_color' in line but not our '_color'.
     else:
         temp_line = remove_html_tags(line, "")
         output_lines[line_num]["text"].append(temp_line.replace("Go to top", ""))
         if doing_global_variables:
             spacing = glob_spacing
 
+    # Cleanup the line
     output_lines = cleanup_text_elements(output_lines, line_num, remove_html)
+
+    # Fix labels
+    for text_num, temp in enumerate(output_lines[line_num]["text"]):
+        if "...with label:" in temp:
+            output_lines[line_num]["text"][text_num] = output_lines[line_num]["text"][text_num].replace(
+                "...with label:<div  class=",
+                "...with label:",
+            )
+            break
 
     # Handle disabled objects
     output_lines = handle_disabled_objects(output_lines, line_num)
@@ -952,14 +991,8 @@ def process_html_lines(
     remove_html = True
     lines_to_skip = 0
 
+    # Go thru all lines in the configuration map.
     for line_num, line in enumerate(lines):
-        if "OUTPUT TEMPLATE" in line:
-            print("bingo")
-        # Handle labels and TaskerNet descriptions with html in them.
-        # FIX lines-to-skip is foobar'ed
-        if "text-box" in line and ".text-box" not in line:
-            lines_to_skip = process_label_html(lines, output_lines, line_num, spacing)
-            # continue
         # Are we to skip lines due to label with html having already been added?
         if lines_to_skip > 0:
             lines_to_skip -= 1
@@ -1026,11 +1059,6 @@ def process_html_lines(
             remove_html,
         )
 
-        # # Handle labels and TaskerNet descriptions with html in them.
-        # if "text-box" in line and ".text-box" not in line:
-        #     lines_to_skip = process_label_html(lines, output_lines, line_num, spacing)
-        #     continue
-
         # If at end of valid html, start removing html again
         if "/html" in line or "<div <span" in line:
             remove_html = True
@@ -1040,6 +1068,16 @@ def process_html_lines(
             current_text = output_lines[line_num].get("text", [""])[0]
             if current_text == "     Profile: \n":
                 output_lines[line_num]["text"][0] = "     Profile: (no name)\n"
+
+        # Handle labels and TaskerNet descriptions/labels with html in them.
+        # The indicator ('text-box) might be at the end of a Task action.
+        if "text-box" in line and ".text-box" not in line:
+            # See if additional_formatting added junk and remove it if so.
+            if output_lines[line_num]["text"][0] == "     <div class=":
+                del output_lines[line_num]
+            # Go process the html in label/description
+            lines_to_skip = process_label_html(lines, output_lines, line_num, spacing)
+            continue
 
     return output_lines
 
