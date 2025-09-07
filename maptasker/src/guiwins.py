@@ -558,7 +558,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -2189,6 +2191,7 @@ class CTkTextview(ctk.CTkFrame):
         ignore_line = False
         temp_previous_value = {}
         self.label_tags = []
+        self.previous_heading = "0"
 
         # Go through the data and format it accordingly.  Num is a sequential number.
         for num, (_linenum_in_data, value) in enumerate(the_data.items()):

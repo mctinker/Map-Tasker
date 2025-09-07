@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed:
+- Changed: All Task labels are now outlined in a rectangle, rather than only those labels with HTML.
 
 ### Fixed
 

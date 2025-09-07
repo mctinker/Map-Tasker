@@ -332,7 +332,6 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     number_of_inserted_lines = 0
     end_of_label = False
     prev_msg = "---none---"
-    bbox_not_yet_configured = True
     its_a_label = True
 
     # Get the background color
@@ -382,13 +381,12 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
-                if "OR SOMETHING" in msg:
-                    print("bingo")
                 # Determine if this is a label vs TaskerNet description
                 if "TaskerNet description:" in msg:
                     its_a_label = False
+                    msg = msg.replace("TaskerNet description:", "TaskerNet description:\n")
 
-                # If Taskernet Description, alter the color
+                # If Taskernet Description, alter the color so it isn't task_label_color
                 if not its_a_label and value["color"][inner_num] == PrimeItems.colors_to_use["action_label_color"]:
                     value["color"][inner_num] = PrimeItems.colors_to_use["taskernet_color"]
 
@@ -431,6 +429,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 number_of_inserted_lines += 1
 
                 # If this is the very first message, set the beginning of the bounding box based on the textbox content.
+                # Loop through the liners backwards, looking for the first line that doesn't contain our message.
                 if num == 0 and inner_num == 0 and msg_num == 0:
                     # Get the line and column index of the last character in the Text widget.
                     # The 'end-1c' index is a special index that represents the character just
@@ -492,17 +491,15 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     bbox_tag = f"{begin_box}:bbox"
     end_box = f"{line_num!s}.{max_msg_len + 1!s}"
     self.textview_textbox.tag_add(bbox_tag, begin_box, end_box)
-    if bbox_not_yet_configured:
-        self.textview_textbox.tag_config(
-            bbox_tag,
-            background=bg_color,
-            relief="ridge",
-            borderwidth=2,
-            spacing1=5,
-            spacing3=5,
-            rmargin=10,
-        )
-        bbox_not_yet_configured = False
+    self.textview_textbox.tag_config(
+        bbox_tag,
+        background=bg_color,
+        relief="ridge",
+        borderwidth=2,
+        spacing1=5,
+        spacing3=5,
+        rmargin=10,
+    )
 
     # Point to the next available line by geting our last line number.
     # line_num = begin_box.split(".")[0]
@@ -515,9 +512,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     # Configure the tag for the background color
     self.textview_textbox.tag_config(
         "bg_color",
-        background=make_hex_color(
-            self.master.master.color_lookup["background_color"],
-        ),
+        background=bg_color,
     )
 
     # Reset draw_box for next label
@@ -577,24 +572,23 @@ def _insert_and_tag(
         - `char_position`
     """
     mygui = self.master.master
+    # Get the highlight/font attribute for this specific message.
+    highlights = value["highlights"][inner_num]
 
-    # Create a tag with a border
-    tag_id = f"{value['highlights'][inner_num]}:{value['color'][inner_num]}:{value['decor'][inner_num].strip()}"
-    # tags.append(tag_id)
+    # Get the font(s), if any.
+    temp_font = highlights.split(";")
 
     # Get the font size / italic flag / bold
     italic = False
     bold = False
-    heading_num = "0"
-    bingo = value.get("highlights", "")
-    print("bingo", bingo)
-    temp = tag_id.split(":")
-    if temp[0] == "italic":
+    heading_num = self.previous_heading
+    if temp_font[0] == "italic":
         italic = True
-    elif temp[0] == "bold":
+    elif temp_font[0] == "bold":
         bold = True
     else:
-        heading_num = temp[0].replace("-text", "")[1]
+        # Highlight is a heading rather than a font specification.
+        heading_num = temp_font[0].replace("-text", "")[1]
 
     # Set the font size to the heading size.  If this is a list item, downsize it.
     try:
@@ -607,9 +601,9 @@ def _insert_and_tag(
         # If the font size is the largest, decrease the spacing
         spacing = 1
 
-    # Set up for italicised text
-    # FIX split on ';' to handle multiple fonts.  Issue a second tag_config for the addiotnal font
-    font_to_use = (mygui.font, font_size, "italic" if italic else "bold" if bold else "normal")
+    # Assign the first font
+    font = temp_font[0] if italic or bold else "normal"
+    font_to_use = (mygui.font, font_size, font)
 
     # Handle underlining: True or False
     underline = value["decor"][inner_num] == "underline"
@@ -620,7 +614,6 @@ def _insert_and_tag(
         href = temp[1]
         text_len = len(temp[2]) - 4
         message = temp[2][1:text_len]
-        # hyper_tag = mygui.textview_hyperlink.add(message, href)
         # Add the link
         tag_id = self.textview_hyperlink.add(href)
         self.textview_textbox.insert(
@@ -630,6 +623,8 @@ def _insert_and_tag(
         )
     else:
         href = ""
+        # Create a tag with the text attributes
+        tag_id = f"{heading_num};{font}:{value['color'][inner_num]}:{value['decor'][inner_num].strip()}"
 
     # Format the message
     spacer = " " * spacing
@@ -647,20 +642,33 @@ def _insert_and_tag(
         self.textview_textbox.insert(start_idx, formatted_message, tag_id)
 
         # Apply the html attributes
-        if tag_id not in self.label_tags:
-            self.textview_textbox.tag_config(
-                tag_id,
-                # font=(mygui.font, font_size),
-                font=font_to_use,
-                background=bg_color,
-                foreground=fg_color,
-                underline=underline,
-            )
-            self.label_tags.append(tag_id)
+        _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline)
+
+        # Do the second font, if there is one.
+        if len(temp_font) > 1:
+            new_font = temp_font[1]
+            tag_id = tag_id.replace(font, new_font)
+            font_to_use = (mygui.font, font_size, new_font)
+            # Apply the html attributes
+            _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline)
 
     char_position += len(formatted_message)
+    self.previous_heading = heading_num
 
     return max_msg_len, char_position
+
+
+def _configure_tag(self: ctk, tag_id: str, font_to_use: tkfont, bg_color: str, fg_color: str, underline: str) -> None:
+    if tag_id not in self.label_tags:
+        self.textview_textbox.tag_config(
+            tag_id,
+            # font=(mygui.font, font_size),
+            font=font_to_use,
+            background=bg_color,
+            foreground=fg_color,
+            underline=underline,
+        )
+        self.label_tags.append(tag_id)
 
 
 def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tuple[int, int, int, str]:

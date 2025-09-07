@@ -62,7 +62,6 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
     temp = lines[line_num].split("text-box")
     if "style=" not in temp[1]:
         line_num += 1
-        # lines_to_skip += 1
         line_num_to_add = line_num
     else:
         line_num_to_add = line_num + 1
@@ -100,14 +99,11 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     temp = line.replace("&nbsp;", " ").split('style="')
                     style = temp[1].split(";")
 
-                    if "bold" in line and "italicised" in line:
-                        print("bingo")
                     for specific_style in style:
                         if "color:" in specific_style:
                             color = specific_style.replace("color:", "")
                         elif "text-decoration:" in specific_style:
                             decor = specific_style.replace("text-decoration:", "")
-                        # FIX Allow for both 'bold' and 'italicised' on same text
                         elif "font-style:" in specific_style:
                             font = f"{font};italic" if font else "italic"
                         elif "class=" in specific_style:
@@ -384,8 +380,8 @@ def remove_the_html_tags(text: str) -> str:
     return (
         text.replace("<span style=", "")
         .replace("<div class=", "")
-        # .replace("<em>", "")
-        # .replace("</em>", "")
+        .replace("<em>", "")
+        .replace("</em>", "")
         .replace("<data-flag=", "")
         .replace("<a href='#'></a>", "")
     )
@@ -801,7 +797,6 @@ def additional_formatting(
 
     Args:
         doing_global_variables (bool): Whether or not the line contains global variables.
-        lines (list): A list of lines of HTML code.
         line (str): The line of text to be formatted.
         output_lines (dict): The dictionary to which the formatted line will be appended.
         line_num (int): The line number of the line in the output dictionary.
@@ -996,7 +991,8 @@ def process_html_lines(
         # Are we to skip lines due to label with html having already been added?
         if lines_to_skip > 0:
             lines_to_skip -= 1
-            continue
+            if not line.startswith("<div "):
+                continue
 
         # Ignore lines that match the criteria
         if ignore_line(line) and not doing_global_variables:
@@ -1017,9 +1013,16 @@ def process_html_lines(
             iterate = False
             continue
 
+        # Make sure the key for the next output_line is available
+        if output_lines:
+            keys_list = list(output_lines.keys())
+            insert_key = keys_list[-1] + 1
+        else:
+            insert_key = line_num
+
         # Handle Unreferenced Global Variables table
         if line == "<th>Name</th>\n" and line_num + 1 < len(lines) and lines[line_num + 1] == "<th>Value</th>\n":
-            output_lines[line_num] = {
+            output_lines[insert_key] = {
                 "text": ["Variable Name...............Variable Value"],
                 "color": ["turquoise1"],
                 "highlight_color": [],
@@ -1054,7 +1057,7 @@ def process_html_lines(
             doing_global_variables,
             line,
             output_lines,
-            line_num,
+            insert_key,
             spacing,
             remove_html,
         )
@@ -1065,16 +1068,16 @@ def process_html_lines(
 
         # Validate and update profile name if missing
         if "Profile:" in line:
-            current_text = output_lines[line_num].get("text", [""])[0]
+            current_text = output_lines[insert_key].get("text", [""])[0]
             if current_text == "     Profile: \n":
-                output_lines[line_num]["text"][0] = "     Profile: (no name)\n"
+                output_lines[insert_key]["text"][0] = "     Profile: (no name)\n"
 
         # Handle labels and TaskerNet descriptions/labels with html in them.
         # The indicator ('text-box) might be at the end of a Task action.
         if "text-box" in line and ".text-box" not in line:
             # See if additional_formatting added junk and remove it if so.
-            if output_lines[line_num]["text"][0] == "     <div class=":
-                del output_lines[line_num]
+            if output_lines[insert_key]["text"][0] == "     <div class=":
+                del output_lines[insert_key]
             # Go process the html in label/description
             lines_to_skip = process_label_html(lines, output_lines, line_num, spacing)
             continue

@@ -500,8 +500,8 @@ def format_label(lbl: str) -> str:
     blank = "&nbsp;"
     color_to_use = "taskernet_color" if "TaskerNet description" in lbl else "action_label_color"
 
-    # Only process labels with html here.
-    if contains_html(lbl):
+    # TODO Do this for all labels
+    if contains_html(lbl) or lbl:
         task_label = format_html(
             color_to_use,
             "",
