@@ -518,6 +518,8 @@ def format_label(lbl: str) -> str:
         previous_heading = 0
         previous_text = ""
 
+        if "TaskerNet description" in lbl and "Plays incoming messages" in lbl:
+            print("bingo")
         # Go through the lines in this formatted html
         for num, action_label in enumerate(formatted_lbl):
             # Add end-of-label flag as a commented flag to the last piece of the label.

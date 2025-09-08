@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: All Task labels are now outlined in a rectangle, rather than only those labels with HTML.
+- Changed; Default font size for label and TaskerNet description text is set to that of the rest of the text in the Map view.
 
 ### Fixed
 

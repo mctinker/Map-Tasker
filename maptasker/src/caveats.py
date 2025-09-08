@@ -31,10 +31,7 @@ def display_caveats() -> None:
             "  For problems, report them on https://github.com/mctinker/Map-Tasker/issues .\n"
         ),
         ("- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"),
-        (
-            "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker"
-            " fields, but it is stripped out of Action labels and TaskerNet comments.\n"
-        ),
+        ("- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"),
         ("- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"),
         (
             "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters"
@@ -65,11 +62,6 @@ def display_caveats() -> None:
         caveats.append(
             '- For option -d0, Tasks that are identified as "Unnamed/Anonymous" will'
             " have their first Action only listed....\n  just like Tasker does.\n",
-        )
-
-    if PrimeItems.program_arguments["display_detail_level"] > 2:  # Caveat about labels being stripped of html
-        caveats.extend(
-            ("- Task labels have been stripped of all html to avoid output formatting issues.\n",),
         )
 
     if (

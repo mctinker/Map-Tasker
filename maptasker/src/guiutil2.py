@@ -21,7 +21,7 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 
 # Define label fonts for headings: 0=h0, 1=h1, etc.
-heading_fonts = {"0": "10", "1": "14", "2": "15", "3": "14", "4": "13", "5": "12", "6": "11"}
+heading_fonts = {"0": "9", "1": "15", "2": "14", "3": "13", "4": "12", "5": "11", "6": "10"}
 
 
 def validate_tkinter_geometry(geometry_string: str) -> bool:
@@ -381,10 +381,12 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
+                if "I really want a scene" in msg:
+                    print("bingo")
                 # Determine if this is a label vs TaskerNet description
                 if "TaskerNet description:" in msg:
                     its_a_label = False
-                    msg = msg.replace("TaskerNet description:", "TaskerNet description:\n")
+                    msg = msg.replace("TaskerNet description:", "TaskerNet description:\n")  # noqa: PLW2901
 
                 # If Taskernet Description, alter the color so it isn't task_label_color
                 if not its_a_label and value["color"][inner_num] == PrimeItems.colors_to_use["action_label_color"]:
@@ -489,6 +491,9 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
     # Add the bounding box as a highlight by adding a highlighted tag
     bbox_tag = f"{begin_box}:bbox"
+    # Bump the box ahead one line if this is a TaskerNet description.  We don't want to enclose that string.
+    if not its_a_label:
+        begin_box = f"{(int(begin_box.split('.')[0]) + 1)!s}.0"
     end_box = f"{line_num!s}.{max_msg_len + 1!s}"
     self.textview_textbox.tag_add(bbox_tag, begin_box, end_box)
     self.textview_textbox.tag_config(

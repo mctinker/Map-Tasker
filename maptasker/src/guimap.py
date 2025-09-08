@@ -117,6 +117,10 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                         elif "font-weight:" in specific_style:
                             font_to_use = "bold" if "bold" in specific_style else "normal"
                             font = f"{font};bold" if font else font_to_use
+                        else:
+                            # Drop here if there is a ';' in the label.  This is a problem
+                            rutroh_error(f"bingo bad style {specific_style}, style={style}")
+                            text = line.split('class="h6-text">')[1].replace("</span>", "")
 
                     # Cleanup the text line...possible left over garbage at end.
                     if ":lblend" in text:
@@ -815,6 +819,10 @@ def additional_formatting(
     # Correct icons
     line = line.replace("&#9940;", "⛔")
     line = line.replace("&#11013;", "⫷⇦") if "Entry" in line else line.replace("&#11013;", "⇨⫸")
+    if "TLDR; Plays incoming messages" in line:
+        print("bingo")
+    if "Properties..." in line:
+        print("bingo")
 
     output_lines[line_num] = {"text": [], "color": []}
 
@@ -823,9 +831,20 @@ def additional_formatting(
     if color_location != -1 and line.startswith("&nbsp;") and "<span class=" in line:
         output_lines = capture_front_text(output_lines, line, line_num)
 
-    # Build coloring
+    # Build coloring and highlights
     if "<span class=" in line and "_color" in line:
         output_lines = coloring_and_highlights(output_lines, line, line_num)
+
+    # If color is already embedded (TaskerNet description or label)...
+    elif '<span style="color:' in line:
+        temp1 = line.split('<span style="color:')
+        for item in temp1:
+            if item and item != "</span>":
+                output_lines[line_num]["color"].append(item.split(";text-decoration:")[0])
+                output_lines[line_num]["text"].append(item.split('-text">')[1])
+                if "I have very little experience" in output_lines[line_num]["text"][-1]:
+                    print("bingo")
+        print("bingo")
 
     # Extract global variable from table definition
     elif line.startswith("<tr><td"):
@@ -1053,6 +1072,8 @@ def process_html_lines(
             remove_html = False
 
         # Apply additional formatting
+        if "TaskerNet desc" in line:
+            print("bingo")
         output_lines, spacing = additional_formatting(
             doing_global_variables,
             line,
