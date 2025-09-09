@@ -175,14 +175,29 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     close_bracket = temp_line.find(">")
     open_bracket = temp_line.find("<", close_bracket)
     extra_blanks = open_bracket - close_bracket + 5
-    # Break at comma followed by a space.
-    task_code_line = task_code_line.replace(
-        ", ",
-        f", <br>{indent_amt}{blank * extra_blanks}",
-    )
+
+    # Break at comma followed by a space.  But not if this is a 'variable set"
+    if not ">Variable Set<" in task_code_line:
+        task_code_line = task_code_line.replace(
+            ", ",
+            f", <br>{indent_amt}{blank * extra_blanks}",
+        )
+        variable_set = False
+    else:
+        # Variable Set:  Just split at the ', To=', ", Max Rounding Digits", and ", Structure Output"
+        task_code_line = (
+            task_code_line.replace(", To=", f", <br>{indent_amt}{blank * extra_blanks}To=")
+            .replace(
+                ", Max Rounding Digits",
+                f", <br>{indent_amt}{blank * extra_blanks}Max Rounding Digits",
+            )
+            .replace(", Structure Output", f", <br>{indent_amt}{blank * extra_blanks}Structure Output")
+        )
+        variable_set = True
     # Break at newline and comma if not a config param.
     # NOTE: There may be one or more double '\n' strings, which is ok.
-    if "Configuration Parameter(s):" not in task_code_line:
+    # NOTE: Don't do this if this is a 'variable set'
+    if "Configuration Parameter(s):" not in task_code_line and not variable_set:
         # Replace all commas followed by a non-blank with a break
         task_code_line = re.sub(
             pattern13,
@@ -326,7 +341,7 @@ def build_action(
 
         # If we have a label then make it pretty.
         if lbl_position == -1 or just_the_label:
-            # Ifg we have a label, then put it back together after separation.
+            # If we have a label, then put it back together after separation.
             add_on = f"<div {just_the_label}" if just_the_label else ""
             task_code_line, extra_blanks = make_action_pretty(just_the_action, indent_amt)
             task_code_line = f"{task_code_line}{add_on}"

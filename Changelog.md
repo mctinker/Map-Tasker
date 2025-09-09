@@ -16,7 +16,9 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed:
+- Fixed: Various issues with embedded HTML in labels.
+- Fixed: Formatting errors and missing commas in the 'To=' text if the Task action is a 'Variable Set'.
+- Fixed: Not all embedded HTML in Task action titles is being properly displayed.
 
 ### Known Issues
 

@@ -30,8 +30,6 @@ def share(
         description_element = share_element.find("d")
         # Process the description
         if description_element is not None:
-            if "TLDR; Plays incoming messages" in description_element.text:
-                print("bingo")
             description_element_output(
                 description_element,
                 tab,

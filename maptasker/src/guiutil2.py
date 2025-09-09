@@ -381,8 +381,6 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
-                if "I really want a scene" in msg:
-                    print("bingo")
                 # Determine if this is a label vs TaskerNet description
                 if "TaskerNet description:" in msg:
                     its_a_label = False
@@ -664,6 +662,7 @@ def _insert_and_tag(
 
 
 def _configure_tag(self: ctk, tag_id: str, font_to_use: tkfont, bg_color: str, fg_color: str, underline: str) -> None:
+    # Only dconfigure the tag once
     if tag_id not in self.label_tags:
         self.textview_textbox.tag_config(
             tag_id,

@@ -508,8 +508,6 @@ def do_profile(
 
     # Process any <Share> information from TaskerNet
     if PrimeItems.program_arguments["taskernet"]:
-        if profile_name == "Reply When Connected To BT":
-            print("bingo")
         share(profile, "proftab")
         # Add a spacer if detail is 0
         if PrimeItems.program_arguments["display_detail_level"] == 0:

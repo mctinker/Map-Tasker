@@ -313,14 +313,14 @@ class HTMLTextFormatter(HTMLParser):
         Called when the parser finds a start tag that is not recognized by the
         other methods. Prints a message for debugging.
         """
-        print(f"DEBUG: Unrecognized start tag found: <{tag}>")
+        rutroh_error(f"DEBUG: Unrecognized start tag found: <{tag}>")
 
     def handle_unknown_endtag(self, tag: str) -> None:
         """
         Called when the parser finds an end tag that is not recognized by the
         other methods. Prints a message for debugging.
         """
-        print(f"DEBUG: Unrecognized end tag found: </{tag}>")
+        rutroh_error(f"DEBUG: Unrecognized end tag found: </{tag}>")
 
     def handle_entityref(self, name: str) -> None:
         """
@@ -518,8 +518,6 @@ def format_label(lbl: str) -> str:
         previous_heading = 0
         previous_text = ""
 
-        if "TaskerNet description" in lbl and "Plays incoming messages" in lbl:
-            print("bingo")
         # Go through the lines in this formatted html
         for num, action_label in enumerate(formatted_lbl):
             # Add end-of-label flag as a commented flag to the last piece of the label.
@@ -527,6 +525,7 @@ def format_label(lbl: str) -> str:
 
             # Get the label verbage
             lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
+
             # Convert newlines to breaks
             if lbl_text == "\n":
                 lbl_text = "<br>"
