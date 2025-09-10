@@ -242,9 +242,9 @@ def do_tasks_in_project(
 
             return: True if we have Tasks not in any Profile
     """
+    if not PrimeItems.program_arguments["single_profile_name"]:
+        PrimeItems.named_task_count_total = len(task_ids)
     for the_id in task_ids:
-        if not PrimeItems.program_arguments["single_profile_name"]:
-            PrimeItems.named_task_count_total = len(task_ids)
         # We have a Task in Project that has yet to be output?
         if the_id not in found_tasks and (
             not PrimeItems.found_named_items["single_profile_found"]
@@ -393,8 +393,8 @@ def get_extra_and_output_project(
 
     # Are we looking for a specific Project?
     if PrimeItems.program_arguments["single_project_name"]:
-        if project_name != PrimeItems.program_arguments["single_project_name"]:
-            return True
+        # if project_name != PrimeItems.program_arguments["single_project_name"]:
+        #     return True
         # We found our single Project
         PrimeItems.found_named_items["single_project_found"] = True
         # Clear the output and just put out our Project.
@@ -725,6 +725,13 @@ def process_projects(
 
     # Go through each Project in backup file
     for project_name in PrimeItems.tasker_root_elements["all_projects"]:
+        # Ignore this project if we are looking for a specific one and this isn't it.
+        if (
+            PrimeItems.program_arguments["single_project_name"]
+            and PrimeItems.program_arguments["single_project_name"] != project_name
+        ):
+            continue
+
         # Point to the Project XML element <Project sr=...>
         project = PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"]
 

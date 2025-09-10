@@ -320,10 +320,7 @@ def handle_missing_code(the_action_code_plus: str, index: int) -> str:
     error_message = format_html(
         "action_color",
         "",
-        (
-            "MapTasker actionc error the_action_code_plus"
-            f" {the_action_code_plus} 'types' for index {index} not mapped!"
-        ),
+        (f"MapTasker actionc error the_action_code_plus {the_action_code_plus} 'types' for index {index} not mapped!"),
         True,
     )
     logger.debug(error_message)
@@ -365,10 +362,7 @@ def action_args(
         index = num if arg == "if" else our_action_args.index(arg)
 
         # If this is just a string, use Tasker's argument 'name'.  Otherwise, use the evalarg value in the argument.
-        if len(arg) > 4:
-            argeval = arg[2] if arg[2] and isinstance(arg[4], str) else arg[4]
-        else:
-            argeval = arg[2]
+        argeval = (arg[2] if arg[2] and isinstance(arg[4], str) else arg[4]) if len(arg) > 4 else arg[2]
 
         # Get the argument type: Int, Str, etc.
         try:

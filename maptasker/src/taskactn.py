@@ -44,6 +44,9 @@ def ensure_argument_alignment(taction: str) -> str:
         for index, arg in enumerate(action_breakdown[2:]):
             # action_breakdown[index + 2] = remove_html_tags(arg.strip(), "")
             action_breakdown[index + 2] = arg.strip()
+            # Stop adding spacer if this is formatted html for label/taskernet desc.
+            if "text-decoration" in action_breakdown[index + 2]:
+                break
             if count_consecutive_substr(arg, "&nbsp;") != count_of_spaces:
                 action_breakdown[index + 2] = action_breakdown[index + 2].replace(
                     "&nbsp;",
