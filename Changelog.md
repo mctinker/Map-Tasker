@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.2.0] 29-August-2025
+## [8.2.1] 10-Sep-2025
 
 ### Added
 
-- Added: TaskerNet descriptions with HTML are now handled like labels with HTML.  The HTML is retained and the description is serounded by a box.
+- Added: TaskerNet descriptions with HTML are now handled like labels with HTML.  The HTML is retained and the description is serounded by a rectangle.
 - Added: Labels and TaskerNet descriptions with html now recognize italicised/emphasized and bold text, as well as hotlinks.
 
 ### Changed

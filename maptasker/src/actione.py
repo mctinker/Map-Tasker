@@ -176,13 +176,13 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     open_bracket = temp_line.find("<", close_bracket)
     extra_blanks = open_bracket - close_bracket + 5
 
-    # Break at comma followed by a space.  But not if this is a 'variable set"
-    if not ">Variable Set<" in task_code_line:
+    # Break at comma followed by a space.  But not if this is a 'Variable Set" or "For"
+    if not ">Variable Set<" in task_code_line and not ">For<" in task_code_line:
         task_code_line = task_code_line.replace(
             ", ",
             f", <br>{indent_amt}{blank * extra_blanks}",
         )
-        variable_set = False
+        skip_all_commas = False
     else:
         # Variable Set:  Just split at the ', To=', ", Max Rounding Digits", and ", Structure Output"
         task_code_line = (
@@ -193,11 +193,13 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
             )
             .replace(", Structure Output", f", <br>{indent_amt}{blank * extra_blanks}Structure Output")
         )
-        variable_set = True
+        # For: Just split at ', Item='
+        task_code_line = task_code_line.replace(", Items=", f", <br>{indent_amt}{blank * extra_blanks}Items=")
+        skip_all_commas = True
     # Break at newline and comma if not a config param.
     # NOTE: There may be one or more double '\n' strings, which is ok.
-    # NOTE: Don't do this if this is a 'variable set'
-    if "Configuration Parameter(s):" not in task_code_line and not variable_set:
+    # NOTE: Don't do this if this is a 'Variable Set' or 'For'
+    if "Configuration Parameter(s):" not in task_code_line and not skip_all_commas:
         # Replace all commas followed by a non-blank with a break
         task_code_line = re.sub(
             pattern13,

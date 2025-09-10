@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import contextlib
 import re
-from html.parser import HTMLParser
 
 from maptasker.src.error import rutroh_error
 from maptasker.src.guiutils import align_text
@@ -323,7 +322,7 @@ def handle_gototop(text_list: list) -> list:
     Returns:
         text_list (list): The modified text with 'Go to top' added if the conditions are met.
     """
-    gototop_items = {"CAVEATS:", "Profile:", "Task:"}
+    gototop_items = {"CAVEATS:", "Profile:", "Task:", "Scenes:"}
     gototop = "          Go to top"
 
     # Check if any of the gototop_items exist in the first element of the list
@@ -334,39 +333,39 @@ def handle_gototop(text_list: list) -> list:
     return text_list
 
 
-class MLStripper(HTMLParser):
-    """
-    A class to strip HTML tags from a string.
+# class MLStripper(HTMLParser):
+#     """
+#     A class to strip HTML tags from a string.
 
-    This class extends the HTMLParser class and overrides the handle_data method to collect data
-    between HTML tags. The collected data can be retrieved using the get_data method.
-    """
+#     This class extends the HTMLParser class and overrides the handle_data method to collect data
+#     between HTML tags. The collected data can be retrieved using the get_data method.
+#     """
 
-    def __init__(self) -> None:
-        """
-        Initializes the MLStripper class.
-        """
-        super().__init__()
-        self.reset()
-        self.fed = []
+#     def __init__(self) -> None:
+#         """
+#         Initializes the MLStripper class.
+#         """
+#         super().__init__()
+#         self.reset()
+#         self.fed = []
 
-    def handle_data(self, d: str) -> None:
-        """
-        Overrides the handle_data method to collect data between HTML tags.
+#     def handle_data(self, d: str) -> None:
+#         """
+#         Overrides the handle_data method to collect data between HTML tags.
 
-        Args:
-            d (str): The data between HTML tags.
-        """
-        self.fed.append(d)
+#         Args:
+#             d (str): The data between HTML tags.
+#         """
+#         self.fed.append(d)
 
-    def get_data(self) -> str:
-        """
-        Retrieves the collected data between HTML tags.
+#     def get_data(self) -> str:
+#         """
+#         Retrieves the collected data between HTML tags.
 
-        Returns:
-            str: The collected data as a single string.
-        """
-        return "".join(self.fed)
+#         Returns:
+#             str: The collected data as a single string.
+#         """
+#         return "".join(self.fed)
 
 
 def remove_the_html_tags(text: str) -> str:
@@ -388,7 +387,7 @@ def remove_the_html_tags(text: str) -> str:
         .replace("<data-flag=", "")
         .replace("<a href='#'></a>", "")
     )
-    # TODO Maybe we don't need the html stripper code
+    # TODO We don't need the html stripper code.  Keep sit around for future use.
     # s = MLStripper()
     # s.feed(text)
     # return s.get_data()
@@ -414,6 +413,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
     if not text_list:
         return output_lines
 
+    # The following allows the unnamed Task hotlinks to work.
     text_list = handle_gototop(text_list)
 
     # Special handling for 'Task xxx has too many actions'.
@@ -441,9 +441,13 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
         .replace("&quot;", '"')
         .replace("[Launcher Task:", " [Launcher Task:")
         .replace(" --Task:", "--Task:")
+        .replace("<a href='#'>", "")
+        .replace("</a>", "")
         .replace("\t", tabs)
         for text in text_list
     ]
+
+    # Handle special situations
 
     # Remove all the html from the text
     if remove_html:
