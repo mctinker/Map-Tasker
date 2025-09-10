@@ -428,7 +428,7 @@ class CTkTextview(ctk.CTkFrame):
         self.textview_style.theme_use("default")
 
         # Get the special fonts
-        font = getattr(self.master.master, "font", ("Arial", 12))  # Default font
+        font = getattr(self.master.master, "font", ("Courier", 12))  # Default font
         self.bold_font = ctk.CTkFont(
             family=font,
             weight="bold",
@@ -558,7 +558,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
