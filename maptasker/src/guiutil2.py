@@ -21,7 +21,7 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 
 # Define label fonts for headings: 0=h0, 1=h1, etc.
-heading_fonts = {"0": "9", "1": "15", "2": "14", "3": "13", "4": "12", "5": "11", "6": "10"}
+heading_fonts = {"0": "12", "1": "16", "2": "15", "3": "14", "4": "13", "5": "12", "6": "11"}
 
 
 def validate_tkinter_geometry(geometry_string: str) -> bool:
