@@ -2,29 +2,39 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.2.0] 29-August-2025
+## [8.2.1] 10-Sep-2025
 
 ### Added
 
-- Added: Task labels with embedded html are now displayed with that html (color, headings, lists) surrounded by a rectangle.  This is a work in progress.
-- Default AI model list has been updated.
+- Added: TaskerNet descriptions with HTML are now handled like labels with HTML.  The HTML is retained and the description is serounded by a rectangle.
+- Added: Labels and TaskerNet descriptions with html now recognize italicised/emphasized and bold text, as well as hotlinks.
 
 ### Changed
 
-- Changed: HTML in Task actions is now displayed as with HTML tags rather than having them removed.
-- Changed: Lines that are very long are no longer identified with 'Continued >>>'.
+- Changed: All Task labels are now outlined in a rectangle, rather than only those labels with HTML.
+- Changed; Default font size for label and TaskerNet description text is set to that of the rest of the text in the Map view.
 
 ### Fixed
 
-- Fixed: Task actions with labels are not properly aligned if the 'pretty' option is selected.
-- Fixed: Embedded HTML in task parameters are not appearing with their tags.
-- Fixed: Diagram view shows 'Anchor {h3}{font color=...}' if there is a Task 'Anchor' in the configuration.
+- Fixed: Various issues with embedded HTML in labels.
+- Fixed: Formatting errors and missing commas in the 'To=' text if the Task action is a 'Variable Set'.
+- Fixed: Not all embedded HTML in Task action titles is being properly displayed.
 
 ### Known Issues
 
 - GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [8.2.0] 29-Aug-2025
+
+- Added: Task labels with embedded html are now displayed with that html (color, headings, lists) surrounded by a rectangle.  This is a work in progress.
+- Default AI model list has been updated.
+- Changed: HTML in Task actions is now displayed as with HTML tags rather than having them removed.
+- Changed: Lines that are very long are no longer identified with 'Continued >>>'.
+- Fixed: Task actions with labels are not properly aligned if the 'pretty' option is selected.
+- Fixed: Embedded HTML in task parameters are not appearing with their tags.
+- Fixed: Diagram view shows 'Anchor {h3}{font color=...}' if there is a Task 'Anchor' in the configuration.
 
 ## [8.1.3-8.1.4] 31-July-2025
 
