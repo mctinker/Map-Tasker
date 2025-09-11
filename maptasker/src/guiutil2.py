@@ -21,7 +21,7 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 
 # Define label fonts for headings: 0=h0, 1=h1, etc.
-heading_fonts = {"0": "12", "1": "16", "2": "15", "3": "14", "4": "13", "5": "12", "6": "11"}
+heading_fonts = {"0": 12, "1": 18, "2": 17, "3": 16, "4": 15, "5": 14, "6": 13}
 
 
 def validate_tkinter_geometry(geometry_string: str) -> bool:
@@ -333,6 +333,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     end_of_label = False
     prev_msg = "---none---"
     its_a_label = True
+    self.previous_heading = "0"
+    self.previous_font = "None"
 
     # Get the background color
     bg_color = make_hex_color(mygui.color_lookup["background_color"])
@@ -406,6 +408,10 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                         char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
                         prev_msg = ""
                     continue
+
+                # Fix spacing
+                if "Use ChatGPT" in updated_msg:
+                    print("bingo")
 
                 # Readjust the message by adding a blank at the end so it doesn't bump up against box.
                 msg_to_insert = updated_msg.replace("&nbsp;", " ").replace("<p>", "\n").replace("</p></div>", "")
@@ -598,15 +604,24 @@ def _insert_and_tag(
         font_size = int(heading_fonts[heading_num])
     except KeyError:
         font_size = heading_fonts["0"]  # Default to h0 if not found
-    font_sizes = [int(value) for value in heading_fonts.values()]
+
+    if PrimeItems.program_arguments["debug"] and not message.startswith("<a href="):
+        message = f"{font_size}{message}"
+
+    font_sizes = list(heading_fonts.values())
     max_font_size = max(font_sizes)
-    if int(font_size) == max_font_size:
+    if font_size == max_font_size:
         # If the font size is the largest, decrease the spacing
         spacing = 1
 
     # Assign the first font
     font = temp_font[0] if italic or bold else "normal"
     font_to_use = (mygui.font, font_size, font)
+
+    # Force bold if we have a heading change and ity isn't 0.
+    prev_heading = self.previous_heading
+    if prev_heading != 0 and heading_num not in (0, prev_heading) and font_to_use == "normal":
+        font = "bold"
 
     # Handle underlining: True or False
     underline = value["decor"][inner_num] == "underline"
@@ -646,6 +661,13 @@ def _insert_and_tag(
 
         # Apply the html attributes
         _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline)
+        if PrimeItems.program_arguments["debug"]:
+            font_info = self.textview_textbox.tag_cget(tag_id, "font")
+            # The font_info is a tuple, e.g., ('Helvetica', 12, 'bold italic')
+            if font_info:
+                print("font is:", font_info)
+            else:
+                print("Font information is not in the expected tuple format.")
 
         # Do the second font, if there is one.
         if len(temp_font) > 1:
@@ -657,6 +679,7 @@ def _insert_and_tag(
 
     char_position += len(formatted_message)
     self.previous_heading = heading_num
+    self.previous_font = font_to_use
 
     return max_msg_len, char_position
 
@@ -666,7 +689,8 @@ def _configure_tag(self: ctk, tag_id: str, font_to_use: tkfont, bg_color: str, f
     if tag_id not in self.label_tags:
         self.textview_textbox.tag_config(
             tag_id,
-            # font=(mygui.font, font_size),
+            # font: A font specification, which can be a font name, a tuple (font family, size, style),
+            # or a tk.font.Font object. Styles include bold, italic, underline, and overstrike.
             font=font_to_use,
             background=bg_color,
             foreground=fg_color,
@@ -766,40 +790,3 @@ def get_last_line(text_widget: ctk.CTkTextbox, start_idx: str) -> tuple[str, str
 
     except tk.TclError:
         rutroh_error("The text widget is empty.")
-
-
-def get_character_width(text_widget: ctk.CTkTextbox) -> int:
-    """
-    Calculates the approximate number of characters that fit within the
-    width of a Tkinter Text widget.
-
-    Parameters
-    ----------
-    text_widget : tk.Text
-        The Tkinter Text widget to measure.
-
-    Returns
-    -------
-    int
-        The estimated number of characters that can fit on one line.
-    """
-    mygui = text_widget.master.master.master
-    # 1. Get the current font of the text widget.
-    # The 'font' is a tag that can be configured on the widget.
-    widget_font = tkfont.Font(font=mygui.font)
-
-    # 2. Get the width of the widget in pixels.
-    # We must use update_idletasks() to ensure the widget has been drawn
-    # and its geometry information is available.
-    text_widget.update_idletasks()
-    widget_pixel_width = mygui.mapview_window.winfo_width()
-
-    # 3. Get the width of an average character in pixels.
-    # Using '0' is a good way to get the average character width for monospaced fonts.
-    # For proportional fonts, this is just a rough estimate.
-    char_pixel_width = widget_font.measure("0")
-
-    # 4. Calculate the number of characters that fit.
-    if char_pixel_width > 0:
-        return widget_pixel_width // char_pixel_width
-    return 0

@@ -3415,10 +3415,10 @@ class PopupWindow(ctk.CTkToplevel):
         self.grid_columnconfigure(0, weight=1)
 
         # Basic appearance for text, foreground and background.
-        self.Popup_bg_color = self._apply_appearance_mode(
+        _ = self._apply_appearance_mode(
             ctk.ThemeManager.theme["CTkFrame"]["fg_color"],
         )
-        self.Popup_text_color = self._apply_appearance_mode(
+        _ = self._apply_appearance_mode(
             ctk.ThemeManager.theme["CTkLabel"]["text_color"],
         )
         self.selected_color = self._apply_appearance_mode(

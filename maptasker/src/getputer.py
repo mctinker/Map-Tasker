@@ -7,8 +7,6 @@
 #                                                                                      #
 from __future__ import annotations
 
-import contextlib
-import json
 import os
 import pickle
 import tomllib
@@ -27,7 +25,6 @@ from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     ARGUMENTS_FILE,
     NOW_TIME,
-    OLD_ARGUMENTS_FILE,
     SYSTEM_ARGUMENTS,
     SYSTEM_SETTINGS_FILE,
     logger,
@@ -150,76 +147,6 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
         # settings_file.close()
 
 
-# User still has setting file in older unsupported format.  Convert the info and delete it.
-def process_old_formatted_file(
-    program_arguments: dict,
-    colors_to_use: dict,
-    old_file: str,
-) -> tuple:
-    """
-    Process an old formatted file and restore the program arguments and colors to use.
-
-    Args:
-        program_arguments (dict): The program arguments to be restored.
-        colors_to_use (dict): The colors to use to be restored.
-        old_file (str): The path to the old formatted file.
-
-    Returns:
-        tuple: A tuple containing the restored program arguments and colors to use.
-
-    Raises:
-        OSError: If the old file is not found.
-        json.decoder.JSONDecodeError: If the old file is not in the expected format.
-
-    This function takes in a program arguments dictionary, a colors to use dictionary, and the path to an old formatted file.
-    It attempts to open the file and load the contents into a list. It then extracts the colors to use and program arguments
-    from the list and restores them. It also checks for corruption by testing the display_detail_level key in the program
-    arguments dictionary. If the key is a string, it converts it to an integer. If the key is not found, it calls the
-    corrupted_file function. If the file is not found, it calls the error_handler function with an appropriate error message.
-    If the file is not in the expected format, it calls the corrupted_file function. If the program arguments contain a
-    backup_file_http key, it extracts the android_ipaddr, android_port, and android_file keys from it and updates the settings.
-    """
-    try:
-        with open(old_file) as f:
-            list_to_restore = json.load(f)
-            colors_to_use = list_to_restore[0]
-            program_arguments = list_to_restore[1]
-            f.close()
-            # Check for corruption by testing display_detail_level
-            try:
-                if isinstance(program_arguments["display_detail_level"], str):
-                    program_arguments["display_detail_level"] = int(
-                        program_arguments["display_detail_level"],
-                    )
-            except KeyError:
-                corrupted_file(program_arguments, colors_to_use)
-
-    # Handle file not found condition
-    except OSError:
-        error_handler("'-r' MapTasker Error: No settings file found to restore!", 0)
-        program_arguments = colors_to_use = {
-            "msg": "No settings file found to restore!",
-        }
-    # Handle file format error
-    except json.decoder.JSONDecodeError:  # no saved file
-        corrupted_file(program_arguments, colors_to_use)
-
-    # Convert old android device settings to new settings.
-    with contextlib.suppress(KeyError):
-        if program_arguments["backup_file_http"]:
-            temp_args = program_arguments["backup_file_http"].split(":")
-            program_arguments["android_ipaddr"] = temp_args[1][2:]
-            program_arguments["android_port"] = temp_args[2]
-            program_arguments["android_file"] = program_arguments["backup_file_location"]
-            del program_arguments["backup_file_http"]
-            del program_arguments["backup_file_location"]
-
-    # Finally, erase the old file since it is no longer needed.
-    os.remove(old_file)
-
-    return program_arguments, colors_to_use
-
-
 # Read the TOML file and return the settings.
 def read_toml_file(new_file: str) -> tuple[dict, dict]:
     """
@@ -283,7 +210,6 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
 def read_arguments(
     program_arguments: dict,
     colors_to_use: dict,
-    old_file: str,
     new_file: str,
 ) -> None:
     """
@@ -292,24 +218,19 @@ def read_arguments(
     Parameters:
         program_arguments (dict): A dictionary containing program arguments.
         colors_to_use (dict): A dictionary containing colors to use.
-        old_file (str): The path to the old file.
         new_file (str): The path to the new file.
 
     Returns:
         None: This function does not return anything.
     """
     sys_file = f"{Path.cwd()}{PrimeItems.slash}{SYSTEM_SETTINGS_FILE}"
-    # First see if there is an old formatted file to restore.
-    if os.path.isfile(old_file):
-        program_arguments, colors_to_use = process_old_formatted_file(
-            program_arguments,
-            colors_to_use,
-            old_file,
-        )
 
     # Read the user settings TOML file
-    elif os.path.isfile(new_file):
+    if os.path.isfile(new_file):
         program_arguments, colors_to_use = read_toml_file(new_file)
+    else:
+        program_arguments = PrimeItems.program_arguments
+        colors_to_use = set_color_mode(program_arguments["appearance_mode"])
 
     # Read the window positions from the PICKLE file
     if os.path.isfile(sys_file):
@@ -336,7 +257,6 @@ def save_restore_args(
     """
     our_path = os.getcwd()
     new_file = f"{our_path}{PrimeItems.slash}{ARGUMENTS_FILE}"
-    old_file = f"{our_path}{PrimeItems.slash}{OLD_ARGUMENTS_FILE}"
 
     # Saving?
     if to_save:
@@ -347,7 +267,6 @@ def save_restore_args(
         program_arguments, colors_to_use = read_arguments(
             program_arguments,
             colors_to_use,
-            old_file,
             new_file,
         )
 
