@@ -42,15 +42,24 @@ def format_line(item: str) -> str:
         output_line = item
 
     # Handle list markers: ordered and unordered.  Just blank-out the leading lmrk.
-    if "lmrk" in output_line:
-        output_line = replace_second_and_subsequent(
-            output_line,
-            "lmrk",
-            f"<br>{three_spaces}",
-        ).replace(
-            "lmrk",
-            three_spaces,
-        )
+    # FIX Convert to find / while loop
+    lmrk_positions = [match.start() for match in re.finditer("lmrk", output_line)]
+    for lmrk in lmrk_positions:
+        leading_space_count = count_trailing_blanks(output_line, lmrk)
+        leading_spaces = space * leading_space_count
+        new_line = output_line[: (lmrk - leading_space_count)]
+        new_line1 = f"{three_spaces}{leading_spaces}"
+        new_line2 = output_line[(lmrk + 4) :]
+        new_output_line = new_line + new_line1 + new_line2
+    # if "lmrk" in output_line:
+    #     output_line = replace_second_and_subsequent(
+    #         output_line,
+    #         "lmrk",
+    #         f"<br>{three_spaces}{leading_spaces}",
+    #     ).replace(
+    #         "lmrk",
+    #         f"{three_spaces}{leading_spaces}",
+    #     )
 
     # # Format the html...add a number of blanks if some sort of list.
     if "DOCTYPE" in item:  # If imbedded html (e.g. Scene WebElement), add a break and some spacing.
@@ -61,9 +70,10 @@ def format_line(item: str) -> str:
     # Get rid of trailing blank
     output_line = pattern2.sub("", output_line)  # Get space-commas: " ,"
 
-    # Get rid of extraneous html code that somehow got in to the output
+    # Get rid of extraneous html code (double-/span) that somehow got in to the output
     output_line = pattern9.sub("</span>", output_line)
 
+    # Replace double paragraph with single paragraph
     return pattern10.sub("</p>", output_line)
 
 
@@ -217,6 +227,7 @@ class HTMLTextFormatter(HTMLParser):
             self.list_counter.append(0)
             self._add_segment("\n")  # Add a newline before the list starts
         elif tag == "li":
+            leading_spaces = " " * count_trailing_blanks(self.rawdata, self.offset)
             indent = "  " * (self.list_indent_level - 1)
             list_marker = ""
             if self.list_types and self.list_types[-1] == "ul":
@@ -225,7 +236,7 @@ class HTMLTextFormatter(HTMLParser):
                 self.list_counter[-1] += 1
                 list_marker = f"lmrk{self.list_counter[-1]}. "
 
-            self._add_segment(f"\n{indent}{list_marker}")
+            self._add_segment(f"\n{leading_spaces}{indent}{list_marker}")
 
         # Handle new heading tags
         if tag == "h1":
@@ -337,6 +348,38 @@ class HTMLTextFormatter(HTMLParser):
             self._add_segment(chr(char_code))
         except ValueError:
             self._add_segment(f"&#{name};")
+
+    # def _count_trailing_blanks(self, text_string: str, position: int) -> int:
+    #     """
+    #     Counts the number of blank spaces in a string, starting at the character
+    #     before the specified position and working backward until a non-blank
+    #     character is found.
+
+    #     Args:
+    #         text_string: The input string.
+    #         position: The integer position to start counting from (exclusive).
+
+    #     Returns:
+    #         The total number of blank spaces found.
+    #     """
+    #     # Input validation
+    #     if not isinstance(text_string, str):
+    #         return "Error: The first argument must be a string."
+    #     if not isinstance(position, int) or position < 0 or position > len(text_string):
+    #         return "Error: The second argument must be a valid integer position within the string."
+
+    #     blank_count = 0
+    #     # Start the loop from the character just before the given position
+    #     # The range function works like this: range(start, stop, step)
+    #     for i in range(position - 1, -1, -1):
+    #         # Check if the character is a space
+    #         if text_string[i] == " ":
+    #             blank_count += 1
+    #         else:
+    #             # We found a non-blank character, so we stop counting
+    #             break
+
+    #     return blank_count
 
     def _add_segment(self, text: str) -> None:
         """
@@ -621,3 +664,36 @@ def format_label(lbl: str) -> str:
         )
 
     return task_label
+
+
+def count_trailing_blanks(text_string: str, position: int) -> int:
+    """
+    Counts the number of blank spaces in a string, starting at the character
+    before the specified position and working backward until a non-blank
+    character is found.
+
+    Args:
+        text_string: The input string.
+        position: The integer position to start counting from (exclusive).
+
+    Returns:
+        The total number of blank spaces found.
+    """
+    # Input validation
+    if not isinstance(text_string, str):
+        return "Error: The first argument must be a string."
+    if not isinstance(position, int) or position < 0 or position > len(text_string):
+        return "Error: The second argument must be a valid integer position within the string."
+
+    blank_count = 0
+    # Start the loop from the character just before the given position
+    # The range function works like this: range(start, stop, step)
+    for i in range(position - 1, -1, -1):
+        # Check if the character is a space
+        if text_string[i] == " ":
+            blank_count += 1
+        else:
+            # We found a non-blank character, so we stop counting
+            break
+
+    return blank_count

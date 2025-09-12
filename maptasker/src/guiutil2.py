@@ -333,6 +333,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     end_of_label = False
     prev_msg = "---none---"
     its_a_label = True
+    first_message = True
     self.previous_heading = "0"
     self.previous_font = "None"
 
@@ -383,24 +384,32 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
+                # Ignore paragraphs
+                if msg == "<p>":
+                    continue
+
                 # Determine if this is a label vs TaskerNet description
                 if "TaskerNet description:" in msg:
                     its_a_label = False
-                    msg = msg.replace("TaskerNet description:", "TaskerNet description:\n")  # noqa: PLW2901
+                    new_msg = msg.replace("TaskerNet description:", "TaskerNet description:\n")
+                else:
+                    new_msg = msg
+
+                new_msg = "" if new_msg == "<p>" else new_msg
 
                 # If Taskernet Description, alter the color so it isn't task_label_color
                 if not its_a_label and value["color"][inner_num] == PrimeItems.colors_to_use["action_label_color"]:
                     value["color"][inner_num] = PrimeItems.colors_to_use["taskernet_color"]
 
                 # Bailout if we hit our end-of-label flag.
-                if not end_of_label and (value["end"][inner_num] or ":lblend" in msg):
+                if not end_of_label and (value["end"][inner_num] or ":lblend" in new_msg):
                     end_of_label = True
                     # Get rid of end-of-label flag and add a space at end of last line.
-                    updated_msg = msg.replace('<data-flag=":lblend">', "") + " "
+                    updated_msg = new_msg.replace('<data-flag=":lblend">', "") + " "
                 elif end_of_label:
-                    updated_msg = msg.replace('<data-flag=":lblend">', "")
+                    updated_msg = new_msg.replace('<data-flag=":lblend">', "")
                 else:
-                    updated_msg = msg
+                    updated_msg = new_msg
 
                 # Handle a blank message, but don't output consequtive blank lines.
                 if updated_msg == "":
@@ -409,8 +418,9 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                         prev_msg = ""
                     continue
 
-                # Fix spacing
-                if "Use ChatGPT" in updated_msg:
+                # Set the spacing after the line
+                between_line_spacing = -20 if updated_msg.startswith("   *") else 0
+                if between_line_spacing == -20:
                     print("bingo")
 
                 # Readjust the message by adding a blank at the end so it doesn't bump up against box.
@@ -426,6 +436,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     msg_to_insert,
                     max_msg_len,
                     spacing,
+                    between_line_spacing,
                     start_idx,
                     char_position,
                     bg_color,
@@ -435,8 +446,11 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 number_of_inserted_lines += 1
 
                 # If this is the very first message, set the beginning of the bounding box based on the textbox content.
-                # Loop through the liners backwards, looking for the first line that doesn't contain our message.
-                if num == 0 and inner_num == 0 and msg_num == 0:
+                # Loop through the lines starting at the last and working backwards,
+                # looking for the first line that doesn't contain our message.
+                if first_message:
+                    first_message = False
+
                     # Get the line and column index of the last character in the Text widget.
                     # The 'end-1c' index is a special index that represents the character just
                     # before the absolute end of the widget's content.
@@ -505,7 +519,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
         background=bg_color,
         relief="ridge",
         borderwidth=2,
-        spacing1=5,
+        spacing1=-10,
+        spacing2=-30,
         spacing3=5,
         rmargin=10,
     )
@@ -535,6 +550,7 @@ def _insert_and_tag(
     message: str,
     max_msg_len: int,
     spacing: int,
+    between_line_spacing: int,
     start_idx: str,
     char_position: int,
     bg_color: str,
@@ -560,6 +576,8 @@ def _insert_and_tag(
     spacing : int
         The number of leading spaces to add to the message. A value of 0 means
         no leading spaces are added.
+    between_line_spacing : int
+        The spacing to add after the current line ('spacing2' in tag_config)
     start_idx : str
         The starting index (e.g., "1.0") for the text insertion.
     char_position : int
@@ -620,7 +638,7 @@ def _insert_and_tag(
 
     # Force bold if we have a heading change and ity isn't 0.
     prev_heading = self.previous_heading
-    if prev_heading != 0 and heading_num not in (0, prev_heading) and font_to_use == "normal":
+    if prev_heading != 0 and heading_num not in (0, prev_heading) and font == "normal":
         font = "bold"
 
     # Handle underlining: True or False
@@ -642,7 +660,7 @@ def _insert_and_tag(
     else:
         href = ""
         # Create a tag with the text attributes
-        tag_id = f"{heading_num};{font}:{value['color'][inner_num]}:{value['decor'][inner_num].strip()}"
+        tag_id = f"{heading_num};{font}:{value['color'][inner_num]}:{value['decor'][inner_num].strip()}:{between_line_spacing}"
 
     # Format the message
     spacer = " " * spacing
@@ -656,11 +674,8 @@ def _insert_and_tag(
 
     # Insert the unformatted text...only if it is normal text and not a hotlink
     if not href:
-        # Specifying the tag_id in the insert eliminates the need to do a tag_add.
-        self.textview_textbox.insert(start_idx, formatted_message, tag_id)
-
         # Apply the html attributes
-        _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline)
+        _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
         if PrimeItems.program_arguments["debug"]:
             font_info = self.textview_textbox.tag_cget(tag_id, "font")
             # The font_info is a tuple, e.g., ('Helvetica', 12, 'bold italic')
@@ -675,17 +690,30 @@ def _insert_and_tag(
             tag_id = tag_id.replace(font, new_font)
             font_to_use = (mygui.font, font_size, new_font)
             # Apply the html attributes
-            _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline)
+            _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
+
+        # Specifying the tag_id in the insert eliminates the need to do a tag_add.
+        self.textview_textbox.insert(start_idx, formatted_message, tag_id)
 
     char_position += len(formatted_message)
     self.previous_heading = heading_num
     self.previous_font = font_to_use
+    self.previous_between_line_spaccing = between_line_spacing
 
     return max_msg_len, char_position
 
 
-def _configure_tag(self: ctk, tag_id: str, font_to_use: tkfont, bg_color: str, fg_color: str, underline: str) -> None:
-    # Only dconfigure the tag once
+def _configure_tag(
+    self: ctk,
+    tag_id: str,
+    font_to_use: tkfont,
+    bg_color: str,
+    fg_color: str,
+    underline: str,
+    between_line_spacing: int,
+) -> None:
+    """Configure the tag for text just inserted"""
+    # Only configure the tag once
     if tag_id not in self.label_tags:
         self.textview_textbox.tag_config(
             tag_id,
@@ -695,6 +723,7 @@ def _configure_tag(self: ctk, tag_id: str, font_to_use: tkfont, bg_color: str, f
             background=bg_color,
             foreground=fg_color,
             underline=underline,
+            spacing2=between_line_spacing,
         )
         self.label_tags.append(tag_id)
 
