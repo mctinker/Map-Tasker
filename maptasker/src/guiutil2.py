@@ -384,6 +384,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
+                if "Style tag" in msg:
+                    print("bingo")
                 # Ignore paragraphs
                 if msg == "<p>":
                     continue
@@ -420,14 +422,17 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
                 # Set the spacing after the line
                 between_line_spacing = -20 if updated_msg.startswith("   *") else 0
-                if between_line_spacing == -20:
-                    print("bingo")
 
                 # Readjust the message by adding a blank at the end so it doesn't bump up against box.
                 msg_to_insert = updated_msg.replace("&nbsp;", " ").replace("<p>", "\n").replace("</p></div>", "")
 
                 # Add a blank to the front if this is and TaskerNet description and the start of a line
-                if char_position == 0 and not its_a_label and not msg_to_insert.startswith(" "):
+                if (
+                    char_position == 0
+                    and not its_a_label
+                    and not msg_to_insert.startswith(" ")
+                    and not msg_to_insert.startswith("<a href=")
+                ):
                     msg_to_insert = " " + msg_to_insert
 
                 # Insert and tag the message
@@ -645,7 +650,10 @@ def _insert_and_tag(
     underline = value["decor"][inner_num] == "underline"
 
     # Handle hotlink 'href'
-    if message.startswith("<a href="):
+    # if message.startswith("<a href="):
+    # FIX NOT CATCHING arefs in <div
+    if "<a href" in message:
+        print("bingo '", message, "'")
         temp = message.split('"')
         href = temp[1]
         text_len = len(temp[2]) - 4

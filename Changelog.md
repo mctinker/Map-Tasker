@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added:
+- Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre' and 'style' tags.  'Style' tags and their contents are currently ignored.
 
 ### Changed
 
@@ -14,7 +14,8 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed:
+- Fixed: Incorrect spacing on list items in labels and TaskerNet descriptions with embedded HTML.
+- Fixed: Embedded HTML 'href' reference in labels and TaskerNet descriptions are not properly recognized if it starts in  column 1.
 
 ### Known Issues
 

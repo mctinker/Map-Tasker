@@ -70,6 +70,44 @@ def format_line(item: str) -> str:
     return pattern10.sub("</p>", output_line)
 
 
+def replace_second_and_subsequent(main_string: str, old_substring: str, new_substring: str) -> str:
+    """
+    Replaces the second and subsequent occurrences of a substring in a string.
+
+    Args:
+        main_string (str): The original string to modify.
+        old_substring (str): The substring to be replaced.
+        new_substring (str): The new substring to use as a replacement.
+
+    Returns:
+        str: The modified string with replacements made.
+    """
+    # Find the starting index of the first occurrence.
+    # We use `main_string.find()` because it returns -1 if the substring isn't found,
+    # and it's a good way to get the index of the first match.
+    first_occurrence_index = main_string.find(old_substring)
+
+    # If the substring is not found or it's the only occurrence,
+    # return the original string unchanged.
+    if first_occurrence_index == -1:
+        return main_string
+
+    # Slice the string into three parts:
+    # 1. The part before the first occurrence (which we keep).
+    # 2. The first occurrence itself (which we also keep).
+    # 3. The rest of the string after the first occurrence (where we will make replacements).
+
+    part_before = main_string[: first_occurrence_index + len(old_substring)]
+    part_after = main_string[first_occurrence_index + len(old_substring) :]
+
+    # Use the `replace()` method on the `part_after` string.
+    # This will replace all occurrences of `old_substring` within that segment.
+    modified_part_after = part_after.replace(old_substring, new_substring)
+
+    # Combine the parts back together to form the final result.
+    return part_before + modified_part_after
+
+
 # Plug in the html for color along with the text
 def format_html(
     color_code: str,
@@ -85,12 +123,14 @@ def format_html(
         :param end_span: True=add </span> at end, False=don't add </span> at end
         :return: string with text formatted with color and font
     """
+
     # Determine and get the color to use.
     # Return completed HTML with color, font and text with text after
     if text_after:
         # The following line eliminates a <span color that is immediately followed by
         # another span color...only happens 3 out of 20,000 lines. And leaving it in
         # has no adverse impact to the output other than an extra span that is overridden.
+        # text_after = text_after.replace(f'<span class="{color_code}"><span', "<span")
 
         # Set up the trailing HTML to include
         trailing_span = "</span>" if end_span else ""
@@ -134,20 +174,12 @@ class HTMLTextFormatter(HTMLParser):
         self.list_types = []
         # New attribute to track if we are inside a <pre> tag
         self.is_preformatted = False
-        # New attribute to track if we are inside a <style> tag
-        self.is_in_style = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
         """
         Processes an opening HTML tag and updates the current formatting state.
         """
         self.tag_stack.append(tag)
-
-        # Handle the <style> tag
-        if tag == "style":
-            self.is_in_style = True
-            # self._add_segment("<style>")
-            return
 
         # Handle the <pre> tag
         if tag == "pre":
@@ -229,21 +261,11 @@ class HTMLTextFormatter(HTMLParser):
         """
         Processes a closing HTML tag and reverts the formatting state.
         """
-        # Handle the </style> tag
-        if tag == "style":
-            self.is_in_style = False
-            if self.tag_stack and self.tag_stack[-1] == tag:
-                self.tag_stack.pop()
-                self._add_segment("......Style tag end.<br>")
-            return
-
         # Handle the </pre> tag
         if tag == "pre":
             self.is_preformatted = False
             # Add a newline after the preformatted block
             self._add_segment("\n")
-            if self.tag_stack and self.tag_stack[-1] == tag:
-                self.tag_stack.pop()
             return
 
         if self.tag_stack and self.tag_stack[-1] == tag:
@@ -300,8 +322,6 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_h5"] = False
         elif tag == "h6":
             self.current_styles["is_h6"] = False
-        elif tag in ("figure", "div"):
-            self._add_segment("\n")
         # Unrecognized tag
         else:
             self.handle_unknown_endtag(tag)
@@ -310,11 +330,6 @@ class HTMLTextFormatter(HTMLParser):
         """
         Processes character data (plain text) and adds it as a formatted segment.
         """
-        # If we are inside a style tag, ignore the data
-        if self.is_in_style:
-            self._add_segment(f"<br>Style tag details......{data}")
-            return
-
         # If we are in a preformatted block, handle the data separately
         if self.is_preformatted:
             self._add_preformatted_segment(data)
@@ -356,10 +371,6 @@ class HTMLTextFormatter(HTMLParser):
         """
         Adds a text segment with the current styles to the list.
         """
-        # if self.is_in_style:
-        #     self.formatted_segments.append({"text": text})
-        #     return
-
         styles_copy = self.current_styles.copy()
 
         # Determine if it's a heading and which level
@@ -396,7 +407,7 @@ class HTMLTextFormatter(HTMLParser):
         styles_copy.pop("is_h4", None)
         styles_copy.pop("is_h5", None)
         styles_copy.pop("is_h6", None)
-        # FIX "styles": is not getting carried over to guimaps
+
         self.formatted_segments.append({"text": text, "styles": styles_copy})
 
     def _add_preformatted_segment(self, text: str) -> None:
@@ -550,9 +561,6 @@ def format_label(lbl: str) -> str:
 
         # Go through the lines in this formatted html
         for num, action_label in enumerate(formatted_lbl):
-            # FIX It fails to pass through the style for 'tag details'
-            if "Style tag details" in action_label["text"]:
-                print("bingo")
             # Add end-of-label flag as a commented flag to the last piece of the label.
             label_end = '<data-flag=":lblend">' if num + 1 == num_items else ""
 
@@ -570,14 +578,11 @@ def format_label(lbl: str) -> str:
             if lbl_text.startswith("\n%"):
                 lbl_text = lbl_text[1:]
 
-            # Get the label details for this item in them label.  If no 'styles', then ignore the line
-            try:
-                lbl_style = action_label["styles"]
-            except KeyError:
-                continue
+            # Get the label details for this item in them label.
+            lbl_style = action_label["styles"]
+            lbl_color = lbl_style["color"] if lbl_style["color"] else PrimeItems.colors_to_use[color_to_use]
 
             # Get link details
-            lbl_color = lbl_style["color"] if lbl_style["color"] else PrimeItems.colors_to_use[color_to_use]
             lbl_link = lbl_style.get("is_link", False)
             lbl_href = lbl_style.get("href", None)
 
