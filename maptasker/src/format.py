@@ -550,9 +550,6 @@ def format_label(lbl: str) -> str:
 
         # Go through the lines in this formatted html
         for num, action_label in enumerate(formatted_lbl):
-            # FIX It fails to pass through the style for 'tag details'
-            if "Style tag details" in action_label["text"]:
-                print("bingo")
             # Add end-of-label flag as a commented flag to the last piece of the label.
             label_end = '<data-flag=":lblend">' if num + 1 == num_items else ""
 

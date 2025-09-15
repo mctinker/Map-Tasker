@@ -429,6 +429,10 @@ class CTkTextview(ctk.CTkFrame):
 
         # Get the special fonts
         font = getattr(self.master.master, "font", ("Courier", 12))  # Default font
+        self.font = ctk.CTkFont(
+            family=font,
+            size=12,
+        )
         self.bold_font = ctk.CTkFont(
             family=font,
             weight="bold",
@@ -470,11 +474,7 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None
         """
-        font = getattr(master.master, "font")
-        self.textview_textbox = ctk.CTkTextbox(
-            self,
-            font=(font, 12),
-        )
+        self.textview_textbox = ctk.CTkTextbox(self)
         self.textview_textbox.grid(row=0, column=0, padx=20, pady=40, sticky="nsew")
 
         # Get thew width and height of the text box.
@@ -488,6 +488,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Configure the text box
         self.textview_textbox.configure(
+            font=self.font,
             height=int(height),
             width=int(width),
             state="normal",

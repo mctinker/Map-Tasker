@@ -69,6 +69,8 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
     continue_processing = True
     # This will hold the processed data for the current logical line
     processed_line_data = []
+    in_style = False
+    previous_style = []
 
     # Go through all of the data
     while line_num < len(lines) and continue_processing:
@@ -86,18 +88,23 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
 
         for num, line in enumerate(html_lines):
             # Skip empty lines or lines that are just closing span tags
-            # FIX 'Style tag details' and it's contents are skipped since thjey are missing these
             if not line or line == "</span>" or line.endswith('text-box"><p>'):
                 continue
 
-            # Only deal with lines that have a style and class
+            # Special hadnling for style details
+            if "Style tag details" in line:
+                in_style = True
+            elif "Style tag end." in line:
+                in_style = False
+
+            # Only deal with lines that have a style and class, or a 'Style tag details'
             font = ""
             decor = ""
-            if line and "style=" in line and "class=" in line:
+            if (line and "style=" in line and "class=" in line) or in_style:
                 try:
                     # Get the style details: color font, heading size, bold, italicised.
                     temp = line.replace("&nbsp;", " ").split('style="')
-                    style = temp[1].split(";")
+                    style = previous_style if in_style else temp[1].split(";")
 
                     for specific_style in style:
                         if "color:" in specific_style:
@@ -111,15 +118,19 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                                 font = specific_style.split('class="')[1].split('"')[0][0:7]
                             temp = specific_style.split('-text">')
                             temp = temp[1].replace("</span>", "").replace("<br>\n", "\n\n")
-
+                            # text is either the line if this is in-style, or pulled from temp
                             # <p> is needed for html/browser.  \n\n is needed for Map view.
-                            text = "\n\n" if temp == "<p>" else temp
+                            text = line if in_style else "\n\n" if temp == "<p>" else temp
+                            if in_style:
+                                text = text.replace("<br>", "\n")
                         elif "font-weight:" in specific_style:
                             font_to_use = "bold" if "bold" in specific_style else "normal"
                             font = f"{font};bold" if font else font_to_use
                         else:
                             # Drop here if there is a ';' in the label.  This is a problem
                             text = line.split('class="h6-text">')[1].replace("</span>", "")
+
+                    previous_style = style
 
                     # Cleanup the text line...possible left over garbage at end.
                     if ":lblend" in text:

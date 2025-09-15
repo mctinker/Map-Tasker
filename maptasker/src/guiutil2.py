@@ -336,6 +336,10 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     first_message = True
     self.previous_heading = "0"
     self.previous_font = "None"
+    font_name = self.textview_textbox.cget("font")
+    font_obj = tkfont.Font(font=font_name)
+    font_size = font_obj.cget("size")
+    print("bingo fontsize:", font_size, font_name)
 
     # Get the background color
     bg_color = make_hex_color(mygui.color_lookup["background_color"])
@@ -384,8 +388,6 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
-                if "Style tag" in msg:
-                    print("bingo")
                 # Ignore paragraphs
                 if msg == "<p>":
                     continue
@@ -466,12 +468,13 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     prev_num = int(line_number)
                     content = ""
                     if "\n" in msg_to_insert:
-                        msg_to_insert = msg_to_insert.split("\n")[0]
+                        msg_to_insert = msg_to_insert.split("\n")[1]  # Skip 'TaskerNet description:'
                     while msg_to_insert not in content:
                         content = self.textview_textbox.get(f"{prev_num!s}.0", f"{prev_num!s}.end")
                         if msg_to_insert not in content:
                             prev_num -= 1
-                    begin_box = f"{prev_num}.0"
+                    begin_box = f"{prev_num}.0" if its_a_label else f"{prev_num - 1}.0"
+                    line_num = int(line_number)
 
                 # Reset spacing so we don't get spacers every concatenated piece of text.
                 spacing = 0
@@ -611,20 +614,19 @@ def _insert_and_tag(
     temp_font = highlights.split(";")
 
     # Get the font size / italic flag / bold
-    italic = False
-    bold = False
     heading_num = self.previous_heading
     if temp_font[0] == "italic":
-        italic = True
+        font = "italic"
     elif temp_font[0] == "bold":
-        bold = True
+        font = "bold"
     else:
         # Highlight is a heading rather than a font specification.
-        heading_num = temp_font[0].replace("-text", "")[1]
+        heading_num = "0" if message == " TaskerNet description:\n " else temp_font[0].replace("-text", "")[1]
+        font = "normal"
 
     # Set the font size to the heading size.  If this is a list item, downsize it.
     try:
-        font_size = int(heading_fonts[heading_num])
+        font_size = heading_fonts[heading_num]
     except KeyError:
         font_size = heading_fonts["0"]  # Default to h0 if not found
 
@@ -638,22 +640,21 @@ def _insert_and_tag(
         spacing = 1
 
     # Assign the first font
-    font = temp_font[0] if italic or bold else "normal"
-    font_to_use = (mygui.font, font_size, font)
-
-    # Force bold if we have a heading change and ity isn't 0.
-    prev_heading = self.previous_heading
-    if prev_heading != 0 and heading_num not in (0, prev_heading) and font == "normal":
-        font = "bold"
+    # FIX font_to_use isn't correct.  Need to set it to font name, font size, font style
+    # font_to_use = (mygui.font, font_size, font)
+    if font == "normal":
+        font_to_use = (self.font, font_size, font)
+    elif font == "bold":
+        font_to_use = (self.bold_font, font_size, font)
+    else:
+        font_to_use = (self.italic_font, font_size, font)
 
     # Handle underlining: True or False
     underline = value["decor"][inner_num] == "underline"
 
     # Handle hotlink 'href'
     # if message.startswith("<a href="):
-    # FIX NOT CATCHING arefs in <div
-    if "<a href" in message:
-        print("bingo '", message, "'")
+    if "<a href=" in message:
         temp = message.split('"')
         href = temp[1]
         text_len = len(temp[2]) - 4
@@ -721,19 +722,45 @@ def _configure_tag(
     between_line_spacing: int,
 ) -> None:
     """Configure the tag for text just inserted"""
-    # Only configure the tag once
-    if tag_id not in self.label_tags:
-        self.textview_textbox.tag_config(
-            tag_id,
-            # font: A font specification, which can be a font name, a tuple (font family, size, style),
-            # or a tk.font.Font object. Styles include bold, italic, underline, and overstrike.
-            font=font_to_use,
-            background=bg_color,
-            foreground=fg_color,
-            underline=underline,
-            spacing2=between_line_spacing,
-        )
-        self.label_tags.append(tag_id)
+    # Only configure the tag once.  We will manipulate the text outselves rather than via customtkinter.
+    # NOTE: The following logic works, but the end result doesn't.  No bold or italicised text.
+    # if tag_id not in self.label_tags:
+    """"bold": {"font": self.bold_font},
+            "italic": {"font": self.italic_font},
+            "underline": {"underline": True},
+    """
+
+    def new_tag_config(self: object, tagName: str, **kwargs: list) -> object:
+        """
+        A function to override the CustomTkinter tag configuration to allow a font= argument.
+
+        Parameters:
+            - self: The object instance.
+            - tagName: The name of the tag to be configured.
+            - **kwargs: Additional keyword arguments for configuring the tag.
+
+        Returns:
+            The result of calling tag_config on the _textbox attribute with the provided tagName and keyword arguments.
+        """
+        return self._textbox.tag_config(tagName, **kwargs)
+
+    # FIX font_to_use isn't correct.  Need to set it to font name, font size, font style
+    self.textview_textbox.tag_config(
+        tag_id,
+        # font: A font specification, which can be a font name, a tuple (font family, size, style),
+        # or a tk.font.Font object. Styles include bold, italic, underline, and overstrike.
+        font=font_to_use,
+        background=bg_color,
+        foreground=fg_color,
+        underline=underline,
+        spacing2=between_line_spacing,
+    )
+    font_name = self.textview_textbox.cget("font")
+    font_obj = tkfont.Font(font=font_name)
+    font_size = font_obj.cget("size")
+    print("bingo fontsize:", font_size, font_name)
+    print("bingo")
+    # self.label_tags.append(tag_id)
 
 
 def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tuple[int, int, int, str]:
