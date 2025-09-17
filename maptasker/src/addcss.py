@@ -71,16 +71,23 @@ def add_css() -> None:
     """
 
     fontsize = """
-    <style>
-        .h0-text { font-size: 16px; line-height: 1.00}
-        .h1-text { font-size: 24px; line-height: 1.00}
-        .h2-text { font-size: 22px; line-height: 1.00}
-        .h3-text { font-size: 20px; line-height: 1.00}
-        .h4-text { font-size: 18px; line-height: 1.00}
-        .h5-text { font-size: 16px; line-height: 1.00}
-        .h6-text { font-size: 15px; line-height: 1.00}
-    </style>
+<style>
+    .h0-text { font-size: 16px; line-height: 1.00}
+    .h1-text { font-size: 24px; line-height: 1.00}
+    .h2-text { font-size: 22px; line-height: 1.00}
+    .h3-text { font-size: 20px; line-height: 1.00}
+    .h4-text { font-size: 18px; line-height: 1.00}
+    .h5-text { font-size: 16px; line-height: 1.00}
+    .h6-text { font-size: 15px; line-height: 1.00}
+</style>
     """
+    resize_image = """
+<style>
+    .image-small {
+        width: 300px;
+        height: auto; /* Maintains the aspect ratio */
+    }
+</style>"""
 
     # Modsify the tabs with appropriate spacing.
     tabs = tabs.replace("xxx", SPACE_COUNT1[1])
@@ -97,3 +104,6 @@ def add_css() -> None:
 
     # Add the fontsizes
     PrimeItems.output_lines.add_line_to_output(5, fontsize, FormatLine.dont_format_line)
+
+    # Add image resize
+    PrimeItems.output_lines.add_line_to_output(5, resize_image, FormatLine.dont_format_line)

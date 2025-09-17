@@ -3463,6 +3463,7 @@ class EventHandlers:
         # Reset the program state since it may have been previously set by the 'Map' view.
         reset_primeitems_single_names()
         the_view.rerun = True
+        the_view.textview.destroy()
         the_view.cleanup_and_run(run_only=False)
 
     # The 'Exit' program button has been pressed.  Call it quits

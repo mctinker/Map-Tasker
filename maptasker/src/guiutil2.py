@@ -336,10 +336,6 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     first_message = True
     self.previous_heading = "0"
     self.previous_font = "None"
-    font_name = self.textview_textbox.cget("font")
-    font_obj = tkfont.Font(font=font_name)
-    font_size = font_obj.cget("size")
-    print("bingo fontsize:", font_size, font_name)
 
     # Get the background color
     bg_color = make_hex_color(mygui.color_lookup["background_color"])
@@ -527,7 +523,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
         background=bg_color,
         relief="ridge",
         borderwidth=2,
-        spacing1=-10,
+        spacing1=5,
         spacing2=-30,
         spacing3=5,
         rmargin=10,
@@ -624,6 +620,9 @@ def _insert_and_tag(
         heading_num = "0" if message == " TaskerNet description:\n " else temp_font[0].replace("-text", "")[1]
         font = "normal"
 
+    # Handle underlining: True or False
+    underline = value["decor"][inner_num] == "underline"
+
     # Set the font size to the heading size.  If this is a list item, downsize it.
     try:
         font_size = heading_fonts[heading_num]
@@ -633,27 +632,23 @@ def _insert_and_tag(
     if PrimeItems.program_arguments["debug"] and not message.startswith("<a href="):
         message = f"{font_size}{message}"
 
+    # Reduce spacing if this is the largest font
     font_sizes = list(heading_fonts.values())
     max_font_size = max(font_sizes)
     if font_size == max_font_size:
-        # If the font size is the largest, decrease the spacing
-        spacing = 1
+        spacing = spacing // 2 if spacing > 0 else 0
 
-    # Assign the first font
-    # FIX font_to_use isn't correct.  Need to set it to font name, font size, font style
-    # font_to_use = (mygui.font, font_size, font)
-    if font == "normal":
-        font_to_use = (self.font, font_size, font)
-    elif font == "bold":
-        font_to_use = (self.bold_font, font_size, font)
-    else:
-        font_to_use = (self.italic_font, font_size, font)
-
-    # Handle underlining: True or False
-    underline = value["decor"][inner_num] == "underline"
+    # Assign the font to use: define the font if we don't yet have it.
+    # FIX Rerun causing fonts to shrink
+    print("bingo", mygui.font, font_size)
+    font_key = mygui.font + font + str(font_size)
+    try:
+        font_to_use = mygui.font_table[font_key]
+    except KeyError:
+        font_to_use = assign_font(mygui.font, font_size, font, underline)
+        mygui.font_table[font_key] = font_to_use
 
     # Handle hotlink 'href'
-    # if message.startswith("<a href="):
     if "<a href=" in message:
         temp = message.split('"')
         href = temp[1]
@@ -721,46 +716,42 @@ def _configure_tag(
     underline: str,
     between_line_spacing: int,
 ) -> None:
-    """Configure the tag for text just inserted"""
-    # Only configure the tag once.  We will manipulate the text outselves rather than via customtkinter.
-    # NOTE: The following logic works, but the end result doesn't.  No bold or italicised text.
-    # if tag_id not in self.label_tags:
-    """"bold": {"font": self.bold_font},
-            "italic": {"font": self.italic_font},
-            "underline": {"underline": True},
-    """
-
-    def new_tag_config(self: object, tagName: str, **kwargs: list) -> object:
-        """
-        A function to override the CustomTkinter tag configuration to allow a font= argument.
-
-        Parameters:
-            - self: The object instance.
-            - tagName: The name of the tag to be configured.
-            - **kwargs: Additional keyword arguments for configuring the tag.
-
-        Returns:
-            The result of calling tag_config on the _textbox attribute with the provided tagName and keyword arguments.
-        """
-        return self._textbox.tag_config(tagName, **kwargs)
-
-    # FIX font_to_use isn't correct.  Need to set it to font name, font size, font style
     self.textview_textbox.tag_config(
         tag_id,
-        # font: A font specification, which can be a font name, a tuple (font family, size, style),
-        # or a tk.font.Font object. Styles include bold, italic, underline, and overstrike.
         font=font_to_use,
         background=bg_color,
         foreground=fg_color,
         underline=underline,
         spacing2=between_line_spacing,
     )
-    font_name = self.textview_textbox.cget("font")
-    font_obj = tkfont.Font(font=font_name)
-    font_size = font_obj.cget("size")
-    print("bingo fontsize:", font_size, font_name)
-    print("bingo")
-    # self.label_tags.append(tag_id)
+
+
+def assign_font(font_name: str, font_size: int, font: str, underline: bool) -> tkfont:
+    """Creates and returns a CTkFont object with specified attributes.
+
+    This function generates a CustomTkinter font object based on a given font family,
+    size, and style. It supports "normal", "bold", and "italic" styles.
+
+    Args:
+        self (ctk): The CustomTkinter object instance.
+        font_name (str): The name of the font family (e.g., "Arial").
+        font_size (int): The size of the font in points.
+        font (str): The font style. Must be one of "normal", "bold", or "italic".
+        underline (bool): A boolean indicating whether the font should be underlined.
+
+    Returns:
+        tkfont: A configured CTkFont object.
+
+    Raises:
+        ValueError: If an unsupported font style is provided.
+    """
+    if font == "normal":
+        return ctk.CTkFont(family=font_name, size=font_size, underline=underline)
+    if font == "bold":
+        return ctk.CTkFont(family=font_name, size=font_size, weight="bold", underline=underline)
+    if font == "italic":
+        return ctk.CTkFont(family=font_name, size=font_size, slant="italic", underline=underline)
+    return ctk.CTkFont(family=font_name, size=font_size, underline=underline)
 
 
 def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tuple[int, int, int, str]:

@@ -428,18 +428,20 @@ class CTkTextview(ctk.CTkFrame):
         self.textview_style.theme_use("default")
 
         # Get the special fonts
-        font = getattr(self.master.master, "font", ("Courier", 12))  # Default font
+        self.font_name = getattr(self.master.master, "font", ("Courier", 12))  # Default font
         self.font = ctk.CTkFont(
-            family=font,
+            family=self.font_name,
             size=12,
         )
+        self.font_measure = self.font.measure(text="X")
+        self.font_metric = self.font.metrics()
         self.bold_font = ctk.CTkFont(
-            family=font,
+            family=self.font_name,
             weight="bold",
             size=12,
         )
         self.italic_font = ctk.CTkFont(
-            family=font,
+            family=self.font_name,
             size=12,
             slant="italic",
         )
@@ -3821,6 +3823,7 @@ def _initialize_display_settings(self: ctk) -> None:
     self.mapview_window = None
     self.treeview_window = None
     self.outline = False
+    self.font_table = {}
 
 
 def _initialize_feature_flags(self: ctk) -> None:

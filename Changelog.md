@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: Incorrect spacing on list items in labels and TaskerNet descriptions with embedded HTML.
 - Fixed: Embedded HTML 'href' reference in labels and TaskerNet descriptions are not properly recognized if it starts in  column 1.
+- Fixed: Labels and TaskerNet descriptions are displayed in the wrong font size.  NOTE: It is still incorrect for Window.
 
 ### Known Issues
 

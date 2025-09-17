@@ -143,6 +143,22 @@ class HTMLTextFormatter(HTMLParser):
         """
         self.tag_stack.append(tag)
 
+        # Handle the <div> tag
+        if tag == "div":
+            # Add a newline before the content of the div for better separation
+            self._add_segment("\n")
+            return
+
+        # Handle the <img> tag
+        if tag == "img":
+            # FIX Cleanup and make guiutil2 work with image
+            # Add a placeholder for the image
+            # self._add_segment(f"[Image]:{attrs[0][1]}:{attrs[1][1]}")
+            # self._add_segment("[Image]")
+            self._add_segment(f'<img src="{attrs[0][1]}" alt="{attrs[1][1]}" class="image-small"/>')
+            # Return to prevent it from being added to the tag stack
+            return
+
         # Handle the <style> tag
         if tag == "style":
             self.is_in_style = True
@@ -229,6 +245,14 @@ class HTMLTextFormatter(HTMLParser):
         """
         Processes a closing HTML tag and reverts the formatting state.
         """
+        # Handle the </div> tag
+        if tag == "div":
+            # Add a newline after the div's content
+            self._add_segment("\n")
+            if self.tag_stack and self.tag_stack[-1] == tag:
+                self.tag_stack.pop()
+            return
+
         # Handle the </style> tag
         if tag == "style":
             self.is_in_style = False
@@ -300,8 +324,6 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_h5"] = False
         elif tag == "h6":
             self.current_styles["is_h6"] = False
-        elif tag in ("figure", "div"):
-            self._add_segment("\n")
         # Unrecognized tag
         else:
             self.handle_unknown_endtag(tag)
@@ -396,7 +418,6 @@ class HTMLTextFormatter(HTMLParser):
         styles_copy.pop("is_h4", None)
         styles_copy.pop("is_h5", None)
         styles_copy.pop("is_h6", None)
-        # FIX "styles": is not getting carried over to guimaps
         self.formatted_segments.append({"text": text, "styles": styles_copy})
 
     def _add_preformatted_segment(self, text: str) -> None:
