@@ -12,9 +12,11 @@ import os
 import re
 import tkinter as tk
 import tkinter.font as tkfont
+from io import BytesIO
 
 import customtkinter as ctk
 import requests
+from PIL import Image, ImageTk
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import rutroh_error
@@ -384,8 +386,13 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
+                # Handle images separetaly
+                if "<img src=" in msg:
+                    _handle_image(self, msg, start_idx, char_position, line_num)
+                    continue
+
                 # Ignore paragraphs
-                if msg == "<p>":
+                if msg in ("<p>", "</a>"):
                     continue
 
                 # Determine if this is a label vs TaskerNet description
@@ -752,6 +759,73 @@ def assign_font(font_name: str, font_size: int, font: str, underline: bool) -> t
     if font == "italic":
         return ctk.CTkFont(family=font_name, size=font_size, slant="italic", underline=underline)
     return ctk.CTkFont(family=font_name, size=font_size, underline=underline)
+
+
+def _handle_image(self: ctk, msg: str, start_idx: str, char_position: int, line_num: int) -> None:
+    # Get the url for the image
+    # This pattern looks for "href=" followed by a quote, then captures everything
+    # that's not a quote, until it finds the closing quote.
+    # (?:...) is a non-capturing group.
+    # (.*?) is a non-greedy match for any character.
+    pattern = r'href="(.*?)"'
+    # Search for the pattern in the string
+
+    match = re.search(pattern, msg)
+
+    # Check if a match was found
+    if match:
+        # The URL is in the first captured group (index 1)
+        url = match.group(1)
+        _show_image(self.textview_textbox, url, start_idx)
+    else:
+        print("No URL found in the href attribute.")
+
+
+def _show_image(text_widget: ctk.CTkTextbox, image_url: str, index: str) -> None:
+    """
+    Downloads an image from a URL and displays it in a CTkTextbox widget.
+
+    Args:
+        text_widget: The customtkinter CTkTextbox widget instance.
+        image_url: The URL of the image to display.
+        index: The text index where the image should be inserted.
+    """
+    try:
+        # 1. Download the image
+        response = requests.get(image_url, timeout=5, headers={"User-agent": "your bot 0.1"})
+        if response.status_code == 429:
+            text_widget.insert(index, "[!!! Image server too many requests !!!]", "error")
+            return
+
+        response.raise_for_status()
+
+        # 2. Open the image using Pillow.
+        img_data = BytesIO(response.content)
+        # pil_image = Image.open(img_data).resize((300, 300), Image.LANCZOS)
+        pil_image = Image.open(img_data)
+
+        # 3. Use thumbnail() to resize while preserving the aspect ratio.
+        # This will resize the image to fit within a 300x200 box without distortion.
+        pil_image.thumbnail((300, 200), Image.LANCZOS)
+
+        # 4. Create a standard Tkinter PhotoImage from the Pillow image.
+        # This is necessary for the internal Tkinter Text widget.
+        tk_image = ImageTk.PhotoImage(pil_image)
+
+        # 5. Embed the image in the internal Tkinter Text widget.
+        # This is the key fix: use the `_textbox` attribute, which is a 'tk' rather than a 'ctk' reference.
+        text_widget._textbox.image_create(index, image=tk_image)  # noqa: SLF001
+
+        # 6. Store a reference to prevent garbage collection.
+        # The image reference must be a property of the main widget or a global variable.
+        if not hasattr(text_widget, "image_references"):
+            text_widget.image_references = []
+        text_widget.image_references.append(tk_image)
+
+    except requests.exceptions.RequestException as e:
+        rutroh_error(f"Failed to download image: {e}")
+    except Exception as e:  # noqa: BLE001
+        rutroh_error(f"guiutil2 _show_image...An error occurred: {e}")
 
 
 def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tuple[int, int, int, str]:

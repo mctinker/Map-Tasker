@@ -3171,11 +3171,12 @@ class CTkTextview(ctk.CTkFrame):
         )
         # Get the highlight
         for highlight in value.get("highlights", []):
-            if highlight not in highlight_configurations:
-                rutroh_error(f"Not in highlight_configurations: {highlight}")
             # Get the highlight details.  If value error, then there are no details.
             try:
                 highlight_type, highlight_text = self._parse_highlight(highlight)
+                if highlight_type not in highlight_configurations:
+                    rutroh_error(f"Not in highlight_configurations: {highlight}")
+                    continue
             except ValueError:
                 continue
             highlight_color = ""

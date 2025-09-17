@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre' and 'style' tags.  'Style' tags and their contents are currently ignored.
+- Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre', 'src' and 'style' tags.  'Style' tags and their contents are currently ignored.
 
 ### Changed
 
