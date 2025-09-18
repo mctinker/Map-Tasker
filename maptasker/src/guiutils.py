@@ -1746,6 +1746,9 @@ def reload_gui(self: object) -> None:
     # Save windows
     store_windows(self)
 
+    # Save the last-used tab
+    self.tab_to_use = self.tabview.get()
+
     # Save the settings
     temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
     _, _ = save_restore_args(temp_args, self.color_lookup, to_save=True)

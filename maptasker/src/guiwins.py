@@ -2178,7 +2178,7 @@ class CTkTextview(ctk.CTkFrame):
             ".h4-text",
             ".h5-text",
             ".h6-text",
-            "     \n",
+            ".image-small     \n",
         ]
         # Setup the progressbar
         progress = self._initialize_progress_bar(the_data)
@@ -2234,16 +2234,17 @@ class CTkTextview(ctk.CTkFrame):
                 if any(ignore_str in value["text"][0] for ignore_str in text_to_ignore):
                     continue
 
-                #  Ignore our css .textbox definitions.
-                if ignore_line and "}" in value["text"][0]:
+                # Ignore our css .textbox definitions.
+                first_text = value["text"][0] if value["text"] else ""
+                if ignore_line and "}" in first_text:
                     ignore_line = False
                     continue
                 if ignore_line:
                     continue
-                if ".text-box" in value["text"][0]:
+                if ".text-box" in first_text or ".image-small" in first_text:
                     ignore_line = True
                     continue
-                if previous_text_content == "\n" and value["text"][0] == "\n":  # Ignore double blank lines.
+                if previous_text_content == "\n" and first_text == "\n":  # Ignore double blank lines.
                     continue
 
             # Get the text of the value and ignore duplicate blank lines.
@@ -2260,7 +2261,7 @@ class CTkTextview(ctk.CTkFrame):
                 continue
 
             # If Windows, ignore blank lines: "    \n"
-            if sys.platform == "win32" and (value["text"] and value["text"][0].endswith("\n")):
+            if sys.platform == "win32" and (value["text"] and first_text.endswith("\n")):
                 text = value["text"][0]
                 blanks_to_check = len(text) - 1
                 if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
@@ -4630,7 +4631,7 @@ def _create_browser_options_section(self: ctk) -> None:
     )
     create_tooltip(
         self.rerun_button,
-        text="Same as the 'Run' button, but the program does not terminate when done.",
+        text="Same as the 'Run and Exit' button,\nbut the program restarts after displaying the browser output.",
     )
 
     add_button(
@@ -4924,6 +4925,13 @@ def get_rid_of_windows_and_exit(self, delete_all: bool = True) -> None:  # noqa:
             self.treeview_window.destroy()
         if self.mapview_window is not None:
             self.mapview_window.destroy()
+        if self.textbox is not None:
+            self.textbox._textbox.destroy()  # noqa: SLF001
+            self.textbox.destroy()
+        if self.textview is not None:
+            self.textview.destroy()
+        if self.ai_apikey_window is not None:
+            self.ai_apikey_window.destroy()
     self.quit()
 
 

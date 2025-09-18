@@ -9,6 +9,7 @@ import error.
 """
 
 import os
+import platform
 import re
 import tkinter as tk
 import tkinter.font as tkfont
@@ -386,6 +387,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
+                # if "===============" in msg:
+                #     print("bingo", value["table"][inner_num])
                 # Handle images separetaly
                 if "<img src=" in msg:
                     _handle_image(self, msg, start_idx, char_position, line_num)
@@ -635,6 +638,8 @@ def _insert_and_tag(
         font_size = heading_fonts[heading_num]
     except KeyError:
         font_size = heading_fonts["0"]  # Default to h0 if not found
+    if platform.system() == "Windows":  # Font sizes are different on windows.
+        font_size = font_size * 2
 
     if PrimeItems.program_arguments["debug"] and not message.startswith("<a href="):
         message = f"{font_size}{message}"
@@ -646,8 +651,6 @@ def _insert_and_tag(
         spacing = spacing // 2 if spacing > 0 else 0
 
     # Assign the font to use: define the font if we don't yet have it.
-    # FIX Rerun causing fonts to shrink
-    print("bingo", mygui.font, font_size)
     font_key = mygui.font + font + str(font_size)
     try:
         font_to_use = mygui.font_table[font_key]

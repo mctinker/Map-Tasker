@@ -1,4 +1,4 @@
-"""Formatting logic"""
+"""Format output lines and html content"""
 
 import html
 import re
@@ -127,6 +127,7 @@ class HTMLTextFormatter(HTMLParser):
             "is_bold": False,
             "is_link": False,
             "href": None,
+            "is_table_cell": False,  # New flag to track if we're in a table cell
         }
         self.tag_stack = []  # To keep track of active tags and their influence
         self.list_indent_level = 0
@@ -151,11 +152,11 @@ class HTMLTextFormatter(HTMLParser):
 
         # Handle the <img> tag
         if tag == "img":
-            # FIX Cleanup and make guiutil2 work with image
-            # Add a placeholder for the image
-            # self._add_segment(f"[Image]:{attrs[0][1]}:{attrs[1][1]}")
-            # self._add_segment("[Image]")
-            self._add_segment(f'<img src="{attrs[0][1]}" alt="{attrs[1][1]}" class="image-small"/>')
+            if len(attrs) > 1:
+                string_to_add = f'<img src="{attrs[0][1]}" alt="{attrs[1][1]}" class="image-small"/>'
+            else:
+                string_to_add = f'<img src="{attrs[0]}" class="image-small"/>'
+            self._add_segment(string_to_add)
             # Return to prevent it from being added to the tag stack
             return
 
@@ -223,6 +224,15 @@ class HTMLTextFormatter(HTMLParser):
                 list_marker = f"lmrk{self.list_counter[-1]}. "
 
             self._add_segment(f"\n{leading_spaces}{indent}{list_marker}")
+
+        # New: Handle table tags
+        elif tag == "table":
+            self.current_styles["is_table_cell"] = True
+            self._add_segment("\n" + "=" * 40 + "\n")  # Start of table visual indicator
+        elif tag == "tr":
+            self._add_segment("\n")  # Newline for each table row
+        elif tag in ["td", "th"]:
+            self._add_segment("  |  ")  # Spacer for table cells
 
         # Handle new heading tags
         elif tag == "h1":
@@ -310,6 +320,12 @@ class HTMLTextFormatter(HTMLParser):
                 self.list_types.pop()
             if tag == "ol" and self.list_counter:
                 self.list_counter.pop()
+
+        # New: Revert table tags
+        elif tag == "table":
+            self._add_segment("\n" + "=" * 40 + "\n")  # End of table visual indicator
+        elif tag in ["td", "th"]:
+            self.current_styles["is_table_cell"] = False
 
         # Revert new heading tags
         elif tag == "h1":
@@ -530,9 +546,9 @@ def format_label(lbl: str) -> str:
     Formats a given label string, potentially containing HTML, into an HTML-formatted
     task label with specific styling based on its content.
 
-    This function first checks if the input `lbl` contains HTML.
+    This function first checks if the input `lbl` or 'TaskerNet description' contains HTML.
     - If it does, the HTML content is parsed into segments, and each segment's
-      text, color, and heading level are used to construct a new HTML string.
+      text, color, and heading level, etc. are used to construct a new HTML string.
       Text within headings will have an indentation based on the heading level.
       Line breaks within the parsed HTML are skipped. Special characters like
       '[' and ']' are replaced with '{' and '}' respectively.
@@ -607,6 +623,8 @@ def format_label(lbl: str) -> str:
                 css_styles += "font-style: italic;"
             if lbl_style.get("is_bold"):
                 css_styles += ";font-weight: bold;"
+            if lbl_style.get("is_table_cell"):
+                css_styles += ";is_table;"
             # Add default link styling if is_link is True. The text-decoration is already handled by the underline check.
             if lbl_link:
                 lbl_text = f'<a href="{lbl_href}">{lbl_text}</a>'

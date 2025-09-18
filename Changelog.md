@@ -6,17 +6,19 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre', 'src' and 'style' tags.  'Style' tags and their contents are currently ignored.
+- Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre', 'src' and 'style' tags.  'Style' tags and their contents are flagged.
 
 ### Changed
 
 - Changed: Support for the older configuration/setting JSON file format (12+ months old) has been dropped.
+- Changed: The 'ReRun' GUI button now exits and reloads the program to eliminate GUI text size issues.
 
 ### Fixed
 
 - Fixed: Incorrect spacing on list items in labels and TaskerNet descriptions with embedded HTML.
 - Fixed: Embedded HTML 'href' reference in labels and TaskerNet descriptions are not properly recognized if it starts in  column 1.
 - Fixed: Labels and TaskerNet descriptions are displayed in the wrong font size.  NOTE: It is still incorrect for Window.
+- Fixed: Text in Map view is incorrect size after 'ReRun'.
 
 ### Known Issues
 

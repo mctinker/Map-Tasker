@@ -327,6 +327,7 @@ Network traffic is as follows:
 - Read file 'maptasker_changelog.json' from '<https://github.com/mctinker/Map-Tasker>' if "What's New" is selected in the GUI.
 - Use chatgpt.com when using AI analysis with any of the OpenAi models.  The output of MapTasker is sent to the server via the standard API call for analysis.  Likewise for Claude (Anthropic), Google (Gemini) and DeepSeek.
 - New and updated local Ai models will be loaded from '<https://ollama.com/library>' when running the AI Analysis feature.
+- Image and video sources as defined via the '<img src=https://...>' HTML tag in Task action labels and TaskerNet descriptions will be accessed.  Examples: imggur.com, Youtube, Dropbox, Google Drice, etc.
 
 ## Contributing
 
