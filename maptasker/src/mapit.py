@@ -777,6 +777,7 @@ def mapit_all(file_to_get: str) -> int:
     # Handle Ai Analysis
     if PrimeItems.program_arguments["ai_analyze"]:
         map_ai()
+        PrimeItems.program_arguments["rerun"] = True
 
     # Save our runtime settings for next time.  Make sure we don't save the rerun state as True
     save_rerun_state = PrimeItems.program_arguments["rerun"]

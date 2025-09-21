@@ -427,20 +427,18 @@ class CTkTextview(ctk.CTkFrame):
         self.textview_style = ttk.Style(self)
         self.textview_style.theme_use("default")
 
-        # Get the special fonts
+        # Define our fonts
         self.font_name = getattr(self.master.master, "font", ("Courier", 12))  # Default font
-        self.font = ctk.CTkFont(
+        self.font_normal = ctk.CTkFont(
             family=self.font_name,
             size=12,
         )
-        self.font_measure = self.font.measure(text="X")
-        self.font_metric = self.font.metrics()
-        self.bold_font = ctk.CTkFont(
+        self.font_bold = ctk.CTkFont(
             family=self.font_name,
             weight="bold",
             size=12,
         )
-        self.italic_font = ctk.CTkFont(
+        self.font_italic = ctk.CTkFont(
             family=self.font_name,
             size=12,
             slant="italic",
@@ -490,7 +488,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Configure the text box
         self.textview_textbox.configure(
-            font=self.font,
+            font=self.font_normal,
             height=int(height),
             width=int(width),
             state="normal",
@@ -3145,8 +3143,8 @@ class CTkTextview(ctk.CTkFrame):
         Add highlights to the text box based on a dictionary of highlight configurations.
         """
         highlight_configurations = {
-            "bold": {"font": self.bold_font},
-            "italic": {"font": self.italic_font},
+            "bold": {"font": self.font_bold},
+            "italic": {"font": self.font_italic},
             "underline": {"underline": True},
             "mark": {"background": PrimeItems.colors_to_use["highlight_color"]},
             "h0-text": {"font": "h0"},
@@ -4925,11 +4923,6 @@ def get_rid_of_windows_and_exit(self, delete_all: bool = True) -> None:  # noqa:
             self.treeview_window.destroy()
         if self.mapview_window is not None:
             self.mapview_window.destroy()
-        if self.textbox is not None:
-            self.textbox._textbox.destroy()  # noqa: SLF001
-            self.textbox.destroy()
-        if self.textview is not None:
-            self.textview.destroy()
         if self.ai_apikey_window is not None:
             self.ai_apikey_window.destroy()
     self.quit()

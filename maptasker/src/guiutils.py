@@ -14,6 +14,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from functools import cache
 from tkinter import TclError, font
 from typing import TYPE_CHECKING
@@ -1767,32 +1768,28 @@ def restart_program_subprocess() -> None:
     This is often more reliable on Windows.
     """
     print("Restarting program...")
-    try:
-        # Get the path to the current script
-        script_path = os.path.abspath(sys.argv[0])
 
-        # Create a new process (detaching it is often desired for restarts)
-        # creationflags=subprocess.DETACHED_PROCESS is for Windows only
-        if sys.platform.startswith("win"):
-            script_path = script_path.replace(r"src\mapit.py", "main.py")
-            command = f"{script_path} {','.join(sys.argv[1:])}"
-            subprocess.Popen(  # noqa: S603
-                command,
-                creationflags=subprocess.DETACHED_PROCESS,
-                close_fds=True,
-            )
+    # Get the path to the current script
+    script_path = os.path.abspath(sys.argv[0])
 
-        else:
-            # Construct the command to run the script again
-            command = [sys.executable, script_path, *sys.argv[1:]]
-            # For Unix-like systems, you might use different flags or just Popen
-            subprocess.Popen(command, close_fds=True)  # noqa: S603
+    # Create a new process (detaching it is often desired for restarts)
+    # creationflags=subprocess.DETACHED_PROCESS is for Windows only
+    if sys.platform.startswith("win"):
+        script_path = script_path.replace(r"src\mapit.py", "main.py")
+        command = f"{script_path} {','.join(sys.argv[1:])}"
+        subprocess.Popen(  # noqa: S603
+            command,
+            creationflags=subprocess.DETACHED_PROCESS,
+            close_fds=True,
+        )
 
-    except Exception as e:  # noqa: BLE001
-        print(f"Error restarting: {e}")
-    finally:
-        # Exit the current process
-        sys.exit(0)
+    else:
+        # Construct the command to run the script again
+        command = [sys.executable, script_path, *sys.argv[1:]]
+        # For Unix-like systems, you might use different flags or just Popen
+        subprocess.Popen(command)  # noqa: S603
+        time.sleep(0.2)
+        sys.exit(0)  # Exit the current process
 
 
 def display_no_xml_message(self) -> None:  # noqa: ANN001

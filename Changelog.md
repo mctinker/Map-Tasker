@@ -11,7 +11,9 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: Support for the older configuration/setting JSON file format (12+ months old) has been dropped.
-- Changed: The 'ReRun' GUI button now exits and reloads the program to eliminate GUI text size issues.
+- Changed: The 'ReRun' GUI button now exits and reloads the program to eliminate Map view text size issues.
+- Changed: The 'Map' button must be selected a second time if there is an Alaysis window showing in order to eliminate Map view text size issues.
+- Changed: Switched from Google's depricated AI API to new generative API.
 
 ### Fixed
 
@@ -19,10 +21,12 @@ All notable changes to this project will be documented in this file!
 - Fixed: Embedded HTML 'href' reference in labels and TaskerNet descriptions are not properly recognized if it starts in  column 1.
 - Fixed: Labels and TaskerNet descriptions are displayed in the wrong font size.  NOTE: It is still incorrect for Window.
 - Fixed: Text in Map view is incorrect size after 'ReRun'.
+- Fixed: GUI can sometimes close unexpectedly.
 
 ### Known Issues
 
-- GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
+- The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
+- Some of the Map view text will be the wrong size if an AI Analysis has been performed during the same session.  Perform a 'ReRun' to fix it.
 
 ## Older History Logs
 

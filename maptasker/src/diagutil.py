@@ -208,7 +208,6 @@ def fix_icon(name: str) -> str:
     # We have at least one character that is probably an icon.
     for char in name:
         if char.strip() and set(char).difference(printable):
-            # tkframe = PrimeItems.tkroot.frame()  # Initialize Tkinter
             # We have the icon.
             char_dimension = width_and_height_calculator_in_pixel(
                 char,

@@ -3,12 +3,12 @@
 #                                                                                      #
 # mapai: Ai support                                                                    #
 #                                                                                      #
-import contextlib
 import os
 import pickle
+from contextlib import suppress
 
-import google.generativeai as genai
 import ollama
+from google import genai
 from openai import OpenAI
 
 from maptasker.src.error import rutroh_error
@@ -31,7 +31,7 @@ def get_openai_models() -> list:
     """
     try:
         # Get the API key from environment variables
-        with contextlib.suppress(KeyError):
+        with suppress(KeyError):
             api_key = PrimeItems.ai["openai_key"]
 
         # If we don't have the api key, then just use the default list of models.
@@ -142,7 +142,7 @@ def get_gemini_models() -> list:
     bad_models = {"text", "image", "vision"}
     try:
         # Get the API key
-        with contextlib.suppress(KeyError):
+        with suppress(KeyError):
             api_key = PrimeItems.ai["gemini_key"]
         if not api_key:
             return GEMINI_MODELS
@@ -329,9 +329,9 @@ def get_api_key() -> tuple:
                 PrimeItems.ai["anthropic_key"] = contents["claude_key"]
             except KeyError:  # New key name.
                 PrimeItems.ai["anthropic_key"] = contents["anthropic_key"]
-            with contextlib.suppress(KeyError):
+            with suppress(KeyError):
                 PrimeItems.ai["gemini_key"] = contents["gemini_key"]
-            with contextlib.suppress(KeyError):
+            with suppress(KeyError):
                 PrimeItems.ai["ai_name"] = contents["ai_name"]
             return PrimeItems.ai["api_key"]
     return "None"

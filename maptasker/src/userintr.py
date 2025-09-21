@@ -15,7 +15,6 @@ import webbrowser
 from pathlib import Path
 from tkinter import *  # noqa: F403
 
-from tkinter import TclError
 from tkinter.ttk import *  # noqa: F403
 
 from typing import TYPE_CHECKING
@@ -3304,7 +3303,11 @@ class EventHandlers:
 
             # Ok, run the analysis by rerunning the program with our ai_analyze = True
             # The analysis output file will be created and displayed upon reentry to MyGui.
-            the_view.event_handlers.rerun_event()
+            # NOTE: We have to rerun the program in the same program instance to allow the PrimeItems
+            #       settings to carry over.
+            the_view.rerun = True
+            the_view.cleanup_and_run(run_only=False)
+            # the_view.event_handlers.rerun_event()  # This will launch a new instance of the program which breaks us.
         # Test if no XML data loaded
         elif (
             not PrimeItems.tasker_root_elements["all_projects"]
@@ -3449,7 +3452,7 @@ class EventHandlers:
         the_view.cleanup_and_run(run_only=True)
 
     # The 'ReRun' program button has been pressed.  Set the run flag and close the GUI
-    def rerun_event(self) -> None:
+    def rerun_event(self, output_to_browser: bool = True) -> None:
         """
         Reload the GUI for a fresh start.
         Args:
@@ -3459,26 +3462,26 @@ class EventHandlers:
         """
         the_view = self.parent
 
-        # Remap everything with the current settings from the GUI.
-        the_view.remapit(clear_names=False)
+        if output_to_browser:
+            # Remap everything with the current settings from the GUI.
+            the_view.remapit(clear_names=False)
 
-        # Setup to redisplay the output inm the browser.
-        # Get the output directory/folder path
-        my_output_dir = os.getcwd()
-        # Finally, write out all of the output that is queued up.
-        my_file_name = f"{PrimeItems.slash}MapTasker.html"
-        # These need to be off for the web browsere to display
-        PrimeItems.program_arguments["guiview"] = False
-        PrimeItems.program_arguments["ai_analyze"] = False
-        # Display the final results in the default web browser
-        display_output(my_output_dir, my_file_name)
+            # Setup to redisplay the output in the browser.
+            # Get the output directory/folder path
+            my_output_dir = os.getcwd()
+            # Finally, write out all of the output that is queued up.
+            my_file_name = f"{PrimeItems.slash}MapTasker.html"
+            # These need to be off for the web browsere to display
+            PrimeItems.program_arguments["guiview"] = False
+            PrimeItems.program_arguments["ai_analyze"] = False
+            # Display the final results in the default web browser
+            display_output(my_output_dir, my_file_name)
 
         reload_gui(the_view)
 
         # # Reset the program state since it may have been previously set by the 'Map' view.
         # reset_primeitems_single_names()
         # the_view.rerun = True
-        # the_view.textview.destroy()
         # the_view.cleanup_and_run(run_only=False)
 
     # The 'Exit' program button has been pressed.  Call it quits
@@ -3647,11 +3650,18 @@ class EventHandlers:
             if not guiview.color_lookup:
                 guiview.color_lookup = set_color_mode(guiview.appearance_mode)
 
-            # Initiate the map view.
-            try:
-                guiview.remapit(clear_names=True)
-            except TclError:
-                return
+            guiview.remapit(clear_names=True)
+            # # If an analysis window is up, then we must close it and remap to avoid text size issues.
+            # if guiview.ai_analysis_window is not None:
+            #     guiview.ai_analysis_window = None
+            #     print("Please click on the 'Map' button one more time.")
+            #     self.rerun_event(output_to_browser=False)
+            # else:
+            #     # Initiate the map view.
+            #     try:
+            #         guiview.remapit(clear_names=True)
+            #     except TclError:
+            #         return
         else:
             display_no_xml_message(guiview)
 

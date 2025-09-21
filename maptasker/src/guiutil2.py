@@ -391,7 +391,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 #     print("bingo", value["table"][inner_num])
                 # Handle images separetaly
                 if "<img src=" in msg:
-                    _handle_image(self, msg, start_idx, char_position, line_num)
+                    _handle_image(self, msg, start_idx)
                     continue
 
                 # Ignore paragraphs
@@ -651,11 +651,12 @@ def _insert_and_tag(
         spacing = spacing // 2 if spacing > 0 else 0
 
     # Assign the font to use: define the font if we don't yet have it.
+    # font_to_use = assign_font(self, mygui.font, font_size, font, underline)
     font_key = mygui.font + font + str(font_size)
     try:
         font_to_use = mygui.font_table[font_key]
     except KeyError:
-        font_to_use = assign_font(mygui.font, font_size, font, underline)
+        font_to_use = assign_font(self, mygui.font, font_size, font, underline)
         mygui.font_table[font_key] = font_to_use
 
     # Handle hotlink 'href'
@@ -690,13 +691,6 @@ def _insert_and_tag(
     if not href:
         # Apply the html attributes
         _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
-        if PrimeItems.program_arguments["debug"]:
-            font_info = self.textview_textbox.tag_cget(tag_id, "font")
-            # The font_info is a tuple, e.g., ('Helvetica', 12, 'bold italic')
-            if font_info:
-                print("font is:", font_info)
-            else:
-                print("Font information is not in the expected tuple format.")
 
         # Do the second font, if there is one.
         if len(temp_font) > 1:
@@ -736,7 +730,7 @@ def _configure_tag(
     )
 
 
-def assign_font(font_name: str, font_size: int, font: str, underline: bool) -> tkfont:
+def assign_font(self, font_name: str, font_size: int, font: str, underline: bool) -> tkfont:
     """Creates and returns a CTkFont object with specified attributes.
 
     This function generates a CustomTkinter font object based on a given font family,
@@ -759,12 +753,25 @@ def assign_font(font_name: str, font_size: int, font: str, underline: bool) -> t
         return ctk.CTkFont(family=font_name, size=font_size, underline=underline)
     if font == "bold":
         return ctk.CTkFont(family=font_name, size=font_size, weight="bold", underline=underline)
-    if font == "italic":
-        return ctk.CTkFont(family=font_name, size=font_size, slant="italic", underline=underline)
-    return ctk.CTkFont(family=font_name, size=font_size, underline=underline)
+    return ctk.CTkFont(family=font_name, size=font_size, slant="italic", underline=underline)
 
 
-def _handle_image(self: ctk, msg: str, start_idx: str, char_position: int, line_num: int) -> None:
+def _handle_image(self: ctk, msg: str, start_idx: str) -> None:
+    """
+    Extracts an image URL from an HTML 'href' attribute and displays the image.
+
+    This function searches for a URL embedded within an 'href' attribute
+    in the provided message string. If a URL is found, it calls a helper
+    function to display the image in a CustomTkinter text view widget.
+    If no URL is found, it prints an error message to the console.
+
+    Args:
+        self (ctk): The CustomTkinter object instance, which contains the
+                    text view widget.
+        msg (str): The string message containing the HTML-like 'href' attribute.
+        start_idx (str): The starting index for the image display in the
+                         text view widget (e.g., "end").
+    """
     # Get the url for the image
     # This pattern looks for "href=" followed by a quote, then captures everything
     # that's not a quote, until it finds the closing quote.
@@ -781,7 +788,7 @@ def _handle_image(self: ctk, msg: str, start_idx: str, char_position: int, line_
         url = match.group(1)
         _show_image(self.textview_textbox, url, start_idx)
     else:
-        print("No URL found in the href attribute.")
+        rutroh_error("No URL found in the href attribute.")
 
 
 def _show_image(text_widget: ctk.CTkTextbox, image_url: str, index: str) -> None:

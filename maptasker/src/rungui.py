@@ -16,7 +16,7 @@ from __future__ import annotations
 import contextlib
 
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.error import error_handler, rutroh_error
+from maptasker.src.error import error_handler
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.maputils import exit_program
@@ -100,20 +100,22 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     if PrimeItems.tkroot is not None:
         del PrimeItems.tkroot
         PrimeItems.tkroot = None
+
     # Display GUI and get the user input
     user_input = MyGui()
     logger.info("Starting mainloop")
 
     # Process the GUI
-    try:
-        user_input.mainloop()
-    except Exception as e:  # noqa: BLE001
-        rutroh_error(f"An error occurred trying to process GUI: {e}")
-    finally:
-        pass
+    user_input.mainloop()
+    # try:
+    #     user_input.mainloop()
+    # except Exception as e:
+    #     rutroh_error(f"An error occurred trying to process GUI: {e}")
 
     # Get rid of window
     MyGui.quit(user_input)
+    with contextlib.suppress(AttributeError):
+        user_input.textview.destroy()
     del MyGui
 
     # Establish our runtime default values if we don't yet have 'em.
