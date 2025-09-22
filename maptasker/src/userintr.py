@@ -13,7 +13,6 @@ import os
 import pickle
 import webbrowser
 from pathlib import Path
-from tkinter import *  # noqa: F403
 
 from tkinter.ttk import *  # noqa: F403
 
@@ -3650,19 +3649,8 @@ class EventHandlers:
             if not guiview.color_lookup:
                 guiview.color_lookup = set_color_mode(guiview.appearance_mode)
 
+            # Now do the map.
             guiview.remapit(clear_names=True)
-            # # If an analysis window is up, then we must close it and remap to avoid text size issues.
-            # if guiview.ai_analysis_window is not None:
-            #     guiview.ai_analysis_window = None
-            #     print("Please click on the 'Map' button one more time.")
-            #     self.rerun_event(output_to_browser=False)
-            # else:
-            #     # Initiate the map view.
-            #     try:
-            #         guiview.remapit(clear_names=True)
-            #     except TclError:
-            #         return
-        else:
             display_no_xml_message(guiview)
 
         # Indicate that we are done.

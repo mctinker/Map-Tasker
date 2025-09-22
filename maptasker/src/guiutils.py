@@ -12,9 +12,6 @@ from __future__ import annotations
 import contextlib
 import os
 import re
-import subprocess
-import sys
-import time
 from functools import cache
 from tkinter import TclError, font
 from typing import TYPE_CHECKING
@@ -53,6 +50,7 @@ from maptasker.src.maputils import (
     get_pypi_version,
     http_request,
     is_color_dark,
+    restart_program_subprocess,
     validate_ip_address,
     validate_port,
     validate_xml_file,
@@ -1757,39 +1755,6 @@ def reload_gui(self: object) -> None:
     # ReRun via a new process, which will load and run the new program/version.
     # Note: this current process will not return after this call, but simply be killed.
     restart_program_subprocess()
-    # os.execl(sys.executable, "python", *sys.argv)
-
-
-# Or, if you prefer spawning a new process and then exiting the old one.
-# NOTE: We can not use the subprocess routine in mapit due to circular import error.
-def restart_program_subprocess() -> None:
-    """
-    Restarts the current program by spawning a new process and exiting the old one.
-    This is often more reliable on Windows.
-    """
-    print("Restarting program...")
-
-    # Get the path to the current script
-    script_path = os.path.abspath(sys.argv[0])
-
-    # Create a new process (detaching it is often desired for restarts)
-    # creationflags=subprocess.DETACHED_PROCESS is for Windows only
-    if sys.platform.startswith("win"):
-        script_path = script_path.replace(r"src\mapit.py", "main.py")
-        command = f"{script_path} {','.join(sys.argv[1:])}"
-        subprocess.Popen(  # noqa: S603
-            command,
-            creationflags=subprocess.DETACHED_PROCESS,
-            close_fds=True,
-        )
-
-    else:
-        # Construct the command to run the script again
-        command = [sys.executable, script_path, *sys.argv[1:]]
-        # For Unix-like systems, you might use different flags or just Popen
-        subprocess.Popen(command)  # noqa: S603
-        time.sleep(0.2)
-        sys.exit(0)  # Exit the current process
 
 
 def display_no_xml_message(self) -> None:  # noqa: ANN001
