@@ -2,29 +2,42 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.2.1-8.2.2] 10-Sep-2025
+## [8.2.3] 22-Sep-2025
 
 ### Added
 
-- Added: TaskerNet descriptions with HTML are now handled like labels with HTML.  The HTML is retained and the description is serounded by a rectangle.
-- Added: Labels and TaskerNet descriptions with html now recognize italicised/emphasized and bold text, as well as hotlinks.
+- Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre', 'src' and 'style' tags.  'Style' tags and their contents are flagged.
 
 ### Changed
 
-- Changed: All Task labels are now outlined in a rectangle, rather than only those labels with HTML.
-- Changed; Default font size for label and TaskerNet description text is set to that of the rest of the text in the Map view.
+- Changed: Support for the older configuration/setting JSON file format (12+ months old) has been dropped.
+- Changed: The 'ReRun' and 'AI Analysis' buttonsn now exit and reload the program to eliminate Map view text size issues.
+- Changed: Switched from Google's depricated AI API to new generative API.
 
 ### Fixed
 
-- Fixed: Various issues with embedded HTML in labels.
-- Fixed: Formatting errors and missing commas in the 'To=' text if the Task action is a 'Variable Set'.
-- Fixed: Not all embedded HTML in Task action titles is being properly displayed.
+- Fixed: Incorrect spacing on list items in labels and TaskerNet descriptions with embedded HTML.
+- Fixed: Embedded HTML 'href' reference in labels and TaskerNet descriptions are not properly recognized if it starts in  column 1.
+- Fixed: Labels and TaskerNet descriptions are displayed in the wrong font size.  NOTE: It is still incorrect for Window.
+- Fixed: Text in Map view is incorrect size after 'ReRun'.
+- Fixed: GUI can sometimes close unexpectedly.
+- FIxed: ChatGPT-5-mini model is mispelled.
 
 ### Known Issues
 
-- GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
+- The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [8.2.1-8.2.2] 10-Sep-2025
+
+- Added: TaskerNet descriptions with HTML are now handled like labels with HTML.  The HTML is retained and the description is serounded by a rectangle.
+- Added: Labels and TaskerNet descriptions with html now recognize italicised/emphasized and bold text, as well as hotlinks.
+- Changed: All Task labels are now outlined in a rectangle, rather than only those labels with HTML.
+- Changed; Default font size for label and TaskerNet description text is set to that of the rest of the text in the Map view.
+- Fixed: Various issues with embedded HTML in labels.
+- Fixed: Formatting errors and missing commas in the 'To=' text if the Task action is a 'Variable Set'.
+- Fixed: Not all embedded HTML in Task action titles is being properly displayed.
 
 ## [8.2.0] 29-Aug-2025
 
