@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.2.3] 22-Sep-2025
+## [8.3.0] 22-Sep-2025
 
 ### Added
 
