@@ -12,7 +12,7 @@ import sys
 
 import anthropic
 import customtkinter as ctk
-import google.generativeai as genai
+from google import genai
 from openai import OpenAI, OpenAIError
 
 from maptasker.src import cria
@@ -306,9 +306,13 @@ def _process_gemini_response(client: object, query: str) -> str:
     model = PrimeItems.program_arguments["ai_model"]
     role = "You are a Tasker programmer on Android"
     # Suppress logging warnings
-    message = client.GenerativeModel(model)
-    response1 = message.generate_content(role + query)
-    return response1.text
+    # message = client.GenerativeModel(model)
+    # response1 = message.generate_content(role + query)
+    response = client.models.generate_content(
+        model=model,
+        contents=f"{role}.  {query}",
+    )
+    return response.text
 
 
 def process_ai_query_and_response(
@@ -472,8 +476,9 @@ def gemini_ai(query: str, ai_object: str, item: str) -> None:
     Returns:
         None: This function does not return anything.
     """
-    genai.configure(api_key=PrimeItems.program_arguments["ai_apikey"])
-    process_ai_query_and_response(genai, query, ai_object, item)
+    # genai.configure(api_key=PrimeItems.program_arguments["ai_apikey"])
+    client = genai.Client(api_key=PrimeItems.program_arguments["ai_apikey"])
+    process_ai_query_and_response(client, query, ai_object, item)
 
 
 # Determine the Tasker single-named object name (Task, Profile or Project) and item name.

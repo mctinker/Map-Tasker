@@ -69,6 +69,8 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
     continue_processing = True
     # This will hold the processed data for the current logical line
     processed_line_data = []
+    in_style = False
+    previous_style = []
 
     # Go through all of the data
     while line_num < len(lines) and continue_processing:
@@ -89,15 +91,23 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             if not line or line == "</span>" or line.endswith('text-box"><p>'):
                 continue
 
-            # Only deal with lines that have a style and class
+            # Special hadnling for style details
+            if "Style tag details" in line:
+                in_style = True
+            elif "Style tag end." in line:
+                in_style = False
+
+            # Only deal with lines that have a style and class, or a 'Style tag details'
             font = ""
             decor = ""
-            if line and "style=" in line and "class=" in line:
+            table = False
+            if (line and "style=" in line and "class=" in line) or in_style:
                 try:
                     # Get the style details: color font, heading size, bold, italicised.
                     temp = line.replace("&nbsp;", " ").split('style="')
-                    style = temp[1].split(";")
+                    style = previous_style if in_style else temp[1].split(";")
 
+                    # Go thru each style and capture appropriate details
                     for specific_style in style:
                         if "color:" in specific_style:
                             color = specific_style.replace("color:", "")
@@ -110,15 +120,21 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                                 font = specific_style.split('class="')[1].split('"')[0][0:7]
                             temp = specific_style.split('-text">')
                             temp = temp[1].replace("</span>", "").replace("<br>\n", "\n\n")
-
+                            # text is either the line if this is in-style, or pulled from temp
                             # <p> is needed for html/browser.  \n\n is needed for Map view.
-                            text = "\n\n" if temp == "<p>" else temp
+                            text = line if in_style else "\n\n" if temp == "<p>" else temp
+                            if in_style:
+                                text = text.replace("<br>", "\n")
                         elif "font-weight:" in specific_style:
                             font_to_use = "bold" if "bold" in specific_style else "normal"
                             font = f"{font};bold" if font else font_to_use
+                        elif specific_style == "is_table":
+                            table = True
                         else:
                             # Drop here if there is a ';' in the label.  This is a problem
                             text = line.split('class="h6-text">')[1].replace("</span>", "")
+
+                    previous_style = style
 
                     # Cleanup the text line...possible left over garbage at end.
                     if ":lblend" in text:
@@ -169,6 +185,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     last_item["color"] == color
                     and last_item["highlights"] == font
                     and not ("<a href=" in text or "<a href=" in last_item["text"])
+                    and not table
                 ):
                     # If they match, concatenate the text in the processed_line_data list
                     last_item["text"] += text
@@ -186,6 +203,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                         spacing,
                         lblend,
                         decor,
+                        table,
                     )
                     break
 
@@ -206,6 +224,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 spacing,
                 lblend,
                 decor,
+                table,
             )
 
         line_num += 1
@@ -233,6 +252,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 "spacing": processed_line_data[0]["spacing"],
                 "end": [item["end"] for item in processed_line_data],
                 "decor": [item["decor"] for item in processed_line_data],
+                "table": [item["table"] for item in processed_line_data],
             }
             # Bump our line numbers to point to next line.
             processed_line_data = []
@@ -267,6 +287,7 @@ def add_line_data(
     spacing: int,
     lblend: bool,
     decor: str,
+    table: bool,
 ) -> None:
     r"""
     Splits a string by newline characters and appends a dictionary for each
@@ -286,6 +307,8 @@ def add_line_data(
         spacing (int): The spacing value for the text.
         lblend (bool): A flag indicating if this is the end of a label.
         decor (str): The text decoration style (e.g., "underline").
+        table (bool): A flag indicating if the text is part of a table.
+
     Return:
         The list with the line(s) added.
     """
@@ -302,6 +325,7 @@ def add_line_data(
                     "spacing": spacing,
                     "end": lblend,
                     "decor": decor,
+                    "table": table,
                 },
             )
         if not subtext:

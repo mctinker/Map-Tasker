@@ -14,6 +14,7 @@ import re
 import socket
 import subprocess
 import sys
+import time
 from contextlib import contextmanager
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -852,3 +853,26 @@ def rename_file(old_file_path: str, new_file_path: str) -> bool:
     except OSError as e:
         rutroh_error(f"Error renaming file: {e}")
         return False
+
+
+def restart_program_subprocess() -> None:
+    """
+    Restarts the current program by spawning a new process and exiting the old one.
+    This is often more reliable on Windows.
+    NOTE: This is a duplicate of 'rurun_process' in mapit.py, to avoid circular import error.
+    """
+    # Get the absolute path of the current script file
+    # This is more robust than relying directly on sys.argv[0]
+    script_path = os.path.abspath(__file__)
+    script_path = script_path.replace(f"src{PrimeItems.slash}maputils.py", "main.py")
+
+    # Prepare the arguments for the new process
+    # The first argument is the Python interpreter
+    # The second is the absolute path to the script
+    # The rest are any original command-line arguments (excluding the script name itself)
+    new_process_args = [sys.executable, script_path, *sys.argv[1:]]
+
+    subprocess.Popen(new_process_args)  # noqa: S603
+    print("Restarting program.  Please stand by...")
+    time.sleep(0.2)
+    sys.exit(0)  # Exit the current script cleanly

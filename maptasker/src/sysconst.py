@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "8.2.2"
+VERSION = "8.2.3"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -26,7 +26,6 @@ NO_PROJECT = "-none found."
 UNNAMED_ITEM = "Unnamed"
 TASK_NAME_MAX_LENGTH = 35
 COUNTER_FILE = ".MapTasker_RunCount.txt"
-OLD_ARGUMENTS_FILE = ".MapTasker_arguments.json"
 ARGUMENTS_FILE = "MapTasker_Settings.toml"
 FONT_FAMILY = ";font-family:"
 CHANGELOG_FILE = ".maptasker_changelog.txt"
@@ -265,7 +264,7 @@ OPENAI_MODELS = [
     "gpt-4.1-mini",
     "gpt-4.1-nano",
     "gpt-5",
-    "gpt-5-mino",
+    "gpt-5-mini",
     "gpt-5-nano",
     "o1-mini",
     "o1-pro",

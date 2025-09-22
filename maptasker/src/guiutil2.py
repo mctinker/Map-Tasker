@@ -9,19 +9,22 @@ import error.
 """
 
 import os
+import platform
 import re
 import tkinter as tk
 import tkinter.font as tkfont
+from io import BytesIO
 
 import customtkinter as ctk
 import requests
+from PIL import Image, ImageTk
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 
 # Define label fonts for headings: 0=h0, 1=h1, etc.
-heading_fonts = {"0": "12", "1": "16", "2": "15", "3": "14", "4": "13", "5": "12", "6": "11"}
+heading_fonts = {"0": 12, "1": 18, "2": 17, "3": 16, "4": 15, "5": 14, "6": 13}
 
 
 def validate_tkinter_geometry(geometry_string: str) -> bool:
@@ -333,6 +336,9 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     end_of_label = False
     prev_msg = "---none---"
     its_a_label = True
+    first_message = True
+    self.previous_heading = "0"
+    self.previous_font = "None"
 
     # Get the background color
     bg_color = make_hex_color(mygui.color_lookup["background_color"])
@@ -381,24 +387,39 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
+                # if "===============" in msg:
+                #     print("bingo", value["table"][inner_num])
+                # Handle images separetaly
+                if "<img src=" in msg:
+                    _handle_image(self, msg, start_idx)
+                    continue
+
+                # Ignore paragraphs
+                if msg in ("<p>", "</a>"):
+                    continue
+
                 # Determine if this is a label vs TaskerNet description
                 if "TaskerNet description:" in msg:
                     its_a_label = False
-                    msg = msg.replace("TaskerNet description:", "TaskerNet description:\n")  # noqa: PLW2901
+                    new_msg = msg.replace("TaskerNet description:", "TaskerNet description:\n")
+                else:
+                    new_msg = msg
+
+                new_msg = "" if new_msg == "<p>" else new_msg
 
                 # If Taskernet Description, alter the color so it isn't task_label_color
                 if not its_a_label and value["color"][inner_num] == PrimeItems.colors_to_use["action_label_color"]:
                     value["color"][inner_num] = PrimeItems.colors_to_use["taskernet_color"]
 
                 # Bailout if we hit our end-of-label flag.
-                if not end_of_label and (value["end"][inner_num] or ":lblend" in msg):
+                if not end_of_label and (value["end"][inner_num] or ":lblend" in new_msg):
                     end_of_label = True
                     # Get rid of end-of-label flag and add a space at end of last line.
-                    updated_msg = msg.replace('<data-flag=":lblend">', "") + " "
+                    updated_msg = new_msg.replace('<data-flag=":lblend">', "") + " "
                 elif end_of_label:
-                    updated_msg = msg.replace('<data-flag=":lblend">', "")
+                    updated_msg = new_msg.replace('<data-flag=":lblend">', "")
                 else:
-                    updated_msg = msg
+                    updated_msg = new_msg
 
                 # Handle a blank message, but don't output consequtive blank lines.
                 if updated_msg == "":
@@ -407,11 +428,19 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                         prev_msg = ""
                     continue
 
+                # Set the spacing after the line
+                between_line_spacing = -20 if updated_msg.startswith("   *") else 0
+
                 # Readjust the message by adding a blank at the end so it doesn't bump up against box.
                 msg_to_insert = updated_msg.replace("&nbsp;", " ").replace("<p>", "\n").replace("</p></div>", "")
 
                 # Add a blank to the front if this is and TaskerNet description and the start of a line
-                if char_position == 0 and not its_a_label and not msg_to_insert.startswith(" "):
+                if (
+                    char_position == 0
+                    and not its_a_label
+                    and not msg_to_insert.startswith(" ")
+                    and not msg_to_insert.startswith("<a href=")
+                ):
                     msg_to_insert = " " + msg_to_insert
 
                 # Insert and tag the message
@@ -420,6 +449,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     msg_to_insert,
                     max_msg_len,
                     spacing,
+                    between_line_spacing,
                     start_idx,
                     char_position,
                     bg_color,
@@ -429,8 +459,11 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 number_of_inserted_lines += 1
 
                 # If this is the very first message, set the beginning of the bounding box based on the textbox content.
-                # Loop through the liners backwards, looking for the first line that doesn't contain our message.
-                if num == 0 and inner_num == 0 and msg_num == 0:
+                # Loop through the lines starting at the last and working backwards,
+                # looking for the first line that doesn't contain our message.
+                if first_message:
+                    first_message = False
+
                     # Get the line and column index of the last character in the Text widget.
                     # The 'end-1c' index is a special index that represents the character just
                     # before the absolute end of the widget's content.
@@ -441,12 +474,13 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     prev_num = int(line_number)
                     content = ""
                     if "\n" in msg_to_insert:
-                        msg_to_insert = msg_to_insert.split("\n")[0]
+                        msg_to_insert = msg_to_insert.split("\n")[1]  # Skip 'TaskerNet description:'
                     while msg_to_insert not in content:
                         content = self.textview_textbox.get(f"{prev_num!s}.0", f"{prev_num!s}.end")
                         if msg_to_insert not in content:
                             prev_num -= 1
-                    begin_box = f"{prev_num}.0"
+                    begin_box = f"{prev_num}.0" if its_a_label else f"{prev_num - 1}.0"
+                    line_num = int(line_number)
 
                 # Reset spacing so we don't get spacers every concatenated piece of text.
                 spacing = 0
@@ -500,6 +534,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
         relief="ridge",
         borderwidth=2,
         spacing1=5,
+        spacing2=-30,
         spacing3=5,
         rmargin=10,
     )
@@ -529,6 +564,7 @@ def _insert_and_tag(
     message: str,
     max_msg_len: int,
     spacing: int,
+    between_line_spacing: int,
     start_idx: str,
     char_position: int,
     bg_color: str,
@@ -554,6 +590,8 @@ def _insert_and_tag(
     spacing : int
         The number of leading spaces to add to the message. A value of 0 means
         no leading spaces are added.
+    between_line_spacing : int
+        The spacing to add after the current line ('spacing2' in tag_config)
     start_idx : str
         The starting index (e.g., "1.0") for the text insertion.
     char_position : int
@@ -582,37 +620,47 @@ def _insert_and_tag(
     temp_font = highlights.split(";")
 
     # Get the font size / italic flag / bold
-    italic = False
-    bold = False
     heading_num = self.previous_heading
     if temp_font[0] == "italic":
-        italic = True
+        font = "italic"
     elif temp_font[0] == "bold":
-        bold = True
+        font = "bold"
     else:
         # Highlight is a heading rather than a font specification.
-        heading_num = temp_font[0].replace("-text", "")[1]
-
-    # Set the font size to the heading size.  If this is a list item, downsize it.
-    try:
-        font_size = int(heading_fonts[heading_num])
-    except KeyError:
-        font_size = heading_fonts["0"]  # Default to h0 if not found
-    font_sizes = [int(value) for value in heading_fonts.values()]
-    max_font_size = max(font_sizes)
-    if int(font_size) == max_font_size:
-        # If the font size is the largest, decrease the spacing
-        spacing = 1
-
-    # Assign the first font
-    font = temp_font[0] if italic or bold else "normal"
-    font_to_use = (mygui.font, font_size, font)
+        heading_num = "0" if message == " TaskerNet description:\n " else temp_font[0].replace("-text", "")[1]
+        font = "normal"
 
     # Handle underlining: True or False
     underline = value["decor"][inner_num] == "underline"
 
+    # Set the font size to the heading size.  If this is a list item, downsize it.
+    try:
+        font_size = heading_fonts[heading_num]
+    except KeyError:
+        font_size = heading_fonts["0"]  # Default to h0 if not found
+    if platform.system() == "Windows":  # Font sizes are different on windows.
+        font_size = font_size * 2
+
+    if PrimeItems.program_arguments["debug"] and not message.startswith("<a href="):
+        message = f"{font_size}{message}"
+
+    # Reduce spacing if this is the largest font
+    font_sizes = list(heading_fonts.values())
+    max_font_size = max(font_sizes)
+    if font_size == max_font_size:
+        spacing = spacing // 2 if spacing > 0 else 0
+
+    # Assign the font to use: define the font if we don't yet have it.
+    # font_to_use = assign_font(self, mygui.font, font_size, font, underline)
+    font_key = mygui.font + font + str(font_size)
+    try:
+        font_to_use = mygui.font_table[font_key]
+    except KeyError:
+        font_to_use = assign_font(self, mygui.font, font_size, font, underline)
+        mygui.font_table[font_key] = font_to_use
+
     # Handle hotlink 'href'
-    if message.startswith("<a href="):
+    if "<a href=" in message:
         temp = message.split('"')
         href = temp[1]
         text_len = len(temp[2]) - 4
@@ -627,7 +675,7 @@ def _insert_and_tag(
     else:
         href = ""
         # Create a tag with the text attributes
-        tag_id = f"{heading_num};{font}:{value['color'][inner_num]}:{value['decor'][inner_num].strip()}"
+        tag_id = f"{heading_num};{font}:{value['color'][inner_num]}:{value['decor'][inner_num].strip()}:{between_line_spacing}"
 
     # Format the message
     spacer = " " * spacing
@@ -641,11 +689,8 @@ def _insert_and_tag(
 
     # Insert the unformatted text...only if it is normal text and not a hotlink
     if not href:
-        # Specifying the tag_id in the insert eliminates the need to do a tag_add.
-        self.textview_textbox.insert(start_idx, formatted_message, tag_id)
-
         # Apply the html attributes
-        _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline)
+        _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
 
         # Do the second font, if there is one.
         if len(temp_font) > 1:
@@ -653,26 +698,144 @@ def _insert_and_tag(
             tag_id = tag_id.replace(font, new_font)
             font_to_use = (mygui.font, font_size, new_font)
             # Apply the html attributes
-            _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline)
+            _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
+
+        # Specifying the tag_id in the insert eliminates the need to do a tag_add.
+        self.textview_textbox.insert(start_idx, formatted_message, tag_id)
 
     char_position += len(formatted_message)
     self.previous_heading = heading_num
+    self.previous_font = font_to_use
+    self.previous_between_line_spaccing = between_line_spacing
 
     return max_msg_len, char_position
 
 
-def _configure_tag(self: ctk, tag_id: str, font_to_use: tkfont, bg_color: str, fg_color: str, underline: str) -> None:
-    # Only dconfigure the tag once
-    if tag_id not in self.label_tags:
-        self.textview_textbox.tag_config(
-            tag_id,
-            # font=(mygui.font, font_size),
-            font=font_to_use,
-            background=bg_color,
-            foreground=fg_color,
-            underline=underline,
-        )
-        self.label_tags.append(tag_id)
+def _configure_tag(
+    self: ctk,
+    tag_id: str,
+    font_to_use: tkfont,
+    bg_color: str,
+    fg_color: str,
+    underline: str,
+    between_line_spacing: int,
+) -> None:
+    self.textview_textbox.tag_config(
+        tag_id,
+        font=font_to_use,
+        background=bg_color,
+        foreground=fg_color,
+        underline=underline,
+        spacing2=between_line_spacing,
+    )
+
+
+def assign_font(self, font_name: str, font_size: int, font: str, underline: bool) -> tkfont:
+    """Creates and returns a CTkFont object with specified attributes.
+
+    This function generates a CustomTkinter font object based on a given font family,
+    size, and style. It supports "normal", "bold", and "italic" styles.
+
+    Args:
+        self (ctk): The CustomTkinter object instance.
+        font_name (str): The name of the font family (e.g., "Arial").
+        font_size (int): The size of the font in points.
+        font (str): The font style. Must be one of "normal", "bold", or "italic".
+        underline (bool): A boolean indicating whether the font should be underlined.
+
+    Returns:
+        tkfont: A configured CTkFont object.
+
+    Raises:
+        ValueError: If an unsupported font style is provided.
+    """
+    if font == "normal":
+        return ctk.CTkFont(family=font_name, size=font_size, underline=underline)
+    if font == "bold":
+        return ctk.CTkFont(family=font_name, size=font_size, weight="bold", underline=underline)
+    return ctk.CTkFont(family=font_name, size=font_size, slant="italic", underline=underline)
+
+
+def _handle_image(self: ctk, msg: str, start_idx: str) -> None:
+    """
+    Extracts an image URL from an HTML 'href' attribute and displays the image.
+
+    This function searches for a URL embedded within an 'href' attribute
+    in the provided message string. If a URL is found, it calls a helper
+    function to display the image in a CustomTkinter text view widget.
+    If no URL is found, it prints an error message to the console.
+
+    Args:
+        self (ctk): The CustomTkinter object instance, which contains the
+                    text view widget.
+        msg (str): The string message containing the HTML-like 'href' attribute.
+        start_idx (str): The starting index for the image display in the
+                         text view widget (e.g., "end").
+    """
+    # Get the url for the image
+    # This pattern looks for "href=" followed by a quote, then captures everything
+    # that's not a quote, until it finds the closing quote.
+    # (?:...) is a non-capturing group.
+    # (.*?) is a non-greedy match for any character.
+    pattern = r'href="(.*?)"'
+    # Search for the pattern in the string
+
+    match = re.search(pattern, msg)
+
+    # Check if a match was found
+    if match:
+        # The URL is in the first captured group (index 1)
+        url = match.group(1)
+        _show_image(self.textview_textbox, url, start_idx)
+    else:
+        rutroh_error("No URL found in the href attribute.")
+
+
+def _show_image(text_widget: ctk.CTkTextbox, image_url: str, index: str) -> None:
+    """
+    Downloads an image from a URL and displays it in a CTkTextbox widget.
+
+    Args:
+        text_widget: The customtkinter CTkTextbox widget instance.
+        image_url: The URL of the image to display.
+        index: The text index where the image should be inserted.
+    """
+    try:
+        # 1. Download the image
+        response = requests.get(image_url, timeout=5, headers={"User-agent": "your bot 0.1"})
+        if response.status_code == 429:
+            text_widget.insert(index, "[!!! Image server too many requests !!!]", "error")
+            return
+
+        response.raise_for_status()
+
+        # 2. Open the image using Pillow.
+        img_data = BytesIO(response.content)
+        # pil_image = Image.open(img_data).resize((300, 300), Image.LANCZOS)
+        pil_image = Image.open(img_data)
+
+        # 3. Use thumbnail() to resize while preserving the aspect ratio.
+        # This will resize the image to fit within a 300x200 box without distortion.
+        pil_image.thumbnail((300, 200), Image.LANCZOS)
+
+        # 4. Create a standard Tkinter PhotoImage from the Pillow image.
+        # This is necessary for the internal Tkinter Text widget.
+        tk_image = ImageTk.PhotoImage(pil_image)
+
+        # 5. Embed the image in the internal Tkinter Text widget.
+        # This is the key fix: use the `_textbox` attribute, which is a 'tk' rather than a 'ctk' reference.
+        text_widget._textbox.image_create(index, image=tk_image)  # noqa: SLF001
+
+        # 6. Store a reference to prevent garbage collection.
+        # The image reference must be a property of the main widget or a global variable.
+        if not hasattr(text_widget, "image_references"):
+            text_widget.image_references = []
+        text_widget.image_references.append(tk_image)
+
+    except requests.exceptions.RequestException as e:
+        rutroh_error(f"Failed to download image: {e}")
+    except Exception as e:  # noqa: BLE001
+        rutroh_error(f"guiutil2 _show_image...An error occurred: {e}")
 
 
 def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tuple[int, int, int, str]:
@@ -766,40 +929,3 @@ def get_last_line(text_widget: ctk.CTkTextbox, start_idx: str) -> tuple[str, str
 
     except tk.TclError:
         rutroh_error("The text widget is empty.")
-
-
-def get_character_width(text_widget: ctk.CTkTextbox) -> int:
-    """
-    Calculates the approximate number of characters that fit within the
-    width of a Tkinter Text widget.
-
-    Parameters
-    ----------
-    text_widget : tk.Text
-        The Tkinter Text widget to measure.
-
-    Returns
-    -------
-    int
-        The estimated number of characters that can fit on one line.
-    """
-    mygui = text_widget.master.master.master
-    # 1. Get the current font of the text widget.
-    # The 'font' is a tag that can be configured on the widget.
-    widget_font = tkfont.Font(font=mygui.font)
-
-    # 2. Get the width of the widget in pixels.
-    # We must use update_idletasks() to ensure the widget has been drawn
-    # and its geometry information is available.
-    text_widget.update_idletasks()
-    widget_pixel_width = mygui.mapview_window.winfo_width()
-
-    # 3. Get the width of an average character in pixels.
-    # Using '0' is a good way to get the average character width for monospaced fonts.
-    # For proportional fonts, this is just a rough estimate.
-    char_pixel_width = widget_font.measure("0")
-
-    # 4. Calculate the number of characters that fit.
-    if char_pixel_width > 0:
-        return widget_pixel_width // char_pixel_width
-    return 0

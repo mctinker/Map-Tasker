@@ -427,15 +427,19 @@ class CTkTextview(ctk.CTkFrame):
         self.textview_style = ttk.Style(self)
         self.textview_style.theme_use("default")
 
-        # Get the special fonts
-        font = getattr(self.master.master, "font", ("Courier", 12))  # Default font
-        self.bold_font = ctk.CTkFont(
-            family=font,
+        # Define our fonts
+        self.font_name = getattr(self.master.master, "font", ("Courier", 12))  # Default font
+        self.font_normal = ctk.CTkFont(
+            family=self.font_name,
+            size=12,
+        )
+        self.font_bold = ctk.CTkFont(
+            family=self.font_name,
             weight="bold",
             size=12,
         )
-        self.italic_font = ctk.CTkFont(
-            family=font,
+        self.font_italic = ctk.CTkFont(
+            family=self.font_name,
             size=12,
             slant="italic",
         )
@@ -470,11 +474,7 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None
         """
-        font = getattr(master.master, "font")
-        self.textview_textbox = ctk.CTkTextbox(
-            self,
-            font=(font, 12),
-        )
+        self.textview_textbox = ctk.CTkTextbox(self)
         self.textview_textbox.grid(row=0, column=0, padx=20, pady=40, sticky="nsew")
 
         # Get thew width and height of the text box.
@@ -488,6 +488,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Configure the text box
         self.textview_textbox.configure(
+            font=self.font_normal,
             height=int(height),
             width=int(width),
             state="normal",
@@ -2175,7 +2176,7 @@ class CTkTextview(ctk.CTkFrame):
             ".h4-text",
             ".h5-text",
             ".h6-text",
-            "     \n",
+            ".image-small     \n",
         ]
         # Setup the progressbar
         progress = self._initialize_progress_bar(the_data)
@@ -2231,16 +2232,17 @@ class CTkTextview(ctk.CTkFrame):
                 if any(ignore_str in value["text"][0] for ignore_str in text_to_ignore):
                     continue
 
-                #  Ignore our css .textbox definitions.
-                if ignore_line and "}" in value["text"][0]:
+                # Ignore our css .textbox definitions.
+                first_text = value["text"][0] if value["text"] else ""
+                if ignore_line and "}" in first_text:
                     ignore_line = False
                     continue
                 if ignore_line:
                     continue
-                if ".text-box" in value["text"][0]:
+                if ".text-box" in first_text or ".image-small" in first_text:
                     ignore_line = True
                     continue
-                if previous_text_content == "\n" and value["text"][0] == "\n":  # Ignore double blank lines.
+                if previous_text_content == "\n" and first_text == "\n":  # Ignore double blank lines.
                     continue
 
             # Get the text of the value and ignore duplicate blank lines.
@@ -2257,7 +2259,7 @@ class CTkTextview(ctk.CTkFrame):
                 continue
 
             # If Windows, ignore blank lines: "    \n"
-            if sys.platform == "win32" and (value["text"] and value["text"][0].endswith("\n")):
+            if sys.platform == "win32" and (value["text"] and first_text.endswith("\n")):
                 text = value["text"][0]
                 blanks_to_check = len(text) - 1
                 if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
@@ -3141,8 +3143,8 @@ class CTkTextview(ctk.CTkFrame):
         Add highlights to the text box based on a dictionary of highlight configurations.
         """
         highlight_configurations = {
-            "bold": {"font": self.bold_font},
-            "italic": {"font": self.italic_font},
+            "bold": {"font": self.font_bold},
+            "italic": {"font": self.font_italic},
             "underline": {"underline": True},
             "mark": {"background": PrimeItems.colors_to_use["highlight_color"]},
             "h0-text": {"font": "h0"},
@@ -3168,11 +3170,12 @@ class CTkTextview(ctk.CTkFrame):
         )
         # Get the highlight
         for highlight in value.get("highlights", []):
-            if highlight not in highlight_configurations:
-                rutroh_error(f"Not in highlight_configurations: {highlight}")
             # Get the highlight details.  If value error, then there are no details.
             try:
                 highlight_type, highlight_text = self._parse_highlight(highlight)
+                if highlight_type not in highlight_configurations:
+                    rutroh_error(f"Not in highlight_configurations: {highlight}")
+                    continue
             except ValueError:
                 continue
             highlight_color = ""
@@ -3415,10 +3418,10 @@ class PopupWindow(ctk.CTkToplevel):
         self.grid_columnconfigure(0, weight=1)
 
         # Basic appearance for text, foreground and background.
-        self.Popup_bg_color = self._apply_appearance_mode(
+        _ = self._apply_appearance_mode(
             ctk.ThemeManager.theme["CTkFrame"]["fg_color"],
         )
-        self.Popup_text_color = self._apply_appearance_mode(
+        _ = self._apply_appearance_mode(
             ctk.ThemeManager.theme["CTkLabel"]["text_color"],
         )
         self.selected_color = self._apply_appearance_mode(
@@ -3820,6 +3823,7 @@ def _initialize_display_settings(self: ctk) -> None:
     self.mapview_window = None
     self.treeview_window = None
     self.outline = False
+    self.font_table = {}
 
 
 def _initialize_feature_flags(self: ctk) -> None:
@@ -4625,7 +4629,7 @@ def _create_browser_options_section(self: ctk) -> None:
     )
     create_tooltip(
         self.rerun_button,
-        text="Same as the 'Run' button, but the program does not terminate when done.",
+        text="Same as the 'Run and Exit' button,\nbut the program restarts after displaying the browser output.",
     )
 
     add_button(
@@ -4919,6 +4923,8 @@ def get_rid_of_windows_and_exit(self, delete_all: bool = True) -> None:  # noqa:
             self.treeview_window.destroy()
         if self.mapview_window is not None:
             self.mapview_window.destroy()
+        if self.ai_apikey_window is not None:
+            self.ai_apikey_window.destroy()
     self.quit()
 
 
