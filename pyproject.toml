@@ -1,7 +1,7 @@
 [project]
 name = "maptasker"
 dynamic = [ "version" ]
-version = "8.3.0"
+version = "8.3.1"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 requires-python = ">=3.11,<4.0"
 authors = [
@@ -243,6 +243,7 @@ replace = 'VERSION = "{new_version}"'
 
 
 
+
 [tool.poetry.group.dev.dependencies]
 black = "^25.9.0"
 # +black = { version = "*", allows-prereleases = true }
@@ -253,6 +254,7 @@ mypy = "^1.17.1"
 screeninfo = "^0.8.1"  # Needed for Windows 11 window sizing.
 types-defusedxml = "^0.7.0"
 vulture = "^2.14"
+
 
 
 

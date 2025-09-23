@@ -508,7 +508,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
         char_position = 0
 
-    # Add a final newline to even out the bottom of the box if there is text at the bottom if thjis is not a one-liner.
+    # Add a final newline to even out the bottom of the box if there is text at the bottom if this is not a one-liner.
     if number_of_inserted_lines > 0:
         content, _ = get_last_line(self.textview_textbox, start_idx)
         if content:

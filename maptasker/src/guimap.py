@@ -138,7 +138,12 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
 
                     # Cleanup the text line...possible left over garbage at end.
                     if ":lblend" in text:
-                        text = text.replace(':lblend"></p></div></div>\n\n', ':lblend">')
+                        lblend_pos = text.find('":lblend">')
+                        text = text[: lblend_pos + 10]
+                        # text = text.replace(':lblend"></p></div></div>\n\n', ':lblend">').replace(
+                        #     "<a href='#'>Go to top</a>",
+                        #     "",
+                        # )
 
                     # Handle newline overflow at end
                     if text.endswith("</span><br>\n"):
@@ -1094,14 +1099,15 @@ def process_html_lines(
             remove_html = False
 
         # Apply additional formatting
-        output_lines, spacing = additional_formatting(
-            doing_global_variables,
-            line,
-            output_lines,
-            insert_key,
-            spacing,
-            remove_html,
-        )
+        if ";text-decoration:" not in line:
+            output_lines, spacing = additional_formatting(
+                doing_global_variables,
+                line,
+                output_lines,
+                insert_key,
+                spacing,
+                remove_html,
+            )
 
         # If at end of valid html, start removing html again
         if "/html" in line or "<div <span" in line:
@@ -1109,9 +1115,10 @@ def process_html_lines(
 
         # Validate and update profile name if missing
         if "Profile:" in line:
-            current_text = output_lines[insert_key].get("text", [""])[0]
-            if current_text == "     Profile: \n":
-                output_lines[insert_key]["text"][0] = "     Profile: (no name)\n"
+            with contextlib.suppress(KeyError, IndexError):
+                current_text = output_lines[insert_key].get("text", [""])[0]
+                if current_text == "     Profile: \n":
+                    output_lines[insert_key]["text"][0] = "     Profile: (no name)\n"
 
         # Handle labels and TaskerNet descriptions/labels with html in them.
         # The indicator ('text-box) might be at the end of a Task action.
