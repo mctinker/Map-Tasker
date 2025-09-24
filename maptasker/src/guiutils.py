@@ -1767,7 +1767,6 @@ def display_no_xml_message(self) -> None:  # noqa: ANN001
     Returns:
         None
     """
-    # FIX
     self.display_message_box(
         "View not possible.  No Projects, Profiles Tasks (or Scenes) in the current XML file.\n",
         "Orange",

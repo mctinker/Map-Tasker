@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Extra blank lines are incorrectly added to TaskerNet descriptions.
+- Fixed: "View Not Possible..." error message displays in GUI textbox incorrectly.
 
 ### Known Issues
 

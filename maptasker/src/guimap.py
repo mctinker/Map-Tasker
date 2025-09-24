@@ -130,6 +130,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                             font = f"{font};bold" if font else font_to_use
                         elif specific_style == "is_table":
                             table = True
+                            font = "h0-text"
                         else:
                             # Drop here if there is a ';' in the label.  This is a problem
                             text = line.split('class="h6-text">')[1].replace("</span>", "")

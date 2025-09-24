@@ -339,6 +339,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     first_message = True
     self.previous_heading = "0"
     self.previous_font = "None"
+    lines_to_skip = 0
 
     # Get the background color
     bg_color = make_hex_color(mygui.color_lookup["background_color"])
@@ -387,8 +388,16 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             # Microloop for all newline-deliminated messages on same line.
             # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
-                # if "===============" in msg:
-                #     print("bingo", value["table"][inner_num])
+                # Skip lines from table
+                if lines_to_skip > 0:
+                    lines_to_skip -= 1
+                    continue
+
+                # Handle tables separetaly
+                # if value["table"] and value["table"][inner_num]:
+                #     lines_to_skip, line_num, start_idx = process_table(self, value, inner_num, line_num, start_idx)
+                #     continue
+
                 # Handle images separetaly
                 if "<img src=" in msg:
                     _handle_image(self, msg, start_idx)
@@ -929,3 +938,122 @@ def get_last_line(text_widget: ctk.CTkTextbox, start_idx: str) -> tuple[str, str
 
     except tk.TclError:
         rutroh_error("The text widget is empty.")
+
+
+def process_table(
+    self: ctk,
+    value: dict,
+    inner_num: str,
+    line_num: int,
+    start_idx: str,
+) -> tuple[int, int, str]:
+    """
+    Process and render a text-based table by surrounding its rows with ASCII boxes
+    and inserting them into the target widget.
+
+    The function:
+    1. Collects all contiguous table lines from `value["text"]` starting at `inner_num`.
+    2. Boxes the collected lines using `box_strings`.
+    3. Iterates over the boxed lines and inserts them into the widget with
+       appropriate styling, updating the line counter and text index.
+
+    Parameters
+    ----------
+    self : ctk
+        The widget or controller object that manages insertion of formatted text.
+    value : dict
+        A dictionary containing the text and table structure. Expected keys:
+        - "text": list of strings containing the table content.
+        - "table": list of booleans indicating which lines belong to a table.
+    inner_num : str
+        Index (as a string) of the current line within `value["text"]`.
+    line_num : int
+        Current line number in the widget where insertion should begin.
+    start_idx : str
+        The starting text index in the widget, typically in the format "line.column".
+
+    Returns
+    -------
+    tuple[int, int, str]
+        A tuple containing:
+        - lines_to_skip (int): Number of table lines consumed from `value["text"]`.
+        - line_num (int): Updated line number after inserting the boxed table.
+        - start_idx (str): Updated insertion index after processing.
+
+    Notes
+    -----
+    - Stops inserting when a line containing `"==========="` is encountered.
+    - Uses `_insert_and_tag` to insert lines with styling and tagging.
+    - The box width is determined by the longest line in the collected table.
+    """
+
+    table = []
+    lines_to_skip = 0
+    inner_num += 1
+    # Gather all lines of the table
+    while inner_num < len(value["text"]) and value["table"][inner_num]:
+        if value["text"][inner_num] not in ("========================================", "\n\n", "", "  |  "):
+            table.append(value["text"][inner_num])
+        lines_to_skip += 1
+        inner_num += 1
+
+    # Box the lines
+    boxed_table = box_strings(table, padding=1)
+    for line in boxed_table:
+        if "===========" in line:
+            break
+        _, _ = _insert_and_tag(
+            self,
+            line,
+            0,
+            0,
+            0,
+            start_idx,
+            0,
+            make_hex_color(self.master.master.color_lookup["background_color"]),
+            value,
+            inner_num,
+        )
+        line_num += 1
+        start_idx = str(line_num) + ".0"
+    return lines_to_skip, line_num, start_idx
+
+
+def box_strings(strings: list[str], padding: int = 1) -> list[str]:
+    """
+    Given a list of strings, return a list where each string is surrounded by an ASCII box.
+    All boxes will have the same width, matching the longest string in the list.
+
+    Parameters
+    ----------
+    strings : list[str]
+        Input strings. Strings may contain newlines.
+    padding : int
+        Number of spaces to pad horizontally between text and vertical box edges (default: 1).
+
+    Returns
+    -------
+    list[str]
+        List of boxed strings (each element contains newlines forming the box).
+    """
+    # Find the longest single line across all strings
+    all_lines = [line for s in strings for line in (s.splitlines() or [""])]
+    max_len = max(len(line) for line in all_lines) if all_lines else 0
+
+    # Construct horizontal border
+    horiz = "-" * (max_len + padding * 2)
+    top = f"+{horiz}+"
+    bottom = top
+
+    boxed = []
+    for s in strings:
+        lines = s.splitlines() or [""]
+        middle_lines = []
+        for line in lines:
+            left_space = " " * padding
+            right_space = " " * (padding + (max_len - len(line)))
+            middle_lines.append(f"|{left_space}{line}{right_space}|")
+        boxed_str = "\n".join([top, *middle_lines, bottom])
+        boxed.append(boxed_str)
+
+    return boxed

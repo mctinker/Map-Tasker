@@ -3651,6 +3651,7 @@ class EventHandlers:
 
             # Now do the map.
             guiview.remapit(clear_names=True)
+        else:
             display_no_xml_message(guiview)
 
         # Indicate that we are done.
