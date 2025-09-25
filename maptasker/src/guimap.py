@@ -70,6 +70,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
     # This will hold the processed data for the current logical line
     processed_line_data = []
     in_style = False
+    table = False
     previous_style = []
 
     # Go through all of the data
@@ -97,11 +98,21 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             elif "Style tag end." in line:
                 in_style = False
 
-            # Only deal with lines that have a style and class, or a 'Style tag details'
             font = ""
             decor = ""
-            table = False
-            if (line and "style=" in line and "class=" in line) or in_style:
+            # Check if table start or end or middle
+            temp = line.replace("\n", "")
+            if line == "<table>\n":
+                table = True
+                font = "h0-text"
+                text = "<table>"
+            elif "</table>" in line:
+                text = "</table>"
+            elif table:
+                font = "h0-text"
+                text = temp
+            # Only deal with lines that have a style and class, or a 'Style tag details'
+            elif (line and "style=" in line and "class=" in line) or in_style:
                 try:
                     # Get the style details: color font, heading size, bold, italicised.
                     temp = line.replace("&nbsp;", " ").split('style="')
@@ -184,7 +195,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             lblend = ":lblend" in line
 
             # Check if there's a previous element in processed_line_data
-            if processed_line_data:
+            if processed_line_data and not table:
                 last_item = processed_line_data[-1]
                 # Compare the current color and font with the last one
                 if (
@@ -233,6 +244,10 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 table,
             )
 
+            # Close out possible table
+            if text == "</table>":
+                table = False
+
         line_num += 1
         lines_to_skip += 1
 
@@ -280,6 +295,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             "spacing": processed_line_data[0]["spacing"],
             "end": [item["end"] for item in processed_line_data],
             "decor": [item["decor"] for item in processed_line_data],
+            "table": [item["table"] for item in processed_line_data],
         }
 
     return lines_to_skip

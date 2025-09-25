@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre'
+- Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre', 'code' and table tags.
 
 ### Changed
 
@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: Extra blank lines are incorrectly added to TaskerNet descriptions.
 - Fixed: "View Not Possible..." error message displays in GUI textbox incorrectly.
+- Fixed: The spae between lines of embedded HTML has been reduced so it bedtter reflects TaskerNet descriptions and labels.
 
 ### Known Issues
 

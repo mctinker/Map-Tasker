@@ -329,8 +329,6 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     """
     mygui = self.master.master
     all_values = self.draw_box["all_values"]
-    line_num_str = str(line_num)
-    begin_box = f"{line_num_str}.0"
     max_msg_len = 0
     number_of_inserted_lines = 0
     end_of_label = False
@@ -340,6 +338,11 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     self.previous_heading = "0"
     self.previous_font = "None"
     lines_to_skip = 0
+
+    # Setup the begbinning stuff
+    line_num = int(self.textview_textbox.index("end-1c").split(".")[0]) + 1
+    start_idx = str(line_num) + ".0"
+    begin_box = start_idx
 
     # Get the background color
     bg_color = make_hex_color(mygui.color_lookup["background_color"])
@@ -394,9 +397,9 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     continue
 
                 # Handle tables separetaly
-                # if value["table"] and value["table"][inner_num]:
-                #     lines_to_skip, line_num, start_idx = process_table(self, value, inner_num, line_num, start_idx)
-                #     continue
+                if value["table"] and value["table"][inner_num]:
+                    lines_to_skip, line_num, start_idx = process_table(self, value, inner_num)
+                    continue
 
                 # Handle images separetaly
                 if "<img src=" in msg:
@@ -537,14 +540,27 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
         begin_box = f"{(int(begin_box.split('.')[0]) + 1)!s}.0"
     end_box = f"{line_num!s}.{max_msg_len + 1!s}"
     self.textview_textbox.tag_add(bbox_tag, begin_box, end_box)
+    """
+    spacing1: extra space before a line
+    spacing2: space between wrapped lines of the same paragraph
+    spacing3: extra space after a line
+    """
+    if len(value["text"]) == 1:
+        spacing1 = 5
+        spacing2 = 0
+        spacing3 = 5
+    else:
+        spacing1 = -5
+        spacing2 = -30
+        spacing3 = -5
     self.textview_textbox.tag_config(
         bbox_tag,
         background=bg_color,
         relief="ridge",
         borderwidth=2,
-        spacing1=5,
-        spacing2=-30,
-        spacing3=5,
+        spacing1=spacing1,
+        spacing2=spacing2,
+        spacing3=spacing3,
         rmargin=10,
     )
 
@@ -636,7 +652,9 @@ def _insert_and_tag(
         font = "bold"
     else:
         # Highlight is a heading rather than a font specification.
-        heading_num = "0" if message == " TaskerNet description:\n " else temp_font[0].replace("-text", "")[1]
+        heading_num = (
+            "0" if message == " TaskerNet description:\n " or not temp_font[0] else temp_font[0].replace("-text", "")[1]
+        )
         font = "normal"
 
     # Handle underlining: True or False
@@ -739,7 +757,7 @@ def _configure_tag(
     )
 
 
-def assign_font(self, font_name: str, font_size: int, font: str, underline: bool) -> tkfont:
+def assign_font(self: ctk.CTkTextbox, font_name: str, font_size: int, font: str, underline: bool) -> tkfont:
     """Creates and returns a CTkFont object with specified attributes.
 
     This function generates a CustomTkinter font object based on a given font family,
@@ -944,8 +962,6 @@ def process_table(
     self: ctk,
     value: dict,
     inner_num: str,
-    line_num: int,
-    start_idx: str,
 ) -> tuple[int, int, str]:
     """
     Process and render a text-based table by surrounding its rows with ASCII boxes
@@ -967,10 +983,6 @@ def process_table(
         - "table": list of booleans indicating which lines belong to a table.
     inner_num : str
         Index (as a string) of the current line within `value["text"]`.
-    line_num : int
-        Current line number in the widget where insertion should begin.
-    start_idx : str
-        The starting text index in the widget, typically in the format "line.column".
 
     Returns
     -------
@@ -987,73 +999,84 @@ def process_table(
     - The box width is determined by the longest line in the collected table.
     """
 
-    table = []
+    table = ["<table>"]
     lines_to_skip = 0
     inner_num += 1
     # Gather all lines of the table
     while inner_num < len(value["text"]) and value["table"][inner_num]:
-        if value["text"][inner_num] not in ("========================================", "\n\n", "", "  |  "):
-            table.append(value["text"][inner_num])
+        table.append(value["text"][inner_num])
         lines_to_skip += 1
         inner_num += 1
+    inner_num -= 1  # Back-off the last increment
 
     # Box the lines
-    boxed_table = box_strings(table, padding=1)
-    for line in boxed_table:
-        if "===========" in line:
-            break
-        _, _ = _insert_and_tag(
-            self,
-            line,
-            0,
-            0,
-            0,
-            start_idx,
-            0,
-            make_hex_color(self.master.master.color_lookup["background_color"]),
-            value,
-            inner_num,
-        )
-        line_num += 1
-        start_idx = str(line_num) + ".0"
+    boxed_table = html_table_to_ascii(table)
+
+    # Output it onto the screen
+    # Join everything into one big string
+    big_block_of_text = "\n".join(boxed_table) + "\n\n"
+
+    # Get the next line number and start index
+    line_num = int(self.textview_textbox.index("end-1c").split(".")[0]) + 1
+    start_idx = str(line_num) + ".0"
+
+    # Insert, in a single call, all of the lines of data.
+    value["decor"][inner_num] = ""  # No underline for table
+    _, _ = _insert_and_tag(
+        self,
+        big_block_of_text,
+        0,
+        0,
+        -40,
+        start_idx,
+        0,
+        make_hex_color(self.master.master.color_lookup["background_color"]),
+        value,
+        inner_num,
+    )
+
+    # Get the next line number and start index
+    line_num = int(self.textview_textbox.index("end-1c").split(".")[0]) + 1
+    start_idx = str(line_num) + ".0"
     return lines_to_skip, line_num, start_idx
 
 
-def box_strings(strings: list[str], padding: int = 1) -> list[str]:
+def html_table_to_ascii(html_lines: list[str]) -> list[str]:
     """
-    Given a list of strings, return a list where each string is surrounded by an ASCII box.
-    All boxes will have the same width, matching the longest string in the list.
-
-    Parameters
-    ----------
-    strings : list[str]
-        Input strings. Strings may contain newlines.
-    padding : int
-        Number of spaces to pad horizontally between text and vertical box edges (default: 1).
-
-    Returns
-    -------
-    list[str]
-        List of boxed strings (each element contains newlines forming the box).
+    Convert a list of strings representing HTML <table> elements
+    into an ASCII-art table, without using BeautifulSoup.
     """
-    # Find the longest single line across all strings
-    all_lines = [line for s in strings for line in (s.splitlines() or [""])]
-    max_len = max(len(line) for line in all_lines) if all_lines else 0
+    # Join all lines into a single string
+    html = "".join(html_lines)
 
-    # Construct horizontal border
-    horiz = "-" * (max_len + padding * 2)
-    top = f"+{horiz}+"
-    bottom = top
+    # Extract rows <tr>...</tr>
+    row_matches = re.findall(r"<tr.*?>(.*?)</tr>", html, flags=re.DOTALL | re.IGNORECASE)
+    rows = []
 
-    boxed = []
-    for s in strings:
-        lines = s.splitlines() or [""]
-        middle_lines = []
-        for line in lines:
-            left_space = " " * padding
-            right_space = " " * (padding + (max_len - len(line)))
-            middle_lines.append(f"|{left_space}{line}{right_space}|")
-        boxed_str = "\n".join([top, *middle_lines, bottom])
-        boxed.append(boxed_str)
+    for row in row_matches:
+        # Extract cells <td> or <th>
+        cells = re.findall(r"<t[dh].*?>(.*?)</t[dh]>", row, flags=re.DOTALL | re.IGNORECASE)
+        # Clean up whitespace and inner tags
+        cells = [re.sub(r"<.*?>", "", c).strip() for c in cells]
+        rows.append(cells)
 
-    return boxed
+    if not rows:
+        return ["[Empty <table>]"]
+
+    # Compute column widths
+    col_widths = [max(len(row[i]) if i < len(row) else 0 for row in rows) for i in range(max(len(r) for r in rows))]
+
+    # ASCII helpers
+    def make_separator() -> str:
+        return "+" + "+".join("-" * (w + 2) for w in col_widths) + "+"
+
+    def make_row(row: list[str]) -> str:
+        return "|" + "|".join(f" {row[i] if i < len(row) else ''}".ljust(w + 2) for i, w in enumerate(col_widths)) + "|"
+
+    # Build ASCII table
+    ascii_table = [make_separator()]
+    for row in rows:
+        ascii_table.append(make_row(row))
+        ascii_table.append(make_separator())
+
+    return ascii_table

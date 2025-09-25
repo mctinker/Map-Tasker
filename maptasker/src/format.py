@@ -139,7 +139,7 @@ class HTMLTextFormatter(HTMLParser):
         self.is_in_style = False
         # Table heading and cell tracking
         self.table_th = False
-        self.table_td = False
+        self.code_tag = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
         """
@@ -237,11 +237,12 @@ class HTMLTextFormatter(HTMLParser):
         elif tag == "tr":
             self._add_segment("<tr>")
         elif tag == "th":
-            # self._add_segment("<th>")
             self.table_th = True
         elif tag == "td":
-            # self._add_segment("<td>")
-            self.table_td = True
+            self._add_segment("<td>")
+
+        elif tag == "code":
+            self.code_tag = True
 
         # Handle new heading tags
         elif tag == "h1":
@@ -330,6 +331,9 @@ class HTMLTextFormatter(HTMLParser):
             if tag == "ol" and self.list_counter:
                 self.list_counter.pop()
 
+        elif tag == "code":
+            self.code_tag = False
+
         # New: Revert table tags
         elif tag == "table":
             # self._add_segment("\n" + "=" * 40 + "\n")  # End of table visual indicator
@@ -337,12 +341,12 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_table_cell"] = False
         elif tag == "thead":
             self._add_segment("</thead>")
+        elif tag == "tr":
+            self._add_segment("</tr>")
         elif tag == "th":
-            # self._add_segment("</th>")
             self.table_th = False
         elif tag == "td":
-            # self._add_segment("</td>")
-            self.table_td = False
+            self._add_segment("</td>")
 
         # Revert new heading tags
         elif tag == "h1":
@@ -378,8 +382,8 @@ class HTMLTextFormatter(HTMLParser):
             if self.table_th:
                 decoded_data = "<th>" + decoded_data + "</th>"
                 self.table_th = False
-            elif self.table_td:
-                decoded_data = "<td>" + decoded_data + "</td>"
+            elif self.code_tag:
+                decoded_data = "<code>" + decoded_data + "</code>"
                 self.table_td = False
             self._add_segment(decoded_data)
 
@@ -695,11 +699,15 @@ def format_label(lbl: str) -> str:
                 ):
                     task_label = task_label + "<br>"
 
-                # Concatenate all of the text lines with the color.
-                # Use the combined css_styles string and data_href_attribute
+                # If this is a table, then just output the table details without any heading spaces.
                 if lbl_style.get("is_table_cell"):
-                    task_label = task_label + "\r" + lbl_text
+                    # Ignore breaks within table entries.
+                    if lbl_text == "<br>":
+                        continue
+                    task_label = task_label + "\r" + f"{lbl_text}{label_end}"
                 else:
+                    # Concatenate all of the text lines with the color.
+                    # Use the combined css_styles string and data_href_attribute
                     task_label = (
                         task_label
                         + f'<span style="color:{lbl_color}{css_styles}" class="h{lbl_heading}-text">'
