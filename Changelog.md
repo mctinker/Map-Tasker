@@ -16,7 +16,8 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: Extra blank lines are incorrectly added to TaskerNet descriptions.
 - Fixed: "View Not Possible..." error message displays in GUI textbox incorrectly.
-- Fixed: The spae between lines of embedded HTML has been reduced so it bedtter reflects TaskerNet descriptions and labels.
+- Fixed: The space between lines of embedded HTML has been reduced so it better reflects TaskerNet descriptions and labels.
+- Fixed: Underlined text is not displaying as such in embedded HTML tags.
 
 ### Known Issues
 

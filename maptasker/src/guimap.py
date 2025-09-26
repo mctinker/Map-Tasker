@@ -123,7 +123,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                         if "color:" in specific_style:
                             color = specific_style.replace("color:", "")
                         elif "text-decoration:" in specific_style:
-                            decor = specific_style.replace("text-decoration:", "")
+                            decor = specific_style.replace("text-decoration:", "").lstrip()
                         elif "font-style:" in specific_style:
                             font = f"{font};italic" if font else "italic"
                         elif "class=" in specific_style:
@@ -201,6 +201,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 if (
                     last_item["color"] == color
                     and last_item["highlights"] == font
+                    and last_item["decor"] == decor
                     and not ("<a href=" in text or "<a href=" in last_item["text"])
                     and not table
                 ):

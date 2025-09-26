@@ -9,7 +9,6 @@ import error.
 """
 
 import os
-import platform
 import re
 import tkinter as tk
 import tkinter.font as tkfont
@@ -312,150 +311,366 @@ def get_changelog_file(url: str, delimiter: str, n: int) -> list:
     return lines
 
 
+# def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
+#     """Draws a box around text in a custom textbox widget.
+
+#     This function iterates through a set of text values, formats them,
+#     and inserts them into a textbox widget. It configures a tag for each
+#     piece of text to apply a specific font, foreground color, and background color,
+#     effectively creating a styled "box" around the text.
+
+#     Args:
+#         self: The instance of the custom textbox class (ctk).
+#         line_num: The starting line number where the text will be inserted.
+
+#     Returns:
+#         The final line number.
+#     """
+#     mygui = self.master.master
+#     all_values = self.draw_box["all_values"]
+#     max_msg_len = 0
+#     number_of_inserted_lines = 0
+#     end_of_label = False
+#     prev_msg = "---none---"
+#     its_a_label = True
+#     first_message = True
+#     self.previous_heading = "0"
+#     self.previous_font = "None"
+#     lines_to_skip = 0
+
+#     # Setup the begbinning stuff
+#     line_num = int(self.textview_textbox.index("end-1c").split(".")[0]) + 1
+#     start_idx = str(line_num) + ".0"
+#     begin_box = start_idx
+
+#     # Get the background color
+#     bg_color = make_hex_color(mygui.color_lookup["background_color"])
+
+#     # Outerloop on all_valuies for all lines in label
+#     # Innerloop for values of label on the same line.
+#     # Microloop for all newline-deliminated messages on same line.
+
+#     # Outerloop on all_valuies for all lines in label
+#     # Go through all of the values in the label and output them
+#     for num, value in enumerate(all_values):
+#         # value is a dictionary of lists for 'text', 'color', etc."high"
+#         # Get spacing only if this is first element.
+#         if num == 0:
+#             spacing = value["spacing"]
+#             spacer_newline = value["spacing"]
+#         char_position = 0
+
+#         # Innerloop for values of label on the same line.
+#         # Iterate over a list or a string.
+#         for inner_num, message in enumerate(value["text"]):
+#             # Set our end of label if this is the end.
+#             if value["end"][inner_num]:
+#                 end_of_label = True
+
+#             # clean_message = message.replace("\n\n", "\n")
+#             clean_message = message
+#             if clean_message == "<p>":
+#                 clean_message = "\n"
+
+#             # Build the start end indecies
+#             start_idx = str(line_num) + "." + str(char_position)
+
+#             # Handle a single, new line.
+#             if clean_message == "\n" or not clean_message:
+#                 char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
+
+#                 # Keep track of the maximum message length
+#                 max_msg_len = _get_max_msg_len(clean_message, max_msg_len)
+#                 continue
+
+#             # The message can have embedded newlines...handle them.
+#             # Break message up by newline
+#             all_messages = clean_message.split("\n")
+
+#             # Microloop for all newline-deliminated messages on same line.
+#             # Iterate through all messages per line
+#             for msg_num, msg in enumerate(all_messages):
+#                 # Skip lines from table
+#                 if lines_to_skip > 0:
+#                     lines_to_skip -= 1
+#                     continue
+
+#                 # Handle tables separetaly
+#                 if value["table"] and value["table"][inner_num]:
+#                     lines_to_skip, line_num, start_idx = process_table(self, value, inner_num)
+#                     continue
+
+#                 # Handle images separetaly
+#                 if "<img src=" in msg:
+#                     _handle_image(self, msg, start_idx)
+#                     continue
+
+#                 # Ignore paragraphs
+#                 if msg in ("<p>", "</a>"):
+#                     continue
+
+#                 # Determine if this is a label vs TaskerNet description
+#                 if "TaskerNet description:" in msg:
+#                     its_a_label = False
+#                     new_msg = msg.replace("TaskerNet description:", "TaskerNet description:\n")
+#                 else:
+#                     new_msg = msg
+
+#                 new_msg = "" if new_msg == "<p>" else new_msg
+
+#                 # If Taskernet Description, alter the color so it isn't task_label_color
+#                 if not its_a_label and value["color"][inner_num] == PrimeItems.colors_to_use["action_label_color"]:
+#                     value["color"][inner_num] = PrimeItems.colors_to_use["taskernet_color"]
+
+#                 # Bailout if we hit our end-of-label flag.
+#                 if not end_of_label and (value["end"][inner_num] or ":lblend" in new_msg):
+#                     end_of_label = True
+#                     # Get rid of end-of-label flag and add a space at end of last line.
+#                     updated_msg = new_msg.replace('<data-flag=":lblend">', "") + " "
+#                 elif end_of_label:
+#                     updated_msg = new_msg.replace('<data-flag=":lblend">', "")
+#                 else:
+#                     updated_msg = new_msg
+
+#                 # Handle a blank message, but don't output consequtive blank lines.
+#                 if updated_msg == "":
+#                     if prev_msg != "":
+#                         char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
+#                         prev_msg = ""
+#                     continue
+
+#                 # Set the spacing after the line
+#                 between_line_spacing = -20 if updated_msg.startswith("   *") else 0
+
+#                 # Readjust the message by adding a blank at the end so it doesn't bump up against box.
+#                 msg_to_insert = updated_msg.replace("&nbsp;", " ").replace("<p>", "\n").replace("</p></div>", "")
+
+#                 # Add a blank to the front if this is and TaskerNet description and the start of a line
+#                 if (
+#                     char_position == 0
+#                     and not its_a_label
+#                     and not msg_to_insert.startswith(" ")
+#                     and not msg_to_insert.startswith("<a href=")
+#                 ):
+#                     msg_to_insert = " " + msg_to_insert
+
+#                 # Insert and tag the message
+#                 max_msg_len, char_position = _insert_and_tag(
+#                     self,
+#                     msg_to_insert,
+#                     max_msg_len,
+#                     spacing,
+#                     between_line_spacing,
+#                     start_idx,
+#                     char_position,
+#                     bg_color,
+#                     value,
+#                     inner_num,
+#                 )
+#                 number_of_inserted_lines += 1
+
+#                 # If this is the very first message, set the beginning of the bounding box based on the textbox content.
+#                 # Loop through the lines starting at the last and working backwards,
+#                 # looking for the first line that doesn't contain our message.
+#                 if first_message:
+#                     first_message = False
+
+#                     # Get the line and column index of the last character in the Text widget.
+#                     # The 'end-1c' index is a special index that represents the character just
+#                     # before the absolute end of the widget's content.
+#                     last_char_index = self.textview_textbox.index(tk.END + "-1c")
+#                     line_number, _ = last_char_index.split(".")
+
+#                     # Find and set the beginning of the bounding box to the first line.
+#                     prev_num = int(line_number)
+#                     content = ""
+#                     if "\n" in msg_to_insert:
+#                         msg_to_insert = msg_to_insert.split("\n")[1]  # Skip 'TaskerNet description:'
+#                     while msg_to_insert not in content:
+#                         content = self.textview_textbox.get(f"{prev_num!s}.0", f"{prev_num!s}.end")
+#                         if msg_to_insert not in content:
+#                             prev_num -= 1
+#                     begin_box = f"{prev_num}.0" if its_a_label else f"{prev_num - 1}.0"
+#                     line_num = int(line_number)
+
+#                 # Reset spacing so we don't get spacers every concatenated piece of text.
+#                 spacing = 0
+
+#                 # Bump everything if we are doing a multiline message and we are not at the end.
+#                 if len(all_messages) > 1 and msg_num < len(all_messages) - 1:
+#                     char_position = 0
+#                     line_num += 1
+#                     start_idx = str(line_num) + ".0"
+#                     spacing = spacer_newline
+
+#                 # Save our previous msg to avoid too many blank lines.
+#                 prev_msg = msg_to_insert
+
+#             # Bailout if end of the label
+#             if end_of_label:
+#                 break
+
+#         # Bailout if end of the label.  Add one blank to end of box to force a full-line width on the box.
+#         if end_of_label:
+#             if prev_msg != "":
+#                 line_num += 1
+#                 char_position, spacing, line_num, start_idx = _insert_newline(self, f"{line_num!s}.0", value, line_num)
+#             break
+
+#         char_position = 0
+
+#     # Add a final newline to even out the bottom of the box if there is text at the bottom if this is not a one-liner.
+#     if number_of_inserted_lines > 0:
+#         content, _ = get_last_line(self.textview_textbox, start_idx)
+#         if content:
+#             line_num += 1
+#             start_idx = str(line_num) + ".0"
+#             self.textview_textbox.insert(start_idx, "\n")
+#         # If the last line is blank, delete it.
+#         else:
+#             self.textview_textbox.delete(start_idx)
+#             line_num -= 1
+#             start_idx = str(line_num) + ".0"
+
+#     # Add the bounding box as a highlight by adding a highlighted tag
+#     bbox_tag = f"{begin_box}:bbox"
+#     # Bump the box ahead one line if this is a TaskerNet description.  We don't want to enclose that string.
+#     if not its_a_label:
+#         begin_box = f"{(int(begin_box.split('.')[0]) + 1)!s}.0"
+#     end_box = f"{line_num!s}.{max_msg_len + 1!s}"
+
+#     """
+#     Calculate spacing values for the entire bounding box and it's contents:
+#     spacing1: extra space before a line
+#     spacing2: space between wrapped lines of the same paragraph
+#     spacing3: extra space after a line
+#     """
+#     # If only one line...make it a little roomier
+#     if len(all_messages) == 1:
+#         spacing1 = 5
+#         spacing2 = 0
+#         spacing3 = 5
+#     else:
+#         spacing1 = -5
+#         spacing2 = -30
+#         spacing3 = -5
+
+#     # Tag the bounding box to include the spacing
+#     bbox_tag = f"{bbox_tag}:{spacing1}:{spacing2}:{spacing3}"
+#     self.textview_textbox.tag_add(bbox_tag, begin_box, end_box)
+#     self.textview_textbox.tag_config(
+#         bbox_tag,
+#         background=bg_color,
+#         relief="ridge",
+#         borderwidth=2,
+#         spacing1=spacing1,
+#         spacing2=spacing2,
+#         spacing3=spacing3,
+#         rmargin=10,
+#     )
+
+#     # Point to the next available line by geting our last line number.
+#     # line_num = begin_box.split(".")[0]
+#     line_num = int(line_num) + 1
+
+#     # Insert a newline after the label
+#     self.textview_textbox.insert(f"{line_num}.0", "\n", "bg_color")
+#     line_num += 1
+
+#     # Configure the tag for the background color
+#     self.textview_textbox.tag_config(
+#         "bg_color",
+#         background=bg_color,
+#     )
+
+#     # Reset draw_box for next label
+#     self.draw_box = {"all_values": [], "start_idx": None, "end_idx": None, "spacing": 0, "end": False}
+
+#     return line_num
+
+
 def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
-    """Draws a box around text in a custom textbox widget.
-
-    This function iterates through a set of text values, formats them,
-    and inserts them into a textbox widget. It configures a tag for each
-    piece of text to apply a specific font, foreground color, and background color,
-    effectively creating a styled "box" around the text.
-
-    Args:
-        self: The instance of the custom textbox class (ctk).
-        line_num: The starting line number where the text will be inserted.
-
-    Returns:
-        The final line number.
     """
+    Draws a styled box around text in the custom textbox widget.
+    Handles multi-line, images, tables, labels, and TaskerNet descriptions.
+    """
+
     mygui = self.master.master
     all_values = self.draw_box["all_values"]
+
+    # Initialize state
     max_msg_len = 0
     number_of_inserted_lines = 0
     end_of_label = False
-    prev_msg = "---none---"
     its_a_label = True
+    prev_msg = "---none---"
     first_message = True
     self.previous_heading = "0"
     self.previous_font = "None"
     lines_to_skip = 0
 
-    # Setup the begbinning stuff
+    # Setup text widget insertion
     line_num = int(self.textview_textbox.index("end-1c").split(".")[0]) + 1
-    start_idx = str(line_num) + ".0"
+    start_idx = f"{line_num}.0"
     begin_box = start_idx
 
-    # Get the background color
+    # Background color for box
     bg_color = make_hex_color(mygui.color_lookup["background_color"])
 
-    # Outerloop on all_valuies for all lines in label
-    # Innerloop for values of label on the same line.
-    # Microloop for all newline-deliminated messages on same line.
-
-    # Outerloop on all_valuies for all lines in label
-    # Go through all of the values in the label and output them
     for num, value in enumerate(all_values):
-        # value is a dictionary of lists for 'text', 'color', etc."high"
-        # Get spacing only if this is first element.
-        if num == 0:
-            spacing = value["spacing"]
-            spacer_newline = value["spacing"]
+        spacing = value["spacing"] if num == 0 else 0
+        spacer_newline = value["spacing"]
         char_position = 0
 
-        # Innerloop for values of label on the same line.
-        # Iterate over a list or a string.
         for inner_num, message in enumerate(value["text"]):
-            # Set our end of label if this is the end.
+            if message == "<p>":  # Ignore new paragraph
+                continue
             if value["end"][inner_num]:
                 end_of_label = True
 
-            # clean_message = message.replace("\n\n", "\n")
-            clean_message = message
-            if clean_message == "<p>":
-                clean_message = "\n"
+            # FIX Don't need this anymore...it was for double newlines.
+            clean_message = _clean_message(message)
+            start_idx = f"{line_num}.{char_position}"
 
-            # Build the start end indecies
-            start_idx = str(line_num) + "." + str(char_position)
-
-            # Handle a single, new line.
-            if clean_message == "\n" or not clean_message:
+            # Handle empty/newline message
+            if not clean_message or clean_message == "\n":
                 char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
-
-                # Keep track of the maximum message length
                 max_msg_len = _get_max_msg_len(clean_message, max_msg_len)
                 continue
 
-            # The message can have embedded newlines...handle them.
-            # Break message up by newline
+            # Handle multi-line messages
             all_messages = clean_message.split("\n")
-
-            # Microloop for all newline-deliminated messages on same line.
-            # Iterate through all messages per line
             for msg_num, msg in enumerate(all_messages):
-                # Skip lines from table
+                if "ChatGPT Usage Costs" in msg:
+                    print("bingo")
+                # Skip or process special content
                 if lines_to_skip > 0:
                     lines_to_skip -= 1
                     continue
-
-                # Handle tables separetaly
                 if value["table"] and value["table"][inner_num]:
                     lines_to_skip, line_num, start_idx = process_table(self, value, inner_num)
                     continue
-
-                # Handle images separetaly
                 if "<img src=" in msg:
                     _handle_image(self, msg, start_idx)
                     continue
-
-                # Ignore paragraphs
                 if msg in ("<p>", "</a>"):
                     continue
 
-                # Determine if this is a label vs TaskerNet description
-                if "TaskerNet description:" in msg:
-                    its_a_label = False
-                    new_msg = msg.replace("TaskerNet description:", "TaskerNet description:\n")
-                else:
-                    new_msg = msg
+                # Handle TaskerNet description
+                msg, its_a_label = _handle_taskernet_description(msg, its_a_label)  # noqa: PLW2901
 
-                new_msg = "" if new_msg == "<p>" else new_msg
-
-                # If Taskernet Description, alter the color so it isn't task_label_color
-                if not its_a_label and value["color"][inner_num] == PrimeItems.colors_to_use["action_label_color"]:
-                    value["color"][inner_num] = PrimeItems.colors_to_use["taskernet_color"]
-
-                # Bailout if we hit our end-of-label flag.
-                if not end_of_label and (value["end"][inner_num] or ":lblend" in new_msg):
-                    end_of_label = True
-                    # Get rid of end-of-label flag and add a space at end of last line.
-                    updated_msg = new_msg.replace('<data-flag=":lblend">', "") + " "
-                elif end_of_label:
-                    updated_msg = new_msg.replace('<data-flag=":lblend">', "")
-                else:
-                    updated_msg = new_msg
-
-                # Handle a blank message, but don't output consequtive blank lines.
+                # End-of-label adjustments
+                updated_msg, end_of_label = _handle_label_end(msg, end_of_label, value, inner_num)
                 if updated_msg == "":
                     if prev_msg != "":
                         char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
                         prev_msg = ""
                     continue
 
-                # Set the spacing after the line
                 between_line_spacing = -20 if updated_msg.startswith("   *") else 0
+                msg_to_insert = _normalize_message(updated_msg, its_a_label, char_position)
 
-                # Readjust the message by adding a blank at the end so it doesn't bump up against box.
-                msg_to_insert = updated_msg.replace("&nbsp;", " ").replace("<p>", "\n").replace("</p></div>", "")
-
-                # Add a blank to the front if this is and TaskerNet description and the start of a line
-                if (
-                    char_position == 0
-                    and not its_a_label
-                    and not msg_to_insert.startswith(" ")
-                    and not msg_to_insert.startswith("<a href=")
-                ):
-                    msg_to_insert = " " + msg_to_insert
-
-                # Insert and tag the message
+                # Insert & tag message
                 max_msg_len, char_position = _insert_and_tag(
                     self,
                     msg_to_insert,
@@ -470,89 +685,149 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 )
                 number_of_inserted_lines += 1
 
-                # If this is the very first message, set the beginning of the bounding box based on the textbox content.
-                # Loop through the lines starting at the last and working backwards,
-                # looking for the first line that doesn't contain our message.
                 if first_message:
+                    begin_box, line_num = _find_begin_box(self, msg_to_insert, its_a_label)
                     first_message = False
 
-                    # Get the line and column index of the last character in the Text widget.
-                    # The 'end-1c' index is a special index that represents the character just
-                    # before the absolute end of the widget's content.
-                    last_char_index = self.textview_textbox.index(tk.END + "-1c")
-                    line_number, _ = last_char_index.split(".")
-
-                    # Find and set the beginning of the bounding box to the first line.
-                    prev_num = int(line_number)
-                    content = ""
-                    if "\n" in msg_to_insert:
-                        msg_to_insert = msg_to_insert.split("\n")[1]  # Skip 'TaskerNet description:'
-                    while msg_to_insert not in content:
-                        content = self.textview_textbox.get(f"{prev_num!s}.0", f"{prev_num!s}.end")
-                        if msg_to_insert not in content:
-                            prev_num -= 1
-                    begin_box = f"{prev_num}.0" if its_a_label else f"{prev_num - 1}.0"
-                    line_num = int(line_number)
-
-                # Reset spacing so we don't get spacers every concatenated piece of text.
+                # Reset spacing after concatenation
                 spacing = 0
 
-                # Bump everything if we are doing a multiline message and we are not at the end.
+                # Handle multi-line continuation
                 if len(all_messages) > 1 and msg_num < len(all_messages) - 1:
-                    char_position = 0
-                    line_num += 1
-                    start_idx = str(line_num) + ".0"
-                    spacing = spacer_newline
+                    char_position, line_num, start_idx, spacing = _advance_multiline(line_num, spacer_newline)
 
-                # Save our previous msg to avoid too many blank lines.
                 prev_msg = msg_to_insert
 
-            # Bailout if end of the label
             if end_of_label:
                 break
 
-        # Bailout if end of the label.  Add one blank to end of box to force a full-line width on the box.
         if end_of_label:
             if prev_msg != "":
-                line_num += 1
-                char_position, spacing, line_num, start_idx = _insert_newline(self, f"{line_num!s}.0", value, line_num)
+                line_num, start_idx = _close_label(self, line_num, value)
             break
 
-        char_position = 0
+    # Even out the bottom of the box
+    line_num, start_idx = _finalize_bottom(self, line_num, start_idx, number_of_inserted_lines)
 
-    # Add a final newline to even out the bottom of the box if there is text at the bottom if this is not a one-liner.
-    if number_of_inserted_lines > 0:
-        content, _ = get_last_line(self.textview_textbox, start_idx)
-        if content:
-            line_num += 1
-            start_idx = str(line_num) + ".0"
-            self.textview_textbox.insert(start_idx, "\n")
-        # If the last line is blank, delete it.
-        else:
-            self.textview_textbox.delete(start_idx)
-            line_num -= 1
-            start_idx = str(line_num) + ".0"
+    # Add bounding box tag
+    line_num = _apply_bounding_box(self, begin_box, line_num, max_msg_len, bg_color, its_a_label, len(all_messages))
 
-    # Add the bounding box as a highlight by adding a highlighted tag
-    bbox_tag = f"{begin_box}:bbox"
-    # Bump the box ahead one line if this is a TaskerNet description.  We don't want to enclose that string.
-    if not its_a_label:
-        begin_box = f"{(int(begin_box.split('.')[0]) + 1)!s}.0"
-    end_box = f"{line_num!s}.{max_msg_len + 1!s}"
-    self.textview_textbox.tag_add(bbox_tag, begin_box, end_box)
-    """
-    spacing1: extra space before a line
-    spacing2: space between wrapped lines of the same paragraph
-    spacing3: extra space after a line
-    """
-    if len(value["text"]) == 1:
-        spacing1 = 5
-        spacing2 = 0
-        spacing3 = 5
+    # Insert newline after the label
+    self.textview_textbox.insert(f"{line_num}.0", "\n", "bg_color")
+    line_num += 1
+    self.textview_textbox.tag_config("bg_color", background=bg_color)
+
+    # Reset state for next draw
+    self.draw_box = {"all_values": [], "start_idx": None, "end_idx": None, "spacing": 0, "end": False}
+
+    return line_num
+
+
+# ----------------
+# Helper methods
+# ----------------
+def _clean_message(message: str) -> str:
+    if message == "<p>":
+        return "\n"
+    return message
+
+
+def _handle_taskernet_description(msg: str, its_a_label: bool) -> tuple[str, bool]:
+    if "TaskerNet description:" in msg:
+        its_a_label = False
+        return msg.replace("TaskerNet description:", "TaskerNet description:\n"), its_a_label
+    return msg, its_a_label
+
+
+def _handle_label_end(
+    msg: str,
+    end_of_label: bool,
+    value: dict,
+    inner_num: int,
+) -> tuple[str, bool]:
+    if not end_of_label and (value["end"][inner_num] or ":lblend" in msg):
+        return msg.replace('<data-flag=":lblend">', "") + " ", True
+    if end_of_label:
+        return msg.replace('<data-flag=":lblend">', ""), True
+    return msg, end_of_label
+
+
+def _normalize_message(msg: str, its_a_label: bool, char_position: int) -> str:
+    msg = msg.replace("&nbsp;", " ").replace("<p>", "\n").replace("</p></div>", "")
+    if char_position == 0 and not its_a_label and not msg.startswith((" ", "<a href=")):
+        msg = " " + msg
+    return msg
+
+
+def _find_begin_box(self: ctk.CTkTextbox, msg_to_insert: str, its_a_label: bool) -> tuple[str, int]:
+    last_char_index = self.textview_textbox.index(tk.END + "-1c")
+    line_number, _ = last_char_index.split(".")
+    prev_num = int(line_number)
+    if "\n" in msg_to_insert:
+        msg_to_insert = msg_to_insert.split("\n")[1]
+
+    content = ""
+    while msg_to_insert not in content:
+        content = self.textview_textbox.get(f"{prev_num}.0", f"{prev_num}.end")
+        if msg_to_insert not in content:
+            prev_num -= 1
+    begin_box = f"{prev_num}.0" if its_a_label else f"{prev_num - 1}.0"
+    return begin_box, int(line_number)
+
+
+def _advance_multiline(line_num: int, spacer_newline: int) -> tuple[int, int, str, int]:
+    line_num += 1
+    start_idx = f"{line_num}.0"
+    return 0, line_num, start_idx, spacer_newline
+
+
+def _close_label(self: ctk.CTkTextbox, line_num: int, value: dict) -> tuple[int, str]:
+    line_num += 1
+    _, _, line_num, start_idx = _insert_newline(self, f"{line_num}.0", value, line_num)
+    return line_num, start_idx
+
+
+def _finalize_bottom(
+    self: ctk.CTkTextbox,
+    line_num: int,
+    start_idx: str,
+    number_of_inserted_lines: int,
+) -> tuple[int, str]:
+    if number_of_inserted_lines == 0:
+        return line_num, start_idx
+
+    content, _ = get_last_line(self.textview_textbox, start_idx)
+    if content:
+        line_num += 1
+        start_idx = f"{line_num}.0"
+        self.textview_textbox.insert(start_idx, "\n")
     else:
-        spacing1 = -5
-        spacing2 = -30
-        spacing3 = -5
+        self.textview_textbox.delete(start_idx)
+        line_num -= 1
+        start_idx = f"{line_num}.0"
+    return line_num, start_idx
+
+
+def _apply_bounding_box(
+    self: ctk.CTkTextbox,
+    begin_box: str,
+    line_num: int,
+    max_msg_len: int,
+    bg_color: str,
+    its_a_label: bool,
+    number_of_messages: int,
+) -> int:
+    if not its_a_label:
+        begin_box = f"{(int(begin_box.split('.')[0]) + 1)}.0"
+    end_box = f"{line_num}.{max_msg_len + 1}"
+
+    spacing1, spacing2, spacing3 = (5, 0, 5) if number_of_messages == 1 else (-5, -30, -5)
+    bbox_tag = f"{begin_box}:bbox:{spacing1}:{spacing2}:{spacing3}"
+
+    self.textview_textbox.tag_add(bbox_tag, begin_box, end_box)
+    # spacing1: extra space before a line
+    # spacing2: space between wrapped lines of the same paragraph
+    # spacing3: extra space after a line
     self.textview_textbox.tag_config(
         bbox_tag,
         background=bg_color,
@@ -563,25 +838,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
         spacing3=spacing3,
         rmargin=10,
     )
-
-    # Point to the next available line by geting our last line number.
-    # line_num = begin_box.split(".")[0]
-    line_num = int(line_num) + 1
-
-    # Insert a newline after the label
-    self.textview_textbox.insert(f"{line_num}.0", "\n", "bg_color")
-    line_num += 1
-
-    # Configure the tag for the background color
-    self.textview_textbox.tag_config(
-        "bg_color",
-        background=bg_color,
-    )
-
-    # Reset draw_box for next label
-    self.draw_box = {"all_values": [], "start_idx": None, "end_idx": None, "spacing": 0, "end": False}
-
-    return line_num
+    return line_num + 1
 
 
 def _insert_and_tag(
@@ -637,100 +894,99 @@ def _insert_and_tag(
         - `max_msg_len`
         - `char_position`
     """
+    # Optimized version: inserts and tags a message in a custom text widget.
     mygui = self.master.master
-    # Get the highlight/font attribute for this specific message.
+
+    # Local vars to avoid repeated dict lookups
     highlights = value["highlights"][inner_num]
+    decor = value["decor"][inner_num].strip()
+    color_val = value["color"][inner_num]
 
-    # Get the font(s), if any.
     temp_font = highlights.split(";")
-
-    # Get the font size / italic flag / bold
     heading_num = self.previous_heading
-    if temp_font[0] == "italic":
+
+    # Font style detection
+    first_font = temp_font[0]
+    if first_font == "italic":
         font = "italic"
-    elif temp_font[0] == "bold":
+    elif first_font == "bold":
         font = "bold"
     else:
-        # Highlight is a heading rather than a font specification.
         heading_num = (
-            "0" if message == " TaskerNet description:\n " or not temp_font[0] else temp_font[0].replace("-text", "")[1]
+            "0" if message == " TaskerNet description:\n " or not first_font else first_font.replace("-text", "")[1]
         )
         font = "normal"
 
-    # Handle underlining: True or False
-    underline = value["decor"][inner_num] == "underline"
+    underline = decor == "underline"
 
-    # Set the font size to the heading size.  If this is a list item, downsize it.
-    try:
-        font_size = heading_fonts[heading_num]
-    except KeyError:
-        font_size = heading_fonts["0"]  # Default to h0 if not found
-    if platform.system() == "Windows":  # Font sizes are different on windows.
-        font_size = font_size * 2
+    # Get font size safely
+    font_size = heading_fonts.get(heading_num, heading_fonts["0"])
+    if PrimeItems.windows_system:  # Precompute platform check once globally
+        font_size *= 2
 
-    if PrimeItems.program_arguments["debug"] and not message.startswith("<a href="):
+    # Debugging: prepend font size
+    if PrimeItems.program_arguments.get("debug") and not message.startswith("<a href="):
         message = f"{font_size}{message}"
 
-    # Reduce spacing if this is the largest font
+    # Adjust spacing if this is the largest font
     font_sizes = list(heading_fonts.values())
     max_font_size = max(font_sizes)
-    if font_size == max_font_size:
+    if font_size == max_font_size:  # Precompute max_font_size globally
         spacing = spacing // 2 if spacing > 0 else 0
 
-    # Assign the font to use: define the font if we don't yet have it.
-    # font_to_use = assign_font(self, mygui.font, font_size, font, underline)
-    font_key = mygui.font + font + str(font_size)
-    try:
-        font_to_use = mygui.font_table[font_key]
-    except KeyError:
-        font_to_use = assign_font(self, mygui.font, font_size, font, underline)
+    # Reuse or assign font
+    font_key = f"{mygui.font}{font}{font_size}"
+    font_to_use = mygui.font_table.get(font_key)
+    if font_to_use is None:
+        font_to_use = assign_font(mygui.font, font_size, font, underline)
         mygui.font_table[font_key] = font_to_use
 
-    # Handle hotlink 'href'
+    # Handle hyperlinks
+    href = ""
     if "<a href=" in message:
         temp = message.split('"')
         href = temp[1]
-        text_len = len(temp[2]) - 4
-        message = temp[2][1:text_len]
-        # Add the link
+        message = temp[2][1 : len(temp[2]) - 4]
         tag_id = self.textview_hyperlink.add(href)
-        self.textview_textbox.insert(
-            start_idx,
-            message,
-            tag_id,
-        )
+        self.textview_textbox.insert(start_idx, message, tag_id)
     else:
-        href = ""
-        # Create a tag with the text attributes
-        tag_id = f"{heading_num};{font}:{value['color'][inner_num]}:{value['decor'][inner_num].strip()}:{between_line_spacing}"
+        tag_id = f"{heading_num};{font}:{color_val}:{decor}:{between_line_spacing}"
 
-    # Format the message
-    spacer = " " * spacing
-    formatted_message = spacer + message if spacing > 0 else message
+    # Apply spacing
+    if spacing > 0:
+        message = " " * spacing + message
 
-    # Keep track of largest message
-    max_msg_len = _get_max_msg_len(formatted_message, max_msg_len)
+    # Update max message length
+    max_msg_len = _get_max_msg_len(message, max_msg_len)
 
-    # Get the html attributes
-    fg_color = make_hex_color(value["color"][inner_num])
-
-    # Insert the unformatted text...only if it is normal text and not a hotlink
+    # Insert normal text if not hyperlink
     if not href:
-        # Apply the html attributes
+        fg_color = make_hex_color(color_val)
+
+        # Apply base font attributes
         _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
 
-        # Do the second font, if there is one.
+        # If secondary font specified (rare), configure it too
         if len(temp_font) > 1:
             new_font = temp_font[1]
             tag_id = tag_id.replace(font, new_font)
             font_to_use = (mygui.font, font_size, new_font)
-            # Apply the html attributes
             _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
 
-        # Specifying the tag_id in the insert eliminates the need to do a tag_add.
-        self.textview_textbox.insert(start_idx, formatted_message, tag_id)
+        # Insert with tag
+        self.textview_textbox.insert(start_idx, message, tag_id)
 
-    char_position += len(formatted_message)
+        # If there is a table heading, configure it to be bold
+        if "+───" in message:
+            table_heading = message.split("\n")[1] if "\n" in message else ""
+            if table_heading:
+                th_tag_id = f"table_heading;bold:{color_val}:{decor}:{between_line_spacing}"
+            font_to_use = assign_font(mygui.font, font_size, "bold", underline)
+            _configure_tag(self, th_tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
+            self.textview_textbox.tag_add(th_tag_id, f"{start_idx}+1c", f"{start_idx}+{1 + len(table_heading)}c")
+
+    # Update state
+    char_position += len(message)
     self.previous_heading = heading_num
     self.previous_font = font_to_use
     self.previous_between_line_spaccing = between_line_spacing
@@ -753,18 +1009,17 @@ def _configure_tag(
         background=bg_color,
         foreground=fg_color,
         underline=underline,
-        spacing2=between_line_spacing,
+        spacing2=between_line_spacing,  # This is ovberridden by the bbox spacing.
     )
 
 
-def assign_font(self: ctk.CTkTextbox, font_name: str, font_size: int, font: str, underline: bool) -> tkfont:
+def assign_font(font_name: str, font_size: int, font: str, underline: bool) -> tkfont:
     """Creates and returns a CTkFont object with specified attributes.
 
     This function generates a CustomTkinter font object based on a given font family,
     size, and style. It supports "normal", "bold", and "italic" styles.
 
     Args:
-        self (ctk): The CustomTkinter object instance.
         font_name (str): The name of the font family (e.g., "Arial").
         font_size (int): The size of the font in points.
         font (str): The font style. Must be one of "normal", "bold", or "italic".
@@ -1068,10 +1323,10 @@ def html_table_to_ascii(html_lines: list[str]) -> list[str]:
 
     # ASCII helpers
     def make_separator() -> str:
-        return "+" + "+".join("-" * (w + 2) for w in col_widths) + "+"
+        return "+" + "+".join("─" * (w + 2) for w in col_widths) + "+"
 
     def make_row(row: list[str]) -> str:
-        return "|" + "|".join(f" {row[i] if i < len(row) else ''}".ljust(w + 2) for i, w in enumerate(col_widths)) + "|"
+        return "│" + "│".join(f" {row[i] if i < len(row) else ''}".ljust(w + 2) for i, w in enumerate(col_widths)) + "│"
 
     # Build ASCII table
     ascii_table = [make_separator()]
