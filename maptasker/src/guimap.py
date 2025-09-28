@@ -70,6 +70,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
     # This will hold the processed data for the current logical line
     processed_line_data = []
     in_style = False
+    table = False
     previous_style = []
 
     # Go through all of the data
@@ -97,11 +98,21 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             elif "Style tag end." in line:
                 in_style = False
 
-            # Only deal with lines that have a style and class, or a 'Style tag details'
             font = ""
             decor = ""
-            table = False
-            if (line and "style=" in line and "class=" in line) or in_style:
+            # Check if table start or end or middle
+            temp = line.replace("\n", "")
+            if line == "<table>\n":
+                table = True
+                font = "h0-text"
+                text = "<table>"
+            elif "</table>" in line:
+                text = "</table>"
+            elif table:
+                font = "h0-text"
+                text = temp
+            # Only deal with lines that have a style and class, or a 'Style tag details'
+            elif (line and "style=" in line and "class=" in line) or in_style:
                 try:
                     # Get the style details: color font, heading size, bold, italicised.
                     temp = line.replace("&nbsp;", " ").split('style="')
@@ -112,7 +123,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                         if "color:" in specific_style:
                             color = specific_style.replace("color:", "")
                         elif "text-decoration:" in specific_style:
-                            decor = specific_style.replace("text-decoration:", "")
+                            decor = specific_style.replace("text-decoration:", "").lstrip()
                         elif "font-style:" in specific_style:
                             font = f"{font};italic" if font else "italic"
                         elif "class=" in specific_style:
@@ -130,6 +141,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                             font = f"{font};bold" if font else font_to_use
                         elif specific_style == "is_table":
                             table = True
+                            font = "h0-text"
                         else:
                             # Drop here if there is a ';' in the label.  This is a problem
                             text = line.split('class="h6-text">')[1].replace("</span>", "")
@@ -138,7 +150,12 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
 
                     # Cleanup the text line...possible left over garbage at end.
                     if ":lblend" in text:
-                        text = text.replace(':lblend"></p></div></div>\n\n', ':lblend">')
+                        lblend_pos = text.find('":lblend">')
+                        text = text[: lblend_pos + 10]
+                        # text = text.replace(':lblend"></p></div></div>\n\n', ':lblend">').replace(
+                        #     "<a href='#'>Go to top</a>",
+                        #     "",
+                        # )
 
                     # Handle newline overflow at end
                     if text.endswith("</span><br>\n"):
@@ -178,12 +195,13 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             lblend = ":lblend" in line
 
             # Check if there's a previous element in processed_line_data
-            if processed_line_data:
+            if processed_line_data and not table:
                 last_item = processed_line_data[-1]
                 # Compare the current color and font with the last one
                 if (
                     last_item["color"] == color
                     and last_item["highlights"] == font
+                    and last_item["decor"] == decor
                     and not ("<a href=" in text or "<a href=" in last_item["text"])
                     and not table
                 ):
@@ -226,6 +244,10 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                 decor,
                 table,
             )
+
+            # Close out possible table
+            if text == "</table>":
+                table = False
 
         line_num += 1
         lines_to_skip += 1
@@ -274,6 +296,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
             "spacing": processed_line_data[0]["spacing"],
             "end": [item["end"] for item in processed_line_data],
             "decor": [item["decor"] for item in processed_line_data],
+            "table": [item["table"] for item in processed_line_data],
         }
 
     return lines_to_skip
@@ -411,7 +434,7 @@ def remove_the_html_tags(text: str) -> str:
         .replace("<data-flag=", "")
         .replace("<a href='#'></a>", "")
     )
-    # TODO We don't need the html stripper code.  Keep sit around for future use.
+    # We don't need the html stripper code.  Keep it around for future use.
     # s = MLStripper()
     # s.feed(text)
     # return s.get_data()
@@ -1094,14 +1117,15 @@ def process_html_lines(
             remove_html = False
 
         # Apply additional formatting
-        output_lines, spacing = additional_formatting(
-            doing_global_variables,
-            line,
-            output_lines,
-            insert_key,
-            spacing,
-            remove_html,
-        )
+        if ";text-decoration:" not in line:
+            output_lines, spacing = additional_formatting(
+                doing_global_variables,
+                line,
+                output_lines,
+                insert_key,
+                spacing,
+                remove_html,
+            )
 
         # If at end of valid html, start removing html again
         if "/html" in line or "<div <span" in line:
@@ -1109,9 +1133,10 @@ def process_html_lines(
 
         # Validate and update profile name if missing
         if "Profile:" in line:
-            current_text = output_lines[insert_key].get("text", [""])[0]
-            if current_text == "     Profile: \n":
-                output_lines[insert_key]["text"][0] = "     Profile: (no name)\n"
+            with contextlib.suppress(KeyError, IndexError):
+                current_text = output_lines[insert_key].get("text", [""])[0]
+                if current_text == "     Profile: \n":
+                    output_lines[insert_key]["text"][0] = "     Profile: (no name)\n"
 
         # Handle labels and TaskerNet descriptions/labels with html in them.
         # The indicator ('text-box) might be at the end of a Task action.

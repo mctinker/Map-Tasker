@@ -30,7 +30,6 @@ executes the key steps to take the Tasker backup and produce the visual map outp
 import contextlib
 import gc
 import os
-import platform
 import sys
 import webbrowser
 from subprocess import run
@@ -411,7 +410,7 @@ def process_outline() -> None:
     if not PrimeItems.program_arguments["guiview"]:
         with contextlib.suppress(FileNotFoundError):
             # Asterisk before sys.argv breaks it into separate arguments
-            if platform.system() == "Windows":
+            if PrimeItems.windows_system:
                 directory = os.getcwd()
                 os.startfile(f"{directory}{PrimeItems.slash}MapTasker_Map.txt")
             else:

@@ -2130,18 +2130,6 @@ def display_progress_bar(
     progress["progress_bar"].progressbar.configure(progress_color=progress_color)
     progress["progress_bar"].progressbar.update()
 
-    # # Check if an alert needs to be printed (OS X only).
-    # if (
-    #     platform.system() == "Darwin"
-    #     and progress
-    #     and progress["progress_bar"].progressbar.print_alert
-    #     and round(time.time() * 1000) - progress["progress_bar"].progressbar.start_time > 4000
-    # ):
-    #     print(
-    #         f"{Colors.Green}You can ignore the error message: 'IMKClient Stall detected, *please Report*...'",
-    #     )
-    #     progress["progress_bar"].progressbar.print_alert = False
-
 
 def find_connector(
     output_lines: list,

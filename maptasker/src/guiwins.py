@@ -12,7 +12,6 @@ import copy
 import os
 import random
 import re
-import sys
 import time
 import tkinter as tk
 import webbrowser
@@ -2259,7 +2258,7 @@ class CTkTextview(ctk.CTkFrame):
                 continue
 
             # If Windows, ignore blank lines: "    \n"
-            if sys.platform == "win32" and (value["text"] and first_text.endswith("\n")):
+            if PrimeItems.windows_system and (value["text"] and first_text.endswith("\n")):
                 text = value["text"][0]
                 blanks_to_check = len(text) - 1
                 if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
@@ -2386,7 +2385,7 @@ class CTkTextview(ctk.CTkFrame):
             return None, None, None
 
         # If Windows, ignore blank lines: "    \n"
-        if sys.platform == "win32" and value.get("text") and value["text"][0].endswith("\n"):
+        if PrimeItems.windows_system and value.get("text") and value["text"][0].endswith("\n"):
             text = value["text"][0]
             blanks_to_check = len(text) - 1
             # Assuming 'blank' is defined elsewhere, e.g., 'blank = " "'

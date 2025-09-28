@@ -402,11 +402,12 @@ def start_up() -> dict:
     logger.info(f"sys.argv{sys.argv!s}")
 
     # Get the OS so we know which directory slash to use (/ or \)
-    our_platform = platform.system()
-    if our_platform == "Windows":
+    if platform.system() == "Windows":
         PrimeItems.slash = "\\"
+        PrimeItems.windows_system = True
     else:
         PrimeItems.slash = "/"
+        PrimeItems.windows_system = False
 
     # Validate runtime versions for python and tkinter
     check_versions()

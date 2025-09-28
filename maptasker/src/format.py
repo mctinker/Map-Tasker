@@ -137,6 +137,9 @@ class HTMLTextFormatter(HTMLParser):
         self.is_preformatted = False
         # New attribute to track if we are inside a <style> tag
         self.is_in_style = False
+        # Table heading and cell tracking
+        self.table_th = False
+        self.code_tag = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
         """
@@ -170,12 +173,16 @@ class HTMLTextFormatter(HTMLParser):
         if tag == "pre":
             self.is_preformatted = True
             # Add a newline before the preformatted block for clean formatting
-            self._add_segment("\n")
+            self._add_segment("<pre>")
             return
 
         if tag == "br":
             # Insert a newline segment
             self._add_segment("\n")
+            return
+
+        if tag == "p":
+            # Ignore <p> tags, as they are handled in formatting
             return
 
         if tag == "font":
@@ -228,11 +235,18 @@ class HTMLTextFormatter(HTMLParser):
         # New: Handle table tags
         elif tag == "table":
             self.current_styles["is_table_cell"] = True
-            self._add_segment("\n" + "=" * 40 + "\n")  # Start of table visual indicator
+            self._add_segment("<table>")
+        elif tag == "thead":
+            self._add_segment("<thead>")
         elif tag == "tr":
-            self._add_segment("\n")  # Newline for each table row
-        elif tag in ["td", "th"]:
-            self._add_segment("  |  ")  # Spacer for table cells
+            self._add_segment("<tr>")
+        elif tag == "th":
+            self.table_th = True
+        elif tag == "td":
+            self._add_segment("<td>")
+
+        elif tag == "code":
+            self.code_tag = True
 
         # Handle new heading tags
         elif tag == "h1":
@@ -275,7 +289,7 @@ class HTMLTextFormatter(HTMLParser):
         if tag == "pre":
             self.is_preformatted = False
             # Add a newline after the preformatted block
-            self._add_segment("\n")
+            self._add_segment("</pre>")
             if self.tag_stack and self.tag_stack[-1] == tag:
                 self.tag_stack.pop()
             return
@@ -318,14 +332,26 @@ class HTMLTextFormatter(HTMLParser):
                 self.list_indent_level -= 1
             if self.list_types:
                 self.list_types.pop()
+            self._add_segment("<p><p>")  # Force a space after the end-of-list
             if tag == "ol" and self.list_counter:
                 self.list_counter.pop()
 
+        elif tag == "code":
+            self.code_tag = False
+
         # New: Revert table tags
         elif tag == "table":
-            self._add_segment("\n" + "=" * 40 + "\n")  # End of table visual indicator
-        elif tag in ["td", "th"]:
+            # self._add_segment("\n" + "=" * 40 + "\n")  # End of table visual indicator
+            self._add_segment("</table>")
             self.current_styles["is_table_cell"] = False
+        elif tag == "thead":
+            self._add_segment("</thead>")
+        elif tag == "tr":
+            self._add_segment("</tr>")
+        elif tag == "th":
+            self.table_th = False
+        elif tag == "td":
+            self._add_segment("</td>")
 
         # Revert new heading tags
         elif tag == "h1":
@@ -340,6 +366,9 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_h5"] = False
         elif tag == "h6":
             self.current_styles["is_h6"] = False
+        elif tag in {"p", "li"}:
+            # Ignore </p> and </li> tags, as they are handled in formatting
+            return
         # Unrecognized tag
         else:
             self.handle_unknown_endtag(tag)
@@ -358,6 +387,12 @@ class HTMLTextFormatter(HTMLParser):
             self._add_preformatted_segment(data)
         elif data.strip():
             decoded_data = html.unescape(data)
+            if self.table_th:
+                decoded_data = "<th>" + decoded_data + "</th>"
+                self.table_th = False
+            elif self.code_tag:
+                decoded_data = "<code>" + decoded_data + "</code>"
+                self.table_td = False
             self._add_segment(decoded_data)
 
     def handle_unknown_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
@@ -567,7 +602,7 @@ def format_label(lbl: str) -> str:
     blank = "&nbsp;"
     color_to_use = "taskernet_color" if "TaskerNet description" in lbl else "action_label_color"
 
-    # TODO Do this for all labels
+    # Do this for all labels:  Leave as is for now in case we change it in the future.
     if contains_html(lbl) or lbl:
         task_label = format_html(
             color_to_use,
@@ -632,6 +667,8 @@ def format_label(lbl: str) -> str:
             css_styles = css_styles.replace(";;", ";")
 
             lbl_heading = lbl_style["heading_level"] if lbl_style["is_heading"] else 0
+            if lbl_style.get("is_table_cell"):
+                lbl_heading = 0
 
             # If we have back-to-back headings, then force a new line.
             if (lbl_heading > 0 and previous_heading > 0) and (lbl_heading != previous_heading):
@@ -660,18 +697,31 @@ def format_label(lbl: str) -> str:
                 if lbl_text != "\n" and lbl_text.startswith("\n"):
                     lbl_text = lbl_text[1:]
 
-                # If we have a new heading, force a break if we didn't just do one.
-                if lbl_heading != previous_heading and previous_text != "\n" and not task_label.endswith("\n"):
+                # If we have a new heading, force a break if we didn't just do one and it isn't a table cell.
+                if (
+                    lbl_heading != previous_heading
+                    and previous_text not in ("\n", "<br>")
+                    and previous_text != "<br>"
+                    and not task_label.endswith("\n")
+                    and not lbl_style["is_table_cell"]
+                ):
                     task_label = task_label + "<br>"
 
-                # Concatenate all of the text lines with the color.
-                # Use the combined css_styles string and data_href_attribute
-                task_label = (
-                    task_label
-                    + f'<span style="color:{lbl_color}{css_styles}" class="h{lbl_heading}-text">'
-                    + f"{lbl_text}{label_end}"
-                    + "</span>"
-                )
+                # If this is a table, then just output the table details without any heading spaces.
+                if lbl_style.get("is_table_cell"):
+                    # Ignore breaks within table entries.
+                    if lbl_text == "<br>":
+                        continue
+                    task_label = task_label + "\r" + f"{lbl_text}{label_end}"
+                else:
+                    # Concatenate all of the text lines with the color.
+                    # Use the combined css_styles string and data_href_attribute
+                    task_label = (
+                        task_label
+                        + f'<span style="color:{lbl_color}{css_styles}" class="h{lbl_heading}-text">'
+                        + f"{lbl_text}{label_end}"
+                        + "</span>"
+                    )
                 have_paren = True
                 previous_heading = lbl_heading
                 previous_text = lbl_text
