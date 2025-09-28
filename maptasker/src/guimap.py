@@ -434,7 +434,7 @@ def remove_the_html_tags(text: str) -> str:
         .replace("<data-flag=", "")
         .replace("<a href='#'></a>", "")
     )
-    # TODO We don't need the html stripper code.  Keep sit around for future use.
+    # We don't need the html stripper code.  Keep it around for future use.
     # s = MLStripper()
     # s.feed(text)
     # return s.get_data()

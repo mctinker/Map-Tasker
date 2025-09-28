@@ -173,12 +173,16 @@ class HTMLTextFormatter(HTMLParser):
         if tag == "pre":
             self.is_preformatted = True
             # Add a newline before the preformatted block for clean formatting
-            self._add_segment("\n")
+            self._add_segment("<pre>")
             return
 
         if tag == "br":
             # Insert a newline segment
             self._add_segment("\n")
+            return
+
+        if tag == "p":
+            # Ignore <p> tags, as they are handled in formatting
             return
 
         if tag == "font":
@@ -285,7 +289,7 @@ class HTMLTextFormatter(HTMLParser):
         if tag == "pre":
             self.is_preformatted = False
             # Add a newline after the preformatted block
-            self._add_segment("\n")
+            self._add_segment("</pre>")
             if self.tag_stack and self.tag_stack[-1] == tag:
                 self.tag_stack.pop()
             return
@@ -328,6 +332,7 @@ class HTMLTextFormatter(HTMLParser):
                 self.list_indent_level -= 1
             if self.list_types:
                 self.list_types.pop()
+            self._add_segment("<p><p>")  # Force a space after the end-of-list
             if tag == "ol" and self.list_counter:
                 self.list_counter.pop()
 
@@ -361,6 +366,9 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_h5"] = False
         elif tag == "h6":
             self.current_styles["is_h6"] = False
+        elif tag in {"p", "li"}:
+            # Ignore </p> and </li> tags, as they are handled in formatting
+            return
         # Unrecognized tag
         else:
             self.handle_unknown_endtag(tag)
@@ -594,7 +602,7 @@ def format_label(lbl: str) -> str:
     blank = "&nbsp;"
     color_to_use = "taskernet_color" if "TaskerNet description" in lbl else "action_label_color"
 
-    # TODO Do this for all labels
+    # Do this for all labels:  Leave as is for now in case we change it in the future.
     if contains_html(lbl) or lbl:
         task_label = format_html(
             color_to_use,
