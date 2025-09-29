@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.3.1] 28-Sep-2025
+## [8.3.2] ??-Oct-2025  # FIX
 
 ### Added
 
-- Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre', 'code' and table tags.
+- Added: Embedded HTML now recognizes the 'big' tag.
 
 ### Changed
 
@@ -14,16 +14,22 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed: Extra blank lines are incorrectly added to TaskerNet descriptions.
-- Fixed: "View Not Possible..." error message displays in GUI textbox incorrectly.
-- Fixed: The space between lines of embedded HTML has been reduced so it better reflects TaskerNet descriptions and labels.
-- Fixed: Underlined text is not displaying as such in embedded HTML tags.
+- Fixed: Task 'TaskerNet descriptions' are not being displayed.
+- FIxed: Program error when a hex color name is encountered.
 
 ### Known Issues
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [8.3.1] 28-Sep-2025
+
+- Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre', 'code' and table tags.
+- Fixed: Extra blank lines are incorrectly added to TaskerNet descriptions.
+- Fixed: "View Not Possible..." error message displays in GUI textbox incorrectly.
+- Fixed: The space between lines of embedded HTML has been reduced so it better reflects TaskerNet descriptions and labels.
+- Fixed: Underlined text is not displaying as such in embedded HTML tags.
 
 ## [8.3.0] 22-Sep-2025
 

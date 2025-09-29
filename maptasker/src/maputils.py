@@ -129,7 +129,7 @@ def get_pypi_version() -> str:
     url = "https://pypi.org/pypi/maptasker/json"
     try:
         version = "==" + requests.get(url).json()["info"]["version"]  # noqa: S113
-    except (json.decoder.JSONDecodeError, ConnectionError, Exception):
+    except (json.decoder.JSONDecodeError, ConnectionError, Exception):  # noqa: BLE001
         logger.debug("Unable to get version from PYPI!")
         version = ""
     return version
@@ -876,3 +876,43 @@ def restart_program_subprocess() -> None:
     print("Restarting program.  Please stand by...")
     time.sleep(0.2)
     sys.exit(0)  # Exit the current script cleanly
+
+
+def make_hex_color(color_string: str) -> str:
+    """
+    Validates a string input to determine if it's a color name or a hex code.
+
+    - If it's a valid 6-digit hex code (with or without a leading '#'), it returns
+      the 6 digits prefixed with a '#'.
+    - If it's a valid 3-digit hex code, it returns the 3 digits without the '#'.
+    - Otherwise, the original string is returned, assuming it's a color name.
+
+    Args:
+        color_string: The string representing the color (e.g., 'green', '00ff20', '#33aaff').
+
+    Returns:
+        The validated color string (e.g., '#00ff20', 'f00', 'green').
+    """
+    # Remove leading/trailing whitespace and convert to lowercase for consistent checking
+    color_input = color_string.strip().lower()
+
+    # Define the regular expression pattern for a hex color code
+    # This pattern matches: #?([0-9a-f]{3}|[0-9a-f]{6})
+    hex_pattern = re.compile(r"^#?([0-9a-f]{3}|[0-9a-f]{6})$")
+
+    match = hex_pattern.match(color_input)
+
+    if match:
+        # The captured hex value (3 or 6 chars) is in group(1)
+        hex_value = match.group(1)
+
+        # --- MODIFICATION START ---
+        if len(hex_value) == 6:
+            # If it's a 6-digit code, return it with the '#' prefix
+            return f"#{hex_value}"
+        # This handles the 3-digit hex codes
+        # If it's a 3-digit code, return it without the '#' prefix
+        return hex_value
+        # --- MODIFICATION END ---
+    # If it's not a hex code, we assume it's a color name and return the original string.
+    return color_string.strip()

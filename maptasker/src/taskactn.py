@@ -22,6 +22,7 @@ from maptasker.src.maputils import (
     get_value_if_match,
 )
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.share import share
 from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine
 
 if TYPE_CHECKING:
@@ -211,6 +212,18 @@ def get_task_actions_and_output(
                     FormatLine.dont_format_line,
                 )
                 action_count = 1
+
+                # Process any <Share> information from TaskerNet
+                if PrimeItems.program_arguments["taskernet"]:
+                    share(the_task, "tasktab")
+                    # Add a spacer if detail is 0
+                    if PrimeItems.program_arguments["display_detail_level"] == 0:
+                        PrimeItems.output_lines.add_line_to_output(
+                            0,
+                            "",
+                            FormatLine.dont_format_line,
+                        )
+
                 output_list_of_actions(action_count, alist, the_item)
                 # End list if Scene Task
                 if "&#45;&#45;Task:" in list_type:

@@ -47,7 +47,6 @@ from maptasker.src.guiutils import (
     get_xml,
     is_new_version,
     list_tasker_objects,
-    make_hex_color,
     no_search_string,
     output_label,
     ping_android_device,
@@ -87,6 +86,7 @@ from maptasker.src.maputils import (
     close_logfile,
     get_current_local_time_auto_timezone,
     is_color_dark,
+    make_hex_color,
     rename_file,
     update_maptasker,
     validate_xml_file,
@@ -245,7 +245,7 @@ class MyGui(customtkinter.CTk):
         # CHG: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        # self.event_handlers.map_event()
+        self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
 

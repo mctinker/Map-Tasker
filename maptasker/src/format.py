@@ -244,6 +244,8 @@ class HTMLTextFormatter(HTMLParser):
             self.table_th = True
         elif tag == "td":
             self._add_segment("<td>")
+        elif tag == "big":
+            self._add_segment("<big>")
 
         elif tag == "code":
             self.code_tag = True
@@ -369,6 +371,8 @@ class HTMLTextFormatter(HTMLParser):
         elif tag in {"p", "li"}:
             # Ignore </p> and </li> tags, as they are handled in formatting
             return
+        elif tag == "big":
+            self._add_segment("</big>")
         # Unrecognized tag
         else:
             self.handle_unknown_endtag(tag)

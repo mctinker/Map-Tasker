@@ -20,6 +20,7 @@ from PIL import Image, ImageTk
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import rutroh_error
+from maptasker.src.maputils import make_hex_color
 from maptasker.src.primitem import PrimeItems
 
 # Define label fonts for headings: 0=h0, 1=h1, etc.
@@ -345,7 +346,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
         char_position = 0
 
         for inner_num, message in enumerate(value["text"]):
-            if message == "<p>" and inner_num == 1:  # Ignore new paragraph after TaskerNet description
+            # Ignore <p> after TaskerNet description
+            if message == "<p>" and inner_num == 1:
                 continue
             if value["end"][inner_num]:
                 end_of_label = True
@@ -355,10 +357,10 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             start_idx = f"{line_num}.{char_position}"
 
             # Handle empty/newline message
-            if not clean_message or clean_message == "\n":
-                char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
-                max_msg_len = _get_max_msg_len(clean_message, max_msg_len)
-                continue
+            # if not clean_message or clean_message == "\n":
+            #     char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
+            #     max_msg_len = _get_max_msg_len(clean_message, max_msg_len)
+            #     continue
 
             # Handle multi-line messages
             all_messages = clean_message.split("\n")
@@ -381,12 +383,15 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
                 # End-of-label adjustments
                 updated_msg, end_of_label = _handle_label_end(msg, end_of_label, value, inner_num)
-                if updated_msg == "":
+                # Insert newline if needed before non-html text after html text
+                html_starter = starts_with_html(message)
+                if not html_starter and updated_msg == "":
                     if prev_msg != "":
                         char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
                         prev_msg = ""
                     continue
 
+                # Handle list items and get rid of html artifacts
                 between_line_spacing = -20 if updated_msg.startswith("   *") else 0
                 msg_to_insert = _normalize_message(updated_msg, its_a_label, char_position)
 
@@ -461,11 +466,23 @@ def _clean_message(message: str, value: dict, inner_num: int) -> str:
     if message == "<p>":
         return "\n"
     # Deal with <pre> formatted text
-    if "<pre>" in message:
-        # The <pre" is at innernum, it's text is at inner_num + 1
-        value["highlights"][inner_num + 1] = "bold"
     if "<pre>" in message or "</pre>" in message:
+        if "<pre>" in message:
+            # The <pre" is at innernum, it's text is at inner_num + 1
+            value["highlights"][inner_num + 1] = "bold"
         message = message.replace("<pre>", " \n").replace("</pre>", "\n\n")
+    # Deal with <big> tag
+    if "<big>" in message or "</big>" in message:
+        if "<big>" in message:
+            heading_num = (
+                int(value["highlights"][inner_num][1]) if value["highlights"][inner_num].startswith("h") else 0
+            )
+            entry_to_update = inner_num + 1 if message == "<big>" else inner_num
+            if heading_num == 0:
+                value["highlights"][entry_to_update] = "h5-text"
+            else:
+                value["highlights"][entry_to_update] = f"h{heading_num - 1!s}-text"
+        message = message.replace("<big>", "").replace("</big>", "")
     return message
 
 
@@ -655,8 +672,11 @@ def _insert_and_tag(
         font = "normal"
 
     # Forced a newline if we have a greater heading than previous
-    if int(heading_num) < int(self.previous_heading):
-        message = "\n" + message
+    if char_position == 0 and int(heading_num) != int(self.previous_heading):
+        # self.textview_textbox.insert("end", "\n")
+        # start_idx = f"{int(start_idx.split('.')[0]) + 1!s}.{char_position}"
+        char_position, spacing, _, start_idx = _insert_newline(self, start_idx, value, int(start_idx.split(".")[0]))
+        print("bingo", message)
 
     underline = decor == "underline"
 
@@ -715,6 +735,8 @@ def _insert_and_tag(
             _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
 
         # Insert with tag
+        if char_position == 0:
+            start_idx = "end"
         self.textview_textbox.insert(start_idx, message, tag_id)
 
         # If there is a table heading, configure it to be bold
@@ -881,7 +903,7 @@ def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tu
         - The updated line number.
         - The new start index string.
     """
-    self.textview_textbox.insert(start_idx, "\n")
+    self.textview_textbox.insert("end", "\n")
     char_position = 0
     line_num += 1
     start_idx = str(line_num) + "." + str(char_position)
@@ -891,22 +913,6 @@ def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tu
 def _get_max_msg_len(message: str, max_msg_len: int) -> int:
     """Get the maximum length of the messages"""
     return max(max_msg_len, len(message))
-
-
-def make_hex_color(color: str) -> str:
-    """
-    Converts a given color string to a hex color string if it's a digit.
-
-    Args:
-        color (str): The color string to be converted.
-
-    Returns:
-        str: The hex color string if the input is a digit, otherwise the original color string.
-    """
-    # Add color to the tag
-    if color.isdigit():
-        return "#" + color
-    return color
 
 
 def get_last_line(text_widget: ctk.CTkTextbox, start_idx: str) -> tuple[str, str]:
@@ -1076,3 +1082,36 @@ def html_table_to_ascii(html_lines: list[str]) -> list[str]:
         ascii_table.append(make_separator())
 
     return ascii_table
+
+
+def starts_with_html(text: str) -> bool:
+    """
+    Determines if a string starts with common HTML structures.
+
+    The function is case-insensitive and ignores leading whitespace.
+    It looks for:
+    1. The HTML DOCTYPE declaration: <!DOCTYPE ...>
+    2. An opening <html> tag: <html>
+    3. Any opening tag starting with < followed by a letter: <p>, <div>, <h1>, etc.
+
+    Args:
+        text: The string to be checked.
+
+    Returns:
+        True if the string starts with a common HTML structure, False otherwise.
+    """
+    # 1. Strip leading whitespace to handle cases like: "  <!DOCTYPE html>..."
+    cleaned_text = text.lstrip()
+
+    # 2. Define a regular expression pattern
+    # r'^': Start of the string
+    # ( ... ): Grouping the possible matches
+    #   '<!DOCTYPE': Matches the start of the DOCTYPE declaration (case-insensitive)
+    #   '|': OR operator
+    #   '<[a-z]': Matches an opening tag starting with a letter (e.g., '<p', '<div', '<h1')
+
+    # We use re.IGNORECASE to handle variations like "<html>", "<HTML>", or "<p>"
+    html_pattern = re.compile(r"^(<!DOCTYPE|<[a-z])", re.IGNORECASE)
+
+    # 3. Check for a match at the beginning of the cleaned string
+    return bool(html_pattern.match(cleaned_text))
