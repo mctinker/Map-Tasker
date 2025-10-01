@@ -246,6 +246,8 @@ class HTMLTextFormatter(HTMLParser):
             self._add_segment("<td>")
         elif tag == "big":
             self._add_segment("<big>")
+        elif tag == "small":
+            self._add_segment("<small>")
 
         elif tag == "code":
             self.code_tag = True
@@ -373,6 +375,8 @@ class HTMLTextFormatter(HTMLParser):
             return
         elif tag == "big":
             self._add_segment("</big>")
+        elif tag == "small":
+            self._add_segment("</small>")
         # Unrecognized tag
         else:
             self.handle_unknown_endtag(tag)
@@ -631,16 +635,10 @@ def format_label(lbl: str) -> str:
 
             # Get the label verbage
             lbl_text = action_label["text"].replace("[", "{").replace("]", "}")
-            if "Generate a list with" in lbl_text:
-                print("bingo")
 
             # Convert newlines to breaks
             if lbl_text == "\n":
                 lbl_text = "<br>"
-            # FIX Delete these commented lines?
-            # Ignore double-break lines
-            # if previous_text == "<br>" and not label_end and lbl_text == "<br>":
-            #     continue
 
             # Handle situation in which a "\n" preceeds a name. The \n screws up the html
             if lbl_text.startswith("\n%"):

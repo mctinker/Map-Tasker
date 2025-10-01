@@ -8,6 +8,7 @@ import error.
 
 """
 
+import contextlib
 import os
 import re
 import tkinter as tk
@@ -23,8 +24,8 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.maputils import make_hex_color
 from maptasker.src.primitem import PrimeItems
 
-# Define label fonts for headings: 0=h0, 1=h1, etc.
-heading_fonts = {"0": 12, "1": 18, "2": 17, "3": 16, "4": 15, "5": 14, "6": 13}
+# Define label fonts for headings: 0=h0, 1=h1, etc.  7 = smallest
+heading_fonts = {"0": 12, "1": 18, "2": 17, "3": 16, "4": 15, "5": 14, "6": 13, "7": 10}
 
 
 def validate_tkinter_geometry(geometry_string: str) -> bool:
@@ -353,7 +354,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 end_of_label = True
 
             # Modify line as needed and setup the starting index
-            clean_message = _clean_message(message, value, inner_num)
+            clean_message = _clean_message(self, message, value, inner_num)
             start_idx = f"{line_num}.{char_position}"
 
             # Handle empty/newline message
@@ -363,10 +364,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
             # Handle multi-line messages
             all_messages = clean_message.split("\n")
+            consective_blank_lines = 0
             for msg_num, msg in enumerate(all_messages):
-                # FIX If 3 "" in a row, insert a newline.
-                if "Update time" in msg:
-                    print("bingo")
                 # Skip or process special content
                 if lines_to_skip > 0:
                     lines_to_skip -= 1
@@ -388,7 +387,11 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 # Insert newline if needed before non-html text after html text.  Ignore it if it is the first newline
                 html_starter = starts_with_html(message)
                 if not html_starter and updated_msg == "" and not message.startswith("<a href"):
-                    if prev_msg != "":
+                    # If 3 "" in a row, insert a newline.
+                    consective_blank_lines += 1
+                    if prev_msg != "" or consective_blank_lines == 3:
+                        if consective_blank_lines == 3:
+                            consective_blank_lines = 0
                         char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
                         prev_msg = ""
                     continue
@@ -628,7 +631,7 @@ def _insert_and_tag(
     return max_msg_len, char_position
 
 
-def _clean_message(message: str, value: dict, inner_num: int) -> str:
+def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: int) -> str:
     if message == "<p>":
         return "\n"
     # Deal with <pre> formatted text
@@ -637,19 +640,70 @@ def _clean_message(message: str, value: dict, inner_num: int) -> str:
             # The <pre" is at innernum, it's text is at inner_num + 1
             value["highlights"][inner_num + 1] = "bold"
         message = message.replace("<pre>", " \n").replace("</pre>", "\n\n")
-    # Deal with <big> tag.  Make it bold and one heading smaller
-    if "<big>" in message or "</big>" in message:
+
+    # Deal with <big> and <small> tags.  Make it bold and one heading bigger/smaller
+    if "<big>" in message or "</big>" in message or "<small>" in message or "</small>" in message:
         if "<big>" in message:
+            # Save current heading
+            self.current_heading = _get_current_heading(value, inner_num)
+            # Handling <big> tag: Decrease the heading number (e.g., h5 -> h4)
             heading_num = (
                 int(value["highlights"][inner_num][1]) if value["highlights"][inner_num].startswith("h") else 0
             )
-            entry_to_update = inner_num + 1 if message == "<big>" else inner_num
+            entry_to_update = inner_num + 1 if message.endswith("<big>") else inner_num
             if heading_num == 0:
+                # If no heading, set a default (e.g., h5-text, you might adjust this)
                 value["highlights"][entry_to_update] = "h5-text"
             else:
-                value["highlights"][entry_to_update] = f"h{heading_num - 1!s}-text"
-        message = message.replace("<big>", "").replace("</big>", "")
-    return message
+                # Decrease the heading number by 1 (making the text "bigger")
+                value["highlights"][entry_to_update] = (
+                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                )
+
+        elif "<small>" in message:
+            # Save current heading
+            self.current_heading = _get_current_heading(value, inner_num)
+            # Handling <small> tag: Increase the heading number (e.g., h4 -> h5)
+            heading_num = (
+                int(value["highlights"][inner_num][1]) if value["highlights"][inner_num].startswith("h") else 0
+            )
+            entry_to_update = inner_num + 1 if message == "<small>" or message.endswith("<small>") else inner_num
+            if heading_num == 0:
+                # If no heading, set a default (e.g., h6-text, you might adjust this)
+                value["highlights"][entry_to_update] = "h7-text"
+            else:
+                # Increase the heading number by 1 (making the text "smaller")
+                value["highlights"][entry_to_update] = (
+                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                )
+
+        elif "</big>" in message or "</small>" in message:
+            if message.startswith(("</big>", "</small>")):
+                if "\n\n" not in value["text"][inner_num] or (
+                    message.startswith(("</big>\n\n", "</small>\n\n"))
+                    and (message not in {"</big>\n\n", "</small>\n\n"})
+                ):
+                    value["highlights"][inner_num] = self.current_heading
+                else:
+                    value["highlights"][inner_num + 1] = self.current_heading
+            else:
+                with contextlib.suppress(IndexError):
+                    if "\n\n" not in value["text"][inner_num + 1]:
+                        value["highlights"][inner_num + 1] = self.current_heading
+                    else:
+                        value["highlights"][inner_num + 2] = self.current_heading
+
+    # Remove both <big> and <small> tags from the message
+    message = message.replace("<big>", "").replace("</big>", "")
+    return message.replace("<small>", "").replace("</small>", "")
+
+
+def _get_current_heading(value: dict, inner_num: int) -> str:
+    for i in range(inner_num, -1, -1):
+        element = value["highlights"][i]
+        if element[1].isdigit():
+            return element
+    return value["highlights"][inner_num]
 
 
 def _handle_taskernet_description(msg: str, its_a_label: bool) -> tuple[str, bool]:
