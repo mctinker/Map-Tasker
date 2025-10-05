@@ -8,6 +8,7 @@ import error.
 
 """
 
+import contextlib
 import os
 import re
 import tkinter as tk
@@ -20,10 +21,11 @@ from PIL import Image, ImageTk
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import rutroh_error
+from maptasker.src.maputils import make_hex_color
 from maptasker.src.primitem import PrimeItems
 
-# Define label fonts for headings: 0=h0, 1=h1, etc.
-heading_fonts = {"0": 12, "1": 18, "2": 17, "3": 16, "4": 15, "5": 14, "6": 13}
+# Define label fonts for headings: 0=h0, 1=h1, etc.  7 = smallest
+heading_fonts = {"0": 12, "1": 18, "2": 17, "3": 16, "4": 15, "5": 14, "6": 13, "7": 10}
 
 
 def validate_tkinter_geometry(geometry_string: str) -> bool:
@@ -345,23 +347,24 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
         char_position = 0
 
         for inner_num, message in enumerate(value["text"]):
-            if message == "<p>" and inner_num == 1:  # Ignore new paragraph after TaskerNet description
+            # Ignore <p> after TaskerNet description
+            if message == "<p>" and inner_num == 1:
                 continue
             if value["end"][inner_num]:
                 end_of_label = True
 
             # Modify line as needed and setup the starting index
-            clean_message = _clean_message(message, value, inner_num)
+            clean_message = _clean_message(self, message, value, inner_num)
             start_idx = f"{line_num}.{char_position}"
 
             # Handle empty/newline message
-            if not clean_message or clean_message == "\n":
+            if not clean_message or clean_message == "\n\n":
                 char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
-                max_msg_len = _get_max_msg_len(clean_message, max_msg_len)
                 continue
 
             # Handle multi-line messages
             all_messages = clean_message.split("\n")
+            consective_blank_lines = 0
             for msg_num, msg in enumerate(all_messages):
                 # Skip or process special content
                 if lines_to_skip > 0:
@@ -381,12 +384,19 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
                 # End-of-label adjustments
                 updated_msg, end_of_label = _handle_label_end(msg, end_of_label, value, inner_num)
-                if updated_msg == "":
-                    if prev_msg != "":
+                # Insert newline if needed before non-html text after html text.  Ignore it if it is the first newline
+                html_starter = starts_with_html(message)
+                if not html_starter and updated_msg == "" and not message.startswith("<a href"):
+                    # If 3 "" in a row, insert a newline.
+                    consective_blank_lines += 1
+                    if prev_msg != "" or consective_blank_lines == 3:
+                        if consective_blank_lines == 3:
+                            consective_blank_lines = 0
                         char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
                         prev_msg = ""
                     continue
 
+                # Handle list items and get rid of html artifacts
                 between_line_spacing = -20 if updated_msg.startswith("   *") else 0
                 msg_to_insert = _normalize_message(updated_msg, its_a_label, char_position)
 
@@ -403,7 +413,13 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     value,
                     inner_num,
                 )
+                # Debug code to find what text is being inserted
+                # if "ChatGPT API" in msg or "The" in msg:  # --- IGNORE ---
+                #     last_line = self.textview_textbox.get("end-1line", "end")
+
+                # Update starting index
                 number_of_inserted_lines += 1
+                start_idx = f"{line_num}.{char_position}"
 
                 if first_message:
                     begin_box, line_num = _find_begin_box(self, msg_to_insert, its_a_label)
@@ -412,7 +428,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 # Reset spacing after concatenation
                 spacing = 0
 
-                # Handle multi-line continuation
+                # Bump the line number and reset to beginning of new line if we have more to insert
                 if len(all_messages) > 1 and msg_num < len(all_messages) - 1:
                     char_position, line_num, start_idx, spacing = _advance_multiline(line_num, spacer_newline)
 
@@ -457,16 +473,237 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 # ----------------
 # Helper methods
 # ----------------
-def _clean_message(message: str, value: dict, inner_num: int) -> str:
+def _insert_and_tag(
+    self: ctk,
+    message: str,
+    max_msg_len: int,
+    spacing: int,
+    between_line_spacing: int,
+    start_idx: str,
+    char_position: int,
+    bg_color: str,
+    value: dict,
+    inner_num: int,
+) -> tuple[int, int, int]:
+    """Inserts and tags a message in a custom text widget.
+
+    This private helper function is responsible for inserting a formatted message
+    into a text widget (`textview_textbox`), applying a custom tag to it, and
+    configuring the tag with specific font, background, and foreground colors.
+    It also updates various tracking variables like line number and character position.
+
+    Parameters
+    ----------
+    self : ctk
+        The instance of the `ctk` class, which holds the text widget.
+    message : str
+        The string content to be inserted into the text widget.
+    max_msg_len : int
+        The current maximum length of a message. This value is updated if the
+        current message is longer.
+    spacing : int
+        The number of leading spaces to add to the message. A value of 0 means
+        no leading spaces are added.
+    between_line_spacing : int
+        The spacing to add after the current line ('spacing2' in tag_config)
+    start_idx : str
+        The starting index (e.g., "1.0") for the text insertion.
+    char_position : int
+        The character position on the current line.
+    bg_color : str
+        The background color for the text, specified as a string.
+    value : dict
+        A dictionary containing formatting information, including 'spacing',
+        'highlights', and 'color'.
+    inner_num : int
+        An index used to access specific values from the 'highlights' and
+        'color' lists within the `value` dictionary.
+
+    Returns
+    -------
+    tuple[int, int, int]
+        A tuple containing the updated values for:
+        - `max_msg_len`
+        - `char_position`
+    """
+    # Optimized version: inserts and tags a message in a custom text widget.
+    mygui = self.master.master
+
+    # Local vars to avoid repeated dict lookups
+    highlights = value["highlights"][inner_num]
+    decor = value["decor"][inner_num].strip()
+    color_val = value["color"][inner_num]
+
+    temp_font = highlights.split(";")
+    heading_num = self.previous_heading
+
+    # Font style detection
+    first_font = temp_font[0]
+    if first_font == "italic":
+        font = "italic"
+    elif first_font == "bold":
+        font = "bold"
+    else:
+        heading_num = (
+            "0" if message == " TaskerNet description:\n " or not first_font else first_font.replace("-text", "")[1]
+        )
+        font = "normal"
+
+    underline = decor == "underline"
+
+    # Get font size safely
+    font_size = heading_fonts.get(heading_num, heading_fonts["0"])
+    if PrimeItems.windows_system:  # Precompute platform check once globally
+        font_size *= 2
+
+    # Debugging: prepend font size
+    if PrimeItems.program_arguments.get("debug") and not message.startswith("<a href="):
+        message = f"{font_size}{message}"
+
+    # Adjust spacing if this is the largest font
+    font_sizes = list(heading_fonts.values())
+    max_font_size = max(font_sizes)
+    if font_size == max_font_size:  # Precompute max_font_size globally
+        spacing = spacing // 2 if spacing > 0 else 0
+
+    # Reuse or assign font
+    font_key = f"{mygui.font}{font}{font_size}"
+    font_to_use = mygui.font_table.get(font_key)
+    if font_to_use is None:
+        font_to_use = assign_font(mygui.font, font_size, font, underline)
+        mygui.font_table[font_key] = font_to_use
+
+    # Setup to add as a new line or at end of last line
+    # start_idx = "end"
+
+    # Handle hyperlinks
+    href = ""
+    if "<a href=" in message:
+        temp = message.split('"')
+        href = temp[1]
+        message = temp[2][1 : len(temp[2]) - 4]
+        tag_id = self.textview_hyperlink.add(href)
+        self.textview_textbox.insert(start_idx, message, tag_id)
+    else:
+        tag_id = f"{heading_num};{font}:{color_val}:{decor}:{between_line_spacing}"
+
+    # Apply spacing
+    if spacing > 0:
+        message = " " * spacing + message
+
+    # Update max message length
+    max_msg_len = _get_max_msg_len(message, max_msg_len)
+
+    # Insert normal text if not hyperlink
+    if not href:
+        fg_color = make_hex_color(color_val)
+
+        # Apply base font attributes
+        _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
+
+        # If secondary font specified (rare), configure it too
+        if len(temp_font) > 1:
+            new_font = temp_font[1]
+            tag_id = tag_id.replace(font, new_font)
+            font_to_use = (mygui.font, font_size, new_font)
+            _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
+
+        # Insert with tag
+        if char_position == 0:
+            start_idx = "end"
+        self.textview_textbox.insert(start_idx, message, tag_id)
+
+        # If there is a table heading, configure it to be bold
+        if "+───" in message:
+            table_heading = message.split("\n")[1] if "\n" in message else ""
+            if table_heading:
+                th_tag_id = f"table_heading;bold:{color_val}:{decor}:{between_line_spacing}"
+            font_to_use = assign_font(mygui.font, font_size, "bold", underline)
+            _configure_tag(self, th_tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
+            self.textview_textbox.tag_add(th_tag_id, f"{start_idx}+1c", f"{start_idx}+{1 + len(table_heading)}c")
+
+    # Update state
+    char_position += len(message)
+    self.previous_heading = heading_num
+    self.previous_font = font_to_use
+    self.previous_between_line_spaccing = between_line_spacing
+
+    return max_msg_len, char_position
+
+
+def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: int) -> str:
     if message == "<p>":
         return "\n"
     # Deal with <pre> formatted text
-    if "<pre>" in message:
-        # The <pre" is at innernum, it's text is at inner_num + 1
-        value["highlights"][inner_num + 1] = "bold"
     if "<pre>" in message or "</pre>" in message:
+        if "<pre>" in message:
+            # The <pre" is at innernum, it's text is at inner_num + 1
+            value["highlights"][inner_num + 1] = "bold"
         message = message.replace("<pre>", " \n").replace("</pre>", "\n\n")
-    return message
+
+    # Deal with <big> and <small> tags.  Make it one heading bigger/smaller
+    if "<big>" in message or "</big>" in message or "<small>" in message or "</small>" in message:
+        if "<big>" in message:
+            # Save current heading
+            self.current_heading = _get_current_heading(value, inner_num)
+            # Handling <big> tag: Decrease the heading number (e.g., h5 -> h4)
+            heading_num = (
+                int(value["highlights"][inner_num][1]) if value["highlights"][inner_num].startswith("h") else 0
+            )
+            entry_to_update = inner_num + 1 if message.endswith("<big>") else inner_num
+            if heading_num == 0:
+                # If no heading, set a default (e.g., h5-text, you might adjust this)
+                value["highlights"][entry_to_update] = "h5-text"
+            else:
+                # Decrease the heading number by 1 (making the text "bigger")
+                value["highlights"][entry_to_update] = (
+                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                )
+
+        elif "<small>" in message:
+            # Save current heading
+            self.current_heading = _get_current_heading(value, inner_num)
+            # Handling <small> tag: Increase the heading number (e.g., h4 -> h5)
+            heading_num = (
+                int(value["highlights"][inner_num][1]) if value["highlights"][inner_num].startswith("h") else 0
+            )
+            entry_to_update = inner_num + 1 if message == "<small>" or message.endswith("<small>") else inner_num
+            if heading_num == 0:
+                # If no heading, set a default (e.g., h6-text, you might adjust this)
+                value["highlights"][entry_to_update] = "h7-text"
+            else:
+                # Increase the heading number by 1 (making the text "smaller")
+                value["highlights"][entry_to_update] = (
+                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                )
+
+        elif "</big>" in message or "</small>" in message:
+            if message.startswith(("</big>", "</small>")):
+                if "\n\n" not in value["text"][inner_num] or (
+                    message.startswith(("</big>\n\n", "</small>\n\n"))
+                    and (message not in {"</big>\n\n", "</small>\n\n"})
+                ):
+                    value["highlights"][inner_num] = self.current_heading
+                else:
+                    value["highlights"][inner_num + 1] = self.current_heading
+            else:
+                with contextlib.suppress(IndexError):
+                    if "\n\n" not in value["text"][inner_num + 1]:
+                        value["highlights"][inner_num + 1] = self.current_heading
+                    else:
+                        value["highlights"][inner_num + 2] = self.current_heading
+
+    # Remove both <big> and <small> tags from the message
+    message = message.replace("<big>", "").replace("</big>", "")
+    return message.replace("<small>", "").replace("</small>", "")
+
+
+def _get_current_heading(value: dict, inner_num: int) -> str:
+    for i in range(inner_num, -1, -1):
+        element = value["highlights"][i]
+        if element[1].isdigit():
+            return element
+    return value["highlights"][inner_num]
 
 
 def _handle_taskernet_description(msg: str, its_a_label: bool) -> tuple[str, bool]:
@@ -576,163 +813,6 @@ def _apply_bounding_box(
         rmargin=10,
     )
     return line_num + 1
-
-
-def _insert_and_tag(
-    self: ctk,
-    message: str,
-    max_msg_len: int,
-    spacing: int,
-    between_line_spacing: int,
-    start_idx: str,
-    char_position: int,
-    bg_color: str,
-    value: dict,
-    inner_num: int,
-) -> tuple[int, int, int]:
-    """Inserts and tags a message in a custom text widget.
-
-    This private helper function is responsible for inserting a formatted message
-    into a text widget (`textview_textbox`), applying a custom tag to it, and
-    configuring the tag with specific font, background, and foreground colors.
-    It also updates various tracking variables like line number and character position.
-
-    Parameters
-    ----------
-    self : ctk
-        The instance of the `ctk` class, which holds the text widget.
-    message : str
-        The string content to be inserted into the text widget.
-    max_msg_len : int
-        The current maximum length of a message. This value is updated if the
-        current message is longer.
-    spacing : int
-        The number of leading spaces to add to the message. A value of 0 means
-        no leading spaces are added.
-    between_line_spacing : int
-        The spacing to add after the current line ('spacing2' in tag_config)
-    start_idx : str
-        The starting index (e.g., "1.0") for the text insertion.
-    char_position : int
-        The character position on the current line.
-    bg_color : str
-        The background color for the text, specified as a string.
-    value : dict
-        A dictionary containing formatting information, including 'spacing',
-        'highlights', and 'color'.
-    inner_num : int
-        An index used to access specific values from the 'highlights' and
-        'color' lists within the `value` dictionary.
-
-    Returns
-    -------
-    tuple[int, int, int]
-        A tuple containing the updated values for:
-        - `max_msg_len`
-        - `char_position`
-    """
-    # Optimized version: inserts and tags a message in a custom text widget.
-    mygui = self.master.master
-
-    # Local vars to avoid repeated dict lookups
-    highlights = value["highlights"][inner_num]
-    decor = value["decor"][inner_num].strip()
-    color_val = value["color"][inner_num]
-
-    temp_font = highlights.split(";")
-    heading_num = self.previous_heading
-
-    # Font style detection
-    first_font = temp_font[0]
-    if first_font == "italic":
-        font = "italic"
-    elif first_font == "bold":
-        font = "bold"
-    else:
-        heading_num = (
-            "0" if message == " TaskerNet description:\n " or not first_font else first_font.replace("-text", "")[1]
-        )
-        font = "normal"
-
-    # Forced a newline if we have a greater heading than previous
-    if int(heading_num) < int(self.previous_heading):
-        message = "\n" + message
-
-    underline = decor == "underline"
-
-    # Get font size safely
-    font_size = heading_fonts.get(heading_num, heading_fonts["0"])
-    if PrimeItems.windows_system:  # Precompute platform check once globally
-        font_size *= 2
-
-    # Debugging: prepend font size
-    if PrimeItems.program_arguments.get("debug") and not message.startswith("<a href="):
-        message = f"{font_size}{message}"
-
-    # Adjust spacing if this is the largest font
-    font_sizes = list(heading_fonts.values())
-    max_font_size = max(font_sizes)
-    if font_size == max_font_size:  # Precompute max_font_size globally
-        spacing = spacing // 2 if spacing > 0 else 0
-
-    # Reuse or assign font
-    font_key = f"{mygui.font}{font}{font_size}"
-    font_to_use = mygui.font_table.get(font_key)
-    if font_to_use is None:
-        font_to_use = assign_font(mygui.font, font_size, font, underline)
-        mygui.font_table[font_key] = font_to_use
-
-    # Handle hyperlinks
-    href = ""
-    if "<a href=" in message:
-        temp = message.split('"')
-        href = temp[1]
-        message = temp[2][1 : len(temp[2]) - 4]
-        tag_id = self.textview_hyperlink.add(href)
-        self.textview_textbox.insert(start_idx, message, tag_id)
-    else:
-        tag_id = f"{heading_num};{font}:{color_val}:{decor}:{between_line_spacing}"
-
-    # Apply spacing
-    if spacing > 0:
-        message = " " * spacing + message
-
-    # Update max message length
-    max_msg_len = _get_max_msg_len(message, max_msg_len)
-
-    # Insert normal text if not hyperlink
-    if not href:
-        fg_color = make_hex_color(color_val)
-
-        # Apply base font attributes
-        _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
-
-        # If secondary font specified (rare), configure it too
-        if len(temp_font) > 1:
-            new_font = temp_font[1]
-            tag_id = tag_id.replace(font, new_font)
-            font_to_use = (mygui.font, font_size, new_font)
-            _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
-
-        # Insert with tag
-        self.textview_textbox.insert(start_idx, message, tag_id)
-
-        # If there is a table heading, configure it to be bold
-        if "+───" in message:
-            table_heading = message.split("\n")[1] if "\n" in message else ""
-            if table_heading:
-                th_tag_id = f"table_heading;bold:{color_val}:{decor}:{between_line_spacing}"
-            font_to_use = assign_font(mygui.font, font_size, "bold", underline)
-            _configure_tag(self, th_tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
-            self.textview_textbox.tag_add(th_tag_id, f"{start_idx}+1c", f"{start_idx}+{1 + len(table_heading)}c")
-
-    # Update state
-    char_position += len(message)
-    self.previous_heading = heading_num
-    self.previous_font = font_to_use
-    self.previous_between_line_spaccing = between_line_spacing
-
-    return max_msg_len, char_position
 
 
 def _configure_tag(
@@ -881,7 +961,7 @@ def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tu
         - The updated line number.
         - The new start index string.
     """
-    self.textview_textbox.insert(start_idx, "\n")
+    self.textview_textbox.insert("end", "\n")
     char_position = 0
     line_num += 1
     start_idx = str(line_num) + "." + str(char_position)
@@ -891,22 +971,6 @@ def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tu
 def _get_max_msg_len(message: str, max_msg_len: int) -> int:
     """Get the maximum length of the messages"""
     return max(max_msg_len, len(message))
-
-
-def make_hex_color(color: str) -> str:
-    """
-    Converts a given color string to a hex color string if it's a digit.
-
-    Args:
-        color (str): The color string to be converted.
-
-    Returns:
-        str: The hex color string if the input is a digit, otherwise the original color string.
-    """
-    # Add color to the tag
-    if color.isdigit():
-        return "#" + color
-    return color
 
 
 def get_last_line(text_widget: ctk.CTkTextbox, start_idx: str) -> tuple[str, str]:
@@ -1076,3 +1140,36 @@ def html_table_to_ascii(html_lines: list[str]) -> list[str]:
         ascii_table.append(make_separator())
 
     return ascii_table
+
+
+def starts_with_html(text: str) -> bool:
+    """
+    Determines if a string starts with common HTML structures.
+
+    The function is case-insensitive and ignores leading whitespace.
+    It looks for:
+    1. The HTML DOCTYPE declaration: <!DOCTYPE ...>
+    2. An opening <html> tag: <html>
+    3. Any opening tag starting with < followed by a letter: <p>, <div>, <h1>, etc.
+
+    Args:
+        text: The string to be checked.
+
+    Returns:
+        True if the string starts with a common HTML structure, False otherwise.
+    """
+    # 1. Strip leading whitespace to handle cases like: "  <!DOCTYPE html>..."
+    cleaned_text = text.lstrip()
+
+    # 2. Define a regular expression pattern
+    # r'^': Start of the string
+    # ( ... ): Grouping the possible matches
+    #   '<!DOCTYPE': Matches the start of the DOCTYPE declaration (case-insensitive)
+    #   '|': OR operator
+    #   '<[a-z]': Matches an opening tag starting with a letter (e.g., '<p', '<div', '<h1')
+
+    # We use re.IGNORECASE to handle variations like "<html>", "<HTML>", or "<p>"
+    html_pattern = re.compile(r"^(<!DOCTYPE|<[a-z])", re.IGNORECASE)
+
+    # 3. Check for a match at the beginning of the cleaned string
+    return bool(html_pattern.match(cleaned_text))

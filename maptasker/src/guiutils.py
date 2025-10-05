@@ -1025,7 +1025,7 @@ def validate_or_filelist_xml(
     """
     # If we don't yet have the file, then get it from the Android device.
     if len(android_file) != 0 and android_file != "" and self.list_files == False:
-        return_code, file_contents = http_request(
+        return_code, _ = http_request(
             android_ipaddr,
             android_port,
             android_file,
@@ -1820,22 +1820,6 @@ def fresh_message_box(self: ctk.windows.Window) -> None:
     self.create_new_textbox()
 
 
-def make_hex_color(color: str) -> str:
-    """
-    Converts a given color string to a hex color string if it's a digit.
-
-    Args:
-        color (str): The color string to be converted.
-
-    Returns:
-        str: The hex color string if the input is a digit, otherwise the original color string.
-    """
-    # Add color to the tag
-    if color.isdigit():
-        return "#" + color
-    return color
-
-
 def search_substring_in_list(
     strings: list,
     substring: str,
@@ -2299,7 +2283,7 @@ def build_connectors(
         }
 
         # Get the connecting task name at above the elbow.
-        task_to_highlight, left_position, right_position = get_connected_task(
+        task_to_highlight, _, _ = get_connected_task(
             output_lines,
             line_num,
             start_elbow,
@@ -2339,7 +2323,7 @@ def build_connectors(
             }
 
             # Get the connecting task name at above the elbow.
-            task_to_highlight, left_position, right_position = get_connected_task(
+            task_to_highlight, _, _ = get_connected_task(
                 output_lines,
                 line_num,
                 start_elbow,

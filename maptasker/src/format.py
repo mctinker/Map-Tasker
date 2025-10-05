@@ -244,6 +244,10 @@ class HTMLTextFormatter(HTMLParser):
             self.table_th = True
         elif tag == "td":
             self._add_segment("<td>")
+        elif tag == "big":
+            self._add_segment("<big>")
+        elif tag == "small":
+            self._add_segment("<small>")
 
         elif tag == "code":
             self.code_tag = True
@@ -369,6 +373,10 @@ class HTMLTextFormatter(HTMLParser):
         elif tag in {"p", "li"}:
             # Ignore </p> and </li> tags, as they are handled in formatting
             return
+        elif tag == "big":
+            self._add_segment("</big>")
+        elif tag == "small":
+            self._add_segment("</small>")
         # Unrecognized tag
         else:
             self.handle_unknown_endtag(tag)
@@ -631,9 +639,6 @@ def format_label(lbl: str) -> str:
             # Convert newlines to breaks
             if lbl_text == "\n":
                 lbl_text = "<br>"
-            # Ignore double-break lines
-            if previous_text == "<br>" and not label_end and lbl_text == "<br>":
-                continue
 
             # Handle situation in which a "\n" preceeds a name. The \n screws up the html
             if lbl_text.startswith("\n%"):

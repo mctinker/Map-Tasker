@@ -225,7 +225,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     )
                     break
 
-                # Reset spacing since we're now adding to an existing line.
+                # Reset spacing since we're now adding to an existing line,
                 spacing = 0
 
                 # Get out if this is the end of the label.

@@ -51,7 +51,6 @@ from maptasker.src.guiutils import (
     get_tasks_in_project,
     is_line_displayed,
     kill_the_progress_bar,
-    make_hex_color,
     merge_lists,
     on_closing,
     output_label,
@@ -70,6 +69,7 @@ from maptasker.src.maputils import (
     find_task_pattern,
     get_first_substring_match,
     is_color_dark,
+    make_hex_color,
 )
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
