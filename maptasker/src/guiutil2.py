@@ -641,7 +641,7 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
             value["highlights"][inner_num + 1] = "bold"
         message = message.replace("<pre>", " \n").replace("</pre>", "\n\n")
 
-    # Deal with <big> and <small> tags.  Make it bold and one heading bigger/smaller
+    # Deal with <big> and <small> tags.  Make it one heading bigger/smaller
     if "<big>" in message or "</big>" in message or "<small>" in message or "</small>" in message:
         if "<big>" in message:
             # Save current heading
@@ -656,9 +656,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h5-text"
             else:
                 # Decrease the heading number by 1 (making the text "bigger")
-                value["highlights"][entry_to_update] = (
-                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
-                )
+                value["highlights"][
+                    entry_to_update
+                ] = f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
 
         elif "<small>" in message:
             # Save current heading
@@ -673,9 +673,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h7-text"
             else:
                 # Increase the heading number by 1 (making the text "smaller")
-                value["highlights"][entry_to_update] = (
-                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
-                )
+                value["highlights"][
+                    entry_to_update
+                ] = f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
 
         elif "</big>" in message or "</small>" in message:
             if message.startswith(("</big>", "</small>")):

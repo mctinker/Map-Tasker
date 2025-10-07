@@ -3724,8 +3724,48 @@ class EventHandlers:
         action = view_actions.get(view_name, self.treeview_event)
         action()
 
+    def search_here_event(self: customtkinter.CTkTextview, textview: CTkTextview) -> None:
+        """
+        Determines the line number of the top-most visible line in the text widget
+        and then initiates a search event from that line.
+
+        This is useful for implementing a "search from current view" feature.
+        It uses the text widget's '@0,0' index to find the character index at the
+        top-left corner of the view, extracts the line number, and executes the
+        provided search callback.
+
+        :param self: The instance of the custom text view widget (CTkTextview)
+                     which contains the internal CTkTextbox.
+        :type self: ctk.CTkTextview
+        :param search_event: A callable function (usually a method) that performs
+                             the actual search operation. This function is executed
+                             after the top visible line number is determined.
+        :type search_event: object
+        :return: None
+        :rtype: None
+        """
+        # The '@x,y' index is used to get the character closest to the
+        # pixel coordinates (x, y). We use (0, 0) which is the top-left
+        # corner of the viewing area.
+        # dlineinfo('@x,y') returns a list of info for the line at that point.
+        # If the list is empty, no line information is available (e.g., widget is empty).
+
+        # 1. Get the character index for the top-left corner of the view.
+        # This will be in the format 'line.char' (e.g., '10.0')
+        top_index = textview.textview_textbox.index("@0,0")
+
+        # 2. The 'top_index' is a string like '10.0'. We only need the line number.
+        # The 'line' part of the index is the actual line number.
+        line_number = top_index.split(".")[0]
+
+        # 3. Display the result
+        print(f"The current top visible line number is: {line_number}...{top_index}")
+
+        # Search starting at the 'line'
+        self.search_event(textview, line_number)
+
     # Search textbox event
-    def search_event(self: object, textview: CTkTextview) -> None:
+    def search_event(self: object, textview: CTkTextview, start_line: str = "1") -> None:
         """
         Handles the search event in the text view box.
 
@@ -3743,7 +3783,7 @@ class EventHandlers:
             None
         """
         # Start search at beginning
-        textview.search_current_line = "1.0"
+        textview.search_current_line = f"{start_line}.0"
         try:
             textview.search_indecies = []
         except AttributeError:
@@ -3784,6 +3824,9 @@ class EventHandlers:
                 for match in search_hits:
                     # Point to the actual line and position of the match.
                     text_line_num = match[0] + 1
+                    # Skip lines before our start line number.
+                    if text_line_num < int(start_line):
+                        continue
                     text_line_pos = match[1]
 
                     # Get the index and last-index for the match.
@@ -4059,6 +4102,16 @@ class EventHandlers:
 
     def analysis_search_event(self) -> None:  # noqa: D102
         self._handle_event("search_event", "analysisview")
+
+    # FIX
+    def diagram_search_here_event(self) -> None:  # noqa: D102
+        self._handle_event("search_here_event", "diagramview")
+
+    def map_search_here_event(self) -> None:  # noqa: D102
+        self._handle_event("search_here_event", "mapview")
+
+    def analysis_search_here_event(self) -> None:  # noqa: D102
+        self._handle_event("search_here_event", "analysisview")
 
     def diagram_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
         self._handle_event("nextprev_search_event", "diagramview", search_next)

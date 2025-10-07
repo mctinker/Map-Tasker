@@ -671,6 +671,7 @@ class CTkTextview(ctk.CTkFrame):
         event_assignments: dict[str, callable[[], None]] = {
             "Analysis": lambda: (
                 gui_view.event_handlers.analysis_search_event,
+                gui_view.event_handlers.analysis_search_here_event,
                 gui_view.event_handlers.analysis_nextprev_event,
                 gui_view.event_handlers.analysis_clear_event,
                 gui_view.event_handlers.analysis_wordwrap_event,
@@ -678,6 +679,7 @@ class CTkTextview(ctk.CTkFrame):
             ),
             "Diagram": lambda: (
                 gui_view.event_handlers.diagram_search_event,
+                gui_view.event_handlers.diagram_search_here_event,
                 gui_view.event_handlers.diagram_nextprev_event,
                 gui_view.event_handlers.diagram_clear_event,
                 gui_view.event_handlers.diagram_wordwrap_event,
@@ -685,6 +687,7 @@ class CTkTextview(ctk.CTkFrame):
             ),
             "Map": lambda: (
                 gui_view.event_handlers.map_search_event,
+                gui_view.event_handlers.map_search_here_event,
                 gui_view.event_handlers.map_nextprev_event,
                 gui_view.event_handlers.map_clear_event,
                 gui_view.event_handlers.map_wordwrap_event,
@@ -696,6 +699,7 @@ class CTkTextview(ctk.CTkFrame):
         if title in event_assignments:
             (
                 search_event,
+                search_here_event,
                 nextprev_event,
                 clear_event,
                 wordwrap_event,
@@ -756,10 +760,32 @@ class CTkTextview(ctk.CTkFrame):
             5,
             "nw",
         )
-        search_button.configure(width=60)
+        search_button.configure(width=50)
         create_tooltip(
             search_button,
-            text="Click this button to initiate a search for the string you have entered to the left and highlight the matches.\n\nClick the ? to get more info.",
+            text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, startring at the top.\n\nClick the ? to get more info.",
+        )
+        # Search button
+        search_here_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            search_here_event,
+            1,
+            "Search Here",
+            1,
+            0,
+            0,
+            (235, 0),
+            5,
+            "nw",
+        )
+        search_here_button.configure(width=50)
+        create_tooltip(
+            search_here_button,
+            text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top-left corner of the screen.\n\nClick the ? to get more info.",
         )
 
         # Next search button
@@ -775,7 +801,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (240, 0),
+            (340, 0),
             5,
             "nw",
         )
@@ -797,7 +823,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (290, 0),
+            (390, 0),
             5,
             "nw",
         )
@@ -819,7 +845,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (345, 0),
+            (445, 0),
             5,
             "nw",
         )
@@ -838,7 +864,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (400, 0),
+            (500, 0),
             5,
             "nw",
         )
@@ -857,7 +883,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (440, 0),
+            (540, 0),
             5,
             "nw",
         )
@@ -875,7 +901,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (600, 0),
+            (700, 0),
             5,
             "nw",
         )
@@ -894,7 +920,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (650, 0),
+            (750, 0),
             5,
             "nw",
         )

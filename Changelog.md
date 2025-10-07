@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [8.3.2] ??-Oct-2025  # FIX
+## [9.0.0] ??-Oct-2025  # FIX
 
 ### Added
 
-- Added: Embedded HTML now recognizes the 'big' tag.
+- Added: 'Search Here' has been added to the views, to begin the search at the top-left corner of the screen rather than at the top of the XML.
 
 ### Changed
 
@@ -14,14 +14,20 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed: Task 'TaskerNet descriptions' are not being displayed.
-- FIxed: Program error when a hex color name is encountered.
+- Fixed: 'print' statements are mistakenly displaying a list of directories at startup.
+- Fixed: Gemini full model list is missing.
 
 ### Known Issues
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [8.3.2] 05-Oct-2025
+
+- Added: Embedded HTML now recognizes the 'big' tag.
+- Fixed: Task 'TaskerNet descriptions' are not being displayed.
+- FIxed: Program error when a hex color name is encountered.
 
 ## [8.3.1] 28-Sep-2025
 

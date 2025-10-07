@@ -157,7 +157,8 @@ VIEWLIMIT_HELP_TEXT = (
 )
 
 SEARCH_HELP_TEXT = (
-    "The 'Search' button will search for and highlight every instance of the string entered in the search box.\n\n"
+    "The 'Search' button will search for and highlight every instance of the string entered in the search box, starting at the top of the XML.\n\n"
+    "The 'Search Here' button will search for and highlight every instance of the string entered in the search box, starting at the top of the XML, starting at the top-left corner of the screen.\n\n"
     "Hover over any of the highlighted matching strings to see all matches.\n\n"
     "The 'Next' and 'Prev' buttons will try to make the next and previous occurrence of the search string visible in the text view box, and highlight them in a different color.\n\n"
     "The accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\n"

@@ -17,6 +17,28 @@
 import os
 import sys
 
+# print("\nsys.path BEFORE modification:")
+# for p in sys.path:
+#     print(f"  {p}")
+# =========================================================================
+# >> NEW CODE TO FIX ModuleNotFoundError: No module named 'maptasker' <<
+# =========================================================================
+# Calculate the absolute path to the directory *containing* main.py,
+# which should be the root of your project where 'maptasker' resides.
+project_root_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Insert the project root path at the beginning of sys.path
+# This ensures Python can find the 'maptasker' package.
+if project_root_dir not in sys.path:
+    sys.path.insert(0, project_root_dir)
+# =========================================================================
+
+# Get the absolute path to your local overrides directory
+override_path = os.path.join(os.path.dirname(__file__), "custom_overrides")
+
+# Add your override path to the beginning of sys.path
+# This makes Python look here first
+sys.path.insert(0, override_path)
 # Get the absolute path to your local overrides directory
 override_path = os.path.join(os.path.dirname(__file__), "custom_overrides")
 
@@ -28,17 +50,11 @@ sys.path.insert(0, override_path)
 #     print(f"  {p}")
 
 # Add this crucial check:
-if override_path != sys.path[0]:
-    print(
-        f"\nERROR: '{override_path}' IS NOT at the beginning of sys.path. Not picking up local mods.",
-    )
-# fmt: off
-# Force load ctk_tk.py from custom_overrides.
+# if override_path != sys.path[0]:
+#     print(
+#         f"\nERROR: '{override_path}' IS NOT at the beginning of sys.path. Not picking up local mods.",
+#     )
 
-# KaKa = ctk.CTk()
-# KaKa.withdraw()
-# del KaKa
-# fmt: on
 from maptasker.src import mapit
 from maptasker.src.maputils import exit_program
 
