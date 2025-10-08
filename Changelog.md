@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: 'Search Here' has been added to the views, to begin the search at the top-left corner of the screen rather than at the top of the XML.
+- Added: 'Search Here' has been added to the views, to begin the search at the current screen rather than at the top of the data.
 
 ### Changed
 

@@ -613,4 +613,5 @@ def map_ai() -> None:
     # Display a popup window telling user we are analyzing
     # NOTE: popup calls _run_analysais_in_background via popup.after,
     #       and which then destroys the popup window when done.
+    # FIX Add title and contents as arguments..
     display_the_popup()

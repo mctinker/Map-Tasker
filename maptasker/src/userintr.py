@@ -3724,6 +3724,20 @@ class EventHandlers:
         action = view_actions.get(view_name, self.treeview_event)
         action()
 
+    def display_only_event(self: customtkinter.CTkTextview, textview: CTkTextview) -> None:
+        # Search starting at the 'line'
+        self.search_event(textview, "1", list_only=True)
+        # If we got matches...
+        the_text = []
+        if self.parent.items_for_selection["found"]["indecies"]:
+            for line in self.parent.items_for_selection["found"]["indecies"]:
+                print("bingo line", line)
+                line_idx = f"{line.split('.')[0]}.0"
+                the_text.append(f"{line}: {textview.textview_textbox.get(line_idx, line_idx + 'lineend')}")
+            the_label = "\n".join(the_text)
+
+        print("bingo")
+
     def search_here_event(self: customtkinter.CTkTextview, textview: CTkTextview) -> None:
         """
         Determines the line number of the top-most visible line in the text widget
@@ -3759,13 +3773,13 @@ class EventHandlers:
         line_number = top_index.split(".")[0]
 
         # 3. Display the result
-        print(f"The current top visible line number is: {line_number}...{top_index}")
+        # print(f"The current top visible line number is: {line_number}...{top_index}")
 
         # Search starting at the 'line'
         self.search_event(textview, line_number)
 
     # Search textbox event
-    def search_event(self: object, textview: CTkTextview, start_line: str = "1") -> None:
+    def search_event(self: object, textview: CTkTextview, start_line: str = "1", list_only: bool = False) -> None:
         """
         Handles the search event in the text view box.
 
@@ -3782,6 +3796,7 @@ class EventHandlers:
         Returns:
             None
         """
+        self.parent.items_for_selection["found"] = {"indecies": []}
         # Start search at beginning
         textview.search_current_line = f"{start_line}.0"
         try:
@@ -3839,14 +3854,19 @@ class EventHandlers:
                         textview.search_current_line = idx
                         first_time = False
 
-                    # Add the tag for highlighting the matches.
-                    textview.textview_textbox.tag_add("found", idx, lastidx)
+                    if not list_only:
+                        # Add the tag for highlighting the matches.
+                        textview.textview_textbox.tag_add("found", idx, lastidx)
 
-                    # Tag it so that it will get caught by 'click_text' for hover.
-                    textview.tag_items("found", f"Found: {search_input}   ")
+                        # Tag it so that it will get caught by 'click_text' for hover.
+                        textview.tag_items("found", f"Found: {search_input}   ")
 
                     # Add the list of matches to this entry in mygui.
                     self.parent.items_for_selection["found"]["indecies"] = textview.search_indecies
+
+                # If list only, just return wioth the hits in self.parent.items_for_selection["found"]["indecies"]
+                if list_only:
+                    return
 
                 # Mark located string by highlighting it.
                 textview.textview_textbox.tag_config(
@@ -4093,7 +4113,16 @@ class EventHandlers:
         view = getattr(self.parent, view_name)
         method(view, *args)
 
-    # Handlers for Search/Next/Prev/Clear and Toglle Word Wrap for each view.
+    # Handlers for Search/Next/Prev/Clear/Toggle Word Wrap/Display Only ...for each view.
+    def diagram_display_only_event(self) -> None:  # noqa: D102
+        self._handle_event("display_only_event", "diagramview")
+
+    def analysis_display_only_event(self) -> None:  # noqa: D102
+        self._handle_event("display_only_event", "analysisview")
+
+    def map_display_only_event(self) -> None:  # noqa: D102
+        self._handle_event("display_only_event", "mapview")
+
     def diagram_search_event(self) -> None:  # noqa: D102
         self._handle_event("search_event", "diagramview")
 
@@ -4103,7 +4132,6 @@ class EventHandlers:
     def analysis_search_event(self) -> None:  # noqa: D102
         self._handle_event("search_event", "analysisview")
 
-    # FIX
     def diagram_search_here_event(self) -> None:  # noqa: D102
         self._handle_event("search_here_event", "diagramview")
 

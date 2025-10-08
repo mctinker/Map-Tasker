@@ -668,6 +668,7 @@ class CTkTextview(ctk.CTkFrame):
         gui_view = self.master.master
 
         # Dictionary mapping titles to lambdas that assign the events
+        # Each of these corresponds to a pre-event that calls the actual event with the appropriate textview
         event_assignments: dict[str, callable[[], None]] = {
             "Analysis": lambda: (
                 gui_view.event_handlers.analysis_search_event,
@@ -676,6 +677,7 @@ class CTkTextview(ctk.CTkFrame):
                 gui_view.event_handlers.analysis_clear_event,
                 gui_view.event_handlers.analysis_wordwrap_event,
                 gui_view.event_handlers.analysis_topbottom_event,
+                gui_view.event_handlers.analysis_display_only_event,
             ),
             "Diagram": lambda: (
                 gui_view.event_handlers.diagram_search_event,
@@ -684,6 +686,7 @@ class CTkTextview(ctk.CTkFrame):
                 gui_view.event_handlers.diagram_clear_event,
                 gui_view.event_handlers.diagram_wordwrap_event,
                 gui_view.event_handlers.diagram_topbottom_event,
+                gui_view.event_handlers.diagram_display_only_event,
             ),
             "Map": lambda: (
                 gui_view.event_handlers.map_search_event,
@@ -692,10 +695,12 @@ class CTkTextview(ctk.CTkFrame):
                 gui_view.event_handlers.map_clear_event,
                 gui_view.event_handlers.map_wordwrap_event,
                 gui_view.event_handlers.map_topbottom_event,
+                gui_view.event_handlers.map_display_only_event,
             ),
         }
 
         # Retrieve and assign the customtkinter return 'events' based on the title
+        # These event variables are defined via the 'command' option of ctkbutton, further below.
         if title in event_assignments:
             (
                 search_event,
@@ -704,6 +709,7 @@ class CTkTextview(ctk.CTkFrame):
                 clear_event,
                 wordwrap_event,
                 topbottom_event,
+                display_only_event,
             ) = event_assignments[title]()
 
         # Add label
@@ -765,7 +771,7 @@ class CTkTextview(ctk.CTkFrame):
             search_button,
             text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, startring at the top.\n\nClick the ? to get more info.",
         )
-        # Search button
+        # Search Here button
         search_here_button = add_button(
             self,
             self,
@@ -908,7 +914,7 @@ class CTkTextview(ctk.CTkFrame):
         top_button.configure(width=40)
 
         # Bottom button
-        top_button = add_button(
+        bottom_button = add_button(
             self,
             self,
             "#246FB6",
@@ -924,7 +930,29 @@ class CTkTextview(ctk.CTkFrame):
             5,
             "nw",
         )
-        top_button.configure(width=50)
+        bottom_button.configure(width=50)
+        # Display ALl button
+        display_only_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            display_only_event,
+            1,
+            "Display Only",
+            1,
+            0,
+            0,
+            (830, 0),
+            5,
+            "nw",
+        )
+        display_only_button.configure(width=50)
+        create_tooltip(
+            display_only_button,
+            text="Click this button to search for and display only the lines that match the search string.",
+        )
 
         # Save the widgets to the correct view: diagram or map
         if "Analysis" in self.textview_textbox.master.title:

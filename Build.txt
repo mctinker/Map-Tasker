@@ -29,6 +29,11 @@ poetry env use 3.xx
 poetry install
 Change VsCode interpreter to 3.xx
 
+# Initialize git
+git config --global user.name "Michael Rubin" 
+git config --global user.email "mikrubin@gmail.com" 
+
+
 # Install a new version of Python:
 # Enter the following into a command line, replacing "3.xx" at the bottom with the version number to be installed....
 env LDFLAGS="-L$(brew --prefix openssl@1.1)/lib -L$(brew --prefix readline)/lib -L$(brew --prefix sqlite3)/lib -L$(brew --prefix xz)/lib -L$(brew --prefix zlib)/lib -L$(brew --prefix tcl-tk)/lib" \
