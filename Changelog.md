@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: 'print' statements are mistakenly displaying a list of directories at startup.
 - Fixed: Gemini full model list is missing.
+- Fixed: The text string '</div>' is found at the end of some Task actions in the Map view.
 
 ### Known Issues
 

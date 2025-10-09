@@ -69,6 +69,7 @@ from maptasker.src.guiwins import (
     CTkHyperlinkManager,
     CTkTextview,
     CTkTreeview,
+    PopupWindow,
     TextWindow,
     get_appropriate_color,
     get_rid_of_windows_and_exit,
@@ -3725,25 +3726,56 @@ class EventHandlers:
         action()
 
     def display_only_event(self: customtkinter.CTkTextview, textview: CTkTextview) -> None:
-        # Search starting at the 'line'
+        """
+        Searches the text in a given CTkTextview for matches and displays only those
+        matching lines in a separate popup window.
+
+        This function first executes a search (via self.search_event) and then
+        iterates through the found indices to extract the complete lines of text
+        containing the matches. The extracted lines are then concatenated and
+        presented to the user in a new popup window.
+
+        :param self: The instance of the main CTkTextview-like widget (which contains
+                     the search logic and access to the parent's selection items).
+        :type self: customtkinter.CTkTextview
+        :param textview: The specific CTkTextview widget whose content is being
+                         searched and whose text will be extracted.
+        :type textview: CTkTextview
+        :returns: None
+        :rtype: None
+        """
+        # Search starting at the 'line' 1
         self.search_event(textview, "1", list_only=True)
         # If we got matches...
         the_text = []
         if self.parent.items_for_selection["found"]["indecies"]:
             for line in self.parent.items_for_selection["found"]["indecies"]:
                 print("bingo line", line)
-                line_idx = f"{line.split('.')[0]}.0"
-                the_text.append(f"{line}: {textview.textview_textbox.get(line_idx, line_idx + 'lineend')}")
+                line_details = line.split(".")
+                line_number = line_details[0]
+                character_position = line_details[1]
+                line_idx = f"{line_number}.0"
+                the_text.append(
+                    f"line {line_number}: {textview.textview_textbox.get(line_idx, line_idx + 'lineend')}",
+                )
             the_label = "\n".join(the_text)
-
-        print("bingo")
+        # FIX Add textbox instead of label.
+        popup = PopupWindow(
+            title="Display-Only Those Lines Matching Search String",
+        )
+        # display_the_popup(
+        #     "Display-Only Those Lines Matching Search String",
+        #     the_label,
+        #     14,
+        #     "turquoise",
+        # )
 
     def search_here_event(self: customtkinter.CTkTextview, textview: CTkTextview) -> None:
         """
         Determines the line number of the top-most visible line in the text widget
         and then initiates a search event from that line.
 
-        This is useful for implementing a "search from current view" feature.
+        This is useful for implementing a "search from current view" feature.4718760309435893
         It uses the text widget's '@0,0' index to find the character index at the
         top-left corner of the view, extracts the line number, and executes the
         provided search callback.

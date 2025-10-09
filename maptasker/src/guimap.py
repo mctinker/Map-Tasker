@@ -152,10 +152,6 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     if ":lblend" in text:
                         lblend_pos = text.find('":lblend">')
                         text = text[: lblend_pos + 10]
-                        # text = text.replace(':lblend"></p></div></div>\n\n', ':lblend">').replace(
-                        #     "<a href='#'>Go to top</a>",
-                        #     "",
-                        # )
 
                     # Handle newline overflow at end
                     if text.endswith("</span><br>\n"):
@@ -482,6 +478,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
         text.replace("&nbsp;", " ")
         .replace("\n\n", "\n")
         .replace("<DIV", "")
+        .replace("</div>", "")
         .replace("&#45;", "-")
         .replace("&lt;", "<")
         .replace("&gt;", ">")

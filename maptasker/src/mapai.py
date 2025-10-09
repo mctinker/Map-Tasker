@@ -565,7 +565,7 @@ def _run_analysis_in_background(popup: PopupWindow) -> None:
             popup.popup_button_event()
 
 
-def display_the_popup() -> ctk.CTkToplevel:
+def display_the_popup(title: str, the_text: str, font_size: int, text_color: str) -> ctk.CTkToplevel:
     """Displays a popup window indicating that an analysis is running.
 
     This function creates and displays a `PopupWindow` (assuming it's a custom
@@ -573,25 +573,31 @@ def display_the_popup() -> ctk.CTkToplevel:
     informing the user that an analysis is being performed in the background.
     The popup includes a label with the text "Analysis is running in the
     background. Please stand by...".
+    Args:
+        title (str): Text to diosplay in the titlebar.
+        the_text (str): The text to display.
+        font_size (int): The size of the font to use.
+        text_color: The color to display the text in.
 
     Returns:
         ctk.CTkToplevel: The created and displayed `PopupWindow` instance.
     """
     # Display a popup window telling user we are analyzing
     popup = PopupWindow(
-        title="MapTasker Analysis >>>>>>>>>> Please stand by...",
+        title=title,
     )
 
     popup.Popup_label = ctk.CTkLabel(
         master=popup,
-        text="Analysis is running in the background.  Please stand by...",
-        font=("", 24),
-        text_color="turquoise",
+        text=the_text,
+        font=("", font_size),
+        text_color=text_color,
     )
-    popup.Popup_label.grid(row=0, column=0, padx=0, pady=10, sticky="n")
+    popup.Popup_label.grid(row=0, column=0, padx=0, pady=0, sticky="nw")
 
     # Start the background analysis after so many milliseconds.
-    popup.after(200, _run_analysis_in_background, popup)
+    if "Analysis" in the_text:
+        popup.after(200, _run_analysis_in_background, popup)
     # Force the label/window to appear.
     popup.Popup_label.pack(side="top", padx=20, pady=20)
     # popup.update_idletasks()
@@ -613,5 +619,9 @@ def map_ai() -> None:
     # Display a popup window telling user we are analyzing
     # NOTE: popup calls _run_analysais_in_background via popup.after,
     #       and which then destroys the popup window when done.
-    # FIX Add title and contents as arguments..
-    display_the_popup()
+    display_the_popup(
+        "MapTasker Analysis >>>>>>>>>> Please stand by...",
+        "Analysis is running in the background.  Please stand by...",
+        24,
+        "turquoise",
+    )
