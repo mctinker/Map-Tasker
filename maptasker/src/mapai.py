@@ -592,6 +592,8 @@ def display_the_popup(title: str, the_text: str, font_size: int, text_color: str
         text=the_text,
         font=("", font_size),
         text_color=text_color,
+        anchor="nw",
+        justify="left",
     )
     popup.Popup_label.grid(row=0, column=0, padx=0, pady=0, sticky="nw")
 

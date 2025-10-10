@@ -6,7 +6,9 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: 'Search Here' has been added to the views, to begin the search at the current screen rather than at the top of the data.
+- Added: 'Search Here' button has been added to the views, to begin the search at the current screen rather than at the top of the data.
+- Added: 'Display Only' button has been added to the views, to display in a new miscellaneous window only those lines that match the search string.
+- Added: Support for Tasker version 6.6.4-beta.
 
 ### Changed
 
@@ -17,6 +19,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: 'print' statements are mistakenly displaying a list of directories at startup.
 - Fixed: Gemini full model list is missing.
 - Fixed: The text string '</div>' is found at the end of some Task actions in the Map view.
+- Fixed: Program 'TclError' error on exit if all of the windows have been closed.
 
 ### Known Issues
 

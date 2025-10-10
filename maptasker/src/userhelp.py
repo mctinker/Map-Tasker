@@ -164,6 +164,7 @@ SEARCH_HELP_TEXT = (
     "The accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\n"
     "When the end or beginning of the text view box is reached, the search will stop and a message will be displayed for several seconds.\n\n"
     "The 'Clear' button will clear the search results.\n\n"
+    "The 'Display Only' button will display in a miscellaneous window ONLY the matches from the search results.\n\n"
 )
 
 PPP_HELP_TEXT = (

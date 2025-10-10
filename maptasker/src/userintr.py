@@ -69,7 +69,6 @@ from maptasker.src.guiwins import (
     CTkHyperlinkManager,
     CTkTextview,
     CTkTreeview,
-    PopupWindow,
     TextWindow,
     get_appropriate_color,
     get_rid_of_windows_and_exit,
@@ -842,6 +841,7 @@ class MyGui(customtkinter.CTk):
             "color_window_position",
             "diagram_window_position",
             "map_window_position",
+            "misc_window_position",
             "progressbar_window_position",
             "tab_to_use",
             "tree_window_position",
@@ -1464,7 +1464,7 @@ class MyGui(customtkinter.CTk):
             data (list or dict, optional): List of data to be displayed in the view. Defaults to None.
 
         Returns:
-            View (object): Thwindow view.
+            View (object): The window view.
 
         Processing Logic:
             - Creates a new window if one does not exist.
@@ -1511,7 +1511,7 @@ class MyGui(customtkinter.CTk):
             )
 
         # Setup diagram view.
-        elif view_type == "diagram":
+        elif view_type in ("diagram", "misc"):
             # Display the data.
             if data:
                 view = CTkTextview(
@@ -3744,31 +3744,86 @@ class EventHandlers:
         :returns: None
         :rtype: None
         """
+        mygui = self.parent
         # Search starting at the 'line' 1
         self.search_event(textview, "1", list_only=True)
         # If we got matches...
         the_text = []
-        if self.parent.items_for_selection["found"]["indecies"]:
-            for line in self.parent.items_for_selection["found"]["indecies"]:
-                print("bingo line", line)
+        if mygui.items_for_selection["found"]["indecies"]:
+            # Go through each lione with a match and save it's contents
+            for line in mygui.items_for_selection["found"]["indecies"]:
                 line_details = line.split(".")
                 line_number = line_details[0]
-                character_position = line_details[1]
                 line_idx = f"{line_number}.0"
                 the_text.append(
                     f"line {line_number}: {textview.textview_textbox.get(line_idx, line_idx + 'lineend')}",
                 )
-            the_label = "\n".join(the_text)
-        # FIX Add textbox instead of label.
-        popup = PopupWindow(
-            title="Display-Only Those Lines Matching Search String",
+            the_bulk_data = "\n".join(the_text)
+        else:
+            # No hits
+            return
+
+        # Save the indecies since the call to display the data will clear them
+        saved_indecies = mygui.items_for_selection["found"]["indecies"]
+
+        # Set the window
+        if not mygui.misc_window_position:
+            mygui.misc_window_position = "1129x1044+698+145"
+
+        # Display the data
+        mygui.miscview = mygui.display_view("misc", the_bulk_data)
+
+        # Highlight the matches
+        tag_id = "high"
+        line_number = 1
+        search_string = mygui.search_input
+        highlight_color = make_hex_color(PrimeItems.colors_to_use["highlight_color"])
+        for _ in saved_indecies:
+            # Get the contents of a line in the misc window
+            content = mygui.miscview.textview_textbox.get(f"{line_number!s}.0", "end-1c")
+
+            # Look for and tag each occurrence of the search string
+            start_index = -1
+            count = 0
+            while True:
+                # 1. Find the next occurrence, starting the search one character after
+                #    the previously found index. The 'start' argument is optional.
+                start_index = content.lower().find(search_string, start_index + 1)
+
+                # 2. Bail out if there are no more occurrences of the search string
+                if start_index == -1:
+                    break
+
+                # 3. Process the occurrence
+                count += 1
+                end_index = start_index + len(search_string)
+                start_idx = f"{line_number}.{start_index}"
+                end_idx = f"{line_number}.{end_index}"
+                mygui.miscview.textview_textbox.tag_add(tag_id, start_idx, end_idx)
+
+            # Process next line
+            line_number += 1
+
+        # Now color it in.
+        mygui.miscview.textview_textbox.tag_config(
+            tag_id,
+            background=highlight_color,
         )
-        # display_the_popup(
-        #     "Display-Only Those Lines Matching Search String",
-        #     the_label,
-        #     14,
-        #     "turquoise",
-        # )
+
+        # Catch window resizing
+        mygui.miscview.bind("<Configure>", mygui.miscview.on_resize)
+        mygui.miscview.bind("<Key>", mygui.miscview.ctrlevent)
+
+        # Add instructions
+        instruct = customtkinter.CTkLabel(
+            master=mygui.miscview,
+            text="Expand window as needed, then close it and re-run the 'Display Only' button.",
+            font=("", 14),
+            text_color="turquoise",
+            anchor="nw",
+            justify="left",
+        )
+        instruct.grid(row=0, column=0, padx=0, pady=0, sticky="nw")
 
     def search_here_event(self: customtkinter.CTkTextview, textview: CTkTextview) -> None:
         """
@@ -3844,6 +3899,7 @@ class EventHandlers:
 
         # Check if search_input is not empty
         if search_input:
+            self.parent.search_input = search_input
             # Determine the color to highlight the next/previous string in.
             if is_color_dark(PrimeItems.colors_to_use["background_color"]):
                 textview.search_color_text = "darkblue"

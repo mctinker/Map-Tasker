@@ -558,7 +558,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -576,7 +578,7 @@ class CTkTextview(ctk.CTkFrame):
         # Output the data either as a diagram or AI analysis.
         if is_diagram:
             self.output_diagram(the_data)
-        else:
+        elif not self.title.startswith("Misc View"):
             self.add_view_widgets("Analysis")
 
         # Save a pointer to the data.
@@ -1123,15 +1125,19 @@ class CTkTextview(ctk.CTkFrame):
         Note: The code snippet provided is incomplete and does not contain the implementation of the function.
         """
 
-        if "Diagram" in self.title:
-            position_key = "diagram_window_position"
-        elif "Analysis" in self.title:
-            position_key = "ai_analysis_window_position"
-        elif "Tree" in self.title:
-            position_key = "tree_window_position"
-        elif "Map" in self.title:
-            position_key = "map_window_position"
-        else:
+        title_to_key = {
+            "Diagram": "diagram_window_position",
+            "Analysis": "ai_analysis_window_position",
+            "Tree": "tree_window_position",
+            "Map": "map_window_position",
+            "Misc": "misc_window_position",
+        }
+
+        # Use dict.get() for a clean lookup with a default (None if no match is found)
+        position_key = title_to_key.get(
+            next((key for key in title_to_key if key in self.title), None),
+        )
+        if position_key is None:
             return
 
         # Get the current window position
@@ -3872,6 +3878,7 @@ def _initialize_display_settings(self: ctk) -> None:
     self.diagramview_window = None
     self.map_in_progress = False
     self.mapview_window = None
+    self.miscview_window = None
     self.treeview_window = None
     self.outline = False
     self.font_table = {}
@@ -3897,6 +3904,7 @@ def _initialize_window_positions(self: ctk) -> None:
     self.color_window_position = ""
     self.diagram_window_position = ""
     self.map_window_position = ""
+    self.misc_window_position = ""
     # self.progressbar_window_position = "" # Uncomment if you decide to use this
     self.tree_window_position = ""
     self.window_position = None  # This one is generic, consider if it's needed

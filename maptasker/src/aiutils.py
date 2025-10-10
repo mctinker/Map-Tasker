@@ -197,7 +197,7 @@ def get_gemini_models() -> list:
     # The models.list() returns a generator, so we iterate over it.
     models_to_keep = []
     model_count = 0
-    for model in all_models:
+    for model in all_models._page:  # noqa: SLF001
         model_name = model.name[7:]
         # Filter for models whose names start with 'gemini' to focus on Gemini models
         if (
