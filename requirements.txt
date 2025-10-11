@@ -3,7 +3,7 @@ darkdetect==0.8.0
 defusedxml==0.7.1
 google-genai==1.38.0
 ollama==0.6.0
-openai==2.0.0
+openai==2.3.0
 pillow==11.3.0
 psutil==7.1.0
 requests==2.32.5
