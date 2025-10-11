@@ -623,7 +623,7 @@ def map_ai() -> None:
     #       and which then destroys the popup window when done.
     display_the_popup(
         "MapTasker Analysis >>>>>>>>>> Please stand by...",
-        "Analysis is running in the background.  Please stand by...",
+        "Analysis is running in the background.\n\nOnce complete, the program will restart and the results will appear in a new window.\n\nPlease stand by...",
         24,
         "turquoise",
     )

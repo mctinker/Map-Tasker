@@ -245,7 +245,7 @@ class MyGui(customtkinter.CTk):
         # CHG: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        self.event_handlers.map_event()
+        # self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
 
@@ -3749,11 +3749,16 @@ class EventHandlers:
         self.search_event(textview, "1", list_only=True)
         # If we got matches...
         the_text = []
+        track_line_number = []
         if mygui.items_for_selection["found"]["indecies"]:
             # Go through each lione with a match and save it's contents
             for line in mygui.items_for_selection["found"]["indecies"]:
                 line_details = line.split(".")
                 line_number = line_details[0]
+                # Don't do anything if we have already handled this line
+                if line_number in track_line_number:
+                    continue
+                track_line_number.append(line_number)
                 line_idx = f"{line_number}.0"
                 the_text.append(
                     f"line {line_number}: {textview.textview_textbox.get(line_idx, line_idx + 'lineend')}",

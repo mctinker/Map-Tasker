@@ -112,8 +112,10 @@ def get_anthropic_models() -> list:
     return [
         # "claude-opus-4-20250514",
         "claude-opus-4-0",  # alias
+        "claude-opus-4-1",  # alias
         # "claude-sonnet-4-20250514",
         "claude-sonnet-4-0",  # alias
+        "claude-sonnet-4-5",
         # Claude 3.7 Models
         # "claude-3-7-sonnet-20250219",
         "claude-3-7-sonnet-latest",  # alias

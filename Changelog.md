@@ -2,13 +2,13 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.0.0] ??-Oct-2025  # FIX
+## [9.0.0] 12-Oct-2025
 
 ### Added
 
+- Added: Support for Tasker version 6.6.4-beta.
 - Added: 'Search Here' button has been added to the views, to begin the search at the current screen rather than at the top of the data.
 - Added: 'Display Only' button has been added to the views, to display in a new miscellaneous window only those lines that match the search string.
-- Added: Support for Tasker version 6.6.4-beta.
 
 ### Changed
 
