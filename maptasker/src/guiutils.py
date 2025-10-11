@@ -2563,6 +2563,7 @@ def on_closing(self: object) -> None:
         "Analysis": "ai_analysis_window_position",
         "Tree": "tree_window_position",
         "Map View": "map_window_position",
+        "MIsc View": "misc_window_position",
         "API": "apikey_window_position",
     }
     if "Progress" in title:

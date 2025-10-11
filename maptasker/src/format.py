@@ -377,6 +377,9 @@ class HTMLTextFormatter(HTMLParser):
             self._add_segment("</big>")
         elif tag == "small":
             self._add_segment("</small>")
+        # End tags to ignore
+        elif tag in ("br", "h"):
+            return
         # Unrecognized tag
         else:
             self.handle_unknown_endtag(tag)

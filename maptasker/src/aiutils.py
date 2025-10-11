@@ -8,7 +8,7 @@ import pickle
 from contextlib import suppress
 
 import ollama
-from google import genai
+from google.genai import Client
 from openai import OpenAI
 
 from maptasker.src.error import rutroh_error
@@ -112,8 +112,10 @@ def get_anthropic_models() -> list:
     return [
         # "claude-opus-4-20250514",
         "claude-opus-4-0",  # alias
+        "claude-opus-4-1",  # alias
         # "claude-sonnet-4-20250514",
         "claude-sonnet-4-0",  # alias
+        "claude-sonnet-4-5",
         # Claude 3.7 Models
         # "claude-3-7-sonnet-20250219",
         "claude-3-7-sonnet-latest",  # alias
@@ -140,37 +142,80 @@ def get_gemini_models() -> list:
     export GOOGLE_API_KEY='YOUR_API_KEY'
     """
     bad_models = {"text", "image", "vision"}
-    try:
-        # Get the API key
-        with suppress(KeyError):
-            api_key = PrimeItems.ai["gemini_key"]
-        if not api_key:
-            return GEMINI_MODELS
+    # try:
+    #     # Get the API key
+    #     with suppress(KeyError):
+    #         api_key = PrimeItems.ai["gemini_key"]
+    #     if not api_key:
+    #         return GEMINI_MODELS
 
-        # print("Fetching available Gemini models...")
-        # Configure Gemini
-        genai.configure(api_key=api_key)
-        models = []
+    #     # print("Fetching available Gemini models...")
+    #     # Configure Gemini
+    #     genai.Client(api_key=api_key)
+    #     models = []
 
-        # List all available models
-        models = [
-            m
-            for m in genai.list_models()
-            if "generateContent" in m.supported_generation_methods
-            and not contains_any_substring_loop(m.name, bad_models)
-        ]
+    #     # List all available models
+    #     models = [
+    #         m
+    #         for m in genai.list_models()
+    #         if "generateContent" in m.supported_generation_methods
+    #         and not contains_any_substring_loop(m.name, bad_models)
+    #     ]
 
-        if not models:
-            # print("No Gemini models found that support text generation.")
-            return GEMINI_MODELS
+    #     if not models:
+    #         # print("No Gemini models found that support text generation.")
+    #         return GEMINI_MODELS
 
-        # Now get just the names
-        models_to_keep = [m.name.replace("models/", "") for m in models]
+    #     # Now get just the names
+    #     models_to_keep = [m.name.replace("models/", "") for m in models]
 
-    except Exception as e:  # noqa: BLE001
-        rutroh_error(f"An error occurred trying to list OpenAi models: {e}")
+    # except Exception as e:
+    #     rutroh_error(f"An error occurred trying to list OpenAi models: {e}")
+    #     return GEMINI_MODELS
+
+    # Get the API key
+    with suppress(KeyError):
+        api_key = PrimeItems.ai["gemini_key"]
+    if not api_key:
         return GEMINI_MODELS
 
+    # 1. Initialize the Client
+    # The Client will automatically look for your API key in the GOOGLE_API_KEY
+    # environment variable.
+    try:
+        client = Client(api_key=api_key)
+    except Exception as e:  # noqa: BLE001
+        rutroh_error(f"Error initializing client: {e}")
+        rutroh_error("\nPlease ensure your GOOGLE_API_KEY environment variable is set correctly.")
+        return []
+
+    # 2. Get the list of models
+    all_models = client.models.list()
+    if not all_models:
+        # print("No Gemini models found that support text generation.")
+        return GEMINI_MODELS
+
+    # 3. Iterate and print the model names
+    # The models.list() returns a generator, so we iterate over it.
+    models_to_keep = []
+    model_count = 0
+    for model in all_models._page:  # noqa: SLF001
+        model_name = model.name[7:]
+        # Filter for models whose names start with 'gemini' to focus on Gemini models
+        if (
+            "gemini" in model_name
+            and "generateContent" in model.supported_actions
+            and not contains_any_substring_loop(
+                model_name,
+                bad_models,
+            )
+        ):
+            models_to_keep.append(model_name)
+
+    if model_count == 0:
+        rutroh_error("No Gemini models found. There may be a connection issue or a filter problem.")
+    # else:
+    #     print(f"\nSuccessfully listed {model_count} Gemini models.")
     return models_to_keep
 
 

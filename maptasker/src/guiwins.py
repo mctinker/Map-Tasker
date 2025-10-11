@@ -558,9 +558,7 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}"
-                    if len(line) > max_length
-                    else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -578,7 +576,7 @@ class CTkTextview(ctk.CTkFrame):
         # Output the data either as a diagram or AI analysis.
         if is_diagram:
             self.output_diagram(the_data)
-        else:
+        elif not self.title.startswith("Misc View"):
             self.add_view_widgets("Analysis")
 
         # Save a pointer to the data.
@@ -668,38 +666,48 @@ class CTkTextview(ctk.CTkFrame):
         gui_view = self.master.master
 
         # Dictionary mapping titles to lambdas that assign the events
+        # Each of these corresponds to a pre-event that calls the actual event with the appropriate textview
         event_assignments: dict[str, callable[[], None]] = {
             "Analysis": lambda: (
                 gui_view.event_handlers.analysis_search_event,
+                gui_view.event_handlers.analysis_search_here_event,
                 gui_view.event_handlers.analysis_nextprev_event,
                 gui_view.event_handlers.analysis_clear_event,
                 gui_view.event_handlers.analysis_wordwrap_event,
                 gui_view.event_handlers.analysis_topbottom_event,
+                gui_view.event_handlers.analysis_display_only_event,
             ),
             "Diagram": lambda: (
                 gui_view.event_handlers.diagram_search_event,
+                gui_view.event_handlers.diagram_search_here_event,
                 gui_view.event_handlers.diagram_nextprev_event,
                 gui_view.event_handlers.diagram_clear_event,
                 gui_view.event_handlers.diagram_wordwrap_event,
                 gui_view.event_handlers.diagram_topbottom_event,
+                gui_view.event_handlers.diagram_display_only_event,
             ),
             "Map": lambda: (
                 gui_view.event_handlers.map_search_event,
+                gui_view.event_handlers.map_search_here_event,
                 gui_view.event_handlers.map_nextprev_event,
                 gui_view.event_handlers.map_clear_event,
                 gui_view.event_handlers.map_wordwrap_event,
                 gui_view.event_handlers.map_topbottom_event,
+                gui_view.event_handlers.map_display_only_event,
             ),
         }
 
         # Retrieve and assign the customtkinter return 'events' based on the title
+        # These event variables are defined via the 'command' option of ctkbutton, further below.
         if title in event_assignments:
             (
                 search_event,
+                search_here_event,
                 nextprev_event,
                 clear_event,
                 wordwrap_event,
                 topbottom_event,
+                display_only_event,
             ) = event_assignments[title]()
 
         # Add label
@@ -756,10 +764,32 @@ class CTkTextview(ctk.CTkFrame):
             5,
             "nw",
         )
-        search_button.configure(width=60)
+        search_button.configure(width=50)
         create_tooltip(
             search_button,
-            text="Click this button to initiate a search for the string you have entered to the left and highlight the matches.\n\nClick the ? to get more info.",
+            text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, startring at the top.\n\nClick the ? to get more info.",
+        )
+        # Search Here button
+        search_here_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            search_here_event,
+            1,
+            "Search Here",
+            1,
+            0,
+            0,
+            (235, 0),
+            5,
+            "nw",
+        )
+        search_here_button.configure(width=50)
+        create_tooltip(
+            search_here_button,
+            text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top-left corner of the screen.\n\nClick the ? to get more info.",
         )
 
         # Next search button
@@ -775,7 +805,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (240, 0),
+            (340, 0),
             5,
             "nw",
         )
@@ -797,7 +827,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (290, 0),
+            (390, 0),
             5,
             "nw",
         )
@@ -819,7 +849,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (345, 0),
+            (445, 0),
             5,
             "nw",
         )
@@ -838,7 +868,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (400, 0),
+            (500, 0),
             5,
             "nw",
         )
@@ -857,7 +887,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (440, 0),
+            (540, 0),
             5,
             "nw",
         )
@@ -875,14 +905,14 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (600, 0),
+            (700, 0),
             5,
             "nw",
         )
         top_button.configure(width=40)
 
         # Bottom button
-        top_button = add_button(
+        bottom_button = add_button(
             self,
             self,
             "#246FB6",
@@ -894,11 +924,33 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (650, 0),
+            (750, 0),
             5,
             "nw",
         )
-        top_button.configure(width=50)
+        bottom_button.configure(width=50)
+        # Display ALl button
+        display_only_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            "",
+            "",
+            display_only_event,
+            1,
+            "Display Only",
+            1,
+            0,
+            0,
+            (830, 0),
+            5,
+            "nw",
+        )
+        display_only_button.configure(width=50)
+        create_tooltip(
+            display_only_button,
+            text="Click this button to search for and display only the lines that match the search string.",
+        )
 
         # Save the widgets to the correct view: diagram or map
         if "Analysis" in self.textview_textbox.master.title:
@@ -1071,15 +1123,19 @@ class CTkTextview(ctk.CTkFrame):
         Note: The code snippet provided is incomplete and does not contain the implementation of the function.
         """
 
-        if "Diagram" in self.title:
-            position_key = "diagram_window_position"
-        elif "Analysis" in self.title:
-            position_key = "ai_analysis_window_position"
-        elif "Tree" in self.title:
-            position_key = "tree_window_position"
-        elif "Map" in self.title:
-            position_key = "map_window_position"
-        else:
+        title_to_key = {
+            "Diagram": "diagram_window_position",
+            "Analysis": "ai_analysis_window_position",
+            "Tree": "tree_window_position",
+            "Map": "map_window_position",
+            "Misc": "misc_window_position",
+        }
+
+        # Use dict.get() for a clean lookup with a default (None if no match is found)
+        position_key = title_to_key.get(
+            next((key for key in title_to_key if key in self.title), None),
+        )
+        if position_key is None:
             return
 
         # Get the current window position
@@ -3820,6 +3876,7 @@ def _initialize_display_settings(self: ctk) -> None:
     self.diagramview_window = None
     self.map_in_progress = False
     self.mapview_window = None
+    self.miscview_window = None
     self.treeview_window = None
     self.outline = False
     self.font_table = {}
@@ -3845,6 +3902,7 @@ def _initialize_window_positions(self: ctk) -> None:
     self.color_window_position = ""
     self.diagram_window_position = ""
     self.map_window_position = ""
+    self.misc_window_position = ""
     # self.progressbar_window_position = "" # Uncomment if you decide to use this
     self.tree_window_position = ""
     self.window_position = None  # This one is generic, consider if it's needed

@@ -96,6 +96,7 @@ def store_windows(self: ctk) -> None:
         "mapview_window": "map_window_position",
         "progressbar_window": "progressbar_window_position",
         "apikey_window": "ai_apikey_window_position",
+        "miscview_window_position": "misc_window_position",
         "self": "window_position",
     }
 

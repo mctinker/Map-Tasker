@@ -157,12 +157,14 @@ VIEWLIMIT_HELP_TEXT = (
 )
 
 SEARCH_HELP_TEXT = (
-    "The 'Search' button will search for and highlight every instance of the string entered in the search box.\n\n"
+    "The 'Search' button will search for and highlight every instance of the string entered in the search box, starting at the top of the data.\n\n"
+    "The 'Search Here' button will search for and highlight every instance of the string entered in the search box, starting at the current screen.\n\n"
     "Hover over any of the highlighted matching strings to see all matches.\n\n"
     "The 'Next' and 'Prev' buttons will try to make the next and previous occurrence of the search string visible in the text view box, and highlight them in a different color.\n\n"
     "The accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\n"
     "When the end or beginning of the text view box is reached, the search will stop and a message will be displayed for several seconds.\n\n"
     "The 'Clear' button will clear the search results.\n\n"
+    "The 'Display Only' button will display in a miscellaneous window ONLY the matches from the search results.\n\n"
 )
 
 PPP_HELP_TEXT = (

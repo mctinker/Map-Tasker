@@ -68,10 +68,10 @@ def display_debug_info() -> None:
         )
         PrimeItems.output_lines.add_line_to_output(
             0,
-            f"Path: {os.getcwd()}",
+            f"Debug...Current Path: {os.getcwd()}",
             ["", "disabled_profile_color", FormatLine.add_end_span],
         )
-        print("Path:", os.getcwd())
+        print("Debug...Current Path:", os.getcwd())
     # print(
     #     "__file__={0:<35} | __name__={1:<25} | __package__={2:<25}".format(
     #         __file__, __name__, str(__package__)

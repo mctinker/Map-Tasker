@@ -51,6 +51,7 @@ def initialize_runtime_arguments() -> dict:
         "list_unnamed_items": False,  # List unnamed items
         "view_limit": 10000,  # Map view limit
         "map_window_position": "",  # Last-used map window position
+        "misc_window_position": "",  # Misc window position
         "outline": False,  # Outline Project/Profile?Task/Scene names
         "preferences": False,  # Display Tasker's preferences
         "pretty": False,  # Pretty up the output (takes many more output lines)

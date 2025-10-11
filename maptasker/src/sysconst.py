@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "8.3.2"
+VERSION = "9.0.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -132,6 +132,7 @@ ARGUMENT_NAMES = {
     "list_unnamed_items": "List Unnamed Items",
     "view_limit": "View Limit",
     "map_window_position": "Last Map Window Position",
+    "misc_window_position": "Last used Miscellaneous Window Position",
     "outline": "Display Configuration Outline",
     "preferences": "Display Tasker Preferences",
     "pretty": "Display Prettier Output",
@@ -160,6 +161,7 @@ SYSTEM_ARGUMENTS = [
     "ai_analysis_window_position",
     "ai_apikey_window_position",
     "map_window_position",
+    "misc_window_position",
     "progressbar_window_position",
     "guiview",
     "doing_diagram",
@@ -296,7 +298,9 @@ ANTHROPIC_MODELS = [
     "claude-3-7-sonnet-latest",
     "claude-3-5-haiku-latest",
     "claude-opus-4-0",
+    "claude-opus-4-1",
     "claude-sonnet-4-0",
+    "claude-sonnet-4-5",
 ]
 DEEPSEEK_MODELS = ["deepseek-chat"]
 GEMINI_MODELS = [

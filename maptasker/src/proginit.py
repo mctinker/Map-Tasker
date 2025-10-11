@@ -398,6 +398,7 @@ def start_up() -> dict:
     """
     # If debug mode, fire-up the log.
     if "-d" in sys.argv or "-debug" in sys.argv:
+        print("Debug turned on via startup argument")
         log_startup_values()
     logger.info(f"sys.argv{sys.argv!s}")
 

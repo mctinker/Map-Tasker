@@ -245,7 +245,7 @@ class MyGui(customtkinter.CTk):
         # CHG: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        self.event_handlers.map_event()
+        # self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
 
@@ -841,6 +841,7 @@ class MyGui(customtkinter.CTk):
             "color_window_position",
             "diagram_window_position",
             "map_window_position",
+            "misc_window_position",
             "progressbar_window_position",
             "tab_to_use",
             "tree_window_position",
@@ -1463,7 +1464,7 @@ class MyGui(customtkinter.CTk):
             data (list or dict, optional): List of data to be displayed in the view. Defaults to None.
 
         Returns:
-            View (object): Thwindow view.
+            View (object): The window view.
 
         Processing Logic:
             - Creates a new window if one does not exist.
@@ -1510,7 +1511,7 @@ class MyGui(customtkinter.CTk):
             )
 
         # Setup diagram view.
-        elif view_type == "diagram":
+        elif view_type in ("diagram", "misc"):
             # Display the data.
             if data:
                 view = CTkTextview(
@@ -3724,8 +3725,153 @@ class EventHandlers:
         action = view_actions.get(view_name, self.treeview_event)
         action()
 
+    def display_only_event(self: customtkinter.CTkTextview, textview: CTkTextview) -> None:
+        """
+        Searches the text in a given CTkTextview for matches and displays only those
+        matching lines in a separate popup window.
+
+        This function first executes a search (via self.search_event) and then
+        iterates through the found indices to extract the complete lines of text
+        containing the matches. The extracted lines are then concatenated and
+        presented to the user in a new popup window.
+
+        :param self: The instance of the main CTkTextview-like widget (which contains
+                     the search logic and access to the parent's selection items).
+        :type self: customtkinter.CTkTextview
+        :param textview: The specific CTkTextview widget whose content is being
+                         searched and whose text will be extracted.
+        :type textview: CTkTextview
+        :returns: None
+        :rtype: None
+        """
+        mygui = self.parent
+        # Search starting at the 'line' 1
+        self.search_event(textview, "1", list_only=True)
+        # If we got matches...
+        the_text = []
+        track_line_number = []
+        if mygui.items_for_selection["found"]["indecies"]:
+            # Go through each lione with a match and save it's contents
+            for line in mygui.items_for_selection["found"]["indecies"]:
+                line_details = line.split(".")
+                line_number = line_details[0]
+                # Don't do anything if we have already handled this line
+                if line_number in track_line_number:
+                    continue
+                track_line_number.append(line_number)
+                line_idx = f"{line_number}.0"
+                the_text.append(
+                    f"line {line_number}: {textview.textview_textbox.get(line_idx, line_idx + 'lineend')}",
+                )
+            the_bulk_data = "\n".join(the_text)
+        else:
+            # No hits
+            return
+
+        # Save the indecies since the call to display the data will clear them
+        saved_indecies = mygui.items_for_selection["found"]["indecies"]
+
+        # Set the window
+        if not mygui.misc_window_position:
+            mygui.misc_window_position = "1129x1044+698+145"
+
+        # Display the data
+        mygui.miscview = mygui.display_view("misc", the_bulk_data)
+
+        # Highlight the matches
+        tag_id = "high"
+        line_number = 1
+        search_string = mygui.search_input
+        highlight_color = make_hex_color(PrimeItems.colors_to_use["highlight_color"])
+        for _ in saved_indecies:
+            # Get the contents of a line in the misc window
+            content = mygui.miscview.textview_textbox.get(f"{line_number!s}.0", "end-1c")
+
+            # Look for and tag each occurrence of the search string
+            start_index = -1
+            count = 0
+            while True:
+                # 1. Find the next occurrence, starting the search one character after
+                #    the previously found index. The 'start' argument is optional.
+                start_index = content.lower().find(search_string, start_index + 1)
+
+                # 2. Bail out if there are no more occurrences of the search string
+                if start_index == -1:
+                    break
+
+                # 3. Process the occurrence
+                count += 1
+                end_index = start_index + len(search_string)
+                start_idx = f"{line_number}.{start_index}"
+                end_idx = f"{line_number}.{end_index}"
+                mygui.miscview.textview_textbox.tag_add(tag_id, start_idx, end_idx)
+
+            # Process next line
+            line_number += 1
+
+        # Now color it in.
+        mygui.miscview.textview_textbox.tag_config(
+            tag_id,
+            background=highlight_color,
+        )
+
+        # Catch window resizing
+        mygui.miscview.bind("<Configure>", mygui.miscview.on_resize)
+        mygui.miscview.bind("<Key>", mygui.miscview.ctrlevent)
+
+        # Add instructions
+        instruct = customtkinter.CTkLabel(
+            master=mygui.miscview,
+            text="Expand window as needed, then close it and re-run the 'Display Only' button.",
+            font=("", 14),
+            text_color="turquoise",
+            anchor="nw",
+            justify="left",
+        )
+        instruct.grid(row=0, column=0, padx=0, pady=0, sticky="nw")
+
+    def search_here_event(self: customtkinter.CTkTextview, textview: CTkTextview) -> None:
+        """
+        Determines the line number of the top-most visible line in the text widget
+        and then initiates a search event from that line.
+
+        This is useful for implementing a "search from current view" feature.4718760309435893
+        It uses the text widget's '@0,0' index to find the character index at the
+        top-left corner of the view, extracts the line number, and executes the
+        provided search callback.
+
+        :param self: The instance of the custom text view widget (CTkTextview)
+                     which contains the internal CTkTextbox.
+        :type self: ctk.CTkTextview
+        :param search_event: A callable function (usually a method) that performs
+                             the actual search operation. This function is executed
+                             after the top visible line number is determined.
+        :type search_event: object
+        :return: None
+        :rtype: None
+        """
+        # The '@x,y' index is used to get the character closest to the
+        # pixel coordinates (x, y). We use (0, 0) which is the top-left
+        # corner of the viewing area.
+        # dlineinfo('@x,y') returns a list of info for the line at that point.
+        # If the list is empty, no line information is available (e.g., widget is empty).
+
+        # 1. Get the character index for the top-left corner of the view.
+        # This will be in the format 'line.char' (e.g., '10.0')
+        top_index = textview.textview_textbox.index("@0,0")
+
+        # 2. The 'top_index' is a string like '10.0'. We only need the line number.
+        # The 'line' part of the index is the actual line number.
+        line_number = top_index.split(".")[0]
+
+        # 3. Display the result
+        # print(f"The current top visible line number is: {line_number}...{top_index}")
+
+        # Search starting at the 'line'
+        self.search_event(textview, line_number)
+
     # Search textbox event
-    def search_event(self: object, textview: CTkTextview) -> None:
+    def search_event(self: object, textview: CTkTextview, start_line: str = "1", list_only: bool = False) -> None:
         """
         Handles the search event in the text view box.
 
@@ -3742,8 +3888,9 @@ class EventHandlers:
         Returns:
             None
         """
+        self.parent.items_for_selection["found"] = {"indecies": []}
         # Start search at beginning
-        textview.search_current_line = "1.0"
+        textview.search_current_line = f"{start_line}.0"
         try:
             textview.search_indecies = []
         except AttributeError:
@@ -3757,6 +3904,7 @@ class EventHandlers:
 
         # Check if search_input is not empty
         if search_input:
+            self.parent.search_input = search_input
             # Determine the color to highlight the next/previous string in.
             if is_color_dark(PrimeItems.colors_to_use["background_color"]):
                 textview.search_color_text = "darkblue"
@@ -3784,6 +3932,9 @@ class EventHandlers:
                 for match in search_hits:
                     # Point to the actual line and position of the match.
                     text_line_num = match[0] + 1
+                    # Skip lines before our start line number.
+                    if text_line_num < int(start_line):
+                        continue
                     text_line_pos = match[1]
 
                     # Get the index and last-index for the match.
@@ -3796,14 +3947,19 @@ class EventHandlers:
                         textview.search_current_line = idx
                         first_time = False
 
-                    # Add the tag for highlighting the matches.
-                    textview.textview_textbox.tag_add("found", idx, lastidx)
+                    if not list_only:
+                        # Add the tag for highlighting the matches.
+                        textview.textview_textbox.tag_add("found", idx, lastidx)
 
-                    # Tag it so that it will get caught by 'click_text' for hover.
-                    textview.tag_items("found", f"Found: {search_input}   ")
+                        # Tag it so that it will get caught by 'click_text' for hover.
+                        textview.tag_items("found", f"Found: {search_input}   ")
 
                     # Add the list of matches to this entry in mygui.
                     self.parent.items_for_selection["found"]["indecies"] = textview.search_indecies
+
+                # If list only, just return wioth the hits in self.parent.items_for_selection["found"]["indecies"]
+                if list_only:
+                    return
 
                 # Mark located string by highlighting it.
                 textview.textview_textbox.tag_config(
@@ -4050,7 +4206,16 @@ class EventHandlers:
         view = getattr(self.parent, view_name)
         method(view, *args)
 
-    # Handlers for Search/Next/Prev/Clear and Toglle Word Wrap for each view.
+    # Handlers for Search/Next/Prev/Clear/Toggle Word Wrap/Display Only ...for each view.
+    def diagram_display_only_event(self) -> None:  # noqa: D102
+        self._handle_event("display_only_event", "diagramview")
+
+    def analysis_display_only_event(self) -> None:  # noqa: D102
+        self._handle_event("display_only_event", "analysisview")
+
+    def map_display_only_event(self) -> None:  # noqa: D102
+        self._handle_event("display_only_event", "mapview")
+
     def diagram_search_event(self) -> None:  # noqa: D102
         self._handle_event("search_event", "diagramview")
 
@@ -4059,6 +4224,15 @@ class EventHandlers:
 
     def analysis_search_event(self) -> None:  # noqa: D102
         self._handle_event("search_event", "analysisview")
+
+    def diagram_search_here_event(self) -> None:  # noqa: D102
+        self._handle_event("search_here_event", "diagramview")
+
+    def map_search_here_event(self) -> None:  # noqa: D102
+        self._handle_event("search_here_event", "mapview")
+
+    def analysis_search_here_event(self) -> None:  # noqa: D102
+        self._handle_event("search_here_event", "analysisview")
 
     def diagram_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
         self._handle_event("nextprev_search_event", "diagramview", search_next)

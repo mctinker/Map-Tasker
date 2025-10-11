@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import contextlib
+from tkinter import TclError
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
@@ -114,7 +115,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # Get rid of window
     MyGui.quit(user_input)
-    with contextlib.suppress(AttributeError):
+    with contextlib.suppress(AttributeError, TclError):
         user_input.textview.destroy()
     del MyGui
 

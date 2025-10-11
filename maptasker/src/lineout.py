@@ -477,8 +477,6 @@ class LineOut:
 
             return f'<span class="normtab"></span>{element}<br>'
 
-            # return f'<div <span class="normtab"></span>{element}</div><br>'
-
         if lvl == 1:
             # Start list
             return f"{element}\n"
