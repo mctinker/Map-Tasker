@@ -2,13 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.0.0] 12-Oct-2025
+## [9.0.1] ??-Oct-2025  # FIX
 
 ### Added
 
-- Added: Support for Tasker version 6.6.4-beta.
-- Added: 'Search Here' button has been added to the views, to begin the search at the current screen rather than at the top of the data.
-- Added: 'Display Only' button has been added to the views, to display in a new miscellaneous window only those lines that match the search string.
+- Added: The 'Display Only' window now provides hotlinks to the associated line in the data for quick access.
 
 ### Changed
 
@@ -16,16 +14,23 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed: 'print' statements are mistakenly displaying a list of directories at startup.
-- Fixed: Gemini full model list is missing.
-- Fixed: The text string '</div>' is found at the end of some Task actions in the Map view.
-- Fixed: Program 'TclError' error on exit if all of the windows have been closed.
+- Fixed:
 
 ### Known Issues
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [9.0.0] 12-Oct-2025
+
+- Added: Support for Tasker version 6.6.4-beta.
+- Added: 'Search Here' button has been added to the views, to begin the search at the current screen rather than at the top of the data.
+- Added: 'Display Only' button has been added to the views, to display in a new miscellaneous window only those lines that match the search string.
+- Fixed: 'print' statements are mistakenly displaying a list of directories at startup.
+- Fixed: Gemini full model list is missing.
+- Fixed: The text string '</div>' is found at the end of some Task actions in the Map view.
+- Fixed: Program 'TclError' error on exit if all of the windows have been closed.
 
 ## [8.3.2] 05-Oct-2025
 

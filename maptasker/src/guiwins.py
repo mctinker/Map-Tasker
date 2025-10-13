@@ -558,7 +558,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -2876,6 +2878,8 @@ class CTkTextview(ctk.CTkFrame):
 
             # Not new line.  Insert the text with appropriate spacing.
             else:
+                if debug:
+                    formatted_message = f"{line_num}:{formatted_message}"
                 char_position = self._insert_message(
                     line_num_str,
                     char_position,
@@ -3574,7 +3578,7 @@ class CTkHyperlinkManager:
             # Delete any previous hover tooltip.
             with contextlib.suppress(AttributeError):
                 destroy_hover_tooltip(self.hover_tooltip)
-            if tag.startswith("hyper-"):
+            if tag.startswith("hyper-") and self.links:
                 link = self.links[tag]
                 if link[0] in tasker_object:
                     # Add a hover text to the link entered of the name of the link.
@@ -3625,15 +3629,38 @@ class CTkHyperlinkManager:
         """
         for tag in self.text.tag_names(ctk.CURRENT):
             if tag.startswith("hyper-"):
-                link = self.links[tag]
-                if isinstance(link, list):
-                    # Go up one level: Remap single Project/Profile/Task
-                    action, name = link
-                    guiself = event.widget.master.master.root.master
-                    self.remap_single_item(action, name, guiself)
-                else:
-                    webbrowser.open(link)
-                return
+                if self.links:
+                    link = self.links[tag]
+                    if isinstance(link, list):
+                        # Go up one level: Remap single Project/Profile/Task
+                        action, name = link
+                        guiself = event.widget.master.master.root.master
+                        self.remap_single_item(action, name, guiself)
+                    else:
+                        webbrowser.open(link)
+                    return
+
+                # Misc view hyperlink...pick up the links from deep down
+                link = self.text.master.hyperlink.links[tag]
+                mygui = event.widget.master.master.root.master
+                textbox = mygui.textview.textview_textbox
+                line_number = link[1]
+                start_idx = f"{line_number}.0"
+                # Remove previous highlights
+                tagid = "misc_high"
+                textbox.tag_remove(tagid, "1.0", "end")
+                # Highlight the hyperlink target
+                textbox.tag_add("misc_high", start_idx, f"{line_number}.end")
+                # Now color it in.
+                textbox.tag_config("misc_high", background=make_hex_color(mygui.color_lookup["highlight_color"]))
+                textbox.see(start_idx)
+
+                # FIX
+                # Now bring the 'viewe' window to the front.  NOTE: This isn't working!
+                mygui.miscview_window.lower()
+                textbox.focus_set()
+                mygui.textview.focus_set()
+                textbox.lift()
 
     def remap_single_item(self, action: str, name: str, guiself: ctk) -> None:
         """
