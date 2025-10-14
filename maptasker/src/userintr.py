@@ -3745,31 +3745,31 @@ class EventHandlers:
         :rtype: None
         """
         mygui = self.parent
-        # 1- Add matches to a list of line.pos matches
-        # Search starting at the 'line' 1
+        # 1- Search for and add matches to a list of line.pos matches, starting ast line 1.
         self.search_event(textview, "1", list_only=True)
         # If we got matches...
         the_text = []
         track_line_number = []
-        if mygui.items_for_selection["found"]["indecies"]:
-            # Go through each lione with a match and save it's contents
-            for line in mygui.items_for_selection["found"]["indecies"]:
-                line_details = line.split(".")
-                line_number = line_details[0]
-                # Don't do anything if we have already handled this line
-                if line_number in track_line_number:
-                    continue
-                track_line_number.append(line_number)
-                line_idx = f"{line_number}.0"
-                the_text.append(
-                    f"line {line_number}: {textview.textview_textbox.get(line_idx, line_idx + 'lineend')}",
-                )
-            the_bulk_data = "\n".join(the_text)
-        else:
-            # No hits
+        search_results = mygui.items_for_selection["found"]["indecies"]
+        if not search_results:
             return
 
-        # Save the indecies since the call to display the data will clear them
+        # Go through each line with a match and save it's contents for each unique line number.
+        for line in mygui.items_for_selection["found"]["indecies"]:
+            line_details = line.split(".")
+            line_number = line_details[0]
+            # Don't do anything if we have already handled this line
+            if line_number in track_line_number:
+                continue
+            track_line_number.append(line_number)
+            line_idx = f"{line_number}.0"
+            the_text.append(
+                f"line {line_number}: {textview.textview_textbox.get(line_idx, line_idx + 'lineend')}",
+            )
+        # Save it in one big chunk.
+        the_bulk_data = "\n".join(the_text)
+
+        # Save the list of indecies since the call to display the data will clear the original list
         saved_indecies = mygui.items_for_selection["found"]["indecies"]
 
         # 2- Handle window specific details
@@ -3777,7 +3777,7 @@ class EventHandlers:
         if not mygui.misc_window_position:
             mygui.misc_window_position = "1129x1044+698+145"
 
-        # Display the data
+        # Display the data as one big chunk
         mygui.miscview = mygui.display_view("misc", the_bulk_data)
 
         # Define our hyperlink object
@@ -3796,6 +3796,7 @@ class EventHandlers:
         # Go through every match
         for line_pos in saved_indecies:
             reference_line = line_pos.split(".")[0]
+            # Bump our (misc) line number for each new unique line
             if reference_line not in track_line_number:
                 line_number += 1
 
@@ -3807,7 +3808,7 @@ class EventHandlers:
             position_to_highlight = str(int(line_pos.split(".")[1]) + line_num_reference_pos + 1)
             position_to_highlight_end = f"{int(position_to_highlight) + len(search_string)!s}"
 
-            # Add a hyperlink to the beginning of the line ('line xx:')
+            # Add a hyperlink to the beginning of the line ('line xx:') if not already done.
             if reference_line not in track_line_number:
                 track_line_number.append(reference_line)
                 tag_id = mygui.miscview.hyperlink.add(["misc", reference_line])
@@ -3838,7 +3839,7 @@ class EventHandlers:
         # Add instructions
         instruct = customtkinter.CTkLabel(
             master=mygui.miscview,
-            text="Expand window as needed, then close it and re-run the 'Display Only' button.\nLine numbers are hotlinks to the line into the data.",
+            text="Expand window as needed, then close it and re-run the 'Display Only' button.\nLeading line numbers (e.g. 'line 10:') are hotlinks to the specific line into the data.",
             font=("", 14),
             text_color="turquoise",
             anchor="nw",
@@ -4012,6 +4013,8 @@ class EventHandlers:
         textview.textview_textbox.tag_remove("found", "1.0", "end")
         textview.textview_textbox.tag_remove("next", "1.0", "end")
         textview.textview_textbox.tag_remove("inlist", "1.0", "end")
+        textview.textview_textbox.tag_remove("misc_high", "1.0", "end")
+        # Deal with diagram connectors
         if textview.textview_textbox.diagram_highlighted_connector:
             remove_tags_from_bars_and_names(textview)
             textview.textview_textbox.tag_config(

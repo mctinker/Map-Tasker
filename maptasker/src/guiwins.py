@@ -558,9 +558,7 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}"
-                    if len(line) > max_length
-                    else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -3655,12 +3653,12 @@ class CTkHyperlinkManager:
                 textbox.tag_config("misc_high", background=make_hex_color(mygui.color_lookup["highlight_color"]))
                 textbox.see(start_idx)
 
-                # FIX
-                # Now bring the 'viewe' window to the front.  NOTE: This isn't working!
+                # Now bring the 'viewe' window to the front.  A combination of one of these has got to work!
                 mygui.miscview_window.lower()
-                textbox.focus_set()
+                mygui.miscview_window.iconify()
+                mygui.textview.focus()
                 mygui.textview.focus_set()
-                textbox.lift()
+                mygui.textview.lift()
 
     def remap_single_item(self, action: str, name: str, guiself: ctk) -> None:
         """

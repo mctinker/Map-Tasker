@@ -50,6 +50,8 @@ def process_service(
     # Tasker icon default is "cust_notification"
     if service_value == "cust_notification":
         service_value = "Default"
+    elif "Google API Key" in output_service_name:
+        service_value = "Hidden"
 
     # Accessibility: parse value to get a list of settings
     elif service_name == "PREF_KEEP_ACCESSIBILITY_SERVICES_RUNNING":
@@ -58,7 +60,7 @@ def process_service(
         packages_end = [m.start() for m in re.finditer("}", service_value)]
         for number, position in enumerate(packages):
             package_names = f"{package_names}<br>{blank * 50}\
-                            {service_value[position + 14:packages_end[number]]}"
+                            {service_value[position + 14 : packages_end[number]]}"
         service_value = package_names
 
     # Add the service name to the output list

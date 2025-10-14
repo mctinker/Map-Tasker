@@ -7,14 +7,16 @@ All notable changes to this project will be documented in this file!
 ### Added
 
 - Added: The 'Display Only' window now provides hotlinks to the associated line in the data for quick access.
+- Added: Tasker version 6.6.6-beta is now supported.
+- Added: The 'Extra Trigger' Profile event is now recognized.
 
 ### Changed
 
-- Changed:
+- Changed: The 'Google API Key' Tasker preference value is now hidden in the output for security purposes.
 
 ### Fixed
 
-- Fixed:
+- Fixed: Too many spaces between lines in labels and TaskerNet descriptions.
 
 ### Known Issues
 
