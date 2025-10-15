@@ -512,12 +512,13 @@ class CTkTextview(ctk.CTkFrame):
         Args:
             the_data (list): The data to be processed and inserted.
         """
+        mygui = self.master.master
         # Insert the text with our new message into the text box.
         if type(the_data) == str:
             the_data = the_data.split("\n")
 
         # Setup to save items (Projects, Profiles, Tasks, and Scenes)
-        self.master.master.items_for_selection = {}  # MyGui
+        mygui.items_for_selection = {}  # MyGui
 
         # Process list data (list of lines): diagram view.
         if not isinstance(the_data, dict):
@@ -558,7 +559,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -599,6 +602,11 @@ class CTkTextview(ctk.CTkFrame):
             the_data (list): A list of strings, where each string represents a line
                              of data to be processed for diagram display.
         """
+        guiview = self.master.master
+        # Get rid of misc window if it is displayed
+        with contextlib.suppress(AttributeError):
+            guiview.misc_window.destroy()
+
         # -------------------------------------------------------------------------
         # Go thru the data:
         #    - Add tags (aka highlight) for Project/Profile/Task name colors
@@ -614,7 +622,6 @@ class CTkTextview(ctk.CTkFrame):
             )
 
         # Configure tag colors for the Tasker objects: Project, Profile, Task, Scene
-        guiview = self.master.master
         # In order for the map to work, we need to ensure that we have the colors defined.
         if not getattr(guiview, "color_lookup", None):
             guiview.color_lookup = set_color_mode(guiview.appearance_mode)
@@ -1063,7 +1070,7 @@ class CTkTextview(ctk.CTkFrame):
                 1,
                 0,
                 0,
-                (730, 0),
+                (1215, 0),
                 5,
                 "nw",
             )
@@ -1090,7 +1097,7 @@ class CTkTextview(ctk.CTkFrame):
                 1,
                 0,
                 0,
-                (815, 0),
+                (1215, 0),
                 5,
                 "nw",
             )
@@ -2876,6 +2883,8 @@ class CTkTextview(ctk.CTkFrame):
 
             # Not new line.  Insert the text with appropriate spacing.
             else:
+                if debug:
+                    formatted_message = f"{line_num}:{formatted_message}"
                 char_position = self._insert_message(
                     line_num_str,
                     char_position,
@@ -3574,7 +3583,7 @@ class CTkHyperlinkManager:
             # Delete any previous hover tooltip.
             with contextlib.suppress(AttributeError):
                 destroy_hover_tooltip(self.hover_tooltip)
-            if tag.startswith("hyper-"):
+            if tag.startswith("hyper-") and self.links:
                 link = self.links[tag]
                 if link[0] in tasker_object:
                     # Add a hover text to the link entered of the name of the link.
@@ -3625,15 +3634,57 @@ class CTkHyperlinkManager:
         """
         for tag in self.text.tag_names(ctk.CURRENT):
             if tag.startswith("hyper-"):
-                link = self.links[tag]
-                if isinstance(link, list):
-                    # Go up one level: Remap single Project/Profile/Task
-                    action, name = link
-                    guiself = event.widget.master.master.root.master
-                    self.remap_single_item(action, name, guiself)
-                else:
-                    webbrowser.open(link)
-                return
+                if self.links:
+                    link = self.links[tag]
+                    if isinstance(link, list):
+                        # Go up one level: Remap single Project/Profile/Task
+                        action, name = link
+                        guiself = event.widget.master.master.root.master
+                        self.remap_single_item(action, name, guiself)
+                    else:
+                        webbrowser.open(link)
+                    return
+
+                # Misc view hyperlink...pick up the links from deep down
+                link = self.text.master.hyperlink.links[tag]
+                mygui = event.widget.master.master.root.master
+                try:
+                    textbox = mygui.textview.textview_textbox
+                except AttributeError:
+                    # The target textbox is gone.  Maybe it is an analysis window
+                    try:
+                        textbox = mygui.analysisview.textview_textbox
+                    except AttributeError:
+                        # The target textbox is gone altogether.
+                        textbox.destroy()
+                        mygui.miscview_window.destroy()
+                        return
+
+                line_number = link[1]
+                start_idx = f"{line_number}.0"
+
+                # Remove previous highlights
+                tagid = "misc_high"
+                try:
+                    textbox.tag_remove(tagid, "1.0", "end")
+                except TclError:
+                    # The target textbox is gone.
+                    textbox.destroy()
+                    mygui.miscview_window.destroy()
+                    return
+                # Highlight the hyperlink target
+                textbox.tag_add("misc_high", start_idx, f"{line_number}.end")
+                # Now color it in.
+                textbox.tag_config("misc_high", background=make_hex_color(mygui.color_lookup["highlight_color"]))
+                textbox.see(start_idx)
+
+                # Now bring the 'viewe' window to the front.  A combination of one of these has got to work!
+                with contextlib.suppress(AttributeError):
+                    mygui.miscview_window.lower()
+                    mygui.miscview_window.iconify()
+                    mygui.textview.focus()
+                    mygui.textview.focus_set()
+                    mygui.textview.lift()
 
     def remap_single_item(self, action: str, name: str, guiself: ctk) -> None:
         """
@@ -4982,6 +5033,8 @@ def get_rid_of_windows_and_exit(self, delete_all: bool = True) -> None:  # noqa:
             self.mapview_window.destroy()
         if self.ai_apikey_window is not None:
             self.ai_apikey_window.destroy()
+        if self.miscview_window is not None:
+            self.miscview_window.destroy()
     self.quit()
 
 

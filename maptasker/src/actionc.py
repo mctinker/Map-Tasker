@@ -2333,27 +2333,21 @@ action_codes = {
         category="30",
         canfail="False",
     ),
+    "198s": ActionCode(
+        redirect="",
+        args=[
+            ArgumentCode(arg_id="6", arg_required=True, arg_name="Invert", arg_type="3", arg_eval="Invert"),
+        ],
+        name="Shizuki Available",
+        category="",
+        canfail="",
+    ),
     "198t": ActionCode(
         redirect="",
         args=[],
         name="Device Info Settings",
         category="30",
         canfail="False",
-    ),
-    "198s": ActionCode(
-        redirect="",
-        args=[
-            ArgumentCode(
-                arg_id="6",
-                arg_required=True,
-                arg_name="Invert",
-                arg_type="3",
-                arg_eval="Invert",
-            ),
-        ],
-        name="Shizuki Available",
-        category="",
-        canfail="",
     ),
     "199558826t": ActionCode(
         redirect="1040876951t",
@@ -2845,6 +2839,13 @@ action_codes = {
             ArgumentCode(arg_id="4", arg_required=False, arg_name="", arg_type="0", arg_eval=["e", "Other"]),
         ],
         name="Calendar Changed",
+        category="",
+        canfail="",
+    ),
+    "2103e": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="Extra Trigger",
         category="",
         canfail="",
     ),
@@ -6989,6 +6990,7 @@ action_codes = {
                 arg_type="5",
                 arg_eval="Output Variables",
             ),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="Profile", arg_type="1", arg_eval=""),
         ],
         name="Work Profile/Private Space",
         category="104",
@@ -7738,6 +7740,23 @@ action_codes = {
         category="60",
         canfail="True",
     ),
+    "474t": ActionCode(
+        redirect="",
+        args=[
+            ArgumentCode(arg_id="0", arg_required=True, arg_name="Code", arg_type="1", arg_eval=", Code"),
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="Return", arg_type="1", arg_eval=", Return"),
+            ArgumentCode(
+                arg_id="2",
+                arg_required=True,
+                arg_name="Structure Output (JSON, etc)",
+                arg_type="3",
+                arg_eval=", Structure Output (JSON, etc)",
+            ),
+        ],
+        name="Java Code",
+        category="35",
+        canfail="True",
+    ),
     "475t": ActionCode(
         redirect="",
         args=[
@@ -8065,8 +8084,8 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Intensity Pattern=",
             ),
-            ArgumentCode(arg_id="13", arg_required=True, arg_name="Live Update", arg_type="3", arg_eval=""),
-            ArgumentCode(arg_id="14", arg_required=False, arg_name="Short Critical Test", arg_type="1", arg_eval=""),
+            ArgumentCode(arg_id="13", arg_required=False, arg_name="Live Update", arg_type="3", arg_eval=""),
+            ArgumentCode(arg_id="14", arg_required=False, arg_name="Short Critical Text", arg_type="1", arg_eval=""),
             ArgumentCode(arg_id="15", arg_required=False, arg_name="Group", arg_type="1", arg_eval=""),
         ],
         name="Notify",

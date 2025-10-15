@@ -3745,73 +3745,90 @@ class EventHandlers:
         :rtype: None
         """
         mygui = self.parent
-        # Search starting at the 'line' 1
+        # 1- Search for and add matches to a list of line.pos matches, starting ast line 1.
         self.search_event(textview, "1", list_only=True)
         # If we got matches...
         the_text = []
         track_line_number = []
-        if mygui.items_for_selection["found"]["indecies"]:
-            # Go through each lione with a match and save it's contents
-            for line in mygui.items_for_selection["found"]["indecies"]:
-                line_details = line.split(".")
-                line_number = line_details[0]
-                # Don't do anything if we have already handled this line
-                if line_number in track_line_number:
-                    continue
-                track_line_number.append(line_number)
-                line_idx = f"{line_number}.0"
-                the_text.append(
-                    f"line {line_number}: {textview.textview_textbox.get(line_idx, line_idx + 'lineend')}",
-                )
-            the_bulk_data = "\n".join(the_text)
-        else:
-            # No hits
+        search_results = mygui.items_for_selection["found"]["indecies"]
+        if not search_results:
             return
 
-        # Save the indecies since the call to display the data will clear them
+        # Go through each line with a match and save it's contents for each unique line number.
+        for line in mygui.items_for_selection["found"]["indecies"]:
+            line_details = line.split(".")
+            line_number = line_details[0]
+            # Don't do anything if we have already handled this line
+            if line_number in track_line_number:
+                continue
+            track_line_number.append(line_number)
+            line_idx = f"{line_number}.0"
+            the_text.append(
+                f"line {line_number}: {textview.textview_textbox.get(line_idx, line_idx + 'lineend')}",
+            )
+        # Save it in one big chunk.
+        the_bulk_data = "\n".join(the_text)
+
+        # Save the list of indecies since the call to display the data will clear the original list
         saved_indecies = mygui.items_for_selection["found"]["indecies"]
 
+        # 2- Handle window specific details
         # Set the window
         if not mygui.misc_window_position:
             mygui.misc_window_position = "1129x1044+698+145"
 
-        # Display the data
+        # Display the data as one big chunk
         mygui.miscview = mygui.display_view("misc", the_bulk_data)
 
-        # Highlight the matches
-        tag_id = "high"
-        line_number = 1
+        # Define our hyperlink object
+        mygui.miscview.hyperlink = CTkHyperlinkManager(
+            mygui.textbox,
+            text_color=get_appropriate_color(mygui, "blue"),
+        )
+
+        # 3- Highlight the matches
+        line_number = 0
         search_string = mygui.search_input
-        highlight_color = make_hex_color(PrimeItems.colors_to_use["highlight_color"])
-        for _ in saved_indecies:
+        highlight_color = make_hex_color(mygui.color_lookup["highlight_color"])
+        track_line_number = []
+        highlight_tag_id = "highlight"
+
+        # Go through every match
+        for line_pos in saved_indecies:
+            reference_line = line_pos.split(".")[0]
+            # Bump our (misc) line number for each new unique line
+            if reference_line not in track_line_number:
+                line_number += 1
+
             # Get the contents of a line in the misc window
-            content = mygui.miscview.textview_textbox.get(f"{line_number!s}.0", "end-1c")
+            content = mygui.miscview.textview_textbox.get(f"{line_number!s}.0", f"{line_number}.end")
+            # Find the 'line nn:' at the front of the line, so that we can make it a hyperlink
+            line_num_reference_pos = content.find(":") + 1
+            line_num_reference = content[:line_num_reference_pos]
+            position_to_highlight = str(int(line_pos.split(".")[1]) + line_num_reference_pos + 1)
+            position_to_highlight_end = f"{int(position_to_highlight) + len(search_string)!s}"
 
-            # Look for and tag each occurrence of the search string
-            start_index = -1
-            count = 0
-            while True:
-                # 1. Find the next occurrence, starting the search one character after
-                #    the previously found index. The 'start' argument is optional.
-                start_index = content.lower().find(search_string, start_index + 1)
+            # Add a hyperlink to the beginning of the line ('line xx:') if not already done.
+            if reference_line not in track_line_number:
+                track_line_number.append(reference_line)
+                tag_id = mygui.miscview.hyperlink.add(["misc", reference_line])
+                # We need to delete and thern re-add the 'line nn:' to effectively replace it.
+                mygui.miscview.textview_textbox.delete(
+                    f"{line_number}.0",
+                    f"{line_number}.{line_num_reference_pos}",
+                )
+                mygui.miscview.textview_textbox.insert(f"{line_number}.0", line_num_reference, tag_id)
 
-                # 2. Bail out if there are no more occurrences of the search string
-                if start_index == -1:
-                    break
-
-                # 3. Process the occurrence
-                count += 1
-                end_index = start_index + len(search_string)
-                start_idx = f"{line_number}.{start_index}"
-                end_idx = f"{line_number}.{end_index}"
-                mygui.miscview.textview_textbox.tag_add(tag_id, start_idx, end_idx)
-
-            # Process next line
-            line_number += 1
+            # Highlight the match
+            mygui.miscview.textview_textbox.tag_add(
+                highlight_tag_id,
+                f"{line_number}.{position_to_highlight}",
+                f"{line_number}.{position_to_highlight_end}",
+            )
 
         # Now color it in.
         mygui.miscview.textview_textbox.tag_config(
-            tag_id,
+            highlight_tag_id,
             background=highlight_color,
         )
 
@@ -3822,7 +3839,7 @@ class EventHandlers:
         # Add instructions
         instruct = customtkinter.CTkLabel(
             master=mygui.miscview,
-            text="Expand window as needed, then close it and re-run the 'Display Only' button.",
+            text="Expand window as needed, then close it and re-run the 'Display Only' button.\nLeading line numbers (e.g. 'line 10:') are hotlinks to the specific line into the data.",
             font=("", 14),
             text_color="turquoise",
             anchor="nw",
@@ -3996,6 +4013,8 @@ class EventHandlers:
         textview.textview_textbox.tag_remove("found", "1.0", "end")
         textview.textview_textbox.tag_remove("next", "1.0", "end")
         textview.textview_textbox.tag_remove("inlist", "1.0", "end")
+        textview.textview_textbox.tag_remove("misc_high", "1.0", "end")
+        # Deal with diagram connectors
         if textview.textview_textbox.diagram_highlighted_connector:
             remove_tags_from_bars_and_names(textview)
             textview.textview_textbox.tag_config(

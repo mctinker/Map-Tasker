@@ -385,14 +385,19 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 # End-of-label adjustments
                 updated_msg, end_of_label = _handle_label_end(msg, end_of_label, value, inner_num)
                 # Insert newline if needed before non-html text after html text.  Ignore it if it is the first newline
-                html_starter = starts_with_html(message)
+                html_starter = starts_with_html(msg)
                 if not html_starter and updated_msg == "" and not message.startswith("<a href"):
                     # If 3 "" in a row, insert a newline.
                     consective_blank_lines += 1
-                    if prev_msg != "" or consective_blank_lines == 3:
-                        if consective_blank_lines == 3:
+                    if prev_msg != "" or consective_blank_lines == 2:
+                        if consective_blank_lines == 2:
                             consective_blank_lines = 0
-                        char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
+                            char_position, spacing, line_num, start_idx = _insert_newline(
+                                self,
+                                start_idx,
+                                value,
+                                line_num,
+                            )
                         prev_msg = ""
                     continue
 
@@ -656,9 +661,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h5-text"
             else:
                 # Decrease the heading number by 1 (making the text "bigger")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                value["highlights"][entry_to_update] = (
+                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                )
 
         elif "<small>" in message:
             # Save current heading
@@ -673,9 +678,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h7-text"
             else:
                 # Increase the heading number by 1 (making the text "smaller")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                value["highlights"][entry_to_update] = (
+                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                )
 
         elif "</big>" in message or "</small>" in message:
             if message.startswith(("</big>", "</small>")):
