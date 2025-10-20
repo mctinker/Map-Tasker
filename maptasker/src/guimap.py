@@ -471,7 +471,9 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
             text_list[0] = f"Task {text_list[0][break_pos + 1 :].replace('</a>', '')}"
             remove_html = False
         else:
-            rutroh_error(f"guimap error: '{text_list[0]}' missing '>'!")
+            rutroh_error(
+                f"guimap error: '{text_list[0]}' missing '>' in line {line_num}: {output_lines[line_num]['text']}!",
+            )
 
     # Cleanup all of the text elements.
     new_text_list = [
@@ -564,7 +566,7 @@ def process_color_string(line: str, color_pos: int) -> tuple:
     """
     temp = line[color_pos:].split('"')
     if len(temp) > 1:
-        return temp[1].split(), temp
+        return temp[1].split(), temp  # split() splits at white-space (spaces, tabs, newlines)
     return [], temp
 
 
@@ -578,6 +580,13 @@ def extract_working_text(temp: list) -> str:
     Returns:
         str: The extracted working text, with double newlines replaced by single newlines.
     """
+    # If this is a hotlink reference, then the text string is a bit more complex to extract.
+    # Only if it is not a goto href and there is a 4th element in temp.  Yes, very unique!
+    if "<a href=" in temp[2] and "<a href='#'>" not in temp[2] and len(temp) >= 5:
+        first_part_end_pos = temp[2].find("<a href")
+        first_part = temp[2][1:first_part_end_pos]
+        second_par = temp[4]
+        return f"{first_part}{second_par}"
     if temp[2].startswith("><h2><span class=") or temp[2].startswith("><span class="):
         return temp[4].replace("\n\n", "\n")
     return temp[2].replace("\n\n", "\n")
@@ -616,7 +625,6 @@ def extract_highlights(working_text: str, highlight_tags: list) -> list:
             work_name = working_text.split(tag)
             highlight_name = work_name[1].split(end_tag)[0]
             highlights.append(f"{style},{highlight_name}")
-
     return highlights
 
 
@@ -867,12 +875,13 @@ def additional_formatting(
     line = line.replace("&#9940;", "⛔")
     line = line.replace("&#11013;", "⫷⇦") if "Entry" in line else line.replace("&#11013;", "⇨⫸")
 
-    output_lines[line_num] = {"text": [], "color": []}
+    output_lines[line_num] = {"text": [], "color": [], "highlights": []}
 
     # Capture any text before the first color tags
     color_location = line.find("_color")
     if color_location != -1 and line.startswith("&nbsp;") and "<span class=" in line:
         output_lines = capture_front_text(output_lines, line, line_num)
+        output_lines[line_num]["highlights"] = [""]
 
     # Build coloring and highlights
     if "<span class=" in line and "_color" in line:
@@ -909,8 +918,6 @@ def additional_formatting(
 
     # Cleanup the line
     output_lines = cleanup_text_elements(output_lines, line_num, remove_html)
-
-    # Fix labels
     for text_num, temp in enumerate(output_lines[line_num]["text"]):
         if "...with label:" in temp:
             output_lines[line_num]["text"][text_num] = output_lines[line_num]["text"][text_num].replace(
@@ -1138,8 +1145,10 @@ def process_html_lines(
         # Handle labels and TaskerNet descriptions/labels with html in them.
         # The indicator ('text-box) might be at the end of a Task action.
         if "text-box" in line and ".text-box" not in line:
+            # Reset our insertion point since one or more lines may have been removed.
+            insert_key = next(reversed(output_lines))
             # See if additional_formatting added junk and remove it if so.
-            if output_lines[insert_key]["text"][0] == "     <div class=":
+            if output_lines[insert_key]["text"] and output_lines[insert_key]["text"][0] == "     <div class=":
                 del output_lines[insert_key]
             # Go process the html in label/description
             lines_to_skip = process_label_html(lines, output_lines, line_num, spacing)

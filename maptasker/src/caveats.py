@@ -38,7 +38,7 @@ def display_caveats() -> None:
             " converted to '{' and '}' respectively.\n"
         ),
         (
-            "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+            "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.  Referenced videos are not supported.\n"
         ),
     ]
 

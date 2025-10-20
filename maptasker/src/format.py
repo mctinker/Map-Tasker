@@ -166,7 +166,6 @@ class HTMLTextFormatter(HTMLParser):
         # Handle the <style> tag
         if tag == "style":
             self.is_in_style = True
-            # self._add_segment("<style>")
             return
 
         # Handle the <pre> tag
@@ -199,7 +198,7 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_italic"] = True
 
         # Handle bold tag
-        elif tag == "b":
+        elif tag in ("b", "strong"):
             self.current_styles["is_bold"] = True
 
         # Handle anchor (link) tags
@@ -265,6 +264,24 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_h5"] = True
         elif tag == "h6":
             self.current_styles["is_h6"] = True
+        elif tag == "title":
+            end_title = self.rawdata.find("</title>", self.offset)
+            if end_title != -1:
+                self._add_segment(f"Title: {self.rawdata[self.offset + 7 : end_title]}")
+        elif tag == "legend":
+            end_legend = self.rawdata.find("</legend>", self.offset)
+            if end_legend != -1:
+                self.current_styles["is_italic"] = True
+        elif tag == "figcaption":
+            end_caption = self.rawdata.find("</figcaption>", self.offset)
+            if end_caption != -1:
+                self.current_styles["is_italic"] = True
+        elif tag == "hr":
+            self._add_segment("<hr>")
+
+        # Tags to ignore
+        elif tag in ("tbody", "body", "html", "fieldset", "meta", "head", "figure"):
+            return
         # Unrecognized tag
         else:
             self.handle_unknown_starttag(tag, attrs)
@@ -322,7 +339,7 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_italic"] = False
 
         # Revert bold tag
-        elif tag == "b":
+        elif tag in ("b", "strong"):
             self.current_styles["is_bold"] = False
 
         # Revert anchor tags
@@ -378,7 +395,21 @@ class HTMLTextFormatter(HTMLParser):
         elif tag == "small":
             self._add_segment("</small>")
         # End tags to ignore
-        elif tag in ("br", "h"):
+        elif tag in (
+            "br",
+            "h",
+            "img",
+            "tbody",
+            "head",
+            "body",
+            "html",
+            "fieldset",
+            "meta",
+            "title",
+            "legend",
+            "figure",
+            "figcaption",
+        ):
             return
         # Unrecognized tag
         else:
@@ -412,6 +443,7 @@ class HTMLTextFormatter(HTMLParser):
         other methods. Prints a message for debugging.
         """
         rutroh_error(f"DEBUG: Unrecognized start tag found: <{tag}>")
+        self.handle_data(f"HTML tag '{tag}' not yet mapped")
 
     def handle_unknown_endtag(self, tag: str) -> None:
         """
@@ -419,6 +451,7 @@ class HTMLTextFormatter(HTMLParser):
         other methods. Prints a message for debugging.
         """
         rutroh_error(f"DEBUG: Unrecognized end tag found: </{tag}>")
+        self.handle_data(f"HTML tag '{tag}' not yet mapped")
 
     def handle_entityref(self, name: str) -> None:
         """

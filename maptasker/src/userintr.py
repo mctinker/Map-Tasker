@@ -292,6 +292,7 @@ class MyGui(customtkinter.CTk):
         if self.first_time:
             self.all_messages = {}
         self.color_lookup = {}  # Setup default dictionary as empty list
+        self.saved_backgfround_color = "#3e1414"
         self.font = OUTPUT_FONT
         self.gui = True
         self.color_row = 4
@@ -1036,6 +1037,9 @@ class MyGui(customtkinter.CTk):
                         "turquoise",
                     )
 
+            # Save our background color for later reuse
+            self.saved_background_color = make_hex_color(self.color_lookup.get("background_color"))
+
     def extract_settings(self, temp_args: dict) -> None:
         """
         Extract settings from arguments dictionary
@@ -1057,7 +1061,7 @@ class MyGui(customtkinter.CTk):
                 # Start log if debug
                 if key == "debug" and value:
                     log_startup_values()
-                # Now display the setting and act on it if neccesary.
+                # Now display the setting and act on it if necessary.
                 if new_message := self.restore_display(key, value):
                     self.display_message_box(f"{new_message}\n", "Green")
 
@@ -1895,6 +1899,9 @@ class EventHandlers:
         else:  # Empty?
             the_view.display_message_box("No settings file found.", "Orange")
 
+        # Save our background color for later reuse
+        the_view.saved_background_color = make_hex_color(the_view.color_lookup.get("background_color"))
+
     # Process the 'Backup' IP Address/port/file location
     def get_xml_from_android_event(self) -> None:
         # Set up default values
@@ -2345,6 +2352,8 @@ class EventHandlers:
             - Destroys color change window."""
         the_view = self.parent
         PrimeItems.colors_to_use = set_color_mode(the_view.appearance_mode)
+        # Save our background color for later reuse
+        the_view.saved_background_color = make_hex_color(PrimeItems.colors_to_use.get("background_color"))
         the_view.color_lookup = {}
         the_view.display_message_box(
             "Tasker items set back to their default colors.",
@@ -2496,6 +2505,8 @@ class EventHandlers:
         the_view.appearance_mode_optionmenu.set(the_view.appearance_mode.capitalize())
         if not the_view.extract_in_progress:
             the_view.color_lookup = set_color_mode(the_view.appearance_mode)
+            # Save our background color for later reuse
+            the_view.saved_background_color = make_hex_color(the_view.color_lookup.get("background_color"))
         the_view.display_message_box(
             "Appearance mode set to " + the_view.appearance_mode.capitalize(),
             "Green",
@@ -3649,6 +3660,8 @@ class EventHandlers:
             # In order for the map to work, we need to ensure that we have the colors defined.
             if not guiview.color_lookup:
                 guiview.color_lookup = set_color_mode(guiview.appearance_mode)
+                # Save our background color for later reuse
+                guiview.saved_background_color = make_hex_color(guiview.color_lookup.get("background_color"))
 
             # Now do the map.
             guiview.remapit(clear_names=True)
@@ -4019,9 +4032,7 @@ class EventHandlers:
             remove_tags_from_bars_and_names(textview)
             textview.textview_textbox.tag_config(
                 textview.textview_textbox.diagram_highlighted_connector,
-                background=make_hex_color(
-                    textview.master.master.color_lookup["background_color"],
-                ),
+                background=textview.saved_background_color,
             )
             textview.textview_textbox.diagram_highlighted_connector = ""
         # Clear the search input field.
