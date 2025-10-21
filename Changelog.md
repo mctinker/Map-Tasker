@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: List items in TaskerNet descriptions are not formatted properly.
 - Fixed: Subtle errors in data mapping are going undetected.
+- Fixed: Diagram view is using the wrong background color if the font is not 'Courier'
 
 ### Known Issues
 
