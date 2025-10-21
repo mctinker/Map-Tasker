@@ -2636,6 +2636,10 @@ class EventHandlers:
             # Okay, plug in the selected color for the selected named item
             the_view.event_handlers.extract_color_from_event(color, color_selected_item)
 
+            if color_selected_item == "Background":
+                # Save our background color for later reuse
+                the_view.saved_background_color = make_hex_color(the_view.color_lookup.get("background_color"))
+
             # Destroy previous label and display the color as a label.
             with contextlib.suppress(Exception):
                 the_view.color_change.destroy()

@@ -649,6 +649,11 @@ class CTkTextview(ctk.CTkFrame):
                 font=("Courier New", 12),
                 fg_color=self.master.master.saved_background_color,
             )
+        else:
+            self.textview_textbox.configure(
+                self,
+                fg_color=self.master.master.saved_background_color,
+            )
 
         # Add connector tags so they can be highlighted when clicked.
         self.add_connector_tags(self.diagram_connectors)
