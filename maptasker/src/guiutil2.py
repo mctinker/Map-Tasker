@@ -338,9 +338,6 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     start_idx = f"{line_num}.0"
     begin_box = start_idx
 
-    # Background color for box
-    bg_color = make_hex_color(mygui.color_lookup["background_color"])
-
     for num, value in enumerate(all_values):
         spacing = value["spacing"] if num == 0 else 0
         spacer_newline = value["spacing"]
@@ -355,17 +352,19 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
             # Modify line as needed and setup the starting index
             clean_message = _clean_message(self, message, value, inner_num)
+            clean_message = clean_message.replace("\n\n\n\n", "\n\n")
             start_idx = f"{line_num}.{char_position}"
 
-            # Handle empty/newline message
-            if not clean_message or clean_message == "\n\n":
+            # Handle empty/newline message, but only if it isn't html of some sort.
+            if (not clean_message and not message.startswith("<")) or clean_message == "\n\n":
                 char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
                 continue
 
             # Handle multi-line messages
             all_messages = clean_message.split("\n")
-            consective_blank_lines = 0
             for msg_num, msg in enumerate(all_messages):
+                if "Check out" in msg:
+                    print("bingo")
                 # Skip or process special content
                 if lines_to_skip > 0:
                     lines_to_skip -= 1
@@ -378,27 +377,68 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     continue
                 if msg in ("<p>", "</a>"):
                     continue
+                if msg == "<hr>":  # Horizontal line
+                    width = int(self.textview_textbox.cget("width"))
+                    hr_line = "―" * (width - 2)  # or use "-" or "—"
+                    self.textview_textbox.insert("insert", hr_line + "\n")
+                    continue
+                # Handle start and end lists
+                if msg == "<ul>":
+                    ordered_list = False
+                    char_position, spacing, line_num, start_idx = _insert_newline(
+                        self,
+                        start_idx,
+                        value,
+                        line_num,
+                    )
+                    continue
+                if msg == "<ol>":
+                    ordered_list = True
+                    ordered_count = 0
+                    char_position, spacing, line_num, start_idx = _insert_newline(
+                        self,
+                        start_idx,
+                        value,
+                        line_num,
+                    )
+                    continue
+                if msg in {"</ul>", "</ol>"}:
+                    ordered_list = False
+                    prev_msg = msg
+                    continue
 
                 # Handle TaskerNet description
                 msg, its_a_label = _handle_taskernet_description(msg, its_a_label)  # noqa: PLW2901
 
                 # End-of-label adjustments
                 updated_msg, end_of_label = _handle_label_end(msg, end_of_label, value, inner_num)
-                # Insert newline if needed before non-html text after html text.  Ignore it if it is the first newline
-                html_starter = starts_with_html(msg)
-                if not html_starter and updated_msg == "" and not message.startswith("<a href"):
-                    # If 3 "" in a row, insert a newline.
-                    consective_blank_lines += 1
-                    if prev_msg != "" or consective_blank_lines == 2:
-                        if consective_blank_lines == 2:
-                            consective_blank_lines = 0
-                            char_position, spacing, line_num, start_idx = _insert_newline(
-                                self,
-                                start_idx,
-                                value,
-                                line_num,
-                            )
-                        prev_msg = ""
+
+                # Handle list items
+                if "<li>" in updated_msg:
+                    if ordered_list:
+                        ordered_count += 1
+                        updated_msg = updated_msg.replace("<li>", f"{ordered_count!s}. ")
+                    else:
+                        updated_msg = updated_msg.replace("<li>", "* ")
+                updated_msg = updated_msg.replace("</li>", "")
+
+                # Insert newline if needed before non-html text after html text.
+                html_starter = starts_with_html(updated_msg)
+
+                if (
+                    not html_starter
+                    and (updated_msg in {"", "       * "})
+                    and not message.startswith("<a href")
+                    and prev_msg
+                ) or (not updated_msg and prev_msg == "</ul>"):
+                    # Insert the new line
+                    char_position, spacing, line_num, start_idx = _insert_newline(
+                        self,
+                        start_idx,
+                        value,
+                        line_num,
+                    )
+                    prev_msg = ""
                     continue
 
                 # Handle list items and get rid of html artifacts
@@ -414,13 +454,16 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     between_line_spacing,
                     start_idx,
                     char_position,
-                    bg_color,
+                    mygui.saved_background_color,
                     value,
                     inner_num,
                 )
                 # Debug code to find what text is being inserted
                 # if "ChatGPT API" in msg or "The" in msg:  # --- IGNORE ---
                 #     last_line = self.textview_textbox.get("end-1line", "end")
+                # Ensure that if we are adding an empty message, our starting position is at 0
+                if updated_msg == "":
+                    char_position = 0
 
                 # Update starting index
                 number_of_inserted_lines += 1
@@ -459,7 +502,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
         begin_box,
         line_num,
         max_msg_len,
-        bg_color,
+        mygui.saved_background_color,
         its_a_label,
         minimum_space,
     )
@@ -467,7 +510,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     # Insert newline after the label
     self.textview_textbox.insert(f"{line_num}.0", "\n", "bg_color")
     line_num += 1
-    self.textview_textbox.tag_config("bg_color", background=bg_color)
+    self.textview_textbox.tag_config("bg_color", background=mygui.saved_background_color)
 
     # Reset state for next draw
     self.draw_box = {"all_values": [], "start_idx": None, "end_idx": None, "spacing": 0, "end": False}
@@ -558,6 +601,9 @@ def _insert_and_tag(
 
     # Get font size safely
     font_size = heading_fonts.get(heading_num, heading_fonts["0"])
+    if font_size < 12:
+        spacing += 3
+
     if PrimeItems.windows_system:  # Precompute platform check once globally
         font_size *= 2
 
@@ -578,9 +624,6 @@ def _insert_and_tag(
         font_to_use = assign_font(mygui.font, font_size, font, underline)
         mygui.font_table[font_key] = font_to_use
 
-    # Setup to add as a new line or at end of last line
-    # start_idx = "end"
-
     # Handle hyperlinks
     href = ""
     if "<a href=" in message:
@@ -592,9 +635,9 @@ def _insert_and_tag(
     else:
         tag_id = f"{heading_num};{font}:{color_val}:{decor}:{between_line_spacing}"
 
-    # Apply spacing
+    # Apply spacing.  'TaskerNet description' has a '\n' between it and before the first line
     if spacing > 0:
-        message = " " * spacing + message
+        message = " " * spacing + message.replace("\n", f"\n{spacing * ' '}").lstrip()
 
     # Update max message length
     max_msg_len = _get_max_msg_len(message, max_msg_len)
@@ -606,6 +649,15 @@ def _insert_and_tag(
         # Apply base font attributes
         _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
 
+        # If underline and at the beginning of line, then un-underline spacing
+        if underline and spacing > 0:
+            underline = False
+            _configure_tag(self, "blank", font_to_use, bg_color, bg_color, underline, between_line_spacing)
+            # Insert blanks/spacing, point sstart at beyondf spacing, and then remove spacing from message
+            self.textview_textbox.insert(start_idx, f"{spacing * ' '}", "blank")
+            start_idx = f"{start_idx.split('.')[0]}.{1 + spacing!s}"
+            message = message[spacing:]
+
         # If secondary font specified (rare), configure it too
         if len(temp_font) > 1:
             new_font = temp_font[1]
@@ -613,9 +665,9 @@ def _insert_and_tag(
             font_to_use = (mygui.font, font_size, new_font)
             _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
 
-        # Insert with tag
-        if char_position == 0:
-            start_idx = "end"
+        # Insert the message with the tag
+        # if char_position == 0:
+        #     start_idx = "end"
         self.textview_textbox.insert(start_idx, message, tag_id)
 
         # If there is a table heading, configure it to be bold
@@ -639,12 +691,13 @@ def _insert_and_tag(
 def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: int) -> str:
     if message == "<p>":
         return "\n"
+
     # Deal with <pre> formatted text
     if "<pre>" in message or "</pre>" in message:
         if "<pre>" in message:
             # The <pre" is at innernum, it's text is at inner_num + 1
             value["highlights"][inner_num + 1] = "bold"
-        message = message.replace("<pre>", " \n").replace("</pre>", "\n\n")
+        message = message.replace("<pre>", " \n").replace("</pre>", "\n\n").replace("\n\n\n\n", "\n\n")
 
     # Deal with <big> and <small> tags.  Make it one heading bigger/smaller
     if "<big>" in message or "</big>" in message or "<small>" in message or "</small>" in message:
@@ -896,7 +949,7 @@ def _handle_image(self: ctk, msg: str, start_idx: str) -> None:
         url = match.group(1)
         _show_image(self.textview_textbox, url, start_idx)
     else:
-        rutroh_error("No URL found in the href attribute.")
+        rutroh_error(f"No URL found in the href attribute: {msg}")
 
 
 def _show_image(text_widget: ctk.CTkTextbox, image_url: str, index: str) -> None:
@@ -919,7 +972,8 @@ def _show_image(text_widget: ctk.CTkTextbox, image_url: str, index: str) -> None
 
         # 2. Open the image using Pillow.
         img_data = BytesIO(response.content)
-        # pil_image = Image.open(img_data).resize((300, 300), Image.LANCZOS)
+
+        # The following will fail if this is a video / mp4.  Can be remedied with 'cv2' or 'cv3' pip package.
         pil_image = Image.open(img_data)
 
         # 3. Use thumbnail() to resize while preserving the aspect ratio.
@@ -943,7 +997,10 @@ def _show_image(text_widget: ctk.CTkTextbox, image_url: str, index: str) -> None
     except requests.exceptions.RequestException as e:
         rutroh_error(f"Failed to download image: {e}")
     except Exception as e:  # noqa: BLE001
-        rutroh_error(f"guiutil2 _show_image...An error occurred: {e}")
+        if "mp4" in image_url or "youtu." in image_url or "youtube." in image_url:
+            rutroh_error(f"guiutil2 _show_image: Videos are not currently supported!  image URL: {image_url}")
+        else:
+            rutroh_error(f"guiutil2 _show_image: An error occurred: {e} for image URL: {image_url}")
 
 
 def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tuple[int, int, int, str]:
@@ -1095,7 +1152,7 @@ def process_table(
         -40,
         start_idx,
         0,
-        make_hex_color(self.master.master.color_lookup["background_color"]),
+        self.master.master.saved_background_color,
         value,
         inner_num,
     )

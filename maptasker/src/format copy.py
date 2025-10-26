@@ -141,143 +141,284 @@ class HTMLTextFormatter(HTMLParser):
         self.table_th = False
         self.code_tag = False
 
+    # def handle_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+    #     """
+    #     Processes an opening HTML tag and updates the current formatting state.
+    #     """
+    #     self.tag_stack.append(tag)
+
+    #     # Handle the <div> tag
+    #     if tag == "div":
+    #         # Add a newline before the content of the div for better separation
+    #         self._add_segment("\n")
+    #         return
+
+    #     # Handle the <img> tag
+    #     if tag == "img":
+    #         if len(attrs) > 1:
+    #             string_to_add = f'<img src="{attrs[0][1]}" alt="{attrs[1][1]}" class="image-small"/>'
+    #         else:
+    #             string_to_add = f'<img src="{attrs[0]}" class="image-small"/>'
+    #         self._add_segment(string_to_add)
+    #         # Return to prevent it from being added to the tag stack
+    #         return
+
+    #     # Handle the <style> tag
+    #     if tag == "style":
+    #         self.is_in_style = True
+    #         return
+
+    #     # Handle the <pre> tag
+    #     if tag == "pre":
+    #         self.is_preformatted = True
+    #         # Add a newline before the preformatted block for clean formatting
+    #         self._add_segment("<pre>")
+    #         return
+
+    #     if tag == "br":
+    #         # Insert a newline segment
+    #         self._add_segment("\n")
+    #         return
+
+    #     if tag == "p":
+    #         # Ignore <p> tags, as they are handled in formatting
+    #         return
+
+    #     if tag == "font":
+    #         attrs_dict = dict(attrs)
+    #         if "color" in attrs_dict:
+    #             self.current_styles["color"] = attrs_dict["color"].lower()
+
+    #     # Handle underline tags
+    #     elif tag == "u":
+    #         self.current_styles["is_underline"] = True
+
+    #     # Handle italic/emphasis tags
+    #     elif tag in ["i", "em"]:
+    #         self.current_styles["is_italic"] = True
+
+    #     # Handle bold tag
+    #     elif tag in ("b", "strong"):
+    #         self.current_styles["is_bold"] = True
+
+    #     # Handle anchor (link) tags
+    #     elif tag == "a":
+    #         attrs_dict = dict(attrs)
+    #         if "href" in attrs_dict:
+    #             self.current_styles["is_link"] = True
+    #             self.current_styles["href"] = attrs_dict["href"]
+
+    #     # Handle list tags
+    #     # tag = "li"
+    #     elif tag == "ul":
+    #         self.list_indent_level += 1
+    #         self.list_types.append("ul")
+    #         self._add_segment("\n")  # Add a newline before the list starts
+    #     elif tag == "ol":
+    #         self.list_indent_level += 1
+    #         self.list_types.append("ol")
+    #         self.list_counter.append(0)
+    #         self._add_segment("\n")  # Add a newline before the list starts
+    #     elif tag == "li":
+    #         leading_spaces = " " * count_trailing_blanks(self.rawdata, self.offset)
+    #         indent = "  " * (self.list_indent_level - 1)
+    #         list_marker = ""
+    #         if self.list_types and self.list_types[-1] == "ul":
+    #             list_marker = "lmrk* "
+    #         elif self.list_types and self.list_types[-1] == "ol":
+    #             self.list_counter[-1] += 1
+    #             list_marker = f"lmrk{self.list_counter[-1]}. "
+
+    #         self._add_segment(f"<br>{leading_spaces}{indent}{list_marker}")
+
+    #     # New: Handle table tags
+    #     elif tag == "table":
+    #         self.current_styles["is_table_cell"] = True
+    #         self._add_segment("<table>")
+    #     elif tag == "thead":
+    #         self._add_segment("<thead>")
+    #     elif tag == "tr":
+    #         self._add_segment("<tr>")
+    #     elif tag == "th":
+    #         self.table_th = True
+    #     elif tag == "td":
+    #         self._add_segment("<td>")
+    #     elif tag == "big":
+    #         self._add_segment("<big>")
+    #     elif tag == "small":
+    #         self._add_segment("<small>")
+
+    #     elif tag == "code":
+    #         self.code_tag = True
+
+    #     # Handle new heading tags
+    #     elif tag == "h1":
+    #         self.current_styles["is_h1"] = True
+    #     elif tag == "h2":
+    #         self.current_styles["is_h2"] = True
+    #     elif tag == "h3":
+    #         self.current_styles["is_h3"] = True
+    #     elif tag == "h4":
+    #         self.current_styles["is_h4"] = True
+    #     elif tag == "h5":
+    #         self.current_styles["is_h5"] = True
+    #     elif tag == "h6":
+    #         self.current_styles["is_h6"] = True
+    #     elif tag == "title":
+    #         end_title = self.rawdata.find("</title>", self.offset)
+    #         if end_title != -1:
+    #             self._add_segment(f"Title: {self.rawdata[self.offset + 7 : end_title]}")
+    #     elif tag == "legend":
+    #         end_legend = self.rawdata.find("</legend>", self.offset)
+    #         if end_legend != -1:
+    #             self.current_styles["is_italic"] = True
+    #     elif tag == "figcaption":
+    #         end_caption = self.rawdata.find("</figcaption>", self.offset)
+    #         if end_caption != -1:
+    #             self.current_styles["is_italic"] = True
+    #     elif tag == "hr":
+    #         self._add_segment("<hr>")
+
+    #     # Tags to ignore
+    #     elif tag in ("tbody", "body", "html", "fieldset", "meta", "head", "figure"):
+    #         return
+    #     # Unrecognized tag
+    #     else:
+    #         self.handle_unknown_starttag(tag, attrs)
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
-        """
-        Processes an opening HTML tag and updates the current formatting state.
-        """
+        """Processes an opening HTML tag and updates the current formatting state."""
         self.tag_stack.append(tag)
 
-        # Handle the <div> tag
+        # Quick lookup optimization
+        add_segment = self._add_segment
+        styles = self.current_styles
+        attrs_dict = dict(attrs) if attrs else {}
+
+        # Precomputed single-branch dispatch
         if tag == "div":
-            # Add a newline before the content of the div for better separation
-            self._add_segment("\n")
+            add_segment("\n")
             return
 
-        # Handle the <img> tag
         if tag == "img":
-            if len(attrs) > 1:
-                string_to_add = f'<img src="{attrs[0][1]}" alt="{attrs[1][1]}" class="image-small"/>'
-            else:
-                string_to_add = f'<img src="{attrs[0]}" class="image-small"/>'
-            self._add_segment(string_to_add)
-            # Return to prevent it from being added to the tag stack
+            src = attrs_dict.get("src")
+            alt = attrs_dict.get("alt")
+            if src:
+                if alt:
+                    add_segment(f'<img src="{src}" alt="{alt}" class="image-small"/>')
+                else:
+                    add_segment(f'<img src="{src}" class="image-small"/>')
             return
 
-        # Handle the <style> tag
         if tag == "style":
             self.is_in_style = True
             return
 
-        # Handle the <pre> tag
         if tag == "pre":
             self.is_preformatted = True
-            # Add a newline before the preformatted block for clean formatting
-            self._add_segment("<pre>")
+            add_segment("<pre>\n")
             return
 
         if tag == "br":
-            # Insert a newline segment
-            self._add_segment("\n")
+            add_segment("\n")
             return
 
         if tag == "p":
-            # Ignore <p> tags, as they are handled in formatting
             return
 
         if tag == "font":
-            attrs_dict = dict(attrs)
-            if "color" in attrs_dict:
-                self.current_styles["color"] = attrs_dict["color"].lower()
+            color = attrs_dict.get("color")
+            if color:
+                styles["color"] = color.lower()
+            return
 
-        # Handle underline tags
-        elif tag == "u":
-            self.current_styles["is_underline"] = True
+        # Inline styling tags
+        if tag == "u":
+            styles["is_underline"] = True
+            return
 
-        # Handle italic/emphasis tags
-        elif tag in ["i", "em"]:
-            self.current_styles["is_italic"] = True
+        if tag in ("i", "em"):
+            styles["is_italic"] = True
+            return
 
-        # Handle bold tag
-        elif tag in ("b", "strong"):
-            self.current_styles["is_bold"] = True
+        if tag in ("b", "strong"):
+            styles["is_bold"] = True
+            return
 
-        # Handle anchor (link) tags
-        elif tag == "a":
-            attrs_dict = dict(attrs)
-            if "href" in attrs_dict:
-                self.current_styles["is_link"] = True
-                self.current_styles["href"] = attrs_dict["href"]
+        if tag == "a":
+            href = attrs_dict.get("href")
+            if href:
+                styles["is_link"] = True
+                styles["href"] = href
+            return
 
-        # Handle list tags
-        # tag = "li"
-        elif tag == "ul":
+        # Lists
+        if tag in ("ul", "ol"):
             self.list_indent_level += 1
-            self.list_types.append("ul")
-            self._add_segment("<ul>")  # Add a newline before the list starts
-        elif tag == "ol":
-            self.list_indent_level += 1
-            self.list_types.append("ol")
-            self.list_counter.append(0)
-            self._add_segment("<ol>")  # Add a newline before the list starts
-        elif tag == "li":
+            self.list_types.append(tag)
+            if tag == "ol":
+                self.list_counter.append(0)
+            add_segment("\n")
+            return
+
+        if tag == "li":
+            list_types = self.list_types
+            is_ordered = list_types[-1] == "ol" if list_types else False
+
             leading_spaces = " " * count_trailing_blanks(self.rawdata, self.offset)
             indent = "  " * (self.list_indent_level - 1)
-            self._add_segment(f"{indent}{leading_spaces}<li>")
-
-        # New: Handle table tags
-        elif tag == "table":
-            self.current_styles["is_table_cell"] = True
-            self._add_segment("<table>")
-        elif tag == "thead":
-            self._add_segment("<thead>")
-        elif tag == "tr":
-            self._add_segment("<tr>")
-        elif tag == "th":
-            self.table_th = True
-        elif tag == "td":
-            self._add_segment("<td>")
-        elif tag == "big":
-            self._add_segment("<big>")
-        elif tag == "small":
-            self._add_segment("<small>")
-
-        elif tag == "code":
-            self.code_tag = True
-
-        # Handle new heading tags
-        elif tag == "h1":
-            self.current_styles["is_h1"] = True
-        elif tag == "h2":
-            self.current_styles["is_h2"] = True
-        elif tag == "h3":
-            self.current_styles["is_h3"] = True
-        elif tag == "h4":
-            self.current_styles["is_h4"] = True
-        elif tag == "h5":
-            self.current_styles["is_h5"] = True
-        elif tag == "h6":
-            self.current_styles["is_h6"] = True
-        elif tag == "title":
-            end_title = self.rawdata.find("</title>", self.offset)
-            if end_title != -1:
-                self._add_segment(f"Title: {self.rawdata[self.offset + 7 : end_title]}")
-        elif tag == "legend":
-            end_legend = self.rawdata.find("</legend>", self.offset)
-            if end_legend != -1:
-                self.current_styles["is_italic"] = True
-        elif tag == "figcaption":
-            end_caption = self.rawdata.find("</figcaption>", self.offset)
-            if end_caption != -1:
-                self.current_styles["is_italic"] = True
-        elif tag == "hr":
-            self._add_segment("<hr>")
-
-        # Tags to ignore
-        elif tag in ("tbody", "body", "html", "fieldset", "meta", "head", "figure"):
+            if is_ordered:
+                self.list_counter[-1] += 1
+                marker = f"lmrk{self.list_counter[-1]}. "
+            else:
+                marker = "lmrk* "
+            add_segment(f"<br>{leading_spaces}{indent}{marker}")
             return
-        # Unrecognized tag
-        else:
-            self.handle_unknown_starttag(tag, attrs)
+
+        # Table-related tags
+        if tag in ("table", "thead", "tr", "td", "big", "small"):
+            add_segment(f"<{tag}>")
+            if tag == "table":
+                styles["is_table_cell"] = True
+            return
+
+        if tag == "th":
+            self.table_th = True
+            return
+
+        if tag == "code":
+            self.code_tag = True
+            return
+
+        # Heading tags
+        if tag in ("h1", "h2", "h3", "h4", "h5", "h6"):
+            styles[f"is_{tag}"] = True
+            return
+
+        # Title-like tags (inline extraction)
+        raw = self.rawdata
+        if tag == "title":
+            end = raw.find("</title>", self.offset)
+            if end != -1:
+                add_segment(f"Title: {raw[self.offset + 7 : end]}")
+            return
+
+        if tag in ("legend", "figcaption"):
+            close_tag = f"</{tag}>"
+            end = raw.find(close_tag, self.offset)
+            if end != -1:
+                styles["is_italic"] = True
+            return
+
+        if tag == "hr":
+            add_segment("<hr>")
+            return
+
+        # Ignore these tags
+        if tag in ("tbody", "body", "html", "fieldset", "meta", "head", "figure"):
+            return
+
+        # Fallback handler
+        self.handle_unknown_starttag(tag, attrs)
 
     def handle_endtag(self, tag: str) -> None:
         """
@@ -346,12 +487,9 @@ class HTMLTextFormatter(HTMLParser):
                 self.list_indent_level -= 1
             if self.list_types:
                 self.list_types.pop()
-            if tag == "ul":
-                self._add_segment("</ul>")
-            else:
-                self._add_segment("</ol>")
-        elif tag == "li":
-            self._add_segment("</li>")
+            self._add_segment("<p><p>")  # Force a space after the end-of-list
+            if tag == "ol" and self.list_counter:
+                self.list_counter.pop()
 
         elif tag == "code":
             self.code_tag = False
@@ -383,8 +521,8 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_h5"] = False
         elif tag == "h6":
             self.current_styles["is_h6"] = False
-        elif tag == {"p"}:
-            # Ignore </p>, as they are handled in formatting
+        elif tag in {"p", "li"}:
+            # Ignore </p> and </li> tags, as they are handled in formatting
             return
         elif tag == "big":
             self._add_segment("</big>")

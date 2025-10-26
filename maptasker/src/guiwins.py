@@ -443,10 +443,7 @@ class CTkTextview(ctk.CTkFrame):
             slant="italic",
         )
 
-        background_color = make_hex_color(
-            self.master.master.color_lookup["background_color"],
-        )
-        self.configure(fg_color=background_color)
+        self.configure(fg_color=self.master.master.saved_background_color)
 
     def _get_appearance_color(self, widget_type: object, color_type: str) -> object:
         """
@@ -512,12 +509,13 @@ class CTkTextview(ctk.CTkFrame):
         Args:
             the_data (list): The data to be processed and inserted.
         """
+        mygui = self.master.master
         # Insert the text with our new message into the text box.
         if type(the_data) == str:
             the_data = the_data.split("\n")
 
         # Setup to save items (Projects, Profiles, Tasks, and Scenes)
-        self.master.master.items_for_selection = {}  # MyGui
+        mygui.items_for_selection = {}  # MyGui
 
         # Process list data (list of lines): diagram view.
         if not isinstance(the_data, dict):
@@ -558,7 +556,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -599,6 +599,11 @@ class CTkTextview(ctk.CTkFrame):
             the_data (list): A list of strings, where each string represents a line
                              of data to be processed for diagram display.
         """
+        guiview = self.master.master
+        # Get rid of misc window if it is displayed
+        with contextlib.suppress(AttributeError):
+            guiview.misc_window.destroy()
+
         # -------------------------------------------------------------------------
         # Go thru the data:
         #    - Add tags (aka highlight) for Project/Profile/Task name colors
@@ -614,7 +619,6 @@ class CTkTextview(ctk.CTkFrame):
             )
 
         # Configure tag colors for the Tasker objects: Project, Profile, Task, Scene
-        guiview = self.master.master
         # In order for the map to work, we need to ensure that we have the colors defined.
         if not getattr(guiview, "color_lookup", None):
             guiview.color_lookup = set_color_mode(guiview.appearance_mode)
@@ -639,14 +643,16 @@ class CTkTextview(ctk.CTkFrame):
         # Add the CustomTkinter widgets
         self.add_view_widgets("Diagram")
         # Force courier new for diagram view if just Courier...perfect character alignment.
-        background_color = make_hex_color(
-            self.master.master.color_lookup["background_color"],
-        )
         if getattr(self.master.master, "font", "Arial") == "Courier":
             self.textview_textbox.configure(
                 self,
                 font=("Courier New", 12),
-                fg_color=background_color,
+                fg_color=self.master.master.saved_background_color,
+            )
+        else:
+            self.textview_textbox.configure(
+                self,
+                fg_color=self.master.master.saved_background_color,
             )
 
         # Add connector tags so they can be highlighted when clicked.
@@ -1063,7 +1069,7 @@ class CTkTextview(ctk.CTkFrame):
                 1,
                 0,
                 0,
-                (730, 0),
+                (1215, 0),
                 5,
                 "nw",
             )
@@ -1090,7 +1096,7 @@ class CTkTextview(ctk.CTkFrame):
                 1,
                 0,
                 0,
-                (815, 0),
+                (1215, 0),
                 5,
                 "nw",
             )
@@ -1221,9 +1227,7 @@ class CTkTextview(ctk.CTkFrame):
         # Now turn the highlighting off.
         self.textview_textbox.tag_config(
             connector_tagid,
-            background=make_hex_color(
-                self.master.master.color_lookup["background_color"],
-            ),
+            background=self.master.master.saved_background_color,
         )
         connector_tagid = ""
 
@@ -2507,9 +2511,7 @@ class CTkTextview(ctk.CTkFrame):
                 tag_id = self._generate_unique_tag_id(line_num, char_position, tags)
                 self.textview_textbox.tag_config(
                     tag_id,
-                    background=make_hex_color(
-                        self.master.master.color_lookup["background_color"],
-                    ),
+                    background=self.master.master.saved_background_color,
                 )
                 self.textview_textbox.insert("end", "\n", tag_id)
         return True, previous_text, text
@@ -2654,42 +2656,46 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             tuple: Updated line number, the previous color, the tag for the color, and the list of tags.
         """
-        text = value["text"][0]
+        # Go through all text elements for this line
+        for text_linenum, text in enumerate(value["text"]):
+            if text == "Directory\n":
+                # Replace text with the formatted directory description
+                value["text"][text_linenum] = ["Directory    (blue entries are hotlinks)\n \n"]
 
-        if text == "Directory\n":
-            # Replace text with the formatted directory description
-            value["text"] = ["Directory    (blue entries are hotlinks)\n \n"]
+            # Process directory headings (e.g. 'Projects...')
+            elif text.startswith("\nn"):
+                # Save and temporarily update text and color
+                save_text = text[2:]
+                save_color = value["color"][text_linenum]
+                value["text"][text_linenum] = "\n"
 
-        # Process directory headings (e.g. 'Projects...')
-        elif text.startswith("\nn"):
-            # Save and temporarily update text and color
-            save_text = text[2:]
-            save_color = value["color"]
-            value["text"][0] = "\n"
+                # Output current text and increment line number
+                previous_color = self.output_map_text_lines(
+                    value,
+                    text_linenum,
+                    line_num,
+                    tags,
+                    previous_color,
+                    previous_value,
+                )
+                line_num += 1
+                # return line_num + 1, previous_color, "color", tags
 
-            # Output current text and increment line number
+                # Restore original text and color
+                value["text"][text_linenum] = save_text
+                value["color"][text_linenum] = save_color
+
+            # Output the updated text and color
             previous_color = self.output_map_text_lines(
                 value,
+                text_linenum,
                 line_num,
                 tags,
                 previous_color,
                 previous_value,
             )
-            line_num += 1
-            # return line_num + 1, previous_color, "color", tags
-
-            # Restore original text and color
-            value["text"][0] = save_text
-            value["color"] = save_color
-
-        # Output the updated text and color
-        previous_color = self.output_map_text_lines(
-            value,
-            line_num,
-            tags,
-            previous_color,
-            previous_value,
-        )
+            # Get our line number sincew it may have been incremented within output_map_text_lines
+            line_num = int(self.textview_textbox.index("end-1c").split(".")[0]) + 1
 
         # Return updated parameters
         return line_num + 1, previous_color, "color", tags
@@ -2775,9 +2781,7 @@ class CTkTextview(ctk.CTkFrame):
         # Configure the tag for the hyperlink in the background color
         self.textview_textbox.tag_config(
             tag_id[1],
-            background=make_hex_color(
-                self.master.master.color_lookup["background_color"],
-            ),
+            background=self.master.master.saved_background_color,
         )
 
         char_position = 0 if char_position == spacing * columns else char_position + spacing
@@ -2815,9 +2819,7 @@ class CTkTextview(ctk.CTkFrame):
                 )
                 self.textview_textbox.tag_config(
                     tag_id[1],
-                    background=make_hex_color(
-                        self.master.master.color_lookup["background_color"],
-                    ),
+                    background=self.master.master.saved_background_color,
                 )
             up_one_level = False
 
@@ -2826,6 +2828,7 @@ class CTkTextview(ctk.CTkFrame):
     def output_map_text_lines(
         self,
         value: dict,
+        text_linenum: int,
         line_num: int,
         tags: set,
         previous_color: str,
@@ -2834,70 +2837,68 @@ class CTkTextview(ctk.CTkFrame):
         """
         Outputs the given map data to a text box, determining colors, highlights, and formatting.
         """
-
+        message = (
+            value["text"][text_linenum]
+            if isinstance(value["text"][text_linenum], str)
+            else value["text"][text_linenum][0]
+        )
         spaces = " " * 20
         line_num_str = str(line_num)
         char_position = 0
 
         # Pre-compute the background color
-        background_color = make_hex_color(
-            self.master.master.color_lookup["background_color"],
-        )
+        background_color = self.master.master.saved_background_color
         pretty = self.master.master.pretty
         debug = self.master.master.debug
 
-        # Iterate over a list or a string.
-        for num, message in enumerate(
-            value["text"] if isinstance(value["text"], list) else [value["text"]],
-        ):
-            # Formats the message for pretty output, debug, and specific cases.
-            formatted_message = self._format_message(
-                message,
-                previous_value,
-                spaces,
-                pretty,
-                debug,
-            )
-            if not formatted_message:
-                continue
+        # Formats the message for pretty output, debug, and specific cases.
+        formatted_message = self._format_message(
+            message,
+            previous_value,
+            spaces,
+            pretty,
+            debug,
+        )
+        if not formatted_message:
+            return previous_color
 
-            # Determine if this is the last item and add a newline if necessary
-            if formatted_message == value["text"][-1] and "\n" not in formatted_message:
-                formatted_message += "\n"
+        # Determine if this is the last item and add a newline if necessary
+        if formatted_message == value["text"][-1] and "\n" not in formatted_message:
+            formatted_message += "\n"
 
-            tag_id = self._generate_unique_tag_id(line_num_str, char_position, tags)
+        tag_id = self._generate_unique_tag_id(line_num_str, char_position, tags)
 
-            # Force spacing to 0 if this is a multi-part highlight.
-            if num > 0:
-                value["spacing"] = 0
-            # If newline, handle it.
-            if message == "\n":
-                self.textview_textbox.insert("end", "\n", tag_id)
+        # Force spacing to 0 if this is a multi-part highlight.
+        if text_linenum > 0:
+            value["spacing"] = 0
 
-            # Not new line.  Insert the text with appropriate spacing.
-            else:
-                if debug:
-                    formatted_message = f"{line_num}:{formatted_message}"
-                char_position = self._insert_message(
-                    line_num_str,
-                    char_position,
-                    formatted_message,
-                    tag_id,
-                    background_color,
-                )
+        # If newline, handle it.
+        temp = message.replace(" ", "")
+        if temp == "\n":
+            self.textview_textbox.insert("end", "\n", tag_id)
 
-            # Process the color and highlighting
-            previous_color = self._handle_color_and_highlighting(
-                value,
-                tags,
-                previous_color,
-                previous_value,
-                num,
+        # Not new line.  Insert the text with appropriate spacing.
+        else:
+            if debug:
+                formatted_message = f"{line_num}:{formatted_message}"
+            char_position = self._insert_message(
+                line_num_str,
+                char_position,
                 formatted_message,
                 tag_id,
+                background_color,
             )
 
-        return previous_color
+        # Process the color and highlighting, and return the color
+        return self._handle_color_and_highlighting(
+            value,
+            text_linenum,
+            tags,
+            previous_color,
+            previous_value,
+            formatted_message,
+            tag_id,
+        )
 
     def _format_message(
         self,
@@ -3047,10 +3048,10 @@ class CTkTextview(ctk.CTkFrame):
     def _handle_color_and_highlighting(
         self,
         value: dict,
+        text_linenum: int,
         tags: set,
         previous_color: str,
         previous_value: str,
-        num: int,
         message: str,
         tag_id: str,
     ) -> str:
@@ -3060,23 +3061,20 @@ class CTkTextview(ctk.CTkFrame):
         else:
             color, tags = self.output_map_colors_highlighting(
                 value,
+                text_linenum,
                 tags,
                 previous_color,
                 previous_value,
-                num,
                 message,
                 tag_id,
                 previous_color,
             )
 
         # Apply color settings to the tag
-        background_color = make_hex_color(
-            self.master.master.color_lookup["background_color"],
-        )
         self.textview_textbox.tag_config(
             tag_id,
             foreground=color,
-            background=background_color,
+            background=self.master.master.saved_background_color,
         )
         return color
 
@@ -3132,10 +3130,10 @@ class CTkTextview(ctk.CTkFrame):
     def output_map_colors_highlighting(
         self,
         value: dict,
+        text_linenum: int,
         tags: list,
         previous_color: str,
         previous_value: str,
-        num: int,
         message: str,
         tag_id: str,
         color: str,
@@ -3146,10 +3144,10 @@ class CTkTextview(ctk.CTkFrame):
         Parameters:
             - self: the object instance
             - value: a dictionary containing the value to be highlighted
+            - text_linenum: an integer representing the element number of the text to be highlighted in value
             - tags: a list of tags to be applied
             - previous_color: a string representing the previous color used
             - previous_value: a string representing the previous value
-            - num: an integer representing a specific number of the value
             - message: a string containing the message to be highlighted
             - tag_id: a string representing the tag ID
             - color: a string representing the color
@@ -3163,20 +3161,20 @@ class CTkTextview(ctk.CTkFrame):
         # starting_line_to_search = 1
         # Don't addf highlight if this is a label.  We've already added it.
         with contextlib.suppress(KeyError):
-            if num == 0 and value["highlights"] and "-text" not in tag_id:
-                tags = self.add_highlights(message, value, previous_value, tag_id, tags)
+            if text_linenum == 0 and value["highlights"] and "-text" not in tag_id:
+                tags = self.add_highlights(message, value, text_linenum, previous_value, tag_id, tags)
 
         # Now color the text.
         try:
-            if value["color"][num].startswith("#"):
-                color = value["color"][num]
+            if value["color"][text_linenum].startswith("#"):
+                color = value["color"][text_linenum]
             else:
-                color = self.master.master.color_lookup.get(f"{value['color'][num]}")
+                color = self.master.master.color_lookup.get(f"{value['color'][text_linenum]}")
 
             # If color is None, then it wasn't found in the lookup table.  It is a raw color name.
-            if color is None and value["color"][num] != "n/a":
-                color = value["color"][num]
-            elif (color is None and value["color"][num] == "n/a") or "-" in color:
+            if color is None and value["color"][text_linenum] != "n/a":
+                color = value["color"][text_linenum]
+            elif (color is None and value["color"][text_linenum] == "n/a") or "-" in color:
                 color = previous_color
             else:
                 previous_color = color
@@ -3192,6 +3190,7 @@ class CTkTextview(ctk.CTkFrame):
         self,
         message: str,
         value: dict,
+        text_linenum: int,
         previous_value: str,
         tag_id: str,
         tags: list,
@@ -3226,22 +3225,23 @@ class CTkTextview(ctk.CTkFrame):
             message,
         )
         # Get the highlight
-        for highlight in value.get("highlights", []):
+        highlight = value["highlights"][text_linenum]
+        if highlight:
             # Get the highlight details.  If value error, then there are no details.
             try:
                 highlight_type, highlight_text = self._parse_highlight(highlight)
                 if highlight_type not in highlight_configurations:
                     rutroh_error(f"Not in highlight_configurations: {highlight}")
-                    continue
+                    return []
             except ValueError:
-                continue
+                return []
             highlight_color = ""
 
             if not highlight_type or highlight_type not in highlight_configurations:
                 rutroh_error(
                     f"gywin parse failed {highlight_type} {highlight_text}  '{message}'",
                 )
-                continue
+                return []
 
             start_pos, end_pos = self._get_highlight_positions(
                 message.rstrip(),
@@ -3252,14 +3252,15 @@ class CTkTextview(ctk.CTkFrame):
                 rutroh_error(
                     f"gywin position not found {highlight_type} {highlight_text}  '{message}'",
                 )
-                continue
+                return []
 
-            line_to_highlight = self._find_highlight_line(search_word)
+            # Get the line to highlight
+            line_to_highlight = self._find_highlight_line(search_word.replace("\n", ""))
             if line_to_highlight is None:
                 rutroh_error(
                     f"gywin find line failed {highlight_type} {highlight_text}  '{message}'",
                 )
-                continue
+                return []
 
             new_tag = f"{tag_id}{highlight_type}{highlight_color}"
             tags.append(new_tag)
@@ -3641,12 +3642,30 @@ class CTkHyperlinkManager:
                 # Misc view hyperlink...pick up the links from deep down
                 link = self.text.master.hyperlink.links[tag]
                 mygui = event.widget.master.master.root.master
-                textbox = mygui.textview.textview_textbox
+                try:
+                    textbox = mygui.textview.textview_textbox
+                except AttributeError:
+                    # The target textbox is gone.  Maybe it is an analysis window
+                    try:
+                        textbox = mygui.analysisview.textview_textbox
+                    except AttributeError:
+                        # The target textbox is gone altogether.
+                        textbox.destroy()
+                        mygui.miscview_window.destroy()
+                        return
+
                 line_number = link[1]
                 start_idx = f"{line_number}.0"
+
                 # Remove previous highlights
                 tagid = "misc_high"
-                textbox.tag_remove(tagid, "1.0", "end")
+                try:
+                    textbox.tag_remove(tagid, "1.0", "end")
+                except TclError:
+                    # The target textbox is gone.
+                    textbox.destroy()
+                    mygui.miscview_window.destroy()
+                    return
                 # Highlight the hyperlink target
                 textbox.tag_add("misc_high", start_idx, f"{line_number}.end")
                 # Now color it in.
@@ -3654,11 +3673,12 @@ class CTkHyperlinkManager:
                 textbox.see(start_idx)
 
                 # Now bring the 'viewe' window to the front.  A combination of one of these has got to work!
-                mygui.miscview_window.lower()
-                mygui.miscview_window.iconify()
-                mygui.textview.focus()
-                mygui.textview.focus_set()
-                mygui.textview.lift()
+                with contextlib.suppress(AttributeError):
+                    mygui.miscview_window.lower()
+                    mygui.miscview_window.iconify()
+                    mygui.textview.focus()
+                    mygui.textview.focus_set()
+                    mygui.textview.lift()
 
     def remap_single_item(self, action: str, name: str, guiself: ctk) -> None:
         """
@@ -5007,6 +5027,8 @@ def get_rid_of_windows_and_exit(self, delete_all: bool = True) -> None:  # noqa:
             self.mapview_window.destroy()
         if self.ai_apikey_window is not None:
             self.ai_apikey_window.destroy()
+        if self.miscview_window is not None:
+            self.miscview_window.destroy()
     self.quit()
 
 
@@ -5061,20 +5083,13 @@ class ToolTip(object):  # noqa: UP004
         except AttributeError:
             font = "Courier"
 
-        # Get our color table so we can get the background color definition.
-        color_lookup = mygui.color_lookup
-        try:
-            background_color = make_hex_color(color_lookup["background_color"])
-        except KeyError:
-            background_color = "Black"
-
-        foreground_color = "white" if is_color_dark(background_color) else "black"
+        foreground_color = "white" if is_color_dark(mygui.saved_background_color) else "black"
         label = Label(
             tw,
             text=self.text,
             justify="left",
             # background="#ffffe0",
-            background=background_color,
+            background=mygui.saved_background_color,
             foreground=foreground_color,
             relief="solid",
             borderwidth=1,

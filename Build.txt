@@ -193,9 +193,6 @@ python3.11 -m pip install --extra-index-url https://test.pypi.org/simple/ maptas
 uv pip install --extra-index-url https://test.pypi.org/simple/ --index-strategy unsafe-best-match maptasker==6.0.2
 source .venv/bin/activate.fish
 11- validate the test code from #8
-
-<<<<<< HERE >>>>>>
-
 12- On Github, make new release the new master
 13- ./publishprod.sh to pypi
 14- Test production maptasker on kaka

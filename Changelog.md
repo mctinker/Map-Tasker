@@ -2,27 +2,45 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.0.1] ??-Oct-2025  # FIX
+## [9.0.3] ??-Oct-2025  # FIX
 
 ### Added
 
-- Added: The 'Display Only' window now provides hotlinks to the associated line in the data for quick access.
-- Added: Tasker version 6.6.6-beta is now supported.
-- Added: The 'Extra Trigger' Profile event is now recognized.
+- Added:
 
 ### Changed
 
-- Changed: The 'Google API Key' Tasker preference value is now hidden in the output for security purposes.
+- Changed: No notable changes
 
 ### Fixed
 
-- Fixed: Too many spaces between lines in labels and TaskerNet descriptions.
+- Fixed: Embedded HTML list items are not all being formatted correctly.
 
 ### Known Issues
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [9.0.2] 20-Oct-2025
+
+- Added: The 'strong', 'title', 'hr', 'figgcaption' and 'legend' HTML tags are now supported.
+- Added: Unrecognized HTML tags in labels and TaskerNet descriptions are now identified in the output as 'unmapped'
+- Changed: No notable changes
+- Fixed: List items in TaskerNet descriptions are not formatted properly.
+- Fixed: Subtle errors in data mapping are going undetected.
+- Fixed: Diagram view is using the wrong background color if the font is not 'Courier'
+
+## [9.0.1] 15-Oct-2025
+
+- Added: The 'Display Only' window now provides hotlinks to the associated line in the data for quick access.
+- Added: Tasker version 6.6.6-beta is now supported.
+- Added: The 'Extra Trigger' Profile event is now recognized.
+- Added: Python 3.14 is now supported.
+- Changed: The 'Google API Key' Tasker preference value is now hidden in the output for security purposes.
+- Fixed: There are too many spaces between lines in labels and TaskerNet descriptions.
+- Fixed: The Diagram view 'Top Task' and 'Bottom Task' buttons incorrectly overlay other buttons.
+- Fixed: Incorrectly handling situation in which clicking on a hyperlink for an the object that no longer exists.
 
 ## [9.0.0] 12-Oct-2025
 
@@ -52,19 +70,19 @@ All notable changes to this project will be documented in this file!
 
 - Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre', 'src' and 'style' tags.  'Style' tags and their contents are flagged.
 - Changed: Support for the older configuration/setting JSON file format (12+ months old) has been dropped.
-- Changed: The 'ReRun' and 'AI Analysis' buttonsn now exit and reload the program to eliminate Map view text size issues.
-- Changed: Switched from Google's depricated AI API to new generative API.
+- Changed: The 'ReRun' and 'AI Analysis' buttons now exit and reload the program to eliminate Map view text size issues.
+- Changed: Switched from Google's deprecated AI API to new generative API.
 - Fixed: Incorrect spacing on list items in labels and TaskerNet descriptions with embedded HTML.
 - Fixed: Embedded HTML 'href' reference in labels and TaskerNet descriptions are not properly recognized if it starts in  column 1.
 - Fixed: Labels and TaskerNet descriptions are displayed in the wrong font size.  NOTE: It is still incorrect for Window.
 - Fixed: Text in Map view is incorrect size after 'ReRun'.
 - Fixed: GUI can sometimes close unexpectedly.
-- FIxed: ChatGPT-5-mini model is mispelled.
+- FIxed: ChatGPT-5-mini model is misspelled.
 
 ## [8.2.1-8.2.2] 10-Sep-2025
 
-- Added: TaskerNet descriptions with HTML are now handled like labels with HTML.  The HTML is retained and the description is serounded by a rectangle.
-- Added: Labels and TaskerNet descriptions with html now recognize italicised/emphasized and bold text, as well as hotlinks.
+- Added: TaskerNet descriptions with HTML are now handled like labels with HTML.  The HTML is retained and the description is surrounded by a rectangle.
+- Added: Labels and TaskerNet descriptions with html now recognize italicized/emphasized and bold text, as well as hotlinks.
 - Changed: All Task labels are now outlined in a rectangle, rather than only those labels with HTML.
 - Changed; Default font size for label and TaskerNet description text is set to that of the rest of the text in the Map view.
 - Fixed: Various issues with embedded HTML in labels.
