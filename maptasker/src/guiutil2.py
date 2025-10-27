@@ -317,6 +317,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     """
     Draws a styled box around text in the custom textbox widget.
     Handles multi-line, images, tables, labels, and TaskerNet descriptions.
+    NOTE: He who dares ent4er this function does so on his/her own cognizance!
     """
 
     mygui = self.master.master
@@ -362,9 +363,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
             # Handle multi-line messages
             all_messages = clean_message.split("\n")
+            ordered_list = False
             for msg_num, msg in enumerate(all_messages):
-                if "Check out" in msg:
-                    print("bingo")
                 # Skip or process special content
                 if lines_to_skip > 0:
                     lines_to_skip -= 1
@@ -402,7 +402,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                         line_num,
                     )
                     continue
-                if msg in {"</ul>", "</ol>"}:
+                if msg.startswith(("</ul>", "</ol>")):
                     ordered_list = False
                     prev_msg = msg
                     continue
@@ -429,6 +429,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     not html_starter
                     and (updated_msg in {"", "       * "})
                     and not message.startswith("<a href")
+                    and message not in ("<big>", "</big>", "<small>", "</small>")
                     and prev_msg
                 ) or (not updated_msg and prev_msg == "</ul>"):
                     # Insert the new line
@@ -442,22 +443,36 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     continue
 
                 # Handle list items and get rid of html artifacts
-                between_line_spacing = -20 if updated_msg.startswith("   *") else 0
+                between_line_spacing = -20 if updated_msg.startswith("* ") else 0
                 msg_to_insert = _normalize_message(updated_msg, its_a_label, char_position)
 
-                # Insert & tag message
-                max_msg_len, char_position = _insert_and_tag(
-                    self,
-                    msg_to_insert,
-                    max_msg_len,
-                    spacing,
-                    between_line_spacing,
-                    start_idx,
-                    char_position,
-                    mygui.saved_background_color,
-                    value,
-                    inner_num,
-                )
+                # Just insert a newline if we have a blank message at the beginning of a line
+                if (
+                    char_position == 0
+                    and (msg_to_insert == " " or not msg_to_insert.strip())
+                    and message not in ("<big>", "</big>", "<small>", "</small>")
+                ):
+                    char_position, spacing, line_num, start_idx = _insert_newline(
+                        self,
+                        start_idx,
+                        value,
+                        line_num,
+                    )
+                else:
+                    # Insert & tag message
+                    max_msg_len, char_position = _insert_and_tag(
+                        self,
+                        msg_to_insert,
+                        max_msg_len,
+                        spacing,
+                        between_line_spacing,
+                        start_idx,
+                        char_position,
+                        mygui.saved_background_color,
+                        value,
+                        inner_num,
+                    )
+
                 # Debug code to find what text is being inserted
                 # if "ChatGPT API" in msg or "The" in msg:  # --- IGNORE ---
                 #     last_line = self.textview_textbox.get("end-1line", "end")
@@ -473,12 +488,15 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     begin_box, line_num = _find_begin_box(self, msg_to_insert, its_a_label)
                     first_message = False
 
-                # Reset spacing after concatenation
-                spacing = 0
-
+                # Reset spacing after concatenation.  Don't do it if we just added a newline
+                if msg:
+                    spacing = 0
+                # FIX
                 # Bump the line number and reset to beginning of new line if we have more to insert
-                if len(all_messages) > 1 and msg_num < len(all_messages) - 1:
-                    char_position, line_num, start_idx, spacing = _advance_multiline(line_num, spacer_newline)
+                # if len(all_messages) > 1 and msg_num < len(all_messages) - 1:
+                # value_length = len(value["text"])
+                # if value_length > 1 and inner_num < value_length - 1:
+                #     char_position, line_num, start_idx, spacing = _advance_multiline(line_num, spacer_newline)
 
                 prev_msg = msg_to_insert
 
@@ -601,7 +619,7 @@ def _insert_and_tag(
 
     # Get font size safely
     font_size = heading_fonts.get(heading_num, heading_fonts["0"])
-    if font_size < 12:
+    if font_size < 12 and char_position == 0:
         spacing += 3
 
     if PrimeItems.windows_system:  # Precompute platform check once globally
@@ -669,6 +687,8 @@ def _insert_and_tag(
         # if char_position == 0:
         #     start_idx = "end"
         self.textview_textbox.insert(start_idx, message, tag_id)
+        if char_position == 0:
+            self.textview_textbox.tag_config(tag_id, lmargin1=0, lmargin2=0, justify="left")
 
         # If there is a table heading, configure it to be bold
         if "+───" in message:
@@ -869,6 +889,9 @@ def _apply_bounding_box(
         spacing2=spacing2,
         spacing3=spacing3,
         rmargin=10,
+        justify="left",
+        lmargin1=0,
+        lmargin2=0,
     )
     return line_num + 1
 
@@ -889,6 +912,7 @@ def _configure_tag(
         foreground=fg_color,
         underline=underline,
         spacing2=between_line_spacing,  # This is ovberridden by the bbox spacing.
+        justify="left",
     )
 
 

@@ -383,9 +383,6 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_h5"] = False
         elif tag == "h6":
             self.current_styles["is_h6"] = False
-        elif tag == {"p"}:
-            # Ignore </p>, as they are handled in formatting
-            return
         elif tag == "big":
             self._add_segment("</big>")
         elif tag == "small":
@@ -405,6 +402,7 @@ class HTMLTextFormatter(HTMLParser):
             "legend",
             "figure",
             "figcaption",
+            "p",
         ):
             return
         # Unrecognized tag
@@ -439,7 +437,7 @@ class HTMLTextFormatter(HTMLParser):
         other methods. Prints a message for debugging.
         """
         rutroh_error(f"DEBUG: Unrecognized start tag found: <{tag}>")
-        self.handle_data(f"HTML tag '{tag}' not yet mapped")
+        self.handle_data(f"HTML start tag '<{tag}>' not yet mapped")
 
     def handle_unknown_endtag(self, tag: str) -> None:
         """
@@ -447,7 +445,7 @@ class HTMLTextFormatter(HTMLParser):
         other methods. Prints a message for debugging.
         """
         rutroh_error(f"DEBUG: Unrecognized end tag found: </{tag}>")
-        self.handle_data(f"HTML tag '{tag}' not yet mapped")
+        self.handle_data(f"HTML end tag '</{tag}>' not yet mapped")
 
     def handle_entityref(self, name: str) -> None:
         """
