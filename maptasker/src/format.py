@@ -150,7 +150,7 @@ class HTMLTextFormatter(HTMLParser):
         # Handle the <div> tag
         if tag == "div":
             # Add a newline before the content of the div for better separation
-            self._add_segment("\n")
+            # self._add_segment("\n")
             return
 
         # Handle the <img> tag
@@ -437,7 +437,7 @@ class HTMLTextFormatter(HTMLParser):
         other methods. Prints a message for debugging.
         """
         rutroh_error(f"DEBUG: Unrecognized start tag found: <{tag}>")
-        self.handle_data(f"HTML start tag '<{tag}>' not yet mapped")
+        self.handle_data(f"HTML start tag '{tag}' not yet mapped")
 
     def handle_unknown_endtag(self, tag: str) -> None:
         """
@@ -445,7 +445,7 @@ class HTMLTextFormatter(HTMLParser):
         other methods. Prints a message for debugging.
         """
         rutroh_error(f"DEBUG: Unrecognized end tag found: </{tag}>")
-        self.handle_data(f"HTML end tag '</{tag}>' not yet mapped")
+        self.handle_data(f"HTML end tag '/{tag}' not yet mapped")
 
     def handle_entityref(self, name: str) -> None:
         """

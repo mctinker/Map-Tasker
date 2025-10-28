@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Embedded HTML list items are not all being formatted correctly.
+- Fixed: There are an excessive number of spaces in TaskerNet descriptions.
+- Fixed: Properly handle ordered lists in embedded HTML.
 
 ### Known Issues
 
