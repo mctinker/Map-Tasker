@@ -2,12 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.0.2] 20-Oct-2025
+## [9.0.3] 30-Oct-2025
 
 ### Added
 
-- Added: The 'strong', 'title', 'hr', 'figgcaption' and 'legend' HTML tags are now supported.
-- Added: Unrecognized HTML tags in labels and TaskerNet descriptions are now identified in the output as 'unmapped'
+- Added: No new enhancements
 
 ### Changed
 
@@ -15,15 +14,25 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed: List items in TaskerNet descriptions are not formatted properly.
-- Fixed: Subtle errors in data mapping are going undetected.
-- Fixed: Diagram view is using the wrong background color if the font is not 'Courier'
+- Fixed: Embedded HTML list items are not all being formatted correctly.
+- Fixed: There are an excessive number of spaces in TaskerNet descriptions.
+- Fixed: Properly handle ordered lists in embedded HTML.
+- Fixed: Embedded HTML 'Title' tag is not displaying.
 
-### Known Issues
+### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [9.0.2] 20-Oct-2025
+
+- Added: The 'strong', 'title', 'hr', 'figgcaption' and 'legend' HTML tags are now supported.
+- Added: Unrecognized HTML tags in labels and TaskerNet descriptions are now identified in the output as 'unmapped'
+- Changed: No notable changes
+- Fixed: List items in TaskerNet descriptions are not formatted properly.
+- Fixed: Subtle errors in data mapping are going undetected.
+- Fixed: Diagram view is using the wrong background color if the font is not 'Courier'
 
 ## [9.0.1] 15-Oct-2025
 
