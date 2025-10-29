@@ -260,7 +260,7 @@ class HTMLTextFormatter(HTMLParser):
         elif tag == "title":
             end_title = self.rawdata.find("</title>", self.offset)
             if end_title != -1:
-                self._add_segment(f"Title: {self.rawdata[self.offset + 7 : end_title]}")
+                self._add_segment("Title: ")
         elif tag == "legend":
             end_legend = self.rawdata.find("</legend>", self.offset)
             if end_legend != -1:

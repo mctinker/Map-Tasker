@@ -414,14 +414,15 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 if not msg and in_list:
                     continue
 
-                # Handle breaks
+                # Handle breaks by breaking them up and injecting the items into all_messages.
                 line_break = False
                 if "<br>" in msg:
                     line_break = True
                     temp = msg.split("<br>")
                     msg = temp[0]  # noqa: PLW2901
                     all_messages.insert(msg_num + 1, "")
-                    all_messages.insert(msg_num + 2, temp[1])
+                    for break_num, break_text in enumerate(temp[1:]):
+                        all_messages.insert(msg_num + break_num + 2, break_text)
 
                 # Handle TaskerNet description
                 msg, its_a_label = _handle_taskernet_description(msg, its_a_label)  # noqa: PLW2901
@@ -535,7 +536,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             break
 
     # Even out the bottom of the box
-    line_num, start_idx = _finalize_bottom(self, line_num, start_idx, number_of_inserted_lines)
+    line_num, start_idx = _finalize_bottom(self, line_num, start_idx)
 
     # Calculate between-line spacing
     minimum_space = bool(len(all_values[0]["text"]) == 1 and len(all_messages) == 1)
@@ -764,9 +765,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h5-text"
             else:
                 # Decrease the heading number by 1 (making the text "bigger")
-                value["highlights"][entry_to_update] = (
-                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
-                )
+                value["highlights"][
+                    entry_to_update
+                ] = f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
 
         elif "<small>" in message:
             # Save current heading
@@ -781,9 +782,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h7-text"
             else:
                 # Increase the heading number by 1 (making the text "smaller")
-                value["highlights"][entry_to_update] = (
-                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
-                )
+                value["highlights"][
+                    entry_to_update
+                ] = f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
 
         elif "</big>" in message or "</small>" in message:
             if message.startswith(("</big>", "</small>")):
@@ -857,12 +858,6 @@ def _find_begin_box(self: ctk.CTkTextbox, msg_to_insert: str, its_a_label: bool)
     return begin_box, int(line_number)
 
 
-def _advance_multiline(line_num: int, spacer_newline: int) -> tuple[int, int, str, int]:
-    line_num += 1
-    start_idx = f"{line_num}.0"
-    return 0, line_num, start_idx, spacer_newline
-
-
 def _close_label(self: ctk.CTkTextbox, line_num: int, value: dict) -> tuple[int, str]:
     line_num += 1
     _, _, line_num, start_idx = _insert_newline(self, f"{line_num}.0", value, line_num)
@@ -873,20 +868,9 @@ def _finalize_bottom(
     self: ctk.CTkTextbox,
     line_num: int,
     start_idx: str,
-    number_of_inserted_lines: int,
 ) -> tuple[int, str]:
-    if number_of_inserted_lines == 0:
-        return line_num, start_idx
-
-    content, _ = get_last_line(self.textview_textbox, start_idx)
-    if content:
-        line_num += 1
-        start_idx = f"{line_num}.0"
-        self.textview_textbox.insert(start_idx, "\n")
-    else:
-        self.textview_textbox.delete(start_idx)
-        line_num -= 1
-        start_idx = f"{line_num}.0"
+    line_num = int(self.textview_textbox.index("end-1c").split(".")[0])
+    start_idx = f"{line_num}.0"
     return line_num, start_idx
 
 
