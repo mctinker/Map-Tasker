@@ -186,6 +186,9 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     else:
                         color = ""
                     font = "h0-text"
+                    # Handle as a list item
+                    if text == "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* ":
+                        decor = "list"
 
             # Check for the end of label flag
             lblend = ":lblend" in line

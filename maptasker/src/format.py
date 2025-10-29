@@ -41,7 +41,7 @@ def format_line(item: str) -> str:
     else:
         output_line = item
 
-    # Handle list markers: ordered and unordered.  Include leading blanks.
+    # Handle list markers: ordered and unorderedby including leading blanks.
     while True:
         lmrk = output_line.find("lmrk")
         if lmrk != -1:
@@ -150,7 +150,7 @@ class HTMLTextFormatter(HTMLParser):
         # Handle the <div> tag
         if tag == "div":
             # Add a newline before the content of the div for better separation
-            self._add_segment("\n")
+            # self._add_segment("\n")
             return
 
         # Handle the <img> tag
@@ -213,23 +213,16 @@ class HTMLTextFormatter(HTMLParser):
         elif tag == "ul":
             self.list_indent_level += 1
             self.list_types.append("ul")
-            self._add_segment("\n")  # Add a newline before the list starts
+            self._add_segment("<ul>")  # Add a newline before the list starts
         elif tag == "ol":
             self.list_indent_level += 1
             self.list_types.append("ol")
             self.list_counter.append(0)
-            self._add_segment("\n")  # Add a newline before the list starts
+            self._add_segment("<ol>")  # Add a newline before the list starts
         elif tag == "li":
             leading_spaces = " " * count_trailing_blanks(self.rawdata, self.offset)
             indent = "  " * (self.list_indent_level - 1)
-            list_marker = ""
-            if self.list_types and self.list_types[-1] == "ul":
-                list_marker = "lmrk* "
-            elif self.list_types and self.list_types[-1] == "ol":
-                self.list_counter[-1] += 1
-                list_marker = f"lmrk{self.list_counter[-1]}. "
-
-            self._add_segment(f"\n{leading_spaces}{indent}{list_marker}")
+            self._add_segment(f"{indent}{leading_spaces}<li>")
 
         # New: Handle table tags
         elif tag == "table":
@@ -267,7 +260,7 @@ class HTMLTextFormatter(HTMLParser):
         elif tag == "title":
             end_title = self.rawdata.find("</title>", self.offset)
             if end_title != -1:
-                self._add_segment(f"Title: {self.rawdata[self.offset + 7 : end_title]}")
+                self._add_segment("Title: ")
         elif tag == "legend":
             end_legend = self.rawdata.find("</legend>", self.offset)
             if end_legend != -1:
@@ -353,9 +346,12 @@ class HTMLTextFormatter(HTMLParser):
                 self.list_indent_level -= 1
             if self.list_types:
                 self.list_types.pop()
-            self._add_segment("<p><p>")  # Force a space after the end-of-list
-            if tag == "ol" and self.list_counter:
-                self.list_counter.pop()
+            if tag == "ul":
+                self._add_segment("</ul>")
+            else:
+                self._add_segment("</ol>")
+        elif tag == "li":
+            self._add_segment("</li>")
 
         elif tag == "code":
             self.code_tag = False
@@ -387,9 +383,6 @@ class HTMLTextFormatter(HTMLParser):
             self.current_styles["is_h5"] = False
         elif tag == "h6":
             self.current_styles["is_h6"] = False
-        elif tag in {"p", "li"}:
-            # Ignore </p> and </li> tags, as they are handled in formatting
-            return
         elif tag == "big":
             self._add_segment("</big>")
         elif tag == "small":
@@ -409,6 +402,7 @@ class HTMLTextFormatter(HTMLParser):
             "legend",
             "figure",
             "figcaption",
+            "p",
         ):
             return
         # Unrecognized tag
@@ -443,7 +437,7 @@ class HTMLTextFormatter(HTMLParser):
         other methods. Prints a message for debugging.
         """
         rutroh_error(f"DEBUG: Unrecognized start tag found: <{tag}>")
-        self.handle_data(f"HTML tag '{tag}' not yet mapped")
+        self.handle_data(f"HTML start tag '{tag}' not yet mapped")
 
     def handle_unknown_endtag(self, tag: str) -> None:
         """
@@ -451,7 +445,7 @@ class HTMLTextFormatter(HTMLParser):
         other methods. Prints a message for debugging.
         """
         rutroh_error(f"DEBUG: Unrecognized end tag found: </{tag}>")
-        self.handle_data(f"HTML tag '{tag}' not yet mapped")
+        self.handle_data(f"HTML end tag '/{tag}' not yet mapped")
 
     def handle_entityref(self, name: str) -> None:
         """
