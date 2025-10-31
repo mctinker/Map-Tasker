@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.0.3] 30-Oct-2025
+## [9.0.4] ??-Nov-2025  # FIX
 
 ### Added
 
@@ -14,16 +14,20 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed: Embedded HTML list items are not all being formatted correctly.
-- Fixed: There are an excessive number of spaces in TaskerNet descriptions.
-- Fixed: Properly handle ordered lists in embedded HTML.
-- Fixed: Embedded HTML 'Title' tag is not displaying.
+- Fixed:
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [9.0.3] 30-Oct-2025
+
+- Fixed: Embedded HTML list items are not all being formatted correctly.
+- Fixed: There are an excessive number of spaces in TaskerNet descriptions.
+- Fixed: Properly handle ordered lists in embedded HTML.
+- Fixed: Embedded HTML 'Title' tag is not displaying.
 
 ## [9.0.2] 20-Oct-2025
 

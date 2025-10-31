@@ -10,7 +10,6 @@ from __future__ import annotations
 import contextlib
 import copy
 import os
-import random
 import re
 import time
 import tkinter as tk
@@ -556,7 +555,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -2168,7 +2169,8 @@ class CTkTextview(ctk.CTkFrame):
         """
         # Set up to iterate through dictionary of lines and insert into textbox
         line_num = 1
-        tags = []
+        # Initialize our unique tag generator
+        tags = CTkTextview.UniqueTagIDGenerator()
         previous_color = "white"
         previous_directory = ""
         previous_value = ""
@@ -2506,7 +2508,7 @@ class CTkTextview(ctk.CTkFrame):
             if text[0].startswith("\nn"):
                 # If dictionary header, then let's add a leading blank line.
                 # Add hyperlink directory entry and make sure the background color is set.
-                tag_id = self._generate_unique_tag_id(line_num, char_position, tags)
+                tag_id = tags._generate_unique_tag_id(line_num, char_position)  # noqa: SLF001
                 self.textview_textbox.tag_config(
                     tag_id,
                     background=self.master.master.saved_background_color,
@@ -2864,7 +2866,8 @@ class CTkTextview(ctk.CTkFrame):
         if formatted_message == value["text"][-1] and "\n" not in formatted_message:
             formatted_message += "\n"
 
-        tag_id = self._generate_unique_tag_id(line_num_str, char_position, tags)
+        # Get a unique tag ID for this insertion
+        tag_id = tags._generate_unique_tag_id(line_num_str, char_position)  # noqa: SLF001
 
         # Force spacing to 0 if this is a multi-part highlight.
         if text_linenum > 0:
@@ -2928,18 +2931,21 @@ class CTkTextview(ctk.CTkFrame):
 
         return message
 
-    def _generate_unique_tag_id(
-        self,
-        line_num_str: str,
-        char_position: int,
-        tags: set,
-    ) -> str:
-        """Generates a unique tag ID for the text box."""
-        tag_id = f"{line_num_str}.{char_position}"
-        while tag_id in tags:
-            tag_id = f"{tag_id}{random.randint(100, 999)}"  # noqa: S311
-        tags.append(tag_id)
-        return tag_id
+    class UniqueTagIDGenerator:
+        """Generate a unique tag ID for each text insertion, consisting of the line number and character position."""
+
+        def __init__(self) -> None:  # noqa: D107
+            # Counter resets for each widget instance (e.g., each text box)
+            self._tag_counter = 0
+
+        def reset_tag_counter(self) -> None:
+            """Resets the tag counter (e.g., when a new document is loaded)."""
+            self._tag_counter = 0
+
+        def _generate_unique_tag_id(self, line_num_str: str, char_position: int) -> str:
+            """Generates a unique tag ID including line and char position."""
+            self._tag_counter += 1
+            return f"{line_num_str}.{char_position}-{self._tag_counter}"
 
     def _insert_message(
         self,
@@ -3261,7 +3267,7 @@ class CTkTextview(ctk.CTkFrame):
                 return []
 
             new_tag = f"{tag_id}{highlight_type}{highlight_color}"
-            tags.append(new_tag)
+
             # Apply the highlight
             self._apply_highlight(
                 new_tag,
