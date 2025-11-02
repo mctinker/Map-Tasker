@@ -103,6 +103,7 @@ left_arrow_corner_down = "╭"
 left_arrow_corner_up = "╮"
 angle = "└─ "
 blank = " "
+PROGRESS_UPDATE_INTERVAL = 10  # Update progress bar every N items.
 
 
 class CTkTreeview(ctk.CTkFrame):
@@ -2252,6 +2253,13 @@ class CTkTextview(ctk.CTkFrame):
         temp_previous_value = {}
         self.label_tags = []
         self.previous_heading = "0"
+        total_items = len(the_data)  # Cache total items
+
+        # Cache routines for speed.
+        _draw_box_around_text = draw_box_around_text
+        _handle_special_spacing_and_blanks = self._handle_special_spacing_and_blanks
+        _process_value_with_color_or_directory = self._process_value_with_color_or_directory
+        _update_progress_display = self._update_progress_display
 
         # Go through the data and format it accordingly.  Num is a sequential number.
         for num, (_linenum_in_data, value) in enumerate(the_data.items()):
@@ -2260,52 +2268,62 @@ class CTkTextview(ctk.CTkFrame):
                 return
 
             # Update progressbar if needed.
-            self._update_progress_display(progress, num)
+            if num % PROGRESS_UPDATE_INTERVAL == 0 or num == total_items:
+                _update_progress_display(progress, num)
 
             # Determine if we need to draw a box around the label text
             if num > 2 and temp_previous_value:
-                try:
-                    # If we have a spacing arg, then this is a label value
-                    _ = value["spacing"]
-                    if value["text"][0] == "":  # Convert empty text label to a newline.
-                        value["text"][0] = "\n"
+                # Use .get() instead of try/except for faster common-path lookup
+                spacing = value.get("spacing")
+                if spacing is not None:
+                    text = value["text"]
+
+                    # Convert empty text label to a newline (direct index access is fine)
+                    if not text[0]:
+                        text[0] = "\n"
 
                     # Save the value for our box
-                    self.draw_box["all_values"].append(value)  # Save value
-                    temp_previous_value = copy.deepcopy(value)  # Save our value for next iteration.
+                    self.draw_box["all_values"].append(value)
 
-                    # Do label box if this is the last piece of the label.
+                    # Shallow copy only if needed downstream
+                    temp_previous_value = value.copy()
+
+                    # Draw box if this is the end of the label
                     if value["end"][-1]:
-                        line_num = draw_box_around_text(self, line_num)
-                    continue  # don't process value.  Go to next value.
+                        line_num = _draw_box_around_text(self, line_num)
 
-                # No spacing...not a label.
-                except KeyError:
-                    pass
+                    # Skip further processing
+                    continue
 
             # Save the previous value for above code check.
             temp_previous_value = copy.deepcopy(value)
 
-            # Ignore certain lines
-            with contextlib.suppress(IndexError):
-                if any(ignore_str in value["text"][0] for ignore_str in text_to_ignore):
-                    continue
+            text_list = value.get("text")
+            if not text_list:
+                continue
 
-                # Ignore our css .textbox definitions.
-                first_text = value["text"][0] if value["text"] else ""
-                if ignore_line and "}" in first_text:
+            first_text = text_list[0]
+
+            # Fast membership check for ignored substrings
+            if any(s in first_text for s in text_to_ignore):
+                continue
+
+            # Handle CSS/textbox ignore logic
+            if ignore_line:
+                if "}" in first_text:
                     ignore_line = False
-                    continue
-                if ignore_line:
-                    continue
-                if ".text-box" in first_text or ".image-small" in first_text:
-                    ignore_line = True
-                    continue
-                if previous_text_content == "\n" and first_text == "\n":  # Ignore double blank lines.
-                    continue
+                continue
+
+            if ".text-box" in first_text or ".image-small" in first_text:
+                ignore_line = True
+                continue
+
+            # Ignore double blank lines
+            if previous_text_content == "\n" and first_text == "\n":
+                continue
 
             # Get the text of the value and ignore duplicate blank lines.
-            response, previous_text_content, text_current_value = self._handle_special_spacing_and_blanks(
+            response, previous_text_content, text_current_value = _handle_special_spacing_and_blanks(
                 previous_text_content,
                 value,
                 line_num,
@@ -2343,7 +2361,7 @@ class CTkTextview(ctk.CTkFrame):
                 previous_directory,
                 previous_value,
                 char_position,
-            ) = self._process_value_with_color_or_directory(
+            ) = _process_value_with_color_or_directory(
                 value,
                 line_num,
                 char_position,
@@ -2369,21 +2387,27 @@ class CTkTextview(ctk.CTkFrame):
         previous_directory: str,
         previous_value_type: str,  # Renamed from previous_value for clarity
         tags: list,
-        text_content: str,  # Added to use within the function if needed
+        text_content: list,  # Added to use within the function if needed
     ) -> tuple[int, str, str, str, int]:
         """Processes map data based on color or directory information."""
+        # Cache data locally for better performance.
         new_line_num = line_num
         new_previous_color = previous_color
         new_previous_directory = previous_directory
         new_previous_value_type = previous_value_type
         new_char_position = char_position
+        get_value = value.get  # Localize .get() for small speed gain
+        color = get_value("color")
+        text = get_value("text")
+        directory = "directory" in value
 
         # Check if we need to change the color
-        if not value["color"] and value.get("text"):
-            value["color"] = [new_previous_color]
+        if not color and text:
+            color = [new_previous_color]
+            value["color"] = color  # maintain side effect
 
         # Go through all the text/color combinations
-        if value.get("color"):
+        if color:
             new_line_num, new_previous_color, new_previous_value_type, tags = self.process_colored_text(
                 value,
                 new_line_num,
@@ -2405,7 +2429,7 @@ class CTkTextview(ctk.CTkFrame):
                     new_previous_value_type,
                     new_char_position,
                 )
-        elif "directory" in value:
+        elif directory:
             new_char_position, new_previous_directory, new_line_num = self.process_directory(
                 value,
                 new_line_num,
@@ -2629,9 +2653,12 @@ class CTkTextview(ctk.CTkFrame):
             str: The owning project name, or an empty string if not found.
         """
         all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+        get_task_ids = get_ids
 
         for project_value in PrimeItems.tasker_root_elements["all_projects"].values():
-            if any(all_tasks[task_id]["name"] == task_name for task_id in get_ids(False, project_value["xml"], "", [])):
+            if any(
+                all_tasks[task_id]["name"] == task_name for task_id in get_task_ids(False, project_value["xml"], "", [])
+            ):
                 return project_value["name"]
         return ""
 
@@ -2656,6 +2683,10 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             tuple: Updated line number, the previous color, the tag for the color, and the list of tags.
         """
+        # Cache frequently used attributes.
+        output_map_text_lines = self.output_map_text_lines
+        textbox = self.textview_textbox
+
         # Go through all text elements for this line
         for text_linenum, text in enumerate(value["text"]):
             if text == "Directory\n":
@@ -2670,7 +2701,7 @@ class CTkTextview(ctk.CTkFrame):
                 value["text"][text_linenum] = "\n"
 
                 # Output current text and increment line number
-                previous_color = self.output_map_text_lines(
+                previous_color = output_map_text_lines(
                     value,
                     text_linenum,
                     line_num,
@@ -2679,14 +2710,13 @@ class CTkTextview(ctk.CTkFrame):
                     previous_value,
                 )
                 line_num += 1
-                # return line_num + 1, previous_color, "color", tags
 
                 # Restore original text and color
                 value["text"][text_linenum] = save_text
                 value["color"][text_linenum] = save_color
 
             # Output the updated text and color
-            previous_color = self.output_map_text_lines(
+            previous_color = output_map_text_lines(
                 value,
                 text_linenum,
                 line_num,
@@ -2695,7 +2725,7 @@ class CTkTextview(ctk.CTkFrame):
                 previous_value,
             )
             # Get our line number sincew it may have been incremented within output_map_text_lines
-            line_num = int(self.textview_textbox.index("end-1c").split(".")[0]) + 1
+            line_num = int(textbox.index("end-1c").split(".")[0]) + 1
 
         # Return updated parameters
         return line_num + 1, previous_color, "color", tags
@@ -3325,9 +3355,10 @@ class CTkTextview(ctk.CTkFrame):
 
     def _find_highlight_line(self, search_word: str) -> str:
         """Find the line number containing the search word."""
-        line_count = int(self.textview_textbox.index("end-1c").split(".")[0])
+        textbox = self.textview_textbox
+        line_count = int(textbox.index("end-1c").split(".")[0])
         for line_num in range(line_count, 0, -1):
-            line_text = self.textview_textbox.get(
+            line_text = textbox.get(
                 f"{line_num}.0",
                 f"{line_num}.0 lineend",
             )

@@ -379,41 +379,6 @@ def handle_gototop(text_list: list) -> list:
     return text_list
 
 
-# class MLStripper(HTMLParser):
-#     """
-#     A class to strip HTML tags from a string.
-
-#     This class extends the HTMLParser class and overrides the handle_data method to collect data
-#     between HTML tags. The collected data can be retrieved using the get_data method.
-#     """
-
-#     def __init__(self) -> None:
-#         """
-#         Initializes the MLStripper class.
-#         """
-#         super().__init__()
-#         self.reset()
-#         self.fed = []
-
-#     def handle_data(self, d: str) -> None:
-#         """
-#         Overrides the handle_data method to collect data between HTML tags.
-
-#         Args:
-#             d (str): The data between HTML tags.
-#         """
-#         self.fed.append(d)
-
-#     def get_data(self) -> str:
-#         """
-#         Retrieves the collected data between HTML tags.
-
-#         Returns:
-#             str: The collected data as a single string.
-#         """
-#         return "".join(self.fed)
-
-
 def remove_the_html_tags(text: str) -> str:
     """
     Removes HTML tags from the given text.
@@ -1037,40 +1002,53 @@ def ignore_line(line: str) -> bool:
 # Loop through html and format ourput
 def process_html_lines(
     lines: list,
-    output_lines: list,
+    output_lines: dict,  # Changed to dict for performance
     spacing: int,
     iterate: bool,
-) -> list:
+) -> dict:  # Return type changed to dict
     """
-    Processes HTML lines and adds them to the output_lines list.
+    Processes HTML lines and adds them to the output_lines dictionary.
 
     Args:
         lines (list): A list of HTML lines to be processed.
-        output_lines (list): A list to store the processed lines.
-        spacing (int): The spacing value for formatting.
-        iterate (bool): A flag indicating whether to iterate through the lines.F
+        output_lines (dict): A dictionary to store the processed lines.
+        spacing (int): The initial spacing value for formatting.
+        iterate (bool): A flag indicating whether to skip the next line.
 
     Returns:
-        list: The updated output_lines list.
+        dict: The updated output_lines dictionary.
+        NOTE: Optimized for performance
     """
     doing_global_variables = False
     remove_html = True
     lines_to_skip = 0
 
-    # Go thru all lines in the configuration map.
+    # Pre-calculate common strings for faster membership checking
+    unreferenced_globals = "Unreferenced Global Variables"
+    project_globals = "Project Global Variables"
+    profile_taskernet = ("Profile:", "TaskerNet")
+    task_project = (
+        "Task:",
+        "- Project '",
+        "   The following Tasks in Project ",
+    )
+    task_project_start = "   The following Tasks in Project "
+
+    # --- Start Processing Loop ---
     for line_num, line in enumerate(lines):
-        # Are we to skip lines due to label with html having already been added?
+        # 1. Handle skipped lines (Label HTML processing)
         if lines_to_skip > 0:
             lines_to_skip -= 1
             if not line.startswith("<div "):
                 continue
 
-        # Ignore lines that match the criteria
+        # 2. Early exit for common ignored lines
         if ignore_line(line) and not doing_global_variables:
             continue
 
-        # Process directory entries
+        # 3. Handle Directory Entries
         if "<td>" in line:
+            # Add directory entry and mark next line for skipping (if part of a multi-line structure)
             output_lines = add_directory_entry(
                 line.split("<td>"),
                 output_lines,
@@ -1079,19 +1057,16 @@ def process_html_lines(
             iterate = True
             continue
 
-        # Skip processing if flagged
+        # 4. Handle 'iterate' flag (Skip line)
         if iterate:
             iterate = False
             continue
 
-        # Make sure the key for the next output_line is available
-        if output_lines:
-            keys_list = list(output_lines.keys())
-            insert_key = keys_list[-1] + 1
-        else:
-            insert_key = line_num
+        # 5. Determine the key for the current line's output
+        # Using line_num as a key, since lines are processed in order
+        insert_key = line_num
 
-        # Handle Unreferenced Global Variables table
+        # --- Handle Global Variables Table Start ---
         if line == "<th>Name</th>\n" and line_num + 1 < len(lines) and lines[line_num + 1] == "<th>Value</th>\n":
             output_lines[insert_key] = {
                 "text": ["Variable Name...............Variable Value"],
@@ -1101,30 +1076,33 @@ def process_html_lines(
                 "directory": [],
             }
             doing_global_variables = True
+            # Set to iterate to skip the next line ("<th>Value</th>\n")
             iterate = True
             continue
 
-        # End of global variables table
+        # --- Handle Global Variables Table End ---
         if doing_global_variables and line == "</table><br>\n":
             doing_global_variables = False
             spacing = 0
             continue
 
-        # Reset spacing if this is a Scene element
+        # 6. Pre-processing for the current line
         if "Element of type" in line:
             spacing = 0
 
-        # If we are doing html such as from a screen WebElement or variable set, then provide appropriate spacing.
-        if not remove_html:
-            line = align_text(line, 30)  # noqa: PLW2901
-
-        # Check for valid lines in which we don't want to remove the html...
-        # Lines with imbedded html text from scripts and too many task action lines.
+        # Check for valid lines in which we don't want to remove the html
         if "!DOCTYPE" in line or "&lt;style&gt;" in line or "&lt;script" in line:
             remove_html = False
 
-        # Apply additional formatting
+        # If we are doing html from a screen WebElement/variable set, provide appropriate spacing.
+        if not remove_html:
+            # Using tuple-assignment to avoid reassignment warning.
+            line = align_text(line, 30)  # noqa: PLW2901
+
+        # 7. Apply additional formatting (The core processing)
+        # Only call the heavy function if we don't have the simple TaskerNet/label inline color
         if ";text-decoration:" not in line:
+            # additional_formatting will create the dict entry at insert_key
             output_lines, spacing = additional_formatting(
                 doing_global_variables,
                 line,
@@ -1133,27 +1111,68 @@ def process_html_lines(
                 spacing,
                 remove_html,
             )
+        else:
+            # Simple case: TaskerNet description or label with embedded color style
+            output_lines[insert_key] = {"text": [], "color": [], "highlights": []}
+            # The logic to handle this is now moved inline for minor performance gain
+            temp1 = line.split('<span style="color:')
+            for item in temp1:
+                # Get the pertinent info for the output line.
+                if item and item != "</span>" and not item.endswith('label:</span><div  class="text-box"><p>'):
+                    output_lines[insert_key]["color"].append(item.split(";text-decoration:")[0])
+                    temp_text = item.split('-text">')[1].replace("Go to top", "")
+                    output_lines[insert_key]["text"] = [remove_html_tags(temp_text, "")]
+            # We still need to cleanup text elements and calculate spacing for this line
+            output_lines = cleanup_text_elements(output_lines, insert_key, remove_html)
+            output_lines = handle_disabled_objects(output_lines, insert_key)
 
-        # If at end of valid html, start removing html again
+            # Determine how much spacing to add to the front of the line.
+            text = output_lines[insert_key]["text"][0]
+
+            # Re-implementing simplified calculate_spacing logic inline
+            if (
+                doing_global_variables
+                or text.startswith(("Project:", "Scene:"))
+                or any(keyword in text for keyword in (project_globals, unreferenced_globals))
+            ):
+                current_spacing = 0
+            elif text.startswith(profile_taskernet):
+                current_spacing = 5
+            elif any(keyword in text for keyword in task_project) or "--Task:" in text[:7]:
+                current_spacing = 7 if text.startswith(task_project_start) else 10
+            elif spacing == 61 or (text and text[0].isdigit()):
+                current_spacing = 15
+            else:
+                current_spacing = spacing
+            spacing = current_spacing
+
+            output_lines[insert_key]["text"][0] = f"{spacing * ' '}{output_lines[insert_key]['text'][0]}"
+
+        # 8. Post-processing
         if "/html" in line or "<div <span" in line:
             remove_html = True
 
         # Validate and update profile name if missing
         if "Profile:" in line:
-            with contextlib.suppress(KeyError, IndexError):
-                current_text = output_lines[insert_key].get("text", [""])[0]
-                if current_text == "     Profile: \n":
-                    output_lines[insert_key]["text"][0] = "     Profile: (no name)\n"
+            # Use .get() and check the default value for safer access
+            current_text = output_lines.get(insert_key, {}).get("text", [""])[0]
+            if current_text == "     Profile: \n":
+                output_lines[insert_key]["text"][0] = "     Profile: (no name)\n"
 
-        # Handle labels and TaskerNet descriptions/labels with html in them.
-        # The indicator ('text-box) might be at the end of a Task action.
+        # 9. Handle labels/descriptions with full HTML (the biggest performance impact)
+        # Check for 'text-box' but ignore the style class '.text-box'
         if "text-box" in line and ".text-box" not in line:
-            # Reset our insertion point since one or more lines may have been removed.
-            insert_key = next(reversed(output_lines))
-            # See if additional_formatting added junk and remove it if so.
-            if output_lines[insert_key]["text"] and output_lines[insert_key]["text"][0] == "     <div class=":
-                del output_lines[insert_key]
+            # Find the actual key that was last inserted before the 'text-box' line
+            # This is necessary because some lines are just skipped.
+            # Using the last key of the dictionary is a safe way to find the insertion point.
+            if output_lines:
+                insert_key = next(reversed(output_lines))
+                # See if additional_formatting added junk and remove it if so.
+                if output_lines[insert_key]["text"] and output_lines[insert_key]["text"][0] == "     <div class=":
+                    del output_lines[insert_key]
+
             # Go process the html in label/description
+            # process_label_html updates output_lines directly
             lines_to_skip = process_label_html(lines, output_lines, line_num, spacing)
             continue
 
