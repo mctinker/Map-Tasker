@@ -10,11 +10,13 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed: Code optimized for performance.
+- Changed: Code optimized for improved performance for the Map view.
 
 ### Fixed
 
-- Fixed:
+- Fixed: A program error occurs in 'guimap.py'.
+- Fixed: Eliminate excessive blank lines in the Map view.
+- Fixed: The Project's 'properties' inadvertantly pick up the color for 'Luancher Task' if there is a launcher task.
 
 ### Known Issue
 

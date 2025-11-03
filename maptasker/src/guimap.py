@@ -485,7 +485,18 @@ def eliminate_blanks(output_lines: dict) -> dict:
     """
     blank_lines = {"", "    \n"}
 
-    for key, value in output_lines.items():
+    # Create a list of keys *before* starting the loop.
+
+    # We iterate over this fixed list of keys, allowing us to safely modify the original dictionary.
+    for key in list(output_lines.keys()):
+        # Get the value using the key from the original dictionary
+        # NOTE: You must check if the key still exists, as another part of your logic might
+        # implicitly handle a key before it gets to this loop, though it's less common here.
+        if key not in output_lines:
+            continue
+
+        value = output_lines[key]
+
         try:
             if value["directory"]:
                 continue  # Skip directories
@@ -494,15 +505,20 @@ def eliminate_blanks(output_lines: dict) -> dict:
 
         prev_value = None
         new_text_list = []
+
+        # Inner loop for processing the 'text' list (this is fine, it's not the dictionary)
         for item in value["text"]:
+            # Assuming 'blank_lines' is defined in the scope (e.g., a set or list of blank line markers)
             if item in blank_lines and prev_value in blank_lines:
                 continue
             new_text_list.append(item)
             prev_value = item
 
         if new_text_list:
-            value["text"] = new_text_list
+            # We are modifying the *value* of the dictionary item, not the size, so this is safe.
+            output_lines[key]["text"] = new_text_list
         else:
+            # **SAFE REMOVAL:** This is now safe because we are iterating over a copy of the keys.
             output_lines.pop(key)
 
     return output_lines
@@ -832,7 +848,7 @@ def additional_formatting(
         remove_html (bool): Whether or not to remove HTML tags from the line.
 
     Returns:
-        tuple: output_lines and spacing.
+        tuple: output_lines, spacing and whether to ingore the line (True).
     """
     line = pattern8.sub("\n", line)
 
@@ -880,6 +896,8 @@ def additional_formatting(
     # Check top see if we have already added this text, which is the case if '_color' in line but not our '_color'.
     else:
         temp_line = remove_html_tags(line, "")
+        if not temp_line.strip():
+            return output_lines, spacing, True
         output_lines[line_num]["text"].append(temp_line.replace("Go to top", ""))
         if doing_global_variables:
             spacing = glob_spacing
@@ -906,7 +924,7 @@ def additional_formatting(
     )
     output_lines[line_num]["text"][0] = f"{spacing * ' '}{output_lines[line_num]['text'][0]}"
 
-    return output_lines, spacing
+    return output_lines, spacing, False
 
 
 def parse_name(input_string: str) -> str:
@@ -994,6 +1012,7 @@ def ignore_line(line: str) -> bool:
         "padding: 5px;",
         "{display: ",
         "></span><!doctype html>\n",
+        '<meta charset="UTF-8"><title>MapTasker</title>\n',
     ]
     # Ignore certain lines
     return any(ignore_str in line for ignore_str in text_to_ignore)
@@ -1103,7 +1122,7 @@ def process_html_lines(
         # Only call the heavy function if we don't have the simple TaskerNet/label inline color
         if ";text-decoration:" not in line:
             # additional_formatting will create the dict entry at insert_key
-            output_lines, spacing = additional_formatting(
+            output_lines, spacing, ignore_the_line = additional_formatting(
                 doing_global_variables,
                 line,
                 output_lines,
@@ -1111,6 +1130,8 @@ def process_html_lines(
                 spacing,
                 remove_html,
             )
+            if ignore_the_line:
+                continue
         else:
             # Simple case: TaskerNet description or label with embedded color style
             output_lines[insert_key] = {"text": [], "color": [], "highlights": []}

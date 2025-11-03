@@ -556,7 +556,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -2297,48 +2299,46 @@ class CTkTextview(ctk.CTkFrame):
             temp_previous_value = copy.deepcopy(value)
 
             text_list = value.get("text")
-            if not text_list:
-                continue
+            if text_list:
+                first_text = text_list[0]
 
-            first_text = text_list[0]
-
-            # Fast membership check for ignored substrings
-            if any(s in first_text for s in text_to_ignore):
-                continue
-
-            # Handle CSS/textbox ignore logic
-            if ignore_line:
-                if "}" in first_text:
-                    ignore_line = False
-                continue
-
-            if ".text-box" in first_text or ".image-small" in first_text:
-                ignore_line = True
-                continue
-
-            # Ignore double blank lines
-            if previous_text_content == "\n" and first_text == "\n":
-                continue
-
-            # Get the text of the value and ignore duplicate blank lines.
-            response, previous_text_content, text_current_value = _handle_special_spacing_and_blanks(
-                previous_text_content,
-                value,
-                line_num,
-                char_position,
-                tags,
-            )
-
-            # If no response, ignore it and continue.
-            if not response:
-                continue
-
-            # If Windows, ignore blank lines: "    \n"
-            if PrimeItems.windows_system and (value["text"] and first_text.endswith("\n")):
-                text = value["text"][0]
-                blanks_to_check = len(text) - 1
-                if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
+                # Fast membership check for ignored substrings
+                if any(s in first_text for s in text_to_ignore):
                     continue
+
+                # Handle CSS/textbox ignore logic
+                if ignore_line:
+                    if "}" in first_text:
+                        ignore_line = False
+                    continue
+
+                if ".text-box" in first_text or ".image-small" in first_text:
+                    ignore_line = True
+                    continue
+
+                # Ignore double blank lines
+                if previous_text_content == "\n" and first_text == "\n":
+                    continue
+
+                # Get the text of the value and ignore duplicate blank lines.
+                response, previous_text_content, text_current_value = _handle_special_spacing_and_blanks(
+                    previous_text_content,
+                    value,
+                    line_num,
+                    char_position,
+                    tags,
+                )
+
+                # If no response, ignore it and continue.
+                if not response:
+                    continue
+
+                # If Windows, ignore blank lines: "    \n"
+                if PrimeItems.windows_system and (value["text"] and first_text.endswith("\n")):
+                    text = value["text"][0]
+                    blanks_to_check = len(text) - 1
+                    if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
+                        continue
 
             # Check to see if we need to bump the line number for directory.  If so, get get the new line number.
             line_num, char_position = check_bump(
