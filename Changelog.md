@@ -2,15 +2,15 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.0.4] ??-Nov-2025  # FIX
+## [9.0.4] 04-Nov-2025
 
 ### Added
 
-- Added: No new enhancements
+- Added: Created an additional output trace log file if 'debug' is on for the Map view.
 
 ### Changed
 
-- Changed: Code optimized for improved performance for the Map view.
+- Changed: Code optimized for improved Map view performance.
 
 ### Fixed
 

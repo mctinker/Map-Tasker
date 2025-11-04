@@ -797,22 +797,20 @@ def display_analyze_button(self, row: int, first_time: bool) -> None:  # noqa: A
 
 
 # $ Delete existing Ai labels
-def delete_ai_labels(self) -> None:  # noqa: ANN001
-    """
-    Deletes the AI labels if they exist.
-    """
-    with contextlib.suppress(AttributeError):
-        self.ai_set_label1.destroy()
-    with contextlib.suppress(AttributeError):
-        self.ai_set_label2.destroy()
-    with contextlib.suppress(AttributeError):
-        self.ai_set_label3.destroy()
-    with contextlib.suppress(AttributeError):
-        self.ai_set_label4.destroy()
-    with contextlib.suppress(AttributeError):
-        self.ai_set_label5.destroy()
-    with contextlib.suppress(AttributeError):
-        self.single_label.destroy()  # Include the single name label
+def delete_ai_labels(self: object) -> None:
+    """Delete existing AI labels if they exist."""
+    for attr in (
+        "ai_set_label1",
+        "ai_set_label2",
+        "ai_set_label3",
+        "ai_set_label4",
+        "ai_set_label5",
+        "single_label",
+    ):
+        label = getattr(self, attr, None)
+        if label is not None:
+            with contextlib.suppress(Exception):
+                label.destroy()
 
 
 # Display the current settings for Ai
@@ -970,35 +968,6 @@ def update_tasker_object_menus(self, get_data: bool, reset_single_names: bool) -
 
     # Update the text labels
     display_selected_object_labels(self)
-
-
-# # Get the Ai api key
-# def get_api_key() -> tuple:
-#     """
-#     Retrieves the API key from the specified file.
-
-#     This function checks if the KEYFILE exists and if it does, it opens the file and reads the first line. The first line is assumed to be the API key. If the KEYFILE does not exist, it returns the string "None".
-
-#     Returns:
-#         tuple: The file type and the API key if it exists, otherwise "None".
-#     """
-#     if os.path.isfile(KEYFILE):
-#         kind_of_file, contents = detect_and_read_file(KEYFILE)
-#         if kind_of_file == "text":
-#             return contents
-#         if kind_of_file == "pickle":
-#             PrimeItems.ai["api_key"] = contents["api_key"]
-#             PrimeItems.ai["openai_key"] = contents["openai_key"]
-#             PrimeItems.ai["deepseek_key"] = contents["deepseek_key"]
-#             # For snthropic, try the old key name first.
-#             try:
-#                 PrimeItems.ai["anthropic_key"] = contents["claude_key"]
-#             except KeyError:  # New key name.
-#                 PrimeItems.ai["anthropic_key"] = contents["anthropic_key"]
-#             with contextlib.suppress(KeyError):
-#                 PrimeItems.ai["gemini_key"] = contents["gemini_key"]
-#             return PrimeItems.ai["api_key"]
-#     return "None"
 
 
 # Either validate the file location provided or provide a filelist of XML files
@@ -1235,32 +1204,21 @@ def display_object_pulldowns(
 
 # Delete old pulldown menus since the older selected items could be longer than the new,
 # and both will appear.
-def delete_old_pulldown_menus(self) -> None:  # noqa: ANN001
-    """
-    Deletes the old pulldown menus.
-
-    This function deletes the old pulldown menus that were created in the GUI. It checks if each menu exists and then destroys it.
-
-    Parameters:
-        self (object): The current instance of the class.
-
-    Returns:
-        None
-    """
-    with contextlib.suppress(AttributeError):
-        self.specific_project_optionmenu.destroy()
-    with contextlib.suppress(AttributeError):
-        self.specific_profile_optionmenu.destroy()
-    with contextlib.suppress(AttributeError):
-        self.specific_task_optionmenu.destroy()
-    with contextlib.suppress(AttributeError):
-        self.ai_project_optionmenu.destroy()
-    with contextlib.suppress(AttributeError):
-        self.ai_profile_optionmenu.destroy()
-    with contextlib.suppress(AttributeError):
-        self.ai_task_optionmenu.destroy()
-    with contextlib.suppress(AttributeError):
-        self.single_label.destroy()
+def delete_old_pulldown_menus(self: object) -> None:
+    """Delete old pulldown menus if they exist."""
+    for attr in (
+        "specific_project_optionmenu",
+        "specific_profile_optionmenu",
+        "specific_task_optionmenu",
+        "ai_project_optionmenu",
+        "ai_profile_optionmenu",
+        "ai_task_optionmenu",
+        "single_label",
+    ):
+        widget = getattr(self, attr, None)
+        if widget:
+            with contextlib.suppress(Exception):
+                widget.destroy()
 
 
 # Provide a pulldown list for the selection of a Profile name
@@ -1430,10 +1388,11 @@ def build_profiles(
     profiles = root["all_profiles"]
     profile_list = []
     found_tasks = []
+    _get_profile_tasks = get_profile_tasks  # Localize for speed
     for profile in profile_ids:
         # Get the Profile's Tasks
         PrimeItems.task_count_unnamed = 0  # Avoid an error in get_profile_tasks
-        if the_tasks := get_profile_tasks(profiles[profile]["xml"], [], []):
+        if the_tasks := _get_profile_tasks(profiles[profile]["xml"], [], []):
             task_list = []
             # Process each Task.  Tasks are simply a flat list of names.
             for task in the_tasks:
@@ -1601,11 +1560,8 @@ def setup_name_error(
     ]
 
 
-def set_tasker_object_names(self) -> None:  # noqa: ANN001
-    """
-    Sets the names to display in the pulldown menus based on the current tasker object names.
-    """
-    # Define defaults
+def set_tasker_object_names(self: object) -> None:
+    """Set names to display in pulldown menus based on current tasker object names."""
     defaults = {
         "project": "None",
         "profile": "None",
@@ -1613,14 +1569,19 @@ def set_tasker_object_names(self) -> None:  # noqa: ANN001
         "display_only": "Display only ",
     }
 
-    if self.single_project_name:
-        _set_single_project_name(self, defaults)
-    elif self.single_profile_name:
-        _set_single_profile_name(self, defaults)
-    elif self.single_task_name:
-        _set_single_task_name(self, defaults)
-    else:
-        _set_default_names(self, defaults)
+    # Map attribute presence to corresponding function
+    handlers = (
+        (self.single_project_name, _set_single_project_name),
+        (self.single_profile_name, _set_single_profile_name),
+        (self.single_task_name, _set_single_task_name),
+    )
+
+    for attr_value, func in handlers:
+        if attr_value:
+            func(self, defaults)
+            return
+
+    _set_default_names(self, defaults)
 
 
 def _set_single_project_name(self: object, defaults: dict) -> None:
