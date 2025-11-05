@@ -321,6 +321,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     """
 
     mygui = self.master.master
+    textview = self.textview_textbox
+    cget_width = textview.cget
     all_values = self.draw_box["all_values"]
 
     # Initialize state
@@ -335,11 +337,34 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     lines_to_skip = 0
     in_list = False
     ordered_list = False
+    # Cached strings and sets for fast membership/compare
+    skip_tags = {"<big>", "</big>", "<small>", "</small>"}
+    list_start_tags = {"<ul>", "<p>"}
+    hr_tag = "<hr>"
+    img_tag = "<img src="
+    end_list_tags = ("</ul>", "</ol>")
+    newline_set = {"", "       * "}
 
     # Setup text widget insertion
-    line_num = int(self.textview_textbox.index("end-1c").split(".")[0]) + 1
+    line_num = int(textview.index("end-1c").split(".")[0]) + 1
     start_idx = f"{line_num}.0"
     begin_box = start_idx
+
+    # Localize helper functions for faster access: compues only once.
+    _clean = _clean_message
+    _newline = _insert_newline
+    _handle_img = _handle_image
+    _tnet = _handle_taskernet_description
+    _lbl_end = _handle_label_end
+    _norm = _normalize_message
+    _find_box = _find_begin_box
+    _close = _close_label
+    _final = _finalize_bottom
+    _bbox = _apply_bounding_box
+    _html = starts_with_html
+    _insert_text = _insert_and_tag
+    _proc_tbl = process_table
+    _hr = "―" * (int(cget_width("width")) - 2)
 
     for num, value in enumerate(all_values):
         spacing = value["spacing"] if num == 0 else 0
@@ -353,39 +378,42 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 end_of_label = True
 
             # Modify line as needed and setup the starting index
-            clean_message = _clean_message(self, message, value, inner_num)
+            clean_message = _clean(self, message, value, inner_num)
             start_idx = f"{line_num}.{char_position}"
 
             # Handle empty/newline message, but only if it isn't html of some sort.
             if (not clean_message and not message.startswith("<")) or clean_message == "\n\n":
-                char_position, spacing, line_num, start_idx = _insert_newline(self, start_idx, value, line_num)
+                char_position, spacing, line_num, start_idx = _newline(self, start_idx, value, line_num)
                 continue
 
             # Handle multi-line messages
             all_messages = clean_message.split("\n")
 
-            for msg_num, msg in enumerate(all_messages):
+            msg_idx = 0
+            while msg_idx < len(all_messages):
+                msg = all_messages[msg_idx]
+                msg_idx += 1
                 # Skip or process special content
                 if lines_to_skip > 0:
                     lines_to_skip -= 1
                     continue
                 if value["table"] and value["table"][inner_num]:
-                    lines_to_skip, line_num, start_idx = process_table(self, value, inner_num)
+                    lines_to_skip, line_num, start_idx = _proc_tbl(self, value, inner_num)
                     continue
-                if "<img src=" in msg:
-                    _handle_image(self, msg, start_idx)
+                if img_tag in msg:
+                    _handle_img(self, msg, start_idx)
                     continue
                 if msg == "</a>":
                     continue
-                if msg == "<hr>":  # Horizontal line
-                    width = int(self.textview_textbox.cget("width"))
+                if msg == hr_tag:  # Horizontal line
+                    width = int(textview.cget("width"))
                     hr_line = "―" * (width - 2)  # or use "-" or "—"
-                    self.textview_textbox.insert("insert", hr_line + "\n")
+                    textview.insert("insert", hr_line + "\n")
                     continue
                 # Handle start and end lists
-                if msg in ("<ul>", "<p>"):
+                if msg in list_start_tags:
                     ordered_list = False
-                    char_position, spacing, line_num, start_idx = _insert_newline(
+                    char_position, spacing, line_num, start_idx = _newline(
                         self,
                         start_idx,
                         value,
@@ -395,14 +423,14 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 if msg == "<ol>":
                     ordered_list = True
                     ordered_count = 0
-                    char_position, spacing, line_num, start_idx = _insert_newline(
+                    char_position, spacing, line_num, start_idx = _newline(
                         self,
                         start_idx,
                         value,
                         line_num,
                     )
                     continue
-                if msg.startswith(("</ul>", "</ol>")):
+                if msg.startswith(end_list_tags):
                     if msg.startswith("</ol>"):
                         ordered_list = False
                         ordered_count = 0
@@ -418,17 +446,15 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 line_break = False
                 if "<br>" in msg:
                     line_break = True
-                    temp = msg.split("<br>")
-                    msg = temp[0]  # noqa: PLW2901
-                    all_messages.insert(msg_num + 1, "")
-                    for break_num, break_text in enumerate(temp[1:]):
-                        all_messages.insert(msg_num + break_num + 2, break_text)
+                    parts = msg.split("<br>")
+                    msg = parts[0]
+                    all_messages[msg_idx:msg_idx] = ["", *parts[1:]]
 
                 # Handle TaskerNet description
-                msg, its_a_label = _handle_taskernet_description(msg, its_a_label)  # noqa: PLW2901
+                msg, its_a_label = _tnet(msg, its_a_label)
 
                 # End-of-label adjustments
-                updated_msg, end_of_label = _handle_label_end(msg, end_of_label, value, inner_num)
+                updated_msg, end_of_label = _lbl_end(msg, end_of_label, value, inner_num)
 
                 # Handle list items
                 if "<li>" in updated_msg or (msg and in_list):
@@ -443,17 +469,19 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     updated_msg = updated_msg.replace("</li>", "")
 
                 # Insert newline if needed before non-html text after html text.
-                html_starter = starts_with_html(updated_msg)
+                html_starter = _html(updated_msg)
 
+                # Ignore msg and insert a '\n' if this is html only tags, ir just the start of a list item/newline,
+                # or specific tags or just plain empty.
                 if (
                     not html_starter
-                    and (updated_msg in {"", "       * "})
+                    and (updated_msg in newline_set)
                     and not message.startswith("<a href")
-                    and message not in ("<big>", "</big>", "<small>", "</small>")
+                    and message not in skip_tags
                     and prev_msg.strip()
                 ) or (not updated_msg and prev_msg == "</ul>"):
                     # Insert the new line
-                    char_position, spacing, line_num, start_idx = _insert_newline(
+                    char_position, spacing, line_num, start_idx = _newline(
                         self,
                         start_idx,
                         value,
@@ -468,15 +496,15 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
                 # Handle list items and get rid of html artifacts
                 between_line_spacing = -20 if updated_msg.startswith("* ") else 0
-                msg_to_insert = _normalize_message(updated_msg, its_a_label, char_position)
+                msg_to_insert = _norm(updated_msg, its_a_label, char_position)
 
                 # Just insert a newline if we have a blank message at the beginning of a line
                 if (
                     char_position == 0
                     and (msg_to_insert == " " or not msg_to_insert.strip())
-                    and message not in ("<big>", "</big>", "<small>", "</small>")
+                    and message not in skip_tags
                 ):
-                    char_position, spacing, line_num, start_idx = _insert_newline(
+                    char_position, spacing, line_num, start_idx = _newline(
                         self,
                         start_idx,
                         value,
@@ -484,7 +512,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     )
                 else:
                     # Insert & tag message
-                    max_msg_len, char_position = _insert_and_tag(
+                    max_msg_len, char_position = _insert_text(
                         self,
                         msg_to_insert,
                         max_msg_len,
@@ -499,7 +527,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     # Handle line break if any
                     if line_break:
                         line_break = False
-                        char_position, spacing, line_num, start_idx = _insert_newline(
+                        char_position, spacing, line_num, start_idx = _newline(
                             self,
                             start_idx,
                             value,
@@ -508,7 +536,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
                 # Debug code to find what text is being inserted
                 # if "ChatGPT API" in msg or "The" in msg:  # --- IGNORE ---
-                #     last_line = self.textview_textbox.get("end-1line", "end")
+                #     last_line = textview.get("end-1line", "end")
                 # Ensure that if we are adding an empty message, our starting position is at 0
                 if updated_msg == "":
                     char_position = 0
@@ -518,7 +546,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 start_idx = f"{line_num}.{char_position}"
 
                 if first_message:
-                    begin_box, line_num = _find_begin_box(self, msg_to_insert, its_a_label)
+                    begin_box, line_num = _find_box(self, msg_to_insert, its_a_label)
                     first_message = False
 
                 # Reset spacing after concatenation.  Don't do it if we just added a newline
@@ -532,17 +560,17 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
         if end_of_label:
             if prev_msg != "":
-                line_num, start_idx = _close_label(self, line_num, value)
+                line_num, start_idx = _close(self, line_num, value)
             break
 
     # Even out the bottom of the box
-    line_num, start_idx = _finalize_bottom(self, line_num, start_idx)
+    line_num, start_idx = _final(self, line_num, start_idx)
 
     # Calculate between-line spacing
     minimum_space = bool(len(all_values[0]["text"]) == 1 and len(all_messages) == 1)
 
     # Add bounding box tag
-    line_num = _apply_bounding_box(
+    line_num = _bbox(
         self,
         begin_box,
         line_num,
@@ -553,9 +581,9 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     )
 
     # Insert newline after the label
-    self.textview_textbox.insert(f"{line_num}.0", "\n", "bg_color")
+    textview.insert(f"{line_num}.0", "\n", "bg_color")
     line_num += 1
-    self.textview_textbox.tag_config("bg_color", background=mygui.saved_background_color)
+    textview.tag_config("bg_color", background=mygui.saved_background_color)
 
     # Reset state for next draw
     self.draw_box = {"all_values": [], "start_idx": None, "end_idx": None, "spacing": 0, "end": False}

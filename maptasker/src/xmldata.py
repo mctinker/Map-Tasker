@@ -6,6 +6,7 @@
 # xmldata: deal with the xml data                                                      #
 #                                                                                      #
 import os
+import re
 import shutil
 
 import defusedxml.ElementTree
@@ -203,47 +204,29 @@ def tasker_object(text: str, blank_trailer: bool) -> bool:
 
 
 # Given a string, remove all HTML (anything between < >) tags from it
+# Precompile regex for maximum performance
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+
 def remove_html_tags(text: str, replacement: str) -> str:
     """
-    Remove html tags from a string
-    :param text: text from which HTML is to be removed
-    :param replacement: text to replace HTML with, if any
-    :return: the text with HTML removed
+    Remove HTML tags from a string efficiently.
+    Keeps strings untouched if they appear to be Tasker/Title text.
+    NOTE: Optimized for performance.
     """
-    # If this is a Project/Profile/Task/Scene name, then we will leave the string asis.  Also leave alone if this is a title.
+    # Skip HTML stripping for specific conditions
     if tasker_object(text, False) or "&nbsp;&nbsp;Title=" in text:
         return text
 
-    # Go thru each character in the string and remove HTML tags
-    result = []
-    in_tag = False
-    n = len(text)
-    i = 0
-    # Iterate through the string character by character
-    while i < n:
-        char = text[i]
-        if char == "<":
-            if i + 1 < n and not text[i + 1].isspace():
-                in_tag = True
-                i += 1  # Move past the '<'
-            else:
-                result.append(char)
-        elif char == ">":
-            if i > 0 and not text[i - 1].isspace():
-                in_tag = False
-            else:
-                result.append(char)
-        elif not in_tag:
-            result.append(char)
-        i += 1
-
-    # If we just have a '<' with no '>' then leave it alone.
-    if in_tag:
+    # If there's no '<', skip regex completely (fast path)
+    if "<" not in text:
         return text
 
-    # Return the text with HTML tags removed
-    # If the result is empty, return the replacement string
-    return "".join(result) if result else replacement
+    # Use precompiled regex substitution (C-level speed)
+    cleaned = _HTML_TAG_RE.sub(replacement, text)
+
+    # Return cleaned text or replacement if empty
+    return cleaned if cleaned.strip() else replacement
 
 
 # Append file1 to file2
@@ -262,7 +245,7 @@ def append_files(file1_path: str, file2_path: str) -> None:
         shutil.copyfileobj(file1, file2)
 
 
-# The XML file hs incorrect encoding.  Let's read it in and rewrite it correctly.
+# The XML file has incorrect encoding.  Let's read it in and rewrite it correctly.
 def rewrite_xml(file_to_parse: str) -> None:
     """Rewrite XML file with UTF-8 encoding.
     Parameters:

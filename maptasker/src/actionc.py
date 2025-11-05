@@ -7789,6 +7789,17 @@ action_codes = {
         category="50",
         canfail="True",
     ),
+    "477t": ActionCode(
+        redirect="",
+        args=[
+            ArgumentCode(arg_id="0", arg_required=True, arg_name="Level", arg_type="0", arg_eval=", Level"),
+            ArgumentCode(arg_id="1", arg_required=True, arg_name="Display", arg_type="3", arg_eval=", Display"),
+            ArgumentCode(arg_id="2", arg_required=True, arg_name="Sound", arg_type="3", arg_eval=", Sound"),
+        ],
+        name="Assistant Volume",
+        category="20",
+        canfail="True",
+    ),
     "47t": ActionCode(
         redirect="",
         args=[
@@ -8084,7 +8095,7 @@ action_codes = {
                 arg_type="1",
                 arg_eval=", Intensity Pattern=",
             ),
-            ArgumentCode(arg_id="13", arg_required=False, arg_name="Live Update", arg_type="3", arg_eval=""),
+            ArgumentCode(arg_id="13", arg_required=True, arg_name="Live Update", arg_type="3", arg_eval=""),
             ArgumentCode(arg_id="14", arg_required=False, arg_name="Short Critical Text", arg_type="1", arg_eval=""),
             ArgumentCode(arg_id="15", arg_required=False, arg_name="Group", arg_type="1", arg_eval=""),
         ],

@@ -10,7 +10,6 @@ from __future__ import annotations
 import contextlib
 import copy
 import os
-import random
 import re
 import time
 import tkinter as tk
@@ -23,8 +22,7 @@ from PIL import Image, ImageTk
 
 from maptasker.src.actione import get_action_code
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.diagcnst import task_delimeter
-from maptasker.src.diagutil import width_and_height_calculator_in_pixel
+from maptasker.src.diagutil import task_delimeter, width_and_height_calculator_in_pixel
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
 from maptasker.src.guiutil2 import configure_progress_bar, draw_box_around_text
@@ -67,6 +65,7 @@ from maptasker.src.maputils import (
     find_owning_profile,
     find_owning_project,
     find_task_pattern,
+    get_current_local_time_auto_timezone,
     get_first_substring_match,
     is_color_dark,
     make_hex_color,
@@ -2168,7 +2167,8 @@ class CTkTextview(ctk.CTkFrame):
         """
         # Set up to iterate through dictionary of lines and insert into textbox
         line_num = 1
-        tags = []
+        # Initialize our unique tag generator
+        tags = CTkTextview.UniqueTagIDGenerator()
         previous_color = "white"
         previous_directory = ""
         previous_value = ""
@@ -2235,12 +2235,13 @@ class CTkTextview(ctk.CTkFrame):
             ".h6-text",
             ".image-small     \n",
         ]
+        mygui = self.master.master
         # Setup the progressbar
         progress = self._initialize_progress_bar(the_data)
 
         # Cache frequently used attributes.
         check_bump = self.check_bump
-        master_debug = self.master.master.debug
+        master_debug = mygui.debug
         log_info = logger.info if master_debug else lambda *_: None  # No-op if debug is off
 
         # Setup for the loop to kickoff.
@@ -2251,76 +2252,103 @@ class CTkTextview(ctk.CTkFrame):
         self.label_tags = []
         self.previous_heading = "0"
 
+        # Cache routines for speed.
+        _draw_box_around_text = draw_box_around_text
+        _handle_special_spacing_and_blanks = self._handle_special_spacing_and_blanks
+        _process_value_with_color_or_directory = self._process_value_with_color_or_directory
+        _update_progress_display = self._update_progress_display
+
+        # Setup debug output file
+        # TODO: Move this to ctktextview frame to make it more general.
+        if master_debug:
+            # Get our date and time and save it for the file name.
+            now_time = get_current_local_time_auto_timezone()
+            date_and_time = (
+                f"-{now_time.month}-{now_time.day}-{now_time.year}_{now_time.hour}-{now_time.minute}-{now_time.second}"
+            )
+            self.out_trace_file = open(f"MapTasker_trace_lines{date_and_time}.txt", "w")
+            self.out_trace_file.write("Map Output Trace\n\n")
+
         # Go through the data and format it accordingly.  Num is a sequential number.
         for num, (_linenum_in_data, value) in enumerate(the_data.items()):
             # If progress bar has been destroyed, quick get out.
             if not progress:
                 return
 
-            # Update progressbar if needed.
-            self._update_progress_display(progress, num)
+            # Update progressbar if needed.  Do the calculation here to avoid repeated calls.
+            if num % progress["tenth_increment"] == 0:
+                _update_progress_display(progress, num)
 
             # Determine if we need to draw a box around the label text
             if num > 2 and temp_previous_value:
-                try:
-                    # If we have a spacing arg, then this is a label value
-                    _ = value["spacing"]
-                    if value["text"][0] == "":  # Convert empty text label to a newline.
-                        value["text"][0] = "\n"
+                # Use .get() instead of try/except for faster common-path lookup
+                spacing = value.get("spacing")
+                if spacing is not None:
+                    text = value["text"]
+
+                    # Convert empty text label to a newline (direct index access is fine)
+                    if not text[0]:
+                        text[0] = "\n"
 
                     # Save the value for our box
-                    self.draw_box["all_values"].append(value)  # Save value
-                    temp_previous_value = copy.deepcopy(value)  # Save our value for next iteration.
+                    self.draw_box["all_values"].append(value)
 
-                    # Do label box if this is the last piece of the label.
-                    if value["end"][-1]:
-                        line_num = draw_box_around_text(self, line_num)
-                    continue  # don't process value.  Go to next value.
+                    # Shallow copy only if needed downstream
+                    temp_previous_value = value.copy()
 
-                # No spacing...not a label.
-                except KeyError:
-                    pass
+                    # Draw box if this is the end of the label...
+                    # First element if debug since the last element has the 'code: nnn'.
+                    # Otherwise the last element.
+                    if value["end"][0] or value["end"][-1]:
+                        line_num = _draw_box_around_text(self, line_num)
+
+                    # Skip further processing
+                    continue
 
             # Save the previous value for above code check.
             temp_previous_value = copy.deepcopy(value)
 
-            # Ignore certain lines
-            with contextlib.suppress(IndexError):
-                if any(ignore_str in value["text"][0] for ignore_str in text_to_ignore):
+            text_list = value.get("text")
+            if text_list:
+                first_text = text_list[0]
+
+                # Fast membership check for ignored substrings
+                if any(s in first_text for s in text_to_ignore):
                     continue
 
-                # Ignore our css .textbox definitions.
-                first_text = value["text"][0] if value["text"] else ""
-                if ignore_line and "}" in first_text:
-                    ignore_line = False
-                    continue
+                # Handle CSS/textbox ignore logic
                 if ignore_line:
+                    if "}" in first_text:
+                        ignore_line = False
                     continue
+
                 if ".text-box" in first_text or ".image-small" in first_text:
                     ignore_line = True
                     continue
-                if previous_text_content == "\n" and first_text == "\n":  # Ignore double blank lines.
+
+                # Ignore double blank lines
+                if previous_text_content == "\n" and first_text == "\n":
                     continue
 
-            # Get the text of the value and ignore duplicate blank lines.
-            response, previous_text_content, text_current_value = self._handle_special_spacing_and_blanks(
-                previous_text_content,
-                value,
-                line_num,
-                char_position,
-                tags,
-            )
+                # Get the text of the value and ignore duplicate blank lines.
+                response, previous_text_content, text_current_value = _handle_special_spacing_and_blanks(
+                    previous_text_content,
+                    value,
+                    line_num,
+                    char_position,
+                    tags,
+                )
 
-            # If no response, ignore it and continue.
-            if not response:
-                continue
-
-            # If Windows, ignore blank lines: "    \n"
-            if PrimeItems.windows_system and (value["text"] and first_text.endswith("\n")):
-                text = value["text"][0]
-                blanks_to_check = len(text) - 1
-                if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
+                # If no response, ignore it and continue.
+                if not response:
                     continue
+
+                # If Windows, ignore blank lines: "    \n"
+                if PrimeItems.windows_system and (value["text"] and first_text.endswith("\n")):
+                    text = value["text"][0]
+                    blanks_to_check = len(text) - 1
+                    if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
+                        continue
 
             # Check to see if we need to bump the line number for directory.  If so, get get the new line number.
             line_num, char_position = check_bump(
@@ -2341,7 +2369,7 @@ class CTkTextview(ctk.CTkFrame):
                 previous_directory,
                 previous_value,
                 char_position,
-            ) = self._process_value_with_color_or_directory(
+            ) = _process_value_with_color_or_directory(
                 value,
                 line_num,
                 char_position,
@@ -2358,6 +2386,10 @@ class CTkTextview(ctk.CTkFrame):
         # Stop the progress bar and destroy the widget
         kill_the_progress_bar(progress, remove_windows=False)
 
+        # Close the trace file if opened
+        if master_debug:
+            self.out_trace_file.close()
+
     def _process_value_with_color_or_directory(
         self,
         value: dict,
@@ -2367,21 +2399,27 @@ class CTkTextview(ctk.CTkFrame):
         previous_directory: str,
         previous_value_type: str,  # Renamed from previous_value for clarity
         tags: list,
-        text_content: str,  # Added to use within the function if needed
+        text_content: list,  # Added to use within the function if needed
     ) -> tuple[int, str, str, str, int]:
         """Processes map data based on color or directory information."""
+        # Cache data locally for better performance.
         new_line_num = line_num
         new_previous_color = previous_color
         new_previous_directory = previous_directory
         new_previous_value_type = previous_value_type
         new_char_position = char_position
+        get_value = value.get  # Localize .get() for small speed gain
+        color = get_value("color")
+        text = get_value("text")
+        directory = "directory" in value
 
         # Check if we need to change the color
-        if not value["color"] and value.get("text"):
-            value["color"] = [new_previous_color]
+        if not color and text:
+            color = [new_previous_color]
+            value["color"] = color  # maintain side effect
 
         # Go through all the text/color combinations
-        if value.get("color"):
+        if color:
             new_line_num, new_previous_color, new_previous_value_type, tags = self.process_colored_text(
                 value,
                 new_line_num,
@@ -2403,7 +2441,7 @@ class CTkTextview(ctk.CTkFrame):
                     new_previous_value_type,
                     new_char_position,
                 )
-        elif "directory" in value:
+        elif directory:
             new_char_position, new_previous_directory, new_line_num = self.process_directory(
                 value,
                 new_line_num,
@@ -2506,7 +2544,7 @@ class CTkTextview(ctk.CTkFrame):
             if text[0].startswith("\nn"):
                 # If dictionary header, then let's add a leading blank line.
                 # Add hyperlink directory entry and make sure the background color is set.
-                tag_id = self._generate_unique_tag_id(line_num, char_position, tags)
+                tag_id = tags._generate_unique_tag_id(line_num, char_position)  # noqa: SLF001
                 self.textview_textbox.tag_config(
                     tag_id,
                     background=self.master.master.saved_background_color,
@@ -2627,9 +2665,12 @@ class CTkTextview(ctk.CTkFrame):
             str: The owning project name, or an empty string if not found.
         """
         all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+        get_task_ids = get_ids
 
         for project_value in PrimeItems.tasker_root_elements["all_projects"].values():
-            if any(all_tasks[task_id]["name"] == task_name for task_id in get_ids(False, project_value["xml"], "", [])):
+            if any(
+                all_tasks[task_id]["name"] == task_name for task_id in get_task_ids(False, project_value["xml"], "", [])
+            ):
                 return project_value["name"]
         return ""
 
@@ -2654,6 +2695,10 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             tuple: Updated line number, the previous color, the tag for the color, and the list of tags.
         """
+        # Cache frequently used attributes.
+        output_map_text_lines = self.output_map_text_lines
+        textbox = self.textview_textbox
+
         # Go through all text elements for this line
         for text_linenum, text in enumerate(value["text"]):
             if text == "Directory\n":
@@ -2668,7 +2713,7 @@ class CTkTextview(ctk.CTkFrame):
                 value["text"][text_linenum] = "\n"
 
                 # Output current text and increment line number
-                previous_color = self.output_map_text_lines(
+                previous_color = output_map_text_lines(
                     value,
                     text_linenum,
                     line_num,
@@ -2677,14 +2722,13 @@ class CTkTextview(ctk.CTkFrame):
                     previous_value,
                 )
                 line_num += 1
-                # return line_num + 1, previous_color, "color", tags
 
                 # Restore original text and color
                 value["text"][text_linenum] = save_text
                 value["color"][text_linenum] = save_color
 
             # Output the updated text and color
-            previous_color = self.output_map_text_lines(
+            previous_color = output_map_text_lines(
                 value,
                 text_linenum,
                 line_num,
@@ -2693,7 +2737,7 @@ class CTkTextview(ctk.CTkFrame):
                 previous_value,
             )
             # Get our line number sincew it may have been incremented within output_map_text_lines
-            line_num = int(self.textview_textbox.index("end-1c").split(".")[0]) + 1
+            line_num = int(textbox.index("end-1c").split(".")[0]) + 1
 
         # Return updated parameters
         return line_num + 1, previous_color, "color", tags
@@ -2832,62 +2876,72 @@ class CTkTextview(ctk.CTkFrame):
         previous_color: str,
         previous_value: str,
     ) -> str:
-        """
-        Outputs the given map data to a text box, determining colors, highlights, and formatting.
-        """
-        message = (
-            value["text"][text_linenum]
-            if isinstance(value["text"][text_linenum], str)
-            else value["text"][text_linenum][0]
-        )
+        """Output map data to a text widget with formatting, colors, and highlights."""
+        # Optimized code
+        text_entry = value["text"][text_linenum]
+        message = text_entry if isinstance(text_entry, str) else text_entry[0]
+
+        # Cache lookups (attribute access is expensive)
+        mygui = self.master.master
+        textview_textbox = self.textview_textbox
+
+        background_color = mygui.saved_background_color
+        pretty = mygui.pretty
+        debug = mygui.debug
         spaces = " " * 20
         line_num_str = str(line_num)
         char_position = 0
 
-        # Pre-compute the background color
-        background_color = self.master.master.saved_background_color
-        pretty = self.master.master.pretty
-        debug = self.master.master.debug
-
-        # Formats the message for pretty output, debug, and specific cases.
-        formatted_message = self._format_message(
-            message,
-            previous_value,
-            spaces,
-            pretty,
-            debug,
-        )
+        # Pre-format message once
+        formatted_message = self._format_message(message, previous_value, spaces, pretty, debug)
         if not formatted_message:
             return previous_color
 
-        # Determine if this is the last item and add a newline if necessary
+        # Append newline if last line and missing one
         if formatted_message == value["text"][-1] and "\n" not in formatted_message:
             formatted_message += "\n"
 
-        tag_id = self._generate_unique_tag_id(line_num_str, char_position, tags)
+        # Generate tag id efficiently
+        tag_id = tags._generate_unique_tag_id(line_num_str, 0)  # noqa: SLF001
 
-        # Force spacing to 0 if this is a multi-part highlight.
+        # Force spacing reset if this is a continuation
         if text_linenum > 0:
             value["spacing"] = 0
 
-        # If newline, handle it.
-        temp = message.replace(" ", "")
-        if temp == "\n":
-            self.textview_textbox.insert("end", "\n", tag_id)
-
-        # Not new line.  Insert the text with appropriate spacing.
-        else:
-            if debug:
-                formatted_message = f"{line_num}:{formatted_message}"
-            char_position = self._insert_message(
-                line_num_str,
-                char_position,
+        # Fast newline check (avoids unnecessary replace)
+        if message.strip() == "\n":
+            textview_textbox.insert("end", "\n", tag_id)
+            return self._handle_color_and_highlighting(
+                value,
+                text_linenum,
+                tags,
+                previous_color,
+                previous_value,
                 formatted_message,
                 tag_id,
-                background_color,
             )
 
-        # Process the color and highlighting, and return the color
+        if debug:
+            formatted_message = f"{line_num}:{formatted_message}"
+            self.out_trace_file.write(formatted_message)
+
+        # Pre-check for object labels to reduce substring scans
+        if any(x in formatted_message for x in ("Task:", "Profile:", "Project:")):
+            textview_textbox.insert("end", "\n", tag_id)
+            line_num += 1
+            char_position = 0
+            line_num_str = str(line_num)
+
+        # Insert formatted message and update char position
+        char_position = self._insert_message(
+            line_num_str,
+            char_position,
+            formatted_message,
+            tag_id,
+            background_color,
+        )
+
+        # Handle highlighting and color management
         return self._handle_color_and_highlighting(
             value,
             text_linenum,
@@ -2928,18 +2982,21 @@ class CTkTextview(ctk.CTkFrame):
 
         return message
 
-    def _generate_unique_tag_id(
-        self,
-        line_num_str: str,
-        char_position: int,
-        tags: set,
-    ) -> str:
-        """Generates a unique tag ID for the text box."""
-        tag_id = f"{line_num_str}.{char_position}"
-        while tag_id in tags:
-            tag_id = f"{tag_id}{random.randint(100, 999)}"  # noqa: S311
-        tags.append(tag_id)
-        return tag_id
+    class UniqueTagIDGenerator:
+        """Generate a unique tag ID for each text insertion, consisting of the line number and character position."""
+
+        def __init__(self) -> None:  # noqa: D107
+            # Counter resets for each widget instance (e.g., each text box)
+            self._tag_counter = 0
+
+        # def reset_tag_counter(self) -> None:
+        #     """Resets the tag counter (e.g., when a new document is loaded)."""
+        #     self._tag_counter = 0
+
+        def _generate_unique_tag_id(self, line_num_str: str, char_position: int) -> str:
+            """Generates a unique tag ID including line and char position."""
+            self._tag_counter += 1
+            return f"{line_num_str}.{char_position}-{self._tag_counter}"
 
     def _insert_message(
         self,
@@ -2949,83 +3006,100 @@ class CTkTextview(ctk.CTkFrame):
         tag_id: str,
         background_color: str,
     ) -> int:
-        """Inserts the formatted message into the text box and applies the necessary tags."""
+        """
+        Insert a formatted message into the text widget and apply appropriate tagging.
+
+        This method inserts a message at the specified line and character position within
+        a text widget. It handles both normal messages and special "Task Action Limit"
+        warnings, which are broken into three parts:
+            1. A prefix ("Task ").
+            2. The task name (inserted as a clickable hyperlink).
+            3. The remainder of the message text.
+
+        For normal messages, it inserts the text directly and applies hover or background
+        highlight tags when applicable.
+
+        Args:
+            line_num_str (str): The line number (as a string) in the text widget where the
+                message should be inserted.
+            char_position (int): The character position on the specified line where insertion
+                should begin.
+            message (str): The message text to insert into the widget.
+            tag_id (str): The tag identifier used for styling and interaction within the text box.
+            background_color (str): The background color applied for highlighting relevant items.
+
+        Returns:
+            int: The updated character position after insertion.
+
+        Notes:
+            - Handles "Task Action Limit" warnings by splitting them into multiple tagged
+              segments for hyperlinking and formatting.
+            - Applies background color and hover tags to task, profile, project, and scene labels.
+            - Safely skips insertion if the task has already been processed.
+        """
+        msg_len = len(message)
         start_idx = f"{line_num_str}.{char_position}"
-        end_idx = f"{line_num_str}.{char_position + len(message)}"
+        end_idx = f"{line_num_str}.{char_position + msg_len}"
 
-        # Handle Task Action Limit Warnings: too many actions. We have to break it up into 3 pieces:
-        # 1. Before the Task name.
-        # 2. The Task name as a hyperlink.
-        # 3. After the Task name.
-        # if message.startswith("Task ") and message.endswith("actions\n"):
-
-        # Checks if the pattern 'xTask x has x actions\n' exists in the given string.
-        if find_task_pattern(message):
-            # Get the Task name.
-            got_it = False
-            for task_name in PrimeItems.task_action_warnings:
-                if f"Task {task_name} has" in message:
-                    got_it = True
-                    break
-            if not got_it:
-                _ = self._insert_text_and_tag(start_idx, end_idx, message, tag_id)
+        # Fast exit: check for task patterns early
+        if not find_task_pattern(message):
+            if not self._insert_text_and_tag(start_idx, end_idx, message, tag_id):
                 return char_position
-            if task_name not in message:
-                rutroh_error(f"Task {task_name} not found in the message, '{message}'!")
-
-            # Get the insertion positions.
-            taskname_start = message.find(task_name)
-            taskname_end = taskname_start + len(task_name)
-
-            # Check to see if we have already done this Task.
-            if task_name in PrimeItems.track_task_warnings:
-                return char_position
-            PrimeItems.track_task_warnings.append(task_name)
-
-            # Add #1.
-            end_start = f"{line_num_str}.{char_position + 5!s}"  # 5 is the length of "Task "
-            if not self._insert_text_and_tag(start_idx, end_start, "Task ", tag_id):
-                return char_position
-
-            # Add #2.
-            # Add hyperlink tag for this task name.
-            hyper_tag_id = self.textview_hyperlink.add(["tasks", task_name])
-            taskname_start_idx = f"{line_num_str}.{char_position + taskname_start!s}"
-            taskname_end_inx = f"{line_num_str}.{char_position + taskname_end!s}"
-            if not self._insert_text_and_tag(
-                taskname_start_idx,
-                taskname_end_inx,
-                task_name,
-                hyper_tag_id,
+            # Return early for labels
+            if "-text" in tag_id:
+                return char_position + msg_len
+            # Tag hover/highlight only if necessary
+            if ": Properties" not in message and any(
+                k in message for k in ("Task: ", "Profile: ", "Project: ", "Scene: ")
             ):
-                return char_position
+                self.tag_items(tag_id, message)
+                self.textview_textbox.tag_config(tag_id, background=background_color)
+            return char_position + msg_len
 
-            # Add #3.
-            message = message.replace(task_delimeter, "")
-            trailer_start_idx = f"{line_num_str}.{char_position + taskname_end + 1!s}"
-            if not self._insert_text_and_tag(
-                trailer_start_idx,
-                end_idx,
-                f" {message[taskname_end + 1 :]}",
-                tag_id,
-            ):
-                return char_position
-
-        # Just normal text or maybe a label.  Insert it.
-        elif not self._insert_text_and_tag(start_idx, end_idx, message, tag_id):
+        # --- Handle Task Action Limit Warnings ---
+        # Search for task names in known warnings
+        task_action_warnings = PrimeItems.task_action_warnings
+        track_task_warnings = PrimeItems.track_task_warnings
+        task_name = next(
+            (t for t in task_action_warnings if f"Task {t} has" in message),
+            None,
+        )
+        if not task_name:
+            _ = self._insert_text_and_tag(start_idx, end_idx, message, tag_id)
             return char_position
-        # Just return if this is a label.
-        if "-text" in tag_id:
-            return char_position + len(message)
 
-        # Tag items for hover and background highlight
-        if ": Properties" not in message and any(
-            keyword in message for keyword in ("Task: ", "Profile: ", "Project: ", "Scene: ")
-        ):
-            self.tag_items(tag_id, message)
-            self.textview_textbox.tag_config(tag_id, background=background_color)
+        if task_name not in message:
+            rutroh_error(f"Task {task_name} not found in the message, '{message}'!")
 
-        return char_position + len(message)
+        if task_name in track_task_warnings:
+            return char_position
+        track_task_warnings.append(task_name)
+
+        taskname_start = message.find(task_name)
+        taskname_end = taskname_start + len(task_name)
+        task_offset = char_position + taskname_start
+
+        # Add "Task " prefix
+        prefix_end = f"{line_num_str}.{char_position + 5}"  # len("Task ")
+        if not self._insert_text_and_tag(start_idx, prefix_end, "Task ", tag_id):
+            return char_position
+
+        # Add task name as hyperlink
+        hyper_tag_id = self.textview_hyperlink.add(["tasks", task_name])
+        task_start_idx = f"{line_num_str}.{task_offset}"
+        task_end_idx = f"{line_num_str}.{task_offset + len(task_name)}"
+        if not self._insert_text_and_tag(task_start_idx, task_end_idx, task_name, hyper_tag_id):
+            return char_position
+
+        # Add message trailer
+        # Remove task delimiter once, avoid repeated replace()
+        cleaned_msg = message.replace(task_delimeter, "", 1)
+        trailer_start_idx = f"{line_num_str}.{task_offset + len(task_name) + 1}"
+        trailer_text = f" {cleaned_msg[taskname_end + 1 :]}"
+        if not self._insert_text_and_tag(trailer_start_idx, end_idx, trailer_text, tag_id):
+            return char_position
+
+        return char_position
 
     def _insert_text_and_tag(
         self,
@@ -3261,7 +3335,7 @@ class CTkTextview(ctk.CTkFrame):
                 return []
 
             new_tag = f"{tag_id}{highlight_type}{highlight_color}"
-            tags.append(new_tag)
+
             # Apply the highlight
             self._apply_highlight(
                 new_tag,
@@ -3319,9 +3393,10 @@ class CTkTextview(ctk.CTkFrame):
 
     def _find_highlight_line(self, search_word: str) -> str:
         """Find the line number containing the search word."""
-        line_count = int(self.textview_textbox.index("end-1c").split(".")[0])
+        textbox = self.textview_textbox
+        line_count = int(textbox.index("end-1c").split(".")[0])
         for line_num in range(line_count, 0, -1):
-            line_text = self.textview_textbox.get(
+            line_text = textbox.get(
                 f"{line_num}.0",
                 f"{line_num}.0 lineend",
             )
