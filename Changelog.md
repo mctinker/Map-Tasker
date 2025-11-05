@@ -2,11 +2,13 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.0.4] 04-Nov-2025
+## [9.0.4] 06-Nov-2025
 
 ### Added
 
 - Added: Created an additional output trace log file if 'debug' is on for the Map view.
+- Added: Tasker beta 6.6.11-beta is now supported.
+- Added: Taskm action 'Assistant Volume' is now supported.
 
 ### Changed
 
