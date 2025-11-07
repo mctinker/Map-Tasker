@@ -2,29 +2,35 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.0.4-9.0.5] 06-Nov-2025
+## [9.0.6] ??-Nov-2025  # FIX
 
 ### Added
 
-- Added: Created an additional output trace log file if 'debug' is on for the Map view.
-- Added: Tasker beta 6.6.11-beta is now supported.
-- Added: Taskm action 'Assistant Volume' is now supported.
+- Added:
 
 ### Changed
 
-- Changed: Code optimized for improved Map view performance.
+- Changed:
 
 ### Fixed
 
-- Fixed: A program error occurs in 'guimap.py'.
-- Fixed: Eliminate excessive blank lines in the Map view.
-- Fixed: The Project's 'properties' inadvertantly pick up the color for 'Luancher Task' if there is a launcher task.
+- Fixed:
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [9.0.4-9.0.5] 06-Nov-2025
+
+- Added: Created an additional output trace log file if 'debug' is on for the Map view.
+- Added: Tasker beta 6.6.11-beta is now supported.
+- Added: Taskm action 'Assistant Volume' is now supported.
+- Changed: Code optimized for improved Map view performance.
+- Fixed: A program error occurs in 'guimap.py'.
+- Fixed: Eliminate excessive blank lines in the Map view.
+- Fixed: The Project's 'properties' inadvertantly pick up the color for 'Luancher Task' if there is a launcher task.
 
 ## [9.0.3] 30-Oct-2025
 

@@ -8,7 +8,6 @@
 from __future__ import annotations
 
 import contextlib
-import copy
 import os
 import re
 import time
@@ -555,7 +554,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -2224,6 +2225,7 @@ class CTkTextview(ctk.CTkFrame):
                         'text' and 'color' are empty if directory is present.
            'highlights': list of highlights to apply to the text elements (e.g. bold, underline, etc..)
         """
+        # Heading definitions for embedded HTML in TaskerNet descriptions and labels.
         text_to_ignore = [
             # ".text-box",
             ".h0-text",
@@ -2296,7 +2298,7 @@ class CTkTextview(ctk.CTkFrame):
                     # Shallow copy only if needed downstream
                     temp_previous_value = value.copy()
 
-                    # Draw box if this is the end of the label...
+                    # Draw box if this is the end of the label or TaskerNet description...
                     # First element if debug since the last element has the 'code: nnn'.
                     # Otherwise the last element.
                     if value["end"][0] or value["end"][-1]:
@@ -2306,7 +2308,7 @@ class CTkTextview(ctk.CTkFrame):
                     continue
 
             # Save the previous value for above code check.
-            temp_previous_value = copy.deepcopy(value)
+            temp_previous_value = value.copy()
 
             text_list = value.get("text")
             if text_list:

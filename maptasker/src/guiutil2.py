@@ -18,6 +18,7 @@ from io import BytesIO
 import customtkinter as ctk
 import requests
 from PIL import Image, ImageTk
+from tkinterweb import HtmlFrame
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import rutroh_error
@@ -793,9 +794,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h5-text"
             else:
                 # Decrease the heading number by 1 (making the text "bigger")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                value["highlights"][entry_to_update] = (
+                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                )
 
         elif "<small>" in message:
             # Save current heading
@@ -810,9 +811,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h7-text"
             else:
                 # Increase the heading number by 1 (making the text "smaller")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                value["highlights"][entry_to_update] = (
+                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                )
 
         elif "</big>" in message or "</small>" in message:
             if message.startswith(("</big>", "</small>")):
@@ -1013,12 +1014,12 @@ def _handle_image(self: ctk, msg: str, start_idx: str) -> None:
     if match:
         # The URL is in the first captured group (index 1)
         url = match.group(1)
-        _show_image(self.textview_textbox, url, start_idx)
+        _show_image(self, self.textview_textbox, url, start_idx)
     else:
         rutroh_error(f"No URL found in the href attribute: {msg}")
 
 
-def _show_image(text_widget: ctk.CTkTextbox, image_url: str, index: str) -> None:
+def _show_image(self: object, text_widget: ctk.CTkTextbox, image_url: str, index: str) -> None:
     """
     Downloads an image from a URL and displays it in a CTkTextbox widget.
 
@@ -1064,7 +1065,8 @@ def _show_image(text_widget: ctk.CTkTextbox, image_url: str, index: str) -> None
         rutroh_error(f"Failed to download image: {e}")
     except Exception as e:  # noqa: BLE001
         if "mp4" in image_url or "youtu." in image_url or "youtube." in image_url:
-            rutroh_error(f"guiutil2 _show_image: Videos are not currently supported!  image URL: {image_url}")
+            _ = VideoEmbedder(self.root, text_widget, image_url)
+            # rutroh_error(f"guiutil2 _show_image: Videos are not currently supported!  image URL: {image_url}")
         else:
             rutroh_error(f"guiutil2 _show_image: An error occurred: {e} for image URL: {image_url}")
 
@@ -1301,3 +1303,118 @@ def starts_with_html(text: str) -> bool:
 
     # 3. Check for a match at the beginning of the cleaned string
     return bool(html_pattern.match(cleaned_text))
+
+
+class VideoEmbedder:
+    """
+    A class to embed multiple HTML-based video players (like YouTube)
+    into an existing tkinter.Text widget.
+    """
+
+    def __init__(self, root: tk.Tk, text_widget: ctk.CTkTextbox, image_url: str):
+        """
+        Initializes the VideoEmbedder with the parent root and an existing Text widget.
+
+        Args:
+            root (tk.Tk or tk.Toplevel): The main window.
+            text_widget (tk.Text): The existing Text widget to embed videos into.
+        """
+        self.root = root
+        # Use the provided existing Text widget
+        self.text = text_widget
+
+        # --- Define the videos and their locations ---
+        self.videos = {
+            "VIDEO1": {
+                # Use YouTube's embed URL format
+                "url": image_url,
+                "placeholder": "[VIDEO1]",
+                "index": None,  # Will be set after searching the text
+                "frame": None,
+            },
+            # "VIDEO2": {
+            #     "url": "https://www.youtube.com/embed/oHg5SJYRHA0",
+            #     "placeholder": "[VIDEO2]",
+            #     "index": None,  # Will be set after searching the text
+            #     "frame": None,
+            # },
+        }
+
+        # For a complete example, insert the content containing placeholders
+        self._insert_demo_content()
+
+        # --- Find placeholder indices and create HtmlFrame for each video ---
+        for key, video in self.videos.items():
+            # Find the index of the placeholder in the text widget
+            start_index = self.text.search(video["placeholder"], "1.0", stopindex="end", regexp=False)
+
+            if start_index:
+                # Store the index where the placeholder starts
+                video["index"] = start_index
+
+                # Create the HtmlFrame, passing the Text widget as its master
+                frame = HtmlFrame(self.text, width=400, height=300)  # Set initial size
+                # FIX Add the following to the above command for product
+                # messages_enabled = False
+
+                # Load the embed URL within an iframe for better rendering
+                html_content = f"""
+                <html>
+                <body style="margin:0; overflow:hidden;">
+                    <iframe width="100%" height="100%" src="{video["url"]}" frameborder="0" allowfullscreen></iframe>
+                </body>
+                </html>
+                """
+                frame.load_html(html_content)
+                video["frame"] = frame
+            else:
+                print(f"Warning: Placeholder {video['placeholder']} not found.")
+
+        # --- Bind scroll/resize events to the Text widget ---
+        # These events trigger the position update function
+        for event in ("<Configure>", "<MouseWheel>", "<Key>", "<<Modified>>", "<Motion>"):
+            print("bingo event", event)
+            self.text.bind(event, self.update_video_positions)
+
+        # --- Initial layout ---
+        # Use a short delay for initial placement after Tkinter is ready
+        self.root.after(100, self.update_video_positions)
+
+    def _insert_demo_content(self):
+        """
+        Inserts demonstration content and placeholders into the Text widget.
+        """
+        # Clear existing content for the demo
+        # self.text.delete("1.0", "end")
+        self.text.insert("end", "This is some text before video 1.\n\n")
+        self.text.insert("end", self.videos["VIDEO1"]["placeholder"] + "\n\n")
+        # self.text.insert("end", "Some text between the videos.\n" * 15)  # More lines to allow scrolling
+        # self.text.insert("end", self.videos["VIDEO2"]["placeholder"] + "\n\n")
+        # self.text.insert("end", "And finally, some text after both videos.\n" * 30)
+
+    def update_video_positions(self, event=None) -> None:  # noqa: ANN001, ARG002
+        """
+        Keep all embedded videos positioned over their placeholders,
+        updating dynamically when the Textbox scrolls or resizes.
+        """
+        for video in self.videos.values():
+            # Only process videos that have a placeholder index found
+            if video["index"]:
+                print("bingo url:", video["url"])
+                try:
+                    # Get the bounding box of the character at the start of the placeholder index
+                    bbox = self.text.bbox(video["index"])
+                    frame = video["frame"]
+
+                    if bbox:
+                        # Placeholder is visible: place the frame over it
+                        x, y, _, _ = bbox
+                        # The frame is placed relative to the Text widget's top-left corner
+                        frame.place(x=x, y=y, width=400, height=300)
+                        frame.lift()
+                    else:
+                        # Placeholder is scrolled out of view: hide the frame
+                        frame.place_forget()
+                except tk.TclError:
+                    # Occurs if the index is deleted or invalid
+                    pass
