@@ -11,14 +11,17 @@ import error.
 import contextlib
 import os
 import re
+import threading
 import tkinter as tk
 import tkinter.font as tkfont
 from io import BytesIO
 
 import customtkinter as ctk
+import cv3  # Using cv3 as requested
 import requests
+import yt_dlp
 from PIL import Image, ImageTk
-from tkinterweb import HtmlFrame
+from pytube import YouTube
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import rutroh_error
@@ -1014,23 +1017,63 @@ def _handle_image(self: ctk, msg: str, start_idx: str) -> None:
     if match:
         # The URL is in the first captured group (index 1)
         url = match.group(1)
-        _show_image(self, self.textview_textbox, url, start_idx)
+        _show_media(self, self.textview_textbox, url, start_idx)
     else:
         rutroh_error(f"No URL found in the href attribute: {msg}")
 
 
-def _show_image(self: object, text_widget: ctk.CTkTextbox, image_url: str, index: str) -> None:
-    """
-    Downloads an image from a URL and displays it in a CTkTextbox widget.
+def _handle_video_click(self: object, event: object, media_url: str) -> None:  # noqa: ARG001
+    """Callback function for the video link click event."""
 
-    Args:
-        text_widget: The customtkinter CTkTextbox widget instance.
-        image_url: The URL of the image to display.
-        index: The text index where the image should be inserted.
+    # Launch the VideoEmbedder. The self.root must be the main application window.
+    # The VideoEmbedder instance is stored here, though it runs itself.
+    _ = VideoEmbedder(self.root, media_url)
+
+
+def _embed_video_placeholder(text_widget: ctk.CTkTextbox, media_url: str, index: str) -> None:
     """
+    Displays a clickable video link in the textbox.
+    """
+    link_text = f"\n\n[▶️ VIDEO: {media_url}]\n\n"
+
+    # 1. Insert the text
+    start_index = index
+    # end_index = f"{index}+{len(link_text)}c"
+    text_widget.insert(start_index, link_text, "video_link")
+
+    # 2. Define the 'video_link' tag properties (usually done once at startup)
+    text_widget.tag_config("video_link", foreground="blue", underline=True)
+
+    # 3. Bind a click event to the tag
+    # The lambda function passes the URL when the tagged text is clicked
+    callback = lambda e: _handle_video_click(text_widget.master, e, media_url)
+    text_widget.tag_bind("video_link", "<Button-1>", callback)
+
+    # Store the tag reference (important if you clear and re-insert text)
+    if not hasattr(text_widget, "video_tag_bindings"):
+        text_widget.video_tag_bindings = {}
+    text_widget.video_tag_bindings[media_url] = callback
+
+
+def _show_media(self: object, text_widget: ctk.CTkTextbox, media_url: str, index: str) -> None:  # noqa: ARG001
+    """
+    Downloads media (image or video) from a URL and displays it in a CTkTextbox widget.
+
+    (Same as before, but with the updated video handler call)
+    """
+
+    # Check if the URL indicates a video file
+    is_video = any(ext in media_url for ext in ["mp4", "youtu.", "youtube."])
+
+    if is_video:
+        # --- VIDEO HANDLING ---
+        _embed_video_placeholder(text_widget, media_url, index)
+        return
+
+    # --- IMAGE HANDLING (remains the same) ---
     try:
         # 1. Download the image
-        response = requests.get(image_url, timeout=5, headers={"User-agent": "your bot 0.1"})
+        response = requests.get(media_url, timeout=5, headers={"User-agent": "your bot 0.1"})
         if response.status_code == 429:
             text_widget.insert(index, "[!!! Image server too many requests !!!]", "error")
             return
@@ -1040,23 +1083,20 @@ def _show_image(self: object, text_widget: ctk.CTkTextbox, image_url: str, index
         # 2. Open the image using Pillow.
         img_data = BytesIO(response.content)
 
-        # The following will fail if this is a video / mp4.  Can be remedied with 'cv2' or 'cv3' pip package.
+        # This is where image opening would fail for video formats,
+        # but the 'is_video' check above now prevents this.
         pil_image = Image.open(img_data)
 
         # 3. Use thumbnail() to resize while preserving the aspect ratio.
-        # This will resize the image to fit within a 300x200 box without distortion.
         pil_image.thumbnail((300, 200), Image.LANCZOS)
 
         # 4. Create a standard Tkinter PhotoImage from the Pillow image.
-        # This is necessary for the internal Tkinter Text widget.
         tk_image = ImageTk.PhotoImage(pil_image)
 
         # 5. Embed the image in the internal Tkinter Text widget.
-        # This is the key fix: use the `_textbox` attribute, which is a 'tk' rather than a 'ctk' reference.
         text_widget._textbox.image_create(index, image=tk_image)  # noqa: SLF001
 
         # 6. Store a reference to prevent garbage collection.
-        # The image reference must be a property of the main widget or a global variable.
         if not hasattr(text_widget, "image_references"):
             text_widget.image_references = []
         text_widget.image_references.append(tk_image)
@@ -1064,11 +1104,7 @@ def _show_image(self: object, text_widget: ctk.CTkTextbox, image_url: str, index
     except requests.exceptions.RequestException as e:
         rutroh_error(f"Failed to download image: {e}")
     except Exception as e:  # noqa: BLE001
-        if "mp4" in image_url or "youtu." in image_url or "youtube." in image_url:
-            _ = VideoEmbedder(self.root, text_widget, image_url)
-            # rutroh_error(f"guiutil2 _show_image: Videos are not currently supported!  image URL: {image_url}")
-        else:
-            rutroh_error(f"guiutil2 _show_image: An error occurred: {e} for image URL: {image_url}")
+        rutroh_error(f"guiutil2 _show_media: An error occurred for image URL: {media_url}. Error: {e}")
 
 
 def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tuple[int, int, int, str]:
@@ -1305,116 +1341,188 @@ def starts_with_html(text: str) -> bool:
     return bool(html_pattern.match(cleaned_text))
 
 
+def get_youtube_stream_url(url: str) -> str | None:
+    """Gets the highest resolution progressive stream URL for a YouTube video."""
+    try:
+        # url = url.replace("youtu.be", "youtube.com/watch?v=")
+        yt = YouTube(url)
+        # Get the stream with the highest resolution and check if it's progressive
+        stream = yt.streams.filter(progressive=True, file_extension="mp4").order_by("resolution").desc().first()
+        if stream:
+            return stream.url
+
+        return yt.streams.get_highest_resolution().url
+    except Exception as e:  # noqa: BLE001
+        print(f"Pytube Error for URL {url}: {e}")
+        return None
+
+
+# --- VIDEO EMBEDDER CLASS (cv3 changes applied) ---
+
+
 class VideoEmbedder:
     """
-    A class to embed multiple HTML-based video players (like YouTube)
-    into an existing tkinter.Text widget.
+    Manages video playback by creating a new Toplevel window to display
+    a video stream using the 'cv3' (OpenCV) library.
+
+    Video processing and frame updates run in a separate thread to prevent
+    the main CustomTkinter application from freezing.
+
+    It supports direct video URLs (e.g., .mp4) and automatically fetches
+    stream URLs for YouTube links using the 'pytube' library.
+
+    :param master_root: The main application's root window (CTk or Tk).
+                        The Toplevel window will be attached to this master.
+    :type master_root: ctk.CTk or tk.Tk
+    :param media_url: The URL of the video file or YouTube link to be played.
+    :type media_url: str
+
+    :ivar media_url: The original URL of the media.
+    :ivar is_playing: A boolean flag controlling the video playback loop.
+    :ivar cap: The video capture object from the cv3 library.
+    :ivar thread: The thread used to handle the video loading and loop.
+    :ivar width: The width of the video display label (determined by the video file).
+    :ivar height: The height of the video display label (determined by the video file).
+    :ivar window: The Toplevel window instance used for displaying the video.
+    :ivar video_label: The CTkLabel widget inside the window that displays the current frame.
+    :ivar delay: The time delay (in seconds) between frames, calculated from the video's FPS.
+    :ivar tk_image: Reference to the current Tkinter PhotoImage to prevent garbage collection.
     """
 
-    def __init__(self, root: tk.Tk, text_widget: ctk.CTkTextbox, image_url: str):
+    def __init__(self, master_root: ctk.CTk, media_url: str) -> None:
         """
-        Initializes the VideoEmbedder with the parent root and an existing Text widget.
-
-        Args:
-            root (tk.Tk or tk.Toplevel): The main window.
-            text_widget (tk.Text): The existing Text widget to embed videos into.
+        Initializes the video player window.
         """
-        self.root = root
-        # Use the provided existing Text widget
-        self.text = text_widget
+        self.media_url = media_url
+        self.is_playing = True
+        self.cap = None
+        self.thread = None
+        self.width = 640
+        self.height = 480
 
-        # --- Define the videos and their locations ---
-        self.videos = {
-            "VIDEO1": {
-                # Use YouTube's embed URL format
-                "url": image_url,
-                "placeholder": "[VIDEO1]",
-                "index": None,  # Will be set after searching the text
-                "frame": None,
-            },
-            # "VIDEO2": {
-            #     "url": "https://www.youtube.com/embed/oHg5SJYRHA0",
-            #     "placeholder": "[VIDEO2]",
-            #     "index": None,  # Will be set after searching the text
-            #     "frame": None,
-            # },
+        self.window = ctk.CTkToplevel(master_root)
+        self.window.title("Video Player")
+        self.window.protocol("WM_DELETE_WINDOW", self.stop_playback)
+
+        self.video_textbox = ctk.CTkTextbox(master=self.window, width=self.width, height=self.height)
+        self.video_textbox.pack(padx=10, pady=10)
+        # Start the video player as a separate thread
+        self.thread = threading.Thread(target=self._load_and_play_video, daemon=True)
+        self.thread.start()
+
+    def _get_stream_source(self) -> str | None:
+        """Determines the actual stream source, handling YouTube and Dropbox links."""
+        media_url = self.media_url
+
+        # 1. Handle YouTube links using yt-dlp
+        if any(ext in media_url for ext in ["youtu.", "youtube."]):
+            print("Fetching YouTube stream URL with yt-dlp...")
+            return self.get_yt_dlp_stream_url(media_url)  # <-- Call the new function
+
+        # 2. Handle Dropbox direct links (as previously fixed)
+        if media_url.endswith("?dl=0"):
+            print("Detected Dropbox link, converting to direct stream URL.")
+            return media_url[:-1] + "1"
+
+        return media_url
+
+    def _load_and_play_video(self) -> None:
+        """Loads the video capture and starts the display loop."""
+        stream_url = self._get_stream_source()
+        if not stream_url:
+            self._display_error("Failed to get video stream URL.")
+            return
+
+        # --- CHANGE HERE: Using cv3.VideoCapture ---
+        # stream_url = "/Users/mikrubin/MapTasker/TaskLoggerV2.mp4"  # Local test file
+        self.cap = cv3.VideoCapture(stream_url)
+
+        if not self.cap.isOpened():
+            self._display_error("Could not open video stream.")
+            return
+
+        # Get width and height
+        self.width = self.cap.width
+        self.height = self.cap.height
+
+        # Frames per second and delay
+        fps = self.cap.fps
+        self.delay = 1 / fps
+
+        self.window.after(0, lambda: self.video_textbox.configure(width=self.width, height=self.height))
+
+        self._update_frame()
+
+    def _update_frame(self) -> None:
+        """Reads a frame and updates the Tkinter Label."""
+        if not self.is_playing or not self.cap:
+            return
+
+        try:
+            frame = self.cap.read()
+
+            # 1. Convert BGR frame (OpenCV default) to RGB
+            cv3_image_rgb = cv3.color_spaces.bgr2rgb(frame)
+            # 2. Convert to PIL Image
+            pil_image = Image.fromarray(cv3_image_rgb)
+
+            # 3. Convert to Tkinter PhotoImage
+            self.tk_image = ImageTk.PhotoImage(pil_image)
+
+            # 4. Update the label in the main thread.  Use _textbox to access tk rather than Ctk
+            self.video_textbox._textbox.image_create("1.0", image=self.tk_image)  # noqa: SLF001
+
+            # Continue looping through video frames
+            self.window.after(int(self.delay * 1000), self._update_frame)
+        except StopIteration:
+            # --- Drop here if we are done ---
+            self.cap.set(cv3.CAP_PROP_POS_FRAMES, 0)
+
+    def _display_error(self, message: str) -> None:
+        """Displays an error message in the video window."""
+        self.window.after(0, lambda: self.video_textbox.insert("1.0", message))
+
+    def stop_playback(self) -> None:
+        """Cleans up resources and closes the window."""
+        self.is_playing = False
+        if self.cap:
+            self.cap.release()
+        self.window.destroy()
+
+    def get_yt_dlp_stream_url(self, url: str) -> str | None:
+        """
+        Fetches the direct stream URL for a video using the yt-dlp library.
+
+        :param url: The YouTube URL.
+        :returns: The direct stream URL (usually the highest quality available), or None on failure.
+        :rtype: str | None
+        """
+        ydl_opts = {
+            # 1. Configuration to only extract info, not download the file
+            "quiet": True,
+            "skip_download": True,
+            "force_generic_extractor": True,
+            # 2. Prefer a format that is streamable/compatible (e.g., MP4)
+            #    and contains both video and audio.
+            "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
         }
 
-        # For a complete example, insert the content containing placeholders
-        self._insert_demo_content()
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                # Extract metadata and stream information
+                info_dict = ydl.extract_info(url, download=False)
 
-        # --- Find placeholder indices and create HtmlFrame for each video ---
-        for key, video in self.videos.items():
-            # Find the index of the placeholder in the text widget
-            start_index = self.text.search(video["placeholder"], "1.0", stopindex="end", regexp=False)
+                # The 'url' field in the info_dict contains the direct stream URL
+                # for the chosen format (usually the best quality mp4).
+                if info_dict and "url" in info_dict:
+                    return info_dict["url"]
 
-            if start_index:
-                # Store the index where the placeholder starts
-                video["index"] = start_index
+                # Fallback check (less common)
+                if info_dict and "entries" in info_dict and info_dict["entries"]:
+                    return info_dict["entries"][0]["url"]
 
-                # Create the HtmlFrame, passing the Text widget as its master
-                frame = HtmlFrame(self.text, width=400, height=300)  # Set initial size
-                # FIX Add the following to the above command for product
-                # messages_enabled = False
+                return None
 
-                # Load the embed URL within an iframe for better rendering
-                html_content = f"""
-                <html>
-                <body style="margin:0; overflow:hidden;">
-                    <iframe width="100%" height="100%" src="{video["url"]}" frameborder="0" allowfullscreen></iframe>
-                </body>
-                </html>
-                """
-                frame.load_html(html_content)
-                video["frame"] = frame
-            else:
-                print(f"Warning: Placeholder {video['placeholder']} not found.")
-
-        # --- Bind scroll/resize events to the Text widget ---
-        # These events trigger the position update function
-        for event in ("<Configure>", "<MouseWheel>", "<Key>", "<<Modified>>", "<Motion>"):
-            print("bingo event", event)
-            self.text.bind(event, self.update_video_positions)
-
-        # --- Initial layout ---
-        # Use a short delay for initial placement after Tkinter is ready
-        self.root.after(100, self.update_video_positions)
-
-    def _insert_demo_content(self):
-        """
-        Inserts demonstration content and placeholders into the Text widget.
-        """
-        # Clear existing content for the demo
-        # self.text.delete("1.0", "end")
-        self.text.insert("end", "This is some text before video 1.\n\n")
-        self.text.insert("end", self.videos["VIDEO1"]["placeholder"] + "\n\n")
-        # self.text.insert("end", "Some text between the videos.\n" * 15)  # More lines to allow scrolling
-        # self.text.insert("end", self.videos["VIDEO2"]["placeholder"] + "\n\n")
-        # self.text.insert("end", "And finally, some text after both videos.\n" * 30)
-
-    def update_video_positions(self, event=None) -> None:  # noqa: ANN001, ARG002
-        """
-        Keep all embedded videos positioned over their placeholders,
-        updating dynamically when the Textbox scrolls or resizes.
-        """
-        for video in self.videos.values():
-            # Only process videos that have a placeholder index found
-            if video["index"]:
-                print("bingo url:", video["url"])
-                try:
-                    # Get the bounding box of the character at the start of the placeholder index
-                    bbox = self.text.bbox(video["index"])
-                    frame = video["frame"]
-
-                    if bbox:
-                        # Placeholder is visible: place the frame over it
-                        x, y, _, _ = bbox
-                        # The frame is placed relative to the Text widget's top-left corner
-                        frame.place(x=x, y=y, width=400, height=300)
-                        frame.lift()
-                    else:
-                        # Placeholder is scrolled out of view: hide the frame
-                        frame.place_forget()
-                except tk.TclError:
-                    # Occurs if the index is deleted or invalid
-                    pass
+        except Exception as e:
+            print(f"yt-dlp Error for URL {url}: {e}")
+            return None
