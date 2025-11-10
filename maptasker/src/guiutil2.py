@@ -797,9 +797,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h5-text"
             else:
                 # Decrease the heading number by 1 (making the text "bigger")
-                value["highlights"][entry_to_update] = (
-                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
-                )
+                value["highlights"][
+                    entry_to_update
+                ] = f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
 
         elif "<small>" in message:
             # Save current heading
@@ -814,9 +814,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h7-text"
             else:
                 # Increase the heading number by 1 (making the text "smaller")
-                value["highlights"][entry_to_update] = (
-                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
-                )
+                value["highlights"][
+                    entry_to_update
+                ] = f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
 
         elif "</big>" in message or "</small>" in message:
             if message.startswith(("</big>", "</small>")):
@@ -1039,15 +1039,17 @@ def _embed_video_placeholder(text_widget: ctk.CTkTextbox, media_url: str, index:
     # 1. Insert the text
     start_index = index
     # end_index = f"{index}+{len(link_text)}c"
-    text_widget.insert(start_index, link_text, "video_link")
+    tag_id = f"video_link-{index}"
+    text_widget.insert(start_index, link_text, tag_id)
 
     # 2. Define the 'video_link' tag properties (usually done once at startup)
-    text_widget.tag_config("video_link", foreground="blue", underline=True)
+    # FIX to use: get_appropriate_color(master.master, "blue"),
+    text_widget.tag_config(tag_id, foreground="lightblue", underline=True)
 
     # 3. Bind a click event to the tag
     # The lambda function passes the URL when the tagged text is clicked
     callback = lambda e: _handle_video_click(text_widget.master, e, media_url)
-    text_widget.tag_bind("video_link", "<Button-1>", callback)
+    text_widget.tag_bind(tag_id, "<Button-1>", callback)
 
     # Store the tag reference (important if you clear and re-insert text)
     if not hasattr(text_widget, "video_tag_bindings"):
@@ -1357,9 +1359,7 @@ def get_youtube_stream_url(url: str) -> str | None:
         return None
 
 
-# --- VIDEO EMBEDDER CLASS (cv3 changes applied) ---
-
-
+# --- VIDEO EMBEDDER CLASS ---
 class VideoEmbedder:
     """
     Manages video playback by creating a new Toplevel window to display
@@ -1405,6 +1405,7 @@ class VideoEmbedder:
         self.window.protocol("WM_DELETE_WINDOW", self.stop_playback)
 
         self.video_textbox = ctk.CTkTextbox(master=self.window, width=self.width, height=self.height)
+        self.video_textbox.insert("1.0", "Fetching YouTube video.   Please stand by...")
         self.video_textbox.pack(padx=10, pady=10)
         # Start the video player as a separate thread
         self.thread = threading.Thread(target=self._load_and_play_video, daemon=True)
@@ -1416,12 +1417,10 @@ class VideoEmbedder:
 
         # 1. Handle YouTube links using yt-dlp
         if any(ext in media_url for ext in ["youtu.", "youtube."]):
-            print("Fetching YouTube stream URL with yt-dlp...")
             return self.get_yt_dlp_stream_url(media_url)  # <-- Call the new function
 
-        # 2. Handle Dropbox direct links (as previously fixed)
+        # 2. Handle Dropbox direct links.
         if media_url.endswith("?dl=0"):
-            print("Detected Dropbox link, converting to direct stream URL.")
             return media_url[:-1] + "1"
 
         return media_url
@@ -1433,8 +1432,7 @@ class VideoEmbedder:
             self._display_error("Failed to get video stream URL.")
             return
 
-        # --- CHANGE HERE: Using cv3.VideoCapture ---
-        # stream_url = "/Users/mikrubin/MapTasker/TaskLoggerV2.mp4"  # Local test file
+        # Grab the video
         self.cap = cv3.VideoCapture(stream_url)
 
         if not self.cap.isOpened():
@@ -1444,6 +1442,9 @@ class VideoEmbedder:
         # Get width and height
         self.width = self.cap.width
         self.height = self.cap.height
+        if self.width > 800 or self.height > 800:
+            self.width = 800
+            self.height = 800
 
         # Frames per second and delay
         fps = self.cap.fps
@@ -1497,14 +1498,37 @@ class VideoEmbedder:
         :returns: The direct stream URL (usually the highest quality available), or None on failure.
         :rtype: str | None
         """
+
+        class MyLogger:
+            def debug(self, msg: str) -> None:
+                # For compatibility with youtube-dl, both debug and info are passed into debug
+                # You can distinguish them by the prefix '[debug] '
+                pass
+
+            def info(self, msg: str) -> None:
+                pass
+
+            def warning(self, msg: str) -> None:
+                pass
+
+            def error(self, msg: str) -> None:
+                rutroh_error(f"yt-dlp error:{msg}")
+
+        # We will try to get the 720p MP4 format (itag 22), as it's often a
+        # self-contained video+audio file with a much shorter, direct URL.
+        # TARGET_FORMAT_ITAG = "22"
         ydl_opts = {
             # 1. Configuration to only extract info, not download the file
             "quiet": True,
             "skip_download": True,
             "force_generic_extractor": True,
-            # 2. Prefer a format that is streamable/compatible (e.g., MP4)
+            # 2. Prefer a format that is streamable/compatible
             #    and contains both video and audio.
-            "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+            # Download the best video available but no better than 480p,
+            # or the worst video if there is no video under 480p
+            "format": "bv*[height<=480]+ba/b[height<=480] / wv*+ba/w",
+            # Only way to override warnings that I have found thus far is to incorp. into logging.
+            "logger": MyLogger(),
         }
 
         try:
@@ -1515,14 +1539,43 @@ class VideoEmbedder:
                 # The 'url' field in the info_dict contains the direct stream URL
                 # for the chosen format (usually the best quality mp4).
                 if info_dict and "url" in info_dict:
-                    return info_dict["url"]
+                    return self.shorten_via_tinyurl(info_dict["url"])
 
-                # Fallback check (less common)
-                if info_dict and "entries" in info_dict and info_dict["entries"]:
-                    return info_dict["entries"][0]["url"]
+                # --- Fallback to finding the best format's URL in the 'formats' list ---
+                # If 'url' is not populated (e.g., if 'best' resulted in a merge-only scenario
+                # or it's a non-standard video), check the formats list.
+                if info_dict and "formats" in info_dict and info_dict["formats"]:
+                    # The formats list is usually ordered by quality (best last).
+                    # We'll try to find a format with a 'url' that is not a merged format (webm/mp4).
+
+                    # We iterate backwards (from best quality to worst) and return the first URL found.
+                    for f in reversed(info_dict["formats"]):
+                        if f.get("url"):
+                            # Ensure it's not a fragmented stream or dash init segment,
+                            # though 'best' usually handles this.
+                            return self.shorten_via_tinyurl(f["url"])
 
                 return None
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"yt-dlp Error for URL {url}: {e}")
+            return None
+
+    def shorten_via_tinyurl(self, long_url: str) -> str | None:
+        """
+        Uses the simple, public TinyURL API for demonstration.
+        This method is often less reliable for production use than
+        a paid/key-based API.
+        """
+        tinyurl_api = "http://tinyurl.com/api-create.php"
+
+        try:
+            response = requests.get(tinyurl_api, params={"url": long_url})  # noqa: S113
+            response.raise_for_status()
+
+            # The response text is the shortened URL directly
+            return response.text  # noqa: TRY300
+
+        except requests.exceptions.RequestException as e:
+            rutroh_error(f"An error occurred: {e}")
             return None

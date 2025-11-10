@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added:
+- Added: Video playback support has been added to TaskerNet descriptions and labels.
 
 ### Changed
 
