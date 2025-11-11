@@ -182,6 +182,7 @@ class HTMLTextFormatter(HTMLParser):
 
         if tag == "p":
             # Ignore <p> tags, as they are handled in formatting
+            self._add_segment("<p>")
             return
 
         if tag == "font":

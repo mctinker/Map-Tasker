@@ -6,15 +6,16 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: Video playback support has been added to TaskerNet descriptions and labels.
+- Added: Video playback support has been added to TaskerNet descriptions and labels (Youtube and Dropbox).
 
 ### Changed
 
-- Changed:
+- Changed: Embedded 'href=url...' videos are now referenced via '[▶️ VIDEO: url...]'
 
 ### Fixed
 
-- Fixed:
+- Fixed: Slight spacing/newline problem with images in TaskerNet descriptions.
+- Fixed: Not properly recognizing new paragraph in embedded html.
 
 ### Known Issue
 

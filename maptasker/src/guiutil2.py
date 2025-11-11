@@ -386,8 +386,11 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             start_idx = f"{line_num}.{char_position}"
 
             # Handle empty/newline message, but only if it isn't html of some sort.
-            if (not clean_message and not message.startswith("<")) or clean_message == "\n\n":
+            if (not clean_message and not message.startswith("<")) or clean_message in {"\n\n", "<p>"}:
                 char_position, spacing, line_num, start_idx = _newline(self, start_idx, value, line_num)
+                if clean_message in ("<p>", "\n\n") and prev_msg not in ("<p>", "\n\n"):
+                    char_position, spacing, line_num, start_idx = _newline(self, start_idx, value, line_num)
+                    prev_msg = clean_message
                 continue
 
             # Handle multi-line messages
@@ -396,6 +399,10 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             msg_idx = 0
             while msg_idx < len(all_messages):
                 msg = all_messages[msg_idx]
+                # FIX Redisplays this beyond the bbox.
+                if "2)" in msg:
+                    print("bingo")
+
                 msg_idx += 1
                 # Skip or process special content
                 if lines_to_skip > 0:
@@ -406,6 +413,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     continue
                 if img_tag in msg:
                     _handle_img(self, msg, start_idx)
+                    line_num += 3  # 1='\n', 2=image link, 3='\n'
+                    start_idx = f"{line_num!s}.0"
                     continue
                 if msg == "</a>":
                     continue
@@ -564,6 +573,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
         if end_of_label:
             if prev_msg != "":
+                # FIX Could this be the problem?
                 line_num, start_idx = _close(self, line_num, value)
             break
 
@@ -704,11 +714,21 @@ def _insert_and_tag(
     # Handle hyperlinks
     href = ""
     if "<a href=" in message:
+        orig_message = message
+        # Add hyperlink for alt text
         temp = message.split('"')
         href = temp[1]
         message = temp[2][1 : len(temp[2]) - 4]
         tag_id = self.textview_hyperlink.add(href)
         self.textview_textbox.insert(start_idx, message, tag_id)
+
+        # Add video link if there is one.
+        if "youtu.be" in orig_message or "youtube" in orig_message or "mp4" in orig_message:
+            temp = start_idx.split(".")
+            start_idx = f"{temp[0]}.{int(temp[1]) + len(message) + 2!s}"
+            _handle_image(self, orig_message, start_idx)
+            temp = start_idx.split(".")
+            char_position += len(href) + 12  #  '[> VIDEO: href]'
     else:
         tag_id = f"{heading_num};{font}:{color_val}:{decor}:{between_line_spacing}"
 
@@ -769,7 +789,7 @@ def _insert_and_tag(
 
 def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: int) -> str:
     if message == "<p>":
-        return "\n"
+        return "<p>"
 
     # Reduce the number of newlines
     message = message.replace("\n\n\n\n\n", "<br>")
@@ -797,9 +817,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h5-text"
             else:
                 # Decrease the heading number by 1 (making the text "bigger")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                value["highlights"][entry_to_update] = (
+                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                )
 
         elif "<small>" in message:
             # Save current heading
@@ -814,9 +834,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h7-text"
             else:
                 # Increase the heading number by 1 (making the text "smaller")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                value["highlights"][entry_to_update] = (
+                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                )
 
         elif "</big>" in message or "</small>" in message:
             if message.startswith(("</big>", "</small>")):
@@ -1034,27 +1054,40 @@ def _embed_video_placeholder(text_widget: ctk.CTkTextbox, media_url: str, index:
     """
     Displays a clickable video link in the textbox.
     """
-    link_text = f"\n\n[▶️ VIDEO: {media_url}]\n\n"
+    from maptasker.src.guiutils import get_appropriate_color  # noqa: PLC0415  Avoid circular import
 
-    # 1. Insert the text
-    start_index = index
-    # end_index = f"{index}+{len(link_text)}c"
+    link_text = f"[▶️ VIDEO: {media_url}]"
+
+    char_position = index.split(".")[1]
+
+    # 0. Insert a blank line
+    if char_position == "0":
+        text_widget.insert("end", "\n")
+
+    # 1. Set unique tag and insert the text
     tag_id = f"video_link-{index}"
-    text_widget.insert(start_index, link_text, tag_id)
+    text_widget.insert(index, link_text, tag_id)
 
     # 2. Define the 'video_link' tag properties (usually done once at startup)
-    # FIX to use: get_appropriate_color(master.master, "blue"),
-    text_widget.tag_config(tag_id, foreground="lightblue", underline=True)
+    text_widget.tag_config(
+        tag_id,
+        foreground=get_appropriate_color(text_widget.master.master.master, "blue"),
+        underline=True,
+    )
 
     # 3. Bind a click event to the tag
     # The lambda function passes the URL when the tagged text is clicked
     callback = lambda e: _handle_video_click(text_widget.master, e, media_url)
     text_widget.tag_bind(tag_id, "<Button-1>", callback)
 
-    # Store the tag reference (important if you clear and re-insert text)
+    # 4. Store the tag reference (important if you clear and re-insert text)
     if not hasattr(text_widget, "video_tag_bindings"):
         text_widget.video_tag_bindings = {}
     text_widget.video_tag_bindings[media_url] = callback
+
+    # 5. Insert a blank line
+    if char_position == "0":
+        text_widget.insert("end", "\n")
 
 
 def _show_media(self: object, text_widget: ctk.CTkTextbox, media_url: str, index: str) -> None:  # noqa: ARG001
@@ -1095,6 +1128,8 @@ def _show_media(self: object, text_widget: ctk.CTkTextbox, media_url: str, index
         # 4. Create a standard Tkinter PhotoImage from the Pillow image.
         tk_image = ImageTk.PhotoImage(pil_image)
 
+        text_widget.insert("end", "\n")
+
         # 5. Embed the image in the internal Tkinter Text widget.
         text_widget._textbox.image_create(index, image=tk_image)  # noqa: SLF001
 
@@ -1102,6 +1137,8 @@ def _show_media(self: object, text_widget: ctk.CTkTextbox, media_url: str, index
         if not hasattr(text_widget, "image_references"):
             text_widget.image_references = []
         text_widget.image_references.append(tk_image)
+
+        text_widget.insert("end", "\n")
 
     except requests.exceptions.RequestException as e:
         rutroh_error(f"Failed to download image: {e}")
@@ -1346,7 +1383,6 @@ def starts_with_html(text: str) -> bool:
 def get_youtube_stream_url(url: str) -> str | None:
     """Gets the highest resolution progressive stream URL for a YouTube video."""
     try:
-        # url = url.replace("youtu.be", "youtube.com/watch?v=")
         yt = YouTube(url)
         # Get the stream with the highest resolution and check if it's progressive
         stream = yt.streams.filter(progressive=True, file_extension="mp4").order_by("resolution").desc().first()
@@ -1442,9 +1478,22 @@ class VideoEmbedder:
         # Get width and height
         self.width = self.cap.width
         self.height = self.cap.height
-        if self.width > 800 or self.height > 800:
-            self.width = 800
-            self.height = 800
+
+        # Find MyGui from the top level window.  It could be hanging off a number of 'masters'
+        mygui = self.video_textbox
+        while mygui:
+            if mygui.__class__.__name__ == "MyGui":
+                break
+            mygui = mygui.master
+
+        # Get our current window width and height
+        temp = mygui.window_position.split("x")
+
+        # If we have a huge video window, max it out to our main window dimensions.
+        height = temp[1].split("+")[0]
+        if self.width > temp[0] or self.height > height:
+            self.width = temp[0]
+            self.height = height
 
         # Frames per second and delay
         fps = self.cap.fps
@@ -1477,7 +1526,9 @@ class VideoEmbedder:
             self.window.after(int(self.delay * 1000), self._update_frame)
         except StopIteration:
             # --- Drop here if we are done ---
-            self.cap.set(cv3.CAP_PROP_POS_FRAMES, 0)
+            # self.cap.set(cv3.CAP_PROP_POS_FRAMES, 0)
+            self.video_textbox.insert("1.0", "Video ended.")
+            return
 
     def _display_error(self, message: str) -> None:
         """Displays an error message in the video window."""

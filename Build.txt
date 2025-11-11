@@ -27,6 +27,7 @@ uv venv --python 3.xx.x
 uv pip install xxxx
 poetry env use 3.xx
 poetry install
+poetry install --with dev  (Add dependencies)
 Change VsCode interpreter to 3.xx
 alias po="poetry"
 
