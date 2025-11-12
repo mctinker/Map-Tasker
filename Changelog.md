@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: Slight spacing/newline problem with images in TaskerNet descriptions.
 - Fixed: Not properly recognizing new paragraph in embedded html.
+- Fixed: Under certain situations, TaskerNet description lines would be repeated.
 
 ### Known Issue
 

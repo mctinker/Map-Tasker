@@ -397,11 +397,11 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             all_messages = clean_message.split("\n")
 
             msg_idx = 0
+            # NOTE: If one or more lines are repeated in the output, that means that
+            #       guimap 'process_label_html' is returning 1 or more too shy...
+            #       (lines_to_skip is too small)
             while msg_idx < len(all_messages):
                 msg = all_messages[msg_idx]
-                # FIX Redisplays this beyond the bbox.
-                if "2)" in msg:
-                    print("bingo")
 
                 msg_idx += 1
                 # Skip or process special content
@@ -533,7 +533,6 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                         between_line_spacing,
                         start_idx,
                         char_position,
-                        mygui.saved_background_color,
                         value,
                         inner_num,
                     )
@@ -573,7 +572,6 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
 
         if end_of_label:
             if prev_msg != "":
-                # FIX Could this be the problem?
                 line_num, start_idx = _close(self, line_num, value)
             break
 
@@ -616,7 +614,6 @@ def _insert_and_tag(
     between_line_spacing: int,
     start_idx: str,
     char_position: int,
-    bg_color: str,
     value: dict,
     inner_num: int,
 ) -> tuple[int, int, int]:
@@ -645,8 +642,6 @@ def _insert_and_tag(
         The starting index (e.g., "1.0") for the text insertion.
     char_position : int
         The character position on the current line.
-    bg_color : str
-        The background color for the text, specified as a string.
     value : dict
         A dictionary containing formatting information, including 'spacing',
         'highlights', and 'color'.
@@ -663,6 +658,7 @@ def _insert_and_tag(
     """
     # Optimized version: inserts and tags a message in a custom text widget.
     mygui = self.master.master
+    bg_color = (mygui.saved_background_color,)
 
     # Local vars to avoid repeated dict lookups
     highlights = value["highlights"][inner_num]
@@ -720,7 +716,8 @@ def _insert_and_tag(
         href = temp[1]
         message = temp[2][1 : len(temp[2]) - 4]
         tag_id = self.textview_hyperlink.add(href)
-        self.textview_textbox.insert(start_idx, message, tag_id)
+        message_to_display = message if spacing == 0 and char_position == 0 else f"{' ' * spacing}{message}"
+        self.textview_textbox.insert(start_idx, message_to_display, tag_id)
 
         # Add video link if there is one.
         if "youtu.be" in orig_message or "youtube" in orig_message or "mp4" in orig_message:
@@ -782,18 +779,55 @@ def _insert_and_tag(
     char_position += len(message)
     self.previous_heading = heading_num
     self.previous_font = font_to_use
-    self.previous_between_line_spaccing = between_line_spacing
 
     return max_msg_len, char_position
+
+
+def optimize_message_formatting(message: str) -> str:
+    """
+    Optimizes the replacement of specific newline patterns and resulting <br> sequences
+    using a single regular expression substitution.
+
+    :param message: The input string (e.g., text content).
+    :return: The formatted string.
+    """
+
+    # 1. Define a replacement function to handle the original logic's priorities.
+    def replace_match(match: str) -> str:
+        matched_string = match.group(0)
+
+        # Handle the longest/most specific pattern first (5 newlines)
+        if matched_string == "\n\n\n\n\n":
+            return "<br>"
+        # Handle the second-longest/second-specific pattern (4 newlines)
+        if matched_string == "\n\n\n\n":
+            return "\n\n"
+        # Handle the resulting <br><br> pattern
+        if matched_string == "<br><br>":
+            return "<p>"
+        return matched_string  # Should not happen, but a safe default
+
+    # 2. Combine all patterns into a single regex for a single pass.
+    # The 'or' operator `|` makes the regex engine search for ANY of these patterns.
+    # Crucially, the patterns must be listed with the most specific/longest patterns first
+    # to ensure they are matched preferentially.
+    # We are matching: 5 newlines OR 4 newlines OR <br><br>
+    pattern = r"\n{5}|\n{4}|<br><br>"
+
+    # 3. Use re.sub with the replacement function.
+    # This iterates over the string once, finds all matches for the combined pattern,
+    # and calls replace_match to determine the substitution for each.
+    return re.sub(pattern, replace_match, message)
 
 
 def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: int) -> str:
     if message == "<p>":
         return "<p>"
 
-    # Reduce the number of newlines
-    message = message.replace("\n\n\n\n\n", "<br>")
-    message = message.replace("\n\n\n\n", "\n\n")
+    # Reduce the number of newlines...add(# message = message.replace("\n\n\n\n\n", "<br>")
+    # message = message.replace("\n\n\n\n", "\n\n")
+    # message = message.replace("<br><br>", "<p>"))
+    message = optimize_message_formatting(message)
 
     # Deal with <pre> formatted text
     if "<pre>" in message or "</pre>" in message:
@@ -911,7 +945,7 @@ def _find_begin_box(self: ctk.CTkTextbox, msg_to_insert: str, its_a_label: bool)
 
 
 def _close_label(self: ctk.CTkTextbox, line_num: int, value: dict) -> tuple[int, str]:
-    line_num += 1
+    # line_num += 1
     _, _, line_num, start_idx = _insert_newline(self, f"{line_num}.0", value, line_num)
     return line_num, start_idx
 
@@ -937,7 +971,7 @@ def _apply_bounding_box(
 ) -> int:
     if not its_a_label:
         begin_box = f"{(int(begin_box.split('.')[0]) + 1)}.0"
-    end_box = f"{line_num}.{max_msg_len + 1}"
+    end_box = f"{line_num!s}.{max_msg_len + 1!s}"
 
     spacing1, spacing2, spacing3 = (5, 0, 5) if minimum_space else (-5, -30, -5)
     bbox_tag = f"{begin_box}:bbox:{spacing1}:{spacing2}:{spacing3}"
@@ -1178,51 +1212,6 @@ def _get_max_msg_len(message: str, max_msg_len: int) -> int:
     return max(max_msg_len, len(message))
 
 
-def get_last_line(text_widget: ctk.CTkTextbox, start_idx: str) -> tuple[str, str]:
-    """Gets the content and index of the last line of a text widget.
-
-    This function retrieves the text of the last line in a CTkTextbox widget,
-    excluding the final newline character. It also returns the starting index
-    of that line, which is useful for subsequent operations like deletion or
-    replacement.
-
-    Parameters
-    ----------
-    text_widget : ctk.CTkTextbox
-        The custom Tkinter textbox widget from which to retrieve the text.
-    start_idx : str
-        The starting index of the last line.
-
-
-    Returns
-    -------
-    tuple[str, str]
-        A tuple containing two strings:
-        - The content of the last line.
-        - The starting index of the last line (e.g., "5.0").
-
-    Raises
-    ------
-    TclError
-        If the text widget is empty, a TclError is raised and handled by
-        calling the `rutroh_error` function.
-    """
-    try:
-        # Start at bottom of textbox and work backwards until we have some content
-        dont_have_info = True
-        last_line_index = start_idx
-        while dont_have_info:
-            line_to_get = str(int(last_line_index.split(".")[0]) - 1) + ".0"
-            content = text_widget.get(line_to_get, "end-1c")
-            return content.replace("\n", ""), line_to_get
-
-        # # Print the result
-        # print(f"The last line of text is: '{last_line_content}'")
-
-    except tk.TclError:
-        rutroh_error("The text widget is empty.")
-
-
 def process_table(
     self: ctk,
     value: dict,
@@ -1295,7 +1284,6 @@ def process_table(
         -40,
         start_idx,
         0,
-        self.master.master.saved_background_color,
         value,
         inner_num,
     )
@@ -1491,7 +1479,7 @@ class VideoEmbedder:
 
         # If we have a huge video window, max it out to our main window dimensions.
         height = temp[1].split("+")[0]
-        if self.width > temp[0] or self.height > height:
+        if int(self.width) > int(temp[0]) or int(self.height) > int(height):
             self.width = temp[0]
             self.height = height
 
