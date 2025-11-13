@@ -11,6 +11,8 @@ import error.
 import contextlib
 import os
 import re
+import shutil
+import subprocess
 import threading
 import tkinter as tk
 import tkinter.font as tkfont
@@ -56,21 +58,21 @@ def validate_tkinter_geometry(geometry_string: str) -> bool:
         pos_y = int(parts[3])
 
         if width < 300:
-            print("Error: Window width must be at least 300.")
+            rutroh_error("Error: Window width must be at least 300.")
             return False
         if height < 50:
-            print("Error: Window height must be at least 50.")
+            rutroh_error("Error: Window height must be at least 50.")
             return False
         if pos_x < 0:
-            print("Error: Window position X must be a non-negative number.")
+            rutroh_error("Error: Window position X must be a non-negative number.")
             return False
         if pos_y < 0:
-            print("Error: Window position Y must be a non-negative number.")
+            rutroh_error("Error: Window position Y must be a non-negative number.")
             return False
 
         return True  # noqa: TRY300
     except ValueError:
-        print("Error: Invalid numeric value in geometry string.")
+        rutroh_error("Error: Invalid numeric value in geometry string.")
         return False
 
 
@@ -197,7 +199,7 @@ def my_trace_function(frame, event, arg) -> None:  # noqa: ANN001
             # Handle potential file access or decoding errors gracefully if they slip past the initial check
             current_line_code = f"<ERROR READING CODE: {e}>"
             # You might want to log this error to a separate debug log
-            # print(f"Warning: Could not read source for {filename}:{lineno} - {e}", file=sys.stderr)
+            rutroh_error(f"Warning: Could not read source for {filename}:{lineno} - {e}")
 
         log_message = f"LINE: {os.path.basename(filename)}:{lineno} {func_name}() - {current_line_code}"
     elif event == "call":
@@ -229,7 +231,7 @@ def is_valid_ai_config(self: ctk) -> bool:
     the corresponding API key stored in `PrimeItems.ai` for that provider.
     Some providers (like 'llama' in this example) may not require an API key check.
 
-    The method prints a message indicating whether the AI model and API key combination
+    The method rutroh_errors a message indicating whether the AI model and API key combination
     is considered valid based on the configurations.
 
     Returns:
@@ -851,9 +853,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h5-text"
             else:
                 # Decrease the heading number by 1 (making the text "bigger")
-                value["highlights"][entry_to_update] = (
-                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
-                )
+                value["highlights"][
+                    entry_to_update
+                ] = f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
 
         elif "<small>" in message:
             # Save current heading
@@ -868,9 +870,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h7-text"
             else:
                 # Increase the heading number by 1 (making the text "smaller")
-                value["highlights"][entry_to_update] = (
-                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
-                )
+                value["highlights"][
+                    entry_to_update
+                ] = f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
 
         elif "</big>" in message or "</small>" in message:
             if message.startswith(("</big>", "</small>")):
@@ -1048,7 +1050,7 @@ def _handle_image(self: ctk, msg: str, start_idx: str) -> None:
     This function searches for a URL embedded within an 'href' attribute
     in the provided message string. If a URL is found, it calls a helper
     function to display the image in a CustomTkinter text view widget.
-    If no URL is found, it prints an error message to the console.
+    If no URL is found, it rutroh_errors an error message to the console.
 
     Args:
         self (ctk): The CustomTkinter object instance, which contains the
@@ -1090,6 +1092,30 @@ def _embed_video_placeholder(text_widget: ctk.CTkTextbox, media_url: str, index:
     """
     from maptasker.src.guiutils import get_appropriate_color  # noqa: PLC0415  Avoid circular import
 
+    mygui = text_widget.master.master.master
+
+    # Determine if we need ffmpeg (required for youtube), and if so, dp we have it in our runpath
+    # We only want to do this once.
+    if mygui.checked_ffmpeg:
+        have_ffmpeg = mygui.have_ffmpeg
+
+    else:
+        have_ffmpeg = True
+        if "youtu.be" in media_url or "youtube.com" in media_url:
+            # Use the combination of both 'shutil' and 'subprocess' for a robust check
+            is_present = check_ffmpeg_shutil()
+
+            if is_present:
+                # Only run the subprocess check if we know it's *in* the PATH
+                have_ffmpeg = check_ffmpeg_subprocess()
+            else:
+                have_ffmpeg = False
+                rutroh_error("\nSkipping subprocess check as executable was not found by shutil.which().")
+
+            # Save our settings
+            mygui.have_ffmpeg = have_ffmpeg
+            mygui.checked_ffmpeg = True
+
     link_text = f"[▶️ VIDEO: {media_url}]"
 
     char_position = index.split(".")[1]
@@ -1102,26 +1128,82 @@ def _embed_video_placeholder(text_widget: ctk.CTkTextbox, media_url: str, index:
     tag_id = f"video_link-{index}"
     text_widget.insert(index, link_text, tag_id)
 
-    # 2. Define the 'video_link' tag properties (usually done once at startup)
-    text_widget.tag_config(
-        tag_id,
-        foreground=get_appropriate_color(text_widget.master.master.master, "blue"),
-        underline=True,
-    )
+    # Only do the following if it is youtube and we have ffmpeg in our path, or it isn't youtube.
+    if have_ffmpeg:
+        # 2. Define the 'video_link' tag properties (usually done once at startup)
+        text_widget.tag_config(
+            tag_id,
+            foreground=get_appropriate_color(text_widget.master.master.master, "blue"),
+            underline=True,
+        )
 
-    # 3. Bind a click event to the tag
-    # The lambda function passes the URL when the tagged text is clicked
-    callback = lambda e: _handle_video_click(text_widget.master, e, media_url)
-    text_widget.tag_bind(tag_id, "<Button-1>", callback)
+        # 3. Bind a click event to the tag
+        # The lambda function passes the URL when the tagged text is clicked
+        callback = lambda e: _handle_video_click(text_widget.master, e, media_url)
+        text_widget.tag_bind(tag_id, "<Button-1>", callback)
 
-    # 4. Store the tag reference (important if you clear and re-insert text)
-    if not hasattr(text_widget, "video_tag_bindings"):
-        text_widget.video_tag_bindings = {}
-    text_widget.video_tag_bindings[media_url] = callback
+        # 4. Store the tag reference (important if you clear and re-insert text)
+        if not hasattr(text_widget, "video_tag_bindings"):
+            text_widget.video_tag_bindings = {}
+        text_widget.video_tag_bindings[media_url] = callback
 
     # 5. Insert a blank line
     if char_position == "0":
         text_widget.insert("end", "\n")
+
+
+def check_ffmpeg_shutil() -> bool:
+    """
+    Method 1: Uses shutil.which() to check if 'ffmpeg' is in the system PATH.
+    This is generally the fastest and most direct check.
+    """
+    rutroh_error("--- Method 1: Using shutil.which() ---")
+    if shutil.which("ffmpeg"):
+        rutroh_error("✅ FFmpeg executable found in PATH.")
+        return True
+    rutroh_error("❌ FFmpeg executable NOT found in PATH.")
+    return False
+
+
+def check_ffmpeg_subprocess() -> bool:
+    """
+    Method 2: Uses subprocess.run() to execute 'ffmpeg -version' and check
+    the return code. This confirms the executable is not just present but also runs.
+    """
+    rutroh_error("\n--- Method 2: Using subprocess.run() ---")
+    try:
+        # Execute the command.
+        # capture_output=True prevents output pollution.
+        # check=True raises a CalledProcessError if the return code is non-zero.
+        result = subprocess.run(
+            ["ffmpeg", "-version"],  # noqa: S607
+            check=True,
+            capture_output=True,
+            text=True,  # Decode output as text
+        )
+
+        # If no exception was raised, the command ran successfully.
+        rutroh_error("✅ FFmpeg executable found and ran successfully.")
+
+        # Optionally, rutroh_error the version information
+        first_line = result.stdout.split("\n")[0]
+        rutroh_error(f"   Version Info: {first_line}")
+        return True  # noqa: TRY300
+
+    except subprocess.CalledProcessError:
+        # This occurs if the 'ffmpeg' command itself failed to run (e.g., bad arguments)
+        # but not typically if the file is missing.
+        rutroh_error("❌ FFmpeg command failed to run correctly (CalledProcessError).")
+        return False
+
+    except FileNotFoundError:
+        # This is the most common error if the 'ffmpeg' executable isn't found.
+        rutroh_error("❌ FFmpeg executable NOT found (FileNotFoundError).")
+        rutroh_error("   Please ensure FFmpeg is installed and added to your system's PATH.")
+        return False
+    except Exception as e:  # noqa: BLE001
+        rutroh_error(f"❌ An unexpected error occurred: {e}")
+        return False
 
 
 def _show_media(self: object, text_widget: ctk.CTkTextbox, media_url: str, index: str) -> None:  # noqa: ARG001
@@ -1379,7 +1461,7 @@ def get_youtube_stream_url(url: str) -> str | None:
 
         return yt.streams.get_highest_resolution().url
     except Exception as e:  # noqa: BLE001
-        print(f"Pytube Error for URL {url}: {e}")
+        rutroh_error(f"Pytube Error for URL {url}: {e}")
         return None
 
 
@@ -1417,6 +1499,7 @@ class VideoEmbedder:
         """
         Initializes the video player window.
         """
+        self.mygui = master_root.master
         self.media_url = media_url
         self.is_playing = True
         self.cap = None
@@ -1429,6 +1512,7 @@ class VideoEmbedder:
         self.window.protocol("WM_DELETE_WINDOW", self.stop_playback)
 
         self.video_textbox = ctk.CTkTextbox(master=self.window, width=self.width, height=self.height)
+        self.window.geometry(self.mygui.map_window_position)
         self.video_textbox.insert("1.0", "Fetching YouTube video.   Please stand by...")
         self.video_textbox.pack(padx=10, pady=10)
         # Start the video player as a separate thread
@@ -1457,7 +1541,11 @@ class VideoEmbedder:
             return
 
         # Grab the video
-        self.cap = cv3.VideoCapture(stream_url)
+        try:
+            self.cap = cv3.VideoCapture(stream_url)
+        except OSError:
+            self._display_error("Error trying to read the video!")
+            return
 
         if not self.cap.isOpened():
             self._display_error("Could not open video stream.")
@@ -1467,15 +1555,8 @@ class VideoEmbedder:
         self.width = self.cap.width
         self.height = self.cap.height
 
-        # Find MyGui from the top level window.  It could be hanging off a number of 'masters'
-        mygui = self.video_textbox
-        while mygui:
-            if mygui.__class__.__name__ == "MyGui":
-                break
-            mygui = mygui.master
-
         # Get our current window width and height
-        temp = mygui.window_position.split("x")
+        temp = self.mygui.map_window_position.split("x")
 
         # If we have a huge video window, max it out to our main window dimensions.
         height = temp[1].split("+")[0]
@@ -1520,6 +1601,7 @@ class VideoEmbedder:
 
     def _display_error(self, message: str) -> None:
         """Displays an error message in the video window."""
+        self.video_textbox.delete("1.0", "end")
         self.window.after(0, lambda: self.video_textbox.insert("1.0", message))
 
     def stop_playback(self) -> None:
@@ -1565,9 +1647,52 @@ class VideoEmbedder:
             #    and contains both video and audio.
             # Download the best video available but no better than 480p,
             # or the worst video if there is no video under 480p
-            "format": "bv*[height<=480]+ba/b[height<=480] / wv*+ba/w",
+            """
+            Syntax	Meaning	Description
+                bv	Best Video	Selects the best video-only stream.
+                ba	Best Audio	Selects the best audio-only stream.
+                b	Best Combined	Selects the best combined video and audio stream (single file).
+                wv	Worst Video	Selects the worst video-only stream.
+                w	Worst Combined	Selects the worst combined video and audio stream (single file).
+                *	Wildcard/Filter	Applies the following filter criteria to all matching formats.
+                [filter]	Filter	Applies a constraint, e.g., [height<=480].
+                +	Merge	Combines a video stream with an audio stream (requires FFmpeg).
+                /	Fallback	A low-priority attempt. If the option(s) before the / fail, the option(s) after are attempted.
+            """
+            # Dependency on ffmpeg binaries
+            # "format": "b*[height<=240]+ba/b[height<=240] / wv*+ba/w",
+            "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+            "outtmpl": "%(title)s_240p.%(ext)s",
             # Only way to override warnings that I have found thus far is to incorp. into logging.
             "logger": MyLogger(),
+            # ----------------------------------------------------
+            #  ⬇️ Add the FFmpegPostProcessor here
+            # FIX Video not loading
+            "postprocessors": [
+                # 1. Use a remuxer or merger first (if you downloaded separate streams)
+                {
+                    "key": "FFmpegVideoRemuxer",
+                    "preferedformat": "mp4",
+                },
+                # 2. Add the custom FFmpeg command for resizing
+                {
+                    "key": "FFmpegPostProcessor",
+                    "args": [
+                        # -vf: video filter graph (using 'scale' filter)
+                        "-vf",
+                        "scale=240:240",
+                        # -crf: constant rate factor (quality setting, lower is better quality)
+                        "-crf",
+                        "30",
+                        # -c:v: video codec (h.264 is common)
+                        "-c:v",
+                        "libx264",
+                        # -c:a: audio codec (copy it without re-encoding)
+                        "-c:a",
+                        "copy",
+                    ],
+                },
+            ],
         }
 
         try:
@@ -1597,7 +1722,7 @@ class VideoEmbedder:
                 return None
 
         except Exception as e:  # noqa: BLE001
-            print(f"yt-dlp Error for URL {url}: {e}")
+            rutroh_error(f"yt-dlp Error for URL {url}: {e}")
             return None
 
     def shorten_via_tinyurl(self, long_url: str) -> str | None:

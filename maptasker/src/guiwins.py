@@ -4010,6 +4010,8 @@ def _initialize_feature_flags(self: ctk) -> None:
     self.restore = False
     self.runtime = False
     self.save = False
+    self.checked_ffmpeg = False
+    self.have_ffmpeg = False
 
 
 def _initialize_window_positions(self: ctk) -> None:

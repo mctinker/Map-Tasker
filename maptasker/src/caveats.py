@@ -1,3 +1,5 @@
+"""Display the program caveats"""
+
 #! /usr/bin/env python3
 
 #                                                                                      #
@@ -23,7 +25,7 @@ def display_caveats() -> None:
         format_html(
             "trailing_comments_color",
             "",
-            "CAVEATS:<br>",
+            "<br>CAVEATS:<br>",
             False,
         ),
         (
@@ -71,6 +73,17 @@ def display_caveats() -> None:
             (
                 "- Inactive variables are global variables used in a Task which has not been run/used.\n",
                 "- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n",
+            ),
+        )
+    if PrimeItems.program_arguments["taskernet"]:
+        caveats.extend(
+            (
+                "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n",
+                "   MacOS: 'brew install ffmpeg'\n",
+                "   Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n",
+                "   Windows via Winget: 'winget install ffmpeg'\n",
+                "   Windows via Chocolatey: 'choco install ffmpeg'\n",
+                "  Refer to https://www.ffmpeg.org/download.html\n",
             ),
         )
 

@@ -142,36 +142,6 @@ def get_gemini_models() -> list:
     export GOOGLE_API_KEY='YOUR_API_KEY'
     """
     bad_models = {"text", "image", "vision"}
-    # try:
-    #     # Get the API key
-    #     with suppress(KeyError):
-    #         api_key = PrimeItems.ai["gemini_key"]
-    #     if not api_key:
-    #         return GEMINI_MODELS
-
-    #     # print("Fetching available Gemini models...")
-    #     # Configure Gemini
-    #     genai.Client(api_key=api_key)
-    #     models = []
-
-    #     # List all available models
-    #     models = [
-    #         m
-    #         for m in genai.list_models()
-    #         if "generateContent" in m.supported_generation_methods
-    #         and not contains_any_substring_loop(m.name, bad_models)
-    #     ]
-
-    #     if not models:
-    #         # print("No Gemini models found that support text generation.")
-    #         return GEMINI_MODELS
-
-    #     # Now get just the names
-    #     models_to_keep = [m.name.replace("models/", "") for m in models]
-
-    # except Exception as e:
-    #     rutroh_error(f"An error occurred trying to list OpenAi models: {e}")
-    #     return GEMINI_MODELS
 
     # Get the API key
     with suppress(KeyError):
@@ -211,6 +181,7 @@ def get_gemini_models() -> list:
             )
         ):
             models_to_keep.append(model_name)
+            model_count += 1
 
     if model_count == 0:
         rutroh_error("No Gemini models found. There may be a connection issue or a filter problem.")

@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.0.6] ??-Nov-2025  # FIX
+## [9.1.0] ??-Nov-2025  # FIX
 
 ### Added
 
-- Added: Video playback support has been added to TaskerNet descriptions and labels (Youtube and Dropbox).
+- Added: Video playback support has been added to TaskerNet descriptions and labels (Youtube via ffmpeg, and Dropbox).
+- Added: 'ffmpeg' installation details have been included in the 'Caveats' section at the bottom of the Map view/HTML and in the README file.
 
 ### Changed
 
@@ -17,6 +18,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Slight spacing/newline problem with images in TaskerNet descriptions.
 - Fixed: Not properly recognizing new paragraph in embedded html.
 - Fixed: Under certain situations, TaskerNet description lines would be repeated.
+- Fixed: The program is incorrectly reporting that no Gemini AI models arewn found if in debug mode.
 
 ### Known Issue
 

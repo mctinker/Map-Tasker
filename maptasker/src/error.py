@@ -69,5 +69,4 @@ def rutroh_error(message: str) -> None:
     """
     if PrimeItems.program_arguments["debug"]:
         print(f"Rutroh! {message}")
-    else:
-        logger.debug(f"Rutroh! Error...{message}")
+    logger.debug(f"Rutroh! {message}")
