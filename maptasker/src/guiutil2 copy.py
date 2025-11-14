@@ -26,7 +26,6 @@ from PIL import Image, ImageTk
 from pytube import YouTube
 
 from maptasker.src.aiutils import get_api_key
-from maptasker.src.diagutil import width_and_height_calculator_in_pixel
 from maptasker.src.error import rutroh_error
 from maptasker.src.maputils import make_hex_color
 from maptasker.src.primitem import PrimeItems
@@ -1513,8 +1512,7 @@ class VideoEmbedder:
         self.window.protocol("WM_DELETE_WINDOW", self.stop_playback)
 
         self.video_textbox = ctk.CTkTextbox(master=self.window, width=self.width, height=self.height)
-        # Set the window based ons the Map view window, with width=500 and height=500
-        self.window.geometry(self.convert_geometry(self.mygui.map_window_position, "500", "500"))
+        self.window.geometry(self.mygui.map_window_position)
         self.video_textbox.insert("1.0", "Fetching YouTube video.   Please stand by...")
         self.video_textbox.pack(padx=10, pady=10)
         # Start the video player as a separate thread
@@ -1524,10 +1522,6 @@ class VideoEmbedder:
     def _get_stream_source(self) -> str | None:
         """Determines the actual stream source, handling YouTube and Dropbox links."""
         media_url = self.media_url
-
-        # If it's a local file, return it immediately
-        if os.path.exists(media_url):
-            return media_url
 
         # 1. Handle YouTube links using yt-dlp
         if any(ext in media_url for ext in ["youtu.", "youtube."]):
@@ -1586,12 +1580,10 @@ class VideoEmbedder:
         try:
             frame = self.cap.read()
 
-            pil_image = Image.fromarray(frame)
-
-            # # 1. Convert BGR frame (OpenCV default) to RGB
-            # cv3_image_rgb = cv3.color_spaces.bgr2rgb(frame)
-            # # 2. Convert to PIL Image
-            # pil_image = Image.fromarray(cv3_image_rgb)
+            # 1. Convert BGR frame (OpenCV default) to RGB
+            cv3_image_rgb = cv3.color_spaces.bgr2rgb(frame)
+            # 2. Convert to PIL Image
+            pil_image = Image.fromarray(cv3_image_rgb)
 
             # 3. Convert to Tkinter PhotoImage
             self.tk_image = ImageTk.PhotoImage(pil_image)
@@ -1649,8 +1641,12 @@ class VideoEmbedder:
         ydl_opts = {
             # 1. Configuration to only extract info, not download the file
             "quiet": True,
-            # Pass it a valid set of cookies so it knows we are not a 'bot'.
-            "cookiesfrombrowser": ("firefox",),
+            "skip_download": True,
+            "force_generic_extractor": True,
+            # 2. Prefer a format that is streamable/compatible
+            #    and contains both video and audio.
+            # Download the best video available but no better than 480p,
+            # or the worst video if there is no video under 480p
             """
             Syntax	Meaning	Description
                 bv	Best Video	Selects the best video-only stream.
@@ -1670,54 +1666,78 @@ class VideoEmbedder:
             "outtmpl": "%(title)s_240p.%(ext)s",
             # Only way to override warnings that I have found thus far is to incorp. into logging.
             "logger": MyLogger(),
+            # ----------------------------------------------------
             #  ⬇️ Add the FFmpegPostProcessor here
-            # Scale during postprocessing using FFmpeg
-            # Tell yt-dlp to convert the video to mp4 (uses FFmpegVideoConvertor PP)
+            # FIX Video not loading
             "postprocessors": [
+                # 1. Use a remuxer or merger first (if you downloaded separate streams)
                 {
-                    "key": "FFmpegVideoConvertor",  # selects the video convertor postprocessor
+                    "key": "FFmpegVideoRemuxer",
                     "preferedformat": "mp4",
                 },
+                # 2. Add the custom FFmpeg command for resizing
+                {
+                    "key": "FFmpegPostProcessor",
+                    "args": [
+                        # -vf: video filter graph (using 'scale' filter)
+                        "-vf",
+                        "scale=240:240",
+                        # -crf: constant rate factor (quality setting, lower is better quality)
+                        "-crf",
+                        "30",
+                        # -c:v: video codec (h.264 is common)
+                        "-c:v",
+                        "libx264",
+                        # -c:a: audio codec (copy it without re-encoding)
+                        "-c:a",
+                        "copy",
+                    ],
+                },
             ],
-            # Pass ffmpeg args to the VideoConvertor postprocessor.
-            # -vf: video filter graph (using 'scale' filter)
-            # -crf: constant rate factor (quality setting, lower is better quality)
-            # -c:v: video codec (h.264 is common)
-            # -c:a: audio codec (copy it without re-encoding)
-            "postprocessor_args": {
-                "videoconvertor": ["-vf", "scale=480:480", "-crf", "30", "-c:v", "libx264", "-c:a", "copy"],
-            },
+            # "postprocessors": [
+            #     # Note: If you only need to resize, you don't necessarily need FFmpegVideoRemuxer.
+            #     # yt-dlp automatically merges streams before running postprocessors.
+            #     # 2. Use the imported class for the 'key'
+            #     {
+            #         "key": "FFmpegPostProcessor",
+            #         "args": [
+            #             "-vf",
+            #             "scale=240:240",
+            #             "-crf",
+            #             "30",
+            #             "-c:v",
+            #             "libx264",
+            #             "-c:a",
+            #             "copy",
+            #         ],
+            #     },
+            # ],
         }
+
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                # Download the video
-                # ydl.download(url)
-
                 # Extract metadata and stream information
-                info_dict = ydl.extract_info(url, download=True)
+                info_dict = ydl.extract_info(url, download=False)
 
-                # If we got the converted video, then display the pertinent info and return the filename.
-                if info_dict:
-                    duration = info_dict.get("duration_string")
-                    title = info_dict.get("fulltitle")
-                    full_title = f"Video Player{' ' * 10}{title}{' ' * 10}Duration:{duration}"
-                    full_title_in_pixels = width_and_height_calculator_in_pixel(full_title, "Courier", 14)[0]
-                    self.window.title(full_title)
-                    # Expand our window if the full title is greater than our default window.
-                    if full_title_in_pixels > 500:
-                        # Take the original window size and normalize it to our new dimensions.
-                        normalized_width, normalized_height = self.normalize_dimensions(
-                            info_dict.get("width"),
-                            info_dict.get("height"),
-                            full_title_in_pixels,
-                        )
-                        # Reconfigure the window dimensions/size.
-                        self.window.geometry(
-                            self.convert_geometry(self.window.wm_geometry(), normalized_width, normalized_height),
-                        )
-                    self.video_textbox.insert("1.0", "Preparing the video...")
-                    # Return the filename of the scaled-down video.
-                    return ydl.prepare_filename(info_dict).replace("webm", "mp4")
+                # The 'url' field in the info_dict contains the direct stream URL
+                # for the chosen format (usually the best quality mp4).
+                if info_dict and "url" in info_dict:
+                    return self.shorten_via_tinyurl(info_dict["url"])
+
+                # --- Fallback to finding the best format's URL in the 'formats' list ---
+                # If 'url' is not populated (e.g., if 'best' resulted in a merge-only scenario
+                # or it's a non-standard video), check the formats list.
+                if info_dict and "formats" in info_dict and info_dict["formats"]:
+                    duration = info_dict.get("duration")
+                    # The formats list is usually ordered by quality (best last).
+                    # We'll try to find a format with a 'url' that is not a merged format (webm/mp4).
+
+                    # We iterate backwards (from best quality to worst) and return the first URL found.
+                    for f in reversed(info_dict["formats"]):
+                        if f.get("url"):
+                            # Ensure it's not a fragmented stream or dash init segment,
+                            # though 'best' usually handles this.
+                            return self.shorten_via_tinyurl(f["url"])
 
                 return None
 
@@ -1726,74 +1746,21 @@ class VideoEmbedder:
             rutroh_error(f"yt-dlp Error for URL {url}: {e}")
             return None
 
-    def convert_geometry(self, geometry_string: str, new_w: str, new_h: str) -> str:
+    def shorten_via_tinyurl(self, long_url: str) -> str | None:
         """
-        Converts a Tkinter geometry string to a new one with specified
-        width and height, preserving the original screen position.
-
-        Args:
-            geometry_string (str): The original geometry string (e.g., '1979x1264+475+52').
-            new_w (str): The new width.
-            new_h (str): The new height.
-
-        Returns:
-            str: The new geometry string (e.g., '480x480+475+52').
+        Uses the simple, public TinyURL API for demonstration.
+        This method is often less reliable for production use than
+        a paid/key-based API.
         """
+        tinyurl_api = "http://tinyurl.com/api-create.php"
 
-        # The geometry string format is: <width>x<height>+<x_offset>+<y_offset>
+        try:
+            response = requests.get(tinyurl_api, params={"url": long_url})  # noqa: S113
+            response.raise_for_status()
 
-        # 1. Find the position substring (+x_offset+y_offset)
-        # The re.search finds the first '+' and captures everything from that point on.
-        match = re.search(r"(\+\d+\+\d+)", geometry_string)
+            # The response text is the shortened URL directly
+            return response.text  # noqa: TRY300
 
-        if match:
-            # Get the position part, e.g., '+475+52'
-            position_string = match.group(0)
-        else:
-            # Handle the case where the position offsets are not included
-            rutroh_error("Warning: Position offsets not found. Returning centered geometry.")
-            position_string = ""
-
-        # 2. Construct the new geometry string
-        return f"{new_w}x{new_h}{position_string}"
-
-    def normalize_dimensions(
-        self,
-        original_width: int,
-        original_height: int,
-        target_size: int = 480,
-    ) -> tuple[int, int]:
-        """
-        Normalizes a set of dimensions to fit within a square boundary (e.g., 480x480)
-        while preserving the original aspect ratio.
-
-        Args:
-            original_width (int): The original width (from info_dict.width).
-            original_height (int): The original height (from info_dict.height).
-            target_size (int): The size of the square bounding box (e.g., 480).
-
-        Returns:
-            tuple[int, int]: The new scaled width and height as integers.
-        """
-
-        # 1. Handle edge cases (shouldn't happen with valid video dimensions, but good practice)
-        if original_width <= 0 or original_height <= 0:
-            return 0, 0
-
-        # 2. Calculate the scaling factors for width and height
-        # How much do we need to scale the width to hit the target?
-        scale_factor_w = target_size / original_width
-
-        # How much do we need to scale the height to hit the target?
-        scale_factor_h = target_size / original_height
-
-        # 3. Choose the most restrictive (smallest) factor
-        # This ensures BOTH new dimensions are less than or equal to the target size.
-        final_scale_factor = min(scale_factor_w, scale_factor_h)
-
-        # 4. Apply the factor and round the results
-        # We use round() to get the nearest integer dimensions.
-        new_width = round(original_width * final_scale_factor)
-        new_height = round(original_height * final_scale_factor)
-
-        return new_width, new_height
+        except requests.exceptions.RequestException as e:
+            rutroh_error(f"An error occurred: {e}")
+            return None
