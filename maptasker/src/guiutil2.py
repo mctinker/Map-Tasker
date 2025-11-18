@@ -1519,7 +1519,12 @@ class VideoEmbedder:
         self.window.title("Video Player")
         self.window.protocol("WM_DELETE_WINDOW", self.stop_playback)
 
-        self.video_textbox = ctk.CTkTextbox(master=self.window, width=self.width, height=self.height)
+        self.video_textbox = ctk.CTkTextbox(
+            master=self.window,
+            width=self.width,
+            height=self.height,
+            font=("Courier", 14),
+        )
         # Set the window based ons the Map view window, with width=500 and height=500
         self.window.geometry(self.convert_geometry(self.mygui.map_window_position, "500", "500"))
         self.video_textbox.insert("1.0", "Fetching the video.   Please stand by...")
@@ -1549,6 +1554,12 @@ class VideoEmbedder:
     def _load_and_play_video(self) -> None:
         """Loads the video capture and starts the display loop."""
         stream_url = self._get_stream_source()
+
+        # Bail out if thisd is a Youtube video
+        if "youtu.be" in self.media_url or "youtube.com" in self.media_url:
+            # self.window.destroy()
+            return
+
         if not stream_url:
             self._display_message("Failed to get video stream URL.")
             return
@@ -1638,326 +1649,31 @@ class VideoEmbedder:
         :returns: The direct stream URL (usually the highest quality available), or None on failure.
         :rtype: str | None
         """
-        # FIX Delete commented lines
-        # class MyLogger:
-        #     ###Logger class is only way to bypass yt-dlp printed output"""
-        #     def debug(self, msg: str) -> None:
-        #         # For compatibility with youtube-dl, both debug and info are passed into debug
-        #         # You can distinguish them by the prefix '[debug] '
-        #         pass
+        text = """Video keyboard shortcuts...
 
-        #     def info(self, msg: str) -> None:
-        #         pass
-
-        #     def warning(self, msg: str) -> None:
-        #         pass
-
-        #     def error(self, msg: str) -> None:
-        #         rutroh_error(f"yt-dlp error:{msg}")
-
-        # # We will try to get the 720p MP4 format (itag 22), as it's often a
-        # # self-contained video+audio file with a much shorter, direct URL.
-        # # TARGET_FORMAT_ITAG = "22"
-        # ydl_opts = {
-        #     # 1. Configuration to only extract info, not download the file
-        #     "quiet": True,
-        #     # Pass it a valid set of cookies so it knows we are not a 'bot'.
-        #     "cookiesfrombrowser": ("firefox",),
-        #     """
-        #     Syntax	Meaning	Description
-        #         bv	Best Video	Selects the best video-only stream.
-        #         ba	Best Audio	Selects the best audio-only stream.
-        #         b	Best Combined	Selects the best combined video and audio stream (single file).
-        #         wv	Worst Video	Selects the worst video-only stream.
-        #         w	Worst Combined	Selects the worst combined video and audio stream (single file).
-        #         *	Wildcard/Filter	Applies the following filter criteria to all matching formats.
-        #         [filter]	Filter	Applies a constraint, e.g., [height<=480].
-        #         +	Merge	Combines a video stream with an audio stream (requires FFmpeg).
-        #         /	Fallback	A low-priority attempt. If the option(s) before the / fail, the option(s) after are attempted.
-        #     """
-        #     # Dependency on ffmpeg binaries
-        #     # 1. Format Selection: Download the best quality video and audio
-        #     # This is crucial: we want yt-dlp to download the components first.
-        #     "format": "bestvideo[ext=webm]+bestaudio/best",
-        #     # Overwrite the file if it exists
-        #     "overwrites": True,
-        #     # 2. Output Template: The filename will now reflect the scaled version
-        #     # The 'ext' will be set by the postprocessor (mp4).
-        #     "outtmpl": f"%(title)s_{TARGET_WIDTH}p.temp.%(ext)s",
-        #     # Only way to override warnings that I have found thus far is to incorp. into logging.
-        #     "logger": MyLogger(),
-        #     #  ⬇️ Add the FFmpegPostProcessor here
-        #     # Scale during postprocessing using FFmpeg
-        #     # Tell yt-dlp to convert the video to mp4 (uses FFmpegVideoConvertor PP)
-        #     "postprocessors": [
-        #         {
-        #             "key": "FFmpegVideoConvertor",  # selects the video convertor postprocessor
-        #             # Ensure the final output is MP4.
-        #             "preferedformat": "mp4",
-        #         },
-        #     ],
-        #     # 5. Define the custom FFmpegVideoConvertor arguments
-        #     "postprocessor_args": [
-        #         # This key is for arguments passed to the FFmpegPostProcessor (which re-encodes the file).
-        #         # The arguments apply to the re-encoding step.
-        #         # -vf: The Video Filter graph (scale the video)
-        #         "-vf",
-        #         f"scale={TARGET_WIDTH}:{TARGET_HEIGHT}",
-        #         # -crf: Constant Rate Factor (30 is low quality, high compression)
-        #         "-crf",
-        #         "30",
-        #         # -c:v: Video Codec (libx264 is the standard H.264 encoder)
-        #         "-c:v",
-        #         "libx264",
-        #         # -c:a: Audio Codec (copy the existing audio stream without re-encoding)
-        #         "-c:a",
-        #         "copy",
-        #     ],
-        # }
-
-        # # Options for getting the dimensions before extraction
-        # ydl_opts_dim = {
-        #     "quiet": True,
-        #     "skip_download": True,  # Important: do not download
-        # }
-        # # Get the video and process it.
-        # try:
-        #     # Get the video dimensions first
-        #     with yt_dlp.YoutubeDL(ydl_opts_dim) as ydl:
-        #         info_dict = ydl.extract_info(url, download=False)
-
-        #     # Now you can inspect the available formats
-        #     formats = info_dict.get("formats", [])
-        #     for f in formats:
-        #         if "width" in f and "height" in f:
-        #             print(f"bingo itag: {f['format_id']}, resolution: {f['width']}x{f['height']}, ext: {f['ext']}")
-
-        #     # Download and extract the video
-        #     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        #         # Download the video
-        #         # ydl.download(url)
-
-        #         # Extract metadata and stream information
-        #         info_dict = ydl.extract_info(url, download=True)
-
-        #         # If we got the converted video, then display the pertinent info and return the filename.
-        #         if info_dict:
-        #             self.video_textbox.insert("1.0", "Processing video.  Please wait...")
-        #             # Formulate the full title with video details
-        #             duration = info_dict.get("duration_string")
-        #             title = info_dict.get("fulltitle")
-        #             full_title = f"Video Player{' ' * 10}{title}{' ' * 10}Duration:{duration}"
-        #             full_title_in_pixels = width_and_height_calculator_in_pixel(full_title, "Courier", 14)[0]
-        #             self.window.title(full_title)
-
-        #             # Expand our window if the full title is greater than our default window (500 pixelsx500 pixels).
-        #             if full_title_in_pixels > 500:
-        #                 # Take the original window size and normalize it to our new dimensions.
-        #                 normalized_width, normalized_height = self.normalize_dimensions(
-        #                     info_dict.get("width"),
-        #                     info_dict.get("height"),
-        #                     full_title_in_pixels,
-        #                 )
-        #             else:
-        #                 normalized_width = 500
-        #                 normalized_height = 500
-        #             window_dimension = max(normalized_height, normalized_width)
-
-        #             # Reconfigure the window dimensions/size.
-        #             print(
-        #                 "bingo",
-        #                 full_title_in_pixels,
-        #                 normalized_width,
-        #                 normalized_height,
-        #                 info_dict.get("width"),
-        #                 info_dict.get("height"),
-        #             )
-        #             self.window.geometry(
-        #                 self.convert_geometry(self.window.wm_geometry(), window_dimension, window_dimension),
-        #             )
-        #             self.mygui.display_message_box(f"Video saved as '{title}.mp4'", "turquoise")
-        #             # Return the filename of the scaled-down video.
-        #             # After postprocessing, yt-dlp populates this:
-        #             downloads = info_dict.get("requested_downloads", [])
-
-        #             # Get the converted filename
-        #             final_filename = downloads[0].get("filepath") if downloads else ydl.prepare_filename(info_dict)
-
-        #             w, h = self.get_video_dimensions(final_filename)
-        #             print("bingo video dimensions...Width:", w, "Height:", h)
-        #             return final_filename
-
-        #         return None
-
-        # except Exception as e:
-        #     print("bingo", f"yt-dlp Error for URL {url}: {e}")
-        #     rutroh_error(f"yt-dlp Error for URL {url}: {e}")
-        #     return None
+| Key           | Action                             |
+| ------------- | ---------------------------------- |
+|   Space / p   | Pause / resume                     |
+|   q / ESC     | Quit                               |
+|   ← / →       | Seek backward / forward 10 seconds |
+|   ↓ / ↑       | Seek 1 minute backward / forward   |
+|   m           | Mute                               |
+|   0–9         | Seek to 0–90% of the video         |
+"""  # noqa: RUF001
+        # Download and scale the Youtube video and audio.
         final_file = self.download_and_scale_yt_video(url, TARGET_WIDTH, TARGET_HEIGHT)
 
         # Play the video
         self.play_with_ffplay(final_file)
 
+        # We no longer need our video player window.
+        # self._display_message("Video playing.")
+        # self.video_textbox.destroy()
+        # Show the video playback controls.
+        self._display_message(text)
+
         return final_file
 
-    # def download_and_scale_yt_video(
-    #     self,
-    #     url: str,
-    #     target_width: int,
-    #     target_height: int,
-    # ) -> str | None:
-    #     """
-    #     Downloads a specific YouTube stream (itag) and scales it to target dimensions.
-
-    #     :param url: YouTube URL
-    #     :param target_itag: The itag of the desired stream
-    #     :param target_width: Target width in pixels
-    #     :param target_height: Target height in pixels
-    #     :return: Path to the final scaled MP4 file, or None on failure
-    #     """
-
-    #     class MyLogger:
-    #         def debug(self, msg: str) -> None:
-    #             pass
-
-    #         def info(self, msg: str) -> None:
-    #             pass
-
-    #         def warning(self, msg: str) -> None:
-    #             rutroh_error(f"yt-dlp warning: {msg}")
-
-    #         def error(self, msg: str) -> None:
-    #             rutroh_error(f"yt-dlp error: {msg}")
-
-    #     self._display_message("Processing YouTube video.  Please wait...")
-
-    #     # Start the Youtube download...
-    #     try:
-    #         # Step 1: Extract metadata without downloading
-    #         ydl_opts = {"quiet": True, "skip_download": True, "logger": MyLogger()}
-    #         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-    #             info_dict = ydl.extract_info(url, download=False)
-    #             formats = info_dict.get("formats", [])
-
-    #         # Step 2: Find the video that best matches our target width and height.
-    #         mp4_videos = []
-    #         for f in formats:
-    #             if f["ext"] == "mp4":
-    #                 temp = f["resolution"].split("x")
-    #                 width = int(temp[0])
-    #                 height = int(temp[1])
-    #                 mp4_videos.append((width, height, f["format_id"]))
-    #                 # if width <= TARGET_WIDTH and height <= TARGET_HEIGHT:
-    #                 #     target_itag = f["format_id"]
-    #                 #     break
-    #         # selected_format = next((f for f in formats if f["format_id"] == str(target_itag)), None)
-    #         if not mp4_videos:
-    #             rutroh_error("Itag for mp4 not found for this video")
-    #             for f in formats:
-    #                 rutroh_error(f"Video format:{f}")
-    #             return None
-    #         # Calculate the closest width/height as measured by Euclidean distance in width/height space.
-    #         t_width = int(target_width)
-    #         t_height = int(target_height)
-    #         our_mp4 = min(mp4_videos, key=lambda t: (t[0] - t_width) ** 2 + (t[1] - t_height) ** 2)
-    #         video_itag = our_mp4[2]
-    #         target_width = our_mp4[0]
-    #         target_height = our_mp4[1]
-
-    #         #
-    #         # Step 3 — Pick the best available audio
-    #         #
-    #         audio_formats = [
-    #             f
-    #             for f in formats
-    #             if f.get("acodec") != "none" and f.get("vcodec") == "none" and f.get("ext") in ("m4a", "mp4")
-    #         ]
-
-    #         if audio_formats:
-    #             # Pick highest bitrate audio
-    #             best_audio = max(audio_formats, key=lambda f: f.get("tbr") or 0)
-    #             audio_itag = best_audio["format_id"]
-    #         else:
-    #             # Fallback to any audio at all
-    #             audio_itag = "bestaudio[language=en]"
-
-    #         # Step 3: Prepare output filename
-    #         title = info_dict.get("title", "video")
-    #         temp_filename = f"{title}_{target_width}p.temp.%(ext)s"
-
-    #         # Step 4: Download the specific itag with scaling
-    #         ydl_opts = {
-    #             "quiet": True,
-    #             # "format": str(target_itag),
-    #             "format": f"{video_itag}+{audio_itag}",  # <<< VIDEO + AUDIO!
-    #             "outtmpl": temp_filename,
-    #             "overwrites": True,
-    #             "logger": MyLogger(),
-    #             "postprocessors": [
-    #                 {
-    #                     "key": "FFmpegVideoConvertor",
-    #                     "preferedformat": "mp4",
-    #                 },
-    #             ],
-    #             "postprocessor_args": [
-    #                 "-vf",
-    #                 f"scale={target_width}:{target_height}",
-    #                 "-crf",
-    #                 "30",
-    #                 "-c:v",
-    #                 "libx264",
-    #                 "-c:a",
-    #                 # "copy",
-    #                 "aac",
-    #             ],
-    #         }
-
-    #         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-    #             info_dict = ydl.extract_info(url, download=True)
-
-    #         # Step 5: Get the postprocessed filename
-    #         downloads = info_dict.get("requested_downloads", [])
-    #         if downloads:
-    #             final_file = downloads[0]["filepath"]
-    #         else:
-    #             final_file = ydl.prepare_filename(info_dict).replace(".webm", ".mp4")
-
-    #         # Step 5.5: Setup the window to the proper dimension with the title
-    #         self.configure_window(info_dict, target_width, target_height)
-
-    #         # Step 6: Rename temp file to remove .temp if present
-    #         if final_file.endswith(".temp.mp4"):
-    #             final_file_renamed = final_file.replace(".temp.mp4", ".mp4")
-    #             os.replace(final_file, final_file_renamed)
-    #             final_file = final_file_renamed
-
-    #         rutroh_error(f"Video saved as: {final_file}")
-    #         return final_file
-
-    #     except Exception as e:
-    #         # 1. Get the traceback object
-    #         _exc_type, _exc_obj, exc_tb = sys.exc_info()
-
-    #         # 2. Extract the line number from the traceback object
-    #         # exc_tb.tb_lineno gives the line number *in the traceback object's frame*
-    #         # However, to get the last line where the error occurred,
-    #         # we should walk the traceback stack to the last frame.
-
-    #         # Standard practice is to get the last frame in the traceback
-    #         f = traceback.extract_tb(exc_tb)[-1]
-
-    #         # The line number from the traceback object
-    #         line_number = f.lineno
-
-    #         # The name of the file
-    #         file_name = f.filename
-
-    #         # The function name
-    #         func_name = f.name
-    #         print(
-    #             f"Error downloading/scaling video! line_number:{line_number}, file_name:{file_name}, function:{func_name}, Error:{e}",
-    #         )
-    #         return None
     def download_and_scale_yt_video(
         self,
         url: str,
@@ -1965,13 +1681,15 @@ class VideoEmbedder:
         target_height: int,
     ) -> str | None:
         """
-        Downloads a YouTube video, selects the mp4 format closest to the desired dimensions,
-        picks the best audio track, and scales the result to the target resolution.
+        Downloads a specific YouTube stream (itag) and scales it to target dimensions.
+
+        :param url: YouTube URL
+        :param target_itag: The itag of the desired stream
+        :param target_width: Target width in pixels
+        :param target_height: Target height in pixels
+        :return: Path to the final scaled MP4 file, or None on failure
         """
 
-        # ------------------------------
-        # Logger Class
-        # ------------------------------
         class MyLogger:
             def debug(self, msg: str) -> None:
                 pass
@@ -1985,110 +1703,85 @@ class VideoEmbedder:
             def error(self, msg: str) -> None:
                 rutroh_error(f"yt-dlp error: {msg}")
 
-        self._display_message("Processing YouTube video. Please wait...")
+        self._display_message("Processing YouTube video.  Please wait...")
 
+        # Start the Youtube download...
         try:
-            # ----------------------------------------------------------
-            # STEP 1 — Extract Metadata (NO DOWNLOAD)
-            # ----------------------------------------------------------
-            probe_opts = {"quiet": True, "skip_download": True, "logger": MyLogger()}
-            with yt_dlp.YoutubeDL(probe_opts) as ydl:
+            # Step 1: Extract metadata without downloading
+            ydl_opts = {"quiet": True, "skip_download": True, "logger": MyLogger()}
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info_dict = ydl.extract_info(url, download=False)
+                formats = info_dict.get("formats", [])
 
-            formats = info_dict.get("formats", [])
-            if not formats:
-                rutroh_error("No formats available in metadata.")
-                return None
-
-            # ----------------------------------------------------------
-            # STEP 2 — Gather valid MP4 video streams
-            # ----------------------------------------------------------
+            # Step 2: Find the video that best matches our target width and height.
             mp4_videos = []
             for f in formats:
-                if f.get("ext") != "mp4":
-                    continue
-
-                # Attempt resolution extraction
-                temp = f["resolution"].split("x")
-                width = int(temp[0])
-                height = int(temp[1])
-
-                if width and height:
+                if f["ext"] == "mp4" and (f["language"] and "en" in f["language"]):
+                    temp = f["resolution"].split("x")
+                    width = int(temp[0])
+                    height = int(temp[1])
                     mp4_videos.append((width, height, f["format_id"]))
-                    continue
-
-                # Fallback if only "resolution" field exists: e.g. "1920x1080"
-                res = f.get("resolution")
-                if res:
-                    try:
-                        w, h = res.lower().split("x")
-                        mp4_videos.append((int(w), int(h), f["format_id"]))
-                    except Exception:
-                        pass  # ignore bad "resolution" strings
 
             if not mp4_videos:
-                rutroh_error("No valid MP4 formats with resolution found.")
+                rutroh_error("Itag for mp4 not found for this video")
+                for f in formats:
+                    rutroh_error(f"Video format:{f}")
                 return None
+            # Calculate the closest width/height as measured by Euclidean distance in width/height space.
+            t_width = int(target_width)
+            t_height = int(target_height)
+            our_mp4 = min(mp4_videos, key=lambda t: (t[0] - t_width) ** 2 + (t[1] - t_height) ** 2)
+            video_itag = our_mp4[2]
+            target_width = our_mp4[0]
+            target_height = our_mp4[1]
 
-            # ----------------------------------------------------------
-            # STEP 3 — Pick the closest resolution (Euclidean distance)
-            # ----------------------------------------------------------
-            t_w = int(target_width)
-            t_h = int(target_height)
+            #
+            # Step 3 — Pick the best available audio
+            #
+            # audio_formats = [
+            #     f
+            #     for f in formats
+            #     if f.get("acodec") != "none"
+            #     and f.get("vcodec") == "none"
+            #     and f.get("ext") in ("m4a", "mp4")
+            #     and (f["language"] and "en" in f["language"])
+            # ]
 
-            best_video = min(
-                mp4_videos,
-                key=lambda t: (t[0] - t_w) ** 2 + (t[1] - t_h) ** 2,
-            )
+            # if audio_formats:
+            #     # Pick highest bitrate audio
+            #     best_audio = max(audio_formats, key=lambda f: f.get("tbr") or 0)
+            #     audio_itag = best_audio["format_id"]
+            # else:
+            #     # Fallback to any audio at all
+            #     audio_itag = "bestaudio[language=en]"
 
-            video_width, video_height, video_itag = best_video
+            # Step 3: Prepare output filename
+            title = info_dict.get("title", "video")
+            temp_filename = f"{title}_{target_width}p.temp.%(ext)s"
 
-            # ----------------------------------------------------------
-            # STEP 4 — Choose best audio stream
-            # ----------------------------------------------------------
-            audio_formats = [
-                f
-                for f in formats
-                if f.get("acodec") != "none" and f.get("vcodec") == "none" and f.get("ext") in ("m4a", "mp4")
-            ]
-
-            if audio_formats:
-                best_audio = max(audio_formats, key=lambda f: f.get("tbr") or 0)
-                audio_itag = best_audio["format_id"]
-            else:
-                audio_itag = "bestaudio[language=en]"
-
-            # ----------------------------------------------------------
-            # STEP 5 — Prepare temp output name
-            # ----------------------------------------------------------
-            title = info_dict.get("title", "video").replace("/", "_")
-            temp_filename = f"{title}_{video_width}x{video_height}.temp.%(ext)s"
-
-            # ----------------------------------------------------------
-            # STEP 6 — Download + Scale with FFmpeg
-            # ----------------------------------------------------------
+            # Step 4: Download the specific itag with scaling
             ydl_opts = {
                 "quiet": True,
-                "format": f"{video_itag}+{audio_itag}",
+                "format": str(video_itag),
+                # "format": f"{video_itag}+{audio_itag}",  # <<< VIDEO + AUDIO!
                 "outtmpl": temp_filename,
                 "overwrites": True,
                 "logger": MyLogger(),
-                # Convert to MP4
                 "postprocessors": [
                     {
-                        "key": "FFmpegVideoConverter",
-                        "preferredformat": "mp4",
+                        "key": "FFmpegVideoConvertor",
+                        "preferedformat": "mp4",
                     },
                 ],
-                # Force FFmpeg to rescale to requested size
                 "postprocessor_args": [
                     "-vf",
-                    f"scale={video_width}:{video_height}",
+                    f"scale={target_width}:{target_height}",
                     "-crf",
                     "30",
                     "-c:v",
                     "libx264",
                     "-c:a",
+                    # "copy",
                     "aac",
                 ],
             }
@@ -2096,36 +1789,49 @@ class VideoEmbedder:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info_dict = ydl.extract_info(url, download=True)
 
-            # ----------------------------------------------------------
-            # STEP 7 — Determine final filename
-            # ----------------------------------------------------------
+            # Step 5: Get the postprocessed filename
             downloads = info_dict.get("requested_downloads", [])
             if downloads:
                 final_file = downloads[0]["filepath"]
             else:
                 final_file = ydl.prepare_filename(info_dict).replace(".webm", ".mp4")
 
-            # ----------------------------------------------------------
-            # STEP 8 — Fix filename if still ".temp.mp4"
-            # ----------------------------------------------------------
+            # Step 5.5: Setup the window to the proper dimension with the title
+            # self.configure_window(info_dict, target_width, target_height)
+
+            # Step 6: Rename temp file to remove .temp if present
             if final_file.endswith(".temp.mp4"):
-                new_name = final_file.replace(".temp.mp4", ".mp4")
-                os.replace(final_file, new_name)
-                final_file = new_name
+                final_file_renamed = final_file.replace(".temp.mp4", ".mp4")
+                os.replace(final_file, final_file_renamed)
+                final_file = final_file_renamed
 
-            # Let your UI adjust window
-            self.configure_window(info_dict, t_w, t_h)
+            # Let the user know (only for Youtube videos)
+            self.mygui.display_message_box(f"Video saved as '{final_file}'", "turquoise")
 
-            rutroh_error(f"Video saved as: {final_file}")
             return final_file  # noqa: TRY300
 
         except Exception as e:  # noqa: BLE001
-            # richer traceback
-            _t, _v, exc_tb = sys.exc_info()
-            tb_info = traceback.extract_tb(exc_tb)[-1]
+            # 1. Get the traceback object
+            _exc_type, _exc_obj, exc_tb = sys.exc_info()
+
+            # 2. Extract the line number from the traceback object
+            # exc_tb.tb_lineno gives the line number *in the traceback object's frame*
+            # However, to get the last line where the error occurred,
+            # we should walk the traceback stack to the last frame.
+
+            # Standard practice is to get the last frame in the traceback
+            f = traceback.extract_tb(exc_tb)[-1]
+
+            # The line number from the traceback object
+            line_number = f.lineno
+
+            # The name of the file
+            file_name = f.filename
+
+            # The function name
+            func_name = f.name
             print(
-                f"Error downloading/scaling video! "
-                f"line:{tb_info.lineno}, file:{tb_info.filename}, func:{tb_info.name}, Error:{e}",
+                f"Error downloading/scaling video! line_number:{line_number}, file_name:{file_name}, function:{func_name}, Error:{e}",
             )
             return None
 
@@ -2321,8 +2027,6 @@ class VideoEmbedder:
         self.window.geometry(
             self.convert_geometry(self.window.wm_geometry(), normalized_width, normalized_height),
         )
-        # Let the user know.
-        self.mygui.display_message_box(f"Video saved as '{title}.mp4'", "turquoise")
 
     def play_with_ffplay(self, path: str) -> None:
         """
