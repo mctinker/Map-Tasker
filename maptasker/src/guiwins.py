@@ -3996,6 +3996,7 @@ def _initialize_display_settings(self: ctk) -> None:
     self.mapview_window = None
     self.miscview_window = None
     self.treeview_window = None
+    self.video_window = None
     self.outline = False
     self.font_table = {}
 

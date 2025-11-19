@@ -284,17 +284,19 @@ Llama based models are supported via [Ollama](https://ollama.com/), which you mu
 
 The videos are identifiable via the text: '[▶️ VIDEO: some-youtube-url...]', and this text will be hot/clickable if ffmpeg is properly installed.
 
-ffmpeg and all of its 92+ dependencies adds an additional 660 MBs to your installation (hard drive). 
+ffmpeg and all of its 92+ dependencies adds an additional 660 MBs to your installation (hard drive).
 
 To install ffmpeg:
    MacOS: 'brew install ffmpeg'
    Linux: 'sudo apt update' and 'sudo apt install ffmpeg'
    Windows via Winget: 'winget install ffmpeg'
    Windows via Chocolatey: 'choco install ffmpeg'
-   
+
 Refer to [the ffmpeg download documentation](https://www.ffmpeg.org/download.html) for further details.
 
 If ffmpeg is not installed, then '[▶️ VIDEO: some-youtube-url...]' will still appear, but will not be hot/clickable, and the video can not be displayed in a separate MapTasker window.
+
+YouTube videos are downloaded to your local drive from which they are then played.  MP4 videos are played directly from their source.
 
 ## To-Do List (in no particular order)
 
