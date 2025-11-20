@@ -4,74 +4,151 @@ import requests
 from packaging.version import InvalidVersion, Version
 
 
-def check_dependency_updates(dependencies: list) -> None:
+def parse_version_constraint(constraint: str):
     """
-    Checks a list of Python dependencies against PyPI for newer versions.
+    Given a constraint like '>=15.0.16,<16.0.0', return:
+      - operator: first operator (like '>=')
+      - compare_version: version used for comparison (lowest bound)
+      - full_constraint: the full string preserved as-is
+    """
+    if not constraint:
+        return None, None, None
 
-    Args:
-        dependencies (list): A list of dependency strings (e.g., "requests>=2.32.3").
+    # Split constraints inside parentheses or after operator
+    parts = [p.strip() for p in constraint.split(",")]
+
+    # First constraint used for version comparison
+    first = parts[0]
+
+    m = re.match(r"([<>=~!]=?)(.+)", first)
+    if not m:
+        return None, None, constraint
+
+    operator = m.group(1)
+    version = m.group(2).strip()
+
+    return operator, version, constraint
+
+
+def normalize_for_requirements(dep: str) -> str:
     """
+    Convert deps like:
+        pytube2 (>=15.0.16,<16.0.0)
+    into:
+        pytube2>=15.0.16,<16.0.0
+    """
+    m = re.match(r"([a-zA-Z0-9_-]+)\s*\(?(.+?)?\)?$", dep)
+    if not m:
+        return dep
+
+    pkg = m.group(1)
+    constraint = m.group(2)
+
+    if not constraint:
+        return pkg
+
+    return f"{pkg}{constraint}"
+
+
+def check_dependency_updates(dependencies: list, output_file: str, req_file: str) -> None:
+    updated_dependencies = []
+
     for dep in dependencies:
-        match = re.match(r"([a-zA-Z0-9_-]+)([<>=~!]=?)(.+)?", dep)
-        if match:
-            package_name = match.group(1)
-            operator = match.group(2) if match.group(2) else "=="  # Default to exact match if no operator
-            current_version_str = match.group(3) if match.group(3) else None
-
-            try:
-                response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
-                response.raise_for_status()  # Raise an exception for bad status codes
-                latest_version_str = response.json()["info"]["version"]
-                latest_version = Version(latest_version_str)
-
-                if current_version_str:
-                    current_version = Version(current_version_str)
-                    if operator in {">=", ">", "<=", "<", "=="}:
-                        if latest_version > current_version:
-                            print(
-                                f"Update available for {package_name}: Current version {current_version_str}, latest version {latest_version_str}",
-                            )
-                    elif operator == "!=":
-                        if latest_version == current_version:
-                            print(
-                                f"Update available for {package_name}: Current version {current_version_str}, latest version {latest_version_str}",
-                            )
-                    elif operator == "~=":  # Compatible release
-                        base_version = current_version.base_version
-                        if not latest_version.startswith(base_version):
-                            print(
-                                f"Update available for {package_name}: Current version {current_version_str}, latest version {latest_version_str}",
-                            )
-                else:
-                    print(
-                        f"Latest version available for {package_name}: {latest_version_str}",
-                    )
-
-            except requests.exceptions.RequestException as e:
-                print(f"Error checking {package_name}: {e}")
-            except (InvalidVersion, KeyError) as e:
-                print(f"Error parsing version for {package_name}: {e}")
-        else:
+        match = re.match(r"([a-zA-Z0-9_-]+)\s*\(?(.+?)?\)?$", dep)
+        if not match:
             print(f"Invalid dependency format: {dep}")
+            updated_dependencies.append(dep)
+            continue
+
+        package_name = match.group(1)
+        constraint = match.group(2)
+
+        operator, version_for_compare, full_constraint = parse_version_constraint(constraint)
+
+        try:
+            response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
+            response.raise_for_status()
+            latest_version_str = response.json()["info"]["version"]
+            latest_version = Version(latest_version_str)
+
+            def needs_update():
+                if not version_for_compare:
+                    return True
+
+                try:
+                    current_version = Version(version_for_compare)
+                except InvalidVersion:
+                    return False
+
+                if operator in {">", ">=", "<", "<=", "=="}:
+                    return latest_version > current_version
+                if operator == "!=":
+                    return latest_version == current_version
+                if operator == "~=":
+                    return not latest_version_str.startswith(current_version.base_version)
+                return False
+
+            # Build updated dependency
+            if needs_update():
+                print(
+                    f"Update available for {package_name}: "
+                    f"Current version {full_constraint}, latest {latest_version_str}",
+                )
+
+                if full_constraint and "," in full_constraint:
+                    # Multi-range dependency – preserve format
+                    new_dep = f"{package_name} ({full_constraint})"
+                else:
+                    new_dep = f"{package_name}{operator}{latest_version_str}"
+            else:
+                new_dep = dep
+
+            updated_dependencies.append(new_dep)
+
+        except Exception as e:
+            print(f"Error checking {package_name}: {e}")
+            updated_dependencies.append(dep)
+
+    #
+    # WRITE PYTHON FILE (updated_dependencies.py)
+    #
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write("# Auto-generated updated dependency list\n")
+        f.write("updated_dependencies = [\n")
+        for d in updated_dependencies:
+            f.write(f"    {d!r},\n")
+        f.write("]\n")
+
+    print(f"\nUpdated dependency list written to: {output_file}")
+
+    #
+    # WRITE requirements.txt
+    #
+    with open(req_file, "w", encoding="utf-8") as f:
+        for d in updated_dependencies:
+            f.write(normalize_for_requirements(d) + "\n")
+
+    print(f"requirements.txt written to: {req_file}")
 
 
-# Your list of dependencies
-# FIX Grab current list of dependencies fromproject.toml
+# === Your dependency list ===
 dependencies = [
-    "anthropic>=0.69.0",  #  Ai Anthropics support
-    # "customtkinter>=5.2.2",  # GUI
-    "darkdetect>=0.8.0",  # Appearance mode detection
-    "defusedxml>=0.7.1",  # More secure xml parser
-    "google-generativeai>=0.8.5",  #  Ai Google Generative support
-    "ollama>=0.6.0",  #  Ai Ollama support > cria rquires this
-    "openai>=2.3.0",  #  Ai OpenAi support
-    "packaging>=25.0",  # Customtkinter needs this
-    "pillow==11.3.0",  # Image support in GUI.  Revert back to 11.2.0 to avoid UV bug with tkinter.
-    "psutil>=7.1.0",  #  System monitoring
-    "requests>=2.32.5",  # HTTP Server function request
-    "tomli_w>=1.2.0",  # Write toml file
-    "webcolors>=24.11.1",  # For color matching
+    "anthropic>=0.74.1",
+    "cv3 (>=1.3.2,<2.0.0)",
+    "darkdetect>=0.8.0",
+    "defusedxml>=0.7.1",
+    "google-genai>=1.51.0",
+    "ollama>=0.6.1",
+    "openai>=2.8.1",
+    "packaging>=25.0",
+    "pillow==12.0.0",
+    "psutil>=7.1.3",
+    "pytube2 (>=15.0.16,<16.0.0)",
+    "requests>=2.32.5",
+    "tomli_w>=1.2.0",
+    "webcolors>=25.10.0",
+    "yt-dlp (>=2025.10.22,<2026.0.0)",
 ]
 
-# Call the function to check for updates
-check_dependency_updates(dependencies)
+# Run & create output files
+check_dependency_updates(dependencies, "updated_dependencies.py", "requirements.txt")
