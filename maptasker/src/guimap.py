@@ -91,6 +91,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
         for num, line in enumerate(html_lines):
             # Skip empty lines or lines that are just closing span tags
             if not line or line == "</span>" or line.endswith('text-box"><p>'):
+                lines_to_skip += 1
                 continue
 
             # Special hadnling for style details
@@ -402,25 +403,61 @@ def handle_gototop(text_list: list) -> list:
     return text_list
 
 
+# Precompile the regex once for reuse
+# Matches:
+#   <span style=...>   or <span style=...   (no closing '>')
+#   <div class=...>    or <div class=...
+#   <data-flag=...>   or <data-flag=...
+#   <a href='#'>...</a> (and variations where > might be missing)
+#   <em> or </em> etc.
+#   (?: ... ) is your alternation of tag prefixes.
+
+#   \b ensures word boundary after tokens like em (so we dont accidentally match embed).
+#   [^>]* consumes any characters up to a > (attributes, values, even quotes).
+#   >? makes the trailing > optional — so it matches both "<div class=" and "<div class='x'>".
+#   re.IGNORECASE makes it robust to different capitalization like <DIV.
+# _REMOVE_HTML_PATTERN = re.compile(
+#     r"<(?:span\s+style=|div\s+class=|data-flag=|a\s+href='#'|/?em)\b[^>]*>?",
+#     flags=re.IGNORECASE,
+# )
+_REMOVE_HTML_PATTERN = re.compile(r"<(?:span style=|div class=|em>|/em>|data-flag=|a href='#'></a>)>?")
+
+
 def remove_the_html_tags(text: str) -> str:
     """
-    Removes HTML tags from the given text.
-
-    Args:
-        text (str): The input text containing HTML tags.
-
-    Returns:
-        str: The text with HTML tags removed.
+    Removes specific HTML tags from the given text efficiently.
     """
-    # Just replace the stuff we don't weant to see.
-    return (
-        text.replace("<span style=", "")
-        .replace("<div class=", "")
-        .replace("<em>", "")
-        .replace("</em>", "")
-        .replace("<data-flag=", "")
-        .replace("<a href='#'></a>", "")
-    )
+    return _REMOVE_HTML_PATTERN.sub("", text)
+
+
+def clean_text_list(text_list: list[str], tabs: str) -> list[str]:
+    """
+    Optimized cleanup of all text elements.
+    """
+    # Precompile regex for multi-character replacements
+    replacements = {
+        "&nbsp;": " ",
+        "\n\n": "\n",
+        "<DIV": "",
+        "</div>": "",
+        "&#45;": "-",
+        "&lt;": "<",
+        "&gt;": ">",
+        "&quot;": '"',
+        "[Launcher Task:": " [Launcher Task:",
+        " --Task:": "--Task:",
+        "<a href='#'>": "",
+        "</a>": "",
+    }
+    pattern = re.compile("|".join(re.escape(k) for k in replacements))
+
+    # Localize variables for speed
+    sub = pattern.sub
+    tab_replace = "\t"
+    repl_tabs = tabs
+
+    # Perform replacements in one pass per text
+    return [sub(lambda m: replacements[m.group(0)], text).replace(tab_replace, repl_tabs) for text in text_list]
 
 
 # Optimized
@@ -462,23 +499,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
                 f"guimap error: '{text_list[0]}' missing '>' in line {line_num}: {output_lines[line_num]['text']}!",
             )
 
-    # Cleanup all of the text elements.
-    new_text_list = [
-        text.replace("&nbsp;", " ")
-        .replace("\n\n", "\n")
-        .replace("<DIV", "")
-        .replace("</div>", "")
-        .replace("&#45;", "-")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-        .replace("&quot;", '"')
-        .replace("[Launcher Task:", " [Launcher Task:")
-        .replace(" --Task:", "--Task:")
-        .replace("<a href='#'>", "")
-        .replace("</a>", "")
-        .replace("\t", tabs)
-        for text in text_list
-    ]
+    new_text_list = clean_text_list(text_list, tabs)
 
     # Handle special situations
 

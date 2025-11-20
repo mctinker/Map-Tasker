@@ -13,16 +13,15 @@ import os
 import re
 import tkinter as tk
 import tkinter.font as tkfont
-from io import BytesIO
 
 import customtkinter as ctk
 import requests
-from PIL import Image, ImageTk
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import rutroh_error
 from maptasker.src.maputils import make_hex_color
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.video import handle_image
 
 # Define label fonts for headings: 0=h0, 1=h1, etc.  7 = smallest
 heading_fonts = {"0": 12, "1": 18, "2": 17, "3": 16, "4": 15, "5": 14, "6": 13, "7": 10}
@@ -52,21 +51,21 @@ def validate_tkinter_geometry(geometry_string: str) -> bool:
         pos_y = int(parts[3])
 
         if width < 300:
-            print("Error: Window width must be at least 300.")
+            rutroh_error("Error: Window width must be at least 300.")
             return False
         if height < 50:
-            print("Error: Window height must be at least 50.")
+            rutroh_error("Error: Window height must be at least 50.")
             return False
         if pos_x < 0:
-            print("Error: Window position X must be a non-negative number.")
+            rutroh_error("Error: Window position X must be a non-negative number.")
             return False
         if pos_y < 0:
-            print("Error: Window position Y must be a non-negative number.")
+            rutroh_error("Error: Window position Y must be a non-negative number.")
             return False
 
         return True  # noqa: TRY300
     except ValueError:
-        print("Error: Invalid numeric value in geometry string.")
+        rutroh_error("Error: Invalid numeric value in geometry string.")
         return False
 
 
@@ -193,7 +192,7 @@ def my_trace_function(frame, event, arg) -> None:  # noqa: ANN001
             # Handle potential file access or decoding errors gracefully if they slip past the initial check
             current_line_code = f"<ERROR READING CODE: {e}>"
             # You might want to log this error to a separate debug log
-            # print(f"Warning: Could not read source for {filename}:{lineno} - {e}", file=sys.stderr)
+            rutroh_error(f"Warning: Could not read source for {filename}:{lineno} - {e}")
 
         log_message = f"LINE: {os.path.basename(filename)}:{lineno} {func_name}() - {current_line_code}"
     elif event == "call":
@@ -225,7 +224,7 @@ def is_valid_ai_config(self: ctk) -> bool:
     the corresponding API key stored in `PrimeItems.ai` for that provider.
     Some providers (like 'llama' in this example) may not require an API key check.
 
-    The method prints a message indicating whether the AI model and API key combination
+    The method rutroh_errors a message indicating whether the AI model and API key combination
     is considered valid based on the configurations.
 
     Returns:
@@ -353,7 +352,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
     # Localize helper functions for faster access: compues only once.
     _clean = _clean_message
     _newline = _insert_newline
-    _handle_img = _handle_image
+    _handle_img = handle_image
     _tnet = _handle_taskernet_description
     _lbl_end = _handle_label_end
     _norm = _normalize_message
@@ -382,16 +381,23 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
             start_idx = f"{line_num}.{char_position}"
 
             # Handle empty/newline message, but only if it isn't html of some sort.
-            if (not clean_message and not message.startswith("<")) or clean_message == "\n\n":
+            if (not clean_message and not message.startswith("<")) or clean_message in {"\n\n", "<p>"}:
                 char_position, spacing, line_num, start_idx = _newline(self, start_idx, value, line_num)
+                if clean_message in ("<p>", "\n\n") and prev_msg not in ("<p>", "\n\n"):
+                    char_position, spacing, line_num, start_idx = _newline(self, start_idx, value, line_num)
+                    prev_msg = clean_message
                 continue
 
             # Handle multi-line messages
             all_messages = clean_message.split("\n")
 
             msg_idx = 0
+            # NOTE: If one or more lines are repeated in the output, that means that
+            #       guimap 'process_label_html' is returning 1 or more too shy...
+            #       (lines_to_skip is too small)
             while msg_idx < len(all_messages):
                 msg = all_messages[msg_idx]
+
                 msg_idx += 1
                 # Skip or process special content
                 if lines_to_skip > 0:
@@ -402,6 +408,8 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     continue
                 if img_tag in msg:
                     _handle_img(self, msg, start_idx)
+                    line_num += 3  # 1='\n', 2=image link, 3='\n'
+                    start_idx = f"{line_num!s}.0"
                     continue
                 if msg == "</a>":
                     continue
@@ -520,7 +528,6 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                         between_line_spacing,
                         start_idx,
                         char_position,
-                        mygui.saved_background_color,
                         value,
                         inner_num,
                     )
@@ -602,7 +609,6 @@ def _insert_and_tag(
     between_line_spacing: int,
     start_idx: str,
     char_position: int,
-    bg_color: str,
     value: dict,
     inner_num: int,
 ) -> tuple[int, int, int]:
@@ -631,8 +637,6 @@ def _insert_and_tag(
         The starting index (e.g., "1.0") for the text insertion.
     char_position : int
         The character position on the current line.
-    bg_color : str
-        The background color for the text, specified as a string.
     value : dict
         A dictionary containing formatting information, including 'spacing',
         'highlights', and 'color'.
@@ -649,6 +653,7 @@ def _insert_and_tag(
     """
     # Optimized version: inserts and tags a message in a custom text widget.
     mygui = self.master.master
+    bg_color = (mygui.saved_background_color,)
 
     # Local vars to avoid repeated dict lookups
     highlights = value["highlights"][inner_num]
@@ -700,11 +705,22 @@ def _insert_and_tag(
     # Handle hyperlinks
     href = ""
     if "<a href=" in message:
+        orig_message = message
+        # Add hyperlink for alt text
         temp = message.split('"')
         href = temp[1]
         message = temp[2][1 : len(temp[2]) - 4]
         tag_id = self.textview_hyperlink.add(href)
-        self.textview_textbox.insert(start_idx, message, tag_id)
+        message_to_display = message if spacing == 0 and char_position == 0 else f"{' ' * spacing}{message}"
+        self.textview_textbox.insert(start_idx, message_to_display, tag_id)
+
+        # Add video link if there is one.
+        if "youtu.be" in orig_message or "youtube" in orig_message or "mp4" in orig_message:
+            temp = start_idx.split(".")
+            start_idx = f"{temp[0]}.{int(temp[1]) + len(message) + 2!s}"
+            handle_image(self, orig_message, start_idx)
+            temp = start_idx.split(".")
+            char_position += len(href) + 12  #  '[> VIDEO: href]'
     else:
         tag_id = f"{heading_num};{font}:{color_val}:{decor}:{between_line_spacing}"
 
@@ -758,18 +774,55 @@ def _insert_and_tag(
     char_position += len(message)
     self.previous_heading = heading_num
     self.previous_font = font_to_use
-    self.previous_between_line_spaccing = between_line_spacing
 
     return max_msg_len, char_position
 
 
+def optimize_message_formatting(message: str) -> str:
+    """
+    Optimizes the replacement of specific newline patterns and resulting <br> sequences
+    using a single regular expression substitution.
+
+    :param message: The input string (e.g., text content).
+    :return: The formatted string.
+    """
+
+    # 1. Define a replacement function to handle the original logic's priorities.
+    def replace_match(match: str) -> str:
+        matched_string = match.group(0)
+
+        # Handle the longest/most specific pattern first (5 newlines)
+        if matched_string == "\n\n\n\n\n":
+            return "<br>"
+        # Handle the second-longest/second-specific pattern (4 newlines)
+        if matched_string == "\n\n\n\n":
+            return "\n\n"
+        # Handle the resulting <br><br> pattern
+        if matched_string == "<br><br>":
+            return "<p>"
+        return matched_string  # Should not happen, but a safe default
+
+    # 2. Combine all patterns into a single regex for a single pass.
+    # The 'or' operator `|` makes the regex engine search for ANY of these patterns.
+    # Crucially, the patterns must be listed with the most specific/longest patterns first
+    # to ensure they are matched preferentially.
+    # We are matching: 5 newlines OR 4 newlines OR <br><br>
+    pattern = r"\n{5}|\n{4}|<br><br>"
+
+    # 3. Use re.sub with the replacement function.
+    # This iterates over the string once, finds all matches for the combined pattern,
+    # and calls replace_match to determine the substitution for each.
+    return re.sub(pattern, replace_match, message)
+
+
 def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: int) -> str:
     if message == "<p>":
-        return "\n"
+        return "<p>"
 
-    # Reduce the number of newlines
-    message = message.replace("\n\n\n\n\n", "<br>")
-    message = message.replace("\n\n\n\n", "\n\n")
+    # Reduce the number of newlines...add(# message = message.replace("\n\n\n\n\n", "<br>")
+    # message = message.replace("\n\n\n\n", "\n\n")
+    # message = message.replace("<br><br>", "<p>"))
+    message = optimize_message_formatting(message)
 
     # Deal with <pre> formatted text
     if "<pre>" in message or "</pre>" in message:
@@ -793,9 +846,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h5-text"
             else:
                 # Decrease the heading number by 1 (making the text "bigger")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                value["highlights"][entry_to_update] = (
+                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                )
 
         elif "<small>" in message:
             # Save current heading
@@ -810,9 +863,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h7-text"
             else:
                 # Increase the heading number by 1 (making the text "smaller")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                value["highlights"][entry_to_update] = (
+                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                )
 
         elif "</big>" in message or "</small>" in message:
             if message.startswith(("</big>", "</small>")):
@@ -887,7 +940,7 @@ def _find_begin_box(self: ctk.CTkTextbox, msg_to_insert: str, its_a_label: bool)
 
 
 def _close_label(self: ctk.CTkTextbox, line_num: int, value: dict) -> tuple[int, str]:
-    line_num += 1
+    # line_num += 1
     _, _, line_num, start_idx = _insert_newline(self, f"{line_num}.0", value, line_num)
     return line_num, start_idx
 
@@ -913,7 +966,7 @@ def _apply_bounding_box(
 ) -> int:
     if not its_a_label:
         begin_box = f"{(int(begin_box.split('.')[0]) + 1)}.0"
-    end_box = f"{line_num}.{max_msg_len + 1}"
+    end_box = f"{line_num!s}.{max_msg_len + 1!s}"
 
     spacing1, spacing2, spacing3 = (5, 0, 5) if minimum_space else (-5, -30, -5)
     bbox_tag = f"{begin_box}:bbox:{spacing1}:{spacing2}:{spacing3}"
@@ -983,92 +1036,6 @@ def assign_font(font_name: str, font_size: int, font: str, underline: bool) -> t
     return ctk.CTkFont(family=font_name, size=font_size, slant="italic", underline=underline)
 
 
-def _handle_image(self: ctk, msg: str, start_idx: str) -> None:
-    """
-    Extracts an image URL from an HTML 'href' attribute and displays the image.
-
-    This function searches for a URL embedded within an 'href' attribute
-    in the provided message string. If a URL is found, it calls a helper
-    function to display the image in a CustomTkinter text view widget.
-    If no URL is found, it prints an error message to the console.
-
-    Args:
-        self (ctk): The CustomTkinter object instance, which contains the
-                    text view widget.
-        msg (str): The string message containing the HTML-like 'href' attribute.
-        start_idx (str): The starting index for the image display in the
-                         text view widget (e.g., "end").
-    """
-    # Get the url for the image
-    # This pattern looks for "href=" followed by a quote, then captures everything
-    # that's not a quote, until it finds the closing quote.
-    # (?:...) is a non-capturing group.
-    # (.*?) is a non-greedy match for any character.
-    pattern = r'href="(.*?)"'
-    # Search for the pattern in the string
-
-    match = re.search(pattern, msg)
-
-    # Check if a match was found
-    if match:
-        # The URL is in the first captured group (index 1)
-        url = match.group(1)
-        _show_image(self.textview_textbox, url, start_idx)
-    else:
-        rutroh_error(f"No URL found in the href attribute: {msg}")
-
-
-def _show_image(text_widget: ctk.CTkTextbox, image_url: str, index: str) -> None:
-    """
-    Downloads an image from a URL and displays it in a CTkTextbox widget.
-
-    Args:
-        text_widget: The customtkinter CTkTextbox widget instance.
-        image_url: The URL of the image to display.
-        index: The text index where the image should be inserted.
-    """
-    try:
-        # 1. Download the image
-        response = requests.get(image_url, timeout=5, headers={"User-agent": "your bot 0.1"})
-        if response.status_code == 429:
-            text_widget.insert(index, "[!!! Image server too many requests !!!]", "error")
-            return
-
-        response.raise_for_status()
-
-        # 2. Open the image using Pillow.
-        img_data = BytesIO(response.content)
-
-        # The following will fail if this is a video / mp4.  Can be remedied with 'cv2' or 'cv3' pip package.
-        pil_image = Image.open(img_data)
-
-        # 3. Use thumbnail() to resize while preserving the aspect ratio.
-        # This will resize the image to fit within a 300x200 box without distortion.
-        pil_image.thumbnail((300, 200), Image.LANCZOS)
-
-        # 4. Create a standard Tkinter PhotoImage from the Pillow image.
-        # This is necessary for the internal Tkinter Text widget.
-        tk_image = ImageTk.PhotoImage(pil_image)
-
-        # 5. Embed the image in the internal Tkinter Text widget.
-        # This is the key fix: use the `_textbox` attribute, which is a 'tk' rather than a 'ctk' reference.
-        text_widget._textbox.image_create(index, image=tk_image)  # noqa: SLF001
-
-        # 6. Store a reference to prevent garbage collection.
-        # The image reference must be a property of the main widget or a global variable.
-        if not hasattr(text_widget, "image_references"):
-            text_widget.image_references = []
-        text_widget.image_references.append(tk_image)
-
-    except requests.exceptions.RequestException as e:
-        rutroh_error(f"Failed to download image: {e}")
-    except Exception as e:  # noqa: BLE001
-        if "mp4" in image_url or "youtu." in image_url or "youtube." in image_url:
-            rutroh_error(f"guiutil2 _show_image: Videos are not currently supported!  image URL: {image_url}")
-        else:
-            rutroh_error(f"guiutil2 _show_image: An error occurred: {e} for image URL: {image_url}")
-
-
 def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tuple[int, int, int, str]:
     """Inserts a newline character into the textbox and updates state variables.
 
@@ -1099,51 +1066,6 @@ def _insert_newline(self: ctk, start_idx: str, value: dict, line_num: int) -> tu
 def _get_max_msg_len(message: str, max_msg_len: int) -> int:
     """Get the maximum length of the messages"""
     return max(max_msg_len, len(message))
-
-
-def get_last_line(text_widget: ctk.CTkTextbox, start_idx: str) -> tuple[str, str]:
-    """Gets the content and index of the last line of a text widget.
-
-    This function retrieves the text of the last line in a CTkTextbox widget,
-    excluding the final newline character. It also returns the starting index
-    of that line, which is useful for subsequent operations like deletion or
-    replacement.
-
-    Parameters
-    ----------
-    text_widget : ctk.CTkTextbox
-        The custom Tkinter textbox widget from which to retrieve the text.
-    start_idx : str
-        The starting index of the last line.
-
-
-    Returns
-    -------
-    tuple[str, str]
-        A tuple containing two strings:
-        - The content of the last line.
-        - The starting index of the last line (e.g., "5.0").
-
-    Raises
-    ------
-    TclError
-        If the text widget is empty, a TclError is raised and handled by
-        calling the `rutroh_error` function.
-    """
-    try:
-        # Start at bottom of textbox and work backwards until we have some content
-        dont_have_info = True
-        last_line_index = start_idx
-        while dont_have_info:
-            line_to_get = str(int(last_line_index.split(".")[0]) - 1) + ".0"
-            content = text_widget.get(line_to_get, "end-1c")
-            return content.replace("\n", ""), line_to_get
-
-        # # Print the result
-        # print(f"The last line of text is: '{last_line_content}'")
-
-    except tk.TclError:
-        rutroh_error("The text widget is empty.")
 
 
 def process_table(
@@ -1218,7 +1140,6 @@ def process_table(
         -40,
         start_idx,
         0,
-        self.master.master.saved_background_color,
         value,
         inner_num,
     )

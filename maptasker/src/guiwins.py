@@ -8,7 +8,6 @@
 from __future__ import annotations
 
 import contextlib
-import copy
 import os
 import re
 import time
@@ -2224,6 +2223,7 @@ class CTkTextview(ctk.CTkFrame):
                         'text' and 'color' are empty if directory is present.
            'highlights': list of highlights to apply to the text elements (e.g. bold, underline, etc..)
         """
+        # Heading definitions for embedded HTML in TaskerNet descriptions and labels.
         text_to_ignore = [
             # ".text-box",
             ".h0-text",
@@ -2296,7 +2296,7 @@ class CTkTextview(ctk.CTkFrame):
                     # Shallow copy only if needed downstream
                     temp_previous_value = value.copy()
 
-                    # Draw box if this is the end of the label...
+                    # Draw box if this is the end of the label or TaskerNet description...
                     # First element if debug since the last element has the 'code: nnn'.
                     # Otherwise the last element.
                     if value["end"][0] or value["end"][-1]:
@@ -2306,7 +2306,7 @@ class CTkTextview(ctk.CTkFrame):
                     continue
 
             # Save the previous value for above code check.
-            temp_previous_value = copy.deepcopy(value)
+            temp_previous_value = value.copy()
 
             text_list = value.get("text")
             if text_list:
@@ -3996,6 +3996,7 @@ def _initialize_display_settings(self: ctk) -> None:
     self.mapview_window = None
     self.miscview_window = None
     self.treeview_window = None
+    self.video_window = None
     self.outline = False
     self.font_table = {}
 
@@ -4010,6 +4011,8 @@ def _initialize_feature_flags(self: ctk) -> None:
     self.restore = False
     self.runtime = False
     self.save = False
+    self.checked_ffmpeg = False
+    self.have_ffmpeg = False
 
 
 def _initialize_window_positions(self: ctk) -> None:

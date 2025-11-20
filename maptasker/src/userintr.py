@@ -3727,7 +3727,7 @@ class EventHandlers:
 
     def view_event(self: object, view_name: str) -> None:
         """
-        Triggers a specific view event based on the provided view name.
+        Triggers a specific view event based on the provided view name: Map, Diagram or Tree view.
 
         Args:
             self (object): The instance of the class containing the view methods.
