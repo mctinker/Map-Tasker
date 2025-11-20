@@ -57,9 +57,10 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Use exported XML or fetch the XML directly from your Android device for the configuration mapping.
 - Save and restore runtime settings.
 - Identify Tasks that have too many 'actions', and which should potentially be broken up into multiple Tasks.
-- Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT/Claude/DeepSeek/Gemini or the local-based Llama (via Ollama) supported models.*
-- Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View.*
-- Automatic update detection and optional installation of new versions.*
+- Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT/Claude/DeepSeek/Gemini or the local-based Llama (via Ollama) supported models. *
+- Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View. *
+- Automatic update detection and optional installation of new versions. *
+- Enhanced search capabilities. *
 
 &nbsp;&nbsp;&nbsp;&nbsp;* Available via the GUI only.
 
@@ -70,6 +71,8 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 ### - TKinter 8.6 or higher (see [Note 3](#3))
 
 ### - Tasker full or partial XML file: backup.xml or other exported XML file
+
+### - 'ffmpeg' for Youtube video hotlinks (see [Note 6](#6))
 
 &nbsp;&nbsp;&nbsp;You will be prompted to locate and identify your Tasker exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
 
@@ -275,6 +278,28 @@ Ai analysis is available through the GUI only. You can run an analysis using a s
 
 Llama based models are supported via [Ollama](https://ollama.com/), which you must manually download, install and run it once to set up the server on your desktop.
 
+**Note 6:**
+
+'ffmpeg' version 8 or highler can optionally be installed to make embedded YouTube videos clickable and to display them in a separate video-player window from within the Map view.  Other videos, such as those stored on Dropbox as 'mp4' files, are not affected and will display as a clickable hot-link.
+
+The videos are identifiable via the text: '[▶️ VIDEO: some-youtube-url...]', and this text will be hot/clickable if ffmpeg is properly installed.
+
+ffmpeg and all of its 92+ dependencies adds an additional 660 MBs to your installation (hard drive).
+
+To install ffmpeg:
+   MacOS: 'brew install ffmpeg'
+   Linux: 'sudo apt update' and 'sudo apt install ffmpeg'
+   Windows via Winget: 'winget install ffmpeg'
+   Windows via Chocolatey: 'choco install ffmpeg'
+
+Refer to [the ffmpeg download documentation](https://www.ffmpeg.org/download.html) for further details.
+
+If ffmpeg is not installed, then '[▶️ VIDEO: some-youtube-url...]' will still appear, but will not be hot/clickable, and the video can not be displayed in a separate MapTasker window.
+
+YouTube videos are downloaded to your local drive from which they are then played.  The bigger the video, the longer it will take to process the video.  Only YouTube videos with no audio or English audio will play under the current implementation.  Additional lanaguages will be supported in a future release.
+
+MP4 videos are played directly from their source.
+
 ## To-Do List (in no particular order)
 
 - [x] Auto Update Feature
@@ -307,7 +332,7 @@ Llama based models are supported via [Ollama](https://ollama.com/), which you mu
 
 - [x] If Profile has no name, display the same name as that of Tasker
 
-- [ ] Properly handle Task anchors with embedded HTML
+- [x] Properly handle Task anchors with embedded HTML
 
 - [ ] Support additional plugins
 

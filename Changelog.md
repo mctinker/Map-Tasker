@@ -2,29 +2,40 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.0.4-9.0.5] 06-Nov-2025
+## [9.1.0] 20-Nov-2025
 
 ### Added
 
-- Added: Created an additional output trace log file if 'debug' is on for the Map view.
-- Added: Tasker beta 6.6.11-beta is now supported.
-- Added: Taskm action 'Assistant Volume' is now supported.
+- Added: Video playback support has been added to TaskerNet descriptions and labels (Youtube via ffmpeg, and Dropbox).
+- Added: 'ffmpeg' installation details have been included in the 'Caveats' section at the bottom of the Map view/HTML and in the README file.
+- Added: Tasker version 6.6.12-beta is supported.
 
 ### Changed
 
-- Changed: Code optimized for improved Map view performance.
+- Changed: Embedded 'href=url...' videos are now referenced via '[▶️ VIDEO: url...]'
 
 ### Fixed
 
-- Fixed: A program error occurs in 'guimap.py'.
-- Fixed: Eliminate excessive blank lines in the Map view.
-- Fixed: The Project's 'properties' inadvertantly pick up the color for 'Luancher Task' if there is a launcher task.
+- Fixed: Slight spacing/newline problem with images in TaskerNet descriptions.
+- Fixed: Not properly recognizing new paragraph in embedded html.
+- Fixed: Under certain situations, TaskerNet description lines would be repeated.
+- Fixed: The program is incorrectly reporting that no Gemini AI models arewn found if in debug mode.
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [9.0.4-9.0.5] 06-Nov-2025
+
+- Added: Created an additional output trace log file if 'debug' is on for the Map view.
+- Added: Tasker beta 6.6.11-beta is now supported.
+- Added: Taskm action 'Assistant Volume' is now supported.
+- Changed: Code optimized for improved Map view performance.
+- Fixed: A program error occurs in 'guimap.py'.
+- Fixed: Eliminate excessive blank lines in the Map view.
+- Fixed: The Project's 'properties' inadvertantly pick up the color for 'Luancher Task' if there is a launcher task.
 
 ## [9.0.3] 30-Oct-2025
 
