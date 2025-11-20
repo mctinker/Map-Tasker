@@ -296,7 +296,9 @@ Refer to [the ffmpeg download documentation](https://www.ffmpeg.org/download.htm
 
 If ffmpeg is not installed, then '[▶️ VIDEO: some-youtube-url...]' will still appear, but will not be hot/clickable, and the video can not be displayed in a separate MapTasker window.
 
-YouTube videos are downloaded to your local drive from which they are then played.  MP4 videos are played directly from their source.
+YouTube videos are downloaded to your local drive from which they are then played.  The bigger the video, the longer it will take to process the video.  Only YouTube videos with no audio or English audio will play under the current implementation.  Additional lanaguages will be supported in a future release.
+
+MP4 videos are played directly from their source.
 
 ## To-Do List (in no particular order)
 

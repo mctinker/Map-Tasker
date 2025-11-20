@@ -478,6 +478,8 @@ class VideoEmbedder:
         """
 
         class MyLogger:
+            # self points to the class VideoEmbedder, and there is no reference outside of this logger.
+            # Therefore, we have to use 'print' statements to show messages in the video window.
             def debug(self, msg: str) -> None:
                 pass
 
@@ -485,9 +487,13 @@ class VideoEmbedder:
                 pass
 
             def warning(self, msg: str) -> None:
+                # print(
+                #     "Warning: There is a problem with the video.  Run in 'Debug' mode to capture the error.  Video may not play correctly.",
+                # )
                 rutroh_error(f"yt-dlp warning: {msg}")
 
             def error(self, msg: str) -> None:
+                print(f"Error: {msg}.  Video will not play.")
                 rutroh_error(f"yt-dlp error: {msg}")
 
         self._display_message("Processing YouTube video.  Please wait...")
@@ -503,14 +509,16 @@ class VideoEmbedder:
             # Step 2: Find the video that best matches our target width and height.
             mp4_videos = []
             for f in formats:
-                if f["ext"] == "mp4" and (f["language"] and "en" in f["language"]):
+                language = f.get("language")
+                if f["ext"] == "mp4" and (language is None or "en" in language):
                     temp = f["resolution"].split("x")
                     width = int(temp[0])
                     height = int(temp[1])
                     mp4_videos.append((width, height, f["format_id"]))
 
             if not mp4_videos:
-                rutroh_error("Itag for mp4 not found for this video")
+                rutroh_error(f"Itag for '{url}' mp4 not found for this video")
+                self._display_message("Error: No MP4 video formats found for this YouTube video.")
                 for f in formats:
                     rutroh_error(f"Video format:{f}")
                 return None

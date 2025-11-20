@@ -2,12 +2,13 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.1.0] ??-Nov-2025  # FIX
+## [9.1.0] 20-Nov-2025
 
 ### Added
 
 - Added: Video playback support has been added to TaskerNet descriptions and labels (Youtube via ffmpeg, and Dropbox).
 - Added: 'ffmpeg' installation details have been included in the 'Caveats' section at the bottom of the Map view/HTML and in the README file.
+- Added: Tasker version 6.6.12-beta is supported.
 
 ### Changed
 
