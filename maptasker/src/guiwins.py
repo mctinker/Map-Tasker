@@ -554,7 +554,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -606,12 +608,15 @@ class CTkTextview(ctk.CTkFrame):
         #    - Build the Task-to-Task connectors
         # -------------------------------------------------------------------------
         self.diagram_connectors = {}
+        _diagram_connectors = self.diagram_connectors
+        _highlight_text = self.highlight_text
+        _build_connectors = build_connectors
         for i, line in enumerate(the_data):
-            self.highlight_text(line, i + 1)
-            self.diagram_connectors = build_connectors(
+            _highlight_text(line, i + 1)
+            _diagram_connectors = _build_connectors(
                 the_data,
                 i,
-                self.diagram_connectors,
+                _diagram_connectors,
             )
 
         # Configure tag colors for the Tasker objects: Project, Profile, Task, Scene

@@ -2,30 +2,36 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.1.0] 20-Nov-2025
+## [9.1.1] ??-Nov-2025  # FIX
 
 ### Added
 
-- Added: Video playback support has been added to TaskerNet descriptions and labels (Youtube via ffmpeg, and Dropbox).
-- Added: 'ffmpeg' installation details have been included in the 'Caveats' section at the bottom of the Map view/HTML and in the README file.
-- Added: Tasker version 6.6.12-beta is supported.
+- Added:
 
 ### Changed
 
-- Changed: Embedded 'href=url...' videos are now referenced via '[▶️ VIDEO: url...]'
+- Changed:
 
 ### Fixed
 
-- Fixed: Slight spacing/newline problem with images in TaskerNet descriptions.
-- Fixed: Not properly recognizing new paragraph in embedded html.
-- Fixed: Under certain situations, TaskerNet description lines would be repeated.
-- Fixed: The program is incorrectly reporting that no Gemini AI models arewn found if in debug mode.
+- Fixed:
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [9.1.0] 20-Nov-2025
+
+- Added: Video playback support has been added to TaskerNet descriptions and labels (Youtube via ffmpeg, and Dropbox).
+- Added: 'ffmpeg' installation details have been included in the 'Caveats' section at the bottom of the Map view/HTML and in the README file.
+- Added: Tasker version 6.6.12-beta is supported.
+- Changed: Embedded 'href=url...' videos are now referenced via '[▶️ VIDEO: url...]'
+- Fixed: Slight spacing/newline problem with images in TaskerNet descriptions.
+- Fixed: Not properly recognizing new paragraph in embedded html.
+- Fixed: Under certain situations, TaskerNet description lines would be repeated.
+- Fixed: The program is incorrectly reporting that no Gemini AI models arewn found if in debug mode.
 
 ## [9.0.4-9.0.5] 06-Nov-2025
 

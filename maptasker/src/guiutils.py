@@ -2305,20 +2305,21 @@ def remove_tags_from_bars_and_names(self: object) -> None:
     This function loops through all of the connectors and Task names in the diagram and removes the tags from each.
     The tags are removed from the bars in the connectors, and the "tag" key in the connector dictionary is set to an empty string.
     """
+    _textview_textbox = self.textview_textbox
     for values in self.diagram_connectors.values():
         # Remove the bars from the text widget.
         if values["tag"]:
             line_num = values["start_top"][0]
             number_of_lines_to_highlight = values["start_bottom"][0] - values["start_top"][0] + 1
             for _ in range(number_of_lines_to_highlight):
-                self.textview_textbox.tag_remove(
+                _textview_textbox.tag_remove(
                     values["tag"],
                     f"{line_num}.{values['end_top'][1]!s}",
                     f"{line_num}.{values['end_top'][1] + 1!s}",
                 )
                 line_num += 1
             for bar in values["extra_bars"]:
-                self.textview_textbox.tag_remove(
+                _textview_textbox.tag_remove(
                     values["tag"],
                     f"{bar[0]!s}.{bar[1]!s}",
                     f"{bar[0]!s}.{bar[1] + 1!s}",
@@ -2328,7 +2329,7 @@ def remove_tags_from_bars_and_names(self: object) -> None:
         # Remove the tags in the Task names.
         if values["task_upper"] and len(values["task_upper"]) > 1:
             task = values["task_upper"]
-            self.textview_textbox.tag_remove(
+            _textview_textbox.tag_remove(
                 values["tag"],
                 f"{task[1]}.{task[2]!s}",
                 f"{task[1]}.{task[3]!s}",

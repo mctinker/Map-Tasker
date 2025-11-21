@@ -379,10 +379,11 @@ def pretty(d: dict, indent: int = 0) -> None:
         d: The dictionary to print.
         indent: The number of tabs to indent the output with.
     """
+    _pretty = pretty
     for key, value in d.items():
         print("\t" * indent + str(key))
         if isinstance(value, dict):
-            pretty(value, indent + 1)
+            _pretty(value, indent + 1)
         else:
             print("\t" * (indent + 1) + str(value))
 
@@ -442,9 +443,10 @@ def display_task_warnings() -> None:
         ),
     ]
     # Go through the warnings and add to our output list.
+    _fix_hyperlink_name = fix_hyperlink_name
     for task_name, value in PrimeItems.task_action_warnings.items():
         # Build the hotlink to the Task.
-        href_name = fix_hyperlink_name(task_name)
+        href_name = _fix_hyperlink_name(task_name)
         # Build the hyperelink reference
         href = f"<a href=#tasks_{href_name}>{task_name}</a>"
 
@@ -605,8 +607,9 @@ def find_owning_project(profile_name: str) -> str:
     profile_id = {v["name"]: k for k, v in profile_dict.items()}.get(profile_name)
 
     if profile_id:
+        _get_ids = get_ids
         for project_name, project_value in PrimeItems.tasker_root_elements["all_projects"].items():
-            if profile_id in get_ids(True, project_value["xml"], project_name, []):
+            if profile_id in _get_ids(True, project_value["xml"], project_name, []):
                 return project_name
     return ""
 

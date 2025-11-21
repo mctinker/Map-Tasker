@@ -87,6 +87,11 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
         last_item = {}
         # Set the end of label flag
         lblend = False
+        # Default values for the loop
+        color = ""
+        font = ""
+        decor = ""
+        text = ""
 
         for num, line in enumerate(html_lines):
             # Skip empty lines or lines that are just closing span tags
@@ -225,7 +230,9 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     last_item["color"] == color
                     and last_item["highlights"] == font
                     and last_item["decor"] == decor
-                    and not ("<a href=" in text or "<a href=" in last_item["text"])
+                    # and not ("<a href=" in text or "<a href=" in last_item["text"])
+                    # Faster check for anchor tag presence (using find is often faster than 'in')
+                    and last_item["text"].find("<a href=") == -1
                     and not table
                 ):
                     # If they match, concatenate the text in the processed_line_data list
@@ -504,8 +511,9 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
     # Handle special situations
 
     # Remove all the html from the text
+    _remove_the_html_tags = remove_the_html_tags
     if remove_html:
-        new_text_list = [remove_the_html_tags(text) for text in new_text_list]
+        new_text_list = [_remove_the_html_tags(text) for text in new_text_list]
 
     if new_text_list:
         output_lines[line_num]["text"] = new_text_list
@@ -675,6 +683,7 @@ def process_line(
     _extract_working_text = extract_working_text
     _remove_html_spans = remove_html_spans
     _extract_highlights = extract_highlights
+    _remove_html_tags = remove_html_tags
     previous_line = ""
 
     for color_pos in color_list:
@@ -719,7 +728,7 @@ def process_line(
                         output_lines[line_num]["highlights"] = highlights
 
                 # Remove HTML tags and replace with spaces
-                raw_text = remove_html_tags(working_text, "").replace("<span class=", " ").replace("\n\n", "\n")
+                raw_text = _remove_html_tags(working_text, "").replace("<span class=", " ").replace("\n\n", "\n")
 
                 # Indicate a directory header
                 if (
@@ -918,12 +927,13 @@ def additional_formatting(
     # If color is already embedded (TaskerNet description or label)...
     elif '<span style="color:' in line:
         temp1 = line.split('<span style="color:')
+        _remove_html_tags = remove_html_tags
         for item in temp1:
             if item and item != "</span>":
                 output_lines[line_num]["color"].append(item.split(";text-decoration:")[0])
                 # output_lines[line_num]["text"].append(item.split('-text">')[1])
                 temp_text = item.split('-text">')[1].replace("Go to top", "")
-                output_lines[line_num]["text"] = [remove_html_tags(temp_text, "")]
+                output_lines[line_num]["text"] = [_remove_html_tags(temp_text, "")]
 
     # Extract global variable from table definition
     elif line.startswith("<tr><td"):
@@ -1104,6 +1114,8 @@ def process_html_lines(
     _cleanup_text_elements = cleanup_text_elements
     _handle_disabled_objects = handle_disabled_objects
     _process_label_html = process_label_html
+    _align_text = align_text
+    # --- End Pre-calculate/Cache ---
 
     # --- Start Processing Loop ---
     for line_num, line in enumerate(lines):
@@ -1168,7 +1180,7 @@ def process_html_lines(
         # If we are doing html from a screen WebElement/variable set, provide appropriate spacing.
         if not remove_html:
             # Using tuple-assignment to avoid reassignment warning.
-            line = align_text(line, 30)  # noqa: PLW2901
+            line = _align_text(line, 30)  # noqa: PLW2901
 
         # 7. Apply additional formatting (The core processing)
         # Only call the heavy function if we don't have the simple TaskerNet/label inline color

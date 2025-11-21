@@ -242,10 +242,10 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # CHG: For Development Only!
+        # FIX: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        # self.event_handlers.map_event()
+        self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
 
@@ -720,6 +720,8 @@ class MyGui(customtkinter.CTk):
         hyper = message.find("https://")
         if hyper != -1:
             text_lines = message.split("\n")
+            _textbox = self.textbox
+            _hyperlink = self.hyperlink
             for num, line in enumerate(text_lines):
                 hyper = line.find("https://")
                 if hyper != -1:
@@ -728,15 +730,15 @@ class MyGui(customtkinter.CTk):
                         end_hyper = len(line)
                     link = line[hyper : end_hyper + 1]
                     # Delete the http url
-                    self.textbox.delete(
+                    _textbox.delete(
                         f"{num + 1}.{hyper}",
                         f"{num + 1}.{end_hyper + 1}",
                     )
                     # Add the link
-                    self.textbox.insert(
+                    _textbox.insert(
                         f"{num + 1}.{end_hyper + 2}",
                         link,
-                        self.hyperlink.add(link),
+                        _hyperlink.add(link),
                     )
 
         # Display some colored text: the heading
@@ -1424,19 +1426,21 @@ class MyGui(customtkinter.CTk):
         root = PrimeItems.tasker_root_elements
         # Start with Projects
         projects = root["all_projects"]
+        _build_profiles = build_profiles
+        _get_ids = get_ids
         if projects:
             for project in projects:
                 project_name = projects[project]["name"]
 
                 # Retrieves profile IDs for a given project and project name, excluding projects without profiles.
-                if profile_ids := get_ids(
+                if profile_ids := _get_ids(
                     True,
                     projects[project]["xml"],
                     project_name,
                     [],
                 ):
                     # Build our list of Profiles in this Project.
-                    profile_list = build_profiles(root, profile_ids, project)
+                    profile_list = _build_profiles(root, profile_ids, project)
 
                 # Project has no Profiles
                 else:
@@ -2763,10 +2767,11 @@ class EventHandlers:
         }
 
         # Toggle each checkbox and set attributes
+        _select_deselect_checkbox = the_view.select_deselect_checkbox
         for attr_name, display_message in checkbox_map.items():
             checkbox = getattr(the_view, attr_name, None)
             if checkbox:
-                the_view.select_deselect_checkbox(
+                _select_deselect_checkbox(
                     checkbox,
                     value,
                     display_message,
@@ -3157,13 +3162,16 @@ class EventHandlers:
         }
         apikey_changed = False
         # Go through the API key entries.
+        _valid_api_key = valid_api_key
+        _add_label = add_label
+        _display_message_box = my_gui.display_message_box
         for key, value in api_keys.items():
             # See if 'Clear' button was selected.  Blank it out if it was.
             if clear == key:
                 apikey_entry = f"entry_{key}"
                 entry_field = getattr(apikey_window, apikey_entry)
                 entry_field.delete(0, "end")
-                my_gui.display_message_box(
+                _display_message_box(
                     f"{key.replace('_key', '').title()} API key cleared.",
                     "LimeGreen",
                 )
@@ -3172,13 +3180,13 @@ class EventHandlers:
             # See if a valid API key was entered
             if PrimeItems.ai[key] != value:  # If the key entered doesn't matych what we already have.
                 # Validate the lngth of the key
-                if value and key in apikeys_to_validate and not valid_api_key(key, value):
+                if value and key in apikeys_to_validate and not _valid_api_key(key, value):
                     error_msg = f"{key.replace('_key', '').title()} API key is invalid!"
-                    my_gui.display_message_box(
+                    _display_message_box(
                         error_msg,
                         "Red",
                     )
-                    apikey_error_label = add_label(
+                    apikey_error_label = _add_label(
                         apikey_window,
                         apikey_window,
                         error_msg,
@@ -3198,12 +3206,12 @@ class EventHandlers:
                     apikey_error_label.destroy()
                 PrimeItems.ai[key] = value
                 apikey_changed = True
-                my_gui.display_message_box(
+                _display_message_box(
                     f"{key.replace('_', ' ').title()} API key saved: '{value}' .",
                     "LimeGreen",
                 )
             else:
-                my_gui.display_message_box(
+                _display_message_box(
                     f"{key.replace('_', ' ').title()} API key unmodified",
                     "LimeGreen",
                 )
@@ -3962,6 +3970,8 @@ class EventHandlers:
 
             # Process the matches
             first_time = True
+            _search_indecies = textview.search_indecies
+            _textview_textbox = textview.textview_textbox
             if number_of_hits > 0:
                 for match in search_hits:
                     # Point to the actual line and position of the match.
@@ -3976,14 +3986,14 @@ class EventHandlers:
                     lastidx = f"{idx}+{len(search_input)}c"
 
                     # Keep track of it for 'Next' and 'Prev'.
-                    textview.search_indecies.append(idx)
+                    _search_indecies.append(idx)
                     if first_time:
                         textview.search_current_line = idx
                         first_time = False
 
                     if not list_only:
                         # Add the tag for highlighting the matches.
-                        textview.textview_textbox.tag_add("found", idx, lastidx)
+                        _textview_textbox.tag_add("found", idx, lastidx)
 
                         # Tag it so that it will get caught by 'click_text' for hover.
                         textview.tag_items("found", f"Found: {search_input}   ")
