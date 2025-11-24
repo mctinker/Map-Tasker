@@ -186,6 +186,7 @@ def process_tasks_not_called_by_profile(
     PrimeItems.program_arguments["twisty"] = False
 
     # Go through all Tasks, one at a time, and see if this one is not in it (not found)
+    _process_solo_task_with_no_profile = process_solo_task_with_no_profile
     for task_id in PrimeItems.tasker_root_elements["all_tasks"]:
         # If we just processed a single task only, then bail out.
         if PrimeItems.found_named_items["single_task_found"]:
@@ -194,7 +195,7 @@ def process_tasks_not_called_by_profile(
         # We have a solo Task not associated to any Profile
         if task_id not in found_tasks_list:
             # Theoretcally, we should never get here.
-            have_heading, specific_task, task_count = process_solo_task_with_no_profile(
+            have_heading, specific_task, task_count = _process_solo_task_with_no_profile(
                 task_id,
                 found_tasks_list,
                 task_count,

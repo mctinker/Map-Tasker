@@ -520,7 +520,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                     )
                 else:
                     # Insert & tag message
-                    max_msg_len, char_position = _insert_text(
+                    max_msg_len, char_position, line_num = _insert_text(
                         self,
                         msg_to_insert,
                         max_msg_len,
@@ -553,6 +553,9 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 start_idx = f"{line_num}.{char_position}"
 
                 if first_message:
+                    # FIX Goes into a loop here finding the beginning of the box
+                    if "WhatsApp" in msg_to_insert:
+                        print("bingo")
                     begin_box, line_num = _find_box(self, msg_to_insert, its_a_label)
                     first_message = False
 
@@ -650,6 +653,7 @@ def _insert_and_tag(
         A tuple containing the updated values for:
         - `max_msg_len`
         - `char_position`
+        - 'line_num'
     """
     # Optimized version: inserts and tags a message in a custom text widget.
     mygui = self.master.master
@@ -705,9 +709,35 @@ def _insert_and_tag(
     # Handle hyperlinks
     href = ""
     if "<a href=" in message:
+        # FIX href after 'TaskerNet description' and the part before href is not inserted.
         orig_message = message
         # Add hyperlink for alt text
         temp = message.split('"')
+
+        # Handle first part before href
+        href = ""  # Clear href to avoid double insert below
+        message = orig_message.split('<a href="')[0].strip()
+        if message:
+            tag_id = f"{heading_num};{font}:{color_val}:{decor}:{between_line_spacing}"
+            _insert_styled_message(
+                self=self,
+                message=message,
+                start_idx=start_idx,
+                tag_id=tag_id,
+                font_to_use=font_to_use,
+                bg_color=bg_color,
+                fg_color=color_val,
+                underline=underline,
+                between_line_spacing=between_line_spacing,
+                spacing=spacing,
+                temp_font=temp_font,
+                font=font,
+                font_size=font_size,
+                mygui=mygui,
+            )
+
+        # Handle href part
+        start_idx = self.textview_textbox.index(tk.END + "-1c")
         href = temp[1]
         message = temp[2][1 : len(temp[2]) - 4]
         tag_id = self.textview_hyperlink.add(href)
@@ -721,6 +751,7 @@ def _insert_and_tag(
             handle_image(self, orig_message, start_idx)
             temp = start_idx.split(".")
             char_position += len(href) + 12  #  '[> VIDEO: href]'
+
     else:
         tag_id = f"{heading_num};{font}:{color_val}:{decor}:{between_line_spacing}"
 
@@ -733,49 +764,131 @@ def _insert_and_tag(
 
     # Insert normal text if not hyperlink
     if not href:
-        fg_color = make_hex_color(color_val)
+        _insert_styled_message(
+            self=self,
+            message=message,
+            start_idx=start_idx,
+            tag_id=tag_id,
+            font_to_use=font_to_use,
+            bg_color=bg_color,
+            fg_color=color_val,
+            underline=underline,
+            between_line_spacing=between_line_spacing,
+            spacing=spacing,
+            temp_font=temp_font,
+            font=font,
+            font_size=font_size,
+            mygui=mygui,
+        )
+        # FIX delete comment3ed lines
+    #     fg_color = make_hex_color(color_val)
 
-        # Apply base font attributes
-        _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
+    #     # Apply base font attributes
+    #     _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
 
-        # If underline and at the beginning of line, then un-underline spacing
-        if underline and spacing > 0:
-            underline = False
-            _configure_tag(self, "blank", font_to_use, bg_color, bg_color, underline, between_line_spacing)
-            # Insert blanks/spacing, point sstart at beyondf spacing, and then remove spacing from message
-            self.textview_textbox.insert(start_idx, f"{spacing * ' '}", "blank")
-            start_idx = f"{start_idx.split('.')[0]}.{1 + spacing!s}"
-            message = message[spacing:]
+    #     # If underline and at the beginning of line, then un-underline spacing
+    #     if underline and spacing > 0:
+    #         underline = False
+    #         _configure_tag(self, "blank", font_to_use, bg_color, bg_color, underline, between_line_spacing)
+    #         # Insert blanks/spacing, point sstart at beyondf spacing, and then remove spacing from message
+    #         self.textview_textbox.insert(start_idx, f"{spacing * ' '}", "blank")
+    #         start_idx = f"{start_idx.split('.')[0]}.{1 + spacing!s}"
+    #         message = message[spacing:]
 
-        # If secondary font specified (rare), configure it too
-        if len(temp_font) > 1:
-            new_font = temp_font[1]
-            tag_id = tag_id.replace(font, new_font)
-            font_to_use = (mygui.font, font_size, new_font)
-            _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
+    #     # If secondary font specified (rare), configure it too
+    #     if len(temp_font) > 1:
+    #         new_font = temp_font[1]
+    #         tag_id = tag_id.replace(font, new_font)
+    #         font_to_use = (mygui.font, font_size, new_font)
+    #         _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
 
-        # Insert the message with the tag
-        # if char_position == 0:
-        #     start_idx = "end"
-        self.textview_textbox.insert(start_idx, message, tag_id)
-        if char_position == 0:
-            self.textview_textbox.tag_config(tag_id, lmargin1=0, lmargin2=0, justify="left")
+    #     # Insert the message with the tag
+    #     # if char_position == 0:
+    #     #     start_idx = "end"
+    #     self.textview_textbox.insert(start_idx, message, tag_id)
+    #     if char_position == 0:
+    #         self.textview_textbox.tag_config(tag_id, lmargin1=0, lmargin2=0, justify="left")
 
-        # If there is a table heading, configure it to be bold
-        if "+───" in message:
-            table_heading = message.split("\n")[1] if "\n" in message else ""
-            if table_heading:
-                th_tag_id = f"table_heading;bold:{color_val}:{decor}:{between_line_spacing}"
-            font_to_use = assign_font(mygui.font, font_size, "bold", underline)
-            _configure_tag(self, th_tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
-            self.textview_textbox.tag_add(th_tag_id, f"{start_idx}+1c", f"{start_idx}+{1 + len(table_heading)}c")
+    #     # If there is a table heading, configure it to be bold
+    #     if "+───" in message:
+    #         table_heading = message.split("\n")[1] if "\n" in message else ""
+    #         if table_heading:
+    #             th_tag_id = f"table_heading;bold:{color_val}:{decor}:{between_line_spacing}"
+    #         font_to_use = assign_font(mygui.font, font_size, "bold", underline)
+    #         _configure_tag(self, th_tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
+    #         self.textview_textbox.tag_add(th_tag_id, f"{start_idx}+1c", f"{start_idx}+{1 + len(table_heading)}c")
 
     # Update state
     char_position += len(message)
     self.previous_heading = heading_num
     self.previous_font = font_to_use
+    last_char_index = self.textview_textbox.index(tk.END + "-1c")
+    line_number, _ = last_char_index.split(".")
 
-    return max_msg_len, char_position
+    return max_msg_len, char_position, line_number
+
+
+def _insert_styled_message(
+    self: object,
+    message: str,
+    start_idx: str,
+    tag_id: str,
+    font_to_use: tuple,
+    bg_color: str,
+    fg_color: str,
+    underline: bool,
+    between_line_spacing: int,
+    spacing: int,
+    temp_font: list,
+    font: str,
+    font_size: int,
+    mygui: object,
+) -> None:
+    """Insert a styled message into the text widget."""
+
+    # Convert color to hex
+    fg_color = make_hex_color(fg_color)
+
+    # Configure base tag
+    _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
+
+    # Handle underline spacing at beginning of line
+    if underline and spacing > 0:
+        underline = False
+        _configure_tag(self, "blank", font_to_use, bg_color, bg_color, underline, between_line_spacing)
+
+        # Insert the spacing blanks
+        self.textview_textbox.insert(start_idx, f"{spacing * ' '}", "blank")
+
+        # Update start index after spacing
+        start_idx = f"{start_idx.split('.')[0]}.{1 + spacing!s}"
+
+        # Remove spacing from the message
+        message = message[spacing:]
+
+    # Secondary font specified?
+    if len(temp_font) > 1:
+        new_font = temp_font[1]
+        tag_id = tag_id.replace(font, new_font)
+        font_to_use = (mygui.font, font_size, new_font)
+        _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
+
+    # Insert the main message
+    self.textview_textbox.insert(start_idx, message, tag_id)
+
+    # Special case: left alignment when first character
+    if start_idx.endswith(".0"):
+        self.textview_textbox.tag_config(tag_id, lmargin1=0, lmargin2=0, justify="left")
+
+    # Table heading detection
+    if "+───" in message:
+        table_heading = message.split("\n")[1] if "\n" in message else ""
+        if table_heading:
+            th_tag_id = f"table_heading;bold:{color_val}:decor:{between_line_spacing}"
+            font_to_use = assign_font(mygui.font, font_size, "bold", underline)
+            _configure_tag(self, th_tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
+
+            self.textview_textbox.tag_add(th_tag_id, f"{start_idx}+1c", f"{start_idx}+{1 + len(table_heading)}c")
 
 
 def optimize_message_formatting(message: str) -> str:

@@ -105,10 +105,12 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
     indentation = 0
     indentation_amount = ""
     pretty_mode = PrimeItems.program_arguments.get("pretty")
-
+    _get_action_code = action_evaluate.get_action_code
+    _reformat_html = reformat_html
+    _build_action = action_evaluate.build_action
     for action in task_actions:
         child = action.find("code")
-        task_code = action_evaluate.get_action_code(child, action, True, "t")
+        task_code = _get_action_code(child, action, True, "t")
 
         if any(token in task_code for token in [">End If", ">Else", ">End For"]):
             indentation = max(indentation - 1, 0)
@@ -116,8 +118,8 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
 
         # If pretty text, then reformat it.
         if "Configuration Parameter(s):" in task_code and pretty_mode:
-            task_code = reformat_html(task_code)
-        action_evaluate.build_action(
+            task_code = _reformat_html(task_code)
+        _build_action(
             tasklist,
             task_code,
             child,
@@ -447,6 +449,8 @@ def output_task_list(
             do_extra (bool): True to output extra info.
         Returns:
             bool: True if we found a single Task we are looking for"""
+    _get_extra_details = get_extra_details
+    _do_single_task = do_single_task
     for count, task_item in enumerate(list_of_tasks):
         # If we are coming in without a Task name, then we are only doing a single Task and we need to plug in
         # the Task name.
@@ -459,14 +463,14 @@ def output_task_list(
         # Doing extra details?
         if do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
             # Get the extra details for this Task
-            extra_details = get_extra_details(
+            extra_details = _get_extra_details(
                 task_item["xml"],
                 [task_output_lines[count]],
             )
             # Tack on the extra info since [task_output_lines[count]] it is immutable
             task_output_lines[count] += " ".join(filter(None, extra_details))
 
-        do_single_task(
+        _do_single_task(
             task_item["name"],
             project_name,
             profile_name,

@@ -146,18 +146,22 @@ def condition_state(
         :return: the formatted condition's output string
     """
     # Go through the XML for this 'State', looking for items of interest.
+    _build_action_codes = process_action_codes.build_action_codes
+    _get_action_code = action_evaluate.get_action_code
+    _reformat_html = reformat_html
+    _extract_condition = extract_condition
     for child in the_item:
         # Process the state code
         if child.tag == "code":
             logger.debug(f"condition_state:{child.text}")
             state_code = f"{child.text}s" if "s" not in child.text else child.text
             if state_code not in action_codes:
-                process_action_codes.build_action_codes(
+                _build_action_codes(
                     child,
                     the_item,
                 )  # Add it to our action dictionary
             # child.text = state_code
-            state = action_evaluate.get_action_code(
+            state = _get_action_code(
                 child,
                 the_item,
                 False,
@@ -166,7 +170,7 @@ def condition_state(
 
             # If pretty text, then reformat it.
             if "Configuration Parameter(s):" in state and PrimeItems.program_arguments["pretty"]:
-                state = reformat_html(state)
+                state = _reformat_html(state)
 
             # Add this State to any preceding State
             state = state.replace("\n", spaces)
@@ -179,7 +183,7 @@ def condition_state(
 
         elif child.tag == "ConditionList":
             evaluated_results = {}
-            extract_condition(evaluated_results, "0", "", the_item)
+            _extract_condition(evaluated_results, "0", "", the_item)
             the_output_condition = f"{the_output_condition}, Condition(s): {evaluated_results['arg0']['value']}"
             break
 

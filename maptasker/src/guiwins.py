@@ -1468,6 +1468,7 @@ class CTkTextview(ctk.CTkFrame):
         number_out = 0
         allow_character_number = 100
         # Go through list of match indecies
+        _get_owner_name_from_textbox = self.get_owner_name_from_textbox
         for index in indecies:
             text_line_num = index.split(".")[0]
             # Only generate output if we are on the same line as the hover line or beyond.
@@ -1477,7 +1478,7 @@ class CTkTextview(ctk.CTkFrame):
                 continue
             text_line = f"{index.split('.')[0]}.0"
             line = textbox.get(text_line, text_line + " lineend")
-            owner, _, _ = self.get_owner_name_from_textbox(
+            owner, _, _ = _get_owner_name_from_textbox(
                 textbox,
                 text_line_num,
                 line,
@@ -1658,8 +1659,9 @@ class CTkTextview(ctk.CTkFrame):
         get_details(scene_xml, [], 0)
         # Get just the elements
         elements = [line for line in PrimeItems.output_lines.output_lines if "Element of type" in line]
+        _remove_html_tags = remove_html_tags
         for num, element in enumerate(elements):
-            elements[num] = remove_html_tags(element, "").replace("&nbsp;", "")
+            elements[num] = _remove_html_tags(element, "").replace("&nbsp;", "")
         return text + "\nElements...\n" + "\n".join(elements)
 
     def get_list_of_actions(self, name: str, task_xml: defusedxml) -> str:
@@ -1697,12 +1699,13 @@ class CTkTextview(ctk.CTkFrame):
             shell_sort(task_actions, True, False)
 
         # Now go through each Action to start processing it.  They are in "argn" "n" order.
+        _get_action_code = get_action_code
         for action in task_actions:
             child = action.find("code")  # Get the <code> element
             action_code = child.text
             display_level = PrimeItems.program_arguments["display_detail_level"]
             PrimeItems.program_arguments["display_detail_level"] = 2
-            action_line = get_action_code(child, action_code, "", "t")
+            action_line = _get_action_code(child, action_code, "", "t")
             PrimeItems.program_arguments["display_detail_level"] = display_level
             # Backup indentation if needed.
             if action_line in ("End", "Else", "Else/Else If", "End If", "End For"):
@@ -2004,6 +2007,7 @@ class CTkTextview(ctk.CTkFrame):
         occurrences = [i for i, c in enumerate(line) if c == "║"]
         # Get the locations of all icons in the names.
         icons = [i for i, char in enumerate(line) if ord(char) > 1000 and char not in ("│", "║")]
+        _add_highlight = self.add_highlight
         for num, occurrence in enumerate(occurrences):
             if num % 2 == 0:  # Even?
                 highlight_start = occurrence + 2
@@ -2021,7 +2025,7 @@ class CTkTextview(ctk.CTkFrame):
 
                 # Finally, add the highlighting.
                 item_name = line[highlight_start:highlight_end]
-                self.add_highlight(
+                _add_highlight(
                     tagid,
                     line_num,
                     highlight_start,
@@ -2060,23 +2064,24 @@ class CTkTextview(ctk.CTkFrame):
             None
         """
         # Go through all of the connectors.
+        _textview_textbox = self.textview_textbox
         for key, value in diagram_connectors.items():
             tagid = f"wire_{key!s}"
             # Add the tag for the top line
-            self.textview_textbox.tag_add(
+            _textview_textbox.tag_add(
                 tagid,
                 f"{key}.{value['start_top'][1]!s}",
                 f"{key}.{value['end_top'][1] + 1!s}",
             )
             # Add the tag for the bottom line.
-            self.textview_textbox.tag_add(
+            _textview_textbox.tag_add(
                 tagid,
                 f"{value['start_bottom'][0]!s}.{value['start_bottom'][1]!s}",
                 f"{value['end_bottom'][0]!s}.{value['end_bottom'][1] + 1!s}",
             )
 
             # Make them clickable.
-            self.textview_textbox.tag_bind(tagid, "<Button-1>", self.click_text)
+            _textview_textbox.tag_bind(tagid, "<Button-1>", self.click_text)
 
     def identify_items(self, line: str) -> tuple:
         """
@@ -3704,6 +3709,7 @@ class CTkHyperlinkManager:
         Note: This function assumes that the `text` attribute of the class instance is a `ctk.Text` widget and
         the `links` attribute is a dictionary mapping tag names to URLs.
         """
+        _remap_single_item = self.remap_single_item
         for tag in self.text.tag_names(ctk.CURRENT):
             if tag.startswith("hyper-"):
                 if self.links:
@@ -3712,7 +3718,7 @@ class CTkHyperlinkManager:
                         # Go up one level: Remap single Project/Profile/Task
                         action, name = link
                         guiself = event.widget.master.master.root.master
-                        self.remap_single_item(action, name, guiself)
+                        _remap_single_item(action, name, guiself)
                     else:
                         webbrowser.open(link)
                     return
@@ -4222,9 +4228,10 @@ def _create_display_options_section(self: ctk) -> None:
             "Align all Task action arguments and parameters for nicer output.",
         ),
     ]
-
+    _add_checkbox = add_checkbox
+    _create_tooltip = create_tooltip
     for i, (text, event_name, attr_name, tooltip_text) in enumerate(checkboxes):
-        checkbox = add_checkbox(
+        checkbox = _add_checkbox(
             self,
             self.sidebar_frame,
             getattr(self.event_handlers, event_name),
@@ -4238,7 +4245,7 @@ def _create_display_options_section(self: ctk) -> None:
         )
         setattr(self, attr_name, checkbox)
         if tooltip_text:
-            create_tooltip(checkbox, text=tooltip_text)
+            _create_tooltip(checkbox, text=tooltip_text)
 
 
 def _create_name_display_options_section(self: ctk) -> None:

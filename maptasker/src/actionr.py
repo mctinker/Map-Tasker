@@ -32,8 +32,7 @@ if TYPE_CHECKING:
     import defusedxml.ElementTree
 
 
-# Given a list of positional items, return a string in the correct order based
-# on position
+# Given a list of positional items, return a string in the correct order based on position.
 def get_results_in_arg_order(evaluated_results: dict) -> str:
     """
     Get all of the evaluated results into a single list and return results as a string.
@@ -138,7 +137,7 @@ def fix_config_parameters(s: str, target: str, replacement: str) -> str:
     if len(occurrences) < 2:
         return s  # If less than 2 occurrences, nothing to replace except maybe the first
 
-    first, *middle, last = occurrences
+    first, *_middle, _last = occurrences
 
     # Put it all together
     s = s[:first] + "&nbsp;" + s[first + len(target) :].replace(target, replacement)

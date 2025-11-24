@@ -264,8 +264,9 @@ def check_scene(item: str) -> bool:
             bool: True if we should output this hperlink, False if it is to be ingored.
     """
     # Single Project?
+    _find_task_in_project = find_task_in_project
     if PrimeItems.program_arguments["single_project_name"]:
-        found, project = find_task_in_project("", item[1], "scenes")
+        found, project = _find_task_in_project("", item[1], "scenes")
         return found
 
     # Single Profile?
@@ -274,7 +275,7 @@ def check_scene(item: str) -> bool:
         # Get the Profile ID for the single Profile we are looking for
         for profile_id in PrimeItems.tasker_root_elements["all_profiles"]:
             if PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"] == profile_name:
-                found, project = find_task_in_project("", profile_id, "pids")
+                found, project = _find_task_in_project("", profile_id, "pids")
                 if found:
                     scenes = project.find("scenes")
                     if scenes is not None and item[1] in scenes.text.split(","):
@@ -288,7 +289,7 @@ def check_scene(item: str) -> bool:
         ]["id"]
     ):
         # Find the Project this single Task belongs to.
-        found, project = find_task_in_project("", this_task_id, "tids")
+        found, project = _find_task_in_project("", this_task_id, "tids")
         if found:
             # Found Project with Profile, now check If Scenes in Project
             scenes = project.find("scenes")
@@ -434,8 +435,9 @@ def do_tasker_element(name: str) -> None:
         # the directory hyperlinks
         directory_hyperlinks = []
 
+        _check_item = check_item
         for item in PrimeItems.directory_items[name]:
-            if check_item(name, item):
+            if _check_item(name, item):
                 # Directory item is valid for this name.
                 # Get the name and display name for this item
                 hyperlink_name = item[0].replace(">", "&gt;").replace("<", "&lt;").replace("_(Scene)", "")

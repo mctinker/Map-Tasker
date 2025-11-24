@@ -39,7 +39,7 @@ import maptasker.src.taskuniq as special_tasks
 from maptasker.src import projects
 from maptasker.src.caveats import display_caveats
 from maptasker.src.dirout import output_directory
-from maptasker.src.error import error_handler
+from maptasker.src.error import error_handler, rutroh_error
 from maptasker.src.format import format_line
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.globalvr import get_variables, output_variables
@@ -158,6 +158,8 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
     output_file = f"{my_output_dir}{my_file_name}"
     with open(output_file, "w", encoding="utf-8") as out_file:
         # Output the rest that is in our output queue
+        _output_directory = output_directory  # Localize for speed
+        _format_line = format_line  # Localize for speed
         for item in PrimeItems.output_lines.output_lines:
             # Check to see if this is where the directory is to go in the
             # Output directory. if so, output_directory will create it's own list of
@@ -169,7 +171,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
 
                 # Do the directory output
                 if PrimeItems.program_arguments["directory"]:
-                    output_directory()
+                    _output_directory()
                 # Output the directory line
                 for output_line in PrimeItems.output_lines.output_lines:
                     out_file.write(output_line)
@@ -179,7 +181,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
 
             # Format the output line
             # logger.info(item)
-            output_line = format_line(item)
+            output_line = _format_line(item)
             # Continue if we are to ignore this output line.
             if not output_line:
                 continue
@@ -449,7 +451,7 @@ def check_single_item(
             PrimeItems.error_code = 1
             PrimeItems.error_msg = f"Profile {single_profile_name} was not found."
             return
-        print(f"The Profile '{single_profile_name}' was not found.")
+        rutroh_error(f"The Profile '{single_profile_name}' was not found.")
         clean_up_and_exit("Profile", single_profile_name)
 
 

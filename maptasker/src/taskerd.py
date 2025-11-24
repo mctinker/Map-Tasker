@@ -114,14 +114,16 @@ def get_the_xml_data() -> bool:
     }
 
     # Assign names to Profiles that have no name = their condition.nnn (Unnamed)
+    _parse_profile_condition = condition.parse_profile_condition
+    _conditions_to_name = conditions_to_name
     for key, value in PrimeItems.tasker_root_elements["all_profiles"].items():
         if not value["name"]:
             # The Profile doen't have a name.  Name it using it's conditions.
             profile_name = UNNAMED_ITEM
             profile_xml = value["xml"]
-            if profile_conditions := condition.parse_profile_condition(profile_xml):
+            if profile_conditions := _parse_profile_condition(profile_xml):
                 # fmt: off
-                _, profile_name, profile_conditions = conditions_to_name(
+                _, profile_name, profile_conditions = _conditions_to_name(
                         profile_xml,
                         profile_conditions,
                         profile_name,
@@ -136,10 +138,11 @@ def get_the_xml_data() -> bool:
 
     # Get Tasks by name and handle Tasks with no name.
     PrimeItems.tasker_root_elements["all_tasks_by_name"] = {}
+    _get_first_action = get_first_action
     for key, value in PrimeItems.tasker_root_elements["all_tasks"].items():
         if not value["name"]:
             # Get the first Task Action and user it as the Task name.
-            first_action = get_first_action(value["xml"])
+            first_action = _get_first_action(value["xml"])
             # Handle special case of 'Anchor ...with label:\n'
             if anchor in first_action:
                 first_action = 'Anchor "' + first_action.split(anchor, 1)[1]
@@ -184,7 +187,7 @@ def get_first_action(task: ET) -> str:
         - Looks up the action code in the action_codes dictionary and returns its name.
         - Returns an empty string if no suitable action is found.
     """
-    # Build the Taskee argument codes dictionary if we don't yet have it.
+    # Build the Tasker argument codes dictionary if we don't yet have it.
     if not PrimeItems.tasker_arg_specs:
         from maptasker.src.proginit import build_action_codes_from_json
 
