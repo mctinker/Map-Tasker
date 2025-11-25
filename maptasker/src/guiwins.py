@@ -3720,7 +3720,10 @@ class CTkHyperlinkManager:
                         guiself = event.widget.master.master.root.master
                         _remap_single_item(action, name, guiself)
                     else:
-                        webbrowser.open(link)
+                        try:
+                            webbrowser.open(link)
+                        except Exception as e:  # noqa: BLE001
+                            rutroh_error(f"Error opening link '{link}': {e}")
                     return
 
                 # Misc view hyperlink...pick up the links from deep down

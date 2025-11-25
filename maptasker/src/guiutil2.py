@@ -553,10 +553,7 @@ def draw_box_around_text(self: ctk, line_num: int) -> tuple[int, list]:
                 start_idx = f"{line_num}.{char_position}"
 
                 if first_message:
-                    # FIX Goes into a loop here finding the beginning of the box
-                    if "WhatsApp" in msg_to_insert:
-                        print("bingo")
-                    begin_box, line_num = _find_box(self, msg_to_insert, its_a_label)
+                    begin_box, _line_num = _find_box(self, msg_to_insert, its_a_label)
                     first_message = False
 
                 # Reset spacing after concatenation.  Don't do it if we just added a newline
@@ -709,15 +706,18 @@ def _insert_and_tag(
     # Handle hyperlinks
     href = ""
     if "<a href=" in message:
-        # FIX href after 'TaskerNet description' and the part before href is not inserted.
         orig_message = message
         # Add hyperlink for alt text
         temp = message.split('"')
 
-        # Handle first part before href
+        # Handle first part before href, if any.
         href = ""  # Clear href to avoid double insert below
-        message = orig_message.split('<a href="')[0].strip()
+        message = orig_message.split('<a href="')[0]
         if message:
+            if spacing > 0:
+                # Build the spaces string once and use normal string concatenation to avoid nested f-strings
+                spaces = " " * spacing
+                message = spaces + message.replace("\n", "\n" + spaces).lstrip()
             tag_id = f"{heading_num};{font}:{color_val}:{decor}:{between_line_spacing}"
             _insert_styled_message(
                 self=self,
@@ -735,6 +735,7 @@ def _insert_and_tag(
                 font_size=font_size,
                 mygui=mygui,
             )
+            spacing = 0  # Set spacing to 0 for hyperlink part
 
         # Handle href part
         start_idx = self.textview_textbox.index(tk.END + "-1c")
@@ -780,43 +781,6 @@ def _insert_and_tag(
             font_size=font_size,
             mygui=mygui,
         )
-        # FIX delete comment3ed lines
-    #     fg_color = make_hex_color(color_val)
-
-    #     # Apply base font attributes
-    #     _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
-
-    #     # If underline and at the beginning of line, then un-underline spacing
-    #     if underline and spacing > 0:
-    #         underline = False
-    #         _configure_tag(self, "blank", font_to_use, bg_color, bg_color, underline, between_line_spacing)
-    #         # Insert blanks/spacing, point sstart at beyondf spacing, and then remove spacing from message
-    #         self.textview_textbox.insert(start_idx, f"{spacing * ' '}", "blank")
-    #         start_idx = f"{start_idx.split('.')[0]}.{1 + spacing!s}"
-    #         message = message[spacing:]
-
-    #     # If secondary font specified (rare), configure it too
-    #     if len(temp_font) > 1:
-    #         new_font = temp_font[1]
-    #         tag_id = tag_id.replace(font, new_font)
-    #         font_to_use = (mygui.font, font_size, new_font)
-    #         _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
-
-    #     # Insert the message with the tag
-    #     # if char_position == 0:
-    #     #     start_idx = "end"
-    #     self.textview_textbox.insert(start_idx, message, tag_id)
-    #     if char_position == 0:
-    #         self.textview_textbox.tag_config(tag_id, lmargin1=0, lmargin2=0, justify="left")
-
-    #     # If there is a table heading, configure it to be bold
-    #     if "+───" in message:
-    #         table_heading = message.split("\n")[1] if "\n" in message else ""
-    #         if table_heading:
-    #             th_tag_id = f"table_heading;bold:{color_val}:{decor}:{between_line_spacing}"
-    #         font_to_use = assign_font(mygui.font, font_size, "bold", underline)
-    #         _configure_tag(self, th_tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
-    #         self.textview_textbox.tag_add(th_tag_id, f"{start_idx}+1c", f"{start_idx}+{1 + len(table_heading)}c")
 
     # Update state
     char_position += len(message)
@@ -825,7 +789,7 @@ def _insert_and_tag(
     last_char_index = self.textview_textbox.index(tk.END + "-1c")
     line_number, _ = last_char_index.split(".")
 
-    return max_msg_len, char_position, line_number
+    return max_msg_len, char_position, int(line_number) + 1
 
 
 def _insert_styled_message(
@@ -884,7 +848,7 @@ def _insert_styled_message(
     if "+───" in message:
         table_heading = message.split("\n")[1] if "\n" in message else ""
         if table_heading:
-            th_tag_id = f"table_heading;bold:{color_val}:decor:{between_line_spacing}"
+            th_tag_id = f"table_heading;bold:{fg_color}:decor:{between_line_spacing}"
             font_to_use = assign_font(mygui.font, font_size, "bold", underline)
             _configure_tag(self, th_tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
 
@@ -1037,14 +1001,24 @@ def _normalize_message(msg: str, its_a_label: bool, char_position: int) -> str:
 
 
 def _find_begin_box(self: ctk.CTkTextbox, msg_to_insert: str, its_a_label: bool) -> tuple[str, int]:
+    max_tries = 30
     last_char_index = self.textview_textbox.index(tk.END + "-1c")
     line_number, _ = last_char_index.split(".")
     prev_num = int(line_number)
     if "\n" in msg_to_insert:
         msg_to_insert = msg_to_insert.split("\n")[1]
 
+    # Handle href case.  Just look for the front part.  Avoid a loop situation.
+    if "<a href=" in msg_to_insert:
+        temp = msg_to_insert.split('"')
+        msg_to_insert = temp[0][1 : len(temp[2]) - 4]
+
     content = ""
     while msg_to_insert not in content:
+        # Bilout if we've searched too much.
+        max_tries -= 1
+        if max_tries <= 0 or prev_num <= 1:
+            break
         content = self.textview_textbox.get(f"{prev_num}.0", f"{prev_num}.end")
         if msg_to_insert not in content:
             prev_num -= 1
@@ -1245,7 +1219,7 @@ def process_table(
 
     # Insert, in a single call, all of the lines of data.
     value["decor"][inner_num] = ""  # No underline for table
-    _, _ = _insert_and_tag(
+    _, _, _ = _insert_and_tag(
         self,
         big_block_of_text,
         0,

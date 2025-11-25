@@ -593,7 +593,7 @@ def align_html_text(html_string: str) -> str:
     # Format Priority and '[(icon)DISABLED]'
     html_string = html_string.replace(" Priority:", "<br>Priority:").replace(
         "[&#9940;&nbsp;DISABLED]",
-        "<br>[&#9940;&nbsp;DISABLED])",
+        "<br>[&#9940;&nbsp;DISABLED]",
     )
 
     # Split the string by <br> tags within the profile_condition_color span

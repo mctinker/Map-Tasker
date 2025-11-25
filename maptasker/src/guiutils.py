@@ -71,7 +71,7 @@ from maptasker.src.sysconst import (
     VERSION,
     logger,
 )
-from maptasker.src.xmldata import tasker_object
+from maptasker.src.xmldata import is_tasker_object
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -1810,7 +1810,7 @@ def search_substring_in_list(
     lower_substring = substring.lower()
 
     # If stop on first match and a Tasker object, then indicate we need an exact match.
-    exact_match = bool(stop_on_first_match and tasker_object(substring, True))
+    exact_match = bool(stop_on_first_match and is_tasker_object(substring, True))
 
     # Go through all data looking for our substring.  Do all compares in lowercase.
     # If we don't find a match, then search on second substring.

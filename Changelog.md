@@ -10,11 +10,12 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed:
+- Changed: Perfmoance tuning.
 
 ### Fixed
 
-- Fixed:
+- Fixed: Possible program loop if displaying 'TaskerNet Info'.
+- Fixed: Minor display error in certain TaskerNet Info hotlinks.
 
 ### Known Issue
 
