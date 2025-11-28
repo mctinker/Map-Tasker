@@ -17,13 +17,16 @@ from io import BytesIO
 from tkinter import TclError
 
 import customtkinter as ctk
-import cv3
 import requests
 import yt_dlp
 from PIL import Image, ImageTk
 
 from maptasker.src.diagutil import width_and_height_calculator_in_pixel
 from maptasker.src.error import rutroh_error
+from maptasker.src.primitem import PrimeItems
+
+if not PrimeItems.windows_system:
+    import cv3
 
 # We will force a 480x480 resolution video.
 TARGET_WIDTH = "640"
@@ -157,6 +160,9 @@ def check_ffmpeg_subprocess() -> bool:
     Method 2: Uses subprocess.run() to execute 'ffmpeg -version' and check
     the return code. This confirms the executable is not just present but also runs.
     """
+    if PrimeItems.windows_system:
+        rutroh_error("Note: On Windows, video hotlinks are nmot supported")
+        return False
     rutroh_error("\n--- Method 2: Using subprocess.run() ---")
     try:
         # Execute the command.
