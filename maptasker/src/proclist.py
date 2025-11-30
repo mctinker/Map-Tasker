@@ -444,6 +444,7 @@ def process_list(
     # Go through all Tasks/Scenes in the list
     # The list looks like...
     # 'Battery Full Alert&nbsp;&nbsp;&nbsp;&nbsp;<<< Entry Task&nbsp;&nbsp;Task ID: 18 &nbsp;&nbsp;[Priority: 6]&nbsp;&nbsp;')
+    _process_item = process_item
     for the_item in the_list:
         # Process the item (list of items)
-        process_item(the_item, list_type, the_task, tasks_found)
+        _process_item(the_item, list_type, the_task, tasks_found)

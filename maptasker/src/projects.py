@@ -244,6 +244,9 @@ def do_tasks_in_project(
     """
     if not PrimeItems.program_arguments["single_profile_name"]:
         PrimeItems.named_task_count_total = len(task_ids)
+    _task_not_in_profile_heading = task_not_in_profile_heading
+    _output_task_list = tasks.output_task_list
+    # Go through all Tasks in Project
     for the_id in task_ids:
         # We have a Task in Project that has yet to be output?
         if the_id not in found_tasks and (
@@ -264,7 +267,7 @@ def do_tasks_in_project(
                 and not (PrimeItems.found_named_items["single_profile_found"])
                 and not (PrimeItems.found_named_items["single_task_found"])
             ):
-                task_not_in_profile_heading(project_name)
+                _task_not_in_profile_heading(project_name)
 
                 output_the_heading = False
 
@@ -277,7 +280,7 @@ def do_tasks_in_project(
             # Output the Task (we don't care about the returned value)
             our_task = PrimeItems.tasker_root_elements["all_tasks"][the_id]
 
-            _ = tasks.output_task_list(
+            _ = _output_task_list(
                 [our_task],
                 project_name,
                 "",
@@ -724,6 +727,10 @@ def process_projects(
     # Get all variables from XML first.
 
     # Go through each Project in backup file
+    _get_profile_details_and_output = get_profile_details_and_output
+    _process_project_profiles = process_project_profiles
+    _finish_up = finish_up
+    _is_single_project_or_profile_or_task_found = is_single_project_or_profile_or_task_found
     for project_name in PrimeItems.tasker_root_elements["all_projects"]:
         # Ignore this project if we are looking for a specific one and this isn't it.
         if (
@@ -743,7 +750,7 @@ def process_projects(
             _,
             profile_count,
             have_project_wanted,
-        ) = get_profile_details_and_output(project, project_name)
+        ) = _get_profile_details_and_output(project, project_name)
 
         # If we are searching for a specific Project and we found it, then bail out
         # ...but stay in loop to process all the Profiles for this Project
@@ -755,7 +762,7 @@ def process_projects(
             _,
             our_task_element,
             profile_count,
-        ) = process_project_profiles(
+        ) = _process_project_profiles(
             project,
             project_name,
             projects_without_profiles,
@@ -765,7 +772,7 @@ def process_projects(
         )
 
         # Finish the output for this Project
-        finish_up(
+        _finish_up(
             project,
             project_name,
             found_tasks,
@@ -774,7 +781,7 @@ def process_projects(
         )
 
         # If we are doing a single item and it was found, return the Tasks list
-        if is_single_project_or_profile_or_task_found():
+        if _is_single_project_or_profile_or_task_found():
             add_close_project_list_line_to_output()
             return found_tasks
 

@@ -216,13 +216,14 @@ def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
     # Look for variables in the head XML object (Project/Profile/Task).
     cooldown = ""
     limit = ""
+    _parse_variable = parse_variable
     for item in header:
         if item.tag == "cldm":
             cooldown = item.text
         if item.tag == "limit":
             limit = item.text
         if item.tag == "ProfileVariable":
-            parse_variable(property_tag, css_attribute, item, cooldown, limit)
+            _parse_variable(property_tag, css_attribute, item, cooldown, limit)
             have_property = True
 
     # Force a new line if we output any properties.

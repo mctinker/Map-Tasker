@@ -468,10 +468,6 @@ class HTMLTextFormatter(HTMLParser):
         """
         Adds a text segment with the current styles to the list.
         """
-        # if self.is_in_style:
-        #     self.formatted_segments.append({"text": text})
-        #     return
-
         styles_copy = self.current_styles.copy()
 
         # Determine if it's a heading and which level

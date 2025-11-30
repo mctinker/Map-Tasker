@@ -17,13 +17,13 @@ from io import BytesIO
 from tkinter import TclError
 
 import customtkinter as ctk
-import cv3
 import requests
 import yt_dlp
 from PIL import Image, ImageTk
 
 from maptasker.src.diagutil import width_and_height_calculator_in_pixel
 from maptasker.src.error import rutroh_error
+from maptasker.src.primitem import PrimeItems
 
 # We will force a 480x480 resolution video.
 TARGET_WIDTH = "640"
@@ -82,22 +82,24 @@ def _embed_video_placeholder(text_widget: ctk.CTkTextbox, media_url: str, index:
     mygui = text_widget.master.master.master
 
     # Determine if we need ffmpeg (required for youtube), and if so, dp we have it in our runpath
-    # We only want to do this once.
-    if mygui.checked_ffmpeg:
+    # We only want to do this once.  BUt if windows, then we don't embed videos at all.
+    if PrimeItems.windows_system:
+        rutroh_error("Note: On Windows, video hotlinks are not supported")
+        have_ffmpeg = False
+    elif mygui.checked_ffmpeg:
         have_ffmpeg = mygui.have_ffmpeg
 
     else:
         have_ffmpeg = True
-        if "youtu.be" in media_url or "youtube.com" in media_url:
-            # Use the combination of both 'shutil' and 'subprocess' for a robust check
-            is_present = check_ffmpeg_shutil()
+        # Use the combination of both 'shutil' and 'subprocess' for a robust check
+        is_present = check_ffmpeg_shutil()
 
-            if is_present:
-                # Only run the subprocess check if we know it's *in* the PATH
-                have_ffmpeg = check_ffmpeg_subprocess()
-            else:
-                have_ffmpeg = False
-                rutroh_error("\nSkipping subprocess check as executable was not found by shutil.which().")
+        if is_present:
+            # Only run the subprocess check if we know it's *in* the PATH
+            have_ffmpeg = check_ffmpeg_subprocess()
+        else:
+            have_ffmpeg = False
+            rutroh_error("\nSkipping subprocess check as executable was not found by shutil.which().")
 
             # Save our settings
             mygui.have_ffmpeg = have_ffmpeg
@@ -157,6 +159,7 @@ def check_ffmpeg_subprocess() -> bool:
     Method 2: Uses subprocess.run() to execute 'ffmpeg -version' and check
     the return code. This confirms the executable is not just present but also runs.
     """
+
     rutroh_error("\n--- Method 2: Using subprocess.run() ---")
     try:
         # Execute the command.
@@ -341,6 +344,10 @@ class VideoEmbedder:
 
     def _load_and_play_video(self) -> None:
         """Loads the video capture and starts the display loop."""
+        # Only import cv3 if not on Windows.
+        if not PrimeItems.windows_system:
+            import cv3  # noqa: PLC0415
+
         stream_url = self._get_stream_source()
 
         # Bail out if this is a Youtube video

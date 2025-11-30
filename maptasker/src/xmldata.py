@@ -178,7 +178,7 @@ def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> st
     return drop_trailing_comma([extracted_text])[0] if extracted_text else ""
 
 
-def tasker_object(text: str, blank_trailer: bool) -> bool:
+def is_tasker_object(text: str, blank_trailer: bool) -> bool:
     """
     Checks if the input string contains any of the following keywords,
     where spaces are replaced with '&nbsp;':
@@ -215,7 +215,7 @@ def remove_html_tags(text: str, replacement: str) -> str:
     NOTE: Optimized for performance.
     """
     # Skip HTML stripping for specific conditions
-    if tasker_object(text, False) or "&nbsp;&nbsp;Title=" in text:
+    if is_tasker_object(text, False) or "&nbsp;&nbsp;Title=" in text:
         return text
 
     # If there's no '<', skip regex completely (fast path)

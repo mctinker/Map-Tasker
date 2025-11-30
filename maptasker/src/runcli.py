@@ -346,13 +346,14 @@ def process_arguments(args: object) -> dict:
     )
 
     # Alter any color specified in the settings / arguments.
+    _get_and_set_the_color = get_and_set_the_color
     for item in TYPES_OF_COLORS:
         the_name = getattr(args, f"c{item}")
         if the_name is not None:
             if isinstance(the_name, list):
-                get_and_set_the_color(f"-c{item}={the_name[0]}")
+                _get_and_set_the_color(f"-c{item}={the_name[0]}")
             else:
-                get_and_set_the_color(f"-c{item}={the_name}")
+                _get_and_set_the_color(f"-c{item}={the_name}")
 
     return
 

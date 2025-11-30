@@ -101,10 +101,11 @@ def store_windows(self: ctk) -> None:
     }
 
     with contextlib.suppress(AttributeError):
+        _save_window_position = save_window_position
         for window_attr, position_attr in windows.items():
             window_obj = getattr(self, position_attr, None)
             # Get the window position if a valid window.
-            if window_obj and (window_pos := save_window_position(self, window_attr)):
+            if window_obj and (window_pos := _save_window_position(self, window_attr)):
                 setattr(self, position_attr, window_pos)
 
 

@@ -504,8 +504,9 @@ def runtime_parser() -> None:
     # define a color group for the various color settings
     color_group = parser.add_argument_group("Output Color Options")
     # For each type of color option, create the appropriate argument
+    _add_argument = color_group.add_argument
     for key, value in TYPES_OF_COLORS.items():
-        color_group.add_argument(
+        _add_argument(
             f"-c{key}",
             help=f"Provide a valid color for {value}.  Example: -c{key} Blue",
             required=False,
@@ -513,7 +514,7 @@ def runtime_parser() -> None:
             nargs=1,
         )
     # Color help
-    color_group.add_argument(
+    _add_argument(
         "-ch",
         "-colorhelp",
         help="Display a list of valid color names.",

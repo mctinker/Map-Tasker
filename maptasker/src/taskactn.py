@@ -38,9 +38,10 @@ def ensure_argument_alignment(taction: str) -> str:
     Returns:
         str: Correctly aligned action text
     """
+    _count_consecutive_substr = count_consecutive_substr
     action_breakdown = taction.replace("\n", "<br>").split("<br>")
     if len(action_breakdown) > 1:
-        count_of_spaces = count_consecutive_substr(action_breakdown[1], "&nbsp;")
+        count_of_spaces = _count_consecutive_substr(action_breakdown[1], "&nbsp;")
         correct_spacing = "&nbsp;" * count_of_spaces
         for index, arg in enumerate(action_breakdown[2:]):
             # action_breakdown[index + 2] = remove_html_tags(arg.strip(), "")
@@ -48,7 +49,7 @@ def ensure_argument_alignment(taction: str) -> str:
             # Stop adding spacer if this is formatted html for label/taskernet desc.
             if "text-decoration" in action_breakdown[index + 2]:
                 break
-            if count_consecutive_substr(arg, "&nbsp;") != count_of_spaces:
+            if _count_consecutive_substr(arg, "&nbsp;") != count_of_spaces:
                 action_breakdown[index + 2] = action_breakdown[index + 2].replace(
                     "&nbsp;",
                     "",
@@ -82,12 +83,13 @@ def output_list_of_actions(
     """
 
     # Go through all Actions in Task Action list
+    _ensure_argument_alignment = ensure_argument_alignment
     for taction in alist:
         # 'taction' has the Action text, including all of it's arguments.
         if taction is not None:
             # Optimize spacing if 'pretty' is enabled or if this is a label with html
             if PrimeItems.program_arguments.get("pretty") or "text-box" in taction:
-                updated_action = ensure_argument_alignment(taction)
+                updated_action = _ensure_argument_alignment(taction)
             else:
                 updated_action = taction
 

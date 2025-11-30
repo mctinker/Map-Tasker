@@ -459,28 +459,34 @@ def get_details(
     """
     element_type = ""
     original_indent = indentation
+    _tag_in_type = tag_in_type
+    _get_scene_elements = get_scene_elements
+    _process_arguments = process_arguments
+    _process_tasks = process_tasks
+    _get_geometry = get_geometry
+    _process_scene = process_scene
     for child in scene:
         if child.tag in SCENE_TAGS_TO_IGNORE:
             continue
         indentation = original_indent
 
         # Is this an xxxElement?
-        if tag_in_type(child.tag, True):  # xxxElement (e.g. RectElement)?
+        if _tag_in_type(child.tag, True):  # xxxElement (e.g. RectElement)?
             element_type = child.tag
             # Display the Element details
             if PrimeItems.program_arguments["display_detail_level"] > 2:
-                get_scene_elements(child, indentation)
+                _get_scene_elements(child, indentation)
 
             # Are we to display Scene element details?
             if PrimeItems.program_arguments["display_detail_level"] == 5:
                 # Get the element type's arguments and process them
-                process_arguments(child, element_type, indentation)
+                _process_arguments(child, element_type, indentation)
 
             # Check to see if this Scene has a layout Scene, and deal with it if so.
             sub_scenes = child.find("Scene")
             if sub_scenes is not None:
                 for sub_scene_element in sub_scenes:
-                    width, height = get_geometry(sub_scene_element)
+                    width, height = _get_geometry(sub_scene_element)
                     PrimeItems.output_lines.add_line_to_output(
                         0,
                         f"{blank * (4 + indentation)}Element has an item 'Layout' (Scene) with width/height {width} X {height}",
@@ -488,10 +494,10 @@ def get_details(
                     )
 
                     # Okay, process this sub-scene
-                    process_scene(scene.find("nme").text, [], sub_scene_element, 9)
+                    _process_scene(scene.find("nme").text, [], sub_scene_element, 9)
 
             # Process any Tasks as part of this Scene
-            process_tasks(child, tasks_found)
+            _process_tasks(child, tasks_found)
 
     # Add a break if end of Scene elements (but not doing a Properties element)
     if PrimeItems.program_arguments["display_detail_level"] != 2 and element_type != "PropertiesElement":

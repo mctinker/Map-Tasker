@@ -123,11 +123,12 @@ def do_task_actions(
         - Gets task name from action.
         - Updates caller and called task relationships.
     """
+    _update_caller_and_called_tasks = update_caller_and_called_tasks
     for action in task_actions:
         if any(child.tag == "code" and child.text == "130" for child in action):
             perform_task_name = next((s.text for s in action.findall("Str")), None)
             if perform_task_name:
-                update_caller_and_called_tasks(task, perform_task_name)
+                _update_caller_and_called_tasks(task, perform_task_name)
 
 
 # Go through all Tasks for Profile and see if any have a "Perform Task" action.
@@ -142,6 +143,7 @@ def get_perform_task_actions(the_tasks: list) -> None:
             the_tasks (list): List of Task xml elements under this Profile.
     """
     # Go through each Task to find out if this Task is calling other Tasks.
+    _do_task_actions = do_task_actions
     for task in the_tasks:
         # Only do this if we haven't already processed this task
         if task["name"] not in PrimeItems.outline_tasks_mapped:
@@ -153,7 +155,7 @@ def get_perform_task_actions(the_tasks: list) -> None:
                 continue
             # Go through Actions and see if any are "Perform Task"
             if task_actions:
-                do_task_actions(task_actions, task)
+                _do_task_actions(task_actions, task)
             # Keep track of the processed task
             PrimeItems.outline_tasks_mapped.append(task["name"])
 
@@ -238,11 +240,12 @@ def outline_scenes(project_name: str, network: dict) -> None:
             network[project_name]["Scenes"] = scene_list
 
             arrow_to_use = arrow
+            _add_line_to_output = PrimeItems.output_lines.add_line_to_output
             for scene in scene_list:
                 # If last Scene for Project, put an elbow in instead of full bracket
                 if scene == scene_list[-1]:
                     arrow_to_use = arrow_to_use.replace("├", "└")
-                PrimeItems.output_lines.add_line_to_output(
+                _add_line_to_output(
                     0,
                     f"{blank * 5}{arrow_to_use}{blank * 2}Scene: {scene}",
                     ["", "scene_color", FormatLine.add_end_span],
@@ -284,6 +287,7 @@ def do_profile_tasks(
     network[project_name][profile_name] = []
 
     # Go through Task's output lines and Tasks, and add arrows as appropriate.
+    _add_line_to_output = PrimeItems.output_lines.add_line_to_output
     for task_line, task in zip(task_output_line, the_tasks, strict=False):
         # Keep track of Tasks processed.
         taskid = task["xml"].attrib.get("sr")
@@ -320,7 +324,7 @@ def do_profile_tasks(
 
         # Add the Task output line
         task_line = f"{blank * 5}{arrow_to_use}{blank * 2}Task: {task_line[0]}{call_task}"
-        PrimeItems.output_lines.add_line_to_output(
+        _add_line_to_output(
             0,
             task_line,
             ["", "task_color", FormatLine.add_end_span],
@@ -347,6 +351,10 @@ def outline_profiles_tasks_scenes(
 
     # Go thru all Profiles
     no_name_counter = 1
+    _get_profile_tasks = get_profile_tasks
+    _get_perform_task_actions = get_perform_task_actions
+    _do_profile_tasks = do_profile_tasks
+    _add_line_to_output = PrimeItems.output_lines.add_line_to_output
     for item in profile_ids:
         # Get the Profile element
         profile = PrimeItems.tasker_root_elements["all_profiles"][item]["xml"]
@@ -362,7 +370,7 @@ def outline_profiles_tasks_scenes(
         ):
             # Add Profile to our network
             profile_line = f"{blank * 5}{arrow}{blank * 2}Profile: {profile_name}"
-            PrimeItems.output_lines.add_line_to_output(
+            _add_line_to_output(
                 0,
                 profile_line,
                 ["", "profile_color", FormatLine.add_end_span],
@@ -373,17 +381,17 @@ def outline_profiles_tasks_scenes(
             tasks_in_profile = []  # Keep track of Tasks processed/output.
             list_of_found_tasks = []
 
-            the_tasks = get_profile_tasks(
+            the_tasks = _get_profile_tasks(
                 profile,
                 list_of_found_tasks,
                 task_output_line,
             )
 
             # Get any/all "Perform Task" links back to other Tasks
-            get_perform_task_actions(the_tasks)
+            _get_perform_task_actions(the_tasks)
 
             # Output the Profile's Tasks
-            tasks_in_profile = do_profile_tasks(
+            tasks_in_profile = _do_profile_tasks(
                 project_name,
                 profile_name,
                 the_tasks,
@@ -441,6 +449,10 @@ def do_the_outline(network: dict) -> None:
         return
 
     # Go thru all Projects
+    _add_line_to_output = PrimeItems.output_lines.add_line_to_output
+    _format_html = format_html
+    _get_ids = get_ids
+    _outline_profiles_tasks_scenes = outline_profiles_tasks_scenes
     for project_item in PrimeItems.tasker_root_elements["all_projects"]:
         # Get the Project XML element
         project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]
@@ -456,26 +468,26 @@ def do_the_outline(network: dict) -> None:
             network[project_name] = {}
 
             # Format Project name
-            format_html(
+            _format_html(
                 "project_color",
                 "",
                 f"Project: {project_name}",
                 True,
             )
             # Output the final Project text
-            PrimeItems.output_lines.add_line_to_output(
+            _add_line_to_output(
                 0,
                 f"{blank * 3}Project: {project_name}",
                 ["", "project_color", FormatLine.add_end_span],
             )
 
             # Get Task IDs for this Project.
-            task_ids = get_ids(False, project, project_name, [])
+            task_ids = _get_ids(False, project, project_name, [])
 
             # Get the Profile IDs for this Project and process them
             # True if we have Profiles for this Project
-            if profile_ids := get_ids(True, project, project_name, []):
-                outline_profiles_tasks_scenes(
+            if profile_ids := _get_ids(True, project, project_name, []):
+                _outline_profiles_tasks_scenes(
                     project_name,
                     profile_ids,
                     task_ids,
@@ -485,7 +497,7 @@ def do_the_outline(network: dict) -> None:
             # No Profiles for Project
             if not profile_ids:
                 # Add blank line since lineout.py added a completion for Project
-                PrimeItems.output_lines.add_line_to_output(
+                _add_line_to_output(
                     3,
                     "",
                     FormatLine.dont_format_line,

@@ -338,37 +338,30 @@ def reset_named_objects() -> None:
 # Count the number of consecutive occurrences of a substring within a main string.
 def count_consecutive_substr(main_str: str, substr: str) -> int:
     """
-    Count the maximum consecutive occurrences of a substring within a main string.
-    Args:
-        main_str: The main string to search for consecutive substrings.
-        substr: The substring to count consecutive occurrences of.
-
-    Returns:
-        The maximum count of consecutive occurrences of the substring within the main string.
-    NOTE: Oprtimized version to reduce string slicing operations.
+    Count the maximum consecutive occurrences of 'substr' inside 'main_str'.
+    Highly optimized: performs a single linear scan with no repeated .find() calls.
     """
     if not main_str or not substr:
         return 0
 
     sub_len = len(substr)
-    max_count = count = 0
-    i = main_str.find(substr)
+    max_count = 0
+    count = 0
 
-    while i != -1:
-        # Check if this occurrence is consecutive with the previous
-        next_i = i + sub_len
-        next_found = main_str.find(substr, next_i)
-        count = 1
+    i = 0
+    end = len(main_str)
 
-        while next_found == next_i:
+    while i <= end - sub_len:
+        # Direct substring match without slicing
+        if main_str.startswith(substr, i):
             count += 1
-            next_i += sub_len
-            next_found = main_str.find(substr, next_i)
+            i += sub_len
+        else:
+            max_count = max(max_count, count)
+            count = 0
+            i += 1
 
-        max_count = max(max_count, count)
-        i = main_str.find(substr, next_i)
-
-    return max_count
+    return max(max_count, count)
 
 
 def pretty(d: dict, indent: int = 0) -> None:
@@ -379,10 +372,11 @@ def pretty(d: dict, indent: int = 0) -> None:
         d: The dictionary to print.
         indent: The number of tabs to indent the output with.
     """
+    _pretty = pretty
     for key, value in d.items():
         print("\t" * indent + str(key))
         if isinstance(value, dict):
-            pretty(value, indent + 1)
+            _pretty(value, indent + 1)
         else:
             print("\t" * (indent + 1) + str(value))
 
@@ -442,9 +436,10 @@ def display_task_warnings() -> None:
         ),
     ]
     # Go through the warnings and add to our output list.
+    _fix_hyperlink_name = fix_hyperlink_name
     for task_name, value in PrimeItems.task_action_warnings.items():
         # Build the hotlink to the Task.
-        href_name = fix_hyperlink_name(task_name)
+        href_name = _fix_hyperlink_name(task_name)
         # Build the hyperelink reference
         href = f"<a href=#tasks_{href_name}>{task_name}</a>"
 
@@ -605,8 +600,9 @@ def find_owning_project(profile_name: str) -> str:
     profile_id = {v["name"]: k for k, v in profile_dict.items()}.get(profile_name)
 
     if profile_id:
+        _get_ids = get_ids
         for project_name, project_value in PrimeItems.tasker_root_elements["all_projects"].items():
-            if profile_id in get_ids(True, project_value["xml"], project_name, []):
+            if profile_id in _get_ids(True, project_value["xml"], project_name, []):
                 return project_name
     return ""
 

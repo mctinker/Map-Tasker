@@ -329,13 +329,14 @@ def get_conditions(child: defusedxml, the_action_code: str) -> str:
     boolean_to_inject = result = ""
     booleans = []
     # Go through <ConditionList sr="if"> sub-elements
+    _evaluate_condition = evaluate_condition
     for children in child.find("ConditionList"):
         if "bool" in children.tag:
             booleans.append(children.text)
         # elif children.tag == "Condition" and the_action_code != "37":
         elif children.tag == "Condition":
             # Evaluate the condition to add to output
-            string1, operator, string2 = evaluate_condition(children)
+            string1, operator, string2 = _evaluate_condition(children)
             if condition_count != 0:
                 boolean_to_inject = f" {booleans[condition_count - 1].upper()} "
                 # Add this conditional statement to the chain of conditional statements

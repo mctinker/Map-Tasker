@@ -46,6 +46,7 @@ def get_profile_tasks(
     list_of_tasks = []
     single_task_name = PrimeItems.program_arguments.get("single_task_name")
 
+    _get_task_name = tasks.get_task_name
     for child in the_profile:
         tag = child.tag
         if tag in keys_we_dont_want:
@@ -58,7 +59,7 @@ def get_profile_tasks(
             if task_id not in found_tasks_list:
                 PrimeItems.task_count_for_profile += 1
 
-            task_element, task_name = tasks.get_task_name(
+            task_element, task_name = _get_task_name(
                 task_id,
                 found_tasks_list,
                 task_output_line,
@@ -592,7 +593,7 @@ def align_html_text(html_string: str) -> str:
     # Format Priority and '[(icon)DISABLED]'
     html_string = html_string.replace(" Priority:", "<br>Priority:").replace(
         "[&#9940;&nbsp;DISABLED]",
-        "<br>[&#9940;&nbsp;DISABLED])",
+        "<br>[&#9940;&nbsp;DISABLED]",
     )
 
     # Split the string by <br> tags within the profile_condition_color span
@@ -660,11 +661,12 @@ def process_profiles(
     """
 
     # Go through the Profiles found in the Project
+    _do_profile = do_profile
     for item in profile_ids:
         profile = PrimeItems.tasker_root_elements["all_profiles"][item]["xml"]
         if profile is None:  # If Project has no profiles, skip
             return None
-        specific_task = do_profile(
+        specific_task = _do_profile(
             item,
             project,
             project_name,

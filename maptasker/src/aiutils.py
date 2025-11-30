@@ -113,6 +113,7 @@ def get_anthropic_models() -> list:
         # "claude-opus-4-20250514",
         "claude-opus-4-0",  # alias
         "claude-opus-4-1",  # alias
+        "claude-opus-4-5",  # alias
         # "claude-sonnet-4-20250514",
         "claude-sonnet-4-0",  # alias
         "claude-sonnet-4-5",
@@ -120,11 +121,12 @@ def get_anthropic_models() -> list:
         # "claude-3-7-sonnet-20250219",
         "claude-3-7-sonnet-latest",  # alias
         # Claude 3.5 Models
-        # "claude-3-5-haiku-20241022",
         "claude-3-5-haiku-latest",  # alias
+        "claude-haiku-4-5",  # alias
         # "claude-3-5-sonnet-20241022",
         "claude-3-5-sonnet-latest",  # alias
         "claude-3-5-sonnet-20240620",  # previous version
+        "claude-sonnet-4-5",  # alias
         # Claude 3 Models
         "claude-3-opus-20240229",
         "claude-3-opus-latest",  # alias

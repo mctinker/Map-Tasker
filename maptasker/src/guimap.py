@@ -28,6 +28,12 @@ The data consists of a list of dictionary values (formatted by guimap)...
         'highlights': list of highlights to apply to the text elements (e.g. bold, underline, etc..)
 """
 glob_spacing = 15
+dir_headers = (
+    "Projects...........................",
+    "Profiles...........................",
+    "Tasks...........................",
+    "Scenes...........................",
+)
 
 
 def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: int) -> int:
@@ -87,6 +93,11 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
         last_item = {}
         # Set the end of label flag
         lblend = False
+        # Default values for the loop
+        color = ""
+        font = ""
+        decor = ""
+        text = ""
 
         for num, line in enumerate(html_lines):
             # Skip empty lines or lines that are just closing span tags
@@ -225,7 +236,9 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
                     last_item["color"] == color
                     and last_item["highlights"] == font
                     and last_item["decor"] == decor
-                    and not ("<a href=" in text or "<a href=" in last_item["text"])
+                    # and not ("<a href=" in text or "<a href=" in last_item["text"])
+                    # Faster check for anchor tag presence (using find is often faster than 'in')
+                    and last_item["text"].find("<a href=") == -1
                     and not table
                 ):
                     # If they match, concatenate the text in the processed_line_data list
@@ -432,32 +445,46 @@ def remove_the_html_tags(text: str) -> str:
 
 def clean_text_list(text_list: list[str], tabs: str) -> list[str]:
     """
-    Optimized cleanup of all text elements.
+    Very fast cleanup of all text elements.
+    Uses deterministic fixed-string replacements with minimized overhead.
     """
-    # Precompile regex for multi-character replacements
-    replacements = {
-        "&nbsp;": " ",
-        "\n\n": "\n",
-        "<DIV": "",
-        "</div>": "",
-        "&#45;": "-",
-        "&lt;": "<",
-        "&gt;": ">",
-        "&quot;": '"',
-        "[Launcher Task:": " [Launcher Task:",
-        " --Task:": "--Task:",
-        "<a href='#'>": "",
-        "</a>": "",
-    }
-    pattern = re.compile("|".join(re.escape(k) for k in replacements))
-
-    # Localize variables for speed
-    sub = pattern.sub
-    tab_replace = "\t"
+    # Localize everything for speed
     repl_tabs = tabs
+    tab_replace = "\t"
 
-    # Perform replacements in one pass per text
-    return [sub(lambda m: replacements[m.group(0)], text).replace(tab_replace, repl_tabs) for text in text_list]
+    # Ordered list of (old, new) preserves intent & deterministic behavior
+    replacements = (
+        ("&nbsp;", " "),
+        ("\n\n", "\n"),
+        ("<DIV", ""),
+        ("</div>", ""),
+        ("&#45;", "-"),
+        ("&lt;", "<"),
+        ("&gt;", ">"),
+        ("&quot;", '"'),
+        ("[Launcher Task:", " [Launcher Task:"),
+        (" --Task:", "--Task:"),
+        ("<a href='#'>", ""),
+        ("</a>", ""),
+        ("</span>", ""),
+    )
+
+    out = []
+    append = out.append
+
+    for text in text_list:
+        # Apply fast literal replacements
+        for old, new in replacements:
+            if old in text:  # cheap containment check avoids useless .replace()
+                text = text.replace(old, new)  # noqa: PLW2901
+
+        # Tabs last (highest hit rate)
+        if "\t" in text:
+            text = text.replace(tab_replace, repl_tabs)  # noqa: PLW2901
+
+        append(text)
+
+    return out
 
 
 # Optimized
@@ -499,13 +526,15 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
                 f"guimap error: '{text_list[0]}' missing '>' in line {line_num}: {output_lines[line_num]['text']}!",
             )
 
+    # Cleanup the text by removing stray stuff (mostly html).
     new_text_list = clean_text_list(text_list, tabs)
 
     # Handle special situations
 
     # Remove all the html from the text
+    _remove_the_html_tags = remove_the_html_tags
     if remove_html:
-        new_text_list = [remove_the_html_tags(text) for text in new_text_list]
+        new_text_list = [_remove_the_html_tags(text) for text in new_text_list]
 
     if new_text_list:
         output_lines[line_num]["text"] = new_text_list
@@ -675,6 +704,7 @@ def process_line(
     _extract_working_text = extract_working_text
     _remove_html_spans = remove_html_spans
     _extract_highlights = extract_highlights
+    _remove_html_tags = remove_html_tags
     previous_line = ""
 
     for color_pos in color_list:
@@ -719,15 +749,14 @@ def process_line(
                         output_lines[line_num]["highlights"] = highlights
 
                 # Remove HTML tags and replace with spaces
-                raw_text = remove_html_tags(working_text, "").replace("<span class=", " ").replace("\n\n", "\n")
+                raw_text = _remove_html_tags(working_text, "")
+                if "<span class=" in raw_text:
+                    raw_text = raw_text.replace("<span class=", " ")
+                if "\n\n" in raw_text:
+                    raw_text = raw_text.replace("\n\n", "\n")
 
-                # Indicate a directory header
-                if (
-                    "Projects..........................." in raw_text
-                    or "Profiles..........................." in raw_text
-                    or "Tasks..........................." in raw_text
-                    or "Scenes..........................." in raw_text
-                ):
+                # # Indicate a directory header
+                if raw_text.startswith(dir_headers):
                     raw_text = f"\nn{raw_text}"
 
                 output_lines[line_num]["text"].append(raw_text)
@@ -895,13 +924,20 @@ def additional_formatting(
         tuple: output_lines, spacing and whether to ingore the line (True).
     """
     line = pattern8.sub("\n", line)
+    color_span = '<span style="color:'
 
-    # Correct bad class statement
-    line = line.replace("class='\\blanktab1\\'", "class='blanktab1'")
+    # Fix bad class statement
+    if "class='\\blanktab1\\'" in line:
+        line = line.replace("class='\\blanktab1\\'", "class='blanktab1'")
 
-    # Correct icons
-    line = line.replace("&#9940;", "⛔")
-    line = line.replace("&#11013;", "⫷⇦") if "Entry" in line else line.replace("&#11013;", "⇨⫸")
+    # Replace icons
+    if "&#9940;" in line:
+        line = line.replace("&#9940;", "⛔")
+
+    if "&#11013;" in line:
+        # Choose direction based on presence of 'Entry'
+        replacement = "⫷⇦" if "Entry" in line else "⇨⫸"
+        line = line.replace("&#11013;", replacement)
 
     output_lines[line_num] = {"text": [], "color": [], "highlights": []}
 
@@ -916,14 +952,15 @@ def additional_formatting(
         output_lines = coloring_and_highlights(output_lines, line, line_num)
 
     # If color is already embedded (TaskerNet description or label)...
-    elif '<span style="color:' in line:
-        temp1 = line.split('<span style="color:')
+    elif color_span in line:
+        temp1 = line.split(color_span)
+        _remove_html_tags = remove_html_tags
         for item in temp1:
             if item and item != "</span>":
                 output_lines[line_num]["color"].append(item.split(";text-decoration:")[0])
                 # output_lines[line_num]["text"].append(item.split('-text">')[1])
                 temp_text = item.split('-text">')[1].replace("Go to top", "")
-                output_lines[line_num]["text"] = [remove_html_tags(temp_text, "")]
+                output_lines[line_num]["text"] = [_remove_html_tags(temp_text, "")]
 
     # Extract global variable from table definition
     elif line.startswith("<tr><td"):
@@ -1104,6 +1141,18 @@ def process_html_lines(
     _cleanup_text_elements = cleanup_text_elements
     _handle_disabled_objects = handle_disabled_objects
     _process_label_html = process_label_html
+    _align_text = align_text
+    td = "<td>"
+    table_head1 = "<th>Name</th>\n"
+    table_head2 = "<th>Value</th>\n"
+    element_of_type = "Element of type"
+    html_keep1 = "!DOCTYPE"
+    html_keep2 = "&lt;style&gt;"
+    html_keep3 = "&lt;script"
+    text_decor = ";text-decoration:"
+    close_span = "</span>"
+    new_textbox = 'label:</span><div  class="text-box"><p>'
+    # --- End Pre-calculate/Cache ---
 
     # --- Start Processing Loop ---
     for line_num, line in enumerate(lines):
@@ -1118,10 +1167,10 @@ def process_html_lines(
             continue
 
         # 3. Handle Directory Entries
-        if "<td>" in line:
+        if td in line:
             # Add directory entry and mark next line for skipping (if part of a multi-line structure)
             output_lines = _add_directory_entry(
-                line.split("<td>"),
+                line.split(td),
                 output_lines,
                 line_num,
             )
@@ -1138,7 +1187,7 @@ def process_html_lines(
         insert_key = line_num
 
         # --- Handle Global Variables Table Start ---
-        if line == "<th>Name</th>\n" and line_num + 1 < len(lines) and lines[line_num + 1] == "<th>Value</th>\n":
+        if line == table_head1 and line_num + 1 < len(lines) and lines[line_num + 1] == table_head2:
             output_lines[insert_key] = {
                 "text": ["Variable Name...............Variable Value"],
                 "color": ["turquoise1"],
@@ -1158,21 +1207,21 @@ def process_html_lines(
             continue
 
         # 6. Pre-processing for the current line
-        if "Element of type" in line:
+        if element_of_type in line:
             spacing = 0
 
         # Check for valid lines in which we don't want to remove the html
-        if "!DOCTYPE" in line or "&lt;style&gt;" in line or "&lt;script" in line:
+        if html_keep1 in line or html_keep2 in line or html_keep3 in line:
             remove_html = False
 
         # If we are doing html from a screen WebElement/variable set, provide appropriate spacing.
         if not remove_html:
             # Using tuple-assignment to avoid reassignment warning.
-            line = align_text(line, 30)  # noqa: PLW2901
+            line = _align_text(line, 30)  # noqa: PLW2901
 
         # 7. Apply additional formatting (The core processing)
         # Only call the heavy function if we don't have the simple TaskerNet/label inline color
-        if ";text-decoration:" not in line:
+        if text_decor not in line:
             # additional_formatting will create the dict entry at insert_key
             output_lines, spacing, ignore_the_line = _additional_formatting(
                 doing_global_variables,
@@ -1191,7 +1240,7 @@ def process_html_lines(
             temp1 = line.split('<span style="color:')
             for item in temp1:
                 # Get the pertinent info for the output line.
-                if item and item != "</span>" and not item.endswith('label:</span><div  class="text-box"><p>'):
+                if item and item != close_span and not item.endswith(new_textbox):
                     output_lines[insert_key]["color"].append(item.split(";text-decoration:")[0])
                     temp_text = item.split('-text">')[1].replace("Go to top", "")
                     output_lines[insert_key]["text"] = [_remove_html_tags(temp_text, "")]

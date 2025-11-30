@@ -110,6 +110,8 @@ def process_preferences(temp_output_lines: list) -> None:
         return
 
     # Go through each <service> xml element
+    _process_service = process_service
+    _format_html = format_html
     for service in PrimeItems.tasker_root_elements["all_services"]:
         # Make sure the <Setting> xml element is valid
         if all(service.find(tag) is not None for tag in ("n", "t", "v")):
@@ -121,7 +123,7 @@ def process_preferences(temp_output_lines: list) -> None:
             # See if the service name is in our dictionary of preferences
             if service_name in service_codes:
                 # Got a hit.  Go process it.
-                process_service(service_name, service_value, temp_output_lines)
+                _process_service(service_name, service_value, temp_output_lines)
 
             # If debugging, list specific preferences which can't be identified.
             elif PrimeItems.program_arguments["debug"]:
@@ -134,7 +136,7 @@ def process_preferences(temp_output_lines: list) -> None:
                 temp_output_lines.append(
                     [
                         dummy_num,
-                        format_html(
+                        _format_html(
                             "preferences_color",
                             "",
                             (
@@ -195,6 +197,7 @@ def get_preferences() -> None:
     sorted_output = sorted(temp_output_lines, key=itemgetter(0))
 
     # Now output them: go through list of output lines (sorted) and "output" each
+    _add_line_to_output = PrimeItems.output_lines.add_line_to_output
     for _, (num, line) in enumerate(sorted_output):
         section = next(
             (item[1]["section"] for item in service_codes.items() if item[1]["num"] == num),
@@ -202,18 +205,12 @@ def get_preferences() -> None:
         )
         if section is not None and section != previous_section:
             # Add the preference in the order it appears in Tasker
-            PrimeItems.output_lines.add_line_to_output(
+            _add_line_to_output(
                 0,
                 f"<br>&nbsp;Section: {section_names[section]}",
                 ["", "preferences_color", FormatLine.add_end_span],
             )
             previous_section = section
-        PrimeItems.output_lines.add_line_to_output(0, f"{line}", FormatLine.dont_format_line)
+        _add_line_to_output(0, f"{line}", FormatLine.dont_format_line)
 
-    # Let user know that we have not mapped the remaining items
-    # PrimeItems.output_lines.add_line_to_output(
-    #     0,
-    #     "The remaining preferences are not yet mapped or are unused.",
-    #     ["", "preferences_color", FormatLine.add_end_span],
-    # )
-    PrimeItems.output_lines.add_line_to_output(0, "", FormatLine.dont_format_line)
+    _add_line_to_output(0, "", FormatLine.dont_format_line)
