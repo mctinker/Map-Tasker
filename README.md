@@ -70,7 +70,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ### - TKinter 8.6 or higher (see [Note 3](#3))
 
-### - Tasker full or partial XML file: backup.xml or other exported XML file
+### - Tasker full or partial XML file: backup.xml or other Tasker exported XML file
 
 ### - Optional 'ffmpeg' for Youtube video hotlinks (see [Note 6](#6))
 
@@ -279,9 +279,9 @@ Ai analysis is available through the GUI only. You can run an analysis using a s
 Llama based models are supported via [Ollama](https://ollama.com/), which you must manually download, install and run it once to set up the server on your desktop.
 
 **Note 6:**
-For MAC and Linux only (Windows 11 has problems installing the necessary dependencies)...
-
 'ffmpeg' version 8 or highler can optionally be installed to make embedded YouTube videos clickable and to display them in a separate video-player window from within the Map view.  Other videos, such as those stored on Dropbox as 'mp4' files, are not affected and will display as a clickable hot-link.
+
+The direct playing of YouTube videos is not supported on Windows due to a dependency issue.  Therefore, 'ffmpeg' is not required for Windows users.
 
 The videos are identifiable via the text: '[▶️ VIDEO: some-youtube-url...]', and this text will be hot/clickable if ffmpeg is properly installed.
 
