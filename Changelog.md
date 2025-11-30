@@ -2,24 +2,22 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.1.0] 20-Nov-2025
+## [9.1.1-9.1.3] 30-Nov-2025
 
 ### Added
 
-- Added: Video playback support has been added to TaskerNet descriptions and labels (Youtube via ffmpeg, and Dropbox).
-- Added: 'ffmpeg' installation details have been included in the 'Caveats' section at the bottom of the Map view/HTML and in the README file.
-- Added: Tasker version 6.6.12-beta is supported.
+- Added:
 
 ### Changed
 
-- Changed: Embedded 'href=url...' videos are now referenced via '[▶️ VIDEO: url...]'
+- Changed: Performance tuning.
+- Changed: Video hotlinks are temporarily not supported on Windows due to failing dependency on 'opencv-python'.
 
 ### Fixed
 
-- Fixed: Slight spacing/newline problem with images in TaskerNet descriptions.
-- Fixed: Not properly recognizing new paragraph in embedded html.
-- Fixed: Under certain situations, TaskerNet description lines would be repeated.
-- Fixed: The program is incorrectly reporting that no Gemini AI models arewn found if in debug mode.
+- Fixed: Possible program loop if displaying 'TaskerNet Info'.
+- Fixed: Minor display error in certain TaskerNet Info hotlinks.
+- Fixed: Version 9.1.0 fails to install on Windows due to a problem with the dependency on 'opencv-python'.
 
 ### Known Issue
 
@@ -27,15 +25,26 @@ All notable changes to this project will be documented in this file!
 
 ## Older History Logs
 
+## [9.1.0] 20-Nov-2025
+
+- Added: Video playback support has been added to TaskerNet descriptions and labels (Youtube via ffmpeg, and Dropbox).
+- Added: 'ffmpeg' installation details have been included in the 'Caveats' section at the bottom of the Map view/HTML and in the README file.
+- Added: Tasker version 6.6.12-beta is supported.
+- Changed: Embedded 'href=url...' videos are now referenced via '[▶️ VIDEO: url...]'
+- Fixed: Slight spacing/newline problem with images in TaskerNet descriptions.
+- Fixed: Not properly recognizing new paragraph in embedded html.
+- Fixed: Under certain situations, TaskerNet description lines would be repeated.
+- Fixed: The program is incorrectly reporting that no Gemini AI models are found if in debug mode.
+
 ## [9.0.4-9.0.5] 06-Nov-2025
 
 - Added: Created an additional output trace log file if 'debug' is on for the Map view.
 - Added: Tasker beta 6.6.11-beta is now supported.
-- Added: Taskm action 'Assistant Volume' is now supported.
+- Added: Task action 'Assistant Volume' is now supported.
 - Changed: Code optimized for improved Map view performance.
 - Fixed: A program error occurs in 'guimap.py'.
 - Fixed: Eliminate excessive blank lines in the Map view.
-- Fixed: The Project's 'properties' inadvertantly pick up the color for 'Luancher Task' if there is a launcher task.
+- Fixed: The Project's 'properties' inadvertently pick up the color for 'Luancher Task' if there is a launcher task.
 
 ## [9.0.3] 30-Oct-2025
 
@@ -46,7 +55,7 @@ All notable changes to this project will be documented in this file!
 
 ## [9.0.2] 20-Oct-2025
 
-- Added: The 'strong', 'title', 'hr', 'figgcaption' and 'legend' HTML tags are now supported.
+- Added: The 'strong', 'title', 'hr', 'figcaption' and 'legend' HTML tags are now supported.
 - Added: Unrecognized HTML tags in labels and TaskerNet descriptions are now identified in the output as 'unmapped'
 - Changed: No notable changes
 - Fixed: List items in TaskerNet descriptions are not formatted properly.
