@@ -764,11 +764,8 @@ def add_down_and_up_arrows(connectors: dict, output_lines: list) -> None:
         line_count += 1
         if line_count > 20:
             if PrimeItems.program_arguments["debug"]:
-                print(
-                    "Rutroh",
-                    line_to_modify1,
-                    len(output_lines),
-                    output_lines[line_to_modify1],
+                rutroh_error(
+                    f"Too many iterations trying to find next blank line to modify.  Possible infinite loop.  Line to modify: {line_to_modify1}  Line: {output_lines[line_to_modify1]} Length: {len(output_lines)}",
                 )
             else:
                 logger.error(
@@ -1173,11 +1170,12 @@ def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
     def process_elbows(previous_line_num: int, position: int) -> int:
         """Handle cases where the current character is an elbow."""
         new_line = output_lines[previous_line_num]
+        _insert_bar_if_blank = insert_bar_if_blank
         while output_lines[num][position] == angle_elbow:
             if len(new_line) <= position:
                 new_line = new_line.ljust(position + 1, " ")
             if new_line[position] == straight_line or new_line[position] == " ":
-                output_lines[previous_line_num] = insert_bar_if_blank(
+                output_lines[previous_line_num] = _insert_bar_if_blank(
                     new_line,
                     position,
                 )
@@ -1195,6 +1193,8 @@ def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
     position = adjust_position_for_arrow(position)
 
     # Now go through and insert a bars as necessary
+    _insert_bar_if_blank = insert_bar_if_blank
+    _process_elbows = process_elbows
     while previous_line_num >= 0:
         new_line = output_lines[previous_line_num]
 
@@ -1204,10 +1204,10 @@ def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
 
         # Check for blank spaces to insert bar
         if new_line[position - 1] == " " and new_line[position] == " ":
-            output_lines[previous_line_num] = insert_bar_if_blank(new_line, position)
+            output_lines[previous_line_num] = _insert_bar_if_blank(new_line, position)
             previous_line_num -= 1
         elif output_lines[num][position] == angle_elbow:
-            previous_line_num = process_elbows(previous_line_num, position)
+            previous_line_num = _process_elbows(previous_line_num, position)
             if previous_line_num == -1:
                 break
         else:

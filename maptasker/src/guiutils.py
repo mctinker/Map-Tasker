@@ -943,7 +943,6 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
 
 
 # Update the Project/Profile/Task pulldown option menus.
-# @profile
 def update_tasker_object_menus(self, get_data: bool, reset_single_names: bool) -> None:  # noqa: ANN001
     """
     Update the Project/Profile/Task pulldown option menus. Only do this if we have the object name since it forces a read of XML.
@@ -1222,7 +1221,6 @@ def delete_old_pulldown_menus(self: object) -> None:
 
 
 # Provide a pulldown list for the selection of a Profile name
-# @profile
 def list_tasker_objects(self) -> bool:  # noqa: ANN001
     """
     Lists the projects, profiles and tasks available in the XML file.  The list for each will appear in a pulldown option list.

@@ -242,10 +242,10 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # CHG: For Development Only!
+        # FIX: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        # self.event_handlers.map_event()
+        self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
 
@@ -809,7 +809,6 @@ class MyGui(customtkinter.CTk):
         return f"{argument_name} set to {checked}.\n"
 
     # Given a setting key and value, set the attribute for the key to the value and return the setting as a message.
-    # @profile
     def restore_display(self, key: str, value: str) -> str:
         # Dictionary of program arguments and function to run for each upon restoration.
         """
@@ -1008,7 +1007,6 @@ class MyGui(customtkinter.CTk):
         Displays each color setting using the display_message_box method, handling cases where the background color is set.
         Ensures all colors are accounted for, setting any missing colors to turquoise.
         """
-        # @profile
         # Display the restored color changes, using the reverse dictionary of
         #   TYPES_OF_COLOR_NAMES (found in sysconst.py)
         inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}

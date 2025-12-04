@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.1.1-9.1.3] 30-Nov-2025
+## [9.1.4] ??-Dec-2025  # FIX
 
 ### Added
 
@@ -10,20 +10,25 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed: Performance tuning.
-- Changed: Video hotlinks are temporarily not supported on Windows due to failing dependency on 'opencv-python'.
+- Changed: Code optimizations
 
 ### Fixed
 
-- Fixed: Possible program loop if displaying 'TaskerNet Info'.
-- Fixed: Minor display error in certain TaskerNet Info hotlinks.
-- Fixed: Version 9.1.0 fails to install on Windows due to a problem with the dependency on 'opencv-python'.
+- Fixed:
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [9.1.1-9.1.3] 30-Nov-2025
+
+- Changed: Performance tuning.
+- Changed: Video hotlinks are temporarily not supported on Windows due to failing dependency on 'opencv-python'.
+- Fixed: Possible program loop if displaying 'TaskerNet Info'.
+- Fixed: Minor display error in certain TaskerNet Info hotlinks.
+- Fixed: Version 9.1.0 fails to install on Windows due to a problem with the dependency on 'opencv-python'.
 
 ## [9.1.0] 20-Nov-2025
 

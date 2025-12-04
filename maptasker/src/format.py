@@ -43,9 +43,10 @@ def format_line(item: str) -> str:
 
     # Handle list markers: ordered and unorderedby including leading blanks.
     while True:
+        _count_trailing_blanks = count_trailing_blanks
         lmrk = output_line.find("lmrk")
         if lmrk != -1:
-            leading_space_count = count_trailing_blanks(output_line, lmrk)
+            leading_space_count = _count_trailing_blanks(output_line, lmrk)
             leading_spaces = space * leading_space_count
             new_line = output_line[: (lmrk - leading_space_count)]
             new_line1 = f"{three_spaces}{leading_spaces}"

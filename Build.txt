@@ -1,5 +1,4 @@
-#! /bin/bash
-# python -m venv venv
+# My Development Cookbook
 
 set SOURCE /Users/mikrubin/Kaka/maptasker_test/venv/bin/activate.fish
 set SOURCE /Users/mikrubin/Kaka/maptasker/venv/bin/activate.fish
@@ -56,11 +55,14 @@ pyenv install 3.xx  <<< VERSION
     remove 'if __name__ = __main__' from main
 
 a- Profiler: add a profiler to code
-	Add @profile to function to be profiled.
-	kernprof -l maptasker -options
+	pip install line_profiler
+	To profile a function:
+	- Add: import line_profiler
+	- Add: @line_profiler.profile to function to be profiled.
+	- Run: po run kernprof -l maptasker -options  ...to generate profile
 
 	# Inspect results with
-	python -m line_profiler -rmt "maptasker.lprof"
+	po run python -m line_profiler -rmt "maptasker.lprof"
 
 
 2- Install

@@ -201,6 +201,7 @@ def process_xml_list(
     """
     the_list = names[arg_location]  # Retrieve the specific evaluation argument
     idx, len_of_list = 0, len(the_list)
+    _evaluate_action_setting = evaluate_action_setting
 
     while True:
         idx = (idx + 1) % len_of_list  # Cycle through elements
@@ -210,7 +211,7 @@ def process_xml_list(
             idx = (idx + 1) % len_of_list
             next_element = the_list[idx]
             include_negative = the_list[0] == "1" if this_element == "e" else False
-            evaluated_value = evaluate_action_setting(
+            evaluated_value = _evaluate_action_setting(
                 [include_negative, the_int_value, next_element],
             )
             match_results.append(

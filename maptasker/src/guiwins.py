@@ -554,7 +554,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -1787,11 +1789,12 @@ class CTkTextview(ctk.CTkFrame):
 
         # Get the lines in reverse, looking for the owner name.
         owner = ""
+        _get_first_substring_match = get_first_substring_match
         while line_to_get != "0":
             # Get the line and check for the owner name.
             idx = f"{line_to_get}.0"
             prev_line = textbox.get(idx, idx + " lineend")
-            if tasker_object := get_first_substring_match(prev_line, owner_keys):
+            if tasker_object := _get_first_substring_match(prev_line, owner_keys):
                 if tasker_object != pgv:
                     owner = prev_line.split(":")[1].split("   ")[0].strip()
                     owner = owner.split("(Not referenced by any ")[0].strip()
@@ -2267,7 +2270,6 @@ class CTkTextview(ctk.CTkFrame):
         _update_progress_display = self._update_progress_display
 
         # Setup debug output file
-        # TODO: Move this to ctktextview frame to make it more general.
         if master_debug:
             # Get our date and time and save it for the file name.
             now_time = get_current_local_time_auto_timezone()
@@ -2288,30 +2290,16 @@ class CTkTextview(ctk.CTkFrame):
                 _update_progress_display(progress, num)
 
             # Determine if we need to draw a box around the label text
-            if num > 2 and temp_previous_value:
-                # Use .get() instead of try/except for faster common-path lookup
-                spacing = value.get("spacing")
-                if spacing is not None:
-                    text = value["text"]
+            should_continue, temp_previous_value, line_num = self.process_label_box_logic(
+                num,
+                value,
+                temp_previous_value,
+                line_num,
+                _draw_box_around_text,
+            )
 
-                    # Convert empty text label to a newline (direct index access is fine)
-                    if not text[0]:
-                        text[0] = "\n"
-
-                    # Save the value for our box
-                    self.draw_box["all_values"].append(value)
-
-                    # Shallow copy only if needed downstream
-                    temp_previous_value = value.copy()
-
-                    # Draw box if this is the end of the label or TaskerNet description...
-                    # First element if debug since the last element has the 'code: nnn'.
-                    # Otherwise the last element.
-                    if value["end"][0] or value["end"][-1]:
-                        line_num = _draw_box_around_text(self, line_num)
-
-                    # Skip further processing
-                    continue
+            if should_continue:
+                continue
 
             # Save the previous value for above code check.
             temp_previous_value = value.copy()
@@ -2397,6 +2385,55 @@ class CTkTextview(ctk.CTkFrame):
         # Close the trace file if opened
         if master_debug:
             self.out_trace_file.close()
+
+    def process_label_box_logic(
+        self,
+        num: int,
+        value: dict,
+        temp_previous_value: dict,
+        line_num: int,
+        _draw_box_around_text: callable,
+    ) -> tuple[bool, dict, int]:
+        """
+        Handles the logic for determining when to draw a box around label text.
+
+        :param self: The class instance (to access draw_box and helper methods)
+        :param num: The current index or iteration counter
+        :param value: The dictionary containing text/spacing/end info
+        :param temp_previous_value: The previously stored value dict
+        :param line_num: The current line number (may be modified)
+        :param _draw_box_around_text: The function to call to draw the box
+        :return: (should_continue, updated_temp_previous_value, updated_line_num)
+        """
+
+        # Determine if we need to draw a box around the label text
+        if num > 2 and temp_previous_value:
+            # Use .get() instead of try/except for faster common-path lookup
+            spacing = value.get("spacing")
+            if spacing is not None:
+                text = value["text"]
+
+                # Convert empty text label to a newline (direct index access is fine)
+                if not text[0]:
+                    text[0] = "\n"
+
+                # Save the value for our box
+                self.draw_box["all_values"].append(value)
+
+                # Shallow copy only if needed downstream
+                temp_previous_value = value.copy()
+
+                # Draw box if this is the end of the label or TaskerNet description...
+                # First element if debug since the last element has the 'code: nnn'.
+                # Otherwise the last element.
+                if value["end"][0] or value["end"][-1]:
+                    line_num = _draw_box_around_text(self, line_num)
+
+                # Skip further processing (caller checks this)
+                return True, temp_previous_value, line_num
+
+        # Default: no skip, return original values
+        return False, temp_previous_value, line_num
 
     def _process_value_with_color_or_directory(
         self,
@@ -2494,7 +2531,6 @@ class CTkTextview(ctk.CTkFrame):
             blanks_to_check = len(text) - 1
             # Assuming 'blank' is defined elsewhere, e.g., 'blank = " "'
             # For this example, let's assume it's available.
-            blank = " "  # Placeholder, ensure 'blank' is properly defined in your context
             if blanks_to_check > 0 and text == f"{blank * blanks_to_check}\n":
                 return None, None, None
         return response, new_previous_text, text_content
