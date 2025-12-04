@@ -14,8 +14,7 @@ def get_priority(element: defusedxml.ElementTree, event: bool) -> str:
         :param event: True if this is for an 'Event' condition, False if not
         :return: the priority or none
     """
-    if element is None:
-        return ""
+
     priority_element = element.find("pri")
     if priority_element is None:
         return ""
@@ -30,8 +29,7 @@ def get_collision(element: defusedxml.ElementTree) -> str:
         :param element: root element to search for
         :return: the collision setting as text or blank
     """
-    if element is None:
-        return ""
+
     collision_element = element.find("rty")
     # No collision tag = default = Abort Task on collision (we'll leave it blank)
     if collision_element is None:
@@ -53,7 +51,6 @@ def get_awake(element: defusedxml.ElementTree) -> str:
         :param element: root element to search for
         :return: the stay awake setting as text or blank
     """
-    if element is None:
-        return ""
+
     awake_element = element.find("stayawake")
     return "" if awake_element is None else "&nbsp;&nbsp;[Keep Device Awake]"

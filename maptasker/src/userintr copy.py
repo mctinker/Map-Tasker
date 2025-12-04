@@ -301,7 +301,6 @@ class MyGui(customtkinter.CTk):
         self.ai_name = ""
         self.ai_analyze = False
         self.ai_model_extended_list = False
-        self.language = "English"
         self.ai_prompt = AI_PROMPT
         self.specific_name_msg = ""
         self.current_file_display_message = True
@@ -2877,18 +2876,6 @@ class EventHandlers:
         )
 
     # Process the 'EXtended' checkbox: Display Extended AI Model List
-    def language_selected_event(self, language: str) -> None:
-        """
-        Set the language for the GUI.
-        Args:
-            language: The language selected by the user.
-        Returns:
-            None: No value is returned.
-        """
-        the_view = self.parent
-        the_view.language = language
-        the_view.display_message_box(f"Language set to {language}.", "Green")
-
     def extended_models_event(self) -> None:
         """
         Get input to display names in bold and put message

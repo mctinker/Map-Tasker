@@ -18,8 +18,6 @@ def get_kid_app(element: defusedxml.ElementTree) -> str:
     blank = "&nbsp;"
     kid_features = kid_plugins = ""
     four_spaces = "&nbsp;&nbsp;&nbsp;&nbsp;"
-    if element is None:
-        return ""
     kid_element = element.find("Kid")
     if kid_element is None:
         return ""

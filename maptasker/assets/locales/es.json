@@ -1,0 +1,169 @@
+{
+    "0": "Int",
+    "1": "Cadena",
+    "2": "Aplicación",
+    "3": "Booleano",
+    "4": "Icono",
+    "5": "Paquete",
+    "6": "Escena"
+}
+[
+  {
+    "code": 10,
+    "name": "Alerta"
+  },
+  {
+    "code": 15,
+    "name": "Aplicación"
+  },
+  {
+    "code": 20,
+    "name": "Audio"
+  },
+  {
+    "code": 35,
+    "name": "Código"
+  },
+  {
+    "code": 40,
+    "name": "Pantalla"
+  },
+  {
+    "code": 50,
+    "name": "Archivo"
+  },
+  {
+    "code": 51,
+    "name": "Google Drive"
+  },
+  {
+    "code": 52,
+    "name": "Imagen"
+  },
+  {
+    "code": 55,
+    "name": "Entrada"
+  },
+  {
+    "code": 60,
+    "name": "Ubicación"
+  },
+  {
+    "code": 141,
+    "name": "Automatización del hogar Matter (Experimental)"
+  },
+  {
+    "code": 65,
+    "name": "Medios"
+  },
+  {
+    "code": 80,
+    "name": "Red"
+  },
+  {
+    "code": 90,
+    "name": "Teléfono"
+  },
+  {
+    "code": 100,
+    "name": "Plugin"
+  },
+  {
+    "code": 102,
+    "name": "Escena"
+  },
+  {
+    "code": 30,
+    "name": "Ajustes"
+  },
+  {
+    "code": 104,
+    "name": "Sistema"
+  },
+  {
+    "code": 105,
+    "name": "Tarea"
+  },
+  {
+    "code": 110,
+    "name": "Tasker"
+  },
+  {
+    "code": 120,
+    "name": "Variables"
+  },
+  {
+    "code": 125,
+    "name": "Zoom"
+  },
+  {
+    "code": 130,
+    "name": "3ra Parte"
+  }
+]
+[
+    {
+        "args": [
+            {
+                "id": 0,
+                "isMandatory": true,
+                "name": "Output Variables",
+                "sortOrder": 2147482647,
+                "type": 5
+            },
+            {
+                "id": 1,
+                "isMandatory": true,
+                "name": "Command",
+                "sortOrder": 2147482648,
+                "spec": "adbsc:3",
+                "type": 1
+            },
+            {
+                "id": 2,
+                "isMandatory": false,
+                "name": "Host",
+                "sortOrder": 2147482649,
+                "spec": "t:1:?",
+                "type": 1
+            },
+            {
+                "id": 3,
+                "isMandatory": false,
+                "name": "Port",
+                "sortOrder": 2147482650,
+                "spec": "t:1:?",
+                "type": 1
+            },
+            {
+                "id": 4,
+                "isMandatory": true,
+                "name": "Timeout (Seconds)",
+                "sortOrder": 2147482651,
+                "spec": "1:10:10",
+                "type": 0
+            },
+            {
+                "helpResId": 2131888186,
+                "id": 5,
+                "isMandatory": true,
+                "name": "Enable Debugging (Check Help)",
+                "sortOrder": 2147482652,
+                "type": 3
+            },
+            {
+                "helpResId": 2131888187,
+                "id": 6,
+                "isMandatory": false,
+                "name": "Result Encoding",
+                "sortOrder": 2147482653,
+                "spec": "t:1:?",
+                "type": 1
+            }
+        ],
+        "canFail": true,
+        "categoryCode": 35,
+        "code": 375,
+        "name": "ADB Wifi (Español)"
+    }
+]

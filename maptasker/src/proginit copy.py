@@ -308,26 +308,16 @@ def build_action_codes_from_json(build_it_all: bool = False) -> None:
 
     # Get the map of all Tasker task action argument types
     try:
-        language = PrimeItems.program_arguments.get("language", "English").lower()
-        if language != "english":
-            try:
-                with open(f"{json_dir.replace('json', 'locales')}{language}.json", encoding="utf-8") as file:
-                    PrimeItems.tasker_arg_specs = json.load(file)
-            except FileNotFoundError:
-                logger.error(f"Language file for {language} not found. Defaulting to English.")
-                with open(f"{json_dir}arg_specs.json", encoding="utf-8") as file:
-                    PrimeItems.tasker_arg_specs = json.load(file)
-        else:
-            with open(f"{json_dir}arg_specs.json", encoding="utf-8") as file:
-                PrimeItems.tasker_arg_specs = json.load(file)
-        spec_number = len(PrimeItems.tasker_arg_specs)
-        # Add extras for new action specs
-        PrimeItems.tasker_arg_specs[str(spec_number)] = "ConditionList"
-        PrimeItems.tasker_arg_specs[str(spec_number + 1)] = "Img"
-        for key, value in PrimeItems.tasker_arg_specs.items():
-            if value == "String":
-                PrimeItems.tasker_arg_specs[key] = "Str"
-                break
+        with open(f"{json_dir}arg_specs.json", encoding="utf-8") as file:
+            PrimeItems.tasker_arg_specs = json.load(file)
+            spec_number = len(PrimeItems.tasker_arg_specs)
+            # Add extras for new action specs
+            PrimeItems.tasker_arg_specs[str(spec_number)] = "ConditionList"
+            PrimeItems.tasker_arg_specs[str(spec_number + 1)] = "Img"
+            for key, value in PrimeItems.tasker_arg_specs.items():
+                if value == "String":
+                    PrimeItems.tasker_arg_specs[key] = "Str"
+                    break
     except FileNotFoundError:
         logger.error("arg_specs missing!")
 
@@ -340,24 +330,13 @@ def build_action_codes_from_json(build_it_all: bool = False) -> None:
         PrimeItems.program_arguments["debug"] = True
 
         # Get the map of all Tasker task action codes and their arguments
-        language = PrimeItems.program_arguments.get("language", "English").lower()
-        if language != "english":
-            try:
-                with open(f"{json_dir.replace('json', 'locales')}{language}.json", encoding="utf-8") as file:
-                    tasker_codes = json.load(file)
-            except FileNotFoundError:
-                logger.error(f"Language file for {language} not found. Defaulting to English.")
-                with open(f"{json_dir}task_all_actions.json", encoding="utf-8") as file:
-                    tasker_codes = json.load(file)
-        else:
-            with open(f"{json_dir}task_all_actions.json", encoding="utf-8") as file:
-                tasker_codes = json.load(file)
-        # NOTE: 'spec' defines the argument value:
-        # t:n:? = text where 'n' is number of input lines; ? means optional.
-        # n:nn = range of numbers; nn is the maximum number.
-        # h:m:s = time
-        # plus more...
-        tasker_codes = json.load(file)
+        with open(f"{json_dir}task_all_actions.json", encoding="utf-8") as file:
+            # NOTE: 'spec' defines the argument value:
+            # t:n:? = text where 'n' is number of input lines; ? means optional.
+            # n:nn = range of numbers; nn is the maximum number.
+            # h:m:s = time
+            # plus more...
+            tasker_codes = json.load(file)
 
         # Go thru the list of dictionaries and build our own dictionary from task_all_actions.json contents.
         for value in tasker_codes:
@@ -373,20 +352,10 @@ def build_action_codes_from_json(build_it_all: bool = False) -> None:
         )
 
         # Get the action category description
-        language = PrimeItems.program_arguments.get("language", "English").lower()
-        if language != "english":
-            try:
-                with open(f"{json_dir.replace('json', 'locales')}{language}.json", encoding="utf-8") as file:
-                    category_descriptions = json.load(file)
-            except FileNotFoundError:
-                logger.error(f"Language file for {language} not found. Defaulting to English.")
-                with open(f"{json_dir}category_descriptions.json", encoding="utf-8") as file:
-                    category_descriptions = json.load(file)
-        else:
-            with open(f"{json_dir}category_descriptions.json", encoding="utf-8") as file:
-                category_descriptions = json.load(file)
-        for description in category_descriptions:
-            PrimeItems.tasker_category_descriptions[description["code"]] = description["name"]
+        with open(f"{json_dir}category_descriptions.json", encoding="utf-8") as file:
+            category_descriptions = json.load(file)
+            for description in category_descriptions:
+                PrimeItems.tasker_category_descriptions[description["code"]] = description["name"]
 
         # Merge actionc with this new data to create a new dictionary
         merge_action_codes()

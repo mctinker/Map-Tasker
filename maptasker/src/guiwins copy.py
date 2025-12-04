@@ -4160,7 +4160,6 @@ def initialize_screen(self: object) -> None:
     _create_task_action_limit_section(self)
     _create_indentation_section(self)
     _create_appearance_mode_section(self)
-    _create_language_selection_section(self)
     _create_view_buttons_section(self)
     _create_view_limit_section(self)
     _create_settings_buttons_section(self)
@@ -4427,34 +4426,6 @@ def _create_indentation_section(self: ctk) -> None:
         (0, 10),
         "n",
     )
-
-
-def _create_language_selection_section(self: ctk) -> None:
-    """Creates the language selection dropdown."""
-    self.language_label = add_label(
-        self,
-        self.sidebar_frame,
-        "Language:",
-        "",
-        0,
-        "normal",
-        19,
-        0,
-        0,
-        (10, 0),
-        "s",
-    )
-    self.language_optionmenu = add_option_menu(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.language_selected_event,
-        ["English", "Spanish"],
-        20,
-        0,
-        0,
-        (0, 10),
-        "n",
-    )
     create_tooltip(
         self.indent_option,
         text="Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.",
@@ -4491,7 +4462,7 @@ def _create_appearance_mode_section(self: ctk) -> None:
 
 def _create_view_buttons_section(self: ctk) -> None:
     """Creates buttons for different views (Map, Diagram, Tree)."""
-    add_label(self, self.sidebar_frame, "Views", "", 0, "normal", 21, 0, 0, 0, "s")
+    add_label(self, self.sidebar_frame, "Views", "", 0, "normal", 19, 0, 0, 0, "s")
 
     self.mapview_button = add_button(
         self,
@@ -4503,7 +4474,7 @@ def _create_view_buttons_section(self: ctk) -> None:
         1,
         "Map",
         1,
-        22,
+        20,
         0,
         (20, 0),
         0,
@@ -4525,7 +4496,7 @@ def _create_view_buttons_section(self: ctk) -> None:
         2,
         "Diagram",
         1,
-        22,
+        20,
         0,
         105,
         0,
@@ -4547,7 +4518,7 @@ def _create_view_buttons_section(self: ctk) -> None:
         2,
         "Tree",
         0,
-        22,
+        20,
         0,
         (0, 40),
         0,
@@ -4569,7 +4540,7 @@ def _create_view_buttons_section(self: ctk) -> None:
         1,
         "?",
         1,
-        22,
+        20,
         0,
         (300, 0),
         0,
@@ -4587,7 +4558,7 @@ def _create_view_limit_section(self: ctk) -> None:
         "",
         0,
         "normal",
-        23,
+        21,
         0,
         30,
         20,
@@ -4598,7 +4569,7 @@ def _create_view_limit_section(self: ctk) -> None:
         self.sidebar_frame,
         self.event_handlers.viewlimit_event,
         ["5000", "10000", "15000", "20000", "25000", "30000", "Unlimited"],
-        23,
+        21,
         0,
         (20, 0),
         20,
@@ -4618,7 +4589,7 @@ def _create_view_limit_section(self: ctk) -> None:
         1,
         "?",
         1,
-        23,
+        21,
         0,
         (200, 0),
         20,
@@ -4639,7 +4610,7 @@ def _create_settings_buttons_section(self: ctk) -> None:
         2,
         "Reset Options",
         1,
-        23,
+        21,
         0,
         20,
         (80, 10),
