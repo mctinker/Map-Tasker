@@ -222,6 +222,9 @@ def validate_xml(
     error_message = ""
     counter = 0
     xml_tree = None
+    _write_out_backup_file = write_out_backup_file
+    _get_the_xml_data = get_the_xml_data
+    _rewrite_xml = rewrite_xml
 
     # Loop until we get a valid XML file or invalid XML
     while process_file:
@@ -232,11 +235,11 @@ def validate_xml(
 
             # If getting file from Android device, write out the backup file first.
             if ip_address:
-                write_out_backup_file(file_contents)
+                _write_out_backup_file(file_contents)
 
             # We don't have the file yet.  Lets get it.
             else:
-                return_code = get_the_xml_data()
+                return_code = _get_the_xml_data()
                 if return_code != 0:
                     return PrimeItems.error_msg, None
 
@@ -251,7 +254,7 @@ def validate_xml(
                 error_message = f"Improperly formatted XML in {android_file}. Try again."
                 process_file = False  # Get out of while/loop
             except UnicodeDecodeError:  # Unicode error
-                rewrite_xml(file_to_validate)
+                _rewrite_xml(file_to_validate)
                 counter += 1
                 if counter > 2:
                     error_message = f"Unicode error in {android_file}.  Try again."

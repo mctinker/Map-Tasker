@@ -483,11 +483,12 @@ def delete_hanging_bars(
 
     # Now let's make sure there is a bar connecting right down arrow to Task.
     line_num = len(output_lines) - 1
+    _add_bar_above_lines = add_bar_above_lines
     while line_num > 0:
         # Add bar(s) (|) above right-down arrow as necessary.
         arrow_position = output_lines[line_num].find(right_arrow_corner_down)
         if arrow_position != -1:
-            add_bar_above_lines(output_lines, line_num, arrow_position)
+            _add_bar_above_lines(output_lines, line_num, arrow_position)
 
         line_num -= 1
 

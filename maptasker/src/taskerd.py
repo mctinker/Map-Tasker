@@ -69,6 +69,7 @@ def get_the_xml_data() -> bool:
     counter = 0
     anchor = "Anchor ...with label:\n"
 
+    _rewrite_xml = rewrite_xml
     while True:
         try:
             xmlp = ET.XMLParser(encoding="utf-8")
@@ -79,7 +80,7 @@ def get_the_xml_data() -> bool:
             if counter > 2 or isinstance(e, ET.ParseError):
                 error_handler(f"Error in {file_to_parse}: {e}", 1)
                 return 1
-            rewrite_xml(file_to_parse)
+            _rewrite_xml(file_to_parse)
 
     if PrimeItems.xml_tree is None:
         return 1 if not PrimeItems.program_arguments["gui"] else _handle_gui_error("Bad XML file")
