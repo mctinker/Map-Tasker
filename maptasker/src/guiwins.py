@@ -4013,6 +4013,7 @@ def _initialize_gui_settings(self: ctk) -> None:
     self.clear_messages = False
     self.pretty = False
     self.task_action_warning_limit = 20
+    self.language = "English"
 
 
 def _initialize_ai_settings(self: ctk) -> None:
@@ -4427,6 +4428,10 @@ def _create_indentation_section(self: ctk) -> None:
         (0, 10),
         "n",
     )
+    create_tooltip(
+        self.indent_option,
+        text="Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.",
+    )
 
 
 def _create_language_selection_section(self: ctk) -> None:
@@ -4455,10 +4460,10 @@ def _create_language_selection_section(self: ctk) -> None:
         (0, 10),
         "n",
     )
-    create_tooltip(
-        self.indent_option,
-        text="Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.",
-    )
+    if hasattr(PrimeItems, "_"):
+        self.language_optionmenu.set(PrimeItems._(self.language))
+    else:
+        self.language_optionmenu.set(self.language)
 
 
 def _create_appearance_mode_section(self: ctk) -> None:
@@ -5214,6 +5219,9 @@ class ToolTip(object):  # noqa: UP004
         Returns:
             None
         """
+        # Translate as necessary
+        if hasattr(PrimeItems, "_"):
+            text = PrimeItems._(text)
         self.text = text
         if self.tipwindow or not self.text:
             return

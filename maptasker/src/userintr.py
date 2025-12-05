@@ -23,8 +23,7 @@ import customtkinter
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
-
-# from CTkColorPicker.ctk_color_picker import AskColor
+from maptasker.src.translator import T
 from maptasker.src.ctk_color_picker import AskColor
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
@@ -162,13 +161,18 @@ class MyGui(customtkinter.CTk):
         initialize_screen(self)
 
         # set default values
-        self.set_defaults()
+        # self.set_defaults()  # Defaults set by initialize_gui
 
         # Now restore the settings and update the fields if not resetting.
+        default_language = self.language
         if not PrimeItems.program_arguments["reset"]:
             self.event_handlers.restore_settings_event()
         else:
             self.display_message_box("GUI started with the '-reset' option.\n", "Green")
+
+        # See if we have a language other than English.  If so, set it and redisplay GUI in the new language.
+        if self.language != default_language:
+            EventHandlers.language_selected_event(self, self.language)
 
         # Make sure we have colors
         if self.color_lookup and not PrimeItems.colors_to_use:
@@ -2879,15 +2883,32 @@ class EventHandlers:
     # Process the 'EXtended' checkbox: Display Extended AI Model List
     def language_selected_event(self, language: str) -> None:
         """
-        Set the language for the GUI.
+        Set the language for the GUI and display a confirmation message.
+
         Args:
             language: The language selected by the user.
-        Returns:
-            None: No value is returned.
         """
-        the_view = self.parent
+        the_view = self if self.__class__.__name__ == "MyGui" else self.parent
         the_view.language = language
-        the_view.display_message_box(f"Language set to {language}.", "Green")
+
+        # Get language code from PrimeItems.languages
+        # language_code = PrimeItems.languages.get(language, language)
+
+        # Set the translation function in PrimeItems
+        T.set_language(language)
+        # Change the menu to reflect the selected language
+        if hasattr(the_view, "language_optionmenu"):
+            the_view.language_optionmenu.set(PrimeItems._(language))
+
+        # Translate and format message
+        message = f"Language set to {language}."
+        message = PrimeItems._(message)
+
+        # Display message in the GUI
+        the_view.display_message_box(message, "Green")
+
+        # Redisplay the GUI with the new language
+        initialize_screen(the_view)
 
     def extended_models_event(self) -> None:
         """

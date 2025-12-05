@@ -923,9 +923,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h5-text"
             else:
                 # Decrease the heading number by 1 (making the text "bigger")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                value["highlights"][entry_to_update] = (
+                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                )
 
         elif "<small>" in message:
             # Save current heading
@@ -940,9 +940,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h7-text"
             else:
                 # Increase the heading number by 1 (making the text "smaller")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                value["highlights"][entry_to_update] = (
+                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                )
 
         elif "</big>" in message or "</small>" in message:
             if message.startswith(("</big>", "</small>")):
@@ -1309,3 +1309,12 @@ def starts_with_html(text: str) -> bool:
 
     # 3. Check for a match at the beginning of the cleaned string
     return bool(html_pattern.match(cleaned_text))
+
+
+class TranslatedLabel(ctk.CTkLabel):
+    """Translate text if we have set the language"""
+
+    def __init__(self, *args, text: str = "", **kwargs: complex):
+        """Rewturn translated tyext if translation is available"""
+        translated_text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+        super().__init__(*args, text=translated_text, **kwargs)

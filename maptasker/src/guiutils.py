@@ -572,6 +572,9 @@ def add_label(
         - Places the label in the specified row and column of the frame.
         - Adds horizontal and vertical padding to the label.
         - Aligns the label within its grid cell."""
+    # Translate the text if we have it.
+    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+
     if not font_size or font_size == 0:
         font_size = default_font_size
     if not text_color:

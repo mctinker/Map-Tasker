@@ -149,6 +149,7 @@ ARGUMENT_NAMES = {
     "twisty": "Hide Task Details under Twisty",
     "underline": "Underline Names",
     "window_position": "Last Window Position",
+    "language": "Language",
 }
 
 # Window positions etc. that are to be pickled
