@@ -630,6 +630,7 @@ def add_checkbox(
         - Place the checkbox in the specified row and column.
         - Apply the specified padding to the checkbox.
         - Align the checkbox within its grid cell."""
+    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
     checkbox_name = ctk.CTkCheckBox(
         frame,
         command=command,
@@ -681,6 +682,7 @@ def add_button(
         - Create a custom tkinter button with the given parameters.
         - Place the button in the specified row and column.
         - Add padding and alignment to the button."""
+    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
     if not fg_color:
         fg_color = "#246FB6"
     if not text_color:
@@ -1515,10 +1517,12 @@ def display_current_file(self, file_name: str) -> None:  # noqa: ANN001
     filename_location = file_name.rfind(PrimeItems.slash) + 1
     if filename_location != -1:
         file_name = file_name[filename_location:]
+    text = "Current File"
+    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
     self.current_file_label = add_label(
         self,
         self,
-        f"Current File: {file_name}",
+        f"{text}: {file_name}",
         "",
         "",
         "normal",

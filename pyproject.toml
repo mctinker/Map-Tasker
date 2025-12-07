@@ -1,7 +1,7 @@
 [project]
 name = "maptasker"
 dynamic = [ "version" ]
-version = "9.1.4"
+version = "10.0.0"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 requires-python = ">=3.11,<4.0"
 authors = [
@@ -231,6 +231,8 @@ dev = [
     "types-defusedxml>=0.7.0",
     "vulture>=2.14,<3.0",
     "black(>=25.9.0,<26.0.0)",
+    # "google-cloud-translate (>=3.23.0,<4.0.0)",
+    "deep-translator (>=1.11.4,<2.0.0)",
 ]
 
 [tool.pytest.ini_options]
@@ -247,6 +249,10 @@ pytest-mock = "*"
 files = ["maptasker/src/sysconst.py"]
 search = 'VERSION = "{current_version}"'
 replace = 'VERSION = "{new_version}"'
+
+
+
+
 
 
 [tool.poetry.group.dev]

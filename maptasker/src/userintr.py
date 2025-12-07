@@ -172,7 +172,7 @@ class MyGui(customtkinter.CTk):
 
         # See if we have a language other than English.  If so, set it and redisplay GUI in the new language.
         if self.language != default_language:
-            EventHandlers.language_selected_event(self, self.language)
+            self.event_handlers.language_selected_event(self.language)
 
         # Make sure we have colors
         if self.color_lookup and not PrimeItems.colors_to_use:
@@ -249,7 +249,7 @@ class MyGui(customtkinter.CTk):
         # FIX: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        self.event_handlers.map_event()
+        # self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
 
@@ -1623,7 +1623,9 @@ class MyGui(customtkinter.CTk):
         """
         display_current_file(self, filename)
         if self.current_file_display_message:
-            self.display_message_box(f"Current file set to {filename}", "Green")
+            text = "Current file set to"
+            text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+            self.display_message_box(f"{text} {filename}", "Green")
         self.file = filename  # Set this so it is saved in settings.
 
     # Check to see if a new version of our code is available.
@@ -2538,13 +2540,15 @@ class EventHandlers:
         the_view.font = font_selected
         with contextlib.suppress(Exception):
             the_view.font_out_label.destroy()
+        text = "Monospaced Font To Use"
+        text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
         the_view.font_out_label = customtkinter.CTkLabel(
             master=the_view,
-            text=f"Monospaced Font To Use: {font_selected}",
+            text=f"{text}: {font_selected}",
             anchor="sw",
             font=(font_selected, 14),
         )
-        the_view.font_out_label.grid(row=6, column=1, padx=10, pady=10, sticky="sw")
+        the_view.font_out_label.grid(row=6, column=1, padx=10, pady=10, sticky="nw")
         the_view.font_optionmenu.set(font_selected)
         the_view.display_message_box(f"Font To Use set to {font_selected}", "Green")
 
@@ -2907,8 +2911,14 @@ class EventHandlers:
         # Display message in the GUI
         the_view.display_message_box(message, "Green")
 
+        # Clear out all of the text fields
+        self.clear_text_fields(the_view)
+
         # Redisplay the GUI with the new language
         initialize_screen(the_view)
+
+        # Redisplay current file
+        display_current_file(the_view, the_view.file)
 
     def extended_models_event(self) -> None:
         """
@@ -2930,6 +2940,37 @@ class EventHandlers:
 
         # Display the model pulldown list.
         display_model_pulldown(self, 50)
+
+    def clear_text_fields(self, the_view: MyGui) -> None:
+        """Clears all text fields in the GUI.
+        Args: self: the MyGui pointer
+
+        Returns:
+            None: No return value"""
+        the_view.logo_label.configure("")
+        the_view.detail_level_label.configure("")
+        the_view.task_action_label.configure("")
+        the_view.view_label.configure("")
+        the_view.indent_label.configure("")
+        the_view.language_label.configure("")
+        the_view.appearance_mode_label.configure("")
+        the_view.font_label.configure("")
+        the_view.reset_button.configure(text="")
+        if hasattr(the_view, "upgrade_button"):
+            the_view.upgrade_button.configure(text="")
+        the_view.report_issue_button.configure(text="")
+        the_view.save_settings_button.configure(text="")
+        the_view.restore_settings_button.configure(text="")
+        the_view.font_out_label.configure("")
+        the_view.reset_button.configure(text="")
+        the_view.get_backup_button.configure(text="")
+        the_view.getxml_button.configure(text="")
+        the_view.display_help_button.configure(text="")
+        the_view.get_android_help_button.configure(text="")
+        the_view.text_message_label.configure("")
+        the_view.run_button.configure(text="")
+        the_view.rerun_button.configure(text="")
+        the_view.exit_button.configure(text="")
 
     def names_highlight_event(self) -> None:
         """

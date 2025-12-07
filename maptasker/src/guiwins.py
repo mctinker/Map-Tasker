@@ -774,7 +774,7 @@ class CTkTextview(ctk.CTkFrame):
         search_button.configure(width=50)
         create_tooltip(
             search_button,
-            text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, startring at the top.\n\nClick the ? to get more info.",
+            text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top.\n\nClick the ? to get more info.",
         )
         # Search Here button
         search_here_button = add_button(
@@ -796,7 +796,7 @@ class CTkTextview(ctk.CTkFrame):
         search_here_button.configure(width=50)
         create_tooltip(
             search_here_button,
-            text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top-left corner of the screen.\n\nClick the ? to get more info.",
+            text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top-left corner of the screen.\n\nClick the '?' to get more info.",
         )
 
         # Next search button
@@ -844,7 +844,7 @@ class CTkTextview(ctk.CTkFrame):
             text="Make the previous matched string visible.\n\nClick the ? to get more info.",
         )
         # Clear search button
-        clear_search_button = add_button(
+        self.clear_search_button = add_button(
             self,
             self,
             "#246FB6",
@@ -860,7 +860,7 @@ class CTkTextview(ctk.CTkFrame):
             5,
             "nw",
         )
-        clear_search_button.configure(width=50)
+        self.clear_search_button.configure(width=50)
 
         #  Query ? button
         search_query_button = add_button(
@@ -4198,7 +4198,7 @@ def _create_display_options_section(self: ctk) -> None:
         "s",
     )
 
-    detail_level_label = add_label(
+    self.detail_level_label = add_label(
         self,
         self.sidebar_frame,
         "Display Detail Level:",
@@ -4212,9 +4212,10 @@ def _create_display_options_section(self: ctk) -> None:
         "",
     )
     create_tooltip(
-        detail_level_label,
+        self.detail_level_label,
         text="This determines the amount of detail displayed in the output.\n\nLevel 0 = the least detail, 5 = the most detail.",
     )
+
     self.sidebar_detail_option = add_option_menu(
         self,
         self.sidebar_frame,
@@ -4232,7 +4233,7 @@ def _create_display_options_section(self: ctk) -> None:
             "Just Display Everything!",
             "everything_event",
             "everything_checkbox",
-            "Checks all of the below checkboxes except for 'twistyt' and sets the display level to the maximum detail level.",
+            "Checks all of the below checkboxes except for 'twisty' and sets the display level to the maximum detail level.",
         ),
         (
             "Display Profile and Task Action Conditions",
@@ -4252,7 +4253,7 @@ def _create_display_options_section(self: ctk) -> None:
             "Display Directory",
             "directory_event",
             "directory_checkbox",
-            "Display a directory of all Projects, Profiles, Tasks and Scenes with hotlinks at the begging of the output.",
+            "Display a directory of all Projects, Profiles, Tasks and Scenes with hotlinks at the beginning of the output.",
         ),
         (
             "Display Configuration Outline",
@@ -4328,7 +4329,7 @@ def _create_name_display_options_section(self: ctk) -> None:
         self,
         self.sidebar_frame,
         self.event_handlers.names_italicize_event,
-        "italicize",
+        "Italicize",
         12,
         0,
         20,
@@ -4370,10 +4371,12 @@ def _create_name_display_options_section(self: ctk) -> None:
 
 def _create_task_action_limit_section(self: ctk) -> None:
     """Creates the task 'actions' limit slider."""
+    text_to_insert = "Task 'actions' limit"
+    text = PrimeItems._(text_to_insert) if hasattr(PrimeItems, "_") else text_to_insert
     self.task_action_label = add_label(
         self,
         self.sidebar_frame,
-        f"Task 'actions' limit: {self.task_action_warning_limit}",
+        f"{text}: {self.task_action_warning_limit}",
         "",
         0,
         "normal",
@@ -4496,8 +4499,7 @@ def _create_appearance_mode_section(self: ctk) -> None:
 
 def _create_view_buttons_section(self: ctk) -> None:
     """Creates buttons for different views (Map, Diagram, Tree)."""
-    add_label(self, self.sidebar_frame, "Views", "", 0, "normal", 21, 0, 0, 0, "s")
-
+    self.view_label = add_label(self, self.sidebar_frame, "Views", "", 0, "normal", 21, 0, 0, 0, "s")
     self.mapview_button = add_button(
         self,
         self.sidebar_frame,
@@ -4655,7 +4657,7 @@ def _create_settings_buttons_section(self: ctk) -> None:
         text="Reset all of the options to their default values, including colors, font used, and other settings.\n\nThe currently loaded XML will be cleared out.",
     )
 
-    add_button(
+    self.save_settings_button = add_button(
         self,
         self,
         "#6563ff",
@@ -4672,7 +4674,7 @@ def _create_settings_buttons_section(self: ctk) -> None:
         "nw",
     )
 
-    add_button(
+    self.restore_settings_button = add_button(
         self,
         self,
         "#6563ff",
@@ -4804,7 +4806,7 @@ def _create_file_and_message_buttons_section(self: ctk) -> None:
 
 def _create_browser_options_section(self: ctk) -> None:
     """Creates browser-related buttons (Run, ReRun, Exit, Help)."""
-    add_button(
+    self.display_help_button = add_button(
         self,
         self,
         "#246FB6",
@@ -4821,7 +4823,7 @@ def _create_browser_options_section(self: ctk) -> None:
         "ne",
     )
 
-    add_button(
+    self.get_android_help_button = add_button(
         self,
         self,
         "#246FB6",
@@ -4893,7 +4895,7 @@ def _create_browser_options_section(self: ctk) -> None:
         text="Same as the 'Run and Exit' button,\nbut the program restarts after displaying the browser output.",
     )
 
-    add_button(
+    self.exit_button = add_button(
         self,
         self,
         "#246FB6",
@@ -4935,7 +4937,7 @@ def _create_specific_name_tab_content(self: ctk, tab: ctk) -> None:
         text="""
 Select either a single Project, Profile, or Task to display (Map and Diagram views, and browser).
 If a single Project is selected, all of it's Projects, Tasks and Scenes will be included.
-If a single Profile is selected, it and all of it's Tasks will be displayed.
+If a single Profile is selected, it and all of its Tasks will be displayed.
 """,
     )
 
