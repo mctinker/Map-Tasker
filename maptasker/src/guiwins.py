@@ -59,6 +59,7 @@ from maptasker.src.guiutils import (
     update_tasker_object_menus,
 )
 from maptasker.src.lineout import LineOut
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import (
     find_all_positions,
     find_owning_profile,
@@ -3880,6 +3881,7 @@ class CTkHyperlinkManager:
             setattr(guiself, f"single_{single_name_parm}_name", name)
             PrimeItems.program_arguments[f"single_{single_name_parm}_name"] = name
 
+            # FIX Copy some or all opf this code to language_selected_event
             # Reset single item labels
             update_tasker_object_menus(
                 guiself,
@@ -4372,6 +4374,7 @@ def _create_name_display_options_section(self: ctk) -> None:
 def _create_task_action_limit_section(self: ctk) -> None:
     """Creates the task 'actions' limit slider."""
     text_to_insert = "Task 'actions' limit"
+    # FIX Call: text = translate_string("Task 'actions' limit")
     text = PrimeItems._(text_to_insert) if hasattr(PrimeItems, "_") else text_to_insert
     self.task_action_label = add_label(
         self,
@@ -4463,10 +4466,7 @@ def _create_language_selection_section(self: ctk) -> None:
         (0, 10),
         "n",
     )
-    if hasattr(PrimeItems, "_"):
-        self.language_optionmenu.set(PrimeItems._(self.language))
-    else:
-        self.language_optionmenu.set(self.language)
+    self.language_optionmenu.set(translate_string(self.language))
 
 
 def _create_appearance_mode_section(self: ctk) -> None:

@@ -160,9 +160,6 @@ class MyGui(customtkinter.CTk):
         # Add menu elements
         initialize_screen(self)
 
-        # set default values
-        # self.set_defaults()  # Defaults set by initialize_gui
-
         # Now restore the settings and update the fields if not resetting.
         default_language = self.language
         if not PrimeItems.program_arguments["reset"]:
@@ -595,13 +592,17 @@ class MyGui(customtkinter.CTk):
 
         # No error.
         if the_name == "None":
-            self.display_message_box(
-                "'None' selected.  Displaying all Projects, Profiles and Tasks.",
-                "Green",
-            )
+            text = "'None' selected.  Displaying all Projects, Profiles and Tasks."
+            text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+            self.display_message_box(text, "Green")
         else:
+            element_name = PrimeItems._(element_name) if hasattr(PrimeItems, "_") else element_name
+            text1 = "Display only the"
+            text1 = PrimeItems._(text1) if hasattr(PrimeItems, "_") else text1
+            text2 = "overrides any previous set name"
+            text2 = PrimeItems._(text2) if hasattr(PrimeItems, "_") else text2
             self.display_message_box(
-                f"Display only the '{the_name}' {element_name} (overrides any previous set name).",
+                f"{text1} '{the_name}' {element_name} ({text2}).",
                 "Green",
             )
         return True
@@ -912,6 +913,7 @@ class MyGui(customtkinter.CTk):
                 "Display Names Italicized",
                 display=False,
             ),
+            "language": lambda: self.event_handlers.language_set_event(value),
             "list_unnamed_items": lambda: self.select_deselect_checkbox(
                 self.list_unnamed_items_checkbox,
                 value,
@@ -2453,13 +2455,19 @@ class EventHandlers:
                 the_view.single_project_name = ""
                 the_view.single_profile_name = ""
                 the_view.single_task_name = ""
-                # Save the name in mygui signle_xxx_name
+                # Save the name in mygui signle_xxx_name.
                 name_entered = "" if name_entered == "None" else name_entered
+
                 setattr(the_view, f"single_{my_name.lower()}_name", name_entered)
+                text1 = "Display only"
+                text1 = PrimeItems._(text1) if hasattr(PrimeItems, "_") else text1
+                text2 = "Display all"
+                text2 = PrimeItems._(text2) if hasattr(PrimeItems, "_") else text2
+                name_entered = PrimeItems._(name_entered) if hasattr(PrimeItems, "_") else name_entered
                 if name_entered:
-                    the_view.specific_name_msg = f"Display only {my_name} '{name_entered}'."
+                    the_view.specific_name_msg = f"{text1} {my_name} '{name_entered}'."
                 else:
-                    the_view.specific_name_msg = f"Display all {my_name}."
+                    the_view.specific_name_msg = f"{text2} {my_name}."
             else:
                 the_view.single_name_msg = all_objects
             # Set the names in the pulldown menus and update the pulldown menus.
@@ -2884,19 +2892,17 @@ class EventHandlers:
             "Display Names in Bold",
         )
 
-    # Process the 'EXtended' checkbox: Display Extended AI Model List
-    def language_selected_event(self, language: str) -> None:
+    def language_set_event(self, language: str) -> None:
         """
-        Set the language for the GUI and display a confirmation message.
+        Set the language for the GUI.
 
         Args:
             language: The language selected by the user.
         """
         the_view = self if self.__class__.__name__ == "MyGui" else self.parent
+        if language not in PrimeItems.languages:
+            language = "English"
         the_view.language = language
-
-        # Get language code from PrimeItems.languages
-        # language_code = PrimeItems.languages.get(language, language)
 
         # Set the translation function in PrimeItems
         T.set_language(language)
@@ -2911,6 +2917,19 @@ class EventHandlers:
         # Display message in the GUI
         the_view.display_message_box(message, "Green")
 
+    def language_selected_event(self, language: str) -> None:
+        """
+        Set the language for the GUI and redisplay everything.
+
+        Args:
+            language: The language selected by the user.
+        """
+        the_view = self if self.__class__.__name__ == "MyGui" else self.parent
+        the_view.language = language
+
+        # Set the translation function in PrimeItems
+        self.language_set_event(language)
+
         # Clear out all of the text fields
         self.clear_text_fields(the_view)
 
@@ -2919,6 +2938,24 @@ class EventHandlers:
 
         # Redisplay current file
         display_current_file(the_view, the_view.file)
+
+        # Reset the single item pulldown (this has to go after reset of labels!).
+        set_tasker_object_names(the_view)
+
+        # Reset single item labels
+        update_tasker_object_menus(
+            the_view,
+            get_data=True,
+            reset_single_names=False,
+        )
+
+        # Redo the labels
+        display_selected_object_labels(the_view)
+
+        # Let user know
+        message = f"Language set to {language}."
+        message = PrimeItems._(message)
+        the_view.display_message_box(message, "Green")
 
     def extended_models_event(self) -> None:
         """
@@ -2942,7 +2979,7 @@ class EventHandlers:
         display_model_pulldown(self, 50)
 
     def clear_text_fields(self, the_view: MyGui) -> None:
-        """Clears all text fields in the GUI.
+        """Clears all text fields (buttons and labels) in the GUI.
         Args: self: the MyGui pointer
 
         Returns:

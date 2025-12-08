@@ -135,3 +135,15 @@ def save_window_position(self: ctk, window_name: str) -> None:
         except TclError:
             return ""
     return ""
+
+
+def translate_string(text: str) -> str:
+    """
+    Translates a given string using PrimeItems._ if available.
+
+    Args:
+        text: The input string to be translated.
+    Returns:
+        The translated string if PrimeItems._ is available, otherwise the original string.
+    """
+    return PrimeItems._(text) if hasattr(PrimeItems, "_") else text

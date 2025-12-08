@@ -73,6 +73,15 @@ msgstr "Abajo"
 msgid "Display Only"
 msgstr "Sólo visualización"
 
+msgid "Display only"
+msgstr "Sólo visualización"
+
+msgid "Display only the"
+msgstr "Mostrar solo el"
+
+msgid "overrides any previous set name"
+msgstr "anula cualquier nombre de conjunto anterior"
+
 msgid "Click this button to search for and display only the lines that match the search string."
 msgstr "Haga clic en este botón para buscar y mostrar solo las líneas que coincidan con la cadena de búsqueda."
 
@@ -117,6 +126,12 @@ msgstr "Tarea del iniciador:"
 
 msgid "<<< Owner=Project"
 msgstr "<<< Propietario=Proyecto"
+
+msgid "Project"
+msgstr "Proyecto"
+ 
+msgid "Profile"
+msgstr "Perfil"
 
 msgid "Task"
 msgstr "Tarea"
@@ -557,3 +572,27 @@ msgstr "Archivo actual establecido en"
 
 msgid "Current File"
 msgstr "Archivo actual"
+
+msgid "Select Project to process:"
+msgstr "Seleccione el proyecto a procesar:"
+
+msgid "Select Profile to process:"
+msgstr "Seleccione el perfil a procesar:"
+
+msgid "Select Task to process:"
+msgstr "Seleccionar tarea a procesar:"
+
+msgid "Display only Project"
+msgstr "Mostrar sólo Proyecto"
+
+msgid "None"
+msgstr "Nada"
+
+msgid "'None' selected.  Displaying all Projects, Profiles and Tasks."
+msgstr "Ninguno seleccionado. Se muestran todos los proyectos, perfiles y tareas"
+
+msgid "Display all Projects, Profiles, and Tasks."
+msgstr "Mostrar todos los proyectos, perfiles y tareas."
+
+msgid "Display all"
+msgstr "Mostrar todo"

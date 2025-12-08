@@ -79,7 +79,6 @@ if TYPE_CHECKING:
     import defusedxml
 
 
-all_objects = "Display all Projects, Profiles, and Tasks."
 default_font_size = 14
 
 
@@ -929,6 +928,8 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
 
     # Display the label on 'Specific Name' tab.
     # First time through, self.specific_name_msg = ''
+    all_objects = "Display all Projects, Profiles, and Tasks."
+    all_objects = PrimeItems._(all_objects) if hasattr(PrimeItems, "_") else all_objects
     name_to_display = self.specific_name_msg if self.specific_name_msg else all_objects
 
     self.single_label = add_label(
@@ -1567,11 +1568,15 @@ def setup_name_error(
 
 def set_tasker_object_names(self: object) -> None:
     """Set names to display in pulldown menus based on current tasker object names."""
+    # Translate the default values if possible
+    none_text = PrimeItems._("None") if hasattr(PrimeItems, "_") else "None"
+    display_only_text = "Display only"
+    display_only_text = PrimeItems._(display_only_text) if hasattr(PrimeItems, "_") else display_only_text
     defaults = {
-        "project": "None",
-        "profile": "None",
-        "task": "None",
-        "display_only": "Display only ",
+        "project": none_text,
+        "profile": none_text,
+        "task": none_text,
+        "display_only": f"{display_only_text} ",
     }
 
     # Map attribute presence to corresponding function
@@ -1591,7 +1596,11 @@ def set_tasker_object_names(self: object) -> None:
 
 def _set_single_project_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single project name is available."""
-    self.specific_name_msg = f"{defaults['display_only']}Project '{self.single_project_name}'"
+    # Translate string if possible
+    text = f"{defaults['display_only']}Project"
+    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+
+    self.specific_name_msg = f"{text} '{self.single_project_name}'"
     try:
         self.specific_project_optionmenu.set(self.single_project_name)
     except AttributeError:
@@ -1636,21 +1645,26 @@ def _set_default_names(self: object, defaults: dict) -> None:
     """Handles setting names when no specific name is available."""
     self.specific_name_msg = ""
     try:
-        self.specific_project_optionmenu.set(defaults["project"])
+        # Translate the default values if possible
+        none_text = PrimeItems._("None") if hasattr(PrimeItems, "_") else "None"
+        project_text = defaults["project"]
+        profile_text = defaults["profile"]
+        task_text = defaults["task"]
+        self.specific_project_optionmenu.set(project_text)
         if not PrimeItems.tasker_root_elements["all_projects"]:
-            self.specific_project_optionmenu.configure(values=["None"])
-            self.ai_project_optionmenu.configure(values=["None"])
+            self.specific_project_optionmenu.configure(none_text)
+            self.ai_project_optionmenu.configure(none_text)
         if not PrimeItems.tasker_root_elements["all_profiles"]:
-            self.specific_profile_optionmenu.configure(values=["None"])
-            self.ai_profile_optionmenu.configure(values=["None"])
+            self.specific_profile_optionmenu.configure(none_text)
+            self.ai_profile_optionmenu.configure(none_text)
         if not PrimeItems.tasker_root_elements["all_tasks"]:
-            self.specific_task_optionmenu.configure(values=["None"])
-            self.ai_task_optionmenu.configure(values=["None"])
-        self.specific_profile_optionmenu.set(defaults["profile"])
-        self.ai_project_optionmenu.set(defaults["project"])
-        self.ai_profile_optionmenu.set(defaults["profile"])
-        self.specific_task_optionmenu.set(defaults["task"])
-        self.ai_task_optionmenu.set(defaults["task"])
+            self.specific_task_optionmenu.configure(none_text)
+            self.ai_task_optionmenu.configure(none_text)
+        self.specific_profile_optionmenu.set(profile_text)
+        self.ai_project_optionmenu.set(project_text)
+        self.ai_profile_optionmenu.set(profile_text)
+        self.specific_task_optionmenu.set(task_text)
+        self.ai_task_optionmenu.set(task_text)
     except AttributeError:
         pass
 
