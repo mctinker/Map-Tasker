@@ -74,7 +74,7 @@ from maptasker.src.guiwins import (
     initialize_gui,
     initialize_screen,
 )
-from maptasker.src.maputil2 import save_window_position
+from maptasker.src.maputil2 import save_window_position, translate_string
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapai import valid_api_key
@@ -384,6 +384,9 @@ class MyGui(customtkinter.CTk):
         # Catch erroneous message
         if message == "None":
             return
+
+        # Translate message if needed
+        message = translate_string(message)
 
         # Clear previous messages
         if self.clear_messages:
@@ -785,7 +788,8 @@ class MyGui(customtkinter.CTk):
             response = "On"
         else:
             response = "Off"
-        self.display_message_box(f"{toggle_name} set{extra}{response}", "Green")
+        set_on_off = translate_string(f"set{extra}{response}")
+        self.display_message_box(f"{translate_string(toggle_name)} {set_on_off}", "Green")
 
     # ################################################################################
     # Select or deselect a checkbox based on the value passed in
@@ -811,7 +815,8 @@ class MyGui(customtkinter.CTk):
         checkbox.select() if checked else checkbox.deselect()
         if display:
             onoff = "On" if checked else "Off"
-            self.display_message_box(f"{argument_name} set {onoff}.", "Green")
+            set_on_off = translate_string(f"set {onoff}")
+            self.display_message_box(f"{translate_string(argument_name)} {set_on_off}.", "Green")
         return f"{argument_name} set to {checked}.\n"
 
     # Given a setting key and value, set the attribute for the key to the value and return the setting as a message.
@@ -857,10 +862,12 @@ class MyGui(customtkinter.CTk):
             "fetched_backup_from_android",
         }
         # Define what to do for each argument restored.
+        # FIX Translate all of these.
+        set_to = translate_string("set to")
         message_map = {
-            "android_ipaddr": lambda: f"Android Get XML TCP IP Address set to {value}\n",
-            "android_port": lambda: f"Android Get XML Port Number set to {value}\n",
-            "android_file": lambda: f"Android Get XML File Location set to {value}\n",
+            "android_ipaddr": lambda: f"{translate_string('Android Get XML TCP IP Address')} {set_to} {value}\n",
+            "android_port": lambda: f"{translate_string('Android Get XML Port Number')} {set_to} {value}\n",
+            "android_file": lambda: f"{translate_string('Android Get XML File Location')} {set_to} {value}\n",
             "appearance_mode": lambda: self.event_handlers.change_appearance_mode_event(
                 value,
             ),
@@ -1433,6 +1440,9 @@ class MyGui(customtkinter.CTk):
         projects = root["all_projects"]
         _build_profiles = build_profiles
         _get_ids = get_ids
+        project_head = translate_string("Project:")
+        scene_head = translate_string("Scene:")
+        no_profiles = translate_string("No Profiles Found")
         if projects:
             for project in projects:
                 project_name = projects[project]["name"]
@@ -1449,7 +1459,7 @@ class MyGui(customtkinter.CTk):
 
                 # Project has no Profiles
                 else:
-                    profile_list = ["No Profiles Found"]
+                    profile_list = [no_profiles]
 
                 # Process Scenes
                 scene_names = None
@@ -1458,11 +1468,11 @@ class MyGui(customtkinter.CTk):
                 if scene_names is not None:
                     scene_list = scene_names.split(",")
                     for scene in scene_list:
-                        profile_list.append(f"Scene: {scene}")
+                        profile_list.append(f"{scene_head} {scene}")
 
                 # Put it all together: Project, Profiles, and Tasks
                 tree_data.append(
-                    {"name": f"Project: {project_name}", "children": profile_list},
+                    {"name": f"{project_head} {project_name}", "children": profile_list},
                 )
 
         # Return our data tree
@@ -2799,9 +2809,10 @@ class EventHandlers:
         the_view.display_detail_level = DEFAULT_DISPLAY_DETAIL_LEVEL
 
         # Optionally display results in a message box (only if needed)
-        evereything = "on" if value else "off"
+        everything = "on" if value else "off"
+        msg = f"Everything toggled {everything} successfully"
         the_view.display_message_box(
-            f"Everything toggled {evereything} successfully",
+            translate_string(msg),
             "Green",
         )
 

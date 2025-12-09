@@ -250,10 +250,5 @@ files = ["maptasker/src/sysconst.py"]
 search = 'VERSION = "{current_version}"'
 replace = 'VERSION = "{new_version}"'
 
-
-
-
-
-
 [tool.poetry.group.dev]
 optional = true

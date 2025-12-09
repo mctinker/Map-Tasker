@@ -44,7 +44,7 @@ from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutil2 import get_changelog_file, is_valid_ai_config
 from maptasker.src.lineout import LineOut
-from maptasker.src.maputil2 import save_window_position, store_windows
+from maptasker.src.maputil2 import save_window_position, store_windows, translate_string
 from maptasker.src.maputils import (
     append_item_to_list,
     get_pypi_version,
@@ -105,7 +105,7 @@ def valid_item(
     - Match element type and get corresponding root element
     - Check if item name exists by going through all names in root element
     """
-    if the_name == "None":
+    if the_name == "None" or the_name == translate_string("None"):
         return True
     # Set our file to get the file from the local drive since it had previously been pulled from the Android device.
     # Setting PrimeItems.program_arguments["file"] will be used in get_xml() and won't prompt for file if it exists.
@@ -742,9 +742,15 @@ def add_option_menu(
         - Places the option menu in the specified row and column.
         - Adds padding to the option menu.
         - Sets the direction in which the option menu should stick to the frame."""
+    translations = []
+    if isinstance(values, list):
+        for value in values:
+            translated_value = PrimeItems._(value) if hasattr(PrimeItems, "_") else value
+            translations.append(translated_value)
+        values = translations
     option_menu_name = ctk.CTkOptionMenu(
         frame,
-        values=values,
+        values=translations,
         command=command,
     )
     option_menu_name.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
@@ -868,10 +874,11 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
     self.ai_model_option.set(model_to_display)  # Set the current model in the pulldown.
 
     # Display the Project to analyze
+    translation = translate_string("Project to Analyze:")
     self.ai_set_label2 = add_label(
         self,
         self.tabview.tab("Analyze"),
-        f"Project to Analyze: {project_to_display}",
+        f"{translation} {project_to_display}",
         "",
         0,
         "normal",
@@ -882,10 +889,11 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         "sw",
     )
     # Display the Profile to analyze
+    translation = translate_string("Profile to Analyze:")
     self.ai_set_label3 = add_label(
         self,
         self.tabview.tab("Analyze"),
-        f"Profile to Analyze: {profile_to_display}",
+        f"{translation} {profile_to_display}",
         "",
         0,
         "normal",
@@ -896,10 +904,11 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         "nw",
     )
     # Display the Task to analyze
+    translation = translate_string("Task to Analyze:")
     self.ai_set_label4 = add_label(
         self,
         self.tabview.tab("Analyze"),
-        f"Task to Analyze: {task_to_display}",
+        f"{translation} {task_to_display}",
         "",
         0,
         "normal",
@@ -1392,6 +1401,9 @@ def build_profiles(
     profiles = root["all_profiles"]
     profile_list = []
     found_tasks = []
+    profile_head = translate_string("Profile: ")
+    task_head = translate_string("Task: ")
+    unnamed_task_head = translate_string("Unnamed Task")
     _get_profile_tasks = get_profile_tasks  # Localize for speed
     for profile in profile_ids:
         # Get the Profile's Tasks
@@ -1401,15 +1413,15 @@ def build_profiles(
             # Process each Task.  Tasks are simply a flat list of names.
             for task in the_tasks:
                 if task["name"] == "":
-                    task_list.append("Task: Unnamed Task")
+                    task_list.append(f"{task_head}{unnamed_task_head}")
                 else:
-                    task_list.append(f"Task: {task['name']}")
+                    task_list.append(f"{task_head}{task['name']}")
                     found_tasks.append(task["name"])  # Keep track of found tasks
         else:
-            task_list = ["No Profile Tasks Found"]
+            task_list = [translate_string("No Profile Tasks Found")]
 
         # Get the Profile name.
-        profile_name = f"Profile: {profiles[profile]['name']}"
+        profile_name = f"{profile_head}{profiles[profile]['name']}"
 
         # Combine the Profile with it's Tasks
         profile_list.append({"name": profile_name, "children": task_list})
@@ -1426,7 +1438,7 @@ def build_profiles(
         if root["all_tasks"][task_id]["name"] not in found_tasks:
             no_profile_tasks.append(root["all_tasks"][task_id]["name"])  # noqa: PERF401
     if no_profile_tasks:
-        profile_list.append({"name": "No Profile", "children": no_profile_tasks})
+        profile_list.append({"name": translate_string("No Profile"), "children": no_profile_tasks})
 
     return profile_list
 
@@ -1434,24 +1446,24 @@ def build_profiles(
 # Display startup messages which are a carryover from the last run.
 def display_messages_from_last_run(self) -> None:  # noqa: ANN001
     """
-    Displays messages from the last run.
+        Displays messages from the last run.
+    #
+        This function checks if there are any carryover error messages from the last run (rerun).
+        If there are, it reads the error message from the file specified by the `ERROR_FILE` constant and handles
+        potential missing modules. If the error message contains the string "Ai Response", it displays the
+        error message in a new toplevel window and displays a message box indicating that the analysis response
+        is in a separate window and saved as `ANALYSIS_FILE`. If the error message contains newline characters,
+        it breaks the message up into multiple lines and displays each line in a message box. If the error message
+        does not contain newline characters, it displays the error message in a message box. After displaying the
+        error message, it removes the error file to prevent it from being displayed again.
 
-    This function checks if there are any carryover error messages from the last run (rerun).
-    If there are, it reads the error message from the file specified by the `ERROR_FILE` constant and handles
-    potential missing modules. If the error message contains the string "Ai Response", it displays the
-    error message in a new toplevel window and displays a message box indicating that the analysis response
-    is in a separate window and saved as `ANALYSIS_FILE`. If the error message contains newline characters,
-    it breaks the message up into multiple lines and displays each line in a message box. If the error message
-    does not contain newline characters, it displays the error message in a message box. After displaying the
-    error message, it removes the error file to prevent it from being displayed again.
+        If there is an error message from other routines, it displays the error message in a message box with the return code.
 
-    If there is an error message from other routines, it displays the error message in a message box with the return code.
+        Parameters:
+        - None
 
-    Parameters:
-    - None
-
-    Returns:
-    - None
+        Returns:
+        - None
     """
     logger.info("Displaying messages from last run.")
     # See if we have any carryover error messages from last run (rerun).
@@ -1597,8 +1609,8 @@ def set_tasker_object_names(self: object) -> None:
 def _set_single_project_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single project name is available."""
     # Translate string if possible
-    text = f"{defaults['display_only']}Project"
-    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+    text = translate_string(f"{defaults['display_only']}Project")
+    # text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
 
     self.specific_name_msg = f"{text} '{self.single_project_name}'"
     try:

@@ -2882,15 +2882,15 @@ class CTkTextview(ctk.CTkFrame):
                 if directory_type == "profiles_up":
                     name_to_go_up = find_owning_project(name_to_go_up)
                     go_up_type = "projects_up"
-                    name_object = "Project:"
+                    name_object = translate_string("Project:")
                 elif directory_type == "tasks_up":
                     name_to_go_up = find_owning_profile(name_to_go_up)
                     go_up_type = "profiles_up"
-                    name_object = "Profile:"
+                    name_object = translate_string("Profile:")
                 else:
                     # We're at the Project level. Do nothing.
                     go_up_type = "all"
-                    name_to_go_up = "entire configuration"
+                    name_to_go_up = translate_string("entire configuration")
                     name_object = ""
             else:
                 go_up_type = directory_type
@@ -4455,11 +4455,12 @@ def _create_language_selection_section(self: ctk) -> None:
         (10, 0),
         "s",
     )
+    languages = list(PrimeItems.languages)
     self.language_optionmenu = add_option_menu(
         self,
         self.sidebar_frame,
         self.event_handlers.language_selected_event,
-        ["English", "Spanish"],
+        languages,
         20,
         0,
         0,
