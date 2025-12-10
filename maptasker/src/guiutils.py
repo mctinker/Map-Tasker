@@ -146,7 +146,10 @@ def valid_item(
         task_id = get_taskid_from_unnamed_task(the_name)
         return task_id in root_element
 
-    # See if the item exists by going through all names
+    # See if the item exists by going through all names.  Get rtid of "Project: " or "Profile: " portion of name.
+    colon = the_name.find(":")
+    if colon != -1:
+        the_name = the_name[colon + 1 :].lstrip()
     return any(root_element[item]["name"] == the_name for item in root_element)
 
 
@@ -937,8 +940,7 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
 
     # Display the label on 'Specific Name' tab.
     # First time through, self.specific_name_msg = ''
-    all_objects = "Display all Projects, Profiles, and Tasks."
-    all_objects = PrimeItems._(all_objects) if hasattr(PrimeItems, "_") else all_objects
+    all_objects = translate_string("Display all Projects, Profiles, and Tasks.")
     name_to_display = self.specific_name_msg if self.specific_name_msg else all_objects
 
     self.single_label = add_label(

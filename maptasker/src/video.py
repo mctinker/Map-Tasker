@@ -23,6 +23,7 @@ from PIL import Image, ImageTk
 
 from maptasker.src.diagutil import width_and_height_calculator_in_pixel
 from maptasker.src.error import rutroh_error
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
 
 # We will force a 480x480 resolution video.
@@ -591,7 +592,8 @@ class VideoEmbedder:
                 final_file = final_file_renamed
 
             # Let the user know (only for Youtube videos)
-            self.mygui.display_message_box(f"Video saved as '{final_file}'", "turquoise")
+            text = translate_string("Video saved as")
+            self.mygui.display_message_box(f"{text} '{final_file}'", "turquoise")
 
             return final_file  # noqa: TRY300
 

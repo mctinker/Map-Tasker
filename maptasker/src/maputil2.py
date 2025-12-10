@@ -146,4 +146,7 @@ def translate_string(text: str) -> str:
     Returns:
         The translated string if PrimeItems._ is available, otherwise the original string.
     """
+    if hasattr(PrimeItems, "_"):
+        return PrimeItems._(text)
+    return text
     return PrimeItems._(text) if hasattr(PrimeItems, "_") else text

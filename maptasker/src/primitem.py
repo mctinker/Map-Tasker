@@ -130,6 +130,7 @@ class PrimeItems:
     languages: ClassVar[dict[str, str]] = {
         "English": "en",
         "Spanish": "es",
+        "German": "de",
     }
     languages_translated: ClassVar[dict[str, str]] = {}
 

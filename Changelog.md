@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added:
+- Added: Multilinqual support
 
 ### Changed
 
@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed:
+- Fixed: Program error when clicking on the GUI 'Report an Issue' button.
 
 ### Known Issue
 

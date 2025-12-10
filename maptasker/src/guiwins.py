@@ -3881,7 +3881,6 @@ class CTkHyperlinkManager:
             setattr(guiself, f"single_{single_name_parm}_name", name)
             PrimeItems.program_arguments[f"single_{single_name_parm}_name"] = name
 
-            # FIX Copy some or all opf this code to language_selected_event
             # Reset single item labels
             update_tasker_object_menus(
                 guiself,
@@ -4374,7 +4373,6 @@ def _create_name_display_options_section(self: ctk) -> None:
 def _create_task_action_limit_section(self: ctk) -> None:
     """Creates the task 'actions' limit slider."""
     text_to_insert = "Task 'actions' limit"
-    # FIX Call: text = translate_string("Task 'actions' limit")
     text = PrimeItems._(text_to_insert) if hasattr(PrimeItems, "_") else text_to_insert
     self.task_action_label = add_label(
         self,
@@ -4579,7 +4577,7 @@ def _create_view_buttons_section(self: ctk) -> None:
         1,
         22,
         0,
-        (300, 0),
+        (320, 0),
         0,
         "s",
     )
@@ -5412,7 +5410,7 @@ class APIKeyDialog(ctk.CTkToplevel):
             20,
             "nw",
         )
-        apikey_ok_button.configure(width=30)
+        apikey_ok_button.configure(width=140)
 
         #  Query ? button
         apikey_query_button = add_button(
@@ -5427,7 +5425,7 @@ class APIKeyDialog(ctk.CTkToplevel):
             1,
             4,
             0,
-            (200, 0),
+            (300, 0),
             20,
             "nw",
         )
@@ -5446,7 +5444,7 @@ class APIKeyDialog(ctk.CTkToplevel):
             1,  # Column span
             4,  # row
             0,  # col
-            (250, 90),
+            (350, 90),
             0,
             "ew",
         )

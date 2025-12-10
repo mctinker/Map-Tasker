@@ -12,7 +12,6 @@ import copy
 import os
 import pickle
 import webbrowser
-from pathlib import Path
 
 from tkinter.ttk import *  # noqa: F403
 
@@ -594,16 +593,13 @@ class MyGui(customtkinter.CTk):
             return False
 
         # No error.
-        if the_name == "None":
-            text = "'None' selected.  Displaying all Projects, Profiles and Tasks."
-            text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+        if the_name == translate_string("None"):
+            text = translate_string("'None' selected.  Displaying all Projects, Profiles and Tasks.")
             self.display_message_box(text, "Green")
         else:
             element_name = PrimeItems._(element_name) if hasattr(PrimeItems, "_") else element_name
-            text1 = "Display only the"
-            text1 = PrimeItems._(text1) if hasattr(PrimeItems, "_") else text1
-            text2 = "overrides any previous set name"
-            text2 = PrimeItems._(text2) if hasattr(PrimeItems, "_") else text2
+            text1 = translate_string("Display only the")
+            text2 = translate_string("overrides any previous set name")
             self.display_message_box(
                 f"{text1} '{the_name}' {element_name} ({text2}).",
                 "Green",
@@ -783,12 +779,14 @@ class MyGui(customtkinter.CTk):
         extra = " "
         if number_value != "":
             response = number_value
-            extra = " to "
+            extra = " to"
         elif toggle_value:
             response = "On"
         else:
             response = "Off"
-        set_on_off = translate_string(f"set{extra}{response}")
+        toggle_name = translate_string(toggle_name)
+        setit = translate_string(f"set{extra}")
+        set_on_off = translate_string(f"{setit}{response}")
         self.display_message_box(f"{translate_string(toggle_name)} {set_on_off}", "Green")
 
     # ################################################################################
@@ -862,7 +860,6 @@ class MyGui(customtkinter.CTk):
             "fetched_backup_from_android",
         }
         # Define what to do for each argument restored.
-        # FIX Translate all of these.
         set_to = translate_string("set to")
         message_map = {
             "android_ipaddr": lambda: f"{translate_string('Android Get XML TCP IP Address')} {set_to} {value}\n",
@@ -1100,8 +1097,9 @@ class MyGui(customtkinter.CTk):
             None: Does not return anything
         """
         self.task_action_warning_limit = limit
+        text = translate_string("Task Action Warning Limit set to")
         self.display_message_box(
-            f"Task Action Warning Limit set to {limit}.\n",
+            f"{text} {limit}.\n",
             "Green",
         )
         self.task_action_label.configure(text=f"Task Action Limit: {limit}")
@@ -1518,8 +1516,13 @@ class MyGui(customtkinter.CTk):
             # Check if too much data to display
             map_length = len(map_data)
             if map_length > self.view_limit:
+                text1 = translate_string("Too much data to display (Size=")
+                text2 = translate_string("View Limit=")
+                text3 = translate_string(
+                    "Select a larger 'View Limit' or a single Project / Profile / Task and try again.",
+                )
                 self.display_message_box(
-                    f"Too much data to display (Size={map_length}, View Limit={self.view_limit}).  Select a larger 'View Limit' or a single Project / Profile / Task and try again.",
+                    f"{text1}{map_length}, {text2}{self.view_limit}).  {text3}",
                     "Orange",
                 )
                 if self.mapview_window is not None:
@@ -1606,8 +1609,9 @@ class MyGui(customtkinter.CTk):
         # X Get front part of filename ANALYSIS_FILE and plug it in as the beginning.
         if new_file_name := append_to_filename(ANALYSIS_FILE, date_and_time):
             rename_file(ANALYSIS_FILE, new_file_name)
+            text = translate_string("saved as")
             self.display_message_box(
-                f"{ANALYSIS_FILE} saved as {new_file_name}",
+                f"{ANALYSIS_FILE} {text} {new_file_name}",
                 "turquoise",
             )
 
@@ -1635,8 +1639,7 @@ class MyGui(customtkinter.CTk):
         """
         display_current_file(self, filename)
         if self.current_file_display_message:
-            text = "Current file set to"
-            text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+            text = translate_string("Current file set to")
             self.display_message_box(f"{text} {filename}", "Green")
         self.file = filename  # Set this so it is saved in settings.
 
@@ -2345,14 +2348,14 @@ class EventHandlers:
         if the_view.debug:
             # Make sure we're logging freom now on.
             log_startup_values()
-            if not Path("backup.xml").is_file():
-                the_view.debug = False
-                the_view.display_message_box(
-                    (
-                        "Debug mode requires Tasker XML file to be named: 'backup.xml', which is missing.  Debug mode disabled."
-                    ),
-                    "Red",
-                )
+            # if not Path("backup.xml").is_file():
+            #     the_view.debug = False
+            #     the_view.display_message_box(
+            #         (
+            #             "Debug mode requires Tasker XML file to be named: 'backup.xml', which is missing.  Debug mode disabled."
+            #         ),
+            #         "Red",
+            #     )
             the_view.display_message_box("Debug mode enabled.", "Green")
         else:
             the_view.display_message_box("Debug mode disabled.", "Green")
@@ -2416,7 +2419,9 @@ class EventHandlers:
             - If the web browser is supported, a message box is displayed with instructions for creating a new issue."""
         url = "//github.com/mctinker/Map-Tasker/issues"
         issue_text = (
-            "Go to your browser and create a new issue or feature request, providing as much detail as possible."
+            translate_string(
+                "Go to your browser and create a new issue or feature request, providing as much detail as possible.",
+            ),
         )
         the_view = self.parent
         try:
@@ -2428,7 +2433,8 @@ class EventHandlers:
             )
             return
         the_view.display_message_box(
-            "Report an Issue or Request a Feature\n\n" + issue_text,
+            translate_string("Report an Issue or Request a Feature\n\n") + issue_text,
+            "Green",
         )
 
     # Process single name selection/event
@@ -2469,10 +2475,8 @@ class EventHandlers:
                 name_entered = "" if name_entered == "None" else name_entered
 
                 setattr(the_view, f"single_{my_name.lower()}_name", name_entered)
-                text1 = "Display only"
-                text1 = PrimeItems._(text1) if hasattr(PrimeItems, "_") else text1
-                text2 = "Display all"
-                text2 = PrimeItems._(text2) if hasattr(PrimeItems, "_") else text2
+                text1 = translate_string("Display only")
+                text2 = translate_string("Display all")
                 name_entered = PrimeItems._(name_entered) if hasattr(PrimeItems, "_") else name_entered
                 if name_entered:
                     the_view.specific_name_msg = f"{text1} {my_name} '{name_entered}'."
@@ -2534,8 +2538,9 @@ class EventHandlers:
             the_view.color_lookup = set_color_mode(the_view.appearance_mode)
             # Save our background color for later reuse
             the_view.saved_background_color = make_hex_color(the_view.color_lookup.get("background_color"))
+        text = translate_string("Appearance mode set to")
         the_view.display_message_box(
-            "Appearance mode set to " + the_view.appearance_mode.capitalize(),
+            text + the_view.appearance_mode.capitalize(),
             "Green",
         )
 
@@ -2558,8 +2563,7 @@ class EventHandlers:
         the_view.font = font_selected
         with contextlib.suppress(Exception):
             the_view.font_out_label.destroy()
-        text = "Monospaced Font To Use"
-        text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+        text = translate_string("Monospaced Font To Use")
         the_view.font_out_label = customtkinter.CTkLabel(
             master=the_view,
             text=f"{text}: {font_selected}",
@@ -2568,7 +2572,8 @@ class EventHandlers:
         )
         the_view.font_out_label.grid(row=6, column=1, padx=10, pady=10, sticky="nw")
         the_view.font_optionmenu.set(font_selected)
-        the_view.display_message_box(f"Font To Use set to {font_selected}", "Green")
+        text = translate_string("Font To Use set to")
+        the_view.display_message_box(f"{text} {font_selected}", "Green")
 
     # Process the Display Detail Level selection
     def detail_selected_event(self, display_detail: str) -> None:
@@ -2587,11 +2592,13 @@ class EventHandlers:
         the_view = self.parent
         the_view.display_detail_level = display_detail
         the_view.sidebar_detail_option.set(display_detail)
-        the_view.inform_message("Display Detail Level", True, display_detail)
+        the_view.inform_message(translate_string("Display Detail Level"), True, display_detail)
         # Disable twisty if detail level is less than 3
         if the_view.twisty and int(display_detail) < DISPLAY_DETAIL_LEVEL_all_parameters:
+            text = translate_string("Hiding Tasks with Twisty has no effect with Display Detail Level set to")
+            text1 = translate_string("disabled")
             the_view.display_message_box(
-                f"Hiding Tasks with Twisty has no effect with Display Detail Level set to {display_detail}.  Twisty disabled!",
+                f"{text} {display_detail}.  Twisty {text1}!",
                 "Red",
             )
             the_view.twisty = False
@@ -2905,25 +2912,34 @@ class EventHandlers:
 
     def language_set_event(self, language: str) -> None:
         """
-        Set the language for the GUI.
+        Set the language for the GUI.  COmes here via 'restore_display' and 'language_saet_event'
 
         Args:
             language: The language selected by the user.
         """
         the_view = self if self.__class__.__name__ == "MyGui" else self.parent
-        if language not in PrimeItems.languages:
-            language = "English"
-        the_view.language = language
+
+        # Get the language to use in English: Spanish, German, etc.
+        language_translated = translate_string(language)
+        if language in PrimeItems.languages:
+            language_to_use = language
+        elif language_translated in PrimeItems.languages:
+            language_to_use = language_translated
+        else:
+            language_to_use = "English"
+        the_view.language = language_to_use
 
         # Set the translation function in PrimeItems
-        T.set_language(language)
+        T.set_language(language_to_use)
+        # FIX This isn't working
+        language_translated = translate_string(language_to_use)
         # Change the menu to reflect the selected language
         if hasattr(the_view, "language_optionmenu"):
-            the_view.language_optionmenu.set(PrimeItems._(language))
+            the_view.language_optionmenu.set(language_translated)
 
         # Translate and format message
-        message = f"Language set to {language}."
-        message = PrimeItems._(message)
+        message = f"{translate_string('Language set to')} {language_translated}."
+        # message = PrimeItems._(message)
 
         # Display message in the GUI
         the_view.display_message_box(message, "Green")
@@ -2966,6 +2982,7 @@ class EventHandlers:
         # Let user know
         message = f"Language set to {language}."
         message = PrimeItems._(message)
+        self.clear_messages = True
         the_view.display_message_box(message, "Green")
 
     def extended_models_event(self) -> None:
@@ -2995,27 +3012,28 @@ class EventHandlers:
 
         Returns:
             None: No return value"""
-        the_view.logo_label.configure("")
-        the_view.detail_level_label.configure("")
-        the_view.task_action_label.configure("")
-        the_view.view_label.configure("")
-        the_view.indent_label.configure("")
-        the_view.language_label.configure("")
-        the_view.appearance_mode_label.configure("")
-        the_view.font_label.configure("")
+        the_view.logo_label.configure(text="")
+        the_view.detail_level_label.configure(text="")
+        the_view.task_action_label.configure(text="")
+        the_view.view_label.configure(text="")
+        the_view.indent_label.configure(text="")
+        the_view.language_label.configure(text="")
+        the_view.appearance_mode_label.configure(text="")
+        the_view.font_label.configure(text="")
+        text = translate_string("Monospaced Font To Use")
+        the_view.font_out_label.configure(text=f"{text} {the_view.font}")
         the_view.reset_button.configure(text="")
         if hasattr(the_view, "upgrade_button"):
             the_view.upgrade_button.configure(text="")
         the_view.report_issue_button.configure(text="")
         the_view.save_settings_button.configure(text="")
         the_view.restore_settings_button.configure(text="")
-        the_view.font_out_label.configure("")
         the_view.reset_button.configure(text="")
         the_view.get_backup_button.configure(text="")
         the_view.getxml_button.configure(text="")
         the_view.display_help_button.configure(text="")
         the_view.get_android_help_button.configure(text="")
-        the_view.text_message_label.configure("")
+        the_view.text_message_label.configure(text="")
         the_view.run_button.configure(text="")
         the_view.rerun_button.configure(text="")
         the_view.exit_button.configure(text="")
@@ -3146,10 +3164,12 @@ class EventHandlers:
         the_view = self.parent
         the_view.list_unnamed_items = the_view.list_unnamed_items_checkbox.get()
         selected = "selected" if the_view.list_unnamed_items else "deselected"
+        selected = translate_string(selected)
         # Update the pull-down menus and display message
         list_tasker_objects(the_view)
+        text = translate_string("'List Unnamed Items' checkbox")
         the_view.display_message_box(
-            f"'List Unnamed Items' checkbox {selected}.",
+            f"{text} {selected}.",
             "Green",
         )
 
@@ -3292,8 +3312,9 @@ class EventHandlers:
                 apikey_entry = f"entry_{key}"
                 entry_field = getattr(apikey_window, apikey_entry)
                 entry_field.delete(0, "end")
+                text = translate_string("API key cleared.")
                 _display_message_box(
-                    f"{key.replace('_key', '').title()} API key cleared.",
+                    f"{key.replace('_key', '').title()} {text}",
                     "LimeGreen",
                 )
                 return
@@ -3302,7 +3323,8 @@ class EventHandlers:
             if PrimeItems.ai[key] != value:  # If the key entered doesn't matych what we already have.
                 # Validate the lngth of the key
                 if value and key in apikeys_to_validate and not _valid_api_key(key, value):
-                    error_msg = f"{key.replace('_key', '').title()} API key is invalid!"
+                    text = translate_string("API key is invalid!")
+                    error_msg = f"{key.replace('_key', '').title()} {text}"
                     _display_message_box(
                         error_msg,
                         "Red",
@@ -3327,13 +3349,15 @@ class EventHandlers:
                     apikey_error_label.destroy()
                 PrimeItems.ai[key] = value
                 apikey_changed = True
+                text = translate_string("API key saved:")
                 _display_message_box(
-                    f"{key.replace('_', ' ').title()} API key saved: '{value}' .",
+                    f"{key.replace('_', ' ').title()} {text} '{value}' .",
                     "LimeGreen",
                 )
             else:
+                text = translate_string("API key unmodified")
                 _display_message_box(
-                    f"{key.replace('_', ' ').title()} API key unmodified",
+                    f"{key.replace('_', ' ').title()} {text}",
                     "LimeGreen",
                 )
 
@@ -3422,20 +3446,23 @@ class EventHandlers:
             the_view,
             the_view.ai_model,
         ):
+            text = translate_string("The API Key is not set for model")
             the_view.display_message_box(
-                f"The API Key is not set for model {the_view.ai_model}.",
+                f"T{text} {the_view.ai_model}.",
                 "Orange",
             )
             return
         # Make sure we have a single name.
-        if the_view.single_profile_name == "None or unnamed!":
+        if the_view.single_profile_name == translate_string("None or unnamed!"):
             the_view.single_profile_name = ""
         # Do we have a single item identified?
         if the_view.single_project_name or the_view.single_profile_name or the_view.single_task_name:
             the_view.ai_analyze = True
             the_view.event_handlers.clear_messages_event()  # Clear out all displayed messages.
+            text1 = translate_string("Running")
+            text2 = translate_string("analysis with model")
             the_view.display_message_box(
-                f"Running {the_view.ai_name} analysis with model {the_view.ai_model}.",
+                f"{text1} {the_view.ai_name} {text2} {the_view.ai_model}.",
                 "Green",
             )
             the_view.tab_to_use = the_view.tabview.get()
@@ -3495,10 +3522,13 @@ class EventHandlers:
         Returns:
             None
         """
+        # FIX Buttons are not long enough in API key change
         the_view = self.parent
+        msg1 = translate_string("Current prompt:")
+        msg2 = translate_string("Enter a new prompt for the AI to use:")
         dialog = customtkinter.CTkInputDialog(
-            text=f"Current prompt: '{the_view.ai_prompt}'\n\nEnter a new prompt for the AI to use:",
-            title="Change the Ai Prompt",
+            text=f"{msg1} '{the_view.ai_prompt}'\n\n{msg2}",
+            title=translate_string("Change the Ai Prompt"),
         )
         dialog.focus_set()  # Make sure it is selectable.
         # Get the name entered
@@ -3512,8 +3542,9 @@ class EventHandlers:
         else:
             # Valid response.
             the_view.ai_prompt = name_entered
+            msg = translate_string("Prompt changed to")
             the_view.display_message_box(
-                f"Prompt changed to '{the_view.ai_prompt}'.",
+                f"{msg} '{the_view.ai_prompt}'.",
                 "Green",
             )
             display_selected_object_labels(the_view)
@@ -3813,7 +3844,8 @@ class EventHandlers:
         if view_limit == 9999999:
             view_limit = "Unlimited"
         guiview.viewlimit_optionmenu.set(view_limit)
-        guiview.display_message_box(f"View Limit set to {view_limit}.", "Green")
+        text = translate_string("View Limit set to")
+        guiview.display_message_box(f"{text} {view_limit}.", "Green")
 
     # Process the '?' List XML Files query button
     def query_event(self: object, query_name: str) -> None:
