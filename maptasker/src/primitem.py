@@ -131,6 +131,7 @@ class PrimeItems:
         "English": "en",
         "Spanish": "es",
         "German": "de",
+        "Simplified Chinese": "zh_CN",
     }
     languages_translated: ClassVar[dict[str, str]] = {}
 

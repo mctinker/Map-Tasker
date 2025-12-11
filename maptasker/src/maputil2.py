@@ -17,6 +17,7 @@ import customtkinter as ctk
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, NOW_TIME, logger, logging
+from maptasker.src.translator import T
 
 
 def strip_html_tags(text: str) -> str:
@@ -137,16 +138,25 @@ def save_window_position(self: ctk, window_name: str) -> None:
     return ""
 
 
-def translate_string(text: str) -> str:
+def translate_string(text: str, set_language: bool = False) -> str:
     """
-    Translates a given string using PrimeItems._ if available.
+    Translates a given string using PrimeItems._ if available. and sets the language if requested.
 
     Args:
         text: The input string to be translated.
     Returns:
         The translated string if PrimeItems._ is available, otherwise the original string.
     """
+    # If we have a language set, then translate the test
     if hasattr(PrimeItems, "_"):
+        # If we are to set the language, then  first translate it and then set it.
+        if set_language:
+            lang_to_set = PrimeItems._(text) if text not in PrimeItems.languages else text
+            T.set_language(lang_to_set)
+        return PrimeItems._(text)
+
+    # If this is a language, then set the language and translate the text.
+    if text in PrimeItems.languages and set_language:
+        T.set_language(text)
         return PrimeItems._(text)
     return text
-    return PrimeItems._(text) if hasattr(PrimeItems, "_") else text

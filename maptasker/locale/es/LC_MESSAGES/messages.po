@@ -13,72 +13,48 @@ msgstr ""
 
 msgid "Language set to"
 msgstr "Idioma establecido en"
-
 msgid "Display Options"
 msgstr "Opciones de visualización"
-
 msgid "Display Detail Level:"
 msgstr "Nivel de detalle de visualización:"
-
 msgid "This determines the amount of detail displayed in the output.\n\nLevel 0 = the least detail, 5 = the most detail."
 msgstr "Esto determina la cantidad de detalle que se muestra en la salida.\n\nNivel 0 = el menor detalle, 5 = el mayor detalle."
-
 msgid "Specific Name"
 msgstr ""
-
 msgid "Diagram"
 msgstr "Diagrama"
-
 msgid "Misc View"
 msgstr "Vista miscelánea"
-
-
 msgid "Analysis"
 msgstr "Análisis"
-
-
 msgid "Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top.\n\nClick the ? to get more info."
 msgstr "Haga clic en este botón para iniciar una búsqueda de la cadena que ha ingresado a la izquierda y resaltar las coincidencias, comenzando desde la parte superior. Haga clic en el signo ? para obtener más información."
-
 msgid "Search Here"
 msgstr "Buscar aquí"
-
 msgid "Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top-left corner of the screen.\n\nClick the '?' to get more info."
 msgstr "Haga clic en este botón para iniciar una búsqueda de la cadena\nque ha ingresado a la izquierda y resaltar las coincidencias,\ncomenzando en la esquina superior izquierda de la pantalla.\nHaga clic en el signo ? para obtener más información."
-
 msgid "Next"
 msgstr "Próximo"
-
 msgid "Make the next matched string visible.\n\nClick the ? to get more info."
 msgstr "Hacer visible la siguiente cadena coincidente.\n\nHaga clic en el signo ? para obtener más información."
-
 msgid "Prev"
 msgstr "Anterior"
-
 msgid "Clear"
 msgstr "Claro"
-
 msgid "search"
 msgstr "buscar"
-
 msgid "Toggle Word Wrap"
 msgstr "Alternar ajuste de palabras"
-
 msgid "Top"
 msgstr "Arriba"
-
 msgid "Bottom"
 msgstr "Abajo"
-
 msgid "Display Only"
 msgstr "Sólo visualización"
-
 msgid "Display only"
 msgstr "Sólo visualización"
-
 msgid "Display only the"
 msgstr "Mostrar solo el"
-
 msgid "overrides any previous set name"
 msgstr "anula cualquier nombre de conjunto anterior"
 
@@ -826,3 +802,12 @@ msgid "German"
 msgstr "Alemán"
 msgid "Alemán"
 msgstr "German"
+msgid "Simplified Chinese"
+msgstr "chino simplificado"
+msgid "chino simplificado"
+msgstr "Simplified Chinese"
+msgid "Traditional Chinese"
+msgstr "Chino tradicional"
+# Original: msgid "Traditional Chinese", msgstr "Chino tradicional"
+msgid "Chino tradicional"
+msgstr "Traditional Chinese"

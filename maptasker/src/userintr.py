@@ -22,7 +22,6 @@ import customtkinter
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
-from maptasker.src.translator import T
 from maptasker.src.ctk_color_picker import AskColor
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
@@ -421,8 +420,7 @@ class MyGui(customtkinter.CTk):
         )
 
         # If current message is a setting ("set On/Off/True/False"), then color it
-        if self.check_message_for_special_highlighting(message, line_num_str):
-            ...
+        _ = self.check_message_for_special_highlighting(message, line_num_str)
 
         # self.textbox.focus_set()
         # Set the font
@@ -2919,8 +2917,8 @@ class EventHandlers:
         """
         the_view = self if self.__class__.__name__ == "MyGui" else self.parent
 
-        # Get the language to use in English: Spanish, German, etc.
-        language_translated = translate_string(language)
+        # Ge or Set and Get the language to use in English: Spanish, German, etc.
+        language_translated = translate_string(language, set_language=True)
         if language in PrimeItems.languages:
             language_to_use = language
         elif language_translated in PrimeItems.languages:
@@ -2930,8 +2928,8 @@ class EventHandlers:
         the_view.language = language_to_use
 
         # Set the translation function in PrimeItems
-        T.set_language(language_to_use)
-        # FIX This isn't working
+        # T.set_language(language_to_use)
+
         language_translated = translate_string(language_to_use)
         # Change the menu to reflect the selected language
         if hasattr(the_view, "language_optionmenu"):
@@ -2942,6 +2940,7 @@ class EventHandlers:
         # message = PrimeItems._(message)
 
         # Display message in the GUI
+        the_view.clear_messages = True
         the_view.display_message_box(message, "Green")
 
     def language_selected_event(self, language: str) -> None:
@@ -2952,10 +2951,10 @@ class EventHandlers:
             language: The language selected by the user.
         """
         the_view = self if self.__class__.__name__ == "MyGui" else self.parent
-        the_view.language = language
+        # the_view.language = language
 
         # Set the translation function in PrimeItems
-        self.language_set_event(language)
+        self.language_set_event(translate_string(language))
 
         # Clear out all of the text fields
         self.clear_text_fields(the_view)
@@ -2980,8 +2979,7 @@ class EventHandlers:
         display_selected_object_labels(the_view)
 
         # Let user know
-        message = f"Language set to {language}."
-        message = PrimeItems._(message)
+        message = f"{translate_string('Language set to')} {translate_string(the_view.language)}."
         self.clear_messages = True
         the_view.display_message_box(message, "Green")
 
@@ -3012,31 +3010,43 @@ class EventHandlers:
 
         Returns:
             None: No return value"""
-        the_view.logo_label.configure(text="")
-        the_view.detail_level_label.configure(text="")
-        the_view.task_action_label.configure(text="")
-        the_view.view_label.configure(text="")
-        the_view.indent_label.configure(text="")
-        the_view.language_label.configure(text="")
-        the_view.appearance_mode_label.configure(text="")
-        the_view.font_label.configure(text="")
+
         text = translate_string("Monospaced Font To Use")
         the_view.font_out_label.configure(text=f"{text} {the_view.font}")
-        the_view.reset_button.configure(text="")
-        if hasattr(the_view, "upgrade_button"):
-            the_view.upgrade_button.configure(text="")
-        the_view.report_issue_button.configure(text="")
-        the_view.save_settings_button.configure(text="")
-        the_view.restore_settings_button.configure(text="")
-        the_view.reset_button.configure(text="")
-        the_view.get_backup_button.configure(text="")
-        the_view.getxml_button.configure(text="")
-        the_view.display_help_button.configure(text="")
-        the_view.get_android_help_button.configure(text="")
-        the_view.text_message_label.configure(text="")
-        the_view.run_button.configure(text="")
-        the_view.rerun_button.configure(text="")
-        the_view.exit_button.configure(text="")
+
+        # Find all 'the_view.some_checkbox' variables and clear them out
+        checkboxes = self.find_variables(the_view, "_checkbox")
+        for checkbox in checkboxes:
+            checkbox_to_clear = getattr(the_view, checkbox)
+            checkbox_to_clear.configure(text="")
+        # Ditto labels
+        labels = self.find_variables(the_view, "_label")
+        for label in labels:
+            label_to_clear = getattr(the_view, label)
+            label_to_clear.configure(text="")
+        # Ditto buttons
+        buttons = self.find_variables(the_view, "_button")
+        for button in buttons:
+            button_to_clear = getattr(the_view, button)
+            button_to_clear.configure(text="")
+
+    def find_variables(self, the_view: MyGui, var_to_find: str) -> list:
+        """
+        Searches the object 'self' for all attribute names ending in '_label'.
+
+        Returns:
+            list: A list of string attribute names matching the pattern.
+        """
+        # We use vars(self) to get a dictionary mapping attribute names
+        # (strings) to their values. Using dir(self) is also possible
+        # but vars() is often cleaner for instance attributes.
+
+        # 1. Get all attributes of the object (as a dictionary of {name: value})
+        attributes = vars(the_view)
+
+        # 2. Use a list comprehension to iterate through the attribute names (keys)
+        #    and filter them based on the desired suffix.
+        return [name for name in attributes if name.endswith(var_to_find)]
 
     def names_highlight_event(self) -> None:
         """

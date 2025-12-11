@@ -4088,6 +4088,7 @@ def _initialize_data_structures(self: ctk) -> None:
     self.single_project_name = None
     self.single_task_name = None
     self.tab_to_use = None  # Consider if this should be initialized to a default tab
+    self.check_boxes = []
 
 
 def _initialize_runtime_options(self: ctk) -> None:
@@ -4269,6 +4270,7 @@ def _create_display_options_section(self: ctk) -> None:
             "Align all Task action arguments and parameters for nicer output.",
         ),
     ]
+    self.check_boxes = []
     _add_checkbox = add_checkbox
     _create_tooltip = create_tooltip
     for i, (text, event_name, attr_name, tooltip_text) in enumerate(checkboxes):
@@ -4284,7 +4286,8 @@ def _create_display_options_section(self: ctk) -> None:
             "w",
             "",
         )
-        setattr(self, attr_name, checkbox)
+        setattr(self, attr_name, checkbox)  # Add the checkbox 'attr_name' to self
+        self.check_boxes.append(attr_name)
         if tooltip_text:
             _create_tooltip(checkbox, text=tooltip_text)
 
