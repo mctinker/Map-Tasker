@@ -542,7 +542,7 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
 
 # Create a label general routine
 def add_label(
-    self: object,
+    self: object,  # noqa: ARG001
     frame: ctk.CTkFrame,
     text: str,
     text_color: str,
@@ -649,7 +649,7 @@ def add_checkbox(
 
 # Create a button general routine
 def add_button(
-    self,  # noqa: ANN001
+    self,  # noqa: ANN001, ARG001
     frame: ctk.CTkFrame,
     fg_color: str | tuple,
     text_color: str | tuple,

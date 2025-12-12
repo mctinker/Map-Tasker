@@ -4450,23 +4450,23 @@ def _create_language_selection_section(self: ctk) -> None:
         "",
         0,
         "normal",
-        19,
+        17,
         0,
-        0,
+        50,
         (10, 0),
-        "s",
+        "se",
     )
-    languages = list(PrimeItems.languages)
+    languages = sorted(PrimeItems.languages.keys())
     self.language_optionmenu = add_option_menu(
         self,
         self.sidebar_frame,
         self.event_handlers.language_selected_event,
         languages,
-        20,
+        18,
         0,
-        0,
+        10,
         (0, 10),
-        "n",
+        "ne",
     )
     self.language_optionmenu.set(translate_string(self.language))
 
@@ -4482,9 +4482,9 @@ def _create_appearance_mode_section(self: ctk) -> None:
         "normal",
         17,
         0,
-        0,
+        10,
         (10, 0),
-        "s",
+        "sw",
     )
     self.appearance_mode_optionmenu = add_option_menu(
         self,
@@ -4493,15 +4493,15 @@ def _create_appearance_mode_section(self: ctk) -> None:
         ["Light", "Dark", "System"],
         18,
         0,
-        0,
+        10,
         (0, 10),
-        "n",
+        "nw",
     )
 
 
 def _create_view_buttons_section(self: ctk) -> None:
     """Creates buttons for different views (Map, Diagram, Tree)."""
-    self.view_label = add_label(self, self.sidebar_frame, "Views", "", 0, "normal", 21, 0, 0, 0, "s")
+    self.view_label = add_label(self, self.sidebar_frame, "Views", "", 0, "normal", 19, 0, 0, 0, "s")
     self.mapview_button = add_button(
         self,
         self.sidebar_frame,
@@ -4512,7 +4512,7 @@ def _create_view_buttons_section(self: ctk) -> None:
         1,
         "Map",
         1,
-        22,
+        20,
         0,
         (20, 0),
         0,
@@ -4534,7 +4534,7 @@ def _create_view_buttons_section(self: ctk) -> None:
         2,
         "Diagram",
         1,
-        22,
+        20,
         0,
         105,
         0,
@@ -4556,7 +4556,7 @@ def _create_view_buttons_section(self: ctk) -> None:
         2,
         "Tree",
         0,
-        22,
+        20,
         0,
         (0, 40),
         0,
@@ -4578,11 +4578,11 @@ def _create_view_buttons_section(self: ctk) -> None:
         1,
         "?",
         1,
-        22,
+        20,
         0,
-        (320, 0),
+        (10, 10),
         0,
-        "s",
+        "se",
     )
     self.view_query_button.configure(width=20)
 
@@ -4596,7 +4596,7 @@ def _create_view_limit_section(self: ctk) -> None:
         "",
         0,
         "normal",
-        23,
+        21,
         0,
         30,
         20,
@@ -4607,7 +4607,7 @@ def _create_view_limit_section(self: ctk) -> None:
         self.sidebar_frame,
         self.event_handlers.viewlimit_event,
         ["5000", "10000", "15000", "20000", "25000", "30000", "Unlimited"],
-        23,
+        21,
         0,
         (20, 0),
         20,
@@ -4627,7 +4627,7 @@ def _create_view_limit_section(self: ctk) -> None:
         1,
         "?",
         1,
-        23,
+        21,
         0,
         (200, 0),
         20,
@@ -4648,7 +4648,7 @@ def _create_settings_buttons_section(self: ctk) -> None:
         2,
         "Reset Options",
         1,
-        23,
+        21,
         0,
         20,
         (80, 10),

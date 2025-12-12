@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [9.1.4] ??-Dec-2025  # FIX
+## [10.0.0] ??-Dec-2025  # FIX
 
 ### Added
 
-- Added: Multilinqual support
+- Added: GUI Multilinqual support for: French, German, Hindi, Japanese, Korean, Simplified and Traditional Chinese, Spanish, Portuguese, and Russian.
 
 ### Changed
 

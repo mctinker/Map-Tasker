@@ -26,6 +26,7 @@ packages = [
 include = [
     "**/maptasker/**/*.py",
     "**/maptasker/assets/*.*",
+    "**/maptasker/locale/*.mo",
     "**/sample.prj.xml",
 ]
 exclude = [
@@ -136,7 +137,7 @@ select = [
     'W',    # Warnings
     'YTT',  # sys.version
 ]
-# Exclude a variety of commonly ignored directories.
+# Exclude a variety of commonly ignored directories from the package.
 exclude = [
     ".direnv",
     "dist",
@@ -160,6 +161,7 @@ exclude = [
     ".md",
     "__init__.py",
     "**/maptasker/assets/*.*",
+    "**/maptasker/locale/*.po",
     "**/maptasker/MapTasker.html",
     "**/maptasker/.MapTasker_RunCount.txt",
     "**/maptasker/.arguments.txt",

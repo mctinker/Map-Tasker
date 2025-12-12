@@ -3532,7 +3532,6 @@ class EventHandlers:
         Returns:
             None
         """
-        # FIX Buttons are not long enough in API key change
         the_view = self.parent
         msg1 = translate_string("Current prompt:")
         msg2 = translate_string("Enter a new prompt for the AI to use:")
