@@ -2978,6 +2978,9 @@ class EventHandlers:
         # Redo the labels
         display_selected_object_labels(the_view)
 
+        # Display the default model list
+        the_view.displaying_extended_list = None  # Force pulldown to be recreated.
+
         # Let user know
         message = f"{translate_string('Language set to')} {translate_string(the_view.language)}."
         self.clear_messages = True
@@ -3890,9 +3893,9 @@ class EventHandlers:
         # Add the changelog to the help text.
         if query_name == "help":
             changes = get_changelog_file(CHANGELOG_URL, "##", 11)
-            help_text = help_text + "\n".join(changes)
+            help_text = translate_string(help_text) + "\n".join(changes)
 
-        guiview.new_message_box(f"{title}\n\n{help_text}")
+        guiview.new_message_box(f"{translate_string(title)}\n\n{translate_string(help_text)}")
         guiview.clear_messages = True  # Flag to tell display_message_box to clear the message box
 
     def view_event(self: object, view_name: str) -> None:

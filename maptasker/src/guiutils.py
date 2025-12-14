@@ -521,7 +521,7 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
     os.chdir(current_dir)
 
     if logo_type == "coffee":
-        _ = add_button(
+        self.coffee_button = add_button(
             self,
             parent,
             "#246FB6",
@@ -529,7 +529,7 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
             "",
             self.event_handlers.coffee_event,
             1,
-            "Buy Me A Coffee",
+            translate_string("Buy Me A Coffee"),
             1,
             *grid_pos,
             20,
@@ -871,9 +871,10 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         "nw",
     )
     # Set up name to display
-    project_to_display = self.single_project_name if self.single_project_name else "None"
-    profile_to_display = self.single_profile_name if self.single_profile_name else "None"
-    task_to_display = self.single_task_name if self.single_task_name else "None"
+    none_translated = translate_string("None")
+    project_to_display = self.single_project_name if self.single_project_name else none_translated
+    profile_to_display = self.single_profile_name if self.single_profile_name else none_translated
+    task_to_display = self.single_task_name if self.single_task_name else none_translated
     self.ai_model_option.set(model_to_display)  # Set the current model in the pulldown.
 
     # Display the Project to analyze
@@ -924,10 +925,12 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
     # Display the Prompt..newline after every maxlen characters forces it to wrap.
     maxlen = 35
     display_prompt = "\n".join(self.ai_prompt[i : i + maxlen] for i in range(0, len(self.ai_prompt), maxlen))
+    display_prompt = translate_string(display_prompt)
+    prompt = translate_string("Prompt:")
     self.ai_set_label5 = add_label(
         self,
         self.tabview.tab("Analyze"),
-        f"Prompt: '{display_prompt}'",
+        f"{prompt} '{display_prompt}'",
         "",
         0,
         "normal",

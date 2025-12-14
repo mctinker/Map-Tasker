@@ -555,9 +555,7 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}"
-                    if len(line) > max_length
-                    else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -4155,7 +4153,7 @@ def on_resize(self: ctk) -> None:
 
 
 def initialize_screen(self: object) -> None:
-    """Initializes the screen with various display options and settings."""
+    """Initializes the main GUI screen with various display options and settings."""
     logger.info("Initializing screen...")
     _setup_init(self)
     _create_display_options_section(self)
@@ -4917,14 +4915,15 @@ def _create_browser_options_section(self: ctk) -> None:
 
 def _create_tabview_section(self: ctk) -> None:
     """Creates the tabview and its individual tabs."""
-    self.tabview = ctk.CTkTabview(self, width=250, segmented_button_fg_color="#6563ff")
-    self.tabview.grid(row=0, column=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
+    # Only create the tabs if we don't already have them.
+    if not hasattr(self, "tabview"):
+        self.tabview = ctk.CTkTabview(self, width=250, segmented_button_fg_color="#6563ff")
+        self.tabview.grid(row=0, column=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
 
-    for item in TAB_NAMES:
-        self.tabview.add(item)
-        # Configure grid for individual tabs
-        self.tabview.tab(item).grid_columnconfigure(0, weight=1)
-
+        for item in TAB_NAMES:
+            self.tabview.add(item)
+            # Configure grid for individual tabs
+            self.tabview.tab(item).grid_columnconfigure(0, weight=1)
     _create_specific_name_tab_content(self, self.tabview.tab("Specific Name"))
     _create_colors_tab_content(self, self.tabview.tab("Colors"))
     _create_analyze_tab_content(self, self.tabview.tab("Analyze"))
@@ -4967,7 +4966,7 @@ but the unnamed Profile and Task details will still appear in the output.
 
 def _create_colors_tab_content(self: ctk, tab: str) -> None:
     """Populates the 'Colors' tab."""
-    add_label(
+    self.default_colors_label = add_label(
         self,
         tab,
         "Set Various Display Colors Here:",
@@ -4980,7 +4979,7 @@ def _create_colors_tab_content(self: ctk, tab: str) -> None:
         0,
         "",
     )
-    add_option_menu(
+    self.color_objects_options = add_option_menu(
         self,
         tab,
         self.event_handlers.colors_event,
@@ -5009,7 +5008,7 @@ def _create_colors_tab_content(self: ctk, tab: str) -> None:
         (10, 10),
         "",
     )
-    add_button(
+    self.reset_colors_button = add_button(
         self,
         tab,
         "",
@@ -5077,7 +5076,7 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         "nw",
     )
 
-    # # Display the default model list
+    # Display the default model list
     display_model_pulldown(self, center)
 
     # Extra model list checkbox

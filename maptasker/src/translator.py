@@ -1,6 +1,7 @@
 """Provide language translation capabilities using gettext."""
 
 import gettext
+from pathlib import Path
 
 from maptasker.src.primitem import PrimeItems  # your global shared class
 
@@ -19,10 +20,14 @@ class Translator:
         # Resolve language code using PrimeItems.languages
         lang_code = PrimeItems.languages.get(lang, lang)
 
+        # Point to our 'maptasker' directory
+        script_dir = Path(__file__).resolve().parent
+        parent_dir = script_dir.parent
+
         # Load gettext translation
         translation = gettext.translation(
             "messages",
-            localedir=f"maptasker{PrimeItems.slash}locale",
+            localedir=f"{parent_dir}{PrimeItems.slash}locale",
             languages=[lang_code],
             fallback=True,
         )
