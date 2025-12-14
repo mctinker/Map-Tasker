@@ -1,14 +1,14 @@
 [project]
 name = "maptasker"
 dynamic = [ "version" ]
-version = "9.1.3"
+version = "10.0.0"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 requires-python = ">=3.11,<4.0"
 authors = [
     { name = "Michael Rubin", email = "mikrubin@gmail.com" },
 ]
 readme = "README_PyPl.md"
-license = "MIT License (MIT)"
+license = "MIT"
 repository = "https://github.com/mctinker/Map-Tasker"
 # changelog = "https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md"
 keywords = [
@@ -26,6 +26,7 @@ packages = [
 include = [
     "**/maptasker/**/*.py",
     "**/maptasker/assets/*.*",
+    "**/maptasker/locale/*.mo",
     "**/sample.prj.xml",
 ]
 exclude = [
@@ -40,20 +41,21 @@ exclude = [
 ]
 
 dependencies = [
-    "anthropic>=0.74.1",
-    "cv3 >=1.3.2; sys_platform != 'win32'",
-    "darkdetect>=0.8.0",
-    "defusedxml>=0.7.1",
-    "google-genai>=1.51.0",
-    "ollama>=0.6.1",
-    "openai>=2.8.1",
-    "packaging>=25.0",
-    "pillow==12.0.0",
-    "psutil>=7.1.3",
-    "requests>=2.32.5",
-    "tomli_w>=1.2.0",
-    "webcolors>=25.10.0",
-    "yt-dlp>=2025.11.12",
+    'anthropic>=0.75.0',
+    'cv3 (>=1.3.2,<2.0.0); sys_platform != "win32"',
+    'darkdetect>=0.8.0',
+    'defusedxml>=0.7.1',
+    'google-genai>=1.55.0',
+    'ollama>=0.6.1',
+    'openai>=2.11.0',
+    'packaging>=25.0',
+    'pillow==12.0.0',
+    'psutil>=7.1.3',
+    'pytube2 (>=15.0.16,<16.0.0)',
+    'requests>=2.32.5',
+    'tomli_w>=1.2.0',
+    'webcolors>=25.10.0',
+    'yt-dlp (>=2025.10.22,<2026.0.0)',
 ]
 
 [project.scripts]
@@ -136,7 +138,7 @@ select = [
     'W',    # Warnings
     'YTT',  # sys.version
 ]
-# Exclude a variety of commonly ignored directories.
+# Exclude a variety of commonly ignored directories from the package.
 exclude = [
     ".direnv",
     "dist",
@@ -160,6 +162,7 @@ exclude = [
     ".md",
     "__init__.py",
     "**/maptasker/assets/*.*",
+    "**/maptasker/locale/*.po",
     "**/maptasker/MapTasker.html",
     "**/maptasker/.MapTasker_RunCount.txt",
     "**/maptasker/.arguments.txt",
@@ -231,6 +234,8 @@ dev = [
     "types-defusedxml>=0.7.0",
     "vulture>=2.14,<3.0",
     "black(>=25.9.0,<26.0.0)",
+    # "google-cloud-translate (>=3.23.0,<4.0.0)",
+    "deep-translator (>=1.11.4,<2.0.0)",
 ]
 
 [tool.pytest.ini_options]
