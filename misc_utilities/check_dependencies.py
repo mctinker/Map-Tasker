@@ -1,3 +1,6 @@
+#! /usr/bin/env python3
+"""Check andf Update Dependencies for the Project."""
+
 import re
 
 import requests
@@ -133,13 +136,13 @@ def check_dependency_updates(dependencies: list, output_file: str, req_file: str
 
 # === Your dependency list ===
 dependencies = [
-    "anthropic>=0.74.1",
+    "anthropic>=0.75.0",
     "cv3 (>=1.3.2,<2.0.0)",
     "darkdetect>=0.8.0",
     "defusedxml>=0.7.1",
-    "google-genai>=1.51.0",
+    "google-genai>=1.55.0",
     "ollama>=0.6.1",
-    "openai>=2.8.1",
+    "openai>=2.11.0",
     "packaging>=25.0",
     "pillow==12.0.0",
     "psutil>=7.1.3",
