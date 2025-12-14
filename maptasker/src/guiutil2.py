@@ -1309,3 +1309,12 @@ def starts_with_html(text: str) -> bool:
 
     # 3. Check for a match at the beginning of the cleaned string
     return bool(html_pattern.match(cleaned_text))
+
+
+class TranslatedLabel(ctk.CTkLabel):
+    """Translate text if we have set the language"""
+
+    def __init__(self, *args: complex, text: str = "", **kwargs: complex) -> None:
+        """Rewturn translated tyext if translation is available"""
+        translated_text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+        super().__init__(*args, text=translated_text, **kwargs)

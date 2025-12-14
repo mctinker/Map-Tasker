@@ -59,6 +59,7 @@ from maptasker.src.guiutils import (
     update_tasker_object_menus,
 )
 from maptasker.src.lineout import LineOut
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import (
     find_all_positions,
     find_owning_profile,
@@ -554,9 +555,7 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}"
-                    if len(line) > max_length
-                    else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -774,7 +773,7 @@ class CTkTextview(ctk.CTkFrame):
         search_button.configure(width=50)
         create_tooltip(
             search_button,
-            text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, startring at the top.\n\nClick the ? to get more info.",
+            text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top.\n\nClick the ? to get more info.",
         )
         # Search Here button
         search_here_button = add_button(
@@ -796,7 +795,7 @@ class CTkTextview(ctk.CTkFrame):
         search_here_button.configure(width=50)
         create_tooltip(
             search_here_button,
-            text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top-left corner of the screen.\n\nClick the ? to get more info.",
+            text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top-left corner of the screen.\n\nClick the '?' to get more info.",
         )
 
         # Next search button
@@ -844,7 +843,7 @@ class CTkTextview(ctk.CTkFrame):
             text="Make the previous matched string visible.\n\nClick the ? to get more info.",
         )
         # Clear search button
-        clear_search_button = add_button(
+        self.clear_search_button = add_button(
             self,
             self,
             "#246FB6",
@@ -860,7 +859,7 @@ class CTkTextview(ctk.CTkFrame):
             5,
             "nw",
         )
-        clear_search_button.configure(width=50)
+        self.clear_search_button.configure(width=50)
 
         #  Query ? button
         search_query_button = add_button(
@@ -2881,15 +2880,15 @@ class CTkTextview(ctk.CTkFrame):
                 if directory_type == "profiles_up":
                     name_to_go_up = find_owning_project(name_to_go_up)
                     go_up_type = "projects_up"
-                    name_object = "Project:"
+                    name_object = translate_string("Project:")
                 elif directory_type == "tasks_up":
                     name_to_go_up = find_owning_profile(name_to_go_up)
                     go_up_type = "profiles_up"
-                    name_object = "Profile:"
+                    name_object = translate_string("Profile:")
                 else:
                     # We're at the Project level. Do nothing.
                     go_up_type = "all"
-                    name_to_go_up = "entire configuration"
+                    name_to_go_up = translate_string("entire configuration")
                     name_object = ""
             else:
                 go_up_type = directory_type
@@ -4013,6 +4012,7 @@ def _initialize_gui_settings(self: ctk) -> None:
     self.clear_messages = False
     self.pretty = False
     self.task_action_warning_limit = 20
+    self.language = "English"
 
 
 def _initialize_ai_settings(self: ctk) -> None:
@@ -4086,6 +4086,7 @@ def _initialize_data_structures(self: ctk) -> None:
     self.single_project_name = None
     self.single_task_name = None
     self.tab_to_use = None  # Consider if this should be initialized to a default tab
+    self.check_boxes = []
 
 
 def _initialize_runtime_options(self: ctk) -> None:
@@ -4152,7 +4153,7 @@ def on_resize(self: ctk) -> None:
 
 
 def initialize_screen(self: object) -> None:
-    """Initializes the screen with various display options and settings."""
+    """Initializes the main GUI screen with various display options and settings."""
     logger.info("Initializing screen...")
     _setup_init(self)
     _create_display_options_section(self)
@@ -4160,6 +4161,7 @@ def initialize_screen(self: object) -> None:
     _create_task_action_limit_section(self)
     _create_indentation_section(self)
     _create_appearance_mode_section(self)
+    _create_language_selection_section(self)
     _create_view_buttons_section(self)
     _create_view_limit_section(self)
     _create_settings_buttons_section(self)
@@ -4196,7 +4198,7 @@ def _create_display_options_section(self: ctk) -> None:
         "s",
     )
 
-    detail_level_label = add_label(
+    self.detail_level_label = add_label(
         self,
         self.sidebar_frame,
         "Display Detail Level:",
@@ -4210,9 +4212,10 @@ def _create_display_options_section(self: ctk) -> None:
         "",
     )
     create_tooltip(
-        detail_level_label,
+        self.detail_level_label,
         text="This determines the amount of detail displayed in the output.\n\nLevel 0 = the least detail, 5 = the most detail.",
     )
+
     self.sidebar_detail_option = add_option_menu(
         self,
         self.sidebar_frame,
@@ -4230,7 +4233,7 @@ def _create_display_options_section(self: ctk) -> None:
             "Just Display Everything!",
             "everything_event",
             "everything_checkbox",
-            "Checks all of the below checkboxes except for 'twistyt' and sets the display level to the maximum detail level.",
+            "Checks all of the below checkboxes except for 'twisty' and sets the display level to the maximum detail level.",
         ),
         (
             "Display Profile and Task Action Conditions",
@@ -4250,7 +4253,7 @@ def _create_display_options_section(self: ctk) -> None:
             "Display Directory",
             "directory_event",
             "directory_checkbox",
-            "Display a directory of all Projects, Profiles, Tasks and Scenes with hotlinks at the begging of the output.",
+            "Display a directory of all Projects, Profiles, Tasks and Scenes with hotlinks at the beginning of the output.",
         ),
         (
             "Display Configuration Outline",
@@ -4265,6 +4268,7 @@ def _create_display_options_section(self: ctk) -> None:
             "Align all Task action arguments and parameters for nicer output.",
         ),
     ]
+    self.check_boxes = []
     _add_checkbox = add_checkbox
     _create_tooltip = create_tooltip
     for i, (text, event_name, attr_name, tooltip_text) in enumerate(checkboxes):
@@ -4280,7 +4284,8 @@ def _create_display_options_section(self: ctk) -> None:
             "w",
             "",
         )
-        setattr(self, attr_name, checkbox)
+        setattr(self, attr_name, checkbox)  # Add the checkbox 'attr_name' to self
+        self.check_boxes.append(attr_name)
         if tooltip_text:
             _create_tooltip(checkbox, text=tooltip_text)
 
@@ -4326,7 +4331,7 @@ def _create_name_display_options_section(self: ctk) -> None:
         self,
         self.sidebar_frame,
         self.event_handlers.names_italicize_event,
-        "italicize",
+        "Italicize",
         12,
         0,
         20,
@@ -4368,10 +4373,12 @@ def _create_name_display_options_section(self: ctk) -> None:
 
 def _create_task_action_limit_section(self: ctk) -> None:
     """Creates the task 'actions' limit slider."""
+    text_to_insert = "Task 'actions' limit"
+    text = PrimeItems._(text_to_insert) if hasattr(PrimeItems, "_") else text_to_insert
     self.task_action_label = add_label(
         self,
         self.sidebar_frame,
-        f"Task 'actions' limit: {self.task_action_warning_limit}",
+        f"{text}: {self.task_action_warning_limit}",
         "",
         0,
         "normal",
@@ -4432,6 +4439,36 @@ def _create_indentation_section(self: ctk) -> None:
     )
 
 
+def _create_language_selection_section(self: ctk) -> None:
+    """Creates the language selection dropdown."""
+    self.language_label = add_label(
+        self,
+        self.sidebar_frame,
+        "Language:",
+        "",
+        0,
+        "normal",
+        17,
+        0,
+        50,
+        (10, 0),
+        "se",
+    )
+    languages = sorted(PrimeItems.languages.keys())
+    self.language_optionmenu = add_option_menu(
+        self,
+        self.sidebar_frame,
+        self.event_handlers.language_selected_event,
+        languages,
+        18,
+        0,
+        10,
+        (0, 10),
+        "ne",
+    )
+    self.language_optionmenu.set(translate_string(self.language))
+
+
 def _create_appearance_mode_section(self: ctk) -> None:
     """Creates the appearance mode selection."""
     self.appearance_mode_label = add_label(
@@ -4443,9 +4480,9 @@ def _create_appearance_mode_section(self: ctk) -> None:
         "normal",
         17,
         0,
-        0,
+        10,
         (10, 0),
-        "s",
+        "sw",
     )
     self.appearance_mode_optionmenu = add_option_menu(
         self,
@@ -4454,16 +4491,15 @@ def _create_appearance_mode_section(self: ctk) -> None:
         ["Light", "Dark", "System"],
         18,
         0,
-        0,
+        10,
         (0, 10),
-        "n",
+        "nw",
     )
 
 
 def _create_view_buttons_section(self: ctk) -> None:
     """Creates buttons for different views (Map, Diagram, Tree)."""
-    add_label(self, self.sidebar_frame, "Views", "", 0, "normal", 19, 0, 0, 0, "s")
-
+    self.view_label = add_label(self, self.sidebar_frame, "Views", "", 0, "normal", 19, 0, 0, 0, "s")
     self.mapview_button = add_button(
         self,
         self.sidebar_frame,
@@ -4542,9 +4578,9 @@ def _create_view_buttons_section(self: ctk) -> None:
         1,
         20,
         0,
-        (300, 0),
+        (10, 10),
         0,
-        "s",
+        "se",
     )
     self.view_query_button.configure(width=20)
 
@@ -4621,7 +4657,7 @@ def _create_settings_buttons_section(self: ctk) -> None:
         text="Reset all of the options to their default values, including colors, font used, and other settings.\n\nThe currently loaded XML will be cleared out.",
     )
 
-    add_button(
+    self.save_settings_button = add_button(
         self,
         self,
         "#6563ff",
@@ -4638,7 +4674,7 @@ def _create_settings_buttons_section(self: ctk) -> None:
         "nw",
     )
 
-    add_button(
+    self.restore_settings_button = add_button(
         self,
         self,
         "#6563ff",
@@ -4770,7 +4806,7 @@ def _create_file_and_message_buttons_section(self: ctk) -> None:
 
 def _create_browser_options_section(self: ctk) -> None:
     """Creates browser-related buttons (Run, ReRun, Exit, Help)."""
-    add_button(
+    self.display_help_button = add_button(
         self,
         self,
         "#246FB6",
@@ -4787,7 +4823,7 @@ def _create_browser_options_section(self: ctk) -> None:
         "ne",
     )
 
-    add_button(
+    self.get_android_help_button = add_button(
         self,
         self,
         "#246FB6",
@@ -4859,7 +4895,7 @@ def _create_browser_options_section(self: ctk) -> None:
         text="Same as the 'Run and Exit' button,\nbut the program restarts after displaying the browser output.",
     )
 
-    add_button(
+    self.exit_button = add_button(
         self,
         self,
         "#246FB6",
@@ -4879,14 +4915,15 @@ def _create_browser_options_section(self: ctk) -> None:
 
 def _create_tabview_section(self: ctk) -> None:
     """Creates the tabview and its individual tabs."""
-    self.tabview = ctk.CTkTabview(self, width=250, segmented_button_fg_color="#6563ff")
-    self.tabview.grid(row=0, column=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
+    # Only create the tabs if we don't already have them.
+    if not hasattr(self, "tabview"):
+        self.tabview = ctk.CTkTabview(self, width=250, segmented_button_fg_color="#6563ff")
+        self.tabview.grid(row=0, column=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
 
-    for item in TAB_NAMES:
-        self.tabview.add(item)
-        # Configure grid for individual tabs
-        self.tabview.tab(item).grid_columnconfigure(0, weight=1)
-
+        for item in TAB_NAMES:
+            self.tabview.add(item)
+            # Configure grid for individual tabs
+            self.tabview.tab(item).grid_columnconfigure(0, weight=1)
     _create_specific_name_tab_content(self, self.tabview.tab("Specific Name"))
     _create_colors_tab_content(self, self.tabview.tab("Colors"))
     _create_analyze_tab_content(self, self.tabview.tab("Analyze"))
@@ -4901,7 +4938,7 @@ def _create_specific_name_tab_content(self: ctk, tab: ctk) -> None:
         text="""
 Select either a single Project, Profile, or Task to display (Map and Diagram views, and browser).
 If a single Project is selected, all of it's Projects, Tasks and Scenes will be included.
-If a single Profile is selected, it and all of it's Tasks will be displayed.
+If a single Profile is selected, it and all of its Tasks will be displayed.
 """,
     )
 
@@ -4929,7 +4966,7 @@ but the unnamed Profile and Task details will still appear in the output.
 
 def _create_colors_tab_content(self: ctk, tab: str) -> None:
     """Populates the 'Colors' tab."""
-    add_label(
+    self.default_colors_label = add_label(
         self,
         tab,
         "Set Various Display Colors Here:",
@@ -4942,7 +4979,7 @@ def _create_colors_tab_content(self: ctk, tab: str) -> None:
         0,
         "",
     )
-    add_option_menu(
+    self.color_objects_options = add_option_menu(
         self,
         tab,
         self.event_handlers.colors_event,
@@ -4971,7 +5008,7 @@ def _create_colors_tab_content(self: ctk, tab: str) -> None:
         (10, 10),
         "",
     )
-    add_button(
+    self.reset_colors_button = add_button(
         self,
         tab,
         "",
@@ -5039,7 +5076,7 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         "nw",
     )
 
-    # # Display the default model list
+    # Display the default model list
     display_model_pulldown(self, center)
 
     # Extra model list checkbox
@@ -5185,6 +5222,9 @@ class ToolTip(object):  # noqa: UP004
         Returns:
             None
         """
+        # Translate as necessary
+        if hasattr(PrimeItems, "_"):
+            text = PrimeItems._(text)
         self.text = text
         if self.tipwindow or not self.text:
             return
@@ -5372,7 +5412,7 @@ class APIKeyDialog(ctk.CTkToplevel):
             20,
             "nw",
         )
-        apikey_ok_button.configure(width=30)
+        apikey_ok_button.configure(width=140)
 
         #  Query ? button
         apikey_query_button = add_button(
@@ -5387,7 +5427,7 @@ class APIKeyDialog(ctk.CTkToplevel):
             1,
             4,
             0,
-            (200, 0),
+            (300, 0),
             20,
             "nw",
         )
@@ -5406,7 +5446,7 @@ class APIKeyDialog(ctk.CTkToplevel):
             1,  # Column span
             4,  # row
             0,  # col
-            (250, 90),
+            (350, 90),
             0,
             "ew",
         )

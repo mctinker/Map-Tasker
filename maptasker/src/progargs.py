@@ -7,6 +7,8 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
+import os
+
 from maptasker.src.config import GUI
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.runcli import process_cli
@@ -51,3 +53,11 @@ def get_program_arguments() -> None:
     # Are we in development mode?  If so, override debug argument
     if DEBUG_PROGRAM:
         PrimeItems.program_arguments["debug"] = True
+
+    # If the file specified in the arguments doesn't exist, use backup.xml
+    if (
+        "file" in PrimeItems.program_arguments
+        and PrimeItems.program_arguments["file"]
+        and not os.path.exists(PrimeItems.program_arguments["file"])
+    ):
+        PrimeItems.program_arguments["file"] = "backup.xml"

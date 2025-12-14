@@ -44,7 +44,7 @@ from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutil2 import get_changelog_file, is_valid_ai_config
 from maptasker.src.lineout import LineOut
-from maptasker.src.maputil2 import save_window_position, store_windows
+from maptasker.src.maputil2 import save_window_position, store_windows, translate_string
 from maptasker.src.maputils import (
     append_item_to_list,
     get_pypi_version,
@@ -79,7 +79,6 @@ if TYPE_CHECKING:
     import defusedxml
 
 
-all_objects = "Display all Projects, Profiles, and Tasks."
 default_font_size = 14
 
 
@@ -106,7 +105,7 @@ def valid_item(
     - Match element type and get corresponding root element
     - Check if item name exists by going through all names in root element
     """
-    if the_name == "None":
+    if the_name == "None" or the_name == translate_string("None"):
         return True
     # Set our file to get the file from the local drive since it had previously been pulled from the Android device.
     # Setting PrimeItems.program_arguments["file"] will be used in get_xml() and won't prompt for file if it exists.
@@ -147,7 +146,10 @@ def valid_item(
         task_id = get_taskid_from_unnamed_task(the_name)
         return task_id in root_element
 
-    # See if the item exists by going through all names
+    # See if the item exists by going through all names.  Get rtid of "Project: " or "Profile: " portion of name.
+    colon = the_name.find(":")
+    if colon != -1:
+        the_name = the_name[colon + 1 :].lstrip()
     return any(root_element[item]["name"] == the_name for item in root_element)
 
 
@@ -519,7 +521,7 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
     os.chdir(current_dir)
 
     if logo_type == "coffee":
-        _ = add_button(
+        self.coffee_button = add_button(
             self,
             parent,
             "#246FB6",
@@ -527,7 +529,7 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
             "",
             self.event_handlers.coffee_event,
             1,
-            "Buy Me A Coffee",
+            translate_string("Buy Me A Coffee"),
             1,
             *grid_pos,
             20,
@@ -540,7 +542,7 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
 
 # Create a label general routine
 def add_label(
-    self,  # noqa: ANN001, ARG001
+    self: object,  # noqa: ARG001
     frame: ctk.CTkFrame,
     text: str,
     text_color: str,
@@ -572,6 +574,9 @@ def add_label(
         - Places the label in the specified row and column of the frame.
         - Adds horizontal and vertical padding to the label.
         - Aligns the label within its grid cell."""
+    # Translate the text if we have it.
+    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+
     if not font_size or font_size == 0:
         font_size = default_font_size
     if not text_color:
@@ -627,6 +632,7 @@ def add_checkbox(
         - Place the checkbox in the specified row and column.
         - Apply the specified padding to the checkbox.
         - Align the checkbox within its grid cell."""
+    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
     checkbox_name = ctk.CTkCheckBox(
         frame,
         command=command,
@@ -678,6 +684,7 @@ def add_button(
         - Create a custom tkinter button with the given parameters.
         - Place the button in the specified row and column.
         - Add padding and alignment to the button."""
+    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
     if not fg_color:
         fg_color = "#246FB6"
     if not text_color:
@@ -738,9 +745,15 @@ def add_option_menu(
         - Places the option menu in the specified row and column.
         - Adds padding to the option menu.
         - Sets the direction in which the option menu should stick to the frame."""
+    translations = []
+    if isinstance(values, list):
+        for value in values:
+            translated_value = PrimeItems._(value) if hasattr(PrimeItems, "_") else value
+            translations.append(translated_value)
+        values = translations
     option_menu_name = ctk.CTkOptionMenu(
         frame,
-        values=values,
+        values=translations,
         command=command,
     )
     option_menu_name.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
@@ -858,16 +871,18 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         "nw",
     )
     # Set up name to display
-    project_to_display = self.single_project_name if self.single_project_name else "None"
-    profile_to_display = self.single_profile_name if self.single_profile_name else "None"
-    task_to_display = self.single_task_name if self.single_task_name else "None"
+    none_translated = translate_string("None")
+    project_to_display = self.single_project_name if self.single_project_name else none_translated
+    profile_to_display = self.single_profile_name if self.single_profile_name else none_translated
+    task_to_display = self.single_task_name if self.single_task_name else none_translated
     self.ai_model_option.set(model_to_display)  # Set the current model in the pulldown.
 
     # Display the Project to analyze
+    translation = translate_string("Project to Analyze:")
     self.ai_set_label2 = add_label(
         self,
         self.tabview.tab("Analyze"),
-        f"Project to Analyze: {project_to_display}",
+        f"{translation} {project_to_display}",
         "",
         0,
         "normal",
@@ -878,10 +893,11 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         "sw",
     )
     # Display the Profile to analyze
+    translation = translate_string("Profile to Analyze:")
     self.ai_set_label3 = add_label(
         self,
         self.tabview.tab("Analyze"),
-        f"Profile to Analyze: {profile_to_display}",
+        f"{translation} {profile_to_display}",
         "",
         0,
         "normal",
@@ -892,10 +908,11 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
         "nw",
     )
     # Display the Task to analyze
+    translation = translate_string("Task to Analyze:")
     self.ai_set_label4 = add_label(
         self,
         self.tabview.tab("Analyze"),
-        f"Task to Analyze: {task_to_display}",
+        f"{translation} {task_to_display}",
         "",
         0,
         "normal",
@@ -908,10 +925,12 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
     # Display the Prompt..newline after every maxlen characters forces it to wrap.
     maxlen = 35
     display_prompt = "\n".join(self.ai_prompt[i : i + maxlen] for i in range(0, len(self.ai_prompt), maxlen))
+    display_prompt = translate_string(display_prompt)
+    prompt = translate_string("Prompt:")
     self.ai_set_label5 = add_label(
         self,
         self.tabview.tab("Analyze"),
-        f"Prompt: '{display_prompt}'",
+        f"{prompt} '{display_prompt}'",
         "",
         0,
         "normal",
@@ -924,6 +943,7 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
 
     # Display the label on 'Specific Name' tab.
     # First time through, self.specific_name_msg = ''
+    all_objects = translate_string("Display all Projects, Profiles, and Tasks.")
     name_to_display = self.specific_name_msg if self.specific_name_msg else all_objects
 
     self.single_label = add_label(
@@ -1386,6 +1406,9 @@ def build_profiles(
     profiles = root["all_profiles"]
     profile_list = []
     found_tasks = []
+    profile_head = translate_string("Profile: ")
+    task_head = translate_string("Task: ")
+    unnamed_task_head = translate_string("Unnamed Task")
     _get_profile_tasks = get_profile_tasks  # Localize for speed
     for profile in profile_ids:
         # Get the Profile's Tasks
@@ -1395,15 +1418,15 @@ def build_profiles(
             # Process each Task.  Tasks are simply a flat list of names.
             for task in the_tasks:
                 if task["name"] == "":
-                    task_list.append("Task: Unnamed Task")
+                    task_list.append(f"{task_head}{unnamed_task_head}")
                 else:
-                    task_list.append(f"Task: {task['name']}")
+                    task_list.append(f"{task_head}{task['name']}")
                     found_tasks.append(task["name"])  # Keep track of found tasks
         else:
-            task_list = ["No Profile Tasks Found"]
+            task_list = [translate_string("No Profile Tasks Found")]
 
         # Get the Profile name.
-        profile_name = f"Profile: {profiles[profile]['name']}"
+        profile_name = f"{profile_head}{profiles[profile]['name']}"
 
         # Combine the Profile with it's Tasks
         profile_list.append({"name": profile_name, "children": task_list})
@@ -1420,7 +1443,7 @@ def build_profiles(
         if root["all_tasks"][task_id]["name"] not in found_tasks:
             no_profile_tasks.append(root["all_tasks"][task_id]["name"])  # noqa: PERF401
     if no_profile_tasks:
-        profile_list.append({"name": "No Profile", "children": no_profile_tasks})
+        profile_list.append({"name": translate_string("No Profile"), "children": no_profile_tasks})
 
     return profile_list
 
@@ -1428,24 +1451,24 @@ def build_profiles(
 # Display startup messages which are a carryover from the last run.
 def display_messages_from_last_run(self) -> None:  # noqa: ANN001
     """
-    Displays messages from the last run.
+        Displays messages from the last run.
+    #
+        This function checks if there are any carryover error messages from the last run (rerun).
+        If there are, it reads the error message from the file specified by the `ERROR_FILE` constant and handles
+        potential missing modules. If the error message contains the string "Ai Response", it displays the
+        error message in a new toplevel window and displays a message box indicating that the analysis response
+        is in a separate window and saved as `ANALYSIS_FILE`. If the error message contains newline characters,
+        it breaks the message up into multiple lines and displays each line in a message box. If the error message
+        does not contain newline characters, it displays the error message in a message box. After displaying the
+        error message, it removes the error file to prevent it from being displayed again.
 
-    This function checks if there are any carryover error messages from the last run (rerun).
-    If there are, it reads the error message from the file specified by the `ERROR_FILE` constant and handles
-    potential missing modules. If the error message contains the string "Ai Response", it displays the
-    error message in a new toplevel window and displays a message box indicating that the analysis response
-    is in a separate window and saved as `ANALYSIS_FILE`. If the error message contains newline characters,
-    it breaks the message up into multiple lines and displays each line in a message box. If the error message
-    does not contain newline characters, it displays the error message in a message box. After displaying the
-    error message, it removes the error file to prevent it from being displayed again.
+        If there is an error message from other routines, it displays the error message in a message box with the return code.
 
-    If there is an error message from other routines, it displays the error message in a message box with the return code.
+        Parameters:
+        - None
 
-    Parameters:
-    - None
-
-    Returns:
-    - None
+        Returns:
+        - None
     """
     logger.info("Displaying messages from last run.")
     # See if we have any carryover error messages from last run (rerun).
@@ -1512,10 +1535,12 @@ def display_current_file(self, file_name: str) -> None:  # noqa: ANN001
     filename_location = file_name.rfind(PrimeItems.slash) + 1
     if filename_location != -1:
         file_name = file_name[filename_location:]
+    text = "Current File"
+    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
     self.current_file_label = add_label(
         self,
         self,
-        f"Current File: {file_name}",
+        f"{text}: {file_name}",
         "",
         "",
         "normal",
@@ -1560,11 +1585,15 @@ def setup_name_error(
 
 def set_tasker_object_names(self: object) -> None:
     """Set names to display in pulldown menus based on current tasker object names."""
+    # Translate the default values if possible
+    none_text = PrimeItems._("None") if hasattr(PrimeItems, "_") else "None"
+    display_only_text = "Display only"
+    display_only_text = PrimeItems._(display_only_text) if hasattr(PrimeItems, "_") else display_only_text
     defaults = {
-        "project": "None",
-        "profile": "None",
-        "task": "None",
-        "display_only": "Display only ",
+        "project": none_text,
+        "profile": none_text,
+        "task": none_text,
+        "display_only": f"{display_only_text} ",
     }
 
     # Map attribute presence to corresponding function
@@ -1584,7 +1613,11 @@ def set_tasker_object_names(self: object) -> None:
 
 def _set_single_project_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single project name is available."""
-    self.specific_name_msg = f"{defaults['display_only']}Project '{self.single_project_name}'"
+    # Translate string if possible
+    text = translate_string(f"{defaults['display_only']}Project")
+    # text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+
+    self.specific_name_msg = f"{text} '{self.single_project_name}'"
     try:
         self.specific_project_optionmenu.set(self.single_project_name)
     except AttributeError:
@@ -1629,21 +1662,26 @@ def _set_default_names(self: object, defaults: dict) -> None:
     """Handles setting names when no specific name is available."""
     self.specific_name_msg = ""
     try:
-        self.specific_project_optionmenu.set(defaults["project"])
+        # Translate the default values if possible
+        none_text = PrimeItems._("None") if hasattr(PrimeItems, "_") else "None"
+        project_text = defaults["project"]
+        profile_text = defaults["profile"]
+        task_text = defaults["task"]
+        self.specific_project_optionmenu.set(project_text)
         if not PrimeItems.tasker_root_elements["all_projects"]:
-            self.specific_project_optionmenu.configure(values=["None"])
-            self.ai_project_optionmenu.configure(values=["None"])
+            self.specific_project_optionmenu.configure(none_text)
+            self.ai_project_optionmenu.configure(none_text)
         if not PrimeItems.tasker_root_elements["all_profiles"]:
-            self.specific_profile_optionmenu.configure(values=["None"])
-            self.ai_profile_optionmenu.configure(values=["None"])
+            self.specific_profile_optionmenu.configure(none_text)
+            self.ai_profile_optionmenu.configure(none_text)
         if not PrimeItems.tasker_root_elements["all_tasks"]:
-            self.specific_task_optionmenu.configure(values=["None"])
-            self.ai_task_optionmenu.configure(values=["None"])
-        self.specific_profile_optionmenu.set(defaults["profile"])
-        self.ai_project_optionmenu.set(defaults["project"])
-        self.ai_profile_optionmenu.set(defaults["profile"])
-        self.specific_task_optionmenu.set(defaults["task"])
-        self.ai_task_optionmenu.set(defaults["task"])
+            self.specific_task_optionmenu.configure(none_text)
+            self.ai_task_optionmenu.configure(none_text)
+        self.specific_profile_optionmenu.set(profile_text)
+        self.ai_project_optionmenu.set(project_text)
+        self.ai_profile_optionmenu.set(profile_text)
+        self.specific_task_optionmenu.set(task_text)
+        self.ai_task_optionmenu.set(task_text)
     except AttributeError:
         pass
 

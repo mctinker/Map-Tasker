@@ -375,6 +375,8 @@ def get_icon_info(the_task: defusedxml.ElementTree) -> str:
     - Concatenates them together with a space separator and strips trailing spaces
     - Returns the concatenated text wrapped in [Icon Info()] brackets
     """
+    if the_task is None:
+        return ""
     image = the_task.find("Img")
     if image is None:
         return ""
@@ -451,13 +453,14 @@ def output_task_list(
             bool: True if we found a single Task we are looking for"""
     _get_extra_details = get_extra_details
     _do_single_task = do_single_task
-    for count, task_item in enumerate(list_of_tasks):
+    for task_item in list_of_tasks:
         # If we are coming in without a Task name, then we are only doing a single Task and we need to plug in
         # the Task name.
-        task_output_lines[count] = f"{task_item['name']}&nbsp;&nbsp;"
+        task_output_lines.append(f"{task_item['name']}&nbsp;&nbsp;")
+        count = len(task_output_lines) - 1
 
         # fmt: off
-        # task_output_lines[count] = task_output_lines[count] or f"{task_item['name']}&nbsp;&nbsp;"
+        # task_output_lines.append(task_output_lines[count] or f"{task_item['name']}&nbsp;&nbsp;")
         # fmt: on
 
         # Doing extra details?

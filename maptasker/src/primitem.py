@@ -127,6 +127,20 @@ class PrimeItems:
     tasker_event_codes: ClassVar[dict] = {}
     tasker_state_codes: ClassVar[dict] = {}
     trace: ClassVar[bool] = False
+    languages: ClassVar[dict[str, str]] = {
+        "English": "en",
+        "Spanish": "es",
+        "German": "de",
+        "Simplified Chinese": "zh_CN",
+        "Traditional Chinese": "zh_TW",
+        "Hindi": "hi",
+        "French": "fr",
+        "Portuguese": "pt",
+        "Japanese": "ja",
+        "Russian": "ru",
+        "Korean": "ko",
+    }
+    languages_translated: ClassVar[dict[str, str]] = {}
 
 
 # Reset all values
