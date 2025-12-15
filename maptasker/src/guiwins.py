@@ -555,7 +555,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -5029,7 +5031,7 @@ def _create_colors_tab_content(self: ctk, tab: str) -> None:
 def _create_analyze_tab_content(self: ctk, tab: str) -> None:
     """Populates the 'Analyze' (AI) tab."""
     center = 50
-    add_button(
+    self.show_apikeys_button = add_button(
         self,
         tab,
         "",
@@ -5045,7 +5047,7 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         (10, 10),
         "",
     )
-    add_button(
+    self.change_prompt_button = add_button(
         self,
         tab,
         "",
@@ -5062,7 +5064,7 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         "",
     )
 
-    _ = add_label(
+    self.model_to_use_label = add_label(
         self,
         tab,
         "Model to Use:",
