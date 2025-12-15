@@ -15,6 +15,7 @@
 !pyproject.toml
 !maptasker
 !tests
+dmg_builder
 #!*.html
 
 
