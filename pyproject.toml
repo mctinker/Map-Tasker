@@ -1,7 +1,7 @@
 [project]
 name = "maptasker"
 dynamic = [ "version" ]
-version = "10.0.0"
+version = "10.0.1"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 requires-python = ">=3.11,<4.0"
 authors = [
@@ -17,27 +17,6 @@ keywords = [
     "map tasker",
     "configuration",
     "tasker configuration",
-    "tasker",
-    "tasker configuration",
-]
-packages = [
-    { include = "maptasker"}
-]
-include = [
-    "**/maptasker/**/*.py",
-    "**/maptasker/assets/*.*",
-    "**/maptasker/locale/*.mo",
-    "**/sample.prj.xml",
-]
-exclude = [
-    "run_test.py",
-    "**/maptasker/**/backup.xml",
-    "**/maptasker/maptasker.log",
-    "**/maptasker/MapTasker.html",
-    "**/maptasker/.MapTasker_RunCount.txt",
-    "**/maptasker/.arguments.txt",
-    "**/maptasker/**/__pycache__",
-    "**/maptasker/**/.dep-tree.yml",
 ]
 
 dependencies = [
@@ -69,6 +48,21 @@ Changelog = "https://github.com/mctinker/Map-Tasker/CHANGELOG.md"
 
 [tool.poetry]
 requires-poetry = ">=2.0"
+
+# 'include =' and 'exclude =' handle the package
+# packages = [
+#     { include = "maptasker"}
+# ]
+include = [
+    "**/maptasker/src/*.py",
+    "**/maptasker/assets/*.*",
+    "**/maptasker/locale/**/LC_MESSAGES/messages.mo",
+    "**/sample.prj.xml",
+]
+exclude = [
+    "**/maptasker/locale/**/LC_MESSAGES/messages.po",
+    "**/maptasker/MapTasker.icns",
+]
 
 [[tool.poetry.source]]
 name = "testpypi"
@@ -137,37 +131,6 @@ select = [
     'UP',   # Pyupgrade
     'W',    # Warnings
     'YTT',  # sys.version
-]
-# Exclude a variety of commonly ignored directories from the package.
-exclude = [
-    ".direnv",
-    "dist",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".mypy_cache",
-    ".pyenv",
-    ".pytest_cache",
-    ".pytype",
-    ".ruff_cache",
-    ".venv",
-    ".vscode",
-    "__pypackages__",
-    "_build",
-    "build",
-    "dist",
-    "site-packages",
-    "venv",
-    ".md",
-    "__init__.py",
-    "**/maptasker/assets/*.*",
-    "**/maptasker/locale/*.po",
-    "**/maptasker/MapTasker.html",
-    "**/maptasker/.MapTasker_RunCount.txt",
-    "**/maptasker/.arguments.txt",
-    "**/maptasker/**/__pycache__",
-    "**/maptasker/**/.dep-tree.yml"
 ]
 
 ignore = [
