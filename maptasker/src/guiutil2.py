@@ -923,9 +923,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h5-text"
             else:
                 # Decrease the heading number by 1 (making the text "bigger")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                value["highlights"][entry_to_update] = (
+                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                )
 
         elif "<small>" in message:
             # Save current heading
@@ -940,9 +940,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h7-text"
             else:
                 # Increase the heading number by 1 (making the text "smaller")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                value["highlights"][entry_to_update] = (
+                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                )
 
         elif "</big>" in message or "</small>" in message:
             if message.startswith(("</big>", "</small>")):
@@ -1318,3 +1318,46 @@ class TranslatedLabel(ctk.CTkLabel):
         """Rewturn translated tyext if translation is available"""
         translated_text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
         super().__init__(*args, text=translated_text, **kwargs)
+
+
+def sort_languages_with_priority(language_list: list) -> list:
+    """
+    Sorts a list of language names, ensuring 'English' is always the first item,
+    and the remaining items are sorted alphabetically.
+
+    Args:
+        language_list (list): A list of strings (language names).
+
+    Returns:
+        list: The sorted list.
+    """
+
+    # The function named custom_sort_key is not called, but its logic is fully implemented and used by the function
+    # named hybrid_sort_key.
+    def custom_sort_key(language_name: str) -> tuple[int, str]:
+        """
+        Assigns a low sorting value to 'English' (0) and a higher value (1)
+        to all other languages.
+        """
+        # We use .lower() and .strip() for robust matching, ignoring case/whitespace
+        normalized_name = language_name.lower().strip()
+
+        # Priority 1: 'English' gets the lowest sort key (0)
+        if normalized_name == "english":
+            return 0
+
+        # Priority 2: All other languages get the next key (1)
+        # The secondary sorting is then automatically performed by Python
+        # using the language name itself (alphabetical).
+        return 1
+
+    # Use the sorted() function with the custom key.
+    # We include the original language name in the return tuple for the secondary sort.
+    # The structure of the sort key is (priority_number, language_name.lower())
+    def hybrid_sort_key(language_name: str) -> tuple[int, str]:
+        is_english = 0 if language_name.lower() == "english" else 1
+        return (is_english, language_name.lower())
+
+    # We use the built-in sorted() function, which returns a new sorted list
+    # and leaves the original list unchanged.
+    return sorted(language_list, key=hybrid_sort_key)

@@ -3893,7 +3893,10 @@ class EventHandlers:
         # Add the changelog to the help text.
         if query_name == "help":
             changes = get_changelog_file(CHANGELOG_URL, "##", 11)
-            help_text = translate_string(help_text) + "\n".join(changes)
+            # Bypass the version number and transl;ate the rest of the help text.
+            temp = help_text.find("Help\n\n")
+            help_text = translate_string(help_text[temp:])
+            help_text = help_text + "\n".join(changes)
 
         guiview.new_message_box(f"{translate_string(title)}\n\n{translate_string(help_text)}")
         guiview.clear_messages = True  # Flag to tell display_message_box to clear the message box

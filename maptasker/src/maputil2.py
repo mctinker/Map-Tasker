@@ -148,15 +148,16 @@ def translate_string(text: str, set_language: bool = False) -> str:
         The translated string if PrimeItems._ is available, otherwise the original string.
     """
     # If we have a language set, then translate the test
-    if hasattr(PrimeItems, "_"):
-        # If we are to set the language, then  first translate it and then set it.
-        if set_language:
-            lang_to_set = PrimeItems._(text) if text not in PrimeItems.languages else text
-            T.set_language(lang_to_set)
-        return PrimeItems._(text)
+    if text:
+        if hasattr(PrimeItems, "_"):
+            # If we are to set the language, then  first translate it and then set it.
+            if set_language:
+                lang_to_set = PrimeItems._(text) if text not in PrimeItems.languages else text
+                T.set_language(lang_to_set)
+            return PrimeItems._(text)
 
-    # If this is a language, then set the language and translate the text.
-    if text in PrimeItems.languages and set_language:
-        T.set_language(text)
-        return PrimeItems._(text)
+        # If this is a language, then set the language and translate the text.
+        if text in PrimeItems.languages and set_language:
+            T.set_language(text)
+            return PrimeItems._(text)
     return text

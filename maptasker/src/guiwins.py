@@ -24,7 +24,7 @@ from maptasker.src.colrmode import set_color_mode
 from maptasker.src.diagutil import task_delimeter, width_and_height_calculator_in_pixel
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
-from maptasker.src.guiutil2 import configure_progress_bar, draw_box_around_text
+from maptasker.src.guiutil2 import configure_progress_bar, draw_box_around_text, sort_languages_with_priority
 from maptasker.src.guiutils import (
     add_button,
     add_checkbox,
@@ -4456,7 +4456,8 @@ def _create_language_selection_section(self: ctk) -> None:
         (10, 0),
         "se",
     )
-    languages = sorted(PrimeItems.languages.keys())
+    # languages = sorted(PrimeItems.languages.keys())
+    languages = sort_languages_with_priority(PrimeItems.languages.keys())
     self.language_optionmenu = add_option_menu(
         self,
         self.sidebar_frame,
@@ -4758,7 +4759,7 @@ def _create_font_section(self: ctk) -> None:
 
 def _create_file_and_message_buttons_section(self: ctk) -> None:
     """Creates buttons for clearing messages and getting XML."""
-    self.reset_button = add_button(
+    self.clear_messages_button = add_button(
         self,
         self,
         "#246FB6",
