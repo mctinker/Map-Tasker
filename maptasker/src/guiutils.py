@@ -446,7 +446,7 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
         os.remove(CHANGELOG_FILE)
 
 
-def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
+def add_logo(self, logo_name: str) -> None:  # noqa: ANN001
     """Add a logo to the screen.
 
     Parameters:
@@ -458,14 +458,14 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
     """
     logo_map = {
         "maptasker": (
-            "maptasker_logo_light.png",
-            "maptasker_logo_dark.png",
-            (190, 50),
-            self.sidebar_frame,
-            (0, 0),
-            "0",
-            "0",
-            "n",
+            "maptasker_logo_light.png",  # Light image
+            "maptasker_logo_dark.png",  # Dark image
+            (190, 50),  # Size
+            self.sidebar_frame,  # parent
+            (0, 0),  # Grid position
+            "0",  # Pad x
+            "0",  # Pad y
+            "n",  # Sticky
         ),
         "coffee": (
             "bmc-logo-no-background.png",
@@ -477,7 +477,19 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
             "0",
             "se",
         ),
+        "flag_en": (
+            "en.png",
+            "en.png",
+            (25, 16),
+            self.sidebar_frame,
+            (17, 0),
+            "10",
+            "0",
+            "se",
+        ),
     }
+    doing_flag = bool(logo_name.startswith("flag"))
+
     # Get the path to our logos:
     # current_dir = directory from which we are running.
     # abspath = path of this source code (userintr.py).
@@ -486,11 +498,14 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
     abspath = os.path.abspath(__file__)
     # cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
     assets_dir = os.path.dirname(abspath).replace("src", "assets")
+    if doing_flag:
+        assets_dir = assets_dir + PrimeItems.slash + "icons"
+
     # Switch to our temp directory (assets)
     os.chdir(assets_dir)
 
-    if logo_type in logo_map:
-        light_img, dark_img, size, parent, grid_pos, padx, pady, sticky = logo_map[logo_type]
+    if logo_name in logo_map:
+        light_img, dark_img, size, parent, grid_pos, padx, pady, sticky = logo_map[logo_name]
         my_image = ctk.CTkImage(
             light_image=Image.open(light_img),
             dark_image=Image.open(dark_img),
@@ -513,14 +528,14 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
             )
         except (FileNotFoundError, TypeError, TclError) as e:
             rutroh_error(
-                f"Error displaying {logo_type} logo: {e}  Unable to attach Tkinter for image.",
+                f"Error displaying {logo_name} logo: {e}  Unable to attach Tkinter for image.",
             )
     else:
         rutroh_error("Invalid logo type")
     # Put the directory back to where it should be.
     os.chdir(current_dir)
 
-    if logo_type == "coffee":
+    if logo_name == "coffee":
         self.coffee_button = add_button(
             self,
             parent,

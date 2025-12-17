@@ -30,6 +30,7 @@ from maptasker.src.guiutils import (
     add_button,
     add_cancel_button,
     add_label,
+    add_logo,
     build_profiles,
     check_for_changelog,
     clear_android_buttons,
@@ -2926,6 +2927,9 @@ class EventHandlers:
         else:
             language_to_use = "English"
         the_view.language = language_to_use
+
+        if language == "English":
+            add_logo(the_view, "flag_en")
 
         # Set the translation function in PrimeItems
         # T.set_language(language_to_use)
