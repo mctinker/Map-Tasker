@@ -2,25 +2,35 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.0.0-10.0.1] 15-Dec-2025
+## [10.0.2] 19-Dec-2025
 
 ### Added
 
-- Added: GUI Multilinqual support for: French, German, Hindi, Japanese, Korean, Simplified and Traditional Chinese, Spanish, Portuguese, and Russian.
+- Added: 23 additional languages are now supported.  English is always at the top of the selection list.
+- Added: The country flag is displayed for each language selection.
 
 ### Changed
 
-- Changed: Code optimizations
+- Changed: Restructured GUI code to optimize performance.
 
 ### Fixed
 
-- Fixed: Program error when clicking on the GUI 'Report an Issue' button.
+- Fixed: Language header incorrectly displays if displaying help in a language other than English.
+- Fixed: Some buttons get overlaid if the language is changed.
+- Fixed: Non-functional 'tts' Gemini models are incorrectly listed in the extended AI model list.
+- Fixed: Non-functional 'codex' OpenAI models are incorrectly listed in the extended AI model list.
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [10.0.0-10.0.1] 15-Dec-2025
+
+- Added: GUI Multilinqual support for: French, German, Hindi, Japanese, Korean, Simplified and Traditional Chinese, Spanish, Portuguese, and Russian.
+- Changed: Code optimizations
+- Fixed: Program error when clicking on the GUI 'Report an Issue' button.
 
 ## [9.1.1-9.1.3] 30-Nov-2025
 
