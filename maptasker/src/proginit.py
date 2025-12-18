@@ -22,8 +22,6 @@ import maptasker.src.progargs as get_arguments
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DARK_MODE, GUI
 from maptasker.src.error import error_handler
-
-# from maptasker.src.fonts import get_fonts
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getbakup import get_backup_file
 from maptasker.src.maputil2 import log_startup_values
@@ -324,7 +322,7 @@ def build_action_codes_from_json(build_it_all: bool = False) -> None:
     # If building it all, then get the map of all Tasker task action codes and their arguments, states, and events.
     if build_it_all:
         # Only do these imports if building the entire dictionary from scratch.
-        from maptasker.src.acmerge import merge_action_codes, validate_states_and_events
+        from maptasker.src.acmerge import merge_action_codes, validate_states_and_events  # noqa: PLC0415
 
         # Make sure we see the output
         PrimeItems.program_arguments["debug"] = True

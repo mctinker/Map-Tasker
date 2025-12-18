@@ -178,7 +178,7 @@ def get_xml(debug: bool, appearance_mode: str) -> int:
     return get_data_and_output_intro(False)
 
 
-# Get all monospace fonts from TKInter
+# # Get all monospace fonts from TKInter
 def get_mono_fonts() -> None:
     """
     Returns a dictionary of fixed-width fonts
@@ -477,7 +477,7 @@ def add_logo(self, logo_name: str) -> None:  # noqa: ANN001
             "0",
             "se",
         ),
-        "flag_en": (
+        "flag": (
             "en.png",
             "en.png",
             (25, 16),
@@ -498,8 +498,22 @@ def add_logo(self, logo_name: str) -> None:  # noqa: ANN001
     abspath = os.path.abspath(__file__)
     # cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
     assets_dir = os.path.dirname(abspath).replace("src", "assets")
+
+    # Set up icon for flag
     if doing_flag:
         assets_dir = assets_dir + PrimeItems.slash + "icons"
+        language = logo_name.split("flag_")[1]
+        logo_map["flag"] = (
+            f"{language}.png",
+            f"{language}.png",
+            (25, 16),
+            self.sidebar_frame,
+            (17, 0),
+            "10",
+            "0",
+            "se",
+        )
+        logo_name = "flag"
 
     # Switch to our temp directory (assets)
     os.chdir(assets_dir)

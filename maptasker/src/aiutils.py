@@ -65,6 +65,7 @@ def get_openai_models() -> list:
             "realtime",
             "research",
             "instruct",
+            "codex",
         ]
 
         # Filter and sort models based on preference using list comprehension
@@ -117,9 +118,6 @@ def get_anthropic_models() -> list:
         # "claude-sonnet-4-20250514",
         "claude-sonnet-4-0",  # alias
         "claude-sonnet-4-5",
-        # Claude 3.7 Models
-        # "claude-3-7-sonnet-20250219",
-        "claude-3-7-sonnet-latest",  # alias
         # Claude 3.5 Models
         "claude-3-5-haiku-latest",  # alias
         "claude-haiku-4-5",  # alias
@@ -143,7 +141,7 @@ def get_gemini_models() -> list:
     Requires your Google Cloud API key to be set as an environment variable:
     export GOOGLE_API_KEY='YOUR_API_KEY'
     """
-    bad_models = {"text", "image", "vision"}
+    bad_models = {"text", "image", "vision", "tts"}
 
     # Get the API key
     with suppress(KeyError):

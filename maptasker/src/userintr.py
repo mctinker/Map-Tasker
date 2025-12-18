@@ -12,7 +12,6 @@ import copy
 import os
 import pickle
 import webbrowser
-
 from tkinter.ttk import *  # noqa: F403
 
 from typing import TYPE_CHECKING
@@ -58,12 +57,11 @@ from maptasker.src.guiutils import (
     set_tasker_object_names,
     setup_name_error,
     update_tasker_object_menus,
-    valid_item,
     validate_or_filelist_xml,
+    valid_item,
 )
 from maptasker.src.guiutil2 import is_valid_ai_config, get_changelog_file
 from maptasker.src.guiwins import (
-    APIKeyDialog,
     CTkHyperlinkManager,
     CTkTextview,
     CTkTreeview,
@@ -72,6 +70,9 @@ from maptasker.src.guiwins import (
     get_rid_of_windows_and_exit,
     initialize_gui,
     initialize_screen,
+)
+from maptasker.src.guiwins2 import (
+    APIKeyDialog,
 )
 from maptasker.src.maputil2 import save_window_position, translate_string
 from maptasker.src.initparg import initialize_runtime_arguments
@@ -513,96 +514,71 @@ class MyGui(customtkinter.CTk):
     # Validate name entered
     def check_name(self, the_name: str, element_name: str) -> bool:
         """
-        Checks name validity
-        Args:
-            the_name: str - Name to check
-            element_name: str - Element type being named
-        Returns:
-            bool - Whether name is valid
-        Processing Logic:
-            1. Check for blank name
-            2. Check that only one of project, profile, task is named
-            3. Check that named item exists in valid items
-            4. If error, display message and clear individual names
-            5. If valid, display confirmation message and return True
+        Optimized name validity check.
+        Uses truth tables for exclusivity and minimized translation overhead.
         """
-        error_message = ""
-        # Check for missing name
+        # 1. Local caching for speed
+        _translate = translate_string
+        _prime = PrimeItems
+        error_message = None
+
+        # 2. Check for missing name (Early exit potential)
         if not the_name:
             error_message = [
                 f"Either the name entered for the {element_name} is blank or the 'Cancel' button was clicked.\n",
                 "All Projects, Profiles, and Tasks will be displayed.\n",
             ]
-
             self.named_item = False
-        # Check to make sure only one named item has been entered
-        elif self.single_project_name and self.single_profile_name:
-            error_message = setup_name_error(
-                "Project",
-                "Profile",
-                self.single_project_name,
-                self.single_profile_name,
-            )
-        elif self.single_project_name and self.single_task_name:
-            error_message = setup_name_error(
-                "Project",
-                "Task",
-                self.single_project_name,
-                self.single_task_name,
-            )
-        elif self.single_profile_name and self.single_task_name:
-            error_message = setup_name_error(
-                "Profile",
-                "Task",
-                self.single_profile_name,
-                self.single_task_name,
-            )
 
-        # Make sure the named item exists
-        elif not valid_item(
-            self,
-            the_name,
-            element_name,
-            self.debug,
-            self.appearance_mode,
-        ):
-            front_error = f'Error: Trying to validate "{the_name}" {element_name}'
-            if not PrimeItems.file_to_get:
-                error_message = [
-                    f'{front_error}, but the "Cancel" was selected!\n',
-                ]
-                set_tasker_object_names(self)  # Update pulldown menus
-            else:
-                try:
-                    file_name = PrimeItems.file_to_get.name
-                except AttributeError:
-                    file_name = PrimeItems.file_to_get
-                error_message = [
-                    f"{front_error} but it was not found in {file_name}!  All Projects, Profiles and Tasks will be displayed.\n",
-                ]
+        # 3. Optimized Mutual Exclusivity Check
+        # Instead of nested elifs, we check the 'truthiness' count
+        else:
+            names = [
+                ("Project", self.single_project_name),
+                ("Profile", self.single_profile_name),
+                ("Task", self.single_task_name),
+            ]
+            # Count how many names are set
+            active_names = [n for n in names if n[1]]
 
-        # If we have an error, display it and blank out the various individual names
+            if len(active_names) > 1:
+                # We only ever need to compare the first two found for the error setup
+                n1, n2 = active_names[0], active_names[1]
+                error_message = setup_name_error(n1[0], n2[0], n1[1], n2[1])
+
+            # 4. Check existence if still no error
+            elif not valid_item(self, the_name, element_name, self.debug, self.appearance_mode):
+                front_error = f'Error: Trying to validate "{the_name}" {element_name}'
+
+                if not _prime.file_to_get:
+                    error_message = [f'{front_error}, but the "Cancel" was selected!\n']
+                    set_tasker_object_names(self)
+                else:
+                    # Optimized attribute fetch
+                    file_name = getattr(_prime.file_to_get, "name", _prime.file_to_get)
+                    error_message = [
+                        f"{front_error} but it was not found in {file_name}! "
+                        "All Projects, Profiles and Tasks will be displayed.\n",
+                    ]
+
+        # 5. Handle Errors
         if error_message:
             self.display_multiple_messages(error_message, "Red")
-            (
-                self.single_project_name,
-                self.single_profile_name,
-                self.single_task_name,
-            ) = ("", "", "")
+            self.single_project_name = self.single_profile_name = self.single_task_name = ""
             return False
 
-        # No error.
-        if the_name == translate_string("None"):
-            text = translate_string("'None' selected.  Displaying all Projects, Profiles and Tasks.")
-            self.display_message_box(text, "Green")
+        # 6. Success Logic (Minimized translations)
+        none_text = _translate("None")
+        if the_name == none_text:
+            msg = _translate("'None' selected.  Displaying all Projects, Profiles and Tasks.")
+            self.display_message_box(msg, "Green")
         else:
-            element_name = PrimeItems._(element_name) if hasattr(PrimeItems, "_") else element_name
-            text1 = translate_string("Display only the")
-            text2 = translate_string("overrides any previous set name")
-            self.display_message_box(
-                f"{text1} '{the_name}' {element_name} ({text2}).",
-                "Green",
-            )
+            # Check for localization method once
+            localized_el = _prime._(element_name) if hasattr(_prime, "_") else element_name
+            text1 = _translate("Display only the")
+            text2 = _translate("overrides any previous set name")
+            self.display_message_box(f"{text1} '{the_name}' {localized_el} ({text2}).", "Green")
+
         return True
 
     # Process single name restore
@@ -2928,8 +2904,9 @@ class EventHandlers:
             language_to_use = "English"
         the_view.language = language_to_use
 
-        if language == "English":
-            add_logo(the_view, "flag_en")
+        flag_language = language if language in PrimeItems.languages else translate_string(language)
+        flag = f"flag_{PrimeItems.languages[flag_language]}"
+        add_logo(the_view, flag)
 
         # Set the translation function in PrimeItems
         # T.set_language(language_to_use)
@@ -4360,7 +4337,7 @@ class EventHandlers:
 
     def profiles_level_event(
         self: object,
-        textview: CTkTextview,
+        textview: CTkTextview,  # noqa: ARG002
         profiles_per_line: str,
     ) -> None:
         """

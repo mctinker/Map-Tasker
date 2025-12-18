@@ -2,20 +2,23 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.0.2] ??-Dec-2025   # FIX
+## [10.0.2] 19-Dec-2025
 
 ### Added
 
 - Added: 23 additional languages are now supported.  English is always at the top of the selection list.
+- Added: The country flag is displayed for each language selection.
 
 ### Changed
 
-- Changed:
+- Changed: Restructured GUI code to optimize performance.
 
 ### Fixed
 
 - Fixed: Language header incorrectly displays if displaying help in a language other than English.
-- Fixed: Some buttons get overlaid if the language is changed.  
+- Fixed: Some buttons get overlaid if the language is changed.
+- Fixed: Non-functional 'tts' Gemini models are incorrectly listed in the extended AI model list.
+- Fixed: Non-functional 'codex' OpenAI models are incorrectly listed in the extended AI model list.
 
 ### Known Issue
 

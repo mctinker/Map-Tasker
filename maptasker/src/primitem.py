@@ -86,7 +86,6 @@ class PrimeItems:
     displaying_named_tasks_not_in_profile = False
     error_code = 0
     error_msg = ""
-    mono_fonts: ClassVar = {}
     found_named_items: ClassVar[dict] = {
         "single_project_found": False,
         "single_profile_found": False,
@@ -119,6 +118,7 @@ class PrimeItems:
     current_project = ""
     tkroot = None
     last_run = NOW_TIME
+    mono_fonts: ClassVar[tuple] = [], []
     slash = "/"
     task_action_warnings: ClassVar[dict] = {}
     tasker_action_codes: ClassVar[dict] = {}
@@ -145,7 +145,7 @@ class PrimeItems:
         "Indonesian": "in",
         "Swahili": "sw",
         "Marathi": "mr",
-        "Teluga": "te",
+        "Telugu": "te",
         "Turkish": "tr",
         "Tamali": "ta",
         "Vietnamese": "vi",

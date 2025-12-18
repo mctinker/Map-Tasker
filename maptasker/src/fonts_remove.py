@@ -18,6 +18,7 @@ def get_fonts(save_fonts: bool) -> dict:
         Returns:
             dict: list of avilable monospace fonts
     """
+    print("bingo fonts")
     # get_tk()  # Get the Tkinter root window
     _ = Tk()
     fonts = [font.Font(family=f) for f in font.families()]

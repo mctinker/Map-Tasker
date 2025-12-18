@@ -335,6 +335,8 @@ MP4 videos are played directly from their source.
 
 - [x] Properly handle Task anchors with embedded HTML
 
+- [x] Multilingual Support
+
 - [ ] Support additional plugins
 
 - [ ] Map remaining Tasker preferences

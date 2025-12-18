@@ -12,7 +12,6 @@ import os
 import re
 import time
 import tkinter as tk
-import webbrowser
 from tkinter import Label, TclError, Toplevel, ttk
 from typing import TYPE_CHECKING
 
@@ -36,7 +35,6 @@ from maptasker.src.guiutils import (
     display_analyze_button,
     display_model_pulldown,
     display_progress_bar,
-    display_selected_object_labels,
     extract_number_from_line,
     find_the_line,
     get_appropriate_color,
@@ -53,11 +51,8 @@ from maptasker.src.guiutils import (
     output_label,
     parse_pairs_to_columns,
     remove_tags_from_bars_and_names,
-    reset_primeitems_single_names,
-    search_substring_in_list,
-    set_tasker_object_names,
-    update_tasker_object_menus,
 )
+from maptasker.src.guiwins2 import CTkHyperlinkManager
 from maptasker.src.lineout import LineOut
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import (
@@ -84,6 +79,8 @@ from maptasker.src.xmldata import remove_html_tags
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
+
+    from maptasker.src.userintr import MyGui
 
 # Set up for access to icons
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -555,9 +552,7 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}"
-                    if len(line) > max_length
-                    else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -3620,360 +3615,6 @@ class PopupWindow(ctk.CTkToplevel):
         get_rid_of_windows_and_exit(self, delete_all=False)
 
 
-# Hyperlink in textbox support
-class CTkHyperlinkManager:
-    """
-    Modified class for implementing hyperlink in CTkTextbox
-    """
-
-    def __init__(self, master: object, text_color: str = "#82c7ff") -> None:
-        """
-        Initializes the CTkHyperlinkManager class.
-
-        Args:
-            master (tk.Text): The master widget.
-            text_color (str, optional): The color of the hyperlink text. Defaults to "#82c7ff".
-
-        Returns:
-            None
-        """
-        self.text = master
-        self.text.tag_config("hyper", foreground=text_color, underline=0)
-        self.text.tag_bind("hyper", "<Enter>", self._enter)
-        self.text.tag_bind("hyper", "<Leave>", self._leave)
-        self.text.tag_bind("hyper", "<Button-1>", self._click)
-        self.text.tag_bind("hyper", "<Motion>", self._enter)
-        self.links = {}
-
-    def add(self, link: str) -> tuple:
-        """
-        Adds a hyperlink to the CTkHyperlinkManager.
-
-        Args:
-            link (str): The hyperlink to add.
-
-
-        Returns:
-            tuple: A tuple containing the type of link ("hyper") and the tag of the link.
-        """
-        tag = f"hyper-{len(self.links)}"
-        self.links[tag] = link
-        return "hyper", tag
-
-    def _enter(self, event: object) -> None:
-        """
-        Set the cursor to a hand pointer when the mouse enters the text widget.
-
-        Args:
-            event (object): The event object.
-
-        Returns:
-            None
-        """
-        tasker_object = {
-            "_up": "Up",
-            "tasks": "Task",
-            "profiles": "Profile",
-            "scenes": "Scene",
-        }
-        # Set the cursor to a hand pointer.
-        self.text.configure(cursor="hand2")
-
-        # Find MyGui from the top level window.  It could sbe hanging off a number of 'masters'
-        mygui = event.widget
-        while mygui:
-            if mygui.__class__.__name__ == "MyGui":
-                break
-            mygui = mygui.master
-
-        background_color, foreground_color, _ = get_foreground_background_colors(
-            mygui,
-        )
-
-        # Find the tag associated with the item entered so we can add hover text.
-        for tag in self.text.tag_names(ctk.CURRENT):
-            # Delete any previous hover tooltip.
-            with contextlib.suppress(AttributeError):
-                destroy_hover_tooltip(self.hover_tooltip)
-            if tag.startswith("hyper-") and self.links:
-                link = self.links[tag]
-                if link[0] in tasker_object:
-                    # Add a hover text to the link entered of the name of the link.
-                    label = tk.Label(
-                        event.widget.master,
-                        text=f"{tasker_object[link[0]]}: {link[1]}",
-                        bg=background_color,
-                        fg=foreground_color,
-                        justify="left",
-                        padx=5,
-                        pady=5,
-                    )
-                    # Place the label at the mouse position
-                    label.place(x=event.x + 100, y=event.y)
-                    self.hover_tooltip = label
-
-    def _leave(self, event: object) -> None:  # noqa: ARG002
-        """
-        Set the cursor to the default cursor when the mouse leaves the text widget.
-
-        Args:
-            event (object): The event object.
-
-        Returns:
-            None
-        """
-        self.text.configure(cursor="xterm")
-        # Delete any previous hover tooltip.
-        with contextlib.suppress(AttributeError):
-            destroy_hover_tooltip(self.hover_tooltip)
-
-    def _click(self, event: object) -> None:
-        """
-        Handle the click event on the text widget.
-
-        Args:
-            event (object): The click event object.
-
-        Returns:
-            None: This function does not return anything.
-
-        This function is called when the user clicks on the text widget. It iterates over the tags of the current
-        selection and checks if any of them start with "hyper-". If a tag starting with "hyper-" is found, it opens
-        the corresponding URL using the `webbrowser.open()` function. The function then returns, ending the execution.
-
-        Note: This function assumes that the `text` attribute of the class instance is a `ctk.Text` widget and
-        the `links` attribute is a dictionary mapping tag names to URLs.
-        """
-        _remap_single_item = self.remap_single_item
-        for tag in self.text.tag_names(ctk.CURRENT):
-            if tag.startswith("hyper-"):
-                if self.links:
-                    link = self.links[tag]
-                    if isinstance(link, list):
-                        # Go up one level: Remap single Project/Profile/Task
-                        action, name = link
-                        guiself = event.widget.master.master.root.master
-                        _remap_single_item(action, name, guiself)
-                    else:
-                        try:
-                            webbrowser.open(link)
-                        except Exception as e:  # noqa: BLE001
-                            rutroh_error(f"Error opening link '{link}': {e}")
-                    return
-
-                # Misc view hyperlink...pick up the links from deep down
-                link = self.text.master.hyperlink.links[tag]
-                mygui = event.widget.master.master.root.master
-                try:
-                    textbox = mygui.textview.textview_textbox
-                except AttributeError:
-                    # The target textbox is gone.  Maybe it is an analysis window
-                    try:
-                        textbox = mygui.analysisview.textview_textbox
-                    except AttributeError:
-                        # The target textbox is gone altogether.
-                        textbox.destroy()
-                        mygui.miscview_window.destroy()
-                        return
-
-                line_number = link[1]
-                start_idx = f"{line_number}.0"
-
-                # Remove previous highlights
-                tagid = "misc_high"
-                try:
-                    textbox.tag_remove(tagid, "1.0", "end")
-                except TclError:
-                    # The target textbox is gone.
-                    textbox.destroy()
-                    mygui.miscview_window.destroy()
-                    return
-                # Highlight the hyperlink target
-                textbox.tag_add("misc_high", start_idx, f"{line_number}.end")
-                # Now color it in.
-                textbox.tag_config("misc_high", background=make_hex_color(mygui.color_lookup["highlight_color"]))
-                textbox.see(start_idx)
-
-                # Now bring the 'viewe' window to the front.  A combination of one of these has got to work!
-                with contextlib.suppress(AttributeError):
-                    mygui.miscview_window.lower()
-                    mygui.miscview_window.iconify()
-                    mygui.textview.focus()
-                    mygui.textview.focus_set()
-                    mygui.textview.lift()
-
-    def remap_single_item(self, action: str, name: str, guiself: ctk) -> None:
-        """
-        Remap with a single item based on action type.
-
-        Args:
-            action (str): The type of action to perform (e.g., 'projects', 'profiles', 'tasks').
-            name (str): The name of the item to remap.
-            guiself (ctk): The GUI self-reference.
-
-        Returns:
-            None: This function does not return anything.
-        """
-        # Unsupported hotlinks
-        if action == "grand":
-            nogo_name = "Grand Totals"
-            guiself.display_message_box(
-                f"'{nogo_name}' hotlinks are not working yet.",
-                "Orange",
-            )
-            return
-
-        # Handle "up" actions
-        if action.endswith("_up"):
-            action = action.removesuffix("_up")
-            self.rebuildmap_single_item(action, name, guiself)
-            return
-
-        # Map action to corresponding root elements
-        action_map = {
-            "tasks": PrimeItems.tasker_root_elements["all_tasks"],
-            "profiles": PrimeItems.tasker_root_elements["all_profiles"],
-            "projects": PrimeItems.tasker_root_elements["all_projects"],
-            "scenes": PrimeItems.tasker_root_elements["all_scenes"],
-        }
-
-        # If this is an unnamed Task in a Scene, remove the scene part of the name.
-        cleaned_name = name.replace(" (Scene)", "").strip()
-
-        # If we find a match, then point to it and return.
-        if action in action_map and self.name_in_list(cleaned_name, action_map[action]):
-            # Search for and point to the item in the map view
-            self.find_and_point_to_item(action, name, cleaned_name, guiself)
-            return
-
-        # No match found. Rebuild the map for the given name.
-        self.rebuildmap_single_item(action, cleaned_name, guiself)
-
-    # The user has clicked on a hotlink.  Get the item clicked and remap using only that single item.
-    def rebuildmap_single_item(self, action: str, name: str, guiself: ctk) -> None:
-        """
-        Remap with single item based on action type.
-
-        Args:
-            action (str): The type of action to perform (e.g., 'projects', 'profiles', 'tasks').
-            name (str): The name of the item to remap.
-            guiself (ctk): The GUI self reference.
-
-        Returns:
-            None: This function does not return anything.
-        """
-        if action == "grand":
-            nogo_name = "Grand Totals"
-            guiself.display_message_box(
-                f"'{nogo_name}' hotlinks are not working yet.",
-                "Orange",
-            )
-        else:
-            # Reset all names
-            reset_primeitems_single_names()
-            guiself.single_project_name = ""
-            guiself.single_profile_name = ""
-            guiself.single_task_name = ""
-
-            # Set up for single item
-            single_name_parm = action[0 : len(action) - 1]
-            # Update self.single_xxx_name
-            setattr(guiself, f"single_{single_name_parm}_name", name)
-            PrimeItems.program_arguments[f"single_{single_name_parm}_name"] = name
-
-            # Reset single item labels
-            update_tasker_object_menus(
-                guiself,
-                get_data=True,
-                reset_single_names=False,
-            )
-            # Reset the single item pulldown (this has to go after reset of labels!).
-            set_tasker_object_names(guiself)
-
-            # Redo the labels
-            display_selected_object_labels(guiself)
-
-            # Remap it.
-            guiself.remapit(clear_names=False)
-
-    def name_in_list(self: object, name: str, tasker_items: dict) -> bool:
-        """
-        Determine if a specific name is in a dictionary of items.
-
-        Args:
-            name (str): The name to search for.
-            tasker_items (dict): The dictionary of tasker items (Project/Profiles/Tasks to search in.
-
-        Returns:
-            bool: True if the name is found, False otherwise.
-        """
-        # return any(tasker_items[key]["name"] == name for key in tasker_items)
-        names = {tasker_items[key]["name"] for key in tasker_items}
-        return name in names
-
-    # Search for and point to the specific item in the textbox.
-    def find_and_point_to_item(
-        self,
-        action: str,
-        orig_name: str,
-        name: str,
-        guiself: ctk,
-    ) -> None:
-        """
-        Search for and point to the specific item in the textbox.
-
-        Args:
-            action (str): The type of action to perform (e.g., 'projects', 'profiles', 'tasks').
-            orig_name (str): The original name of the item to point to.
-            name (str): The name of the item to point to.
-            guiself (ctk): The GUI self reference.
-
-        Returns:
-            None: This function does not return anything.
-        """
-        our_view = guiself.mapview
-        search_string = f"{action[:-1].capitalize()}: {name}"
-        # Get the entire textbox into a list, one item per line.
-        search_list = our_view.textview_textbox.get("1.0", "end").rstrip().split("\n")
-
-        # Search for all hits for our search string.
-        search_hits = search_substring_in_list(
-            search_list,
-            search_string,
-            stop_on_first_match=True,
-        )
-        if not search_hits:
-            message = f"Could not find '{search_string}' in the list."
-            guiself.display_message_box(message, "Orange")
-            output_label(guiself.textview, message)
-            return
-        first_hit = search_hits[0]
-        line_num = first_hit[0] + 1
-        line_pos = first_hit[1]
-        # Point to the first hit
-        our_view.textview_textbox.see(f"{line_num!s}.{line_pos!s}")
-        # Highlight the match
-        value = {}
-        value["highlights"] = [f"mark,{search_string}"]
-
-        # Highlight the string so it is easy to find.
-        # Delete old tag and add new tag.
-        length_to_use = len(search_string) - 6 if "(Scene)" in orig_name else len(search_string)
-        our_view.textview_textbox.tag_remove("inlist", "1.0", "end")
-        our_view.textview_textbox.tag_add(
-            "inlist",
-            f"{line_num}.{line_pos!s}",
-            f"{line_num}.{(line_pos + length_to_use)!s}",
-        )
-        highlight_configurations = {
-            "mark": {"background": PrimeItems.colors_to_use["highlight_color"]},
-        }
-        our_view.textview_textbox.tag_config(
-            "inlist",
-            **highlight_configurations["mark"],
-        )
-
-
 # Initialize the GUI varliables (e..g _init_ method)
 def initialize_gui(self: ctk) -> None:
     """
@@ -3987,7 +3628,7 @@ def initialize_gui(self: ctk) -> None:
     _initialize_window_positions(self)
     _initialize_data_structures(self)
     _initialize_runtime_options(self)
-    _initialize_configure(self)
+    _initialize_configure(self)  # Configure the grid layout
 
 
 def _initialize_gui_settings(self: ctk) -> None:
@@ -4155,22 +3796,34 @@ def on_resize(self: ctk) -> None:
 
 
 def initialize_screen(self: object) -> None:
-    """Initializes the main GUI screen with various display options and settings."""
+    """Initializes the main GUI screen with optimized execution flow."""
     logger.info("Initializing screen...")
+
+    # 1. Initialize data-heavy items first or cache them
+    # This prevents the UI from hanging mid-render
     _setup_init(self)
-    _create_display_options_section(self)
-    _create_name_display_options_section(self)
-    _create_task_action_limit_section(self)
-    _create_indentation_section(self)
-    _create_appearance_mode_section(self)
-    _create_language_selection_section(self)
-    _create_view_buttons_section(self)
-    _create_view_limit_section(self)
-    _create_settings_buttons_section(self)
-    _create_font_section(self)
-    _create_file_and_message_buttons_section(self)
-    _create_browser_options_section(self)
-    _create_tabview_section(self)
+
+    # 2. Group section creation
+    # We use a list of functions to make the initialization sequence clear
+    sections = [
+        _create_display_options_section,
+        _create_name_display_options_section,
+        _create_task_action_limit_section,
+        _create_indentation_section,
+        _create_appearance_mode_section,
+        _create_language_selection_section,
+        _create_view_buttons_section,
+        _create_view_limit_section,
+        _create_settings_buttons_section,
+        _create_font_section,
+        _create_file_and_message_buttons_section,
+        _create_browser_options_section,
+        _create_tabview_section,
+    ]
+
+    for section in sections:
+        section(self)
+
     _add_misc_logos(self)
 
 
@@ -4185,43 +3838,25 @@ def _setup_init(self: ctk) -> None:
 
 
 def _create_display_options_section(self: ctk) -> None:
-    """Creates the display options section in the sidebar."""
-    self.logo_label = add_label(
-        self,
-        self.sidebar_frame,
-        "Display Options",
-        "",
-        20,
-        "bold",
-        0,
-        0,
-        20,
-        (60, 10),
-        "s",
-    )
+    """Creates the display options section with optimized loops and exact tooltips."""
+    _add_label = add_label
+    _add_checkbox = add_checkbox
+    _create_tooltip = create_tooltip
+    frame = self.sidebar_frame
+    events = self.event_handlers
 
-    self.detail_level_label = add_label(
-        self,
-        self.sidebar_frame,
-        "Display Detail Level:",
-        "",
-        0,
-        "normal",
-        1,
-        0,
-        20,
-        (10, 0),
-        "",
-    )
-    create_tooltip(
+    _add_label(self, frame, "Display Options", "", 20, "bold", 0, 0, 20, (60, 10), "s")
+
+    self.detail_level_label = _add_label(self, frame, "Display Detail Level:", "", 0, "normal", 1, 0, 20, (10, 0), "")
+    _create_tooltip(
         self.detail_level_label,
         text="This determines the amount of detail displayed in the output.\n\nLevel 0 = the least detail, 5 = the most detail.",
     )
 
     self.sidebar_detail_option = add_option_menu(
         self,
-        self.sidebar_frame,
-        self.event_handlers.detail_selected_event,
+        frame,
+        events.detail_selected_event,
         ["0", "1", "2", "3", "4"],
         2,
         0,
@@ -4230,6 +3865,7 @@ def _create_display_options_section(self: ctk) -> None:
         "",
     )
 
+    # Checkbox configuration: Checkbnox text, event name, checkbox name, and tooltip
     checkboxes = [
         (
             "Just Display Everything!",
@@ -4270,33 +3906,32 @@ def _create_display_options_section(self: ctk) -> None:
             "Align all Task action arguments and parameters for nicer output.",
         ),
     ]
+
     self.check_boxes = []
-    _add_checkbox = add_checkbox
-    _create_tooltip = create_tooltip
-    for i, (text, event_name, attr_name, tooltip_text) in enumerate(checkboxes):
-        checkbox = _add_checkbox(
-            self,
-            self.sidebar_frame,
-            getattr(self.event_handlers, event_name),
-            text,
-            3 + i,  # Row starts from 3
-            0,
-            20,
-            10,
-            "w",
-            "",
-        )
-        setattr(self, attr_name, checkbox)  # Add the checkbox 'attr_name' to self
+    for i, (text, event_name, attr_name, tooltip_text) in enumerate(checkboxes, start=3):
+        checkbox = _add_checkbox(self, frame, getattr(events, event_name), text, i, 0, 20, 10, "w", "")
+        setattr(self, attr_name, checkbox)
         self.check_boxes.append(attr_name)
         if tooltip_text:
             _create_tooltip(checkbox, text=tooltip_text)
 
 
 def _create_name_display_options_section(self: ctk) -> None:
-    """Creates the section for name display options (bold, italicize, highlight, underline)."""
-    self.display_names_label = add_label(
+    """
+    Optimized creation of name display options.
+    Uses local references and a loop to minimize attribute lookups.
+    """
+    # Local caching of functions and objects for faster access
+    _add_label = add_label
+    _add_checkbox = add_checkbox
+    _create_tooltip = create_tooltip
+    frame = self.sidebar_frame
+    handlers = self.event_handlers
+
+    # 1. Create the Section Label
+    self.display_names_label = _add_label(
         self,
-        self.sidebar_frame,
+        frame,
         "Project/Profile/Task/Scene Names:",
         "",
         0,
@@ -4307,76 +3942,49 @@ def _create_name_display_options_section(self: ctk) -> None:
         10,
         "s",
     )
-    create_tooltip(
-        self.display_names_label,
-        text="Add highlighting to Project, Profile and Task names in the output.",
-    )
+    _create_tooltip(self.display_names_label, text="Add highlighting to Project, Profile and Task names in the output.")
 
-    self.bold_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.names_bold_event,
-        "Bold",
-        12,
-        0,
-        20,
-        0,
-        "ne",
-        "",
-    )
-    create_tooltip(
-        self.bold_checkbox,
-        text="Bold and Italicize are mutually exclusive in the Map view.",
-    )
+    # 2. Define Checkbox Data
+    # Format: (attribute_name, event_handler, label_text, row, sticky, tooltip_text)
+    checkbox_configs = [
+        (
+            "bold_checkbox",
+            handlers.names_bold_event,
+            "Bold",
+            12,
+            "ne",
+            "Bold and Italicize are mutually exclusive in the Map view.",
+        ),
+        (
+            "italicize_checkbox",
+            handlers.names_italicize_event,
+            "Italicize",
+            12,
+            "nw",
+            "Italicize and Bold are mutually exclusive in the Map view.",
+        ),
+        ("highlight_checkbox", handlers.names_highlight_event, "Highlight", 13, "ne", None),
+        ("underline_checkbox", handlers.names_underline_event, "Underline", 13, "nw", None),
+    ]
 
-    self.italicize_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.names_italicize_event,
-        "Italicize",
-        12,
-        0,
-        20,
-        0,
-        "nw",
-        "",
-    )
-    create_tooltip(
-        self.italicize_checkbox,
-        text="Italicize and Bold are mutually exclusive in the Map view.",
-    )
+    # 3. Batch Creation Loop
+    for attr, event, label, row, sticky, tip in checkbox_configs:
+        # Determine pady based on row (matches your original 0 or 5)
+        py = 0 if row == 12 else 5
 
-    self.highlight_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.names_highlight_event,
-        "Highlight",
-        13,
-        0,
-        20,
-        5,
-        "ne",
-        "",
-    )
+        checkbox = _add_checkbox(self, frame, event, label, row, 0, 20, py, sticky, "")
 
-    self.underline_checkbox = add_checkbox(
-        self,
-        self.sidebar_frame,
-        self.event_handlers.names_underline_event,
-        "Underline",
-        13,
-        0,
-        20,
-        5,
-        "nw",
-        "",
-    )
+        # Assign to self and add tooltip if it exists
+        setattr(self, attr, checkbox)
+        if tip:
+            _create_tooltip(checkbox, text=tip)
 
 
 def _create_task_action_limit_section(self: ctk) -> None:
-    """Creates the task 'actions' limit slider."""
+    """Creates the task 'actions' limit slider with exact multi-line tooltip."""
     text_to_insert = "Task 'actions' limit"
     text = PrimeItems._(text_to_insert) if hasattr(PrimeItems, "_") else text_to_insert
+
     self.task_action_label = add_label(
         self,
         self.sidebar_frame,
@@ -4390,6 +3998,7 @@ def _create_task_action_limit_section(self: ctk) -> None:
         (10, 0),
         "n",
     )
+
     self.task_action_limit = ctk.CTkSlider(
         self.sidebar_frame,
         from_=10,
@@ -4403,6 +4012,7 @@ def _create_task_action_limit_section(self: ctk) -> None:
     )
     self.task_action_limit.grid(row=14, column=0, padx=20, pady=40, sticky="n")
     self.task_action_limit.set(100)
+
     create_tooltip(
         self.task_action_limit,
         text="Select how many actions in a Task before issuing a warning.\nThe warning appears near th4e bottom of the configuration output,\nand is intended to help identify Tasks that are too comple\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit.",
@@ -4501,81 +4111,83 @@ def _create_appearance_mode_section(self: ctk) -> None:
 
 
 def _create_view_buttons_section(self: ctk) -> None:
-    """Creates buttons for different views (Map, Diagram, Tree)."""
-    self.view_label = add_label(self, self.sidebar_frame, "Views", "", 0, "normal", 19, 0, 0, 0, "s")
-    self.mapview_button = add_button(
-        self,
-        self.sidebar_frame,
-        "#246FB6",
-        "",
-        "",
-        lambda: self.event_handlers.view_event("map"),
-        1,
-        "Map",
-        1,
-        20,
-        0,
-        (20, 0),
-        0,
-        "sw",
-    )
-    self.mapview_button.configure(width=50)
-    create_tooltip(
-        self.mapview_button,
-        text="Show a detailed view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button, but the output is displayed inside another window rather than in a browser.",
-    )
+    """
+    Optimized creation of view buttons.
+    Uses a configuration loop to minimize redundant attribute lookups and code.
+    """
+    # Local references for performance
+    _add_label = add_label
+    _add_button = add_button
+    _create_tooltip = create_tooltip
+    frame = self.sidebar_frame
+    handlers = self.event_handlers
 
-    self.diagramview_button = add_button(
-        self,
-        self.sidebar_frame,
-        "#246FB6",
-        "",
-        "",
-        lambda: self.event_handlers.view_event("diagram"),
-        2,
-        "Diagram",
-        1,
-        20,
-        0,
-        105,
-        0,
-        "sw",
-    )
-    self.diagramview_button.configure(width=120)
-    create_tooltip(
-        self.diagramview_button,
-        text="Show a diagrammatic view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button combined with the 'Display Configuration Outline' checkbox selected,\nbut the output is displayed inside another window rather than in a text editor.",
-    )
+    # 1. Create the Section Label
+    self.view_label = _add_label(self, frame, "Views", "", 0, "normal", 19, 0, 0, 0, "s")
 
-    self.treeview_button = add_button(
-        self,
-        self.sidebar_frame,
-        "#246FB6",
-        "",
-        "",
-        lambda: self.event_handlers.view_event("treeview"),
-        2,
-        "Tree",
-        0,
-        20,
-        0,
-        (0, 40),
-        0,
-        "se",
-    )
-    self.treeview_button.configure(width=50)
-    create_tooltip(
-        self.treeview_button,
-        text="Show a simple hierarchical tree view of your configuration.",
-    )
+    # 2. Define Button Configurations
+    # Format: (attr_name, text, width, pady, sticky, tooltip, event_arg)
+    button_configs = [
+        (
+            "mapview_button",
+            "Map",
+            50,
+            (20, 0),
+            "sw",
+            "Show a detailed view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button, but the output is displayed inside another window rather than in a browser.",
+            "map",
+        ),
+        (
+            "diagramview_button",
+            "Diagram",
+            120,
+            105,
+            "sw",
+            "Show a diagrammatic view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button combined with the 'Display Configuration Outline' checkbox selected,\nbut the output is displayed inside another window rather than in a text editor.",
+            "diagram",
+        ),
+        (
+            "treeview_button",
+            "Tree",
+            50,
+            (0, 40),
+            "se",
+            "Show a simple hierarchical tree view of your configuration.",
+            "treeview",
+        ),
+    ]
 
-    self.view_query_button = add_button(
+    # 3. Batch Create View Buttons
+    for attr, text, w, py, stick, tip, arg in button_configs:
+        # Create a local variable for the argument to ensure correct closure capture
+        button = _add_button(
+            self,
+            frame,
+            "#246FB6",
+            "",
+            "",
+            lambda a=arg: handlers.view_event(a),
+            2 if text != "Map" else 1,  # Maintains your specific 'border_spacing' or similar param
+            text,
+            1 if text != "Tree" else 0,
+            20,
+            0,
+            py,
+            0,
+            stick,
+        )
+        button.configure(width=w)
+        setattr(self, attr, button)
+        _create_tooltip(button, text=tip)
+
+    # 4. Create the specialized Query Button
+    self.view_query_button = _add_button(
         self,
-        self.sidebar_frame,
+        frame,
         "#246FB6",
         ("#0BF075", "#ffd941"),
         "#1bc9ff",
-        lambda: self.event_handlers.query_event("view"),
+        lambda: handlers.query_event("view"),
         1,
         "?",
         1,
@@ -4638,14 +4250,24 @@ def _create_view_limit_section(self: ctk) -> None:
 
 
 def _create_settings_buttons_section(self: ctk) -> None:
-    """Creates buttons for resetting, saving, and restoring settings."""
-    self.reset_button = add_button(
+    """
+    Optimized creation of settings buttons.
+    Uses grouped configurations to minimize master lookups and redundant calls.
+    """
+    # Local references for speed
+    _add_button = add_button
+    _create_tooltip = create_tooltip
+    handlers = self.event_handlers
+
+    # 1. Sidebar Buttons (Master: self.sidebar_frame)
+    # Keeping this separate since it has a different layout context
+    self.reset_button = _add_button(
         self,
         self.sidebar_frame,
         "#246FB6",
         "",
         "",
-        self.event_handlers.reset_settings_event,
+        handlers.reset_settings_event,
         2,
         "Reset Options",
         1,
@@ -4655,65 +4277,31 @@ def _create_settings_buttons_section(self: ctk) -> None:
         (80, 10),
         "",
     )
-    create_tooltip(
+    _create_tooltip(
         self.reset_button,
         text="Reset all of the options to their default values, including colors, font used, and other settings.\n\nThe currently loaded XML will be cleared out.",
     )
 
-    self.save_settings_button = add_button(
-        self,
-        self,
-        "#6563ff",
-        "",
-        "",
-        self.event_handlers.save_settings_event,
-        2,
-        "Save Settings",
-        1,
-        7,
-        1,
-        20,
-        (60, 0),
-        "nw",
-    )
+    # 2. Main Window Buttons (Master: self)
+    # Using a loop for buttons sharing the same master, row, column, and pady
+    main_buttons_config = [
+        ("save_settings_button", "#6563ff", handlers.save_settings_event, "Save Settings", (60, 0), None),
+        ("restore_settings_button", "#6563ff", handlers.restore_settings_event, "Restore Settings", (98, 0), None),
+        (
+            "report_issue_button",
+            "",
+            handlers.report_issue_event,
+            "Report Issue",
+            (150, 0),
+            "Report any issues and/or suggestions to the developer.\n\nThis will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue.",
+        ),
+    ]
 
-    self.restore_settings_button = add_button(
-        self,
-        self,
-        "#6563ff",
-        "",
-        "",
-        self.event_handlers.restore_settings_event,
-        2,
-        "Restore Settings",
-        1,
-        7,
-        1,
-        20,
-        (98, 0),
-        "nw",
-    )
-
-    self.report_issue_button = add_button(
-        self,
-        self,
-        "",
-        "",
-        "",
-        self.event_handlers.report_issue_event,
-        2,
-        "Report Issue",
-        1,
-        7,
-        1,
-        20,
-        (150, 0),
-        "nw",
-    )
-    create_tooltip(
-        self.report_issue_button,
-        text="Report any issues and/or suggestions to the developer.\n\nThis will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue.",
-    )
+    for attr, color, event, text, padx, tip in main_buttons_config:
+        btn = _add_button(self, self, color, "", "", event, 2, text, 1, 7, 1, 20, padx, "nw")
+        setattr(self, attr, btn)
+        if tip:
+            _create_tooltip(btn, text=tip)
 
 
 def _create_font_section(self: ctk) -> None:
@@ -4731,7 +4319,13 @@ def _create_font_section(self: ctk) -> None:
         10,
         "sw",
     )
-    font_items, res = get_monospace_fonts()
+    # Get monmospacerd fonts if we don't already have them
+    if not PrimeItems.mono_fonts:
+        font_items, res = get_monospace_fonts()
+        PrimeItems.mono_fonts = font_items, res
+    else:
+        font_items, res = PrimeItems.mono_fonts
+
     default_font = [value for value in font_items if "Courier" in value]
     self.default_font = default_font[0]
 
@@ -4758,8 +4352,10 @@ def _create_font_section(self: ctk) -> None:
 
 
 def _create_file_and_message_buttons_section(self: ctk) -> None:
+    _add_button = add_button
+    _create_tooltip = create_tooltip
     """Creates buttons for clearing messages and getting XML."""
-    self.clear_messages_button = add_button(
+    self.clear_messages_button = _add_button(
         self,
         self,
         "#246FB6",
@@ -4781,11 +4377,11 @@ def _create_file_and_message_buttons_section(self: ctk) -> None:
         "#6563ff",
         self.event_handlers.get_xml_from_android_event,
     )
-    create_tooltip(
+    _create_tooltip(
         self.get_backup_button,
         text="Fetch XML from an Android device.\n\nClick on the 'Get Android Help' button for more info.",
     )
-    self.getxml_button = add_button(
+    self.getxml_button = _add_button(
         self,
         self,
         "",
@@ -4801,110 +4397,99 @@ def _create_file_and_message_buttons_section(self: ctk) -> None:
         (10, 0),
         "ne",
     )
-    create_tooltip(
+    _create_tooltip(
         self.getxml_button,
         text="Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands.",
     )
 
 
 def _create_browser_options_section(self: ctk) -> None:
-    """Creates browser-related buttons (Run, ReRun, Exit, Help)."""
-    self.display_help_button = add_button(
-        self,
-        self,
-        "#246FB6",
-        ("#0BF075", "#ffd941"),
-        "",
-        lambda: self.event_handlers.query_event("help"),
-        2,
-        "Display Help",
-        1,
-        6,
-        2,
-        (0, 20),
-        (20, 0),
-        "ne",
-    )
+    """
+    Optimized creation of browser-related buttons.
+    Uses local variable caching and a data-driven loop to improve startup speed.
+    """
+    # Local references for performance
+    _add_button = add_button
+    _add_label = add_label
+    _create_tooltip = create_tooltip
+    handlers = self.event_handlers
 
-    self.get_android_help_button = add_button(
-        self,
-        self,
-        "#246FB6",
-        ("#0BF075", "#ffd941"),
-        "",
-        lambda: self.event_handlers.query_event("android"),
-        2,
-        "Get Android Help",
-        1,
-        6,
-        2,
-        (0, 20),
-        (58, 0),
-        "ne",
-    )
+    # 1. Specialized Help Buttons (Row 6)
+    # Using a loop to handle similar styles and row/column placement
+    help_configs = [
+        ("display_help_button", "Display Help", (20, 0), "help"),
+        ("get_android_help_button", "Get Android Help", (58, 0), "android"),
+    ]
 
-    self.text_message_label = add_label(
-        self,
-        self,
-        "Browser Options",
-        "",
-        14,
-        "normal",
-        7,
-        2,
-        (0, 35),
-        (50, 0),
-        "ne",
-    )
-    self.run_button = add_button(
-        self,
-        self,
-        "#246FB6",
-        ("#0BF075", "#1AD63D"),
-        "",
-        self.event_handlers.run_program_event,
-        2,
-        "Run and Exit",
-        1,
-        7,
-        2,
-        (0, 20),
-        (80, 0),
-        "ne",
-    )
-    create_tooltip(
-        self.run_button,
-        text="Generate a map of the current XML, save the results as an html file and display the map in the default browser.\n\nThe program terminates when done.",
-    )
+    for attr, text, pady, query_type in help_configs:
+        btn = _add_button(
+            self,
+            self,
+            "#246FB6",
+            ("#0BF075", "#ffd941"),
+            "",
+            lambda q=query_type: handlers.query_event(q),
+            2,
+            text,
+            1,
+            6,
+            2,
+            (0, 20),
+            pady,
+            "ne",
+        )
+        setattr(self, attr, btn)
 
-    self.rerun_button = add_button(
-        self,
-        self,
-        "#246FB6",
-        ("#0BF075", "#1AD63D"),
-        "",
-        self.event_handlers.rerun_event,
-        2,
-        "ReRun",
-        1,
-        7,
-        2,
-        (0, 20),
-        (118, 10),
-        "ne",
-    )
-    create_tooltip(
-        self.rerun_button,
-        text="Same as the 'Run and Exit' button,\nbut the program restarts after displaying the browser output.",
-    )
+    # 2. Section Label
+    self.text_message_label = _add_label(self, self, "Browser Options", "", 14, "normal", 7, 2, (0, 35), (50, 0), "ne")
 
-    self.exit_button = add_button(
+    # 3. Execution Buttons (Row 7)
+    # Grouping buttons with identical masters, rows, and columns
+    exec_configs = [
+        (
+            "run_button",
+            "Run and Exit",
+            (80, 0),
+            handlers.run_program_event,
+            "Generate a map of the current XML, save the results as an html file and display the map in the default browser.\n\nThe program terminates when done.",
+        ),
+        (
+            "rerun_button",
+            "ReRun",
+            (118, 10),
+            handlers.rerun_event,
+            "Same as the 'Run and Exit' button,\nbut the program restarts after displaying the browser output.",
+        ),
+    ]
+
+    for attr, text, pady, event, tip in exec_configs:
+        btn = _add_button(
+            self,
+            self,
+            "#246FB6",
+            ("#0BF075", "#1AD63D"),
+            "",
+            event,
+            2,
+            text,
+            1,
+            7,
+            2,
+            (0, 20),
+            pady,
+            "ne",
+        )
+        setattr(self, attr, btn)
+        _create_tooltip(btn, text=tip)
+
+    # 4. Exit Button (Row 8)
+    self.exit_button = _add_button(
         self,
         self,
         "#246FB6",
         "Red",
         "",
-        self.event_handlers.exit_program_event,
+        handlers.exit_program_event,
         2,
         "Exit",
         1,
@@ -5030,9 +4615,10 @@ def _create_colors_tab_content(self: ctk, tab: str) -> None:
 
 
 def _create_analyze_tab_content(self: ctk, tab: str) -> None:
+    _add_button = add_button
     """Populates the 'Analyze' (AI) tab."""
     center = 50
-    self.show_apikeys_button = add_button(
+    self.show_apikeys_button = _add_button(
         self,
         tab,
         "",
@@ -5048,7 +4634,7 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         (10, 10),
         "",
     )
-    self.change_prompt_button = add_button(
+    self.change_prompt_button = _add_button(
         self,
         tab,
         "",
@@ -5110,7 +4696,7 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
     # Set up the initial analyze button with default models.
     display_analyze_button(self, 13, first_time=True)
 
-    self.ai_help_button = add_button(
+    self.ai_help_button = _add_button(
         self,
         tab,
         "#246FB6",
@@ -5168,32 +4754,33 @@ def _add_misc_logos(self: ctk) -> None:
 
 
 # Delete the windows
-def get_rid_of_windows_and_exit(self, delete_all: bool = True) -> None:  # noqa: ANN001
+def get_rid_of_windows_and_exit(self: MyGui, delete_all: bool = True) -> None:
     """
-    Hides open windows and terminates the application.
-
-    This function withdraws the window, which removes it from the screen, and then calls the `quit()` method twice to terminate the application.
-
-    Parameters:
-        self (object): The instance of the class.
-
-    Returns:
-        None
+    Hides open windows and terminates the application efficiently.
     """
-    self.withdraw()  # Remove the Window
+    # 1. Immediately hide the main window to give the user instant feedback
+    self.withdraw()
+
     if delete_all:
-        if self.ai_analysis_window is not None:
-            self.ai_analysis_window.destroy()
-        if self.diagramview_window is not None:
-            self.diagramview_window.destroy()
-        if self.treeview_window is not None:
-            self.treeview_window.destroy()
-        if self.mapview_window is not None:
-            self.mapview_window.destroy()
-        if self.ai_apikey_window is not None:
-            self.ai_apikey_window.destroy()
-        if self.miscview_window is not None:
-            self.miscview_window.destroy()
+        # 2. Define a list of potential window attributes to clean up.
+        # This is faster than multiple manual 'if' blocks.
+        windows_to_clear = [
+            "ai_analysis_window",
+            "diagramview_window",
+            "treeview_window",
+            "mapview_window",
+            "ai_apikey_window",
+            "miscview_window",
+        ]
+
+        # 3. Iterate and destroy if the window exists
+        # Using getattr is highly efficient for bulk attribute handling
+        for attr in windows_to_clear:
+            window = getattr(self, attr, None)
+            if window is not None:
+                window.destroy()
+
+    # 4. Terminate the main loop
     self.quit()
 
 
@@ -5328,190 +4915,3 @@ def create_tooltip(widget: object, text: str) -> None:
 
     widget.bind("<Enter>", enter)
     widget.bind("<Leave>", leave)
-
-
-class APIKeyDialog(ctk.CTkToplevel):
-    """
-    A class to represent the GetApiKey top-level window.  This is used to manage the AI API Keys.
-
-    This class inherits from CTk and is used to create a window for managing API keys.
-    """
-
-    def __init__(self, *args: dict, **kwargs: dict) -> None:
-        """
-        Initialize the CTkToplevel class.
-
-        Args:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
-        super().__init__(*args, **kwargs)
-
-        # Get our GUI
-        my_gui = self.master
-
-        # Basic appearance for text, foreground and background.
-        width = "800"
-        height = "400"
-        self.title("API Key Options")
-        self.apiview_bg_color = self._apply_appearance_mode(
-            ctk.ThemeManager.theme["CTkFrame"]["fg_color"],
-        )
-        self.apiview_text_color = self._apply_appearance_mode(
-            ctk.ThemeManager.theme["CTkLabel"]["text_color"],
-        )
-        self.selected_color = self._apply_appearance_mode(
-            ctk.ThemeManager.theme["CTkButton"]["fg_color"],
-        )
-
-        # Position the widget
-        window_position = my_gui.ai_apikey_window_position
-        try:
-            self.geometry(window_position)
-            # window_ shouldn't be in here.  If it is, pickle file is corrupt.
-            window_position = window_position.replace("window_", "")
-            work_window_geometry = window_position.split("x")
-            self.master.ai_apikey_window_width = work_window_geometry[0]
-            self.master.ai_apikey_window_height = work_window_geometry[1].split("+")[0]
-        except (AttributeError, TypeError):
-            self.master.ai_apikey_window_position = f"{width}x{height}+600+0"
-            self.master.ai_apikey_window_width = width
-            self.master.ai_apikey_window_height = height
-            self.geometry(f"{width}x{height}")
-        # Save the window position on closure
-        self.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
-
-        # Define the grid.
-        self.grid_columnconfigure(1, weight=1)
-
-        # Save the window
-        my_gui.ai_apikey_window = self
-
-        # Get the server-based keys
-        self.openai_key = self.create_key_entry(0, "OpenAI API Key:", "openai_key")
-        self.anthropic_key = self.create_key_entry(1, "Claude API Key:", "anthropic_key")
-        self.deepseek_key = self.create_key_entry(
-            2,
-            "DeepSeek API Key:",
-            "deepseek_key",
-        )
-        self.gemini_key = self.create_key_entry(3, "Gemini API Key:", "gemini_key")
-
-        #  OK button
-        apikey_ok_button = add_button(
-            self,
-            self,
-            "#246FB6",
-            ("#0BF075", "#ffd941"),
-            "#1bc9ff",
-            # Note: lambda needs the '_:' to pass the event object.
-            lambda: my_gui.event_handlers.ai_apikey_get_event(cancel=False, clear=""),
-            1,
-            "OK",
-            1,
-            4,
-            0,
-            (150, 0),
-            20,
-            "nw",
-        )
-        apikey_ok_button.configure(width=140)
-
-        #  Query ? button
-        apikey_query_button = add_button(
-            self,
-            self,
-            "#246FB6",
-            ("#0BF075", "#ffd941"),
-            "#1bc9ff",
-            lambda: my_gui.event_handlers.query_event("apikey"),
-            1,
-            "?",
-            1,
-            4,
-            0,
-            (300, 0),
-            20,
-            "nw",
-        )
-        apikey_query_button.configure(width=20)
-        # Cancel button
-        _ = add_button(
-            self,
-            self,
-            "",
-            ("#0BF075", "#FFFFFF"),
-            "",
-            # Note: lambda needs the '_:' to pass the event object.
-            lambda: my_gui.event_handlers.ai_apikey_get_event(cancel=True, clear=""),
-            1,
-            "Cancel",
-            1,  # Column span
-            4,  # row
-            0,  # col
-            (350, 90),
-            0,
-            "ew",
-        )
-        self.focus()
-
-    def create_key_entry(
-        self,
-        row: int,
-        label_text: str,
-        placeholder_key: str,
-    ) -> ctk.CTkEntry:
-        """Helper function to create a label, entry and 'Clear' button for an API key."""
-        _ = add_label(
-            self,
-            self,
-            label_text,
-            "Orange",
-            14,
-            "normal",
-            row,
-            0,
-            20,
-            20,
-            "nw",
-        )
-        # Generate the dynamic entry field name / widget
-        entry_name = f"entry_{placeholder_key}"
-        setattr(
-            self,
-            entry_name,
-            ctk.CTkEntry(self, placeholder_text=PrimeItems.ai[placeholder_key]),
-        )
-        # Access the dynamically created entry widget
-        entry_widget = getattr(self, entry_name)
-        entry_widget.grid(row=row, column=0, padx=(150, 10), pady=20, sticky="ne")
-        entry_widget.configure(width=565)
-        entry_widget.insert(0, PrimeItems.ai[placeholder_key])
-
-        # Get our GUI
-        my_gui = self.master
-
-        # Add 'Clear" button
-        clear = add_button(
-            self,
-            self,
-            "",
-            ("#0BF075", "#FFFFFF"),
-            "",
-            # Note: lambda needs the '_:' to pass the event object.
-            lambda: my_gui.event_handlers.ai_apikey_get_event(
-                cancel=False,
-                clear=placeholder_key,
-            ),
-            1,
-            "Clear",
-            1,  # Column span
-            row,  # row
-            1,  # col
-            (10, 10),
-            20,
-            "ne",
-        )
-        clear.configure(width=20)
-
-        return entry_widget
