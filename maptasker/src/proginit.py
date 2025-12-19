@@ -10,6 +10,7 @@ import json
 import os
 import platform
 import sys
+import tkinter as tk
 from collections import namedtuple
 from json import dumps, loads
 from pathlib import Path
@@ -29,6 +30,7 @@ from maptasker.src.maputils import exit_program
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     COUNTER_FILE,
+    DEFAULT_GUI_WINDOW,
     TYPES_OF_COLOR_NAMES,
     logger,
 )
@@ -91,12 +93,22 @@ def prompt_for_backup_file(dir_path: str) -> None:
         - Set an error code if running with GUI
     """
     file_error = False
+
+    # Create a temporary window into which to place the file prompt.  The following code ensures the window is topmost.
+    root = tk.Tk()
+    root.title("MapTasker: Identify the XML file to use")
+    root.geometry(DEFAULT_GUI_WINDOW)  # Force the default window dimensions
+    root.update_idletasks()  # Make sure the window manager knows about it
+    root.lift()
+    root.attributes("-topmost", True)
+    root.focus_force()
+
     # Tkinter prompt for file selection.
     try:
         PrimeItems.file_to_get = askopenfile(
-            parent=PrimeItems.tkroot,
+            parent=root,
             mode="r",
-            title="Select Tasker backup xml file",
+            title="Select Tasker XML file to use...",
             initialdir=dir_path,
             filetypes=[("XML Files", "*.xml")],
         )
@@ -109,6 +121,10 @@ def prompt_for_backup_file(dir_path: str) -> None:
         error_handler("Backup file selection canceled.  Program ended.", 6)
     elif file_error:
         PrimeItems.error_code = 6
+
+    # Get rid of the temporary window.
+    root.attributes("-topmost", False)
+    root.destroy()
 
 
 # Open and read the Tasker backup XML file

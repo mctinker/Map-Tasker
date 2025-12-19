@@ -350,6 +350,7 @@ class TextWindow(ctk.CTkToplevel):
             self.master.text_window_width = work_window_geometry[0]
             self.master.text_window_height = work_window_geometry[1].split("+")[0]
         except (AttributeError, TypeError):
+            print("bingo")
             self.master.text_window_position = "600x800+600+0"
             self.master.text_window_width = "600"
             self.master.text_window_height = "800"
@@ -552,7 +553,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)

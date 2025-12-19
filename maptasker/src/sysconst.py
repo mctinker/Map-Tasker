@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "10.0.2"
+VERSION = "10.0.3"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -353,3 +353,6 @@ SCENE_TASK_TYPES = {
 
 # GUI Tab Names
 TAB_NAMES = ["Specific Name", "Colors", "Analyze", "Debug"]
+
+# Default GUI Window Dimensions: Width x Height + X_offset + Y_offset (no spaces)
+DEFAULT_GUI_WINDOW = "1129x1044+698+145"

@@ -11,6 +11,8 @@ from __future__ import annotations
 import contextlib
 import re
 
+from cv2 import line
+
 from maptasker.src.error import rutroh_error
 from maptasker.src.guiutils import align_text
 from maptasker.src.primitem import PrimeItems
@@ -900,6 +902,14 @@ def capture_front_text(output_lines: list, line: str, line_num: int) -> list:
     return output_lines
 
 
+def _icon_replace(match: object, line: str = line) -> str:
+    """Replace hex codes with actual icons"""
+    token = match.group(0)
+    if token == "&#9940;":  # noqa: S105
+        return "⛔"
+    return "⫷⇦" if "Entry" in line else "⇨⫸"
+
+
 def additional_formatting(
     doing_global_variables: bool,
     line: str,
@@ -930,14 +940,16 @@ def additional_formatting(
     if "class='\\blanktab1\\'" in line:
         line = line.replace("class='\\blanktab1\\'", "class='blanktab1'")
 
-    # Replace icons
-    if "&#9940;" in line:
-        line = line.replace("&#9940;", "⛔")
+    # Replace icons.
+    line = re.sub(r"&#9940;|&#11013;", lambda m: _icon_replace(m), line)
+    # if "&#" in line:  # Do initial check to avoid ALWAYS doing two following checks.
+    #     if "&#9940;" in line:
+    #         line = line.replace("&#9940;", "⛔")
 
-    if "&#11013;" in line:
-        # Choose direction based on presence of 'Entry'
-        replacement = "⫷⇦" if "Entry" in line else "⇨⫸"
-        line = line.replace("&#11013;", replacement)
+    #     if "&#11013;" in line:
+    #         # Choose direction based on presence of 'Entry'
+    #         replacement = "⫷⇦" if "Entry" in line else "⇨⫸"
+    #         line = line.replace("&#11013;", replacement)
 
     output_lines[line_num] = {"text": [], "color": [], "highlights": []}
 
@@ -955,23 +967,36 @@ def additional_formatting(
     elif color_span in line:
         temp1 = line.split(color_span)
         _remove_html_tags = remove_html_tags
+        out = output_lines[line_num]
         for item in temp1:
-            if item and item != "</span>":
-                output_lines[line_num]["color"].append(item.split(";text-decoration:")[0])
-                # output_lines[line_num]["text"].append(item.split('-text">')[1])
-                temp_text = item.split('-text">')[1].replace("Go to top", "")
-                output_lines[line_num]["text"] = [_remove_html_tags(temp_text, "")]
+            if not item or item == "</span>":
+                continue
+            # Extract color
+            color = item.split(";text-decoration:", 1)[0]
+            out["color"].append(color)
+
+            # Extract text
+            _, _, text_part = item.partition('-text">')
+            if text_part:
+                out["text"] = [_remove_html_tags(text_part.replace("Go to top", ""), "")]
 
     # Extract global variable from table definition
     elif line.startswith("<tr><td"):
-        temp1 = line.split('text-align:left">')
-        global_var_name = temp1[1].split("<")[0]
-        temp2 = temp1[2].split("<")
-        global_var_value = temp2[0] if temp2[0] else temp2[1][3:]
-        output_lines[line_num]["text"] = [
-            f"{global_var_name.ljust(25, '.')}{global_var_value.rjust(15, '.')}",
+        out = output_lines[line_num]
+
+        # Extract name
+        _, _, rest = line.partition('text-align:left">')
+        name, _, rest = rest.partition("<")
+
+        # Extract value
+        value, _, tail = rest.partition("<")
+        if not value:
+            value = tail[3:]
+
+        out["text"] = [
+            f"{name.ljust(25, '.')}{value.rjust(15, '.')}",
         ]
-        output_lines[line_num]["color"] = ["Turquoise"]
+        out["color"] = ["Turquoise"]
 
     # Just a plain line of text
     # Check top see if we have already added this text, which is the case if '_color' in line but not our '_color'.
@@ -985,9 +1010,10 @@ def additional_formatting(
 
     # Cleanup the line
     output_lines = cleanup_text_elements(output_lines, line_num, remove_html)
-    for text_num, temp in enumerate(output_lines[line_num]["text"]):
-        if "...with label:" in temp:
-            output_lines[line_num]["text"][text_num] = output_lines[line_num]["text"][text_num].replace(
+    texts = output_lines[line_num]["text"]
+    for i, text in enumerate(texts):
+        if "...with label:" in text:
+            texts[i] = text.replace(
                 "...with label:<div  class=",
                 "...with label:",
             )

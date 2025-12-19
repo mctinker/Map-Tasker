@@ -41,6 +41,7 @@ def ensure_argument_alignment(taction: str) -> str:
     _count_consecutive_substr = count_consecutive_substr
     action_breakdown = taction.replace("\n", "<br>").split("<br>")
     if len(action_breakdown) > 1:
+        # Get the amount of spaces in the first argument and ensure it is the same amount for the rest of the args.
         count_of_spaces = _count_consecutive_substr(action_breakdown[1], "&nbsp;")
         correct_spacing = "&nbsp;" * count_of_spaces
         for index, arg in enumerate(action_breakdown[2:]):
@@ -49,17 +50,14 @@ def ensure_argument_alignment(taction: str) -> str:
             # Stop adding spacer if this is formatted html for label/taskernet desc.
             if "text-decoration" in action_breakdown[index + 2]:
                 break
-            if _count_consecutive_substr(arg, "&nbsp;") != count_of_spaces:
-                action_breakdown[index + 2] = action_breakdown[index + 2].replace(
-                    "&nbsp;",
-                    "",
-                )
-                # Handle {DISABLED] task indicator at end of config parameters.
-                if action_breakdown[index + 2] == "[&#9940;DISABLED]</span>":
-                    correct_spacing = "&nbsp;" * (count_of_spaces - 18)
 
-                # Now add the correct number of spaces to the start of the line
-                action_breakdown[index + 2] = f"{correct_spacing}{action_breakdown[index + 2]}"
+            # Handle {DISABLED] task indicator at end of config parameters.
+            if action_breakdown[index + 2] == "[&#9940;DISABLED]</span>":
+                correct_spacing = "&nbsp;" * (count_of_spaces - 18)
+
+            # Now add the correct number of spaces to the start of the line
+            action_breakdown[index + 2] = f"{correct_spacing}{action_breakdown[index + 2].replace('&nbsp;', '')}"
+
         # Put it all back together.
         taction = "<br>".join(action_breakdown)
     return taction

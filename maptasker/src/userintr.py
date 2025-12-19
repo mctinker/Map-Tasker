@@ -97,6 +97,7 @@ from maptasker.src.sysconst import (
     ANALYSIS_FILE,
     ARGUMENT_NAMES,
     CHANGELOG_URL,
+    DEFAULT_GUI_WINDOW,
     DIAGRAM_FILE,
     KEYFILE,
     TAB_NAMES,
@@ -204,6 +205,7 @@ class MyGui(customtkinter.CTk):
 
         # The following line is equivalent to a call to update_tasker_object_menus,
         # but only when the Analysis tab is clicked.
+        # NOTE: This will prompt for and get the XML file if we don't already have it.
         self.tabview.configure(
             "Analyze",
             command=update_tasker_object_menus(
@@ -243,10 +245,10 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # CHG: For Development Only!
+        # FIX: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        # self.event_handlers.map_event()
+        self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
 
@@ -312,7 +314,7 @@ class MyGui(customtkinter.CTk):
             if PrimeItems.program_arguments["window_position"]:
                 self.window_position = PrimeItems.program_arguments["window_position"]
             else:
-                self.window_position = "1129x1044+698+145"  # Default window position
+                self.window_position = DEFAULT_GUI_WINDOW  # Default window position
         else:
             self.window_position = save_window_position(self, self)
 

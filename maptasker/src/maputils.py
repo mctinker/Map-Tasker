@@ -15,9 +15,7 @@ import socket
 import subprocess
 import sys
 import time
-from contextlib import contextmanager
 from datetime import datetime
-from typing import TYPE_CHECKING
 from zoneinfo import (
     ZoneInfo,
     ZoneInfoNotFoundError,
@@ -26,45 +24,17 @@ from zoneinfo import (
 import defusedxml.ElementTree as et  # noqa: N813
 import requests
 import webcolors
-from requests.exceptions import ConnectionError, InvalidSchema, Timeout  # noqa: A004
+from requests.exceptions import ConnectionError  # noqa: A004
 
 from maptasker.src.error import rutroh_error
 from maptasker.src.format import format_html
 from maptasker.src.getbakup import write_out_backup_file
 from maptasker.src.getids import get_ids
+from maptasker.src.maputil2 import http_request
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.xmldata import rewrite_xml
-
-if TYPE_CHECKING:
-    from collections.abc import Generator
-
-
-@contextmanager
-def suppress_stdout() -> Generator:  # type: ignore  # noqa: PGH003
-    """
-    Context manager that suppresses the standard output during its execution.
-
-    This context manager redirects the standard output to `/dev/null`, effectively suppressing any output.
-    It uses the `open` function to open `/dev/null` in write mode and assigns it to the `devnull` variable.
-    Then, it saves the current standard output in the `old_stdout` variable.
-    After that, it sets the standard output to `devnull`.
-
-    The `yield` statement is used to enter the context manager's block.
-    Once the block is executed, the `finally` block is executed to restore the standard output to its original value.
-
-    This context manager is useful when you want to suppress the standard output of a specific block of code."""
-    with open(os.devnull, "w") as devnull:
-        old_stdout = sys.stdout
-        sys.stdout = devnull
-        old_stderr = sys.stderr
-        sys.stderr = devnull
-        try:
-            yield
-        finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
 
 
 # Validate TCP/IP Address
@@ -133,64 +103,6 @@ def get_pypi_version() -> str:
         logger.debug("Unable to get version from PYPI!")
         version = ""
     return version
-
-
-# Issue HTTP Request to get something from the Android device.
-def http_request(
-    ip_address: str,
-    ip_port: str,
-    file_location: str,
-    request_name: str,
-    request_parm: str,
-) -> tuple[int, object]:
-    """
-    Issue HTTP Request to get the backup XML file from the Android device.
-    Tasker's HTTP Server Example must be installed for this to work:
-    https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example
-        :param backup_file_http: the port to use for the Android device's Tasker server
-        :param backup_file_location: location of
-        :return: return code, response: eitherr text string with error message or the
-        contents of the backup file
-    """
-    # Create the URL to request the backup xml file from the Android device running the
-    # Tasker server.
-    # Something like: 192.168.0.210:1821/file/path/to/backup.xml?download=1
-    http = "http://" if "http://" not in ip_address else ""
-    url = f"{http}{ip_address}:{ip_port}/{request_name}{file_location}{request_parm}"
-
-    # Make the request.
-    error_message = ""
-    response = ""
-
-    with suppress_stdout():  # Suppress any errors (system IMK)
-        try:
-            response = requests.get(url, timeout=5)
-        except InvalidSchema:
-            error_message = f"Request failed for url: {url} .  Invalid url!"
-        except ConnectionError:
-            error_message = f"Request failed for url: {url} .  Connection error! Unable to get XML from Android device."
-        except Timeout:
-            error_message = f"Request failed for url: {url} .  Timeout error.  Or perhaps the profile 'MapTasker List' has not been imported into Tasker on the Android device!"
-        except Exception as e:  # noqa: BLE001
-            error_message = f"Request failed for url: {url}, error: {e} ."
-
-    # If we have an error message, return as error.
-    if error_message:
-        logger.debug(error_message)
-        return 8, error_message
-
-    # Check the response status code.  200 is good!
-    if response and response.status_code == 200:
-        # Return the contents of the file.
-        return 0, response.content
-
-    if response and response.status_code == 404:
-        return 6, "File " + file_location + " not found."
-
-    return (
-        8,
-        f"Request failed for url: {url} ...with status code {response.status_code}",
-    )
 
 
 # Validate XML
