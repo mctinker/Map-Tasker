@@ -350,7 +350,6 @@ class TextWindow(ctk.CTkToplevel):
             self.master.text_window_width = work_window_geometry[0]
             self.master.text_window_height = work_window_geometry[1].split("+")[0]
         except (AttributeError, TypeError):
-            print("bingo")
             self.master.text_window_position = "600x800+600+0"
             self.master.text_window_width = "600"
             self.master.text_window_height = "800"
@@ -413,7 +412,7 @@ class CTkTextview(ctk.CTkFrame):
 
     def _setup_appearance(self: ctk) -> None:
         """
-        Sets up the appearance of the text view by configuring colors based on the current theme.
+        Sets up the appearance of text view by configuring colors based on the current theme.
         """
         self.textview_bg_color = self._get_appearance_color("CTkFrame", "fg_color")
         self.textview_text_color = self._get_appearance_color("CTkLabel", "text_color")
@@ -3011,17 +3010,13 @@ class CTkTextview(ctk.CTkFrame):
         if previous_value == "directory" and "Project:" in message:
             message = f"\n{message}"
 
-        # Short-circuit for empty messages
-        if message.strip() == "      ":
-            return ""
+        # # Short-circuit for empty messages
+        # if message.strip() == "      ":
+        #     return ""
 
         # Format for pretty output
         if pretty and message.startswith(spaces):
             message = f"  {message}"
-
-        # Add debug information
-        # if debug:
-        #    message = f"{line_num_str} {message}"
 
         return message
 
@@ -3114,6 +3109,7 @@ class CTkTextview(ctk.CTkFrame):
         if task_name not in message:
             rutroh_error(f"Task {task_name} not found in the message, '{message}'!")
 
+        # Make sure we haven't already handled this warning.
         if task_name in track_task_warnings:
             return char_position
         track_task_warnings.append(task_name)

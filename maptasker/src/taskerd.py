@@ -5,6 +5,7 @@
 #                                                                                      #
 # taskerd: get Tasker data from backup xml                                             #
 #                                                                                      #
+import re
 
 import defusedxml.ElementTree as ET  # noqa: N817
 
@@ -90,23 +91,24 @@ def get_the_xml_data() -> bool:
         return _handle_gui_error("Invalid Tasker backup XML file", code=3)
 
     # Extract and transform data
+    _move_xml_to_table = move_xml_to_table
     PrimeItems.tasker_root_elements = {
-        "all_projects": move_xml_to_table(
+        "all_projects": _move_xml_to_table(
             PrimeItems.xml_root.findall("Project"),
             False,
             "name",
         ),
-        "all_profiles": move_xml_to_table(
+        "all_profiles": _move_xml_to_table(
             PrimeItems.xml_root.findall("Profile"),
             True,
             "nme",
         ),
-        "all_tasks": move_xml_to_table(
+        "all_tasks": _move_xml_to_table(
             PrimeItems.xml_root.findall("Task"),
             True,
             "nme",
         ),
-        "all_scenes": move_xml_to_table(
+        "all_scenes": _move_xml_to_table(
             PrimeItems.xml_root.findall("Scene"),
             False,
             "nme",
@@ -115,27 +117,34 @@ def get_the_xml_data() -> bool:
     }
 
     # Assign names to Profiles that have no name = their condition.nnn (Unnamed)
-    _parse_profile_condition = condition.parse_profile_condition
+    # Cache external references and methods to local variables
+    # This avoids repeated global/attribute lookups in the loop
+    all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
+    _parse_condition = condition.parse_profile_condition
     _conditions_to_name = conditions_to_name
-    for key, value in PrimeItems.tasker_root_elements["all_profiles"].items():
-        if not value["name"]:
-            # The Profile doen't have a name.  Name it using it's conditions.
-            profile_name = UNNAMED_ITEM
-            profile_xml = value["xml"]
-            if profile_conditions := _parse_profile_condition(profile_xml):
-                # fmt: off
-                _, profile_name, profile_conditions = _conditions_to_name(
-                        profile_xml,
-                        profile_conditions,
-                        profile_name,
-                        "",
-                )
-            # fmt: on
+    unnamed_label = UNNAMED_ITEM
 
-            # CLean up the new name
-            profile_name = profile_name.replace("<em>", "").replace("</em>", "")
+    # Pre-compile regex if multiple tags need cleaning (faster than multiple .replace)
+    tag_cleaner = re.compile(r"</?em>")
 
-            PrimeItems.tasker_root_elements["all_profiles"][key]["name"] = profile_name
+    for profile in all_profiles.values():
+        # Check if the name is missing or empty
+        if not profile.get("name"):
+            xml_content = profile["xml"]
+            conditions = _parse_condition(xml_content)
+
+            current_name = unnamed_label
+
+            if conditions:
+                # Assuming _to_name returns (something, name, something_else)
+                _, current_name, _ = _conditions_to_name(xml_content, conditions, unnamed_label, "")
+
+            # Efficiently strip HTML tags
+            if "<em>" in current_name:
+                current_name = tag_cleaner.sub("", current_name)
+
+            # Direct update to the dictionary reference
+            profile["name"] = current_name
 
     # Get Tasks by name and handle Tasks with no name.
     PrimeItems.tasker_root_elements["all_tasks_by_name"] = {}
