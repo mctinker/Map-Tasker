@@ -2967,7 +2967,7 @@ class CTkTextview(ctk.CTkFrame):
             formatted_message = f"{line_num}:{formatted_message}"
             self.out_trace_file.write(formatted_message)
 
-        # Pre-check for object labels to reduce substring scans
+        # Pre-check for object labels to reduce substring scans.  Force a newline if it is.
         if any(x in formatted_message for x in ("Task:", "Profile:", "Project:")):
             textview_textbox.insert("end", "\n", tag_id)
             line_num += 1

@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: If using for the first time, the initial prompt to select the XML file can be hidden by other windows.
+- FIxed: Tasks are not properly identified as 'Entry' or 'Exit' tasks.
 
 ### Known Issue
 

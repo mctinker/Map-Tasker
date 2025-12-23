@@ -58,14 +58,14 @@ def get_profile_tasks(
 
             if task_id not in found_tasks_list:
                 PrimeItems.task_count_for_profile += 1
-
             task_element, task_name = _get_task_name(
                 task_id,
                 found_tasks_list,
                 task_output_line,
                 task_type,
             )
-            list_of_tasks.append({"xml": task_element, "name": task_name})
+            # Add the Task to our list of found Tasks, and use the Task output line as the name.
+            list_of_tasks.append({"xml": task_element, "name": task_output_line[-1]})
 
             if single_task_name and single_task_name == task_name:
                 PrimeItems.found_named_items["single_task_found"] = True

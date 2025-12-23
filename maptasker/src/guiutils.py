@@ -1408,7 +1408,7 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     return True, projects_to_display, profiles_to_display, tasks_to_display
 
 
-# Build a list of Profiles that are under the given project
+# Build a list of Profiles that are under the given project, and all of their (Tasks) children.
 def build_profiles(
     root: dict,
     profile_ids: list,

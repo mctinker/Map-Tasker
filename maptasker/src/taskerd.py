@@ -70,12 +70,20 @@ def get_the_xml_data() -> bool:
     counter = 0
     anchor = "Anchor ...with label:\n"
 
+    # # Count the lines to see if we should issue a status.
+    # with open(file_to_parse, "rb") as f:
+    #     count = sum(1 for _ in f)
+    # if count > 15000:
+    #     print("Parsing XML file...")
+
     _rewrite_xml = rewrite_xml
+    # Validate the XML file by parsing it twice if necessary.
     while True:
         try:
             xmlp = ET.XMLParser(encoding="utf-8")
             PrimeItems.xml_tree = ET.parse(file_to_parse, parser=xmlp)
             break
+        # If error, rewrite thqat file with correct encoding.  Try this twice and then call it quits if still fails.
         except (ET.ParseError, UnicodeDecodeError) as e:
             counter += 1
             if counter > 2 or isinstance(e, ET.ParseError):
@@ -90,7 +98,7 @@ def get_the_xml_data() -> bool:
     if PrimeItems.xml_root.tag != "TaskerData":
         return _handle_gui_error("Invalid Tasker backup XML file", code=3)
 
-    # Extract and transform data
+    # Extract and transform data into Projects, Profiles, Tasks, Scenes and Services
     _move_xml_to_table = move_xml_to_table
     PrimeItems.tasker_root_elements = {
         "all_projects": _move_xml_to_table(

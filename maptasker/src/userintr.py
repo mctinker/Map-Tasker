@@ -245,12 +245,13 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # CHG: For Development Only!
+        # FIX: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        # self.event_handlers.map_event()
+        self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
+        # exit()
 
     # Establish all the default values used
     def set_defaults(self) -> None:
@@ -1506,7 +1507,7 @@ class MyGui(customtkinter.CTk):
                     self.mapview_window.destroy()
                 return None
 
-            # Define the view.
+            # Define the view and display the map.
             view = CTkTextview(
                 master=getattr(self, window_attribute),
                 title=window_title,
@@ -1805,7 +1806,7 @@ class MyGui(customtkinter.CTk):
             reset_primeitems_single_names()
             return
 
-        # Now display the results.
+        # Now display the results: map view.
         self.mapview = self.display_view("map")
         self.textview = self.mapview
         if self.mapview is not None:

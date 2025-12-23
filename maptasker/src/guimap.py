@@ -11,7 +11,7 @@ from __future__ import annotations
 import contextlib
 import re
 
-from cv2 import line
+import line_profiler
 
 from maptasker.src.error import rutroh_error
 from maptasker.src.guiutils import align_text
@@ -426,22 +426,23 @@ def handle_gototop(text_list: list) -> list:
 #   <a href='#'>...</a> (and variations where > might be missing)
 #   <em> or </em> etc.
 #   (?: ... ) is your alternation of tag prefixes.
-
-#   \b ensures word boundary after tokens like em (so we dont accidentally match embed).
 #   [^>]* consumes any characters up to a > (attributes, values, even quotes).
 #   >? makes the trailing > optional — so it matches both "<div class=" and "<div class='x'>".
 #   re.IGNORECASE makes it robust to different capitalization like <DIV.
-# _REMOVE_HTML_PATTERN = re.compile(
-#     r"<(?:span\s+style=|div\s+class=|data-flag=|a\s+href='#'|/?em)\b[^>]*>?",
-#     flags=re.IGNORECASE,
-# )
-_REMOVE_HTML_PATTERN = re.compile(r"<(?:span style=|div class=|em>|/em>|data-flag=|a href='#'></a>)>?")
+# 1. We use a more concise alternation.
+# 2. We use [^>\s]* to stop at whitespace or a closing bracket.
+# 3. We handle the <a> tag separately to ensure it catches the specific '#' case.
+_REMOVE_HTML_PATTERN = re.compile(
+    r"<(?:/?em|span\s+style=|div\s+class=|data-flag=|a\s+href='#')[^>]*>?",
+    flags=re.IGNORECASE,
+)
 
 
 def remove_the_html_tags(text: str) -> str:
     """
-    Removes specific HTML tags from the given text efficiently.
+    Removes specific HTML tags efficiently using precompiled regex.
     """
+    # sub() is already quite fast in Python's re module (implemented in C)
     return _REMOVE_HTML_PATTERN.sub("", text)
 
 
@@ -450,43 +451,72 @@ def clean_text_list(text_list: list[str], tabs: str) -> list[str]:
     Very fast cleanup of all text elements.
     Uses deterministic fixed-string replacements with minimized overhead.
     """
-    # Localize everything for speed
-    repl_tabs = tabs
-    tab_replace = "\t"
+    # 1. Create a mapping dictionary
+    rep_map = {
+        "&nbsp;": " ",
+        "\n\n": "\n",
+        "<DIV": "",
+        "</div>": "",
+        "&#45;": "-",
+        "&lt;": "<",
+        "&gt;": ">",
+        "&quot;": '"',
+        "[Launcher Task:": " [Launcher Task:",
+        " --Task:": "--Task:",
+        "<a href='#'>": "",
+        "</a>": "",
+        "</span>": "",
+        "\t": tabs,
+    }
 
-    # Ordered list of (old, new) preserves intent & deterministic behavior
-    replacements = (
-        ("&nbsp;", " "),
-        ("\n\n", "\n"),
-        ("<DIV", ""),
-        ("</div>", ""),
-        ("&#45;", "-"),
-        ("&lt;", "<"),
-        ("&gt;", ">"),
-        ("&quot;", '"'),
-        ("[Launcher Task:", " [Launcher Task:"),
-        (" --Task:", "--Task:"),
-        ("<a href='#'>", ""),
-        ("</a>", ""),
-        ("</span>", ""),
-    )
+    # 2. Compile a single regex pattern from the keys
+    # Use re.escape to handle special characters like '[' or '?'
+    pattern = re.compile("|".join(re.escape(k) for k in rep_map))
 
-    out = []
-    append = out.append
+    # 3. Use a local function for the replacement lookup
+    def _repl_func(m: str) -> str:
+        return rep_map[m.group(0)]
 
-    for text in text_list:
-        # Apply fast literal replacements
-        for old, new in replacements:
-            if old in text:  # cheap containment check avoids useless .replace()
-                text = text.replace(old, new)  # noqa: PLW2901
+    # 4. List comprehension with localized sub function is extremely fast
+    sub = pattern.sub
+    return [sub(_repl_func, text) for text in text_list]
+    # # Localize everything for speed
+    # repl_tabs = tabs
+    # tab_replace = "\t"
 
-        # Tabs last (highest hit rate)
-        if "\t" in text:
-            text = text.replace(tab_replace, repl_tabs)  # noqa: PLW2901
+    # # Ordered list of (old, new) preserves intent & deterministic behavior
+    # replacements = (
+    #     ("&nbsp;", " "),
+    #     ("\n\n", "\n"),
+    #     ("<DIV", ""),
+    #     ("</div>", ""),
+    #     ("&#45;", "-"),
+    #     ("&lt;", "<"),
+    #     ("&gt;", ">"),
+    #     ("&quot;", '"'),
+    #     ("[Launcher Task:", " [Launcher Task:"),
+    #     (" --Task:", "--Task:"),
+    #     ("<a href='#'>", ""),
+    #     ("</a>", ""),
+    #     ("</span>", ""),
+    # )
 
-        append(text)
+    # out = []
+    # append = out.append
 
-    return out
+    # for text in text_list:
+    #     # Apply fast literal replacements
+    #     for old, new in replacements:
+    #         if old in text:  # cheap containment check avoids useless .replace()
+    #             text = text.replace(old, new)
+
+    #     # Tabs last (highest hit rate)
+    #     if "\t" in text:
+    #         text = text.replace(tab_replace, repl_tabs)
+
+    #     append(text)
+
+    # return out
 
 
 # Optimized
@@ -627,7 +657,7 @@ def process_color_string(line: str, color_pos: int) -> tuple:
 
 def extract_working_text(temp: list) -> str:
     """
-    Extracts the working text from the given list of strings.
+    Extracts the working text from the given list of strings.  It works on the output of process_color_string.
 
     Args:
         temp (list): A list of strings containing HTML tags and text.
@@ -683,6 +713,7 @@ def extract_highlights(working_text: str, highlight_tags: list) -> list:
     return highlights
 
 
+@line_profiler.profile
 def process_line(
     output_lines: list,
     line: str,
@@ -831,44 +862,48 @@ def calculate_spacing(
     return spacing
 
 
-def handle_disabled_objects(output_lines: list, line_num: int) -> list:
+def handle_disabled_objects(output_lines: dict, line_num: int) -> dict:
     """
-    Handles disabled objects in the output lines.
+    Handles disabled objects by moving the status tag in the output_lines dictionary.
 
-    This function checks for the presence of "[⛔ DISABLED]" in the output lines and moves it up to the profile line if found.
-    It also blanks out the original line.
-
-    Args:
-        output_lines (list): A list of output lines.
-        line_num (int): The current line number.
-
-    Returns:
-        list: The updated output lines.
+    This function checks for the presence of "[⛔ DISABLED]" in the output lines and moves it up to the profile line if found.  It also blanks out the original line.
     """
-    # Find the previous output line in prep for checking disabled.
-    prev_line_num = line_num - 1
-    keep_going = True
-    while keep_going:
-        try:
-            if output_lines[prev_line_num]:
-                keep_going = False
-                break
-        except KeyError:
-            prev_line_num -= 1
-            if prev_line_num < 0:
-                prev_line_num = 0
-                break
+    # 1. Efficiently find the 'previous' valid integer key
+    # We look backwards from line_num-1 to 0.
+    prev_line_num = None
+    for i in range(line_num - 1, -1, -1):
+        if i in output_lines:
+            prev_line_num = i
+            break
 
-    # If [⛔ DISABLED] is in the line for a Profile, then move it up to the profile line and blank out the original.
-    if (
-        "[⛔ DISABLED]" in output_lines[line_num]["text"][0]
-        and output_lines[prev_line_num]["color"] == ["profile_color"]
-        and output_lines[prev_line_num]["text"][1] == "\n"
-    ):
-        output_lines[prev_line_num]["text"][1] = "  [⛔ DISABLED]\n"
-        # This blank line will be ignored by guiwins.py output_map_text_lines
-        output_lines[line_num]["text"][0] = " "
-        output_lines[line_num]["color"] = {}
+    if prev_line_num is None:
+        return output_lines
+
+    # 2. Cache references to the current and previous dictionaries
+    curr_line = output_lines.get(line_num)
+    prev_line = output_lines.get(prev_line_num)
+
+    # 3. Validation: Ensure both lines exist and have the expected 'text' keys
+    if not curr_line or not prev_line:
+        return output_lines
+
+    curr_text_list = curr_line.get("text", [])
+
+    # 4. Perform checks using short-circuiting logic
+    # Check for the emoji first as it's the most specific condition
+    if curr_text_list and "[⛔ DISABLED]" in curr_text_list[0]:
+        prev_color = prev_line.get("color")
+        prev_text_list = prev_line.get("text", [])
+
+        # Validate the 'Profile' line requirements
+        if prev_color == ["profile_color"] and len(prev_text_list) > 1 and prev_text_list[1] == "\n":
+            # Move the tag to the profile line
+            prev_text_list[1] = "  [⛔ DISABLED]\n"
+
+            # Blank out the original line data
+            curr_line["text"][0] = " "
+            curr_line["color"] = {}
+
     return output_lines
 
 
@@ -902,14 +937,7 @@ def capture_front_text(output_lines: list, line: str, line_num: int) -> list:
     return output_lines
 
 
-def _icon_replace(match: object, line: str = line) -> str:
-    """Replace hex codes with actual icons"""
-    token = match.group(0)
-    if token == "&#9940;":  # noqa: S105
-        return "⛔"
-    return "⫷⇦" if "Entry" in line else "⇨⫸"
-
-
+@line_profiler.profile
 def additional_formatting(
     doing_global_variables: bool,
     line: str,
@@ -940,16 +968,8 @@ def additional_formatting(
     if "class='\\blanktab1\\'" in line:
         line = line.replace("class='\\blanktab1\\'", "class='blanktab1'")
 
-    # Replace icons.
-    line = re.sub(r"&#9940;|&#11013;", lambda m: _icon_replace(m), line)
-    # if "&#" in line:  # Do initial check to avoid ALWAYS doing two following checks.
-    #     if "&#9940;" in line:
-    #         line = line.replace("&#9940;", "⛔")
-
-    #     if "&#11013;" in line:
-    #         # Choose direction based on presence of 'Entry'
-    #         replacement = "⫷⇦" if "Entry" in line else "⇨⫸"
-    #         line = line.replace("&#11013;", replacement)
+    # Replace icons.  Replace is faster than a re.sub
+    line = line.replace("&#9940;", "⛔").replace("&#11013;", "⬅️")
 
     output_lines[line_num] = {"text": [], "color": [], "highlights": []}
 

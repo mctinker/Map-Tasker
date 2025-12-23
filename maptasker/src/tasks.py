@@ -163,6 +163,7 @@ def entry_or_exit_task(
     indent = blank * PrimeItems.program_arguments["indent"]
 
     def append_task_line(name: str, task_type: str) -> None:
+        # Suffix is snot getting carried through to output
         suffix = f"{indent}{line_left_arrow} {task_type} Task{extra}" if display_level > 0 else indent
         task_output_lines.append(f"{name}{suffix}")
 
