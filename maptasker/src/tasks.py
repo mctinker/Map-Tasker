@@ -136,6 +136,10 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
 
 ## Determine if the Task is an Entry or Exit Task.
 # Optimized
+line_left_arrow = "&#11013;"
+line_right_arrow = "&#11157;"
+
+
 def entry_or_exit_task(
     task_output_lines: list,
     task_name: str,
@@ -158,13 +162,13 @@ def entry_or_exit_task(
         Returns:
             tuple: task_output_lines and task_name
     """
-    line_left_arrow = "&#11013;"
     display_level = PrimeItems.program_arguments["display_detail_level"]
     indent = blank * PrimeItems.program_arguments["indent"]
 
     def append_task_line(name: str, task_type: str) -> None:
         # Suffix is snot getting carried through to output
-        suffix = f"{indent}{line_left_arrow} {task_type} Task{extra}" if display_level > 0 else indent
+        arrow = line_left_arrow if task_type == "Entry" else line_right_arrow
+        suffix = f"{indent}{arrow} {task_type} Task{extra}" if display_level > 0 else indent
         task_output_lines.append(f"{name}{suffix}")
 
     if task_name:
@@ -282,7 +286,7 @@ def do_single_task(
         None
     """
     # This import must reside here to avoid circular error.  Otherwise, get error in save_restore_args.
-    from maptasker.src.proclist import process_list
+    from maptasker.src.proclist import process_list  # noqa: PLC0415
 
     logger.debug(
         f"Comparing task name:{PrimeItems.program_arguments['single_task_name']} to our Task name:{our_task_name}",
@@ -474,6 +478,8 @@ def output_task_list(
             # Tack on the extra info since [task_output_lines[count]] it is immutable
             task_output_lines[count] += " ".join(filter(None, extra_details))
 
+        # At this point, the 'task name' consist of the Task name and any extra details making up the output text line,
+        task_item["name"] = task_item["name"].split("&nbsp;")[0]  # Just get the name part from the text line
         _do_single_task(
             task_item["name"],
             project_name,

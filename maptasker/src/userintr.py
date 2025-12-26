@@ -1031,7 +1031,7 @@ class MyGui(customtkinter.CTk):
 
     def extract_settings(self, temp_args: dict) -> None:
         """
-        Extract settings from arguments dictionary
+        Extract settings from arguments dictionary.  Invoke the argument's lamba routine to set the value and display message.
         Args:
             temp_args: Dictionary of settings
         Returns:

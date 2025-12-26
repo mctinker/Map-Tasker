@@ -6,11 +6,11 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added:
+- Added: Additional plugins are now recognized: AutoBarCode, ADB Shell, Watchmaker, TouchTask, Blockada, Sleep as Android, FolderSync, Pushbullet, AutoMail
 
 ### Changed
 
-- Changed:
+- Changed: Code optimization
 
 ### Fixed
 

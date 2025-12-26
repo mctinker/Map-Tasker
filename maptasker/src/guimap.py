@@ -11,8 +11,6 @@ from __future__ import annotations
 import contextlib
 import re
 
-import line_profiler
-
 from maptasker.src.error import rutroh_error
 from maptasker.src.guiutils import align_text
 from maptasker.src.primitem import PrimeItems
@@ -394,7 +392,6 @@ def add_line_data(
     return processed_line_data
 
 
-# Optimized
 def handle_gototop(text_list: list) -> list:
     """
     This function handles the addition of a 'Go to top' string in a given text.
@@ -446,28 +443,30 @@ def remove_the_html_tags(text: str) -> str:
     return _REMOVE_HTML_PATTERN.sub("", text)
 
 
-def clean_text_list(text_list: list[str], tabs: str) -> list[str]:
+# 1. Create a mapping dictionary
+rep_map = {
+    "&nbsp;": " ",
+    "\n\n": "\n",
+    "<DIV": "",
+    "</div>": "",
+    "&#45;": "-",
+    "&lt;": "<",
+    "&gt;": ">",
+    "&quot;": '"',
+    "[Launcher Task:": " [Launcher Task:",
+    " --Task:": "--Task:",
+    "<a href='#'>": "",
+    "</a>": "",
+    "</span>": "",
+    "\t": f"{' ' * 4}",  # tab = 4 spaces
+}
+
+
+def clean_text_list(text_list: list[str]) -> list[str]:
     """
     Very fast cleanup of all text elements.
     Uses deterministic fixed-string replacements with minimized overhead.
     """
-    # 1. Create a mapping dictionary
-    rep_map = {
-        "&nbsp;": " ",
-        "\n\n": "\n",
-        "<DIV": "",
-        "</div>": "",
-        "&#45;": "-",
-        "&lt;": "<",
-        "&gt;": ">",
-        "&quot;": '"',
-        "[Launcher Task:": " [Launcher Task:",
-        " --Task:": "--Task:",
-        "<a href='#'>": "",
-        "</a>": "",
-        "</span>": "",
-        "\t": tabs,
-    }
 
     # 2. Compile a single regex pattern from the keys
     # Use re.escape to handle special characters like '[' or '?'
@@ -475,51 +474,13 @@ def clean_text_list(text_list: list[str], tabs: str) -> list[str]:
 
     # 3. Use a local function for the replacement lookup
     def _repl_func(m: str) -> str:
-        return rep_map[m.group(0)]
+        return rep_map[m.group(0)]  # m.group(0) is the matched string
 
     # 4. List comprehension with localized sub function is extremely fast
     sub = pattern.sub
     return [sub(_repl_func, text) for text in text_list]
-    # # Localize everything for speed
-    # repl_tabs = tabs
-    # tab_replace = "\t"
-
-    # # Ordered list of (old, new) preserves intent & deterministic behavior
-    # replacements = (
-    #     ("&nbsp;", " "),
-    #     ("\n\n", "\n"),
-    #     ("<DIV", ""),
-    #     ("</div>", ""),
-    #     ("&#45;", "-"),
-    #     ("&lt;", "<"),
-    #     ("&gt;", ">"),
-    #     ("&quot;", '"'),
-    #     ("[Launcher Task:", " [Launcher Task:"),
-    #     (" --Task:", "--Task:"),
-    #     ("<a href='#'>", ""),
-    #     ("</a>", ""),
-    #     ("</span>", ""),
-    # )
-
-    # out = []
-    # append = out.append
-
-    # for text in text_list:
-    #     # Apply fast literal replacements
-    #     for old, new in replacements:
-    #         if old in text:  # cheap containment check avoids useless .replace()
-    #             text = text.replace(old, new)
-
-    #     # Tabs last (highest hit rate)
-    #     if "\t" in text:
-    #         text = text.replace(tab_replace, repl_tabs)
-
-    #     append(text)
-
-    # return out
 
 
-# Optimized
 def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) -> list:
     """
     Cleanup all of the text elements in the line by fixing html and other stuff.
@@ -532,7 +493,6 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
     Returns:
         dict: The updated output_lines dictionary.
     """
-    tabs = f"{' ' * 4}"
     text_list = output_lines[line_num]["text"]
 
     # If nothing, just return.
@@ -559,7 +519,7 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
             )
 
     # Cleanup the text by removing stray stuff (mostly html).
-    new_text_list = clean_text_list(text_list, tabs)
+    new_text_list = clean_text_list(text_list)
 
     # Handle special situations
 
@@ -713,7 +673,6 @@ def extract_highlights(working_text: str, highlight_tags: list) -> list:
     return highlights
 
 
-@line_profiler.profile
 def process_line(
     output_lines: list,
     line: str,
@@ -937,7 +896,6 @@ def capture_front_text(output_lines: list, line: str, line_num: int) -> list:
     return output_lines
 
 
-@line_profiler.profile
 def additional_formatting(
     doing_global_variables: bool,
     line: str,
@@ -969,7 +927,7 @@ def additional_formatting(
         line = line.replace("class='\\blanktab1\\'", "class='blanktab1'")
 
     # Replace icons.  Replace is faster than a re.sub
-    line = line.replace("&#9940;", "⛔").replace("&#11013;", "⬅️")
+    line = line.replace("&#9940;", "⛔").replace("&#11013;", "⬅️").replace("&#11157;", "➡️")
 
     output_lines[line_num] = {"text": [], "color": [], "highlights": []}
 
