@@ -552,7 +552,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -2539,7 +2541,7 @@ class CTkTextview(ctk.CTkFrame):
 
     def _initialize_progress_bar(self, the_data: dict) -> dict:
         """Initializes and returns the progress bar."""
-        progress = configure_progress_bar(the_data, "Map")
+        progress = configure_progress_bar(self.master.master, the_data, "Map")
         progress.update(
             {
                 "max_data": len(the_data),

@@ -69,11 +69,12 @@ def validate_tkinter_geometry(geometry_string: str) -> bool:
         return False
 
 
-def configure_progress_bar(output_lines: list, title: str) -> tuple:
+def configure_progress_bar(self: object, output_lines: list, title: str) -> tuple:
     """
     Configures and returns a progress bar for the GUI if the 'gui' argument is set in PrimeItems.program_arguments.
 
     Args:
+        self (MyGui): The main GUI instance.
         output_lines (list): The list of lines to process.
         titele (str): The title of the progress bar.
 
@@ -923,9 +924,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h5-text"
             else:
                 # Decrease the heading number by 1 (making the text "bigger")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                value["highlights"][entry_to_update] = (
+                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                )
 
         elif "<small>" in message:
             # Save current heading
@@ -940,9 +941,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h7-text"
             else:
                 # Increase the heading number by 1 (making the text "smaller")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                value["highlights"][entry_to_update] = (
+                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                )
 
         elif "</big>" in message or "</small>" in message:
             if message.startswith(("</big>", "</small>")):
