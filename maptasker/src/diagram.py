@@ -68,6 +68,7 @@ from maptasker.src.sysconst import (
     MY_VERSION,
     NOW_TIME,
     SCENE_TASK_TYPES,
+    UNNAMED_ITEM,
     FormatLine,
     logger,
 )
@@ -262,6 +263,9 @@ def print_all_tasks(
 
     # Now process each Task in the Profile.
     for num, task in enumerate(tasks):
+        print("bingo", task["name"])
+        if UNNAMED_ITEM in task["name"]:
+            continue
         # Determine if this is an entry/exit combo.
         task_type = (" (entry)" if num == 0 else " (exit)") if tasks_length == 2 else ""
 
@@ -1332,7 +1336,7 @@ def handle_calls(output_lines: list) -> None:
     - Remove all icons from the names to ensure arrow alignment
     """
     # Display a progress bar if coming from the GUI.
-    progress = configure_progress_bar(output_lines, "Diagram")
+    progress = configure_progress_bar(None, output_lines, "Diagram")
 
     # Go through the output and add blanks above the called tasks, one for each caller.
     output_lines = add_blanks_above_called_tasks(output_lines)

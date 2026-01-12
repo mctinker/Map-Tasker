@@ -17,7 +17,8 @@ All notable changes to this project will be documented in this file!
 - Fixed: If using for the first time, the initial prompt to select the XML file can be hidden by other windows.
 - Fixed: Tasks are not properly identified as 'Entry' or 'Exit' tasks.
 - Fixed: The "Search" button in the Map and Diagram views is not being translated to German.
-- Fixed: Translation is missing for some text strings.
+- Fixed: Translation is missing for some text strings in the GUI.
+- Fixed: Buttons in the Map and Diagram views are overlapping each other for certain languages.
 
 ### Known Issue
 

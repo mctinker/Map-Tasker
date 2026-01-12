@@ -76,7 +76,7 @@ def configure_progress_bar(self: object, output_lines: list, title: str) -> tupl
     Args:
         self (MyGui): The main GUI instance.
         output_lines (list): The list of lines to process.
-        titele (str): The title of the progress bar.
+        title (str): The title of the progress bar.
 
     Returns:
         progress (dict): The progress bar dictionary.
@@ -1316,7 +1316,7 @@ class TranslatedLabel(ctk.CTkLabel):
     """Translate text if we have set the language"""
 
     def __init__(self, *args: complex, text: str = "", **kwargs: complex) -> None:
-        """Rewturn translated tyext if translation is available"""
+        """Return translated text if translation is available"""
         translated_text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
         super().__init__(*args, text=translated_text, **kwargs)
 

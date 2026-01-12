@@ -603,6 +603,18 @@ def add_label(
         - Places the label in the specified row and column of the frame.
         - Adds horizontal and vertical padding to the label.
         - Aligns the label within its grid cell."""
+    # Configuration
+    char_width_estimate = 9  # Average pixels per character for default font
+    padding = 20  # Internal button padding
+    gap = (
+        5
+        if PrimeItems.program_arguments["language"]
+        not in ("Japanese", "Korean", "Simplified Chinese", "Traditional Chinese")
+        else 35
+    )  # Gap between buttons, more so for certain languages
+    # FIX Delete code above?
+    gap = 5
+
     # Translate the text if we have it.
     text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
 
@@ -626,6 +638,13 @@ def add_label(
         except TclError:
             return None
     label_name.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
+
+    # Save the position for next button placement
+    n = len(text)
+    btn_width = (n * char_width_estimate) + padding
+    start_x = padx[0] if isinstance(padx, tuple) else padx
+    label_name.next_button_position = start_x + btn_width + gap
+    label_name.text_length = len(text)
     return label_name
 
 
@@ -713,7 +732,21 @@ def add_button(
         - Create a custom tkinter button with the given parameters.
         - Place the button in the specified row and column.
         - Add padding and alignment to the button."""
+
+    # Configuration
+    char_width_estimate = 9  # Average pixels per character for default font
+    padding = 20  # Internal button padding
+    gap = (
+        5
+        if PrimeItems.program_arguments["language"]
+        not in ("Japanese", "Korean", "Simplified Chinese", "Traditional Chinese")
+        else 35
+    )  # Gap between buttons, more so for certain languages
     text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+
+    n = len(text)
+    btn_width = (n * char_width_estimate) + padding
+
     if not fg_color:
         fg_color = "#246FB6"
     if not text_color:
@@ -731,6 +764,7 @@ def add_button(
         command=command,
         border_width=border_width,
         text=text,
+        # width=btn_width,
     )
     button_name.grid(
         row=row,
@@ -740,6 +774,10 @@ def add_button(
         pady=pady,
         sticky=sticky,
     )
+
+    start_x = padx[0] if isinstance(padx, tuple) else padx
+    button_name.next_button_position = start_x + btn_width + gap
+    button_name.text_length = len(text)
     return button_name
 
 

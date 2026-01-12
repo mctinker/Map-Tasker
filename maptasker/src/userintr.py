@@ -247,8 +247,8 @@ class MyGui(customtkinter.CTk):
 
         # FIX: For Development Only!
         # The following lines are for testing only.
-        # self.event_handlers.diagram_event()
-        self.event_handlers.map_event()
+        self.event_handlers.diagram_event()
+        # self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
         # exit()
@@ -2897,7 +2897,7 @@ class EventHandlers:
         """
         the_view = self if self.__class__.__name__ == "MyGui" else self.parent
 
-        # Ge or Set and Get the language to use in English: Spanish, German, etc.
+        # Get or Set and Get the language to use in English: Spanish, German, etc.
         language_translated = translate_string(language, set_language=True)
         if language in PrimeItems.languages:
             language_to_use = language

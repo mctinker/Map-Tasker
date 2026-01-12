@@ -155,7 +155,7 @@ def translate_string(text: str, set_language: bool = False) -> str:
     # If we have a language set, then translate the test
     if text:
         if hasattr(PrimeItems, "_"):
-            # If we are to set the language, then  first translate it and then set it.
+            # If we are to set the language, then first translate it and then set it.
             if set_language:
                 lang_to_set = PrimeItems._(text) if text not in PrimeItems.languages else text
                 T.set_language(lang_to_set)

@@ -100,6 +100,32 @@ left_arrow_corner_down = "╭"
 left_arrow_corner_up = "╮"
 angle = "└─ "
 blank = " "
+# Define the extra spacing needed for different languages for the map and diagram view buttons.
+spacing_by_language = {
+    "German": 20,
+    "Bengali": 20,
+    "Czech": 20,
+    "Danish": 20,
+    "Dutch": 20,
+    "Finish": 20,
+    "Arabic": 1,
+    "French": 20,
+    "Greek": 20,
+    "Indonesian": 20,
+    "Italian": 20,
+    # "Japanese": 40,
+    # "Korean": 30,
+    # "Lithuanian": 20,
+    # "Norwegian": 20,
+    # "Polish": 20,
+    # "Portuguese (Brazil)": 30,
+    # "Portuguese (Portugal)": 20,
+    # "Russian": 30,
+    # "Spanish": 20,
+    # "Swedish": 20,
+    # "Turkish": 20,
+}
+next_button_spacer = 30
 
 
 class CTkTreeview(ctk.CTkFrame):
@@ -715,6 +741,9 @@ class CTkTextview(ctk.CTkFrame):
                 display_only_event,
             ) = event_assignments[title]()
 
+        # Make sure not to assign a weight so that the buttons stack-up next to each other and respect the previous one.
+        self.grid_columnconfigure(0, weight=0)
+
         # Add label
         self.text_message_label = add_label(
             self,
@@ -752,6 +781,7 @@ class CTkTextview(ctk.CTkFrame):
             pady=5,
             sticky="nw",
         )
+
         # Search button
         search_button = add_button(
             self,
@@ -765,15 +795,18 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (170, 0),
+            (170, next_button_spacer),
             5,
             "nw",
         )
         search_button.configure(width=50)
+
         create_tooltip(
             search_button,
             text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top.\n\nClick the ? to get more info.",
         )
+        # Note: Each button's start x is based on the previous buttons position (previous.next_button_position) and length of its text
+        #       This allows buttons to be laid out next to each other without colliding.
         # Search Here button
         search_here_button = add_button(
             self,
@@ -787,7 +820,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (235, 0),
+            (search_button.next_button_position, next_button_spacer),
             5,
             "nw",
         )
@@ -810,7 +843,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (340, 0),
+            (search_here_button.next_button_position, next_button_spacer),
             5,
             "nw",
         )
@@ -832,7 +865,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (390, 0),
+            (next_search_button.next_button_position, next_button_spacer),
             5,
             "nw",
         )
@@ -854,33 +887,14 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (445, 0),
+            (prev_search_button.next_button_position, next_button_spacer),
             5,
             "nw",
         )
         self.clear_search_button.configure(width=50)
 
-        #  Query ? button
-        search_query_button = add_button(
-            self,
-            self,
-            "#246FB6",
-            ("#0BF075", "#ffd941"),
-            "#1bc9ff",
-            lambda: self.master.master.event_handlers.query_event("search"),
-            1,
-            "?",
-            1,
-            0,
-            0,
-            (500, 0),
-            5,
-            "nw",
-        )
-        search_query_button.configure(width=20)
-
         # Word wrap button
-        _ = add_button(
+        toggle_wordwrap_button = add_button(
             self,
             self,
             "#246FB6",
@@ -892,12 +906,18 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (540, 0),
+            (self.clear_search_button.next_button_position, next_button_spacer),
             5,
             "nw",
         )
 
         # Top button
+        nudge = (
+            40
+            if PrimeItems.program_arguments["language"]
+            in ("Japanese", "Korean", "Simplified Chinese", "Traditional Chinese")
+            else 0
+        )
         top_button = add_button(
             self,
             self,
@@ -910,7 +930,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (700, 0),
+            (toggle_wordwrap_button.next_button_position + nudge, next_button_spacer),
             5,
             "nw",
         )
@@ -929,12 +949,12 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (750, 0),
+            (top_button.next_button_position, next_button_spacer),
             5,
             "nw",
         )
         bottom_button.configure(width=50)
-        # Display ALl button
+        # Display Only button
         display_only_button = add_button(
             self,
             self,
@@ -947,7 +967,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (830, 0),
+            (bottom_button.next_button_position, next_button_spacer),
             5,
             "nw",
         )
@@ -956,6 +976,25 @@ class CTkTextview(ctk.CTkFrame):
             display_only_button,
             text="Click this button to search for and display only the lines that match the search string.",
         )
+
+        #  Query ? button
+        search_query_button = add_button(
+            self,
+            self,
+            "#246FB6",
+            ("#0BF075", "#ffd941"),
+            "#1bc9ff",
+            lambda: self.master.master.event_handlers.query_event("search"),
+            1,
+            "?",
+            1,
+            0,
+            0,
+            (display_only_button.next_button_position, next_button_spacer),
+            5,
+            "nw",
+        )
+        search_query_button.configure(width=20)
 
         # Save the widgets to the correct view: diagram or map
         if "Analysis" in self.textview_textbox.master.title:
@@ -968,6 +1007,20 @@ class CTkTextview(ctk.CTkFrame):
             gui_view.diagramview.message_label = self.text_message_label
             gui_view.diagramview.search_input = search_input
             # Add label
+            ppl = add_label(
+                self,
+                self,
+                "Profiles Per Line:",
+                "Orange",
+                "",
+                "normal",
+                0,
+                0,
+                (search_query_button.next_button_position + 20, next_button_spacer),
+                5,
+                "nw",
+            )
+            # FIX Delete this following line
             _ = add_label(
                 self,
                 self,
@@ -977,11 +1030,12 @@ class CTkTextview(ctk.CTkFrame):
                 "normal",
                 0,
                 0,
-                (930, 0),
+                (search_query_button.next_button_position + 620, next_button_spacer),
                 5,
                 "nw",
             )
             # Add Profile Level pulldown
+            # FIX Is too far to the right
             self.profiles_per_line_option = add_option_menu(
                 self,
                 self,
@@ -989,7 +1043,7 @@ class CTkTextview(ctk.CTkFrame):
                 ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
                 0,
                 0,
-                (1050, 0),
+                (ppl.next_button_position, next_button_spacer),
                 5,
                 "nw",
             )
@@ -1008,7 +1062,7 @@ class CTkTextview(ctk.CTkFrame):
                 1,
                 0,
                 0,
-                (1110, 0),
+                (ppl.next_button_position + 25, next_button_spacer),
                 5,
                 "nw",
             )
