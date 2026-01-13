@@ -606,13 +606,6 @@ def add_label(
     # Configuration
     char_width_estimate = 9  # Average pixels per character for default font
     padding = 20  # Internal button padding
-    gap = (
-        5
-        if PrimeItems.program_arguments["language"]
-        not in ("Japanese", "Korean", "Simplified Chinese", "Traditional Chinese")
-        else 35
-    )  # Gap between buttons, more so for certain languages
-    # FIX Delete code above?
     gap = 5
 
     # Translate the text if we have it.

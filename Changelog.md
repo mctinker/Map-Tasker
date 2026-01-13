@@ -18,7 +18,8 @@ All notable changes to this project will be documented in this file!
 - Fixed: Tasks are not properly identified as 'Entry' or 'Exit' tasks.
 - Fixed: The "Search" button in the Map and Diagram views is not being translated to German.
 - Fixed: Translation is missing for some text strings in the GUI.
-- Fixed: Buttons in the Map and Diagram views are overlapping each other for certain languages.
+- Fixed: Buttons in the Map and Diagram views are overlapping each other for certain languages other than English.
+- Fixed: Program error in Diagram view.
 
 ### Known Issue
 

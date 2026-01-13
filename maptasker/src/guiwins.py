@@ -1020,22 +1020,20 @@ class CTkTextview(ctk.CTkFrame):
                 5,
                 "nw",
             )
-            # FIX Delete this following line
-            _ = add_label(
-                self,
-                self,
-                "Profiles Per Line:",
-                "Orange",
-                "",
-                "normal",
-                0,
-                0,
-                (search_query_button.next_button_position + 620, next_button_spacer),
-                5,
-                "nw",
-            )
-            # Add Profile Level pulldown
-            # FIX Is too far to the right
+            # Add Profile Level pulldown. Adjust its positionbased on language.
+            if PrimeItems.program_arguments["language"] == "Greek":
+                ppl.next_button_position -= 45
+            elif PrimeItems.program_arguments["language"] in (
+                "Japanese",
+                "Korean",
+                "Traditional Chinese",
+                "Simplified Chinese",
+                "Ukrainian",
+            ):
+                ppl.next_button_position += 25
+            else:
+                ppl.next_button_position -= 75
+
             self.profiles_per_line_option = add_option_menu(
                 self,
                 self,
@@ -1062,7 +1060,7 @@ class CTkTextview(ctk.CTkFrame):
                 1,
                 0,
                 0,
-                (ppl.next_button_position + 25, next_button_spacer),
+                (ppl.next_button_position + 80, next_button_spacer),
                 5,
                 "nw",
             )

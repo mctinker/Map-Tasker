@@ -263,7 +263,6 @@ def print_all_tasks(
 
     # Now process each Task in the Profile.
     for num, task in enumerate(tasks):
-        print("bingo", task["name"])
         if UNNAMED_ITEM in task["name"]:
             continue
         # Determine if this is an entry/exit combo.
