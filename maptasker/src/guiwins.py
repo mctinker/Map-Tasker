@@ -102,28 +102,35 @@ angle = "└─ "
 blank = " "
 # Define the extra spacing needed for different languages for the map and diagram view buttons.
 spacing_by_language = {
-    "German": 20,
-    "Bengali": 20,
-    "Czech": 20,
-    "Danish": 20,
-    "Dutch": 20,
+    "English": -10,
+    "German": -15,
+    "Bengali": -20,
+    "Czech": -20,
+    "Danish": -10,
+    "Dutch": -20,
     "Finish": 20,
-    "Arabic": 1,
-    "French": 20,
-    "Greek": 20,
-    "Indonesian": 20,
-    "Italian": 20,
-    # "Japanese": 40,
-    # "Korean": 30,
-    # "Lithuanian": 20,
-    # "Norwegian": 20,
-    # "Polish": 20,
-    # "Portuguese (Brazil)": 30,
-    # "Portuguese (Portugal)": 20,
-    # "Russian": 30,
-    # "Spanish": 20,
-    # "Swedish": 20,
-    # "Turkish": 20,
+    "Arabic": -15,
+    "French": -20,
+    "Greek": -15,
+    "Indonesian": -25,
+    "Italian": -15,
+    "Gujarati": 5,
+    "Hindi": -10,
+    "Japanese": -15,
+    "Korean": -25,
+    "Marathi": -5,
+    "Persian": -5,
+    "Norwegian": -5,
+    "Polish": -15,
+    "Portuguese": -35,
+    "Traditional Chinese": -25,
+    "Spanish": -15,
+    "Swedish": -10,
+    "Telugu": -10,
+    "Thai": -10,
+    "Turkish": -5,
+    "Urdu": -15,
+    "Vietnamese": -20,
 }
 next_button_spacer = 30
 
@@ -807,6 +814,9 @@ class CTkTextview(ctk.CTkFrame):
         )
         # Note: Each button's start x is based on the previous buttons position (previous.next_button_position) and length of its text
         #       This allows buttons to be laid out next to each other without colliding.
+        # A nudge is added for certain languages to accommodate longer/shorter button text positions.
+        nudge = spacing_by_language.get(PrimeItems.program_arguments["language"], 0)
+
         # Search Here button
         search_here_button = add_button(
             self,
@@ -820,7 +830,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (search_button.next_button_position, next_button_spacer),
+            (search_button.next_button_position + nudge, next_button_spacer),
             5,
             "nw",
         )
@@ -865,7 +875,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (next_search_button.next_button_position, next_button_spacer),
+            (next_search_button.next_button_position + nudge, next_button_spacer),
             5,
             "nw",
         )
@@ -949,7 +959,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (top_button.next_button_position, next_button_spacer),
+            (top_button.next_button_position - 5, next_button_spacer),
             5,
             "nw",
         )
@@ -990,7 +1000,7 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (display_only_button.next_button_position, next_button_spacer),
+            (display_only_button.next_button_position - 10, next_button_spacer),
             5,
             "nw",
         )
