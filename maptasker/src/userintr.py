@@ -3836,7 +3836,7 @@ class EventHandlers:
         View Limit Event
         """
         guiview = self.parent
-        guiview.view_limit = 9999999 if view_limit == "Unlimited" else int(view_limit)
+        guiview.view_limit = 9999999 if view_limit == translate_string("Unlimited") else int(view_limit)
         if view_limit == 9999999:
             view_limit = "Unlimited"
         guiview.viewlimit_optionmenu.set(view_limit)

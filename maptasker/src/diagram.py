@@ -60,7 +60,7 @@ from maptasker.src.guiutils import (
 # Avoid circular import error: guiwins has the proper import statement for configure_progress_bar,
 # the function, of which, is in guiutil2.
 from maptasker.src.guiwins import configure_progress_bar
-from maptasker.src.maputils import find_all_positions
+from maptasker.src.maputils import find_all_positions, live_translate_text
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
@@ -127,7 +127,7 @@ def add_quotes(
 
     # Correct the name in case it has a Screen element 'click' name associated with it.
     position = task_name.find(":")
-    real_task_name = task_name
+    real_task_name = task_name.split("&nbsp;")[0]
     if position != -1 and "," in task_name:
         scene_task_type_to_check = task_name.split(",")[1].split(":")[0][1:]
         for scene_task_type in SCENE_TASK_TYPES.values():
@@ -272,9 +272,14 @@ def print_all_tasks(
         called_by_tasks = ""
 
         # First we must find our real Task element that matches this "task".
+        # Strip the extra stuff out of the task name
+        tname = task["name"].split("&nbsp;")[0]
+        task["name"] = tname
+
         # Is it in the master list of all Task names in the XML?
-        if PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]:
-            prime_task = PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]
+        task_name = PrimeItems.tasker_root_elements["all_tasks_by_name"][tname]
+        if task_name:
+            prime_task = task_name
             # Now see if this Task has any "called_by" Tasks.
             with contextlib.suppress(KeyError):
                 called_by_tasks = f" [Called by {line_left_arrow} {flatten_with_quotes(prime_task['called_by'])}]"
@@ -418,7 +423,7 @@ def print_all_scenes(scenes: list) -> None:
     # Print out the Scenes' Tasks
     for task in task_list:
         # Output the Task
-        found_tasks, last_upward_bar, output_task_lines = output_the_task(
+        _found_tasks, _last_upward_bar, output_task_lines = output_the_task(
             True,
             [],
             task[0],
@@ -1254,7 +1259,7 @@ def cleanup_diagram(
             right_arrow_corner_down,
             left_arrow_corner_up,
         ]
-        substr, position = find_first_substring_position(line, special_deliminaters)
+        _substr, position = find_first_substring_position(line, special_deliminaters)
         if position != -1 and line[position - 1][0] == " ":
             output_lines = cleanup_missing_bars(output_lines, num, position)
 
@@ -1530,7 +1535,6 @@ def remove_empty_strings(lst: list) -> list:
     return [s for s in lst if not all(char in (bar, " ", "\\") for char in s)]
 
 
-# Process all Projects
 def build_network_map(data: dict) -> None:
     """
     Builds a network map from project and profile data
@@ -1554,6 +1558,19 @@ def build_network_map(data: dict) -> None:
 
     # Remove lines that only contain bars ( | )
     PrimeItems.netmap_output = remove_empty_strings(PrimeItems.netmap_output)
+
+    # Translate the output lines if needed.  Can't translate anything that has diagram lines
+    if PrimeItems.program_arguments["language"] != "English":
+        no_profile = live_translate_text("No Profile")
+        no_project = live_translate_text("No Project")
+        # calls = live_translate_text("[Calls")
+        # called_by = live_translate_text("[Called by")
+        for i, line in enumerate(PrimeItems.netmap_output):
+            line = line.replace("No Profile", no_profile)  # noqa: PLW2901
+            line = line.replace("No Project", no_project)  # noqa: PLW2901
+            # line = line.replace("[Calls", calls)
+            # line = line.replace("[Called by", called_by)
+            PrimeItems.netmap_output[i] = line
 
 
 # Print the network map.
@@ -1608,7 +1625,9 @@ def network_map(network: dict) -> None:
     )
     add_output_line(" ")
     add_output_line(
-        "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons or Chinese/Korean/Japanese in names can cause minor mis-alignment.",
+        live_translate_text(
+            "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons or Chinese/Korean/Japanese in names can cause minor mis-alignment.",
+        ),
     )
     add_output_line(" ")
     add_output_line(" ")

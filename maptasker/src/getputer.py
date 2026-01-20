@@ -18,7 +18,7 @@ import tomli_w
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.maputil2 import log_startup_values
+from maptasker.src.maputil2 import log_startup_values, translate_string
 from maptasker.src.maputils import reset_named_objects
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
@@ -103,6 +103,12 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
                 logger.debug(f"{argument} is None.  Fix it!")
                 program_arguments[argument] = ""
         except KeyError:
+            program_arguments[argument] = ""
+
+        # Make sure we don't save an item name of "None" in another language
+        if PrimeItems.program_arguments["language"] != "English" and translate_string(
+            program_arguments[argument] == "None",
+        ):
             program_arguments[argument] = ""
 
         if argument in SYSTEM_ARGUMENTS:

@@ -24,6 +24,7 @@ from zoneinfo import (
 import defusedxml.ElementTree as et  # noqa: N813
 import requests
 import webcolors
+from deep_translator import GoogleTranslator
 from requests.exceptions import ConnectionError  # noqa: A004
 
 from maptasker.src.error import rutroh_error
@@ -831,3 +832,19 @@ def make_hex_color(color_string: str) -> str:
         # --- MODIFICATION END ---
     # If it's not a hex code, we assume it's a color name and return the original string.
     return color_string.strip()
+
+
+def live_translate_text(text: str) -> str:
+    """
+    Translates text using live translation if enabled.
+    Args:
+        text: The text to be translated.
+    Returns:
+        translated text if live translation is enabled, otherwise the original text.
+    """
+    target = PrimeItems.program_arguments["language"]
+    if target == "English":
+        return text
+    return GoogleTranslator(source="auto", target=PrimeItems.languages[target]).translate(text)
+    # print(f"Bingo Translated '{text}' to '{translated_text}'")
+    # return translated_text

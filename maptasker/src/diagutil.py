@@ -155,6 +155,7 @@ def print_box(name: str, title: str, indent: int) -> None:
         adder_space_boxline = ""
         adder_space_name = ""
 
+    # FIX Make len(full_name) account for translated characters in "Project:" and "No Profile"
     blanks = f"{blank * 5}"
     filler = f"{blanks * indent}"
     full_name = f"{title} {name}{adder_space_name}"

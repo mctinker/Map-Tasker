@@ -46,7 +46,13 @@ from maptasker.src.globalvr import get_variables, output_variables
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.mapai import map_ai
-from maptasker.src.maputils import clear_tasker_data, display_task_warnings, exit_program, restart_program_subprocess
+from maptasker.src.maputils import (
+    clear_tasker_data,
+    display_task_warnings,
+    exit_program,
+    live_translate_text,
+    restart_program_subprocess,
+)
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
@@ -514,7 +520,7 @@ def display_back_matter(
     ):
         if PrimeItems.program_arguments["guiview"]:
             PrimeItems.error_code = 1
-            PrimeItems.error_msg = "Error: Single item specified but not found!  Try again."
+            PrimeItems.error_msg = live_translate_text("Error: Single item specified but not found!  Try again.")
             return
         clean_up_and_exit("Task", single_task_name)
 
