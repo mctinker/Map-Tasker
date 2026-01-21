@@ -585,7 +585,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -1112,6 +1114,7 @@ class CTkTextview(ctk.CTkFrame):
         gui_view = self.master.master
 
         # Jump-to Top button
+        # FIX Placement is wrong
         if top:
             self.jump_top = add_button(
                 self,

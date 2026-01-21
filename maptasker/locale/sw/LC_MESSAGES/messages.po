@@ -779,3 +779,9 @@ msgid "Norwegian"
 msgstr "Kinorwe"
 msgid "Kinorwe"
 msgstr "Norwegian"
+
+msgid "No Profile"
+msgstr "Hakuna Wasifu"
+
+msgid "No Project"
+msgstr "Hakuna Mradi"

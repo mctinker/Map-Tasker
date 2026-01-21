@@ -1325,6 +1325,7 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     delete_old_pulldown_menus(self)
 
     # Get all of the Tasker objects: Projects/Profiles/Tasks/Scenes
+    # FIX "No Profile" profile names showing up if non English.
     return_code, projects_to_display, profiles_to_display, tasks_to_display = get_tasker_objects(self)
     if not return_code:
         return False

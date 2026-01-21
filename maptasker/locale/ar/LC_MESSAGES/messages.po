@@ -764,3 +764,9 @@ msgid "Norwegian"
 msgstr "النرويجية"
 msgid "النرويجية"
 msgstr "Norwegian"
+
+msgid "No Profile"
+msgstr "لا يوجد ملف شخصي"
+
+msgid "No Project"
+msgstr "لا يوجد مشروع"

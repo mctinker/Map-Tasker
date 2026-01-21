@@ -765,3 +765,9 @@ msgid "Norwegian"
 msgstr "노르웨이 인"
 msgid "노르웨이 인"
 msgstr "Norwegian"
+
+msgid "No Profile"
+msgstr "프로필 없음"
+
+msgid "No Project"
+msgstr "프로젝트 없음"

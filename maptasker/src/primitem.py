@@ -164,6 +164,7 @@ class PrimeItems:
         "Czech": "cs",
     }
     languages_translated: ClassVar[dict[str, str]] = {}
+    no_profile_translated_length: ClassVar[int] = 0
 
 
 # Reset all values

@@ -785,3 +785,9 @@ msgid "Norwegian"
 msgstr "Νορβηγός"
 msgid "Νορβηγός"
 msgstr "Norwegian"
+
+msgid "No Profile"
+msgstr "Χωρίς Προφίλ"
+
+msgid "No Project"
+msgstr "Κανένα Έργο"

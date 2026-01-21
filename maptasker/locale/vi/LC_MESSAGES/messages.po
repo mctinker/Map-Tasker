@@ -785,3 +785,9 @@ msgid "Norwegian"
 msgstr "người Na Uy"
 msgid "người Na Uy"
 msgstr "Norwegian"
+
+msgid "No Profile"
+msgstr "Không có hồ sơ"
+
+msgid "No Project"
+msgstr "Không có dự án"

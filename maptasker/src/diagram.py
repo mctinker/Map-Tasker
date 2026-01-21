@@ -60,6 +60,7 @@ from maptasker.src.guiutils import (
 # Avoid circular import error: guiwins has the proper import statement for configure_progress_bar,
 # the function, of which, is in guiutil2.
 from maptasker.src.guiwins import configure_progress_bar
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import find_all_positions, live_translate_text
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
@@ -1549,7 +1550,7 @@ def build_network_map(data: dict) -> None:
     # Go through each project
     for project, profiles in data.items():
         # Print Project as a box
-        print_box(project, "Project:", 1)
+        print_box(project, translate_string("Project:"), 1)
         # Print all of the Project's Profiles and their Tasks
         print_profiles_and_tasks(project, profiles)
 
@@ -1561,12 +1562,13 @@ def build_network_map(data: dict) -> None:
 
     # Translate the output lines if needed.  Can't translate anything that has diagram lines
     if PrimeItems.program_arguments["language"] != "English":
-        no_profile = live_translate_text("No Profile")
-        no_project = live_translate_text("No Project")
+        # FIX Delete commented lines
+        # no_profile = translate_string("No Profile")
+        no_project = translate_string("No Project")
         # calls = live_translate_text("[Calls")
         # called_by = live_translate_text("[Called by")
         for i, line in enumerate(PrimeItems.netmap_output):
-            line = line.replace("No Profile", no_profile)  # noqa: PLW2901
+            # line = line.replace("No Profile", no_profile)
             line = line.replace("No Project", no_project)  # noqa: PLW2901
             # line = line.replace("[Calls", calls)
             # line = line.replace("[Called by", called_by)

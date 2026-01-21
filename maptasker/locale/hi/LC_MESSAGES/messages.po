@@ -769,3 +769,9 @@ msgid "Norwegian"
 msgstr "नार्वेजियन"
 msgid "नार्वेजियन"
 msgstr "Norwegian"
+
+msgid "No Profile"
+msgstr "कोई प्रोफ़ाइल नहीं"
+
+msgid "No Project"
+msgstr "कोई प्रोजेक्ट नहीं"

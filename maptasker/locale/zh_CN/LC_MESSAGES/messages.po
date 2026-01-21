@@ -677,3 +677,9 @@ msgstr "Russian"
 msgid "Korean"msgstr "韩国人"
 msgid "韩国人"
 msgstr "Korean"
+
+msgid "No Profile"
+msgstr "无简介"
+
+msgid "No Project"
+msgstr "没有项目"

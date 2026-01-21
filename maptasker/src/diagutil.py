@@ -29,12 +29,14 @@ from maptasker.src.diagcnst import (
     task_delimeter,
     up_arrow,
 )
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import icon_pattern
 
 arrows = f"{down_arrow}{up_arrow}{left_arrow}{right_arrow}{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}"
 directional_arrows = f"{right_arrow_corner_down}{right_arrow_corner_up}{left_arrow_corner_down}{left_arrow_corner_up}{up_arrow}{down_arrow}"
+
 
 # Define additional "printable" characters to allow.
 # extra_cars: set[str] = set(f"│└─╔═║╚╝╗▶◄{arrows}")
@@ -134,7 +136,7 @@ def print_box(name: str, title: str, indent: int) -> None:
 
     Args:
         name: Name to display in the box
-        title: Title to display before the name
+        title: Title to display before the name: Project:, Profile:, Task:
         indent: Number of blanks for indentation of the box
         counter: Counter to display after the box
     Returns:
@@ -155,10 +157,11 @@ def print_box(name: str, title: str, indent: int) -> None:
         adder_space_boxline = ""
         adder_space_name = ""
 
-    # FIX Make len(full_name) account for translated characters in "Project:" and "No Profile"
+    # Do the box for the length of the name
     blanks = f"{blank * 5}"
     filler = f"{blanks * indent}"
-    full_name = f"{title} {name}{adder_space_name}"
+    full_name = f"{translate_string(title)} {name}{adder_space_name}"
+
     box = ["", "", ""]
     box[0] = f"{filler}╔═{box_line * (len(full_name) + len(adder_space_boxline))}═╗"  # Box top
     box[1] = f"{filler}║ {full_name} ║"  # Box middle
@@ -358,17 +361,26 @@ def build_box(name: str, output_lines: list) -> tuple:
     filler = trailer = blank
 
     # Deal with icon in the name
-    if set(name).difference(printable):
-        trailer = fix_icon(name)
+    trailer = fix_icon(name) if set(name).difference(printable) else " "
 
     # Build top and bottom box lines
-    box_line_length = len(name)
+    # Set the box line length based on the translated name length
+    if name == "No Profile":
+        box_line_length = PrimeItems.no_profile_translated_length
+        if PrimeItems.program_arguments["language"] != "English":
+            # box_line_length += 2
+            # adder_space_name += f"{blank * (PrimeItems.no_profile_translated_length - len(name))}"
+            adder_space_name = ""
+            adder_space_boxline = ""
+    else:
+        box_line_length = len(name)
+    t = box_line * (box_line_length + len(adder_space_boxline))
     box_top = f"╔═{box_line * (box_line_length + len(adder_space_boxline))}═╗"
     box_bottom = f"╚═{box_line * (box_line_length + len(adder_space_boxline))}═╝"
 
     # Add box lines to output
     output_lines[0] += f"{filler}{box_top}"
-    output_lines[1] += f"{filler}║{blank}{name}{trailer}{adder_space_name}║"
+    output_lines[1] += f"{filler}║{blank}{translate_string(name)}{trailer}{adder_space_name}║"
     output_lines[2] += f"{filler}{box_bottom}"
 
     # Calculate anchor position
@@ -585,7 +597,7 @@ def build_call_table(output_lines: list) -> list:
     call_table = {}
     for caller_line_num, line in enumerate(output_lines):
         # Get the Project name if we have one
-        project_name_start = line.find("║ Project: ")
+        project_name_start = line.find(f"║ {translate_string('Project:')} ")
         if project_name_start != -1:
             project_name = line[project_name_start + 11 : len(line) - 2]
 

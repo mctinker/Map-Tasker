@@ -790,3 +790,9 @@ msgid "Norwegian"
 msgstr "نارویجین"
 msgid "نارویجین"
 msgstr "Norwegian"
+
+msgid "No Profile"
+msgstr "کوئی پروفائل نہیں"
+
+msgid "No Project"
+msgstr "کوئی پروجیکٹ نہیں ہے"

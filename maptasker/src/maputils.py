@@ -846,5 +846,3 @@ def live_translate_text(text: str) -> str:
     if target == "English":
         return text
     return GoogleTranslator(source="auto", target=PrimeItems.languages[target]).translate(text)
-    # print(f"Bingo Translated '{text}' to '{translated_text}'")
-    # return translated_text

@@ -753,3 +753,9 @@ msgid "Norwegian"
 msgstr "norwegisch"
 msgid "norwegisch"
 msgstr "Norwegian"
+
+msgid "No Profile"
+msgstr "Kein Profil"
+
+msgid "No Project"
+msgstr "Kein Projekt"
