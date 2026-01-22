@@ -312,8 +312,6 @@ DEEPSEEK_MODELS = ["deepseek-chat"]
 GEMINI_MODELS = [
     "gemini-3-pro",
     "gemini-3-flash",
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
     "gemini-2.5-flash",
     "gemini-2.5-pro",
 ]

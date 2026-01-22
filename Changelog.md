@@ -7,10 +7,12 @@ All notable changes to this project will be documented in this file!
 ### Added
 
 - Added: Additional plugins are now recognized: AutoBarCode, ADB Shell, Watchmaker, TouchTask, Blockada, Sleep as Android, FolderSync, Pushbullet, AutoMail
+- Added: Minor language translations added to the Diagram view.
 
 ### Changed
 
 - Changed: Code optimization
+- Changed: AI Gemini models '2.0 Flash 'and '2.0 Flash Lite' have been removed by Google and are no longer supported.
 
 ### Fixed
 

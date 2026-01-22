@@ -1194,10 +1194,13 @@ def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
                 return -1
             else:
                 previous_line_num -= 1
+                if previous_line_num == -1:
+                    break
                 new_line = output_lines[previous_line_num]
         return previous_line_num
 
     previous_line_num = num - 1
+
     # Backup a position if "╰" is found just before position.
     position = adjust_position_for_arrow(position)
 
@@ -1548,9 +1551,14 @@ def build_network_map(data: dict) -> None:
     - Handles calling relationships between tasks and adds them to the network map output
     """
     # Go through each project
+    project_text = (
+        translate_string("Project:")
+        if PrimeItems.program_arguments["language"] not in ("Arabic", "English")
+        else "Project:"
+    )
     for project, profiles in data.items():
         # Print Project as a box
-        print_box(project, translate_string("Project:"), 1)
+        print_box(project, project_text, 1)
         # Print all of the Project's Profiles and their Tasks
         print_profiles_and_tasks(project, profiles)
 
@@ -1562,13 +1570,11 @@ def build_network_map(data: dict) -> None:
 
     # Translate the output lines if needed.  Can't translate anything that has diagram lines
     if PrimeItems.program_arguments["language"] != "English":
-        # FIX Delete commented lines
-        # no_profile = translate_string("No Profile")
         no_project = translate_string("No Project")
+        # FIX Force the following the the same length as the original English text.
         # calls = live_translate_text("[Calls")
         # called_by = live_translate_text("[Called by")
         for i, line in enumerate(PrimeItems.netmap_output):
-            # line = line.replace("No Profile", no_profile)
             line = line.replace("No Project", no_project)  # noqa: PLW2901
             # line = line.replace("[Calls", calls)
             # line = line.replace("[Called by", called_by)
@@ -1642,15 +1648,20 @@ def network_map(network: dict) -> None:
     if PrimeItems.netmap_output:
         output_dir = f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"  # Get the directory from which we are running.
         first_project = True
+        project_translated = (
+            translate_string("Project:")
+            if PrimeItems.program_arguments["language"] not in ("Arabic", "English")
+            else "Project:"
+        )
         with open(str(output_dir), "w", encoding="utf-8") as mapfile:
             # PrimeItems.printfile = mapfile
             for num, line in enumerate(PrimeItems.netmap_output):
-                # Add spacer if we have hit a Project.
+                # Add spacer if we have hit a Project and it isn't the first one.
                 if (
                     not first_project
                     and box_line in line
                     and num + 1 < len(PrimeItems.netmap_output)
-                    and "Project:" in PrimeItems.netmap_output[num + 1]
+                    and project_translated in PrimeItems.netmap_output[num + 1]
                 ):
                     # Create a spacer line with just bars
                     if bar in PrimeItems.netmap_output[num - 1]:
@@ -1659,12 +1670,16 @@ def network_map(network: dict) -> None:
                         )
                     else:
                         spacer = "\n"
+                    # Add the spacers
                     mapfile.write(spacer)
                     mapfile.write(spacer)
-                first_project = False
+                if project_translated in line:
+                    first_project = False
 
                 # Remove any icons from the line
                 line = remove_icon(line)  # noqa: PLW2901
+
+                # Output the line
                 mapfile.write(f"{line}\n")
 
             mapfile.close()

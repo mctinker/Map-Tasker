@@ -160,7 +160,12 @@ def print_box(name: str, title: str, indent: int) -> None:
     # Do the box for the length of the name
     blanks = f"{blank * 5}"
     filler = f"{blanks * indent}"
-    full_name = f"{translate_string(title)} {name}{adder_space_name}"
+
+    # Deal with translations
+    if PrimeItems.program_arguments["language"] not in ("Arabic", "English"):
+        title = translate_string(title)
+
+    full_name = f"{title} {name}{adder_space_name}"
 
     box = ["", "", ""]
     box[0] = f"{filler}╔═{box_line * (len(full_name) + len(adder_space_boxline))}═╗"  # Box top
@@ -363,24 +368,21 @@ def build_box(name: str, output_lines: list) -> tuple:
     # Deal with icon in the name
     trailer = fix_icon(name) if set(name).difference(printable) else " "
 
-    # Build top and bottom box lines
     # Set the box line length based on the translated name length
-    if name == "No Profile":
+    box_line_length = len(name)
+    if name == "No Profile" and PrimeItems.program_arguments["language"] not in ("English", "Arabic"):
+        name = translate_string(name)
         box_line_length = PrimeItems.no_profile_translated_length
-        if PrimeItems.program_arguments["language"] != "English":
-            # box_line_length += 2
-            # adder_space_name += f"{blank * (PrimeItems.no_profile_translated_length - len(name))}"
-            adder_space_name = ""
-            adder_space_boxline = ""
-    else:
-        box_line_length = len(name)
-    t = box_line * (box_line_length + len(adder_space_boxline))
+        adder_space_name = ""
+        adder_space_boxline = ""
+
+    # Build top and bottom box lines
     box_top = f"╔═{box_line * (box_line_length + len(adder_space_boxline))}═╗"
     box_bottom = f"╚═{box_line * (box_line_length + len(adder_space_boxline))}═╝"
 
     # Add box lines to output
     output_lines[0] += f"{filler}{box_top}"
-    output_lines[1] += f"{filler}║{blank}{translate_string(name)}{trailer}{adder_space_name}║"
+    output_lines[1] += f"{filler}║{blank}{name}{trailer}{adder_space_name}║"
     output_lines[2] += f"{filler}{box_bottom}"
 
     # Calculate anchor position
