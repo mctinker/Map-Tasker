@@ -789,3 +789,15 @@ msgstr "Brak profilu"
 
 msgid "No Project"
 msgstr "Brak projektu"
+
+
+msgid "Color"
+msgstr "Kolor"
+
+
+msgid "Debug"
+msgstr "Odpluskwić"
+
+
+msgid "Colors"
+msgstr "Zabarwienie"

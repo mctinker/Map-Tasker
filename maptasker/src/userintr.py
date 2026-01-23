@@ -2955,12 +2955,24 @@ class EventHandlers:
         # Reset single item labels
         update_tasker_object_menus(
             the_view,
-            get_data=True,
+            get_data=False,
             reset_single_names=False,
         )
 
         # Redo the labels
         display_selected_object_labels(the_view)
+
+        # Change the name of the tabs
+        the_view.tabview._segmented_button._buttons_dict["Specific Name"].configure(  # noqa: SLF001
+            text=translate_string("Specific Name"),
+        )
+        the_view.tabview._segmented_button._buttons_dict["Colors"].configure(text=translate_string("Colors"))  # noqa: SLF001
+        the_view.tabview._segmented_button._buttons_dict["Analyze"].configure(  # noqa: SLF001
+            text=translate_string("Analyze"),
+        )
+        the_view.tabview._segmented_button._buttons_dict["Debug"].configure(  # noqa: SLF001
+            text=translate_string("Debug"),
+        )
 
         # Display the default model list
         the_view.displaying_extended_list = None  # Force pulldown to be recreated.

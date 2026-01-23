@@ -796,3 +796,15 @@ msgstr "کوئی پروفائل نہیں"
 
 msgid "No Project"
 msgstr "کوئی پروجیکٹ نہیں ہے"
+
+
+msgid "Color"
+msgstr "رنگ"
+
+
+msgid "Debug"
+msgstr "ڈیبگ"
+
+
+msgid "Colors"
+msgstr "رنگ"

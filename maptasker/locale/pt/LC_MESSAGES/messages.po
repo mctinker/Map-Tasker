@@ -767,3 +767,15 @@ msgstr "Sem perfil"
 
 msgid "No Project"
 msgstr "Nenhum projeto"
+
+
+msgid "Color"
+msgstr "Cor"
+
+
+msgid "Debug"
+msgstr "Depurar"
+
+
+msgid "Colors"
+msgstr "Cores"

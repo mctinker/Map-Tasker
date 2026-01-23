@@ -685,3 +685,15 @@ msgstr "無簡介"
 
 msgid "No Project"
 msgstr "沒有項目"
+
+
+msgid "Color"
+msgstr "顏色"
+
+
+msgid "Debug"
+msgstr "偵錯"
+
+
+msgid "Colors"
+msgstr "顏色"

@@ -785,3 +785,15 @@ msgstr "Hakuna Wasifu"
 
 msgid "No Project"
 msgstr "Hakuna Mradi"
+
+
+msgid "Color"
+msgstr "Rangi"
+
+
+msgid "Debug"
+msgstr "Tatua"
+
+
+msgid "Colors"
+msgstr "Rangi"

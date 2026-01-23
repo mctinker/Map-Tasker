@@ -789,3 +789,15 @@ msgstr "ไม่มีโปรไฟล์"
 
 msgid "No Project"
 msgstr "ไม่มีโครงการ"
+
+
+msgid "Color"
+msgstr "สี"
+
+
+msgid "Debug"
+msgstr "ดีบัก"
+
+
+msgid "Colors"
+msgstr "สี"

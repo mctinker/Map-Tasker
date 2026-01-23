@@ -770,3 +770,15 @@ msgstr "لا يوجد ملف شخصي"
 
 msgid "No Project"
 msgstr "لا يوجد مشروع"
+
+
+msgid "Color"
+msgstr "لون"
+
+
+msgid "Debug"
+msgstr "تصحيح"
+
+
+msgid "Colors"
+msgstr "الألوان"

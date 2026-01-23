@@ -1185,7 +1185,7 @@ def display_object_pulldowns(
 
     # Make sure there is something to display
     if not projects_to_display and not profiles_to_display and not tasks_to_display:
-        _ = add_label(
+        self.current_object_label = add_label(
             self,
             frame,
             "No Projects, Profiles or Tasks to display!",
@@ -1201,7 +1201,7 @@ def display_object_pulldowns(
 
     # Okay, we have some actual data to display
     else:
-        _ = add_label(
+        self.select_project_label = add_label(
             self,
             frame,
             "Select Project to process:",
@@ -1227,7 +1227,7 @@ def display_object_pulldowns(
         )
 
         # Display all of the Profiles for selection.
-        _ = add_label(
+        self.select_profile_label = add_label(
             self,
             frame,
             "Select Profile to process:",
@@ -1293,6 +1293,9 @@ def delete_old_pulldown_menus(self: object) -> None:
         "ai_profile_optionmenu",
         "ai_task_optionmenu",
         "single_label",
+        "select_project_label",
+        "select_profile_label",
+        "task_label",
     ):
         widget = getattr(self, attr, None)
         if widget:
@@ -1325,7 +1328,6 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     delete_old_pulldown_menus(self)
 
     # Get all of the Tasker objects: Projects/Profiles/Tasks/Scenes
-    # FIX "No Profile" profile names showing up if non English.
     return_code, projects_to_display, profiles_to_display, tasks_to_display = get_tasker_objects(self)
     if not return_code:
         return False
@@ -1651,9 +1653,9 @@ def set_tasker_object_names(self: object) -> None:
     display_only_text = "Display only"
     display_only_text = PrimeItems._(display_only_text) if hasattr(PrimeItems, "_") else display_only_text
     defaults = {
-        "project": none_text,
-        "profile": none_text,
-        "task": none_text,
+        "project": self.single_project_name if self.single_project_name else none_text,
+        "profile": self.single_profile_name if self.single_profile_name else none_text,
+        "task": self.single_task_name if self.single_task_name else none_text,
         "display_only": f"{display_only_text} ",
     }
 
@@ -1667,16 +1669,15 @@ def set_tasker_object_names(self: object) -> None:
     for attr_value, func in handlers:
         if attr_value:
             func(self, defaults)
-            return
+    # return
 
-    _set_default_names(self, defaults)
+    # _set_default_names(self, defaults)
 
 
 def _set_single_project_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single project name is available."""
     # Translate string if possible
-    text = translate_string(f"{defaults['display_only']}Project")
-    # text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+    text = f"{defaults['display_only']}{translate_string('Project')}"
 
     self.specific_name_msg = f"{text} '{self.single_project_name}'"
     try:
@@ -1693,7 +1694,7 @@ def _set_single_project_name(self: object, defaults: dict) -> None:
 
 def _set_single_profile_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single profile name is available."""
-    self.specific_name_msg = f"{defaults['display_only']}Profile '{self.single_profile_name}'"
+    self.specific_name_msg = f"{defaults['display_only']}{translate_string('Profile')} {self.single_profile_name}'"
     try:
         self.specific_profile_optionmenu.set(self.single_profile_name)
     except AttributeError:
@@ -1707,7 +1708,7 @@ def _set_single_profile_name(self: object, defaults: dict) -> None:
 
 def _set_single_task_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single task name is available."""
-    self.specific_name_msg = f"{defaults['display_only']}Task '{self.single_task_name}'"
+    self.specific_name_msg = f"{defaults['display_only']}{translate_string('Task')} '{self.single_task_name}'"
     try:
         self.specific_task_optionmenu.set(self.single_task_name)
     except AttributeError:

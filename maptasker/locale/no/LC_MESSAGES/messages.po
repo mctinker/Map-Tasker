@@ -775,3 +775,15 @@ msgstr "Ingen profil"
 
 msgid "No Project"
 msgstr "Ingen prosjekt"
+
+
+msgid "Color"
+msgstr "Farge"
+
+
+msgid "Debug"
+msgstr "Feilsøk"
+
+
+msgid "Colors"
+msgstr "Farger"

@@ -793,3 +793,15 @@ msgstr "சுயவிவரம் இல்லை"
 
 msgid "No Project"
 msgstr "திட்டம் இல்லை"
+
+
+msgid "Color"
+msgstr "நிறம்"
+
+
+msgid "Debug"
+msgstr "பிழைத்திருத்தம்"
+
+
+msgid "Colors"
+msgstr "நிறங்கள்"

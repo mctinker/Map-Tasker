@@ -168,7 +168,12 @@ def entry_or_exit_task(
     def append_task_line(name: str, task_type: str) -> None:
         # Suffix is snot getting carried through to output
         arrow = line_left_arrow if task_type == "Entry" else line_right_arrow
+        if "Morning Setup" in name:
+            print("bingo")
+        if arrow == line_right_arrow:
+            print("bingo", name)
         suffix = f"{indent}{arrow} {task_type} Task{extra}" if display_level > 0 else indent
+        # FIX "Morning Setup" with arrow and Entry Task doesn't make it into the output.
         task_output_lines.append(f"{name}{suffix}")
 
     if task_name:

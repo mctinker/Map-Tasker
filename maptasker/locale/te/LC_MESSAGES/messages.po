@@ -793,3 +793,15 @@ msgstr "ప్రొఫైల్ లేదు"
 
 msgid "No Project"
 msgstr "ప్రాజెక్ట్ లేదు"
+
+
+msgid "Color"
+msgstr "రంగు"
+
+
+msgid "Debug"
+msgstr "డీబగ్ చేయండి"
+
+
+msgid "Colors"
+msgstr "రంగులు"

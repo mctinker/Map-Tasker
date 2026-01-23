@@ -785,3 +785,15 @@ msgstr "Žádný profil"
 
 msgid "No Project"
 msgstr "Žádný projekt"
+
+
+msgid "Color"
+msgstr "Barva"
+
+
+msgid "Debug"
+msgstr "Ladit"
+
+
+msgid "Colors"
+msgstr "Barvy"

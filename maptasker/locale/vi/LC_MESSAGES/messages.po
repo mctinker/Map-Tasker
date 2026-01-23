@@ -791,3 +791,15 @@ msgstr "Không có hồ sơ"
 
 msgid "No Project"
 msgstr "Không có dự án"
+
+
+msgid "Color"
+msgstr "Màu sắc"
+
+
+msgid "Debug"
+msgstr "Gỡ lỗi"
+
+
+msgid "Colors"
+msgstr "Màu sắc"

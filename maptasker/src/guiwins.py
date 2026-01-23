@@ -1058,7 +1058,7 @@ class CTkTextview(ctk.CTkFrame):
             self.profiles_per_line_option.configure(width=50)
             self.profiles_per_line_option.set("6")
             # Query ? button
-            ppp_query_button = add_button(
+            self.ppp_query_button = add_button(
                 self,
                 self,
                 "#246FB6",
@@ -1074,7 +1074,7 @@ class CTkTextview(ctk.CTkFrame):
                 5,
                 "nw",
             )
-            ppp_query_button.configure(width=20)
+            self.ppp_query_button.configure(width=20)
             create_tooltip(
                 self.profiles_per_line_option,
                 text="Select how many Profiles\nto display per line.  The default is 6.\n\nClick the ? to get more info.",
@@ -1114,7 +1114,6 @@ class CTkTextview(ctk.CTkFrame):
         gui_view = self.master.master
 
         # Jump-to Top button
-        # FIX Placement is wrong
         if top:
             self.jump_top = add_button(
                 self,
@@ -1131,7 +1130,8 @@ class CTkTextview(ctk.CTkFrame):
                 1,
                 0,
                 0,
-                (1215, 0),
+                # (1215, 0),
+                (self.ppp_query_button.next_button_position + 80, next_button_spacer),
                 5,
                 "nw",
             )
@@ -1158,7 +1158,8 @@ class CTkTextview(ctk.CTkFrame):
                 1,
                 0,
                 0,
-                (1215, 0),
+                # (1215, 0),
+                (self.ppp_query_button.next_button_position + 80, next_button_spacer),
                 5,
                 "nw",
             )

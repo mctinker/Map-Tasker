@@ -777,3 +777,15 @@ msgid "Norwegian"
 msgstr "Norwegia"
 msgid "Norwegia"
 msgstr "Norwegian"
+
+
+msgid "Color"
+msgstr "Warna"
+
+
+msgid "Debug"
+msgstr "Men-debug"
+
+
+msgid "Colors"
+msgstr "Warna"

@@ -771,3 +771,15 @@ msgstr "프로필 없음"
 
 msgid "No Project"
 msgstr "프로젝트 없음"
+
+
+msgid "Color"
+msgstr "색상"
+
+
+msgid "Debug"
+msgstr "디버그"
+
+
+msgid "Colors"
+msgstr "그림 물감"

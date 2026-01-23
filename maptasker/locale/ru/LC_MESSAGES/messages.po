@@ -772,3 +772,15 @@ msgstr "Нет профиля"
 
 msgid "No Project"
 msgstr "Нет проекта"
+
+
+msgid "Color"
+msgstr "Цвет"
+
+
+msgid "Debug"
+msgstr "Отлаживать"
+
+
+msgid "Colors"
+msgstr "Цвета"

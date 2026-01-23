@@ -604,6 +604,7 @@ def build_call_table(output_lines: list) -> list:
             project_name = line[project_name_start + 11 : len(line) - 2]
 
         # Do we have a "Calls" line (caller Task)?
+        # FIX linew_right_arrow is missing from "Morning Setup" task
         elif line_right_arrow in line:
             # Handle all of the caller and called Tasks.
             call_table = process_callers_and_called_tasks(

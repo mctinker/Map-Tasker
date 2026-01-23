@@ -759,3 +759,14 @@ msgstr "Kein Profil"
 
 msgid "No Project"
 msgstr "Kein Projekt"
+
+msgid "Color"
+msgstr "Farbe"
+
+
+msgid "Debug"
+msgstr "Debuggen"
+
+
+msgid "Colors"
+msgstr "Farben"

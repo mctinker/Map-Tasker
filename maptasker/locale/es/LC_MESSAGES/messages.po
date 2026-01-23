@@ -969,3 +969,15 @@ msgid "noruego"
 msgstr "Norwegian"
 msgid "No Project"
 msgstr "Sin proyecto"
+
+
+msgid "Color"
+msgstr "Color"
+
+
+msgid "Debug"
+msgstr "Depurar"
+
+
+msgid "Colors"
+msgstr "Bandera"

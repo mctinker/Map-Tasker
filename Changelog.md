@@ -23,6 +23,9 @@ All notable changes to this project will be documented in this file!
 - Fixed: Buttons in the Map and Diagram views are overlapping each other for certain languages other than English.
 - Fixed: Program error in Diagram view.
 - Fixed: Program error when setting the view limit with a language other than English.
+- Fixed: Changing language sets all of the selected Projects/Profiles/Tasks to 'None' in the pulldown menus even though a single item may have been selected.
+- Fixed: The GUI single item selection section of labels is overlayed when changing language.
+- Fixed: The tab names in the GUI are note getting translated.
 
 ### Known Issue
 

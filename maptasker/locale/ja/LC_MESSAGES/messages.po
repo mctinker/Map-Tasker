@@ -774,3 +774,15 @@ msgstr "プロフィールなし"
 
 msgid "No Project"
 msgstr "プロジェクトがありません"
+
+
+msgid "Color"
+msgstr "色"
+
+
+msgid "Debug"
+msgstr "デバッグ"
+
+
+msgid "Colors"
+msgstr "色"

@@ -791,3 +791,15 @@ msgstr "بدون پروفایل"
 
 msgid "No Project"
 msgstr "بدون پروژه"
+
+
+msgid "Color"
+msgstr "رنگ"
+
+
+msgid "Debug"
+msgstr "اشکال زدایی"
+
+
+msgid "Colors"
+msgstr "رنگ ها"

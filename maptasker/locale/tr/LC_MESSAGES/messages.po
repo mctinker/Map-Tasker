@@ -785,3 +785,15 @@ msgstr "Profil Yok"
 
 msgid "No Project"
 msgstr "Proje Yok"
+
+
+msgid "Color"
+msgstr "Renk"
+
+
+msgid "Debug"
+msgstr "Hata ayıklama"
+
+
+msgid "Colors"
+msgstr "Renkler"

@@ -791,3 +791,15 @@ msgstr "Χωρίς Προφίλ"
 
 msgid "No Project"
 msgstr "Κανένα Έργο"
+
+
+msgid "Color"
+msgstr "Χρώμα"
+
+
+msgid "Debug"
+msgstr "Εντοπισμός σφαλμάτων"
+
+
+msgid "Colors"
+msgstr "Χρωματιστά"

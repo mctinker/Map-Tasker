@@ -791,3 +791,15 @@ msgstr "Без профілю"
 
 msgid "No Project"
 msgstr "Немає проекту"
+
+
+msgid "Color"
+msgstr "Колір"
+
+
+msgid "Debug"
+msgstr "Налагодження"
+
+
+msgid "Colors"
+msgstr "Кольори"

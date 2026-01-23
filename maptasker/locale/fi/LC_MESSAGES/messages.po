@@ -789,3 +789,15 @@ msgstr "Ei profiilia"
 
 msgid "No Project"
 msgstr "Ei projektia"
+
+
+msgid "Color"
+msgstr "Väri"
+
+
+msgid "Debug"
+msgstr "Debug"
+
+
+msgid "Colors"
+msgstr "värit"

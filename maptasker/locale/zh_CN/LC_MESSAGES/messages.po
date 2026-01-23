@@ -683,3 +683,15 @@ msgstr "无简介"
 
 msgid "No Project"
 msgstr "没有项目"
+
+
+msgid "Color"
+msgstr "颜色"
+
+
+msgid "Debug"
+msgstr "调试"
+
+
+msgid "Colors"
+msgstr "颜色"

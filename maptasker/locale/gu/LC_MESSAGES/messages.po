@@ -793,3 +793,15 @@ msgstr "કોઈ પ્રોફાઇલ નથી"
 
 msgid "No Project"
 msgstr "કોઈ પ્રોજેક્ટ નથી"
+
+
+msgid "Color"
+msgstr "રંગ"
+
+
+msgid "Debug"
+msgstr "ડીબગ"
+
+
+msgid "Colors"
+msgstr "રંગો"
