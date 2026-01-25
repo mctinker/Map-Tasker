@@ -805,3 +805,9 @@ msgstr "డీబగ్ చేయండి"
 
 msgid "Colors"
 msgstr "రంగులు"
+
+msgid "Calls"
+msgstr "కాల్స్"
+
+msgid "Called by"
+msgstr "ద్వారా పిలిచారు"

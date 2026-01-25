@@ -787,3 +787,9 @@ msgstr "Feilsøk"
 
 msgid "Colors"
 msgstr "Farger"
+
+msgid "Calls"
+msgstr "Samtaler"
+
+msgid "Called by"
+msgstr "Ringt av"

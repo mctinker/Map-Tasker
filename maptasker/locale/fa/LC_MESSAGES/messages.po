@@ -803,3 +803,9 @@ msgstr "اشکال زدایی"
 
 msgid "Colors"
 msgstr "رنگ ها"
+
+msgid "Calls"
+msgstr "تماس می گیرد"
+
+msgid "Called by"
+msgstr "توسط"

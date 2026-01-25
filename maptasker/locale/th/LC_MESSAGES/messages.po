@@ -801,3 +801,9 @@ msgstr "ดีบัก"
 
 msgid "Colors"
 msgstr "สี"
+
+msgid "Calls"
+msgstr "โทร"
+
+msgid "Called by"
+msgstr "เรียกโดย"

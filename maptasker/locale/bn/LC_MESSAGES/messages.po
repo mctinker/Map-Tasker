@@ -803,3 +803,9 @@ msgstr "ডিবাগ"
 
 msgid "Colors"
 msgstr "রং"
+
+msgid "Calls"
+msgstr "কল"
+
+msgid "Called by"
+msgstr "দ্বারা ডাকা হয়"

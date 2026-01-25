@@ -797,3 +797,9 @@ msgstr "Hata ayıklama"
 
 msgid "Colors"
 msgstr "Renkler"
+
+msgid "Calls"
+msgstr "Aramalar"
+
+msgid "Called by"
+msgstr "Tarafından arandı"

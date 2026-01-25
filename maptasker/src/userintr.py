@@ -2440,6 +2440,11 @@ class EventHandlers:
         """
         the_view = self.parent
 
+        # Handle translation of item first
+        my_name_translated = translate_string(my_name)
+        none_translated = translate_string("None")
+        name_entered = name_entered.replace(f"{my_name_translated}: ", "")
+
         if name_entered in ["No projects found", "No profiles found", "No tasks found"]:
             the_view.display_message_box("Selection ignored.", "Orange")
             name_entered = "None"
@@ -2450,16 +2455,17 @@ class EventHandlers:
                 the_view.single_profile_name = ""
                 the_view.single_task_name = ""
                 # Save the name in mygui signle_xxx_name.
-                name_entered = "" if name_entered == "None" else name_entered
+                name_entered = "" if name_entered == none_translated else name_entered
 
                 setattr(the_view, f"single_{my_name.lower()}_name", name_entered)
                 text1 = translate_string("Display only")
                 text2 = translate_string("Display all")
                 name_entered = PrimeItems._(name_entered) if hasattr(PrimeItems, "_") else name_entered
                 if name_entered:
-                    the_view.specific_name_msg = f"{text1} {my_name} '{name_entered}'."
+                    the_view.specific_name_msg = f"{text1} {my_name_translated} '{name_entered}'."
                 else:
-                    the_view.specific_name_msg = f"{text2} {my_name}."
+                    the_view.specific_name_msg = f"{text2} {my_name_translated}."
+                print("bingo", the_view.specific_name_msg)
             else:
                 the_view.single_name_msg = all_objects
             # Set the names in the pulldown menus and update the pulldown menus.
@@ -2958,6 +2964,19 @@ class EventHandlers:
             get_data=False,
             reset_single_names=False,
         )
+
+        # Update the pull-down menus and display message
+        list_tasker_objects(the_view)
+        # Plug back into the top item in pulldown the current single named item, since list_tasker_objects cleared it.
+        if the_view.single_project_name and hasattr(the_view, "specific_project_optionmenu"):
+            the_view.specific_project_optionmenu.set(the_view.single_project_name)
+            the_view.ai_project_optionmenu.set(the_view.single_project_name)
+        elif the_view.single_profile_name and hasattr(the_view, "specific_profile_optionmenu"):
+            the_view.specific_profile_optionmenu.set(the_view.single_profile_name)
+            the_view.ai_profile_optionmenu.set(the_view.single_profile_name)
+        elif the_view.single_task_name and hasattr(the_view, "specific_task_optionmenu"):
+            the_view.specific_task_optionmenu.set(the_view.single_task_name)
+            the_view.ai_task_optionmenu.set(the_view.single_task_name)
 
         # Redo the labels
         display_selected_object_labels(the_view)

@@ -784,3 +784,9 @@ msgstr "Отлаживать"
 
 msgid "Colors"
 msgstr "Цвета"
+
+msgid "Calls"
+msgstr "Звонки"
+
+msgid "Called by"
+msgstr "Вызывается"

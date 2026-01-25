@@ -787,3 +787,9 @@ msgstr "डिबग"
 
 msgid "Colors"
 msgstr "रंग"
+
+msgid "Calls"
+msgstr "कॉल"
+
+msgid "Called by"
+msgstr "से बुलाया"

@@ -797,3 +797,9 @@ msgstr "Ladit"
 
 msgid "Colors"
 msgstr "Barvy"
+
+msgid "Calls"
+msgstr "hovory"
+
+msgid "Called by"
+msgstr "Volal"

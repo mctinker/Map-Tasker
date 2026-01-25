@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Changing language sets all of the selected Projects/Profiles/Tasks to 'None' in the pulldown menus even though a single item may have been selected.
 - Fixed: The GUI single item selection section of labels is overlayed when changing language.
 - Fixed: The tab names in the GUI are note getting translated.
+- Fixed: Multiple rows of Scenes in the Diagram view are mis-aligned and in the wrong color.
 
 ### Known Issue
 

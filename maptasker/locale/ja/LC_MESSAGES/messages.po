@@ -786,3 +786,9 @@ msgstr "デバッグ"
 
 msgid "Colors"
 msgstr "色"
+
+msgid "Calls"
+msgstr "電話"
+
+msgid "Called by"
+msgstr "呼び出された人"

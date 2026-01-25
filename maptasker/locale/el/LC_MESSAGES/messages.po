@@ -803,3 +803,9 @@ msgstr "Εντοπισμός σφαλμάτων"
 
 msgid "Colors"
 msgstr "Χρωματιστά"
+
+msgid "Calls"
+msgstr "κλήσεις"
+
+msgid "Called by"
+msgstr "Κάλεσαν από"

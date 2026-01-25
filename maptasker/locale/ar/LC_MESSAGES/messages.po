@@ -782,3 +782,9 @@ msgstr "تصحيح"
 
 msgid "Colors"
 msgstr "الألوان"
+
+msgid "Calls"
+msgstr "المكالمات"
+
+msgid "Called by"
+msgstr "دعا بواسطة"

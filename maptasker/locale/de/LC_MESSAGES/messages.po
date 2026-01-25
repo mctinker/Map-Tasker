@@ -377,6 +377,8 @@ msgid "Display only Project"
 msgstr "Nur Projekt anzeigen"
 msgid "None"
 msgstr "Keiner"
+msgid "Keiner"
+msgstr "None"
 msgid "Display all Projects, Profiles, and Tasks."
 msgstr "Alle Projekte, Profile und Aufgaben anzeigen."
 msgid "Display all"
@@ -770,3 +772,9 @@ msgstr "Debuggen"
 
 msgid "Colors"
 msgstr "Farben"
+
+msgid "Calls"
+msgstr "Anrufe"
+
+msgid "Called by"
+msgstr "Angerufen von"

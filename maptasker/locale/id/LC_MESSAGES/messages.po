@@ -789,3 +789,9 @@ msgstr "Men-debug"
 
 msgid "Colors"
 msgstr "Warna"
+
+msgid "Calls"
+msgstr "Panggilan"
+
+msgid "Called by"
+msgstr "Ditelepon oleh"

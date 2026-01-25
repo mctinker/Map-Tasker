@@ -697,3 +697,9 @@ msgstr "偵錯"
 
 msgid "Colors"
 msgstr "顏色"
+
+msgid "Calls"
+msgstr "通話"
+
+msgid "Called by"
+msgstr "呼叫者"

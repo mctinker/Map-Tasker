@@ -805,3 +805,9 @@ msgstr "பிழைத்திருத்தம்"
 
 msgid "Colors"
 msgstr "நிறங்கள்"
+
+msgid "Calls"
+msgstr "அழைப்புகள்"
+
+msgid "Called by"
+msgstr "மூலம் அழைக்கப்பட்டது"

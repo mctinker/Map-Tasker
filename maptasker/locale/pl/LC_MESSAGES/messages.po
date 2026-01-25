@@ -801,3 +801,9 @@ msgstr "Odpluskwić"
 
 msgid "Colors"
 msgstr "Zabarwienie"
+
+msgid "Calls"
+msgstr "Połączenia"
+
+msgid "Called by"
+msgstr "Zadzwonił przez"

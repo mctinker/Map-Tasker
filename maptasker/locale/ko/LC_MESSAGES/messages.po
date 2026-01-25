@@ -783,3 +783,9 @@ msgstr "디버그"
 
 msgid "Colors"
 msgstr "그림 물감"
+
+msgid "Calls"
+msgstr "통화"
+
+msgid "Called by"
+msgstr "호출자"

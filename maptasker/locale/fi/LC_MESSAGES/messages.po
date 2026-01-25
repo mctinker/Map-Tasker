@@ -801,3 +801,9 @@ msgstr "Debug"
 
 msgid "Colors"
 msgstr "värit"
+
+msgid "Calls"
+msgstr "Puhelut"
+
+msgid "Called by"
+msgstr "Soitti"

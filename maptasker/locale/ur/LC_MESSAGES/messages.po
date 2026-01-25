@@ -808,3 +808,9 @@ msgstr "ڈیبگ"
 
 msgid "Colors"
 msgstr "رنگ"
+
+msgid "Calls"
+msgstr "کالز"
+
+msgid "Called by"
+msgstr "بذریعہ کہا جاتا ہے"

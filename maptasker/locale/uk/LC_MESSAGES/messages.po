@@ -803,3 +803,9 @@ msgstr "Налагодження"
 
 msgid "Colors"
 msgstr "Кольори"
+
+msgid "Calls"
+msgstr "Дзвінки"
+
+msgid "Called by"
+msgstr "Викликаний"

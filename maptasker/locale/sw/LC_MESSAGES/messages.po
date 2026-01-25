@@ -797,3 +797,9 @@ msgstr "Tatua"
 
 msgid "Colors"
 msgstr "Rangi"
+
+msgid "Calls"
+msgstr "Simu"
+
+msgid "Called by"
+msgstr "Inaitwa na"

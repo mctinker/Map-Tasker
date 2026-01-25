@@ -981,3 +981,9 @@ msgstr "Depurar"
 
 msgid "Colors"
 msgstr "Bandera"
+
+msgid "Calls"
+msgstr "llamadas"
+
+msgid "Called by"
+msgstr "Llamado por"

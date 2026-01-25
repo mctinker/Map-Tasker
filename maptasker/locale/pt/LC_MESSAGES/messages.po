@@ -779,3 +779,9 @@ msgstr "Depurar"
 
 msgid "Colors"
 msgstr "Cores"
+
+msgid "Calls"
+msgstr "Chamadas"
+
+msgid "Called by"
+msgstr "Chamado por"

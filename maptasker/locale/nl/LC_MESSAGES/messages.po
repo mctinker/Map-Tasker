@@ -787,3 +787,9 @@ msgstr "Foutopsporing"
 
 msgid "Colors"
 msgstr "Kleuren"
+
+msgid "Calls"
+msgstr "Oproepen"
+
+msgid "Called by"
+msgstr "Gebeld door"

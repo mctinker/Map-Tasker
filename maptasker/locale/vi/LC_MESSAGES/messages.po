@@ -803,3 +803,9 @@ msgstr "Gỡ lỗi"
 
 msgid "Colors"
 msgstr "Màu sắc"
+
+msgid "Calls"
+msgstr "Cuộc gọi"
+
+msgid "Called by"
+msgstr "Được gọi bởi"

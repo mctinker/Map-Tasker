@@ -780,3 +780,9 @@ msgstr "Déboguer"
 
 msgid "Colors"
 msgstr "Couleurs"
+
+msgid "Calls"
+msgstr "Appels"
+
+msgid "Called by"
+msgstr "Appelé par"

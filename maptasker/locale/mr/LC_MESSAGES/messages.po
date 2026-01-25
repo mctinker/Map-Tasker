@@ -805,3 +805,9 @@ msgstr "डीबग करा"
 
 msgid "Colors"
 msgstr "रंग"
+
+msgid "Calls"
+msgstr "कॉल"
+
+msgid "Called by"
+msgstr "यांनी बोलावले"

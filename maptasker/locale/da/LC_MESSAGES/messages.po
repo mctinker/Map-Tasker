@@ -787,3 +787,9 @@ msgstr "Debug"
 
 msgid "Colors"
 msgstr "Farver"
+
+msgid "Calls"
+msgstr "Opkald"
+
+msgid "Called by"
+msgstr "Ringet af"

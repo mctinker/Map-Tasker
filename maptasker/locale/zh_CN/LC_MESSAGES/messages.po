@@ -695,3 +695,9 @@ msgstr "调试"
 
 msgid "Colors"
 msgstr "颜色"
+
+msgid "Calls"
+msgstr "通话"
+
+msgid "Called by"
+msgstr "呼叫者"

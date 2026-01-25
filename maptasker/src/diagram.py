@@ -16,6 +16,7 @@ from __future__ import annotations
 import contextlib
 import gc
 import os
+import re
 from bisect import bisect_left
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -389,7 +390,7 @@ def print_all_scenes(scenes: list) -> None:
     filler = f"{blank * 2}"
     scene_counter = 0
     output_scene_lines = [filler, filler, filler]
-    header = False
+    scenes_translated = translate_string("Scenes:")
     task_list = []
     # Empty line to start
     add_output_line(" ")
@@ -399,9 +400,7 @@ def print_all_scenes(scenes: list) -> None:
         scene_counter += 1
         if scene_counter > 8:
             # We have 8 columns.  Print them out and reset.
-            include_heading(f"{blank * 7}Scenes:", output_scene_lines)
-
-            header = True
+            include_heading(f"{blank * 7}{scenes_translated}", output_scene_lines)
             print_3_lines(output_scene_lines)
             scene_counter = 1
             output_scene_lines = [filler, filler, filler]
@@ -417,8 +416,7 @@ def print_all_scenes(scenes: list) -> None:
         )
 
     # Print any remaining Scenes
-    if not header:
-        include_heading(f"{blank * 7}Scenes:", output_scene_lines)
+    include_heading(f"{blank * 7}{scenes_translated}", output_scene_lines)
     print_3_lines(output_scene_lines)
 
     # Print out the Scenes' Tasks
@@ -1539,6 +1537,56 @@ def remove_empty_strings(lst: list) -> list:
     return [s for s in lst if not all(char in (bar, " ", "\\") for char in s)]
 
 
+def replace_maintain_column(line: str, target: str, replacement: str) -> str:
+    """
+    Replaces target with replacement.
+    1. Splits line by '│', '▼', '▲'.
+    2. Performs replacement in the text sections.
+    3. Pads with spaces if the new text is shorter.
+    4. Truncates the text if it is longer than the original section
+       (ensuring it never overwrites/moves the special characters).
+    """
+    if target not in line:
+        return line
+
+    # Split by the special characters, keeping them in the list
+    parts = re.split(r"([│▼▲])", line)
+    new_parts = []
+
+    for part in parts:
+        # If this part is one of our special markers, keep it exactly as is
+        if part in ["│", "▼", "▲"]:
+            new_parts.append(part)
+            continue
+
+        # If this is a text section containing our target
+        if target in part:
+            original_width = len(part)
+
+            # Perform the replacement
+            new_content = part.replace(target, replacement)
+            current_width = len(new_content)
+
+            if current_width < original_width:
+                # Case 1: Translation is shorter. Pad with spaces.
+                padding_needed = original_width - current_width
+                new_content += " " * padding_needed
+
+            elif current_width > original_width:
+                # Case 2: Translation is longer.
+                # We strictly truncate to the original width.
+                # This ensures the extra characters are "ignored" and do not
+                # overwrite the position of the next special character.
+                new_content = new_content[:original_width]
+
+            new_parts.append(new_content)
+        else:
+            # If target is not in this part, keep it unchanged
+            new_parts.append(part)
+
+    return "".join(new_parts)
+
+
 def build_network_map(data: dict) -> None:
     """
     Builds a network map from project and profile data
@@ -1569,16 +1617,20 @@ def build_network_map(data: dict) -> None:
     PrimeItems.netmap_output = remove_empty_strings(PrimeItems.netmap_output)
 
     # Translate the output lines if needed.  Can't translate anything that has diagram lines
-    if PrimeItems.program_arguments["language"] != "English":
+    if PrimeItems.program_arguments["language"] not in ("English", "Arabic"):
         no_project = translate_string("No Project")
         # FIX Force the following the the same length as the original English text.
-        # calls = live_translate_text("[Calls")
-        # called_by = live_translate_text("[Called by")
+        calls = translate_string("Calls")
+        called_by = translate_string("Called by")
         for i, line in enumerate(PrimeItems.netmap_output):
-            line = line.replace("No Project", no_project)  # noqa: PLW2901
-            # line = line.replace("[Calls", calls)
-            # line = line.replace("[Called by", called_by)
-            PrimeItems.netmap_output[i] = line
+            # line = line.replace("No Project", no_project)
+            # line = line.replace("[Calls", f"[{calls}")
+            # line = line.replace("[Called by", f"[{called_by}")
+            # Use the helper function instead of standard .replace()
+            newline = replace_maintain_column(line, "No Project", no_project)
+            newline = replace_maintain_column(newline, "[Calls", f"[{calls}")
+            newline = replace_maintain_column(newline, "[Called by", f"[{called_by}")
+            PrimeItems.netmap_output[i] = newline
 
 
 # Print the network map.

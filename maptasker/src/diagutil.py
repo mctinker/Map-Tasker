@@ -597,14 +597,18 @@ def build_call_table(output_lines: list) -> list:
     """
     # Go through all output lines looking for caller Tasks.
     call_table = {}
+    project_text = (
+        translate_string("Project:")
+        if PrimeItems.program_arguments["language"] not in ("Arabic", "English")
+        else "Project:"
+    )
     for caller_line_num, line in enumerate(output_lines):
         # Get the Project name if we have one
-        project_name_start = line.find(f"║ {translate_string('Project:')} ")
+        project_name_start = line.find(f"║ {project_text} ")
         if project_name_start != -1:
             project_name = line[project_name_start + 11 : len(line) - 2]
 
         # Do we have a "Calls" line (caller Task)?
-        # FIX linew_right_arrow is missing from "Morning Setup" task
         elif line_right_arrow in line:
             # Handle all of the caller and called Tasks.
             call_table = process_callers_and_called_tasks(
