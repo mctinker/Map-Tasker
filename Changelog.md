@@ -2,29 +2,47 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.0.2] 19-Dec-2025
+## [10.0.3] 27-Jan-2026
 
 ### Added
 
-- Added: 23 additional languages are now supported.  English is always at the top of the selection list.
-- Added: The country flag is displayed for each language selection.
+- Added: Additional plugins are now recognized: AutoBarCode, ADB Shell, Watchmaker, TouchTask, Blockada, Sleep as Android, FolderSync, Pushbullet, AutoMail
+- Added: Language translations added to the Diagram view.
 
 ### Changed
 
-- Changed: Restructured GUI code to optimize performance.
+- Changed: Code optimization
+- Changed: AI Gemini models '2.0 Flash 'and '2.0 Flash Lite' have been removed by Google and are no longer supported.
 
 ### Fixed
 
+- Fixed: If using for the first time, the initial prompt to select the XML file can be hidden by other windows.
+- Fixed: Tasks are not properly identified as 'Entry' or 'Exit' tasks.
+- Fixed: The "Search" button in the Map and Diagram views is not being translated to German.
+- Fixed: Translation is missing for some text strings in the GUI.
+- Fixed: Buttons in the Map and Diagram views are overlapping each other for certain languages other than English.
+- Fixed: Program error in Diagram view.
+- Fixed: Program error when setting the view limit with a language other than English.
+- Fixed: Changing language sets all of the selected Projects/Profiles/Tasks to 'None' in the pulldown menus even though a single item may have been selected.
+- Fixed: The GUI single item selection section of labels is overlayed when changing language.
+- Fixed: The tab names in the GUI are note getting translated.
+- Fixed: Multiple rows of Scenes in the Diagram view are mis-aligned and in the wrong color.
+
+### Known Issue
+
+- The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop. Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
+
+## Older History Logs
+
+## [10.0.2] 19-Dec-2025
+
+- Added: 23 additional languages are now supported. English is always at the top of the selection list.
+- Added: The country flag is displayed for each language selection.
+- Changed: Restructured GUI code to optimize performance.
 - Fixed: Language header incorrectly displays if displaying help in a language other than English.
 - Fixed: Some buttons get overlaid if the language is changed.
 - Fixed: Non-functional 'tts' Gemini models are incorrectly listed in the extended AI model list.
 - Fixed: Non-functional 'codex' OpenAI models are incorrectly listed in the extended AI model list.
-
-### Known Issue
-
-- The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop.  Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
-
-## Older History Logs
 
 ## [10.0.0-10.0.1] 15-Dec-2025
 
@@ -114,20 +132,20 @@ All notable changes to this project will be documented in this file!
 
 ## [8.3.0] 22-Sep-2025
 
-- Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre', 'src' and 'style' tags.  'Style' tags and their contents are flagged.
+- Added: Embedded HTML in labels and TaskerNet descriptions now support the 'pre', 'src' and 'style' tags. 'Style' tags and their contents are flagged.
 - Changed: Support for the older configuration/setting JSON file format (12+ months old) has been dropped.
 - Changed: The 'ReRun' and 'AI Analysis' buttons now exit and reload the program to eliminate Map view text size issues.
 - Changed: Switched from Google's deprecated AI API to new generative API.
 - Fixed: Incorrect spacing on list items in labels and TaskerNet descriptions with embedded HTML.
-- Fixed: Embedded HTML 'href' reference in labels and TaskerNet descriptions are not properly recognized if it starts in  column 1.
-- Fixed: Labels and TaskerNet descriptions are displayed in the wrong font size.  NOTE: It is still incorrect for Window.
+- Fixed: Embedded HTML 'href' reference in labels and TaskerNet descriptions are not properly recognized if it starts in column 1.
+- Fixed: Labels and TaskerNet descriptions are displayed in the wrong font size. NOTE: It is still incorrect for Window.
 - Fixed: Text in Map view is incorrect size after 'ReRun'.
 - Fixed: GUI can sometimes close unexpectedly.
 - FIxed: ChatGPT-5-mini model is misspelled.
 
 ## [8.2.1-8.2.2] 10-Sep-2025
 
-- Added: TaskerNet descriptions with HTML are now handled like labels with HTML.  The HTML is retained and the description is surrounded by a rectangle.
+- Added: TaskerNet descriptions with HTML are now handled like labels with HTML. The HTML is retained and the description is surrounded by a rectangle.
 - Added: Labels and TaskerNet descriptions with html now recognize italicized/emphasized and bold text, as well as hotlinks.
 - Changed: All Task labels are now outlined in a rectangle, rather than only those labels with HTML.
 - Changed; Default font size for label and TaskerNet description text is set to that of the rest of the text in the Map view.
@@ -137,7 +155,7 @@ All notable changes to this project will be documented in this file!
 
 ## [8.2.0] 29-Aug-2025
 
-- Added: Task labels with embedded html are now displayed with that html (color, headings, lists) surrounded by a rectangle.  This is a work in progress.
+- Added: Task labels with embedded html are now displayed with that html (color, headings, lists) surrounded by a rectangle. This is a work in progress.
 - Default AI model list has been updated.
 - Changed: HTML in Task actions is now displayed as with HTML tags rather than having them removed.
 - Changed: Lines that are very long are no longer identified with 'Continued >>>'.
@@ -159,7 +177,7 @@ All notable changes to this project will be documented in this file!
 
 ## [8.1.2] 29-July-2025
 
-- Changed:  'What's New' now displays the new and previous 9 versions of the changelog rather than just the new version.
+- Changed: 'What's New' now displays the new and previous 9 versions of the changelog rather than just the new version.
 - Fixed: 'What's New' and 'Program Upgrade...' buttons always appear in the GUI even if no new version is available.
 
 ## [8.1.1] 27-July-2025
@@ -187,7 +205,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Task action 'Call' is not appearing correctly.
 - Fixed: Some Task action selected checkboxes are identified as '=1' rather than as '(selected)'.
 - Fixed: The directory hotlink 'Up One Level' is not displaying in the Map View.
-- Fixed: Incorrect output color in Map view if '_color' is part of a variable name in a Task.
+- Fixed: Incorrect output color in Map view if '\_color' is part of a variable name in a Task.
 - Fixed: Caveat at the bottom referring to inactive and unreferenced global variables is not appearing if the display level is 5.
 
 ## [8.0.6]. 07-July-2025
@@ -238,7 +256,7 @@ All notable changes to this project will be documented in this file!
 
 ## [8.0.0]
 
-- Added: New 'List Unnamed Items' checkbox has been added to the GUI under the 'Specific Name' tab.  Click on the text of the checkbox for details.
+- Added: New 'List Unnamed Items' checkbox has been added to the GUI under the 'Specific Name' tab. Click on the text of the checkbox for details.
 - Added: The Anthropic 'claude-opus-4-20250514' and 'claude-sonnet-4-20250514' AI models have been added.
 - Changed: 'None or Unnamed!' in Profile names has been changed to 'Unnamed'.
 - Changed: Gemini AI models 'gemini-2.5-flash-preview' and 'gemini-2.5-pro-preview' have been updated to the latest versions.
@@ -267,21 +285,21 @@ All notable changes to this project will be documented in this file!
 
 - Added: Tasker version 6.5.6-rc is supported.
 - Added: Two missing events and two missing plugins have been added.
-- Added: Unnamed Profiles now have a name.  See 'Changed', below.
-- Changed: Unnamed Profiles are now listed as they are in Tasker, consisting of the conditions and are preceded by an asterisk and followed by a '(None or unnamed!).' plus unique ID number.  Example: '*Face Down (None or unnamed!).45'
-- Changed: Unnamed Profiles now appear at the beginning of the Profile directory entries (all names start with '*').
+- Added: Unnamed Profiles now have a name. See 'Changed', below.
+- Changed: Unnamed Profiles are now listed as they are in Tasker, consisting of the conditions and are preceded by an asterisk and followed by a '(None or unnamed!).' plus unique ID number. Example: '\*Face Down (None or unnamed!).45'
+- Changed: Unnamed Profiles now appear at the beginning of the Profile directory entries (all names start with '\*').
 - Changed: Unnamed Tasks called by Scenes are now identified as 'Unnamed/Anonymous'.
 - Changed: Extended Map view directory names from 40 characters long to 50 characters.
 - Fixed: 'File Modified' event is not displaying 'File=' value.
 - Fixed: Map view Scene elements are all misaligned.
 - Fixed: The Map view is displaying duplicate Scene 'Properties --Task:...' details.
 - Fixed: Program error if a 'Name' is associated with a Time or Day profile condition.
-- Fixed: The Diagram view gets corrupted if the diagram is greater than 4500 characters in length (e.g. a massive diagram).  The fix is to truncate those lines at 4500 characters.
+- Fixed: The Diagram view gets corrupted if the diagram is greater than 4500 characters in length (e.g. a massive diagram). The fix is to truncate those lines at 4500 characters.
 - Fixed: Global variables are not appearing in the Map view.
 - Fixed: Changed color settings are not being restored.
 - Fixed: Hover over Task name in the Map view displays incorrect Profile and Project.
 - Fixed: Hover over Scene name in Map view incorrectly displays HTML.
-- Fixed: Owner display when hovering over search string in Map view is off the screen.  Truncate the displayed results instead.
+- Fixed: Owner display when hovering over search string in Map view is off the screen. Truncate the displayed results instead.
 - Fixed: Program error if the progress bar window is closed during a loop condition.
 
 ## [7.2.2]
@@ -362,7 +380,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Widget V2 missing the argument 'Ask To Add If Not Present'.
 - Fixed: Program error when hovering over a Scene name in the Map view.
 - Fixed: Program error in taskuniq.py.
-- Fixed: MapTasker can not be installed with Python 3.13.2 or higher.  Fixed so that it can run any 3.13.
+- Fixed: MapTasker can not be installed with Python 3.13.2 or higher. Fixed so that it can run any 3.13.
 
 ## [7.0.0]
 
@@ -373,7 +391,7 @@ All notable changes to this project will be documented in this file!
 - Added: Llama AI models 'deepseek-r1' and 'phi4' added.
 - Changed: The GUI message box is now cleared before displaying an error during initialization.
 - Changed: The AI API Key prompt has been modified for multiple keys, and for the identification of the current key to be used for the AI Analysis.
-- Changed: The AI Model selection pulldown option list is now preceded by their owner: 'OpenAI', 'Claude', 'Gemini' and 'LLAMA'.  Example: 'OpenAI: gpt-04', and each AI's list of models are now grouped together in the pulldown option list.
+- Changed: The AI Model selection pulldown option list is now preceded by their owner: 'OpenAI', 'Claude', 'Gemini' and 'LLAMA'. Example: 'OpenAI: gpt-04', and each AI's list of models are now grouped together in the pulldown option list.
 - Fixed: Program error if the AI model has not been set.
 - Fixed: Ai Analysis of a single Task reports it as the Project owning the Task.
 - Fixed: Keep the 'Analyze' tab active after an AI analysis.
@@ -419,7 +437,7 @@ All notable changes to this project will be documented in this file!
 
 - Added: Added a 'Buy Me A Coffee' button to the Debug tab in the GUI. :o)
 - Added Tooltips to the GUI: hover over a button/checkbox/pulldown to get information about the command.
-- Added: Hover over a Project/Profile/Task name in the Map view to get a description of the Project/Profile/Task.  The information provided will be expanded over time.
+- Added: Hover over a Project/Profile/Task name in the Map view to get a description of the Project/Profile/Task. The information provided will be expanded over time.
 - Added: New llama Ai models added: mistrel-nemo and tinyllama.
 - Fixed: Highlighting (bold, underline, etc.) in the Map view is broken.
 - Fixed: The program can get into a never-ending loop if the Ai analysis fails.
@@ -429,10 +447,10 @@ All notable changes to this project will be documented in this file!
 - Added: Tasker 6.4.6 Beta is now fully supported (i.e. Widget V2 support).
 - Added: Additional Profile Properties added to the output: Limit Repeats, Cooldown Time, Profile Variable Type.
 - Added: Re-instituted the progress bar in the Map and Diagram views.
-- Added: 'Profiles Per Line' option added to the Diagram view.  Click on the '?' next to it for details.
+- Added: 'Profiles Per Line' option added to the Diagram view. Click on the '?' next to it for details.
 - Added: Ollama models 'qwen2.5' and 'qwen2.5-coder' have been added.
-- Changed: 'Go to top' and 'Go to bottom' hotlinks have been removed from the Map view in preference to the 'Top' and 'Bottom' buttons.  'Go to top' is still in the browser output.
-- Changed: The popup window displaying 'The view is running in the background.  Please stand by...' has been eliminated for improved performance.
+- Changed: 'Go to top' and 'Go to bottom' hotlinks have been removed from the Map view in preference to the 'Top' and 'Bottom' buttons. 'Go to top' is still in the browser output.
+- Changed: The popup window displaying 'The view is running in the background. Please stand by...' has been eliminated for improved performance.
 - Fixed: Spacing for '[Continue Task After Error]' is incorrect in the Map view.
 - Fixed: Diagram view is missing an occasional Task underneath it's Profile.
 - Fixed: Eliminated potential 'Rutroh!...' output in the terminal.
@@ -446,9 +464,8 @@ All notable changes to this project will be documented in this file!
 - Added: 'Top Task' and 'Bottom Task' buttons added to the Diagram view when highlighting Task connectors, to jump to the top/bottom of the Task connector.
 - Changed: The 'IA' Diagram view button has been removed since it is no longer needed.
 - Changed: The progress bar in the Map and Diagram views has been removed temporarily due to a bug in some core python code.
-- Changed: Python installations that use 'pyenv' version management, take note: tcl-tk has been upgraded to version 9 (brew install tcl-tk), which may cause an error when importing tkinter.  If this error occurs:
-
-  - if running python 3.11.10 or lower, then the new tcl-tk is not recognized and you will get an import error for 'tkinter'.  Issue the commands (in the order specified):
+- Changed: Python installations that use 'pyenv' version management, take note: tcl-tk has been upgraded to version 9 (brew install tcl-tk), which may cause an error when importing tkinter. If this error occurs:
+  - if running python 3.11.10 or lower, then the new tcl-tk is not recognized and you will get an import error for 'tkinter'. Issue the commands (in the order specified):
     - 'brew uninstall tcl-tk',
     - 'pyenv uninstall 3.11.xx'
     - 'brew install tcl-tk8'
@@ -493,11 +510,11 @@ All notable changes to this project will be documented in this file!
 
 ## [5.2.2]
 
-- Added: Added the 'IA' (Icon Alignment) button next to the 'Diagram' view to enable/disable connector alignment if icons are in Task names for better performance with very complex diagrams.  Refer to the view '?' (help) in the GUI for details.
+- Added: Added the 'IA' (Icon Alignment) button next to the 'Diagram' view to enable/disable connector alignment if icons are in Task names for better performance with very complex diagrams. Refer to the view '?' (help) in the GUI for details.
 - Added: Tasker object names are colored in the Diagram view.
 - Fixed: Task with commas in their names do not display correctly in the Diagram view.
 - Fixed: Task names with '[' embedded in can not be found when clicking on it's directory hotlink.
-- Fixed: Diagram is missing bars (|) in some instances.  Bars ares misaligned if the Task is not found.
+- Fixed: Diagram is missing bars (|) in some instances. Bars ares misaligned if the Task is not found.
 
 ## [5.2.0]
 
@@ -517,8 +534,8 @@ All notable changes to this project will be documented in this file!
 ## [5.1.2]
 
 - Added: 'Up Two Levels' has been added to the Map view.
-- Changed: Map view performance has been improved when using the directory hyperlinks for single names that are already in the view.  It goes directly to the single named item in the current view rather than remapping the named item and redrawing the view.
-- Changed: To remap a single named item in the Map view, the single named item must be selected from the GUI and the 'Map' view button must be reselected.  Otherwise, it will simply display the single named item in the existing Map view.
+- Changed: Map view performance has been improved when using the directory hyperlinks for single names that are already in the view. It goes directly to the single named item in the current view rather than remapping the named item and redrawing the view.
+- Changed: To remap a single named item in the Map view, the single named item must be selected from the GUI and the 'Map' view button must be reselected. Otherwise, it will simply display the single named item in the existing Map view.
 - Fixed: Project/Profile/Task/Scene name highlighting is incomplete in the Map view.
 - Fixed: Project/Profile/Task/Scene names with special characters in it are not displaying correctly.
 - Fixed: 'Go to bottom' hotlink in Map view goes beyond the last entry in the list.
@@ -535,7 +552,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Horizontal scroll-bars are not being shown in the GUI views.
 - Fixed: Fetching xml from the Android device is not resetting the single Project/Profile/Task to none.
 - Fixed: Program error if displaying the directory in the Map view.
-- Fixed: Directory names in the Map view that exceeded 40 characters are not displaying correctly.  Now they are truncated with "..." at end.
+- Fixed: Directory names in the Map view that exceeded 40 characters are not displaying correctly. Now they are truncated with "..." at end.
 - Fixed: If working with a Scene-only XML file, specifying a single named item results in program exiting rather than issuing an error message.
 
 ## [5.1.0]
@@ -563,7 +580,7 @@ All notable changes to this project will be documented in this file!
 
 ## [5.0.3 and 5.0.4]
 
-- Added: A message is printed indicating that the error "IMKClient Stall detected, *please Report*..." can be ignored on 'Map' and 'Diagram' views that take a long time to process.
+- Added: A message is printed indicating that the error "IMKClient Stall detected, _please Report_..." can be ignored on 'Map' and 'Diagram' views that take a long time to process.
 - Changed: The background color for the directory has been darkened for dark mode and lightened in light mode to improve readability.
 - Fixed: 'Diagram' view diagrams the entire project if a single Task is selected, rater than the Task's owning Profile.
 - Fixed: 'Timeout=' Task action parameter is improperly formatted in the 'Map' view.
@@ -687,9 +704,9 @@ All notable changes to this project will be documented in this file!
 - Added: The message that the analysis is running in the background has been animated for awareness.
 - Added: The pulldown menus for selecting a single object now includes "None" so that it can be used to clear the selection without having to resort to a 'Reset Settings' in the GUI.
 - Added: Three additional Tasker preferences have been mapped and one has been corrected.
-- Changed: Ai models are now listed alphabetically, with the last-used model listed first.  The default of 'None (llama)' has been removed.
+- Changed: Ai models are now listed alphabetically, with the last-used model listed first. The default of 'None (llama)' has been removed.
 - Fixed: The 'ReRun' command caused the error message: 'Task policy set failed...'.
-- Fixed: If doing a single object (Project/Profile/Task)and doing Tasker Preferences, Preferences were empty.  Display appropriate message in output.
+- Fixed: If doing a single object (Project/Profile/Task)and doing Tasker Preferences, Preferences were empty. Display appropriate message in output.
 - Fixed: Getting XML file from Android device did not reset the local file pointer, causing a conflict between the two.
 
 ## [4.0.7]
@@ -717,11 +734,11 @@ All notable changes to this project will be documented in this file!
 
 - Added: Restore the GUI window to the last-used position and size.
 - Added: The ability to change the prompt used for the Profile/Task analysis has been added.
-- Added: Going forward, if a new release is available, the GUI will provide a "What's New" button.  You will be able to see what is changing before applying the changes.
+- Added: Going forward, if a new release is available, the GUI will provide a "What's New" button. You will be able to see what is changing before applying the changes.
 - Added: Ai Analysis now supports the new OpenAI "gpt-4o" model.
 - Added: Support for Tasker 6.3.8 Beta code.
 - Changed: Widened the GUI window slightly for better readability.
-- Changed: 'Specific Name' items are now available via a pulldown menu.  It is no longer necessary to enter the names through a text input box.
+- Changed: 'Specific Name' items are now available via a pulldown menu. It is no longer necessary to enter the names through a text input box.
 - Changed: The settings file now sorts the colors to use by name.
 - Fixed: The 'Reset' button in the GUI is not resetting the analysis model.
 - Fixed: If 'Get Local XML' is selected in the GUI, the analyze Profile and Task list is not updated.
@@ -840,7 +857,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Properly handle invalid XML files that don't parse.
 - Fixed: Possible loop processing XML code with bad encoding.
 - Added: New runtime argument "-file" is used to point to a specific XML file to use (e.g. -file ~/Downloads/backup.xml) instead of being prompted to select the file.
-- Added: New ability in GUI to list the Android XML files for selection and select the XML file from the list, rather than manually enter the file location.  See README for details.
+- Added: New ability in GUI to list the Android XML files for selection and select the XML file from the list, rather than manually enter the file location. See README for details.
 - Added: The XML file is validated in the GUI before the 'Run' button is selected.
 
 ## [3.1.0] 22-February-2024
@@ -864,7 +881,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Corrected README file to reference the older MapTasker as version 2.6.3 rather than 3.6.3.
 - Changed: Eliminated list style in output to ensure proper alignment of Projects/Profiles/Tasks/Scenes.
 - Changed: Eliminated bullet color runtime option (-cBullet color_name) since there are no longer any bullets.
-- Changed:  Task entry and exit indicator from "<<<" to "⬅".
+- Changed: Task entry and exit indicator from "<<<" to "⬅".
 - Changed: When identifying a Project in the output, such as "Project project_name, put a single quote around the name (e.g. Project 'project_name') for clarity.
 - Added: Disabled Profiles and Tasks now display as [⛔ DISABLED
 
@@ -887,29 +904,29 @@ All notable changes to this project will be documented in this file!
 
 - Changed: The minimum version of Python is now 3.11.7 for TOML file settings support.
 - Changed: README updated to reflect the new minimum version of Python and newer sample screenshots.
-- Changed: Updated prerequisite versions for "customtkinter", "ctkcolorpicker" and "pillow".  Eliminated "packaging" prerequisite.
+- Changed: Updated prerequisite versions for "customtkinter", "ctkcolorpicker" and "pillow". Eliminated "packaging" prerequisite.
 - Changed: The default dark background color has been changed to a dark gray/brown color.
-- Changed: Eliminated the "-save" and "-restore" runtime options.  These are replaced by the "-reset" runtime option.
+- Changed: Eliminated the "-save" and "-restore" runtime options. These are replaced by the "-reset" runtime option.
 - Changed: Force plug-in configuration parameters to appear on separate output lines.
 - Fixed: Unable to get the program version ('-version') if the last run was with the GUI.
 - Fixed: The Task action arguments were being displayed out of order.
 - Fixed: Not handling Task anchors properly.
 - Fixed: Removed "save" and "restore" from the display of runtime options, which caused error messages to appear in the output.
-- Added: The settings are now saved in the TOML format and can be user-viewed and/or edited.  If a saved file is still in the old format, it will automatically be converted.
+- Added: The settings are now saved in the TOML format and can be user-viewed and/or edited. If a saved file is still in the old format, it will automatically be converted.
 - Added: new "tomli_w" prerequisite for TOML file settings support.
 - Added: "Time Zone" to the Task action "Parse/Format DateTime".
 - Added: "Configuration Parameters" for Plugin actions.
 - Added: "AutoCast" plug-in recognition.
-- Added: If fetching the backup XML file from the Android device, display the 'android_...' settings in the GUI.
+- Added: If fetching the backup XML file from the Android device, display the 'android\_...' settings in the GUI.
 
 ## [2.6.3]
 
 - Changed: The runtime options to fetch the backup file from the Android device have changed.
-      See the 'Added" section.  '-backup' is no longer supported.
-      If the old options exist in the saved runtime file, they will automatically be converted to the new runtime option format.
+  See the 'Added" section. '-backup' is no longer supported.
+  If the old options exist in the saved runtime file, they will automatically be converted to the new runtime option format.
 - Changed: The runtime option '-appearance' can no longer be abbreviated as '-a'.
 - Changed: The old format for the saved settings that date back to the year 2022 is no longer supported.
-- Changed: Updated README to reflect new '-android_...' runtime options.
+- Changed: Updated README to reflect new '-android\_...' runtime options.
 - Changed: The GUI message box now only displays the current message and not any previous messages.
 - Fixed: README had a bad reference to the supplemental information regarding Tkinter.
 - Fixed: If the backup file is not found on the Android device via the GUI, the program ends rather than catching the error in the GUI.
@@ -928,7 +945,7 @@ All notable changes to this project will be documented in this file!
 
 ## [2.6.1]
 
-- Changed: The runtime options are now automatically saved on exit and restored on entry.  The runtime options '-save' and '-restore' have been removed.
+- Changed: The runtime options are now automatically saved on exit and restored on entry. The runtime options '-save' and '-restore' have been removed.
 - Changed: The "Rerun" GUI option has been modified to use PSUTIL to avoid a program error.
 - Changed: The migration functionality to support the older internal backup file format has been removed.
 - Fixed: "Rerun" causes program error.
@@ -973,7 +990,7 @@ All notable changes to this project will be documented in this file!
 - Added: GUI 'Fetch Backup from Android Device' Help button and information added.
 - Added: GUI improved color settings display of changes.
 - Added: GUI single item (Project/Profile/Task) selection status is displayed.
-- Changed: Default display detail level (runtime option 'detail) is now 4.  I was 3.
+- Changed: Default display detail level (runtime option 'detail) is now 4. I was 3.
 - Fixed: Stay in GUI if the cancel button is selected when prompted for the backup file.
 - Fixed: GUI messages are not being cleared before displaying new error messages.
 - Fixed: GUI labels that are reused were displaying previous text in the background.
@@ -1420,7 +1437,7 @@ All notable changes to this project will be documented in this file!
 
        Added: Additional Task actions and Profile configurations recognized
 
-## 6.0 Added: support for colors as arguments -c(type)=color_name  type: Task/Profile/etc
+## 6.0 Added: support for colors as arguments -c(type)=color_name type: Task/Profile/etc
 
        Added: Additional Task actions and Profile configurations recognized
        Fixed: code refinement for better performance
