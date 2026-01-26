@@ -803,3 +803,14 @@ msgstr "Aramalar"
 
 msgid "Called by"
 msgstr "Tarafından arandı"
+
+
+
+msgid "No projects found"
+msgstr "Hiçbir proje bulunamadı"
+
+msgid "No profiles found"
+msgstr "Profil bulunamadı"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Tasker ortamınızı eşlemek için kullanılacak Tasker XML dosyasını bulun"

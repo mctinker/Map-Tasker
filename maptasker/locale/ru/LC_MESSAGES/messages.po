@@ -790,3 +790,14 @@ msgstr "Звонки"
 
 msgid "Called by"
 msgstr "Вызывается"
+
+
+
+msgid "No projects found"
+msgstr "Проекты не найдены"
+
+msgid "No profiles found"
+msgstr "Профили не найдены"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Найдите XML-файл Tasker, который будет использоваться для сопоставления среды Tasker."

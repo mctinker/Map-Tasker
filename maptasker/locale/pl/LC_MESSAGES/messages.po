@@ -807,3 +807,14 @@ msgstr "Połączenia"
 
 msgid "Called by"
 msgstr "Zadzwonił przez"
+
+
+
+msgid "No projects found"
+msgstr "Nie znaleziono projektów"
+
+msgid "No profiles found"
+msgstr "Nie znaleziono profili"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Znajdź plik XML Taskera, którego chcesz użyć do mapowania środowiska Tasker"

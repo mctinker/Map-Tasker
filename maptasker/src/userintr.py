@@ -245,9 +245,9 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # FIX: For Development Only!
+        # CHG: For Development Only!
         # The following lines are for testing only.
-        self.event_handlers.diagram_event()
+        # self.event_handlers.diagram_event()
         # self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
@@ -757,7 +757,7 @@ class MyGui(customtkinter.CTk):
         extra = " "
         if number_value != "":
             response = number_value
-            extra = " to"
+            extra = " to "
         elif toggle_value:
             response = "On"
         else:
@@ -1323,15 +1323,16 @@ class MyGui(customtkinter.CTk):
         return_code = get_xml(debug, appearance_mode)
         # Did we get an error reading the backup file?
         if return_code > 0:
+            none_translated = translate_string("None")
             if return_code == 6:
                 self.display_message_box("Cancel button pressed.\n", "Orange")
-                display_current_file(self, "None")
+                display_current_file(self, none_translated)
             else:
                 self.display_message_box(
                     "Click 'Get Local XML' to try a different XML file.",
                     "Red",
                 )
-                display_current_file(self, "None")
+                display_current_file(self, none_translated)
             return False
 
         # Good return from getting the XML
@@ -2465,7 +2466,6 @@ class EventHandlers:
                     the_view.specific_name_msg = f"{text1} {my_name_translated} '{name_entered}'."
                 else:
                     the_view.specific_name_msg = f"{text2} {my_name_translated}."
-                print("bingo", the_view.specific_name_msg)
             else:
                 the_view.single_name_msg = all_objects
             # Set the names in the pulldown menus and update the pulldown menus.

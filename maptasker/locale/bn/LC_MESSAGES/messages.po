@@ -809,3 +809,14 @@ msgstr "কল"
 
 msgid "Called by"
 msgstr "দ্বারা ডাকা হয়"
+
+
+
+msgid "No projects found"
+msgstr "কোন প্রকল্প পাওয়া যায়নি"
+
+msgid "No profiles found"
+msgstr "কোন প্রোফাইল পাওয়া যায়নি"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "আপনার Tasker পরিবেশ ম্যাপ করতে ব্যবহার করার জন্য Tasker XML ফাইলটি সনাক্ত করুন"

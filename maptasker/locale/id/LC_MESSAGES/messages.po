@@ -795,3 +795,14 @@ msgstr "Panggilan"
 
 msgid "Called by"
 msgstr "Ditelepon oleh"
+
+
+
+msgid "No projects found"
+msgstr "Tidak ada proyek yang ditemukan"
+
+msgid "No profiles found"
+msgstr "Tidak ada profil yang ditemukan"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Temukan file XML Tasker yang akan digunakan untuk memetakan lingkungan Tasker Anda"

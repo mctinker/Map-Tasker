@@ -793,3 +793,14 @@ msgstr "कॉल"
 
 msgid "Called by"
 msgstr "से बुलाया"
+
+
+
+msgid "No projects found"
+msgstr "कोई प्रोजेक्ट नहीं मिला"
+
+msgid "No profiles found"
+msgstr "कोई प्रोफ़ाइल नहीं मिली"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "अपने टास्कर वातावरण को मैप करने के लिए उपयोग करने के लिए टास्कर XML फ़ाइल का पता लगाएँ"

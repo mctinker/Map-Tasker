@@ -1332,19 +1332,21 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     if not return_code:
         return False
 
-    # Eliminate the Dummy
-
+    # Translate "No Profile"
+    # Note: Do NOT translate "None" here since 'display_object_pulldowns' will translate it again.
+    none_translated = "None"
+    noprofile_translated = translate_string("No Profile")
     # Make alphabetical
     if projects_to_display:
         projects_to_display.sort()
-        projects_to_display.insert(0, "None")
+        projects_to_display.insert(0, none_translated)
     if profiles_to_display:
         # Filter out dummy profiles created for Tasks with no Profile.
-        profiles = [profile for profile in profiles_to_display if profile != "No Profile"]
+        profiles = [profile for profile in profiles_to_display if profile != noprofile_translated]
         profiles_to_display = profiles
         profiles_to_display.sort()
-        profiles_to_display.insert(0, "None")
-    tasks_to_display.insert(0, "None")
+        profiles_to_display.insert(0, none_translated)
+    tasks_to_display.insert(0, none_translated)
 
     # Display the object pulldowns in 'Analyze' tab
     self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
@@ -1361,7 +1363,7 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
 
     # Display the object pulldowns in 'Specific Name' tab
     if not projects_to_display:  # If no Projects to display
-        projects_to_display = ["None"]
+        projects_to_display = [translate_string("None")]
     (
         self.specific_project_optionmenu,
         self.specific_profile_optionmenu,
@@ -1416,9 +1418,9 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     else:
         profiles_to_display = [profile for profile in profiles if UNNAMED_ITEM not in profile]
     if not projects_to_display:
-        projects_to_display = ["No projects found"]
+        projects_to_display = [translate_string("No projects found")]
     if not profiles_to_display:
-        profiles_to_display = ["No profiles found"]
+        profiles_to_display = [translate_string("No profiles found")]
 
     # Build list of Task names to display in the GUI pulldown.
     tasks_to_display = list(PrimeItems.tasker_root_elements["all_tasks_by_name"])
@@ -1666,12 +1668,15 @@ def set_tasker_object_names(self: object) -> None:
         (self.single_task_name, _set_single_task_name),
     )
 
+    # Go through handlers and call the appropriate function for a single named item
     for attr_value, func in handlers:
         if attr_value:
+            # We have a single-named item.  Set values and return
             func(self, defaults)
-    # return
+            return
 
-    # _set_default_names(self, defaults)
+    # No single item selected.  Set the defaults.
+    _set_default_names(self, defaults)
 
 
 def _set_single_project_name(self: object, defaults: dict) -> None:

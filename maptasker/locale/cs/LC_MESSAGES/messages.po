@@ -803,3 +803,14 @@ msgstr "hovory"
 
 msgid "Called by"
 msgstr "Volal"
+
+
+
+msgid "No projects found"
+msgstr "Nebyly nalezeny žádné projekty"
+
+msgid "No profiles found"
+msgstr "Nebyly nalezeny žádné profily"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Vyhledejte soubor Tasker XML, který chcete použít k mapování prostředí Tasker"

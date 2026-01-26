@@ -973,17 +973,13 @@ msgstr "Sin proyecto"
 
 msgid "Color"
 msgstr "Color"
-
-
 msgid "Debug"
 msgstr "Depurar"
-
-
 msgid "Colors"
 msgstr "Bandera"
-
 msgid "Calls"
 msgstr "llamadas"
-
 msgid "Called by"
 msgstr "Llamado por"
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Localice el archivo XML de Tasker que utilizará para asignar su entorno de Tasker."

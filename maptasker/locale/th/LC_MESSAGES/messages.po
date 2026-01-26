@@ -807,3 +807,14 @@ msgstr "โทร"
 
 msgid "Called by"
 msgstr "เรียกโดย"
+
+
+
+msgid "No projects found"
+msgstr "ไม่พบโครงการ"
+
+msgid "No profiles found"
+msgstr "ไม่พบโปรไฟล์"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "ค้นหาไฟล์ XML ของ Tasker เพื่อใช้ในการแมปสภาพแวดล้อม Tasker ของคุณ"

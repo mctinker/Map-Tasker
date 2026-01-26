@@ -2,12 +2,12 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.0.3] ??-Jan-2026 # FIX
+## [10.0.3] 27-Jan-2026
 
 ### Added
 
 - Added: Additional plugins are now recognized: AutoBarCode, ADB Shell, Watchmaker, TouchTask, Blockada, Sleep as Android, FolderSync, Pushbullet, AutoMail
-- Added: Minor language translations added to the Diagram view.
+- Added: Language translations added to the Diagram view.
 
 ### Changed
 

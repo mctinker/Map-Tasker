@@ -811,3 +811,14 @@ msgstr "કૉલ્સ"
 
 msgid "Called by"
 msgstr "દ્વારા બોલાવવામાં આવે છે"
+
+
+
+msgid "No projects found"
+msgstr "કોઈ પ્રોજેક્ટ મળ્યા નથી"
+
+msgid "No profiles found"
+msgstr "કોઈ પ્રોફાઇલ્સ મળી નથી"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "તમારા Tasker પર્યાવરણને મેપ કરવા માટે ઉપયોગમાં લેવા માટે Tasker XML ફાઇલ શોધો"

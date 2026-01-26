@@ -793,3 +793,14 @@ msgstr "Chiamate"
 
 msgid "Called by"
 msgstr "Chiamato da"
+
+
+
+msgid "No projects found"
+msgstr "Nessun progetto trovato"
+
+msgid "No profiles found"
+msgstr "Nessun profilo trovato"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Individua il file XML Tasker da utilizzare per mappare il tuo ambiente Tasker"

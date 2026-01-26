@@ -16,7 +16,7 @@ from json import dumps, loads
 from pathlib import Path
 from tkinter import TkVersion, messagebox
 
-# importing askopenfile (from class filedialog) and messagebox functionsy
+# importing askopenfile (from class filedialog) and messagebox functions
 from tkinter.filedialog import askopenfile
 
 import maptasker.src.progargs as get_arguments
@@ -25,7 +25,7 @@ from maptasker.src.config import DARK_MODE, GUI
 from maptasker.src.error import error_handler
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getbakup import get_backup_file
-from maptasker.src.maputil2 import log_startup_values
+from maptasker.src.maputil2 import log_startup_values, translate_string
 from maptasker.src.maputils import exit_program
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
@@ -247,7 +247,7 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
         # if this is not the first time ever that we have run (run_counter < 1),
         # and not running from the GUI.
         if not PrimeItems.file_to_get and run_counter < 1 and not GUI:
-            msg = "Locate the Tasker XML file to use to map your Tasker environment"
+            msg = translate_string("Locate the Tasker XML file to use to map your Tasker environment")
             messagebox.showinfo("MapTasker", msg)
 
         # Open and read the file...

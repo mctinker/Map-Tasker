@@ -262,6 +262,8 @@ def print_all_tasks(
     # Keep track of the "|" bars in the output lines.
     last_upward_bar = []
     tasks_length = len(tasks)
+    line_left_arrow_ascii = "&#11013;"
+    line_right_arrow_ascii = "&#11157;"
 
     # Now process each Task in the Profile.
     for num, task in enumerate(tasks):
@@ -276,6 +278,10 @@ def print_all_tasks(
         # First we must find our real Task element that matches this "task".
         # Strip the extra stuff out of the task name
         tname = task["name"].split("&nbsp;")[0]
+        if line_left_arrow_ascii in tname:
+            tname = tname.split(line_left_arrow_ascii)[0].strip()
+        elif line_right_arrow_ascii in tname:
+            tname = tname.split(line_right_arrow_ascii)[0].strip()
         task["name"] = tname
 
         # Is it in the master list of all Task names in the XML?
@@ -1619,13 +1625,9 @@ def build_network_map(data: dict) -> None:
     # Translate the output lines if needed.  Can't translate anything that has diagram lines
     if PrimeItems.program_arguments["language"] not in ("English", "Arabic"):
         no_project = translate_string("No Project")
-        # FIX Force the following the the same length as the original English text.
         calls = translate_string("Calls")
         called_by = translate_string("Called by")
         for i, line in enumerate(PrimeItems.netmap_output):
-            # line = line.replace("No Project", no_project)
-            # line = line.replace("[Calls", f"[{calls}")
-            # line = line.replace("[Called by", f"[{called_by}")
             # Use the helper function instead of standard .replace()
             newline = replace_maintain_column(line, "No Project", no_project)
             newline = replace_maintain_column(newline, "[Calls", f"[{calls}")

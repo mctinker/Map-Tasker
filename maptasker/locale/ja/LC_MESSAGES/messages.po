@@ -792,3 +792,14 @@ msgstr "電話"
 
 msgid "Called by"
 msgstr "呼び出された人"
+
+
+
+msgid "No projects found"
+msgstr "プロジェクトが見つかりませんでした"
+
+msgid "No profiles found"
+msgstr "プロファイルが見つかりません"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Tasker 環境のマッピングに使用する Tasker XML ファイルを見つけます。"

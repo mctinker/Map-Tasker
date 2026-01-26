@@ -809,3 +809,14 @@ msgstr "κλήσεις"
 
 msgid "Called by"
 msgstr "Κάλεσαν από"
+
+
+
+msgid "No projects found"
+msgstr "Δεν βρέθηκαν έργα"
+
+msgid "No profiles found"
+msgstr "Δεν βρέθηκαν προφίλ"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Εντοπίστε το αρχείο Tasker XML που θα χρησιμοποιήσετε για τη χαρτογράφηση του περιβάλλοντος Tasker σας"

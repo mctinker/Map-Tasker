@@ -809,3 +809,14 @@ msgstr "Дзвінки"
 
 msgid "Called by"
 msgstr "Викликаний"
+
+
+
+msgid "No projects found"
+msgstr "Проекти не знайдено"
+
+msgid "No profiles found"
+msgstr "Профілі не знайдено"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Знайдіть XML-файл Tasker, щоб використати його для відображення середовища Tasker"

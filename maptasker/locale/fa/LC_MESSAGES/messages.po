@@ -809,3 +809,14 @@ msgstr "تماس می گیرد"
 
 msgid "Called by"
 msgstr "توسط"
+
+
+
+msgid "No projects found"
+msgstr "هیچ پروژه ای یافت نشد"
+
+msgid "No profiles found"
+msgstr "هیچ پروفایلی پیدا نشد"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "فایل Tasker XML را برای نقشه برداری از محیط Tasker خود پیدا کنید"

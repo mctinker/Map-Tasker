@@ -803,3 +803,14 @@ msgstr "Simu"
 
 msgid "Called by"
 msgstr "Inaitwa na"
+
+
+
+msgid "No projects found"
+msgstr "Hakuna miradi iliyopatikana"
+
+msgid "No profiles found"
+msgstr "Hakuna wasifu uliopatikana"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Tafuta faili ya Tasker XML ya kutumia kuweka ramani ya mazingira yako ya Tasker"

@@ -701,3 +701,14 @@ msgstr "通话"
 
 msgid "Called by"
 msgstr "呼叫者"
+
+
+
+msgid "No projects found"
+msgstr "没有找到项目"
+
+msgid "No profiles found"
+msgstr "未找到个人资料"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "找到用于映射 Tasker 环境的 Tasker XML 文件"

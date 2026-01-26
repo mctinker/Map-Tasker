@@ -809,3 +809,14 @@ msgstr "Cuộc gọi"
 
 msgid "Called by"
 msgstr "Được gọi bởi"
+
+
+
+msgid "No projects found"
+msgstr "Không tìm thấy dự án nào"
+
+msgid "No profiles found"
+msgstr "Không tìm thấy hồ sơ nào"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Xác định vị trí tệp XML của Tác vụ sẽ sử dụng để ánh xạ môi trường Tác vụ của bạn"

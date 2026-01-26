@@ -788,3 +788,14 @@ msgstr "المكالمات"
 
 msgid "Called by"
 msgstr "دعا بواسطة"
+
+
+
+msgid "No projects found"
+msgstr "لم يتم العثور على مشاريع"
+
+msgid "No profiles found"
+msgstr "لم يتم العثور على أي ملفات شخصية"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "حدد موقع ملف تاسكر XML لاستخدامه لتعيين بيئة تاسكر الخاصة بك"

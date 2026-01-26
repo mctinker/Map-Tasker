@@ -814,3 +814,14 @@ msgstr "کالز"
 
 msgid "Called by"
 msgstr "بذریعہ کہا جاتا ہے"
+
+
+
+msgid "No projects found"
+msgstr "کوئی پروجیکٹ نہیں ملا"
+
+msgid "No profiles found"
+msgstr "کوئی پروفائلز نہیں ملا"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "اپنے ٹاسکر کے ماحول کو نقشہ بنانے کے لئے استعمال کرنے کے لئے ٹاسکر XML فائل کا پتہ لگائیں"

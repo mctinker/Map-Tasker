@@ -793,3 +793,14 @@ msgstr "Samtal"
 
 msgid "Called by"
 msgstr "Ringde av"
+
+
+
+msgid "No projects found"
+msgstr "Inga projekt hittades"
+
+msgid "No profiles found"
+msgstr "Inga profiler hittades"
+
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Leta reda på Tasker XML-filen som ska användas för att kartlägga din Tasker-miljö"
