@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+"""Get/Put XML file"""
 
 #                                                                                      #
 # getbakup: get the backup file directly from the Android device                       #
@@ -19,7 +20,7 @@ def write_out_backup_file(file_contents: bin) -> None:
     """
     We've read in the xml backup file.  Now save it for processing.
 
-        :param file_contents: binary contents of backup xml file
+        :param file_contents: binary contents of XML file
         :return: Nothing
     """
     # Store the output in the current directory
@@ -75,15 +76,16 @@ def substring_after_last(string: str, char: chr) -> str:
     return "" if index == -1 else string[index + 1 :]
 
 
-# Set up to fetch the Tasker backup xml file from the Android device running
+# Set up to fetch the Tasker XML file from the Android device running
 def get_backup_file() -> str:
     """
-    Set up to fetch the Tasker backup xml file from the Android device running
+    Set up to fetch the Tasker XML file from the Android device running
     the Tasker server
 
         :return: The name of the backup file (e.g. backup.xml)
     """
-    from maptasker.src.maputils import http_request
+    # Perform a lazy import to avoid a circular-import error.
+    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
 
     # If ruinning from the GUI, then we have already gotten the file. Just return the name on the local drive.add
     if PrimeItems.program_arguments["gui"]:

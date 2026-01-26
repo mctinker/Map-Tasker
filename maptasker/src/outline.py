@@ -128,6 +128,8 @@ def do_task_actions(
         if any(child.tag == "code" and child.text == "130" for child in action):
             perform_task_name = next((s.text for s in action.findall("Str")), None)
             if perform_task_name:
+                # Just get ther task name and not the whole output line
+                task["name"] = task["name"].split("&nbsp;")[0]
                 _update_caller_and_called_tasks(task, perform_task_name)
 
 

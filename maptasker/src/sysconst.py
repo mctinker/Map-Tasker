@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "10.0.1"
+VERSION = "10.0.3"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -259,16 +259,19 @@ TABLE_BORDER = f"\n<style> table, td, th {{ padding: 5px; border: 2px solid {TAB
 NOW_TIME = datetime.now()  # noqa: DTZ005
 
 OPENAI_MODELS = [
+    "gpt-5.2",
+    "gpt-5.2-pro",
+    "gpt-5.1",
     "gpt-3.5-turbo",
+    "gpt-5",
+    "gpt-5-mini",
+    "gpt-5-nano",
     "gpt-4o",
     "gpt-4o-latest",
     "gpt-4o-mini",
     "gpt-4.1",
     "gpt-4.1-mini",
     "gpt-4.1-nano",
-    "gpt-5",
-    "gpt-5-mini",
-    "gpt-5-nano",
     "o1-mini",
     "o1-pro",
     "o3",
@@ -296,8 +299,10 @@ LLAMA_MODELS = [
     "tinyllama",
 ]
 ANTHROPIC_MODELS = [
-    "claude-3-7-sonnet-latest",
+    "claude-sonnet-4-5",
+    "claude-haiku-4-5",
     "claude-3-5-haiku-latest",
+    "claude-opus-4-5",
     "claude-opus-4-0",
     "claude-opus-4-1",
     "claude-sonnet-4-0",
@@ -305,8 +310,8 @@ ANTHROPIC_MODELS = [
 ]
 DEEPSEEK_MODELS = ["deepseek-chat"]
 GEMINI_MODELS = [
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
+    "gemini-3-pro",
+    "gemini-3-flash",
     "gemini-2.5-flash",
     "gemini-2.5-pro",
 ]
@@ -346,3 +351,6 @@ SCENE_TASK_TYPES = {
 
 # GUI Tab Names
 TAB_NAMES = ["Specific Name", "Colors", "Analyze", "Debug"]
+
+# Default GUI Window Dimensions: Width x Height + X_offset + Y_offset (no spaces)
+DEFAULT_GUI_WINDOW = "1129x1044+698+145"

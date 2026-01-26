@@ -16,6 +16,7 @@ from __future__ import annotations
 import contextlib
 import gc
 import os
+import re
 from bisect import bisect_left
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -60,7 +61,8 @@ from maptasker.src.guiutils import (
 # Avoid circular import error: guiwins has the proper import statement for configure_progress_bar,
 # the function, of which, is in guiutil2.
 from maptasker.src.guiwins import configure_progress_bar
-from maptasker.src.maputils import find_all_positions
+from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputils import find_all_positions, live_translate_text
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
@@ -68,6 +70,7 @@ from maptasker.src.sysconst import (
     MY_VERSION,
     NOW_TIME,
     SCENE_TASK_TYPES,
+    UNNAMED_ITEM,
     FormatLine,
     logger,
 )
@@ -126,7 +129,7 @@ def add_quotes(
 
     # Correct the name in case it has a Screen element 'click' name associated with it.
     position = task_name.find(":")
-    real_task_name = task_name
+    real_task_name = task_name.split("&nbsp;")[0]
     if position != -1 and "," in task_name:
         scene_task_type_to_check = task_name.split(",")[1].split(":")[0][1:]
         for scene_task_type in SCENE_TASK_TYPES.values():
@@ -259,9 +262,13 @@ def print_all_tasks(
     # Keep track of the "|" bars in the output lines.
     last_upward_bar = []
     tasks_length = len(tasks)
+    line_left_arrow_ascii = "&#11013;"
+    line_right_arrow_ascii = "&#11157;"
 
     # Now process each Task in the Profile.
     for num, task in enumerate(tasks):
+        if UNNAMED_ITEM in task["name"]:
+            continue
         # Determine if this is an entry/exit combo.
         task_type = (" (entry)" if num == 0 else " (exit)") if tasks_length == 2 else ""
 
@@ -269,9 +276,18 @@ def print_all_tasks(
         called_by_tasks = ""
 
         # First we must find our real Task element that matches this "task".
+        # Strip the extra stuff out of the task name
+        tname = task["name"].split("&nbsp;")[0]
+        if line_left_arrow_ascii in tname:
+            tname = tname.split(line_left_arrow_ascii)[0].strip()
+        elif line_right_arrow_ascii in tname:
+            tname = tname.split(line_right_arrow_ascii)[0].strip()
+        task["name"] = tname
+
         # Is it in the master list of all Task names in the XML?
-        if PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]:
-            prime_task = PrimeItems.tasker_root_elements["all_tasks_by_name"][task["name"]]
+        task_name = PrimeItems.tasker_root_elements["all_tasks_by_name"][tname]
+        if task_name:
+            prime_task = task_name
             # Now see if this Task has any "called_by" Tasks.
             with contextlib.suppress(KeyError):
                 called_by_tasks = f" [Called by {line_left_arrow} {flatten_with_quotes(prime_task['called_by'])}]"
@@ -380,7 +396,7 @@ def print_all_scenes(scenes: list) -> None:
     filler = f"{blank * 2}"
     scene_counter = 0
     output_scene_lines = [filler, filler, filler]
-    header = False
+    scenes_translated = translate_string("Scenes:")
     task_list = []
     # Empty line to start
     add_output_line(" ")
@@ -390,9 +406,7 @@ def print_all_scenes(scenes: list) -> None:
         scene_counter += 1
         if scene_counter > 8:
             # We have 8 columns.  Print them out and reset.
-            include_heading(f"{blank * 7}Scenes:", output_scene_lines)
-
-            header = True
+            include_heading(f"{blank * 7}{scenes_translated}", output_scene_lines)
             print_3_lines(output_scene_lines)
             scene_counter = 1
             output_scene_lines = [filler, filler, filler]
@@ -408,14 +422,13 @@ def print_all_scenes(scenes: list) -> None:
         )
 
     # Print any remaining Scenes
-    if not header:
-        include_heading(f"{blank * 7}Scenes:", output_scene_lines)
+    include_heading(f"{blank * 7}{scenes_translated}", output_scene_lines)
     print_3_lines(output_scene_lines)
 
     # Print out the Scenes' Tasks
     for task in task_list:
         # Output the Task
-        found_tasks, last_upward_bar, output_task_lines = output_the_task(
+        _found_tasks, _last_upward_bar, output_task_lines = output_the_task(
             True,
             [],
             task[0],
@@ -1185,10 +1198,13 @@ def cleanup_missing_bars(output_lines: list, num: int, position: int) -> list:
                 return -1
             else:
                 previous_line_num -= 1
+                if previous_line_num == -1:
+                    break
                 new_line = output_lines[previous_line_num]
         return previous_line_num
 
     previous_line_num = num - 1
+
     # Backup a position if "╰" is found just before position.
     position = adjust_position_for_arrow(position)
 
@@ -1251,7 +1267,7 @@ def cleanup_diagram(
             right_arrow_corner_down,
             left_arrow_corner_up,
         ]
-        substr, position = find_first_substring_position(line, special_deliminaters)
+        _substr, position = find_first_substring_position(line, special_deliminaters)
         if position != -1 and line[position - 1][0] == " ":
             output_lines = cleanup_missing_bars(output_lines, num, position)
 
@@ -1332,7 +1348,7 @@ def handle_calls(output_lines: list) -> None:
     - Remove all icons from the names to ensure arrow alignment
     """
     # Display a progress bar if coming from the GUI.
-    progress = configure_progress_bar(output_lines, "Diagram")
+    progress = configure_progress_bar(None, output_lines, "Diagram")
 
     # Go through the output and add blanks above the called tasks, one for each caller.
     output_lines = add_blanks_above_called_tasks(output_lines)
@@ -1527,7 +1543,56 @@ def remove_empty_strings(lst: list) -> list:
     return [s for s in lst if not all(char in (bar, " ", "\\") for char in s)]
 
 
-# Process all Projects
+def replace_maintain_column(line: str, target: str, replacement: str) -> str:
+    """
+    Replaces target with replacement.
+    1. Splits line by '│', '▼', '▲'.
+    2. Performs replacement in the text sections.
+    3. Pads with spaces if the new text is shorter.
+    4. Truncates the text if it is longer than the original section
+       (ensuring it never overwrites/moves the special characters).
+    """
+    if target not in line:
+        return line
+
+    # Split by the special characters, keeping them in the list
+    parts = re.split(r"([│▼▲])", line)
+    new_parts = []
+
+    for part in parts:
+        # If this part is one of our special markers, keep it exactly as is
+        if part in ["│", "▼", "▲"]:
+            new_parts.append(part)
+            continue
+
+        # If this is a text section containing our target
+        if target in part:
+            original_width = len(part)
+
+            # Perform the replacement
+            new_content = part.replace(target, replacement)
+            current_width = len(new_content)
+
+            if current_width < original_width:
+                # Case 1: Translation is shorter. Pad with spaces.
+                padding_needed = original_width - current_width
+                new_content += " " * padding_needed
+
+            elif current_width > original_width:
+                # Case 2: Translation is longer.
+                # We strictly truncate to the original width.
+                # This ensures the extra characters are "ignored" and do not
+                # overwrite the position of the next special character.
+                new_content = new_content[:original_width]
+
+            new_parts.append(new_content)
+        else:
+            # If target is not in this part, keep it unchanged
+            new_parts.append(part)
+
+    return "".join(new_parts)
+
+
 def build_network_map(data: dict) -> None:
     """
     Builds a network map from project and profile data
@@ -1540,9 +1605,14 @@ def build_network_map(data: dict) -> None:
     - Handles calling relationships between tasks and adds them to the network map output
     """
     # Go through each project
+    project_text = (
+        translate_string("Project:")
+        if PrimeItems.program_arguments["language"] not in ("Arabic", "English")
+        else "Project:"
+    )
     for project, profiles in data.items():
         # Print Project as a box
-        print_box(project, "Project:", 1)
+        print_box(project, project_text, 1)
         # Print all of the Project's Profiles and their Tasks
         print_profiles_and_tasks(project, profiles)
 
@@ -1551,6 +1621,18 @@ def build_network_map(data: dict) -> None:
 
     # Remove lines that only contain bars ( | )
     PrimeItems.netmap_output = remove_empty_strings(PrimeItems.netmap_output)
+
+    # Translate the output lines if needed.  Can't translate anything that has diagram lines
+    if PrimeItems.program_arguments["language"] not in ("English", "Arabic"):
+        no_project = translate_string("No Project")
+        calls = translate_string("Calls")
+        called_by = translate_string("Called by")
+        for i, line in enumerate(PrimeItems.netmap_output):
+            # Use the helper function instead of standard .replace()
+            newline = replace_maintain_column(line, "No Project", no_project)
+            newline = replace_maintain_column(newline, "[Calls", f"[{calls}")
+            newline = replace_maintain_column(newline, "[Called by", f"[{called_by}")
+            PrimeItems.netmap_output[i] = newline
 
 
 # Print the network map.
@@ -1605,7 +1687,9 @@ def network_map(network: dict) -> None:
     )
     add_output_line(" ")
     add_output_line(
-        "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons or Chinese/Korean/Japanese in names can cause minor mis-alignment.",
+        live_translate_text(
+            "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons or Chinese/Korean/Japanese in names can cause minor mis-alignment.",
+        ),
     )
     add_output_line(" ")
     add_output_line(" ")
@@ -1618,15 +1702,20 @@ def network_map(network: dict) -> None:
     if PrimeItems.netmap_output:
         output_dir = f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"  # Get the directory from which we are running.
         first_project = True
+        project_translated = (
+            translate_string("Project:")
+            if PrimeItems.program_arguments["language"] not in ("Arabic", "English")
+            else "Project:"
+        )
         with open(str(output_dir), "w", encoding="utf-8") as mapfile:
             # PrimeItems.printfile = mapfile
             for num, line in enumerate(PrimeItems.netmap_output):
-                # Add spacer if we have hit a Project.
+                # Add spacer if we have hit a Project and it isn't the first one.
                 if (
                     not first_project
                     and box_line in line
                     and num + 1 < len(PrimeItems.netmap_output)
-                    and "Project:" in PrimeItems.netmap_output[num + 1]
+                    and project_translated in PrimeItems.netmap_output[num + 1]
                 ):
                     # Create a spacer line with just bars
                     if bar in PrimeItems.netmap_output[num - 1]:
@@ -1635,12 +1724,16 @@ def network_map(network: dict) -> None:
                         )
                     else:
                         spacer = "\n"
+                    # Add the spacers
                     mapfile.write(spacer)
                     mapfile.write(spacer)
-                first_project = False
+                if project_translated in line:
+                    first_project = False
 
                 # Remove any icons from the line
                 line = remove_icon(line)  # noqa: PLW2901
+
+                # Output the line
                 mapfile.write(f"{line}\n")
 
             mapfile.close()

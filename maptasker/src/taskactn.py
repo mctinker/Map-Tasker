@@ -41,6 +41,7 @@ def ensure_argument_alignment(taction: str) -> str:
     _count_consecutive_substr = count_consecutive_substr
     action_breakdown = taction.replace("\n", "<br>").split("<br>")
     if len(action_breakdown) > 1:
+        # Get the amount of spaces in the first argument and ensure it is the same amount for the rest of the args.
         count_of_spaces = _count_consecutive_substr(action_breakdown[1], "&nbsp;")
         correct_spacing = "&nbsp;" * count_of_spaces
         for index, arg in enumerate(action_breakdown[2:]):
@@ -49,17 +50,14 @@ def ensure_argument_alignment(taction: str) -> str:
             # Stop adding spacer if this is formatted html for label/taskernet desc.
             if "text-decoration" in action_breakdown[index + 2]:
                 break
-            if _count_consecutive_substr(arg, "&nbsp;") != count_of_spaces:
-                action_breakdown[index + 2] = action_breakdown[index + 2].replace(
-                    "&nbsp;",
-                    "",
-                )
-                # Handle {DISABLED] task indicator at end of config parameters.
-                if action_breakdown[index + 2] == "[&#9940;DISABLED]</span>":
-                    correct_spacing = "&nbsp;" * (count_of_spaces - 18)
 
-                # Now add the correct number of spaces to the start of the line
-                action_breakdown[index + 2] = f"{correct_spacing}{action_breakdown[index + 2]}"
+            # Handle {DISABLED] task indicator at end of config parameters.
+            if action_breakdown[index + 2] == "[&#9940;DISABLED]</span>":
+                correct_spacing = "&nbsp;" * (count_of_spaces - 18)
+
+            # Now add the correct number of spaces to the start of the line
+            action_breakdown[index + 2] = f"{correct_spacing}{action_breakdown[index + 2].replace('&nbsp;', '')}"
+
         # Put it all back together.
         taction = "<br>".join(action_breakdown)
     return taction
@@ -151,6 +149,8 @@ def get_task_actions_and_output(
     4. Output actions list with formatting
     5. Handle errors if no task found
     """
+    line_left_arrow_ascii = "&#11013;"
+    line_right_arrow_ascii = "&#11157;"
     # If the Task is unnamed or we are doing more detail, find the Task.
     if UNNAMED in the_item or PrimeItems.program_arguments["display_detail_level"] > 0:
         # Get the Task name so that we can get the Task xml element
@@ -160,7 +160,12 @@ def get_task_actions_and_output(
             task_name = the_item[: index + len(UNNAMED)]
         else:
             temp_id = "x" if "&#45;&#45;Task:" in list_type else the_item.split("Task ID: ")
+            # Cleanup the task name from any extra stuff added.
             task_name = temp_id[0].split("&nbsp;")[0]
+            if line_left_arrow_ascii in task_name:
+                task_name = task_name.split(line_left_arrow_ascii)[0].strip()
+            elif line_right_arrow_ascii in task_name:
+                task_name = task_name.split(line_right_arrow_ascii)[0].strip()
         # Find the Task
         the_task, task_id = get_value_if_match(
             PrimeItems.tasker_root_elements["all_tasks"],

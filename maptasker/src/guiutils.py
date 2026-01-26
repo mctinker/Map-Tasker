@@ -178,7 +178,7 @@ def get_xml(debug: bool, appearance_mode: str) -> int:
     return get_data_and_output_intro(False)
 
 
-# Get all monospace fonts from TKInter
+# # Get all monospace fonts from TKInter
 def get_mono_fonts() -> None:
     """
     Returns a dictionary of fixed-width fonts
@@ -446,7 +446,7 @@ def check_for_changelog(self) -> None:  # noqa: ANN001
         os.remove(CHANGELOG_FILE)
 
 
-def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
+def add_logo(self, logo_name: str) -> None:  # noqa: ANN001
     """Add a logo to the screen.
 
     Parameters:
@@ -458,14 +458,14 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
     """
     logo_map = {
         "maptasker": (
-            "maptasker_logo_light.png",
-            "maptasker_logo_dark.png",
-            (190, 50),
-            self.sidebar_frame,
-            (0, 0),
-            "0",
-            "0",
-            "n",
+            "maptasker_logo_light.png",  # Light image
+            "maptasker_logo_dark.png",  # Dark image
+            (190, 50),  # Size
+            self.sidebar_frame,  # parent
+            (0, 0),  # Grid position
+            "0",  # Pad x
+            "0",  # Pad y
+            "n",  # Sticky
         ),
         "coffee": (
             "bmc-logo-no-background.png",
@@ -477,7 +477,19 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
             "0",
             "se",
         ),
+        "flag": (
+            "en.png",
+            "en.png",
+            (25, 16),
+            self.sidebar_frame,
+            (17, 0),
+            "10",
+            "0",
+            "se",
+        ),
     }
+    doing_flag = bool(logo_name.startswith("flag"))
+
     # Get the path to our logos:
     # current_dir = directory from which we are running.
     # abspath = path of this source code (userintr.py).
@@ -486,11 +498,28 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
     abspath = os.path.abspath(__file__)
     # cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
     assets_dir = os.path.dirname(abspath).replace("src", "assets")
+
+    # Set up icon for flag
+    if doing_flag:
+        assets_dir = assets_dir + PrimeItems.slash + "icons"
+        language = logo_name.split("flag_")[1]
+        logo_map["flag"] = (
+            f"{language}.png",
+            f"{language}.png",
+            (25, 16),
+            self.sidebar_frame,
+            (17, 0),
+            "10",
+            "0",
+            "se",
+        )
+        logo_name = "flag"
+
     # Switch to our temp directory (assets)
     os.chdir(assets_dir)
 
-    if logo_type in logo_map:
-        light_img, dark_img, size, parent, grid_pos, padx, pady, sticky = logo_map[logo_type]
+    if logo_name in logo_map:
+        light_img, dark_img, size, parent, grid_pos, padx, pady, sticky = logo_map[logo_name]
         my_image = ctk.CTkImage(
             light_image=Image.open(light_img),
             dark_image=Image.open(dark_img),
@@ -513,14 +542,14 @@ def add_logo(self, logo_type: str) -> None:  # noqa: ANN001
             )
         except (FileNotFoundError, TypeError, TclError) as e:
             rutroh_error(
-                f"Error displaying {logo_type} logo: {e}  Unable to attach Tkinter for image.",
+                f"Error displaying {logo_name} logo: {e}  Unable to attach Tkinter for image.",
             )
     else:
         rutroh_error("Invalid logo type")
     # Put the directory back to where it should be.
     os.chdir(current_dir)
 
-    if logo_type == "coffee":
+    if logo_name == "coffee":
         self.coffee_button = add_button(
             self,
             parent,
@@ -574,6 +603,11 @@ def add_label(
         - Places the label in the specified row and column of the frame.
         - Adds horizontal and vertical padding to the label.
         - Aligns the label within its grid cell."""
+    # Configuration
+    char_width_estimate = 9  # Average pixels per character for default font
+    padding = 20  # Internal button padding
+    gap = 5
+
     # Translate the text if we have it.
     text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
 
@@ -597,6 +631,13 @@ def add_label(
         except TclError:
             return None
     label_name.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
+
+    # Save the position for next button placement
+    n = len(text)
+    btn_width = (n * char_width_estimate) + padding
+    start_x = padx[0] if isinstance(padx, tuple) else padx
+    label_name.next_button_position = start_x + btn_width + gap
+    label_name.text_length = len(text)
     return label_name
 
 
@@ -684,7 +725,21 @@ def add_button(
         - Create a custom tkinter button with the given parameters.
         - Place the button in the specified row and column.
         - Add padding and alignment to the button."""
+
+    # Configuration
+    char_width_estimate = 9  # Average pixels per character for default font
+    padding = 20  # Internal button padding
+    gap = (
+        5
+        if PrimeItems.program_arguments["language"]
+        not in ("Japanese", "Korean", "Simplified Chinese", "Traditional Chinese")
+        else 35
+    )  # Gap between buttons, more so for certain languages
     text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+
+    n = len(text)
+    btn_width = (n * char_width_estimate) + padding
+
     if not fg_color:
         fg_color = "#246FB6"
     if not text_color:
@@ -702,6 +757,7 @@ def add_button(
         command=command,
         border_width=border_width,
         text=text,
+        # width=btn_width,
     )
     button_name.grid(
         row=row,
@@ -711,6 +767,10 @@ def add_button(
         pady=pady,
         sticky=sticky,
     )
+
+    start_x = padx[0] if isinstance(padx, tuple) else padx
+    button_name.next_button_position = start_x + btn_width + gap
+    button_name.text_length = len(text)
     return button_name
 
 
@@ -1125,7 +1185,7 @@ def display_object_pulldowns(
 
     # Make sure there is something to display
     if not projects_to_display and not profiles_to_display and not tasks_to_display:
-        _ = add_label(
+        self.current_object_label = add_label(
             self,
             frame,
             "No Projects, Profiles or Tasks to display!",
@@ -1141,7 +1201,7 @@ def display_object_pulldowns(
 
     # Okay, we have some actual data to display
     else:
-        _ = add_label(
+        self.select_project_label = add_label(
             self,
             frame,
             "Select Project to process:",
@@ -1167,7 +1227,7 @@ def display_object_pulldowns(
         )
 
         # Display all of the Profiles for selection.
-        _ = add_label(
+        self.select_profile_label = add_label(
             self,
             frame,
             "Select Profile to process:",
@@ -1233,6 +1293,9 @@ def delete_old_pulldown_menus(self: object) -> None:
         "ai_profile_optionmenu",
         "ai_task_optionmenu",
         "single_label",
+        "select_project_label",
+        "select_profile_label",
+        "task_label",
     ):
         widget = getattr(self, attr, None)
         if widget:
@@ -1269,19 +1332,21 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     if not return_code:
         return False
 
-    # Eliminate the Dummy
-
+    # Translate "No Profile"
+    # Note: Do NOT translate "None" here since 'display_object_pulldowns' will translate it again.
+    none_translated = "None"
+    noprofile_translated = translate_string("No Profile")
     # Make alphabetical
     if projects_to_display:
         projects_to_display.sort()
-        projects_to_display.insert(0, "None")
+        projects_to_display.insert(0, none_translated)
     if profiles_to_display:
         # Filter out dummy profiles created for Tasks with no Profile.
-        profiles = [profile for profile in profiles_to_display if profile != "No Profile"]
+        profiles = [profile for profile in profiles_to_display if profile != noprofile_translated]
         profiles_to_display = profiles
         profiles_to_display.sort()
-        profiles_to_display.insert(0, "None")
-    tasks_to_display.insert(0, "None")
+        profiles_to_display.insert(0, none_translated)
+    tasks_to_display.insert(0, none_translated)
 
     # Display the object pulldowns in 'Analyze' tab
     self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
@@ -1298,7 +1363,7 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
 
     # Display the object pulldowns in 'Specific Name' tab
     if not projects_to_display:  # If no Projects to display
-        projects_to_display = ["None"]
+        projects_to_display = [translate_string("None")]
     (
         self.specific_project_optionmenu,
         self.specific_profile_optionmenu,
@@ -1353,9 +1418,9 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     else:
         profiles_to_display = [profile for profile in profiles if UNNAMED_ITEM not in profile]
     if not projects_to_display:
-        projects_to_display = ["No projects found"]
+        projects_to_display = [translate_string("No projects found")]
     if not profiles_to_display:
-        profiles_to_display = ["No profiles found"]
+        profiles_to_display = [translate_string("No profiles found")]
 
     # Build list of Task names to display in the GUI pulldown.
     tasks_to_display = list(PrimeItems.tasker_root_elements["all_tasks_by_name"])
@@ -1379,7 +1444,7 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     return True, projects_to_display, profiles_to_display, tasks_to_display
 
 
-# Build a list of Profiles that are under the given project
+# Build a list of Profiles that are under the given project, and all of their (Tasks) children.
 def build_profiles(
     root: dict,
     profile_ids: list,
@@ -1590,9 +1655,9 @@ def set_tasker_object_names(self: object) -> None:
     display_only_text = "Display only"
     display_only_text = PrimeItems._(display_only_text) if hasattr(PrimeItems, "_") else display_only_text
     defaults = {
-        "project": none_text,
-        "profile": none_text,
-        "task": none_text,
+        "project": self.single_project_name if self.single_project_name else none_text,
+        "profile": self.single_profile_name if self.single_profile_name else none_text,
+        "task": self.single_task_name if self.single_task_name else none_text,
         "display_only": f"{display_only_text} ",
     }
 
@@ -1603,19 +1668,21 @@ def set_tasker_object_names(self: object) -> None:
         (self.single_task_name, _set_single_task_name),
     )
 
+    # Go through handlers and call the appropriate function for a single named item
     for attr_value, func in handlers:
         if attr_value:
+            # We have a single-named item.  Set values and return
             func(self, defaults)
             return
 
+    # No single item selected.  Set the defaults.
     _set_default_names(self, defaults)
 
 
 def _set_single_project_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single project name is available."""
     # Translate string if possible
-    text = translate_string(f"{defaults['display_only']}Project")
-    # text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+    text = f"{defaults['display_only']}{translate_string('Project')}"
 
     self.specific_name_msg = f"{text} '{self.single_project_name}'"
     try:
@@ -1632,7 +1699,7 @@ def _set_single_project_name(self: object, defaults: dict) -> None:
 
 def _set_single_profile_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single profile name is available."""
-    self.specific_name_msg = f"{defaults['display_only']}Profile '{self.single_profile_name}'"
+    self.specific_name_msg = f"{defaults['display_only']}{translate_string('Profile')} {self.single_profile_name}'"
     try:
         self.specific_profile_optionmenu.set(self.single_profile_name)
     except AttributeError:
@@ -1646,7 +1713,7 @@ def _set_single_profile_name(self: object, defaults: dict) -> None:
 
 def _set_single_task_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single task name is available."""
-    self.specific_name_msg = f"{defaults['display_only']}Task '{self.single_task_name}'"
+    self.specific_name_msg = f"{defaults['display_only']}{translate_string('Task')} '{self.single_task_name}'"
     try:
         self.specific_task_optionmenu.set(self.single_task_name)
     except AttributeError:

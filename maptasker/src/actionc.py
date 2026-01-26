@@ -687,6 +687,13 @@ action_codes = {
         category="80",
         canfail="False",
     ),
+    "1260098727t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="WatchMaker Change Watchface",
+        category="",
+        canfail="",
+    ),
     "1269159260t": ActionCode(
         redirect="1040876951t",
         args=[],
@@ -965,6 +972,13 @@ action_codes = {
         category="20",
         canfail="False",
     ),
+    "1365641317t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="AutoBarcodeLite Messages",
+        category="",
+        canfail="",
+    ),
     "137t": ActionCode(
         redirect="",
         args=[
@@ -997,6 +1011,13 @@ action_codes = {
         name="Disable",
         category="110",
         canfail="False",
+    ),
+    "140605548t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="Blokada On/Off",
+        category="",
+        canfail="",
     ),
     "140618776t": ActionCode(
         redirect="1040876951t",
@@ -1197,10 +1218,24 @@ action_codes = {
         category="",
         canfail="",
     ),
+    "1494192574t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="AutoMail Get",
+        category="",
+        canfail="",
+    ),
     "14s": ActionCode(
         redirect="",
         args=[],
         name="Power Save Mode",
+        category="",
+        canfail="",
+    ),
+    "1502263066t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="FolderSync",
         category="",
         canfail="",
     ),
@@ -1652,6 +1687,13 @@ action_codes = {
         category="",
         canfail="",
     ),
+    "1694254445t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="AutoBarcode Generate",
+        category="",
+        canfail="",
+    ),
     "16s": ActionCode(
         redirect="",
         args=[],
@@ -2024,6 +2066,13 @@ action_codes = {
         category="52",
         canfail="True",
     ),
+    "1887951895t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="AutoMail Send",
+        category="",
+        canfail="",
+    ),
     "18927444e": ActionCode(
         redirect="",
         args=[
@@ -2257,6 +2306,13 @@ action_codes = {
         name="Test Scene",
         category="102",
         canfail="True",
+    ),
+    "1955641090t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="ADB Shell Toggle Permission",
+        category="",
+        canfail="",
     ),
     "1957670352t": ActionCode(
         redirect="1040876951t",
@@ -3321,6 +3377,13 @@ action_codes = {
         redirect="1040876951t",
         args=[],
         name="AutoInput Unlock Screen",
+        category="",
+        canfail="",
+    ),
+    "277269574t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="PushBullet Push A Notification",
         category="",
         canfail="",
     ),
@@ -5693,6 +5756,13 @@ action_codes = {
         category="",
         canfail="",
     ),
+    "338313797t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="ADB Shell Install APK",
+        category="",
+        canfail="",
+    ),
     "389t": ActionCode(
         redirect="",
         args=[
@@ -7883,6 +7953,13 @@ action_codes = {
         category="102",
         canfail="True",
     ),
+    "488837120t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="ADB Shell Command",
+        category="",
+        canfail="",
+    ),
     "490t": ActionCode(
         redirect="",
         args=[
@@ -9946,6 +10023,13 @@ action_codes = {
         category="55",
         canfail="False",
     ),
+    "90406179t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="Sleep",
+        category="",
+        canfail="",
+    ),
     "905t": ActionCode(
         redirect="",
         args=[
@@ -10234,6 +10318,13 @@ action_codes = {
         name="Night Mode",
         category="40",
         canfail="False",
+    ),
+    "991958998t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="AutoMail Delete",
+        category="",
+        canfail="",
     ),
     "999t": ActionCode(
         redirect="",
