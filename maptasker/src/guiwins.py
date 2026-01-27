@@ -3920,7 +3920,7 @@ def _create_display_options_section(self: ctk) -> None:
         self,
         frame,
         events.detail_selected_event,
-        ["0", "1", "2", "3", "4"],
+        ["0", "1", "2", "3", "4", "5"],
         2,
         0,
         20,
