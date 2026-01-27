@@ -2935,7 +2935,7 @@ class EventHandlers:
 
     def language_selected_event(self, language: str) -> None:
         """
-        Set the language for the GUI and redisplay everything.
+        Set the language for the GUI and redisplay everything.  Basically re-initialize the GUI as per init.
 
         Args:
             language: The language selected by the user.
@@ -2954,6 +2954,12 @@ class EventHandlers:
 
         # Redisplay current file
         display_current_file(the_view, the_view.file)
+
+        # Restore settings so that they are correctly displayed in the GUI
+        temp_args = {}
+        for arg in ARGUMENT_NAMES:
+            temp_args[arg] = getattr(the_view, arg)
+        the_view.extract_settings(temp_args)
 
         # Reset the single item pulldown (this has to go after reset of labels!).
         set_tasker_object_names(the_view)
