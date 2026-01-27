@@ -2,20 +2,32 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.0.3-10.0.4] 27-Jan-2026
+## [10.0.5] 27-Jan-2026  # FIX
 
 ### Added
 
-- Added: Additional plugins are now recognized: AutoBarCode, ADB Shell, Watchmaker, TouchTask, Blockada, Sleep as Android, FolderSync, Pushbullet, AutoMail
-- Added: Language translations added to the Diagram view.
+- Added: Minor language translations in the Map view
 
 ### Changed
 
-- Changed: Code optimization
-- Changed: AI Gemini models '2.0 Flash 'and '2.0 Flash Lite' have been removed by Google and are no longer supported.
+- Changed:
 
 ### Fixed
 
+- Fixed: Some Tasks may not appear in the Map view when displaying TaskerNet descriptions.
+
+### Known Issue
+
+- The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop. Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
+
+## Older History Logs
+
+## [10.0.3-10.0.4] 27-Jan-2026
+
+- Added: Additional plugins are now recognized: AutoBarCode, ADB Shell, Watchmaker, TouchTask, Blockada, Sleep as Android, FolderSync, Pushbullet, AutoMail
+- Added: Language translations added to the Diagram view.
+- Changed: Code optimization
+- Changed: AI Gemini models '2.0 Flash 'and '2.0 Flash Lite' have been removed by Google and are no longer supported.
 - Fixed: If using for the first time, the initial prompt to select the XML file can be hidden by other windows.
 - Fixed: Tasks are not properly identified as 'Entry' or 'Exit' tasks.
 - Fixed: The "Search" button in the Map and Diagram views is not being translated to German.
@@ -27,12 +39,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: The GUI single item selection section of labels is overlayed when changing language.
 - Fixed: The tab names in the GUI are note getting translated.
 - Fixed: Multiple rows of Scenes in the Diagram view are mis-aligned and in the wrong color.
-
-### Known Issue
-
-- The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop. Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
-
-## Older History Logs
 
 ## [10.0.2] 19-Dec-2025
 

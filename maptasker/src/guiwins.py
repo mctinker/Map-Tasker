@@ -436,6 +436,13 @@ class CTkTextview(ctk.CTkFrame):
         # Setup the textbox.
         self._setup_textbox(master)
 
+        # Setup translation text
+        self.translation = {}
+        self.translation["project"] = translate_string("Project: ")
+        self.translation["profile"] = translate_string("Profile: ")
+        self.translation["task"] = translate_string("Task: ")
+        self.translation["scene"] = translate_string("Scene: ")
+
         # Process the data and insert it into the text box.
         self.process_data(the_data)
 
@@ -1811,10 +1818,12 @@ class CTkTextview(ctk.CTkFrame):
               format "Owning <owner_type>: <owner_name>  >>> ".
             - If no match is found, the function returns an empty string.
         """
+        # FIX Translation support
         # Global variables are a special case.
-        pgv = "Project Global Variables"
+        pgv = translate_string("Project Global Variables")
+        owner = translate_string("Owner")
         if pgv == line:
-            return f"<<< Owner={pgv}", "", ""
+            return f"<<< {owner}={pgv}", "", ""
         owner_keys = [
             "Task: ",
             "Profile: ",
@@ -1829,7 +1838,7 @@ class CTkTextview(ctk.CTkFrame):
         ]
         # Identify the possible owners based on what is in the line.
         if "Project: " in line:
-            return "<<< Owner=Project", "", ""
+            return f"<<< {owner}={translate_string('Project')}", "", ""
         if "Profile: " in line:
             owner_keys.pop(0)  # Remove tasks
             owner_keys.pop(0)  # Remove profiles
@@ -1865,7 +1874,7 @@ class CTkTextview(ctk.CTkFrame):
                         line_to_get = str(int(line_to_get) - 1)
                         continue
                 return (
-                    f"<<< Owner={tasker_object}{owner.strip()}",
+                    f"<<< {owner}={tasker_object}{owner.strip()}",
                     line_to_get,
                     prev_line,
                 )
@@ -2830,7 +2839,12 @@ class CTkTextview(ctk.CTkFrame):
                 line_num += 1
 
                 # Restore original text and color
-                value["text"][text_linenum] = save_text
+                value["text"][text_linenum] = (
+                    save_text.replace("Projects...", f"{translate_string('Projects')}...")
+                    .replace("Profiles...", f"{translate_string('Profiles')}...")
+                    .replace("Tasks...", f"{translate_string('Tasks')}...")
+                    .replace("Scenes...", f"{translate_string('Scenes')}...")
+                )
                 value["color"][text_linenum] = save_color
 
             # Output the updated text and color
@@ -3070,8 +3084,28 @@ class CTkTextview(ctk.CTkFrame):
         # Clean up the message content
         message = message.replace("\n\n", "\n").replace("Go to top", "")
 
+        # Translate Tasker object names
+        if PrimeItems.program_arguments["language"] not in ("English"):
+            if "Task: " in message:
+                message = message.replace("Task: ", self.translation["task"])
+            elif "Profile: " in message:
+                message = message.replace("Profile: ", self.translation["profile"])
+            elif "Project: " in message:
+                message = message.replace("Project: ", self.translation["project"])
+            elif "Scene: " in message:
+                message = message.replace("Scene: ", self.translation["scene"])
+            elif "Directory\n" in message:
+                message = message.replace("Directory\n", translate_string("Directory") + "\n")
+            elif "Project Global Variables" in message:
+                message = message.replace(
+                    "Project Global Variables",
+                    translate_string("Project Global Variables"),
+                )
+            elif "Properties..." in message:
+                message = message.replace("Properties...", translate_string("Properties..."))
+
         # Handle special case for 'directory'
-        if previous_value == "directory" and "Project:" in message:
+        if previous_value == "directory" and translate_string("Project: ") in message:
             message = f"\n{message}"
 
         # # Short-circuit for empty messages

@@ -133,16 +133,16 @@ msgid "Project Global Variables"
 msgstr "Variables globales del proyecto"
 
 msgid "Task: "
-msgstr "Tarea:"
+msgstr "Tarea: "
 
 msgid "Profile: "
-msgstr "Perfil:"
+msgstr "Perfil: "
 
 msgid "Project: "
-msgstr "Proyecto:"
+msgstr "Proyecto: "
 
 msgid "Scene: "
-msgstr "Escena:"
+msgstr "Escena: "
 
 msgid "Properties Collision Handling"
 msgstr "Propiedades Manejo de colisiones"
@@ -874,7 +874,8 @@ msgid "Russian"
 msgstr "ruso"
 msgid "ruso"
 msgstr "Russian"
-msgid "Korean"msgstr "coreano"
+msgid "Korean"
+msgstr "coreano"
 msgid "coreano"
 msgstr "Korean"
   

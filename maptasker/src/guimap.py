@@ -102,7 +102,7 @@ def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: 
         for num, line in enumerate(html_lines):
             # Skip empty lines or lines that are just closing span tags
             if not line or line == "</span>" or line.endswith('text-box"><p>'):
-                lines_to_skip += 1
+                # lines_to_skip += 1  # This causes skipping of too many lines!
                 continue
 
             # Special hadnling for style details
