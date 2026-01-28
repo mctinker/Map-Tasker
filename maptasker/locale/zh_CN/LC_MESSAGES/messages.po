@@ -712,3 +712,20 @@ msgstr "未找到个人资料"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "找到用于映射 Tasker 环境的 Tasker XML 文件"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "目录（蓝色条目是热链接）"
+
+msgid "(Unnamed)"
+msgstr "（未命名）"
+
+
+msgid "Up One Level to"
+msgstr "上升一级至"
+
+
+msgid "Owner"
+msgstr "所有者"
+
+msgid "Properties..."
+msgstr "特性..."

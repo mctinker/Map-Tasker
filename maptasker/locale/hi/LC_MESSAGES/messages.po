@@ -804,3 +804,20 @@ msgstr "कोई प्रोफ़ाइल नहीं मिली"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "अपने टास्कर वातावरण को मैप करने के लिए उपयोग करने के लिए टास्कर XML फ़ाइल का पता लगाएँ"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "निर्देशिका (नीली प्रविष्टियाँ हॉटलिंक हैं)"
+
+msgid "(Unnamed)"
+msgstr "(अनाम)"
+
+
+msgid "Up One Level to"
+msgstr "एक स्तर ऊपर तक"
+
+
+msgid "Owner"
+msgstr "मालिक"
+
+msgid "Properties..."
+msgstr "गुण..."

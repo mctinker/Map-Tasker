@@ -820,3 +820,20 @@ msgstr "Профілі не знайдено"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Знайдіть XML-файл Tasker, щоб використати його для відображення середовища Tasker"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Каталог (сині записи - це гарячі посилання)"
+
+msgid "(Unnamed)"
+msgstr "(Без назви)"
+
+
+msgid "Up One Level to"
+msgstr "На один рівень вище"
+
+
+msgid "Owner"
+msgstr "Власник"
+
+msgid "Properties..."
+msgstr "Властивості..."

@@ -820,3 +820,20 @@ msgstr "هیچ پروفایلی پیدا نشد"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "فایل Tasker XML را برای نقشه برداری از محیط Tasker خود پیدا کنید"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "دایرکتوری (ورودی های آبی لینک هات هستند)"
+
+msgid "(Unnamed)"
+msgstr "(بی نام)"
+
+
+msgid "Up One Level to"
+msgstr "یک سطح بالا به"
+
+
+msgid "Owner"
+msgstr "مالک"
+
+msgid "Properties..."
+msgstr "خواص..."

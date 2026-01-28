@@ -820,3 +820,20 @@ msgstr "কোন প্রোফাইল পাওয়া যায়নি
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "আপনার Tasker পরিবেশ ম্যাপ করতে ব্যবহার করার জন্য Tasker XML ফাইলটি সনাক্ত করুন"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "ডিরেক্টরি (নীল এন্ট্রি হটলিংক)"
+
+msgid "(Unnamed)"
+msgstr "(নামহীন)"
+
+
+msgid "Up One Level to"
+msgstr "এক স্তর পর্যন্ত"
+
+
+msgid "Owner"
+msgstr "মালিক"
+
+msgid "Properties..."
+msgstr "বৈশিষ্ট্য..."

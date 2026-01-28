@@ -814,3 +814,20 @@ msgstr "Hakuna wasifu uliopatikana"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Tafuta faili ya Tasker XML ya kutumia kuweka ramani ya mazingira yako ya Tasker"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Saraka (maingizo ya bluu ni viungo vya mawasiliano)"
+
+msgid "(Unnamed)"
+msgstr "(Haijatajwa)"
+
+
+msgid "Up One Level to"
+msgstr "Juu Kiwango kimoja hadi"
+
+
+msgid "Owner"
+msgstr "Mmiliki"
+
+msgid "Properties..."
+msgstr "Sifa..."

@@ -1902,7 +1902,7 @@ def search_substring_in_list(
     """
     matches = []
     # If this is an Unknown Task or Task in warning dict, we need to search for the Task ID in A Scene as well.
-    if "Task: " in substring and "(Unnamed)" in substring:
+    if translate_string("Task: ") in substring and "(Unnamed)" in substring:
         # Get the Task ID.
         task_id = get_taskid_from_unnamed_task(substring)
         second_search_string = f"id:{task_id}"

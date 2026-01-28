@@ -818,3 +818,20 @@ msgstr "Nie znaleziono profili"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Znajdź plik XML Taskera, którego chcesz użyć do mapowania środowiska Tasker"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Katalog (niebieskie wpisy to hotlinki)"
+
+msgid "(Unnamed)"
+msgstr "(Anonimowy)"
+
+
+msgid "Up One Level to"
+msgstr "W górę o jeden poziom do"
+
+
+msgid "Owner"
+msgstr "Właściciel"
+
+msgid "Properties..."
+msgstr "Właściwości..."

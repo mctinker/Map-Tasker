@@ -825,3 +825,20 @@ msgstr "کوئی پروفائلز نہیں ملا"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "اپنے ٹاسکر کے ماحول کو نقشہ بنانے کے لئے استعمال کرنے کے لئے ٹاسکر XML فائل کا پتہ لگائیں"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "ڈائریکٹری (نیلے رنگ کے اندراجات ہاٹ لنکس ہیں)"
+
+msgid "(Unnamed)"
+msgstr "(نامعلوم)"
+
+
+msgid "Up One Level to"
+msgstr "ایک سطح تک"
+
+
+msgid "Owner"
+msgstr "مالک"
+
+msgid "Properties..."
+msgstr "خصوصیات ..."

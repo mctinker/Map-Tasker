@@ -818,3 +818,20 @@ msgstr "ไม่พบโปรไฟล์"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "ค้นหาไฟล์ XML ของ Tasker เพื่อใช้ในการแมปสภาพแวดล้อม Tasker ของคุณ"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "ไดเร็กทอรี (รายการสีน้ำเงินคือฮอตลิงก์)"
+
+msgid "(Unnamed)"
+msgstr "(ไม่มีชื่อ)"
+
+
+msgid "Up One Level to"
+msgstr "ขึ้นหนึ่งระดับถึง"
+
+
+msgid "Owner"
+msgstr "เจ้าของ"
+
+msgid "Properties..."
+msgstr "คุณสมบัติ..."

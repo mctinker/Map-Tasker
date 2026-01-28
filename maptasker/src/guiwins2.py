@@ -533,7 +533,7 @@ class CTkHyperlinkManager:
         # Handle translations
         if PrimeItems.program_arguments["language"] not in ("English"):
             prefix = search_string.split(":")[0] + ": "
-            translated_prefix = f"{guiself.textview.translation[action[:-1]]} "
+            translated_prefix = f"{guiself.textview.translation[action[:-1]]}"
             search_string = search_string.replace(prefix, translated_prefix)
 
         # Get the entire textbox into a list, one item per line.

@@ -799,3 +799,20 @@ msgstr "لم يتم العثور على أي ملفات شخصية"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "حدد موقع ملف تاسكر XML لاستخدامه لتعيين بيئة تاسكر الخاصة بك"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "الدليل (الإدخالات الزرقاء هي روابط سريعة)"
+
+msgid "(Unnamed)"
+msgstr "(غير مسمى)"
+
+
+msgid "Up One Level to"
+msgstr "يصل إلى مستوى واحد إلى"
+
+
+msgid "Owner"
+msgstr "مالك"
+
+msgid "Properties..."
+msgstr "ملكيات..."

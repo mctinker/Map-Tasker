@@ -814,3 +814,20 @@ msgstr "Profil bulunamadı"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Tasker ortamınızı eşlemek için kullanılacak Tasker XML dosyasını bulun"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Dizin (mavi girişler sıcak bağlantılardır)"
+
+msgid "(Unnamed)"
+msgstr "(İsimsiz)"
+
+
+msgid "Up One Level to"
+msgstr "Bir Seviye Yukarıya"
+
+
+msgid "Owner"
+msgstr "Mal sahibi"
+
+msgid "Properties..."
+msgstr "Özellikler..."

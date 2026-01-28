@@ -822,3 +822,20 @@ msgstr "ప్రొఫైల్‌లు ఏవీ కనుగొనబడల�
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "మీ టాస్కర్ వాతావరణాన్ని మ్యాప్ చేయడానికి ఉపయోగించడానికి టాస్కర్ XML ఫైల్‌ను గుర్తించండి"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "డైరెక్టరీ (బ్లూ ఎంట్రీలు హాట్‌లింక్‌లు)"
+
+msgid "(Unnamed)"
+msgstr "(పేరు లేనిది)"
+
+
+msgid "Up One Level to"
+msgstr "ఒక స్థాయి వరకు"
+
+
+msgid "Owner"
+msgstr "యజమాని"
+
+msgid "Properties..."
+msgstr "ఆస్తులు..."

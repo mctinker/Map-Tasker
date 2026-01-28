@@ -822,3 +822,20 @@ msgstr "சுயவிவரங்கள் எதுவும் இல்ல�
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "உங்கள் Tasker சூழலை வரைபடமாக்குவதற்கு Tasker XML கோப்பைக் கண்டறியவும்"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "கோப்பகம் (நீல உள்ளீடுகள் ஹாட்லிங்க்கள்)"
+
+msgid "(Unnamed)"
+msgstr "(பெயரிடப்படாத)"
+
+
+msgid "Up One Level to"
+msgstr "ஒரு நிலை வரை"
+
+
+msgid "Owner"
+msgstr "உரிமையாளர்"
+
+msgid "Properties..."
+msgstr "பண்புகள்..."

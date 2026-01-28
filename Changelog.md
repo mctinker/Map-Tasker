@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Some Tasks may not appear in the Map view when displaying TaskerNet descriptions.
+- Fixed: The Map view (directory) ability to go up one level is not displaying.
 
 ### Known Issue
 

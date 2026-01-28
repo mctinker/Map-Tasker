@@ -984,3 +984,20 @@ msgid "Called by"
 msgstr "Llamado por"
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Localice el archivo XML de Tasker que utilizará para asignar su entorno de Tasker."
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Directorio (las entradas azules son enlaces directos)"
+
+msgid "(Unnamed)"
+msgstr "(Sin nombre)"
+
+
+msgid "Up One Level to"
+msgstr "Subir un nivel a"
+
+
+msgid "Owner"
+msgstr "Dueño"
+
+msgid "Properties..."
+msgstr "Propiedades..."

@@ -818,3 +818,20 @@ msgstr "Profiilia ei löytynyt"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Etsi Tasker XML-tiedosto, jota käytetään Tasker-ympäristösi kartoittamiseen"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Hakemisto (siniset merkinnät ovat pikalinkkejä)"
+
+msgid "(Unnamed)"
+msgstr "(Nimetön)"
+
+
+msgid "Up One Level to"
+msgstr "Yhden tason ylöspäin"
+
+
+msgid "Owner"
+msgstr "Omistaja"
+
+msgid "Properties..."
+msgstr "Ominaisuudet..."

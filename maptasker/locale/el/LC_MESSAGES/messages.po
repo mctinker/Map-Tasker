@@ -820,3 +820,20 @@ msgstr "Δεν βρέθηκαν προφίλ"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Εντοπίστε το αρχείο Tasker XML που θα χρησιμοποιήσετε για τη χαρτογράφηση του περιβάλλοντος Tasker σας"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Κατάλογος (οι μπλε καταχωρήσεις είναι hotlinks)"
+
+msgid "(Unnamed)"
+msgstr "(Ανώνυμος)"
+
+
+msgid "Up One Level to"
+msgstr "Ανεβείτε ένα επίπεδο για να"
+
+
+msgid "Owner"
+msgstr "Ιδιοκτήτης"
+
+msgid "Properties..."
+msgstr "Σκηνικά θέατρου..."

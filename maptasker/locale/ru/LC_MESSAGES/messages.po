@@ -801,3 +801,20 @@ msgstr "Профили не найдены"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Найдите XML-файл Tasker, который будет использоваться для сопоставления среды Tasker."
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Каталог (синие записи — это горячие ссылки)"
+
+msgid "(Unnamed)"
+msgstr "(Безымянный)"
+
+
+msgid "Up One Level to"
+msgstr "Поднимитесь на один уровень до"
+
+
+msgid "Owner"
+msgstr "Владелец"
+
+msgid "Properties..."
+msgstr "Характеристики..."
