@@ -529,6 +529,13 @@ class CTkHyperlinkManager:
         """
         our_view = guiself.mapview
         search_string = f"{action[:-1].capitalize()}: {name}"
+
+        # Handle translations
+        if PrimeItems.program_arguments["language"] not in ("English"):
+            prefix = search_string.split(":")[0] + ": "
+            translated_prefix = f"{guiself.textview.translation[action[:-1]]}"
+            search_string = search_string.replace(prefix, translated_prefix)
+
         # Get the entire textbox into a list, one item per line.
         search_list = our_view.textview_textbox.get("1.0", "end").rstrip().split("\n")
 

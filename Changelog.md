@@ -2,15 +2,15 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.0.5] 27-Jan-2026  # FIX
+## [10.0.5] 29-Jan-2026
 
 ### Added
 
-- Added: Minor language translations in the Map view
+- Added: None
 
 ### Changed
 
-- Changed:
+- Changed: None
 
 ### Fixed
 
