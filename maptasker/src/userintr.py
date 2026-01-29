@@ -245,10 +245,10 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # CHG: For Development Only!
+        # FIX: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        # self.event_handlers.map_event()
+        self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
         # exit()
@@ -2927,7 +2927,6 @@ class EventHandlers:
 
         # Translate and format message
         message = f"{translate_string('Language set to')} {language_translated}."
-        # message = PrimeItems._(message)
 
         # Display message in the GUI
         the_view.clear_messages = True
@@ -2941,7 +2940,8 @@ class EventHandlers:
             language: The language selected by the user.
         """
         the_view = self if self.__class__.__name__ == "MyGui" else self.parent
-        # the_view.language = language
+        if the_view.language == language:
+            return
 
         # Set the translation function in PrimeItems
         self.language_set_event(translate_string(language))
@@ -2960,6 +2960,7 @@ class EventHandlers:
         for arg in ARGUMENT_NAMES:
             temp_args[arg] = getattr(the_view, arg)
         the_view.extract_settings(temp_args)
+        self.tasklimit_event(self.parent.task_action_warning_limit)
 
         # Reset the single item pulldown (this has to go after reset of labels!).
         set_tasker_object_names(the_view)

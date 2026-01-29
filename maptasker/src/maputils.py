@@ -31,7 +31,7 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.format import format_html
 from maptasker.src.getbakup import write_out_backup_file
 from maptasker.src.getids import get_ids
-from maptasker.src.maputil2 import http_request
+from maptasker.src.maputil2 import http_request, translate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.taskerd import get_the_xml_data
@@ -537,7 +537,7 @@ def find_task_pattern(text: str) -> bool:
     # We use re.DOTALL to make '.' match newlines as well, in case 'x' spans multiple lines,
     # though your specific pattern has a newline character.
     # The '\n' at the end of the pattern matches a literal newline character.
-    pattern = r".*?Task .*? has .*? actions\n"
+    pattern = f".*?{translate_string('Task')} .*? has .*? actions\n"
 
     # re.search() scans through the string looking for the first location
     # where the regular expression pattern produces a match.
