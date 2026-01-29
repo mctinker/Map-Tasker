@@ -2535,7 +2535,8 @@ class CTkTextview(ctk.CTkFrame):
                 tags,
             )
             # Are we about to do the directory?
-            if text_content[0] == "Directory\n":  # Using text_content here
+            temp = text_content[0]
+            if isinstance(temp, list) and temp[0].startswith("Directory    (blue entries are hotlinks)"):
                 # Handle the hotlink for going up one or more levels.
                 (
                     new_line_num,
