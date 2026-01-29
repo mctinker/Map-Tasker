@@ -108,13 +108,13 @@ msgstr "Tindakan"
 msgid "Project Global Variables"
 msgstr "Variabel Global Proyek"
 msgid "Task: "
-msgstr "Tugas:"
+msgstr "Tugas: "
 msgid "Profile: "
-msgstr "Profil:"
+msgstr "Profil: "
 msgid "Project: "
-msgstr "Proyek:"
+msgstr "Proyek: "
 msgid "Scene: "
-msgstr "Pemandangan:"
+msgstr "Pemandangan: "
 msgid "Properties Collision Handling"
 msgstr "Penanganan Tabrakan Properti"
 msgid "Run Both Together"
@@ -806,3 +806,20 @@ msgstr "Tidak ada profil yang ditemukan"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Temukan file XML Tasker yang akan digunakan untuk memetakan lingkungan Tasker Anda"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Direktori (entri biru adalah hotlink)"
+
+msgid "(Unnamed)"
+msgstr "(Tanpa nama)"
+
+
+msgid "Up One Level to"
+msgstr "Naik Satu Tingkat ke"
+
+
+msgid "Owner"
+msgstr "Pemilik"
+
+msgid "Properties..."
+msgstr "Properti..."

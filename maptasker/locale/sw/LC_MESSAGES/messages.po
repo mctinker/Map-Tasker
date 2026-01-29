@@ -108,13 +108,13 @@ msgstr "Kitendo"
 msgid "Project Global Variables"
 msgstr "Vigezo vya Mradi wa Kimataifa"
 msgid "Task: "
-msgstr "Kazi:"
+msgstr "Kazi: "
 msgid "Profile: "
-msgstr "Wasifu:"
+msgstr "Wasifu: "
 msgid "Project: "
-msgstr "Mradi:"
+msgstr "Mradi: "
 msgid "Scene: "
-msgstr "Onyesho:"
+msgstr "Onyesho: "
 msgid "Properties Collision Handling"
 msgstr "Ushughulikiaji wa Mgongano wa Mali"
 msgid "Run Both Together"
@@ -814,3 +814,20 @@ msgstr "Hakuna wasifu uliopatikana"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Tafuta faili ya Tasker XML ya kutumia kuweka ramani ya mazingira yako ya Tasker"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Saraka (maingizo ya bluu ni viungo vya mawasiliano)"
+
+msgid "(Unnamed)"
+msgstr "(Haijatajwa)"
+
+
+msgid "Up One Level to"
+msgstr "Juu Kiwango kimoja hadi"
+
+
+msgid "Owner"
+msgstr "Mmiliki"
+
+msgid "Properties..."
+msgstr "Sifa..."

@@ -108,13 +108,13 @@ msgstr "행동"
 msgid "Project Global Variables"
 msgstr "프로젝트 전역 변수"
 msgid "Task: "
-msgstr "일:"
+msgstr "일: "
 msgid "Profile: "
-msgstr "윤곽:"
+msgstr "윤곽: "
 msgid "Project: "
-msgstr "프로젝트:"
+msgstr "프로젝트: "
 msgid "Scene: "
-msgstr "장면:"
+msgstr "장면: "
 msgid "Properties Collision Handling"
 msgstr "속성 충돌 처리"
 msgid "Run Both Together"
@@ -800,3 +800,20 @@ msgstr "프로필을 찾을 수 없습니다."
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Tasker 환경을 매핑하는 데 사용할 Tasker XML 파일을 찾습니다."
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "디렉터리(파란색 항목은 핫링크임)"
+
+msgid "(Unnamed)"
+msgstr "(이름 없음)"
+
+
+msgid "Up One Level to"
+msgstr "한 수준 위로"
+
+
+msgid "Owner"
+msgstr "소유자"
+
+msgid "Properties..."
+msgstr "속성..."

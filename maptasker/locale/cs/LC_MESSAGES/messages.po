@@ -108,13 +108,13 @@ msgstr "Akce"
 msgid "Project Global Variables"
 msgstr "Globální proměnné projektu"
 msgid "Task: "
-msgstr "Úkol:"
+msgstr "Úkol: "
 msgid "Profile: "
-msgstr "Profil:"
+msgstr "Profil: "
 msgid "Project: "
-msgstr "Projekt:"
+msgstr "Projekt: "
 msgid "Scene: "
-msgstr "Scéna:"
+msgstr "Scéna: "
 msgid "Properties Collision Handling"
 msgstr "Vlastnosti Zvládání kolizí"
 msgid "Run Both Together"
@@ -814,3 +814,20 @@ msgstr "Nebyly nalezeny žádné profily"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Vyhledejte soubor Tasker XML, který chcete použít k mapování prostředí Tasker"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Adresář (modré položky jsou horké odkazy)"
+
+msgid "(Unnamed)"
+msgstr "(Bez názvu)"
+
+
+msgid "Up One Level to"
+msgstr "O úroveň výš"
+
+
+msgid "Owner"
+msgstr "Majitel"
+
+msgid "Properties..."
+msgstr "Vlastnosti..."

@@ -108,13 +108,13 @@ msgstr "Hoạt động"
 msgid "Project Global Variables"
 msgstr "Biến toàn cầu của dự án"
 msgid "Task: "
-msgstr "Nhiệm vụ:"
+msgstr "Nhiệm vụ: "
 msgid "Profile: "
-msgstr "Hồ sơ:"
+msgstr "Hồ sơ: "
 msgid "Project: "
-msgstr "Dự án:"
+msgstr "Dự án: "
 msgid "Scene: "
-msgstr "Bối cảnh:"
+msgstr "Bối cảnh: "
 msgid "Properties Collision Handling"
 msgstr "Xử lý va chạm thuộc tính"
 msgid "Run Both Together"
@@ -820,3 +820,20 @@ msgstr "Không tìm thấy hồ sơ nào"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Xác định vị trí tệp XML của Tác vụ sẽ sử dụng để ánh xạ môi trường Tác vụ của bạn"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Thư mục (mục màu xanh là liên kết nóng)"
+
+msgid "(Unnamed)"
+msgstr "(Vô danh)"
+
+
+msgid "Up One Level to"
+msgstr "Lên một cấp để"
+
+
+msgid "Owner"
+msgstr "Người sở hữu"
+
+msgid "Properties..."
+msgstr "Của cải..."

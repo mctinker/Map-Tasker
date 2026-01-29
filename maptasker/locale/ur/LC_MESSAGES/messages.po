@@ -108,13 +108,13 @@ msgstr "ایکشن"
 msgid "Project Global Variables"
 msgstr "پروجیکٹ عالمی متغیر"
 msgid "Task: "
-msgstr "کام:"
+msgstr "کام: "
 msgid "Profile: "
-msgstr "فروری:"
+msgstr "فروری: "
 msgid "Project: "
-msgstr "پروجیکٹ:"
+msgstr "پروجیکٹ: "
 msgid "Scene: "
-msgstr "منظر:"
+msgstr "منظر: "
 msgid "Properties Collision Handling"
 msgstr "پراپرٹیز تصادم ہینڈلنگ"
 msgid "Run Both Together"
@@ -825,3 +825,20 @@ msgstr "کوئی پروفائلز نہیں ملا"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "اپنے ٹاسکر کے ماحول کو نقشہ بنانے کے لئے استعمال کرنے کے لئے ٹاسکر XML فائل کا پتہ لگائیں"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "ڈائریکٹری (نیلے رنگ کے اندراجات ہاٹ لنکس ہیں)"
+
+msgid "(Unnamed)"
+msgstr "(نامعلوم)"
+
+
+msgid "Up One Level to"
+msgstr "ایک سطح تک"
+
+
+msgid "Owner"
+msgstr "مالک"
+
+msgid "Properties..."
+msgstr "خصوصیات ..."

@@ -108,13 +108,13 @@ msgstr "ક્રિયા"
 msgid "Project Global Variables"
 msgstr "પ્રોજેક્ટ ગ્લોબલ વેરીએબલ્સ"
 msgid "Task: "
-msgstr "કાર્ય:"
+msgstr "કાર્ય: "
 msgid "Profile: "
-msgstr "પ્રોફાઇલ:"
+msgstr "પ્રોફાઇલ: "
 msgid "Project: "
-msgstr "પ્રોજેક્ટ:"
+msgstr "પ્રોજેક્ટ: "
 msgid "Scene: "
-msgstr "દ્રશ્ય:"
+msgstr "દ્રશ્ય: "
 msgid "Properties Collision Handling"
 msgstr "ગુણધર્મો અથડામણ હેન્ડલિંગ"
 msgid "Run Both Together"
@@ -822,3 +822,20 @@ msgstr "કોઈ પ્રોફાઇલ્સ મળી નથી"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "તમારા Tasker પર્યાવરણને મેપ કરવા માટે ઉપયોગમાં લેવા માટે Tasker XML ફાઇલ શોધો"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "ડિરેક્ટરી (વાદળી એન્ટ્રીઓ હોટલિંક છે)"
+
+msgid "(Unnamed)"
+msgstr "(અનામી)"
+
+
+msgid "Up One Level to"
+msgstr "એક સ્તર ઉપર"
+
+
+msgid "Owner"
+msgstr "માલિક"
+
+msgid "Properties..."
+msgstr "ગુણધર્મો..."

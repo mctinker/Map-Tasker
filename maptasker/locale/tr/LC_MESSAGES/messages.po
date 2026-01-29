@@ -108,13 +108,13 @@ msgstr "Aksiyon"
 msgid "Project Global Variables"
 msgstr "Projenin Küresel Değişkenleri"
 msgid "Task: "
-msgstr "Görev:"
+msgstr "Görev: "
 msgid "Profile: "
-msgstr "Profil:"
+msgstr "Profil: "
 msgid "Project: "
-msgstr "Proje:"
+msgstr "Proje: "
 msgid "Scene: "
-msgstr "Sahne:"
+msgstr "Sahne: "
 msgid "Properties Collision Handling"
 msgstr "Özellikler Çarpışma Yönetimi"
 msgid "Run Both Together"
@@ -814,3 +814,20 @@ msgstr "Profil bulunamadı"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Tasker ortamınızı eşlemek için kullanılacak Tasker XML dosyasını bulun"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Dizin (mavi girişler sıcak bağlantılardır)"
+
+msgid "(Unnamed)"
+msgstr "(İsimsiz)"
+
+
+msgid "Up One Level to"
+msgstr "Bir Seviye Yukarıya"
+
+
+msgid "Owner"
+msgstr "Mal sahibi"
+
+msgid "Properties..."
+msgstr "Özellikler..."

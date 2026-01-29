@@ -108,13 +108,13 @@ msgstr "Handling"
 msgid "Project Global Variables"
 msgstr "Prosjekt globale variabler"
 msgid "Task: "
-msgstr "Oppgave:"
+msgstr "Oppgave: "
 msgid "Profile: "
-msgstr "Profil:"
+msgstr "Profil: "
 msgid "Project: "
-msgstr "Prosjekt:"
+msgstr "Prosjekt: "
 msgid "Scene: "
-msgstr "Scene:"
+msgstr "Scene: "
 msgid "Properties Collision Handling"
 msgstr "Egenskaper Kollisjonshåndtering"
 msgid "Run Both Together"
@@ -804,3 +804,20 @@ msgstr "Ingen profiler funnet"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Finn Tasker XML-filen som skal brukes til å kartlegge Tasker-miljøet"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Katalog (blå oppføringer er hurtigkoblinger)"
+
+msgid "(Unnamed)"
+msgstr "(Unavngitt)"
+
+
+msgid "Up One Level to"
+msgstr "Opp ett nivå til"
+
+
+msgid "Owner"
+msgstr "Eier"
+
+msgid "Properties..."
+msgstr "Egenskaper..."

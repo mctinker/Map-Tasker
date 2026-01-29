@@ -108,13 +108,13 @@ msgstr "Toiminta"
 msgid "Project Global Variables"
 msgstr "Projektin globaalit muuttujat"
 msgid "Task: "
-msgstr "Tehtävä:"
+msgstr "Tehtävä: "
 msgid "Profile: "
-msgstr "Profiili:"
+msgstr "Profiili: "
 msgid "Project: "
-msgstr "Projekti:"
+msgstr "Projekti: "
 msgid "Scene: "
-msgstr "Näkymä:"
+msgstr "Näkymä: "
 msgid "Properties Collision Handling"
 msgstr "Ominaisuudet Törmäyskäsittely"
 msgid "Run Both Together"
@@ -818,3 +818,20 @@ msgstr "Profiilia ei löytynyt"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Etsi Tasker XML-tiedosto, jota käytetään Tasker-ympäristösi kartoittamiseen"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Hakemisto (siniset merkinnät ovat pikalinkkejä)"
+
+msgid "(Unnamed)"
+msgstr "(Nimetön)"
+
+
+msgid "Up One Level to"
+msgstr "Yhden tason ylöspäin"
+
+
+msgid "Owner"
+msgstr "Omistaja"
+
+msgid "Properties..."
+msgstr "Ominaisuudet..."

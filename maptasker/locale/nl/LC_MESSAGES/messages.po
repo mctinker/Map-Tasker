@@ -110,13 +110,13 @@ msgstr "Actie"
 msgid "Project Global Variables"
 msgstr "Project globale variabelen"
 msgid "Task: "
-msgstr "Taak:"
+msgstr "Taak: "
 msgid "Profile: "
-msgstr "Profiel:"
+msgstr "Profiel: "
 msgid "Project: "
-msgstr "Project:"
+msgstr "Project: "
 msgid "Scene: "
-msgstr "Scène:"
+msgstr "Scène: "
 msgid "Properties Collision Handling"
 msgstr "Eigenschappen Botsingafhandeling"
 msgid "Run Both Together"
@@ -804,3 +804,20 @@ msgstr "Geen profielen gevonden"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Zoek het Tasker XML-bestand dat u wilt gebruiken om uw Tasker-omgeving in kaart te brengen"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Directory (blauwe vermeldingen zijn hotlinks)"
+
+msgid "(Unnamed)"
+msgstr "(Zonder naam)"
+
+
+msgid "Up One Level to"
+msgstr "Eén niveau omhoog naar"
+
+
+msgid "Owner"
+msgstr "Eigenaar"
+
+msgid "Properties..."
+msgstr "Eigenschappen..."

@@ -108,13 +108,13 @@ msgstr "アクション"
 msgid "Project Global Variables"
 msgstr "プロジェクトのグローバル変数"
 msgid "Task: "
-msgstr "タスク："
+msgstr "タスク： "
 msgid "Profile: "
-msgstr "プロフィール："
+msgstr "プロフィール： "
 msgid "Project: "
-msgstr "プロジェクト："
+msgstr "プロジェクト： "
 msgid "Scene: "
-msgstr "シーン："
+msgstr "シーン： "
 msgid "Properties Collision Handling"
 msgstr "プロパティの衝突処理"
 msgid "Run Both Together"
@@ -803,3 +803,20 @@ msgstr "プロファイルが見つかりません"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Tasker 環境のマッピングに使用する Tasker XML ファイルを見つけます。"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "ディレクトリ (青色のエントリはホットリンク)"
+
+msgid "(Unnamed)"
+msgstr "(名前なし)"
+
+
+msgid "Up One Level to"
+msgstr "1 つ上のレベルへ"
+
+
+msgid "Owner"
+msgstr "所有者"
+
+msgid "Properties..."
+msgstr "プロパティ..."

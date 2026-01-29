@@ -108,13 +108,13 @@ msgstr "Azione"
 msgid "Project Global Variables"
 msgstr "Variabili globali del progetto"
 msgid "Task: "
-msgstr "Compito:"
+msgstr "Compito: "
 msgid "Profile: "
-msgstr "Profilo:"
+msgstr "Profilo: "
 msgid "Project: "
-msgstr "Progetto:"
+msgstr "Progetto: "
 msgid "Scene: "
-msgstr "Scena:"
+msgstr "Scena: "
 msgid "Properties Collision Handling"
 msgstr "Proprietà Gestione delle collisioni"
 msgid "Run Both Together"
@@ -804,3 +804,20 @@ msgstr "Nessun profilo trovato"
 
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Individua il file XML Tasker da utilizzare per mappare il tuo ambiente Tasker"
+
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Directory (le voci in blu sono collegamenti rapidi)"
+
+msgid "(Unnamed)"
+msgstr "(Senza nome)"
+
+
+msgid "Up One Level to"
+msgstr "Sali di un livello a"
+
+
+msgid "Owner"
+msgstr "Proprietario"
+
+msgid "Properties..."
+msgstr "Proprietà..."
