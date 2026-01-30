@@ -675,8 +675,6 @@ msgid "Korean"
 msgstr "கொரியானோ"
 msgid "ொரியானோ"
 msgstr "Korean"
-  
-
 msgid "ஸ்பானிஷ்"
 msgstr "Spanish"
 msgid "ஆங்கிலம்"
@@ -787,55 +785,81 @@ msgid "Norwegian"
 msgstr "நார்வேஜியன்"
 msgid "நார்வேஜியன்"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "சுயவிவரம் இல்லை"
-
 msgid "No Project"
 msgstr "திட்டம் இல்லை"
-
-
 msgid "Color"
 msgstr "நிறம்"
-
-
 msgid "Debug"
 msgstr "பிழைத்திருத்தம்"
-
-
 msgid "Colors"
 msgstr "நிறங்கள்"
-
 msgid "Calls"
 msgstr "அழைப்புகள்"
-
 msgid "Called by"
 msgstr "மூலம் அழைக்கப்பட்டது"
-
-
-
 msgid "No projects found"
 msgstr "திட்டங்கள் எதுவும் இல்லை"
-
 msgid "No profiles found"
 msgstr "சுயவிவரங்கள் எதுவும் இல்லை"
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "உங்கள் Tasker சூழலை வரைபடமாக்குவதற்கு Tasker XML கோப்பைக் கண்டறியவும்"
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "கோப்பகம் (நீல உள்ளீடுகள் ஹாட்லிங்க்கள்)"
-
 msgid "(Unnamed)"
 msgstr "(பெயரிடப்படாத)"
-
-
 msgid "Up One Level to"
 msgstr "ஒரு நிலை வரை"
-
-
 msgid "Owner"
 msgstr "உரிமையாளர்"
-
 msgid "Properties..."
 msgstr "பண்புகள்..."
+msgid "TaskerNet Description:"
+msgstr "TaskerNet விளக்கம்:"
+msgid "...with label:"
+msgstr "லேபிளுடன்:"
+msgid "TaskerNet search on:"
+msgstr "TaskerNet தேடல் இதில்:"
+msgid "DISABLED]"
+msgstr "முடக்கப்பட்டது]"
+msgid "Entry Task"
+msgstr "நுழைவு பணி"
+msgid "Exit Task"
+msgstr "பணியிலிருந்து வெளியேறு"
+msgid "description"
+msgstr "விளக்கம்"
+msgid "Launcher"
+msgstr "துவக்கி"
+msgid "CAVEATS:"
+msgstr "எச்சரிக்கைகள்:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- இது எனது சொந்த backup.xml கோப்பில் மட்டுமே சோதிக்கப்பட்டது.  சிக்கல்களுக்கு, அவற்றைப் புகாரளிக்கவும்"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- '(பெயரிடப்படாத)' என அடையாளம் காணப்பட்ட பணிகளுக்கு பெயர் இல்லை மற்றும் அநாமதேயமாகக் கருதப்படுகிறது.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- Tasker புலங்களில் உட்பொதிக்கப்பட்ட HTML (எ.கா. நிறம்=...>') தக்கவைக்க அனைத்து முயற்சிகளும் செய்யப்படுகின்றன.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- '*' உடன் தொடங்கும் சுயவிவரப் பெயர்கள் அநாமதேயமாக/பெயரிடப்படாதவை மற்றும் பெயர் சுயவிவர நிபந்தனைகளைக் கொண்டுள்ளது.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- html உட்பொதிக்கப்பட்ட முதல் செயலைக் கொண்ட பணிப் பெயர்கள் முறையே '{' மற்றும் '}' ஆக மாற்றப்படும் அனைத்து பெரிய மற்றும் குறைவான எழுத்துக்களைக் கொண்டிருக்கும்.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- உட்பொதிக்கப்பட்ட HTML உடன் லேபிள்களின் வடிவமைப்பு மற்றும் TaskerNet விளக்கங்கள் வரைபடக் காட்சியில் முடிந்தவரை நெருக்கமாகக் காட்டப்படும், ஆனால் துல்லியமாக இருக்காது.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- உங்கள் Google API விசை Tasker விருப்பத்தேர்வுகளில் காட்டப்படும்!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- பெரும்பாலான ஆனால் அனைத்து பணி செயல்களும் வரைபடமாக்கப்பட்டுள்ளன, மேலும் அவை அப்படியே காட்டப்படும்.  அதேபோல சுயவிவர நிபந்தனைகள் மற்றும் செருகுநிரல்களுக்கு.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "--d0 விருப்பத்திற்கு, 'பெயரிடப்படாத/அநாமதேய' என அடையாளம் காணப்பட்ட பணிகள் அவற்றின் முதல் செயல் மட்டுமே பட்டியலிடப்படும்....\n டாஸ்கர் செய்வது போலவே.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- செயலற்ற மாறிகள் என்பது இயக்கப்படாத/பயன்படுத்தப்படாத ஒரு பணியில் பயன்படுத்தப்படும் உலகளாவிய மாறிகள் ஆகும்.\n- குறிப்பிடப்படாத மாறிகள் உலகளாவிய மாறிகள் ஆகும், அவை கடந்த காலத்தில் பயன்படுத்தப்பட்டிருக்கலாம், ஆனால் அவை தற்போது குறிப்பிடப்படவில்லை (எ.கா. பணியின் சுயவிவரம் முடக்கப்பட்டுள்ளது).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- '[▶️ VIDEO: url...]' மூலம் அடையாளம் காணப்பட்ட YouTube வீடியோ இணைப்புகள் சூடாக இருக்கும்/'ffmpeg' நிறுவப்பட்டிருந்தால் மட்டுமே கிளிக் செய்ய முடியும்:\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "லினக்ஸ்: 'sudo apt update' மற்றும் 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Winget வழியாக Windows: 'winget install ffmpeg'\n"
+msgid "Refer to"
+msgstr "பார்க்கவும்"

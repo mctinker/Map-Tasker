@@ -769,55 +769,81 @@ msgid "Norwegian"
 msgstr "norvegese"
 msgid "norvegese"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "Nessun profilo"
-
 msgid "No Project"
 msgstr "Nessun progetto"
-
-
 msgid "Color"
 msgstr "Colore"
-
-
 msgid "Debug"
 msgstr "Debug"
-
-
 msgid "Colors"
 msgstr "Colori"
-
 msgid "Calls"
 msgstr "Chiamate"
-
 msgid "Called by"
 msgstr "Chiamato da"
-
-
-
 msgid "No projects found"
 msgstr "Nessun progetto trovato"
-
 msgid "No profiles found"
 msgstr "Nessun profilo trovato"
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Individua il file XML Tasker da utilizzare per mappare il tuo ambiente Tasker"
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "Directory (le voci in blu sono collegamenti rapidi)"
-
 msgid "(Unnamed)"
 msgstr "(Senza nome)"
-
-
 msgid "Up One Level to"
 msgstr "Sali di un livello a"
-
-
 msgid "Owner"
 msgstr "Proprietario"
-
 msgid "Properties..."
 msgstr "Proprietà..."
+msgid "TaskerNet Description:"
+msgstr "Descrizione di TaskerNet:"
+msgid "...with label:"
+msgstr "...con etichetta:"
+msgid "TaskerNet search on:"
+msgstr "TaskerNet cerca su:"
+msgid "DISABLED]"
+msgstr "DISABILITATO]"
+msgid "Entry Task"
+msgstr "Compito di ingresso"
+msgid "Exit Task"
+msgstr "Esci dall'attività"
+msgid "description"
+msgstr "descrizione"
+msgid "Launcher"
+msgstr "Lanciatore"
+msgid "CAVEATS:"
+msgstr "AVVERTENZE:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- Questo è stato testato solo sul mio file backup.xml.  In caso di problemi segnalateli"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- Le attività identificate come '(Senza nome)' non hanno nome e sono considerate anonime.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- Vengono fatti tutti i tentativi per mantenere l'HTML incorporato (ad esempio color=...>') nei campi Tasker.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- I nomi dei profili che iniziano con '*' sono anonimi/senza nome e il nome è costituito dalle condizioni del profilo.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- I nomi delle attività costituiti dalla prima azione che contiene html avranno tutti i caratteri maggiore di e minore di convertiti rispettivamente in '{' e '}'.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- La formattazione delle etichette e delle descrizioni TaskerNet con HTML incorporato viene visualizzata il più vicino possibile nella visualizzazione Mappa, ma potrebbe non essere esatta.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- La tua chiave API di Google viene visualizzata nelle preferenze di Tasker!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- La maggior parte delle azioni Attività, ma non tutte, sono state mappate e verranno visualizzate come tali.  Allo stesso modo per le condizioni del profilo e i plug-in.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- Per l'opzione -d0, le attività identificate come 'Senza nome/Anonime' avranno solo la prima azione elencata....\n proprio come fa Tasker.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- Le variabili inattive sono variabili globali utilizzate in un'attività che non è stata eseguita/utilizzata.\n- Le variabili senza riferimento sono variabili globali che potrebbero essere state utilizzate in passato, ma a cui non viene attualmente fatto riferimento (ad esempio, il profilo dell'attività è disabilitato).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- I collegamenti video di YouTube identificati da '[♥️ VIDEO: url...]' sono attivi/cliccabili solo se è stato installato 'ffmpeg':\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' e 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Windows tramite Winget: 'winget installa ffmpeg'\n"
+msgid "Refer to"
+msgstr "Fare riferimento a"

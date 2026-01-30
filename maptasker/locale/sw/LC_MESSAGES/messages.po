@@ -675,8 +675,6 @@ msgid "Korean"
 msgstr "msingi"
 msgid "msingi"
 msgstr "Korean"
-  
-
 msgid "Kihispania"
 msgstr "Spanish"
 msgid "Kiingereza"
@@ -779,55 +777,81 @@ msgid "Norwegian"
 msgstr "Kinorwe"
 msgid "Kinorwe"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "Hakuna Wasifu"
-
 msgid "No Project"
 msgstr "Hakuna Mradi"
-
-
 msgid "Color"
 msgstr "Rangi"
-
-
 msgid "Debug"
 msgstr "Tatua"
-
-
 msgid "Colors"
 msgstr "Rangi"
-
 msgid "Calls"
 msgstr "Simu"
-
 msgid "Called by"
 msgstr "Inaitwa na"
-
-
-
 msgid "No projects found"
 msgstr "Hakuna miradi iliyopatikana"
-
 msgid "No profiles found"
 msgstr "Hakuna wasifu uliopatikana"
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Tafuta faili ya Tasker XML ya kutumia kuweka ramani ya mazingira yako ya Tasker"
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "Saraka (maingizo ya bluu ni viungo vya mawasiliano)"
-
 msgid "(Unnamed)"
 msgstr "(Haijatajwa)"
-
-
 msgid "Up One Level to"
 msgstr "Juu Kiwango kimoja hadi"
-
-
 msgid "Owner"
 msgstr "Mmiliki"
-
 msgid "Properties..."
 msgstr "Sifa..."
+msgid "TaskerNet Description:"
+msgstr "Maelezo yaTaskerNet:"
+msgid "...with label:"
+msgstr "...na lebo:"
+msgid "TaskerNet search on:"
+msgstr "Utafutaji wa TaskerNet kwenye:"
+msgid "DISABLED]"
+msgstr "IMEZIMWA]"
+msgid "Entry Task"
+msgstr "Jukumu la Kuingia"
+msgid "Exit Task"
+msgstr "Ondoka kwenye Jukumu"
+msgid "description"
+msgstr "maelezo"
+msgid "Launcher"
+msgstr "Kizindua"
+msgid "CAVEATS:"
+msgstr "TAARIFA:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- Hii imejaribiwa kwenye faili yangu ya chelezo.xml pekee.  Kwa matatizo, waripoti"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- Majukumu ambayo yametambuliwa kama '(Hayajatajwa)' hayana jina na hayana jina.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- Majaribio yote yanafanywa ili kuhifadhi HTML iliyopachikwa (k.m. color=...>') katika sehemu za Tasker.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- Majina ya wasifu yanayoanza na '*' hayajulikani/ hayana jina, na jina lina masharti ya Wasifu.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- Majina ya kazi ambayo yanajumuisha kitendo cha kwanza ambacho kimepachika html yatakuwa na herufi kubwa zaidi kuliko na chini ya kubadilishwa kuwa '{' na '}' mtawalia.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- Uumbizaji wa lebo na maelezo ya TaskerNet yenye HTML iliyopachikwa huonyeshwa kwa karibu iwezekanavyo katika mwonekano wa Ramani, lakini huenda usiwe sawa.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- Ufunguo wako wa API ya Google unaonyeshwa katika mapendeleo ya Tasker!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- Vitendo vingi lakini si vyote vya Jukumu vimepangwa na vitaonyeshwa hivyo.  Vivyo hivyo kwa masharti ya Wasifu na Programu-jalizi.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- Kwa chaguo -d0, Majukumu ambayo yametambulishwa kama 'Hayajatajwa/Yasiyojulikana' yataorodheshwa Kitendo chao cha kwanza pekee....\n kama vile Tasker anavyofanya.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- Vigeu visivyotumika ni vigeu vya kimataifa vinavyotumika katika Jukumu ambalo halijaendeshwa/kutumika.\n- Vigeu visivyorejelewa ni vigeu vya kimataifa ambavyo huenda vilitumika hapo awali, lakini havirejelewi kwa sasa (k.m. Wasifu wa Task umezimwa).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- Viungo vya video vya YouTube vilivyotambuliwa na '[▶️ VIDEO: url...]' ni vya moto/ vinaweza kubofya iwapo tu 'ffmpeg' imesakinishwa:\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' na 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Windows kupitia Winget: 'winget install ffmpeg'\n"
+msgid "Refer to"
+msgstr "Rejelea"

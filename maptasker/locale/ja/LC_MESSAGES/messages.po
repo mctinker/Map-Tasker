@@ -630,7 +630,6 @@ msgid "Views Help"
 msgstr "ビューのヘルプ"
 msgid "View Limit Help"
 msgstr "制限のヘルプを表示する"
-
  # Critical reverse translations needed!
 msgid "灘"
 msgstr "None"
@@ -677,9 +676,6 @@ msgstr "Russian"
 msgid "Korean"msgstr "韓国人"
 msgid "韓国人"
 msgstr "Korean"
-
-  
-
 msgid "Arabic"
 msgstr "アラビア語"
 msgid "アラビア語"
@@ -768,55 +764,81 @@ msgid "Norwegian"
 msgstr "ノルウェー語"
 msgid "ノルウェー語"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "プロフィールなし"
-
 msgid "No Project"
 msgstr "プロジェクトがありません"
-
-
 msgid "Color"
 msgstr "色"
-
-
 msgid "Debug"
 msgstr "デバッグ"
-
-
 msgid "Colors"
 msgstr "色"
-
 msgid "Calls"
 msgstr "電話"
-
 msgid "Called by"
 msgstr "呼び出された人"
-
-
-
 msgid "No projects found"
 msgstr "プロジェクトが見つかりませんでした"
-
 msgid "No profiles found"
 msgstr "プロファイルが見つかりません"
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Tasker 環境のマッピングに使用する Tasker XML ファイルを見つけます。"
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "ディレクトリ (青色のエントリはホットリンク)"
-
 msgid "(Unnamed)"
 msgstr "(名前なし)"
-
-
 msgid "Up One Level to"
 msgstr "1 つ上のレベルへ"
-
-
 msgid "Owner"
 msgstr "所有者"
-
 msgid "Properties..."
 msgstr "プロパティ..."
+msgid "TaskerNet Description:"
+msgstr "TaskerNetの説明:"
+msgid "...with label:"
+msgstr "...ラベル付き:"
+msgid "TaskerNet search on:"
+msgstr "TaskerNet での検索:"
+msgid "DISABLED]"
+msgstr "無効]"
+msgid "Entry Task"
+msgstr "エントリータスク"
+msgid "Exit Task"
+msgstr "タスクの終了"
+msgid "description"
+msgstr "説明"
+msgid "Launcher"
+msgstr "ランチャー"
+msgid "CAVEATS:"
+msgstr "注意事項:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- これは私自身のbackup.xmlファイルでのみテストされています。  問題がある場合は、報告してください"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- 「(名前なし)」として識別されるタスクには名前がなく、匿名とみなされます。\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- Tasker フィールドに埋め込まれた HTML (例: color=...>') を保持するようあらゆる試みが行われます。\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- 「*」で始まるプロファイル名は匿名/無名であり、名前はプロファイル条件で構成されます。\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- HTML が埋め込まれた最初のアクションで構成されるタスク名では、すべての大なり小なり文字がそれぞれ「{」と「}」に変換されます。\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- 埋め込み HTML を使用したラベルと TaskerNet の説明の書式設定は、マップ ビューで可能な限り正確に表示されますが、正確ではない場合があります。\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- Google API キーが Tasker の設定に表示されます!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- すべてではありませんが、ほとんどのタスク アクションがマップされており、そのように表示されます。  プロファイル条件とプラグインについても同様です。\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- オプション -d0 の場合、「名前なし/匿名」として識別されるタスクには、最初のアクションのみがリストされます...\n Tasker と同様です。\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- 非アクティブな変数は、実行/使用されていないタスクで使用されているグローバル変数です。\n- 未参照の変数は、過去に使用された可能性があるが、現在は参照されていないグローバル変数です (タスクのプロファイルが無効になっているなど)。\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- 「[▶️ VIDEO: url...]」で識別される YouTube ビデオ リンクは、「ffmpeg」がインストールされている場合にのみホット/クリック可能です:\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' および 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Winget 経由の Windows: 'winget install ffmpeg'\n"
+msgid "Refer to"
+msgstr "参照"

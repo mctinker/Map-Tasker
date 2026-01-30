@@ -769,55 +769,81 @@ msgid "Norwegian"
 msgstr "norsk"
 msgid "norsk"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "Ingen profil"
-
 msgid "No Project"
 msgstr "Intet projekt"
-
-
 msgid "Color"
 msgstr "Farve"
-
-
 msgid "Debug"
 msgstr "Debug"
-
-
 msgid "Colors"
 msgstr "Farver"
-
 msgid "Calls"
 msgstr "Opkald"
-
 msgid "Called by"
 msgstr "Ringet af"
-
-
-
 msgid "No projects found"
 msgstr "Ingen projekter fundet"
-
 msgid "No profiles found"
 msgstr "Ingen profiler fundet"
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Find Tasker XML-filen, der skal bruges til at kortlægge dit Tasker-miljø"
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "Katalog (blå indgange er hotlinks)"
-
 msgid "(Unnamed)"
 msgstr "(Unavngivet)"
-
-
 msgid "Up One Level to"
 msgstr "Et niveau op til"
-
-
 msgid "Owner"
 msgstr "Ejer"
-
 msgid "Properties..."
 msgstr "Egenskaber..."
+msgid "TaskerNet Description:"
+msgstr "TaskerNet Beskrivelse:"
+msgid "...with label:"
+msgstr "...med etiket:"
+msgid "TaskerNet search on:"
+msgstr "TaskerNet søg på:"
+msgid "DISABLED]"
+msgstr "HANDICAPPET]"
+msgid "Entry Task"
+msgstr "Indgangsopgave"
+msgid "Exit Task"
+msgstr "Afslut opgave"
+msgid "description"
+msgstr "beskrivelse"
+msgid "Launcher"
+msgstr "Launcher"
+msgid "CAVEATS:"
+msgstr "ADVARSLER:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- Dette er kun blevet testet på min egen backup.xml fil.  For problemer, rapporter dem om"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- Opgaver, der er identificeret som '(Unavngivne)' har intet navn og betragtes som anonyme.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- Alle forsøg gøres på at beholde indlejret HTML (f.eks. color=...>') i Tasker-felter.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- Profilnavne, der starter med '*', er anonyme/unavngivne, og navnet består af profilbetingelserne.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- Opgavenavne, der består af den første handling, der har indlejret html, vil have alle større-end- og mindre-end-tegn konverteret til henholdsvis '{' og '}'.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- Formateringen af ​​etiketter og TaskerNet-beskrivelser med indlejret HTML vises så tæt som muligt i kortvisningen, men er muligvis ikke nøjagtig.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- Din Google API-nøgle vises i Tasker-indstillingerne!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- De fleste, men ikke alle opgavehandlinger er blevet kortlagt og vil blive vist som sådan.  Ligeledes for profilbetingelser og plug-ins.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- For option -d0 vil Opgaver, der er identificeret som 'Unavngivne/Anonyme', kun have deres første handling opført...\n ligesom Tasker gør.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- Inaktive variabler er globale variabler, der bruges i en opgave, som ikke er blevet kørt/brugt.\n- Ikke-referencevariabler er globale variabler, der kan have været brugt tidligere, men som der ikke refereres til i øjeblikket (f.eks. er opgavens profil deaktiveret).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- YouTube-videolinks identificeret med '[▶️ VIDEO: url...]' er kun hotte/klikbare, hvis 'ffmpeg' er blevet installeret:\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' og 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Windows via Winget: 'winget install ffmpeg'\n"
+msgid "Refer to"
+msgstr "Der henvises til"

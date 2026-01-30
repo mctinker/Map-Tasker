@@ -557,7 +557,6 @@ msgid "Running"
 msgstr "Läuft"
 msgid "analysis with model"
 msgstr "Analyse mit Modell"
-
 # Misc f" strings
 msgid "Task Action Warning Limit set to"
 msgstr "Grenzwert für Aufgabenaktionswarnung festgelegt auf"
@@ -633,7 +632,6 @@ msgid "Views Help"
 msgstr "Hilfe anzeigen"
 msgid "View Limit Help"
 msgstr "Limit-Hilfe anzeigen"
-
 # Critical reverse translations needed!
 msgid "Nichts"
 msgstr "None"
@@ -678,7 +676,6 @@ msgstr "Russian"
 msgid "Korean"msgstr "Koreanisch"
 msgid "Koreanisch"
 msgstr "Korean"  
-
 msgid "Arabic"
 msgstr "Arabisch"
 msgid "Arabisch"
@@ -755,54 +752,81 @@ msgid "Norwegian"
 msgstr "norwegisch"
 msgid "norwegisch"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "Kein Profil"
-
 msgid "No Project"
 msgstr "Kein Projekt"
-
 msgid "Color"
 msgstr "Farbe"
-
-
 msgid "Debug"
 msgstr "Debuggen"
-
-
 msgid "Colors"
 msgstr "Farben"
-
 msgid "Calls"
 msgstr "Anrufe"
-
 msgid "Called by"
 msgstr "Angerufen von"
-
-
-
 msgid "No projects found"
 msgstr "Keine Projekte gefunden"
-
 msgid "No profiles found"
 msgstr "Keine Profile gefunden"
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Suchen Sie die Tasker-XML-Datei, die Sie zum Zuordnen Ihrer Tasker-Umgebung verwenden möchten"
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "Verzeichnis (blaue Einträge sind Hotlinks)"
-
 msgid "(Unnamed)"
 msgstr "(Unbenannt)"
-
-
 msgid "Up One Level to"
 msgstr "Eine Ebene höher bis"
-
-
 msgid "Owner"
 msgstr "Eigentümer"
-
 msgid "Properties..."
 msgstr "Eigenschaften..."
+msgid "TaskerNet Description:"
+msgstr "TaskerNet-Beschreibung:"
+msgid "...with label:"
+msgstr "...mit Beschriftung:"
+msgid "TaskerNet search on:"
+msgstr "TaskerNet-Suche auf:"
+msgid "DISABLED]"
+msgstr "DEAKTIVIERT]"
+msgid "Entry Task"
+msgstr "Eingabeaufgabe"
+msgid "Exit Task"
+msgstr "Aufgabe beenden"
+msgid "description"
+msgstr "Beschreibung"
+msgid "Launcher"
+msgstr "Launcher"
+msgid "CAVEATS:"
+msgstr "VORBEHALTE:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "– Dies wurde nur an meiner eigenen Datei „backup.xml“ getestet.  Bei Problemen melden Sie diese bitte weiter"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "– Aufgaben, die als „(Unbenannt)“ gekennzeichnet sind, haben keinen Namen und gelten als anonym.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- Es werden alle Versuche unternommen, eingebettetes HTML (z. B. color=...>') in Tasker-Feldern beizubehalten.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "– Profilnamen, die mit „*“ beginnen, sind anonym/unbenannt und der Name besteht aus den Profilbedingungen.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "– Bei Aufgabennamen, die aus der ersten Aktion mit eingebettetem HTML bestehen, werden alle Größer-als- und Kleiner-als-Zeichen in „{“ bzw. „}“ konvertiert.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- Die Formatierung von Beschriftungen und TaskerNet-Beschreibungen mit eingebettetem HTML wird in der Kartenansicht so genau wie möglich angezeigt, ist jedoch möglicherweise nicht genau.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- Ihr Google API-Schlüssel wird in den Tasker-Einstellungen angezeigt!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- Die meisten, aber nicht alle Aufgabenaktionen wurden zugeordnet und werden als solche angezeigt.  Ebenso für Profilbedingungen und Plug-ins.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- Für die Option -d0 wird bei Aufgaben, die als „Unbenannt/Anonym“ gekennzeichnet sind, nur die erste Aktion aufgeführt....\n genau wie Tasker.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- Inaktive Variablen sind globale Variablen, die in einer Aufgabe verwendet werden, die nicht ausgeführt/verwendet wurde.\n- Nicht referenzierte Variablen sind globale Variablen, die möglicherweise in der Vergangenheit verwendet wurden, aber derzeit nicht referenziert werden (z. B. ist das Profil der Aufgabe deaktiviert).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- YouTube-Videolinks, die durch „[▶️ VIDEO: url...]“ gekennzeichnet sind, sind nur dann aktiv/anklickbar, wenn „ffmpeg“ installiert wurde:\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: „sudo apt update“ und „sudo apt install ffmpeg“\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Windows über Winget: 'winget install ffmpeg'\n"
+msgid "Refer to"
+msgstr "Siehe"

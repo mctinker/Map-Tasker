@@ -629,7 +629,6 @@ msgstr "Ai 분석 도움말"
 msgid "Views Help"
 msgstr "보기 도움말"
 msgid "View Limit Help"msgstr "한도 도움말 보기"
-
  # Critical reverse translations needed!
 msgid "나다"
 msgstr "None"
@@ -676,7 +675,6 @@ msgstr "Russian"
 msgid "Korean"msgstr "한국인"
 msgid "한국인"
 msgstr "Korean"  
-
 msgid "Arabic"
 msgstr "아라비아 말"
 msgid "아라비아 말"
@@ -765,55 +763,81 @@ msgid "Norwegian"
 msgstr "노르웨이 인"
 msgid "노르웨이 인"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "프로필 없음"
-
 msgid "No Project"
 msgstr "프로젝트 없음"
-
-
 msgid "Color"
 msgstr "색상"
-
-
 msgid "Debug"
 msgstr "디버그"
-
-
 msgid "Colors"
 msgstr "그림 물감"
-
 msgid "Calls"
 msgstr "통화"
-
 msgid "Called by"
 msgstr "호출자"
-
-
-
 msgid "No projects found"
 msgstr "프로젝트를 찾을 수 없습니다."
-
 msgid "No profiles found"
 msgstr "프로필을 찾을 수 없습니다."
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Tasker 환경을 매핑하는 데 사용할 Tasker XML 파일을 찾습니다."
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "디렉터리(파란색 항목은 핫링크임)"
-
 msgid "(Unnamed)"
 msgstr "(이름 없음)"
-
-
 msgid "Up One Level to"
 msgstr "한 수준 위로"
-
-
 msgid "Owner"
 msgstr "소유자"
-
 msgid "Properties..."
 msgstr "속성..."
+msgid "TaskerNet Description:"
+msgstr "태스커넷 설명:"
+msgid "...with label:"
+msgstr "...라벨 포함:"
+msgid "TaskerNet search on:"
+msgstr "TaskerNet 검색:"
+msgid "DISABLED]"
+msgstr "장애가 있는]"
+msgid "Entry Task"
+msgstr "엔트리 태스크"
+msgid "Exit Task"
+msgstr "작업 종료"
+msgid "description"
+msgstr "설명"
+msgid "Launcher"
+msgstr "발사통"
+msgid "CAVEATS:"
+msgstr "주의 사항:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- 이것은 내 자신의 backup.xml 파일에서만 테스트되었습니다.  문제가 있는 경우 신고해 주세요."
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- '(이름 없음)'으로 식별된 작업에는 이름이 없으며 익명으로 간주됩니다.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- Tasker 필드에 포함된 HTML(예: color=...>')을 유지하려고 모든 시도가 이루어졌습니다.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- '*'로 시작하는 프로필 이름은 익명/이름이 없으며 이름은 프로필 조건으로 구성됩니다.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- HTML이 포함된 첫 번째 작업으로 구성된 작업 이름에는 모든 초과 및 미만 문자가 각각 '{' 및 '}'로 변환됩니다.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- HTML이 포함된 라벨 및 TaskerNet 설명의 형식은 지도 보기에 최대한 가깝게 표시되지만 정확하지 않을 수 있습니다.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- Google API 키가 Tasker 기본 설정에 표시됩니다!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- 전부는 아니지만 대부분의 작업 작업이 매핑되어 표시됩니다.  프로필 조건 및 플러그인도 마찬가지입니다.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- -d0 옵션의 경우 '이름 없음/익명'으로 식별된 작업에는 Tasker와 마찬가지로 첫 번째 작업만 나열됩니다....\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- 비활성 변수는 실행/사용되지 않은 작업에 사용된 전역 변수입니다.\n- 참조되지 않은 변수는 과거에 사용되었을 수 있지만 현재 참조되지 않는 전역 변수입니다(예: 작업 프로필이 비활성화됨).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- '[▶️ VIDEO: url...]'로 식별된 YouTube 비디오 링크는 'ffmpeg'가 설치된 경우에만 핫/클릭 가능합니다.\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' 및 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Winget을 통한 Windows: 'winget install ffmpeg'\n"
+msgid "Refer to"
+msgstr "참조"

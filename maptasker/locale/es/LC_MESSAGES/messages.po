@@ -59,536 +59,356 @@ msgid "Display only the"
 msgstr "Mostrar solo el"
 msgid "overrides any previous set name"
 msgstr "anula cualquier nombre de conjunto anterior"
-
 msgid "Click this button to search for and display only the lines that match the search string."
 msgstr "Haga clic en este botón para buscar y mostrar solo las líneas que coincidan con la cadena de búsqueda."
-
 msgid "Profiles Per Line:"
 msgstr "Perfiles por línea:"
-
 msgid "Select how many Profiles\nto display per line.  The default is 6.\n\nClick the ? to get more info."
 msgstr "Seleccione cuántos perfiles\nse mostrarán por línea. El valor predeterminado es 6.\n\nHaga clic en el signo de interrogación para obtener más información."
-
 msgid "Top Task"
 msgstr "Tarea principal"
-
 msgid "Bottom Task"
 msgstr "Tarea inferior"
-
 msgid "Tree"
 msgstr "Árbol"
-
 msgid "map_window_position"
 msgstr "posición_ventana_mapa"
-
 msgid "Misc"
 msgstr "Varios"
-
 msgid "misc_window_position"
 msgstr "posición_ventana_misc"
-
 msgid "Displaying only the next 80 matches...\n"
 msgstr "Mostrando solo las siguientes 80 coincidencias...\n"
-
 msgid "N/A"
 msgstr "N / A"
-
 msgid "Profiles"
 msgstr "Perfiles"
-
 msgid "  Tasks in Project (sorted)"
 msgstr "Tareas en Proyecto (ordenadas)"
-
 msgid "Launcher Task: "
 msgstr "Tarea del iniciador:"
-
 msgid "<<< Owner=Project"
 msgstr "<<< Propietario=Proyecto"
-
 msgid "Project"
 msgstr "Proyecto"
- 
 msgid "Profile"
 msgstr "Perfil"
-
 msgid "Task"
 msgstr "Tarea"
-
 msgid "ID:"
 msgstr "IDENTIFICACIÓN:"
-
 msgid "<<< Owner="
 msgstr "<<< Propietario="
-
 msgid "Element of type"
 msgstr "Elemento de tipo"
-
 msgid "\n\nActions:"
 msgstr "\n\nAcciones:"
-
 msgid "Action"
 msgstr "Acción"
-
 msgid "Project Global Variables"
 msgstr "Variables globales del proyecto"
-
 msgid "Task: "
 msgstr "Tarea: "
-
 msgid "Profile: "
 msgstr "Perfil: "
-
 msgid "Project: "
 msgstr "Proyecto: "
-
 msgid "Scene: "
 msgstr "Escena: "
-
 msgid "Properties Collision Handling"
 msgstr "Propiedades Manejo de colisiones"
-
 msgid "Run Both Together"
 msgstr "Ejecute ambos juntos"
-
 msgid " Properties"
 msgstr "Propiedades"
-
 msgid "(Not referenced by any "
 msgstr "(No mencionado por ningún"
-
-
 msgid "Project:"
 msgstr "Proyecto:"
-
 msgid "Scenes:"
 msgstr "Escenas:"
-
-
 msgid "[Called by "
 msgstr "[Llamado por"
-
 msgid "[Calls "
 msgstr "[Llamadas"
-
 msgid "(entry)"
 msgstr "(entrada)"
-
 msgid "  "
 msgstr ""
-
 msgid "Directory\n"
 msgstr "Directorio\n"
-
 msgid "Directory    (blue entries are hotlinks)\n\n"
 msgstr "Directorio (las entradas azules son enlaces directos)\n\n"
-
 msgid "entire configuration"
 msgstr "configuración completa"
-
 msgid "Profile:"
 msgstr "Perfil:"
-
 msgid "Task:"
 msgstr "Tarea:"
-
 msgid "Go to top"
 msgstr "Ir arriba"
-
 msgid ": Properties"
 msgstr ": Propiedades"
-
 msgid "Task "
 msgstr "Tarea"
-
 msgid "tasks"
 msgstr "tareas"
-
 msgid "Color for Background set to"
 msgstr "Color de fondo establecido en"
-
 msgid "highlighted for visibility"
 msgstr "resaltado para visibilidad"
-
 msgid "Found:"
 msgstr "Encontró:"
-
 msgid " [Launcher Task: "
 msgstr "[Tarea del iniciador:"
-
 msgid "(Not referenced by"
 msgstr "(No referenciado por"
-
 msgid "Grand Totals"
 msgstr "Totales generales"
-
 msgid "MapTasker Runtime Options"
 msgstr "Opciones de tiempo de ejecución de MapTasker"
-
 msgid "Just Display Everything!"
 msgstr "¡Solo muestra todo!"
-
 msgid "Checks all of the below checkboxes except for 'twisty' and sets the display level to the maximum detail level."
 msgstr "Marca todas las casillas de verificación a continuación, excepto 'twisty', y establece el nivel de visualización al máximo nivel de detalle."
-
 msgid "Display Profile and Task Action Conditions"
 msgstr "Mostrar perfil y condiciones de acción de tarea"
-
 msgid "Display the conditions such as 'State', 'Event', 'Time', etc. in the output."
 msgstr "Muestra las condiciones como 'Estado', 'Evento', 'Tiempo', etc. en la salida."
-
 msgid "Display TaskerNet Info"
 msgstr "Mostrar información de TaskerNet"
-
 msgid "Include the Tasker 'preferences' in the output, if available in the XML file."
 msgstr "Incluya las 'preferencias' de Tasker en la salida, si están disponibles en el archivo XML."
-
 msgid "Display a directory of all Projects, Profiles, Tasks and Scenes with hotlinks at the beginning of the output."
 msgstr "Muestra un directorio de todos los proyectos, perfiles, tareas y escenas con enlaces activos al comienzo de la salida."
-
 msgid "Display a diagram of the configuration with all Task connections your the default text editor.\nThis option only relates to the 'Run and Exit' and 'ReRun' buttons."
 msgstr "Muestra un diagrama de la configuración con todas las conexiones de tareas en su editor de texto predeterminado.\nEsta opción solo se relaciona con los botones 'Ejecutar y salir' y 'Volver a ejecutar'."
-
 msgid "Display Prettier Output"
 msgstr "Mostrar resultados más bonitos"
-
-
 msgid "Align all Task action arguments and parameters for nicer output."
 msgstr "Alinee todos los argumentos y parámetros de la acción de la tarea para obtener un mejor resultado."
-
 msgid "Project/Profile/Task/Scene Names:"
 msgstr "Nombres de proyecto/perfil/tarea/escena:"
-
 msgid "Add highlighting to Project, Profile and Task names in the output."
 msgstr "Agregue resaltado a los nombres de Proyecto, Perfil y Tarea en la salida."
-
 msgid "Bold"
 msgstr "Atrevido"
-
 msgid "Bold and Italicize are mutually exclusive in the Map view."
 msgstr "Negrita y cursiva se excluyen mutuamente en la vista de mapa."
-
 msgid "Italicize"
 msgstr "Escribir en cursiva"
-
 msgid "Italicize and Bold are mutually exclusive in the Map view."
 msgstr "Las opciones en cursiva y negrita se excluyen mutuamente en la vista de mapa."
-
 msgid "Highlight"
 msgstr "Destacar"
-
 msgid "Underline"
 msgstr "Subrayar"
-
 msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near th4e bottom of the configuration output,\nand is intended to help identify Tasks that are too comple\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
 msgstr "Seleccione cuántas acciones en una tarea antes de emitir una advertencia.\nLa advertencia aparece cerca de la parte inferior de la salida de configuración\ny su objetivo es ayudar a identificar tareas demasiado complejas\nque podrían dividirse en varias.\nUn valor de 100 significa que no hay límite."
-
 msgid "Creates the If/Then/Else indentation options."
 msgstr "Crea las opciones de sangría If/Then/Else."
-
 msgid "If/Then/Else Indentation Amount:"
 msgstr "Si/Entonces/Else Cantidad de sangría:"
-
 msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'."
 msgstr "Establezca la cantidad de sangría para los bloques Si/Entonces/Sino.\n\nEl valor predeterminado es '4'."
-
 msgid "Creates the language selection dropdown."
 msgstr "Crea el menú desplegable de selección de idioma."
-
 msgid "Language:"
 msgstr "Idioma:"
-
 msgid "Creates the appearance mode selection."
 msgstr "Crea la selección del modo de apariencia."
-
 msgid "Appearance Mode:"
 msgstr "Modo de apariencia:"
-
 msgid "Light"
 msgstr "Luz"
-
 msgid "Dark"
 msgstr "Oscuro"
-
 msgid "System"
 msgstr "Sistema"
-
 msgid "Creates buttons for different views (Map, Diagram, Tree)."
 msgstr "Crea botones para diferentes vistas (Mapa, Diagrama, Árbol)."
-
 msgid "Views"
 msgstr "Vistas"
-
 msgid "Show a detailed view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button, but the output is displayed inside another window rather than in a browser."
 msgstr "Muestra una vista detallada de su configuración, con conexiones entre tareas.\n\nEsto es idéntico al botón 'ReEjecutar', pero la salida se muestra dentro de otra ventana en lugar de en un navegador."
-
 msgid "Show a diagrammatic view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button combined with the 'Display Configuration Outline' checkbox selected,\nbut the output is displayed inside another window rather than in a text editor."
 msgstr "Muestra una vista diagramática de su configuración, con conexiones entre tareas.\n\nEsto es idéntico al botón 'Reejecutar' combinado con la casilla de verificación 'Mostrar esquema de configuración' seleccionada,\npero la salida se muestra dentro de otra ventana en lugar de en un editor de texto."
-
 msgid "Show a simple hierarchical tree view of your configuration."
 msgstr "Muestre una vista de árbol jerárquica simple de su configuración."
-
-
 msgid "Creates the view limit dropdown."
 msgstr "Crea el menú desplegable de límite de vista."
-
 msgid "View Limit:"
 msgstr "Límite de visualización:"
-
-
 msgid "Unlimited"
 msgstr "Ilimitado"
-
 msgid "Select the maximum number of items to display in the view to be allowed.\n\nAnything over this amount will stop the generation of the view as a means to throttle the program.\n\nNote: This is only for the 'Map' and 'Diagram' views, not the tree view."
 msgstr "Seleccione la cantidad máxima de elementos permitidos para mostrar en la vista.\n\nCualquier cantidad que supere esta cantidad detendrá la generación de la vista como una forma de limitar el rendimiento del programa."
-
 msgid "Reset Options"
 msgstr "Opciones de reinicio"
-
 msgid "Reset all of the options to their default values, including colors, font used, and other settings.\n\nThe currently loaded XML will be cleared out."
 msgstr "Restablezca todas las opciones a sus valores predeterminados, incluidos los colores, la fuente utilizada y otras configuraciones.\n\nSe borrará el XML cargado actualmente."
-
 msgid "Save Settings"
 msgstr "Guardar configuración"
-
 msgid "Restore Settings"
 msgstr "Restaurar configuración"
-
 msgid "Report Issue"
 msgstr "Informar problema"
-
 msgid "Report any issues and/or suggestions to the developer.\n\nThis will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue."
 msgstr "Informe cualquier problema y/o sugerencia al desarrollador.\n\nEsto abrirá una ventana del navegador en la página de problemas de GitHub, y necesitará una cuenta de GitHub para enviar un problema."
-
 msgid "Font To Use In Output:"
 msgstr "Fuente para usar en la salida:"
-
 msgid "This is a list of all of the monospaced fonts available on your system.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment."
 msgstr "Esta es una lista de todas las fuentes monoespaciadas disponibles en su sistema.\n\nLa fuente seleccionada se utilizará en todos los resultados.\n\nSe recomienda encarecidamente 'Courier' o 'Courier New'\npara los diagramas a fin de garantizar una alineación adecuada de los conectores."
-
 msgid "Clear Messages"
 msgstr "Borrar mensajes"
-
 msgid "Get XML from Android Device"
 msgstr "Obtenga XML desde un dispositivo Android"
-
 msgid "Fetch XML from an Android device.\n\nClick on the 'Get Android Help' button for more info."
 msgstr "Obtener XML de un dispositivo Android.\n\nHaga clic en el botón 'Obtener ayuda de Android' para obtener más información."
-
 msgid "Get Local XML"
 msgstr "Obtener XML local"
-
 msgid "Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands."
 msgstr "Obtener XML de una unidad local en esta computadora.\n\nEl XML obtenido se convertirá en la fuente actual para los comandos de MapTasker."
-
 msgid "Display Help"
 msgstr "Mostrar ayuda"
-
 msgid "Get Android Help"
 msgstr "Obtener ayuda de Android"
-
 msgid "Browser Options"
 msgstr "Opciones del navegador"
-
 msgid "Run and Exit"
 msgstr "Ejecutar y salir"
-
 msgid "Generate a map of the current XML, save the results as an html file and display the map in the default browser.\n\nThe program terminates when done."
 msgstr "Genera un mapa del XML actual, guarda los resultados como un archivo html y muestra el mapa en el navegador predeterminado.\n\nEl programa finaliza cuando termina."
-
 msgid "ReRun"
 msgstr "Repetición"
-
 msgid "Same as the 'Run and Exit' button,\nbut the program restarts after displaying the browser output."
 msgstr "Igual que el botón 'Ejecutar y salir',\npero el programa se reinicia después de mostrar la salida del navegador."
-
 msgid "Exit"
 msgstr "Salida"
-
 msgid "(Pick ONLY One)"
 msgstr "(Elija SOLO uno)"
-
 msgid "Select either a single Project, Profile, or Task to display (Map and Diagram views, and browser).\nIf a single Project is selected, all of it's Projects, Tasks and Scenes will be included.\nIf a single Profile is selected, it and all of its Tasks will be displayed."
 msgstr "Seleccione un solo Proyecto, Perfil o Tarea para mostrar (vistas de Mapa y Diagrama, y ​​navegador).\nSi se selecciona un solo Proyecto, se incluirán todos sus Proyectos, Tareas y Escenas.\nSi se selecciona un solo Perfil, se mostrarán éste y todas sus Tareas."
-
 msgid "List Unnamed Items"
 msgstr "Listar elementos sin nombre"
 msgid "'List Unnamed Items' checkbox"
 msgstr "Casilla de verificación 'Enumerar elementos sin nombre'"
-
 msgid "Check this if you want to see unnamed Profiles and Tasks in the\npulldown lists (above) and in the optional directory.\n\nLeaving this unchecked will leave unnamed Tasks and Profiles\nout of the pulldown lists and out of the directory,\nbut the unnamed Profile and Task details will still appear in the output."
 msgstr "Marque esta opción si desea ver perfiles y tareas sin nombre en las\nlistas desplegables (arriba) y en el directorio opcional.\n\nSi deja esta opción sin marcar, las tareas y los perfiles\nsin nombre quedarán fuera de las\nlistas desplegables y del directorio,\npero los detalles de los perfiles y tareas sin\nnombre seguirán apareciendo en la salida."
-
 msgid "Set Various Display Colors Here:"
 msgstr "Establezca varios colores de visualización aquí:"
-
 msgid "Projects"
 msgstr "Proyectos"
-
 msgid "Disabled Profiles"
 msgstr "Perfiles deshabilitados"
-
 msgid "Launcher Tasks"
 msgstr "Tareas del iniciador"
-
 msgid "Profile Conditions"
 msgstr "Condiciones del perfil"
-
 msgid "Tasks"
 msgstr "Tareas"
-
 msgid "Unnamed Tasks"
 msgstr "Tareas sin nombre"
-
 msgid "(Task) Actions"
 msgstr "(Tarea) Acciones"
-
 msgid "Action Conditions"
 msgstr "Condiciones de acción"
-
 msgid "Action Labels"
 msgstr "Etiquetas de acción"
-
 msgid "Action Names"
 msgstr "Nombres de acción"
-
 msgid "Scenes"
 msgstr "Escenas"
-
 msgid "Background"
 msgstr "Fondo"
-
 msgid "TaskerNet Information"
 msgstr "Información TaskerNet"
-
 msgid "Tasker Preferences"
 msgstr "Preferencias del tasker"
-
 msgid "Heading"
 msgstr "Título"
-
 msgid "Reset to Default Colors"
 msgstr "Restablecer los colores predeterminados"
-
 msgid "Show/Edit API Key(s)"
 msgstr "Mostrar/Editar claves API"
-
 msgid "Change Prompt"
 msgstr "Mensaje de cambio"
-
 msgid "Model to Use:"
 msgstr "Modelo a utilizar:"
-
 msgid "Extended"
 msgstr "Extendido"
-
 msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\nthen the default model list for the respective\nAI provider will be displayed.\n\nNote: Not all models have been validated and\none or more may return an error on analysis."
 msgstr "Mostrar una lista extendida de TODOS los modelos disponibles.\n\nNota: Si la clave API no está configurada para OpenAI o Gemini,\nse mostrará la lista de modelos predeterminada para el proveedor de AI respectivo.\n\nNota: No todos los modelos han sido validados y ninguno o más pueden devolver un error en el análisis."
-
 msgid "Populates the 'Debug' tab."
 msgstr "Llena la pestaña 'Depurar'."
-
 msgid "Display this program's settings at the front of the configuration output (Map view and browser)."
 msgstr "Muestra la configuración de este programa al frente de la salida de configuración (Vista de mapa y navegador)."
-
 msgid "API Key Options"
 msgstr "Opciones de clave API"
-
 msgid "OpenAI API Key:"
 msgstr "Clave API de OpenAI:"
-
 msgid "Claude API Key:"
 msgstr "Clave API de Claudio:"
-
 msgid "DeepSeek API Key:"
 msgstr "Clave API de DeepSeek:"
-
 msgid "Gemini API Key:"
 msgstr "Clave API de Géminis:"
-
 msgid "OK"
 msgstr "DE ACUERDO"
-
 msgid "Cancel"
 msgstr "Cancelar"
-
 msgid "Task 'actions' limit"
 msgstr "Límite de 'acciones' de la tarea"
-
 msgid "Map"
 msgstr "Mapa"
-
 msgid "Monospaced Font To Use"
 msgstr "Fuente monoespaciada para usar"
-
 msgid "Current file set to"
 msgstr "Archivo actual establecido en"
-
 msgid "Current File"
 msgstr "Archivo actual"
-
 msgid "Select Project to process:"
 msgstr "Seleccione el proyecto a procesar:"
-
 msgid "Select Profile to process:"
 msgstr "Seleccione el perfil a procesar:"
-
 msgid "Select Task to process:"
 msgstr "Seleccionar tarea a procesar:"
-
 msgid "Display only Project"
 msgstr "Mostrar sólo Proyecto"
-
 msgid "None"
 msgstr "Nada"
-
 msgid "Display all Projects, Profiles, and Tasks."
 msgstr "Mostrar todos los proyectos, perfiles y tareas."
-
 msgid "Display all"
 msgstr "Mostrar todo"
-
 msgid "Run Analysis"
 msgstr "Ejecutar análisis"
-
 msgid "Analyze"
 msgstr "Analizar"
-
 msgid "Project to Analyze:"
 msgstr "Proyecto a Analizar:"
-
 msgid "Profile to Analyze:"
 msgstr "Perfil a Analizar:"
-
 msgid "Task to Analyze:"
 msgstr "Tarea a analizar:"
-
 msgid "No Projects, Profiles or Tasks to display!"
 msgstr "¡No hay proyectos, perfiles ni tareas para mostrar!"
- 
  msgid "No projects found"
  msgstr "No se encontraron proyectos"
-
  msgid "No profiles found"
  msgstr "No se encontraron perfiles"
-
  msgid "No tasks found"
  msgstr "No se encontraron tareas"
-
  msgid "No Projects found"
  msgstr "No se encontraron proyectos"
-
  msgid "Unnamed Task"
  msgstr "Tarea sin nombre"
-
  msgid "No Profile Tasks Found"
  msgstr "No se encontraron tareas de perfil"
-
  msgid "No Profile"
  msgstr "Sin perfil"
-
  msgid "Prompt:"
  msgstr "Inmediato:"
-
  # display_message_box Messages
  msgid "Ping successful."
 msgstr "Ping exitoso."
@@ -686,7 +506,6 @@ msgid "set to"
 msgstr "empezar a "
 msgid "is not set"
 msgstr "no está configurado"
-
 # Restore settings text
 msgid "Android Get XML TCP IP Address"
 msgstr "Android Obtener dirección IP TCP XML"
@@ -728,7 +547,6 @@ msgid "Everything toggled on successfully"
 msgstr "Todo se activó correctamente"
 msgid "Everything toggled off successfully"
 msgstr "Todo se apagó correctamente"
-
 # AI messages
 msgid "Current prompt:"
 msgstr "Mensaje actual:"
@@ -756,7 +574,6 @@ msgid "Running"
 msgstr "Correr"
 msgid "analysis with model"
 msgstr "análisis con modelo"
-
 # Misc f" strings
 msgid "Task Action Warning Limit set to"
 msgstr "Límite de advertencia de acción de tarea establecido en"
@@ -830,7 +647,6 @@ msgid "Views Help"
 msgstr "Vistas Ayuda"
 msgid "View Limit Help"
 msgstr "Ver ayuda sobre límites"
-
 # Critical reverse translations needed!
 msgid "Nada"
 msgstr "None"
@@ -878,8 +694,6 @@ msgid "Korean"
 msgstr "coreano"
 msgid "coreano"
 msgstr "Korean"
-  
-
 msgid "Arabic"
 msgstr "árabe"
 msgid "árabe"
@@ -970,8 +784,6 @@ msgid "noruego"
 msgstr "Norwegian"
 msgid "No Project"
 msgstr "Sin proyecto"
-
-
 msgid "Color"
 msgstr "Color"
 msgid "Debug"
@@ -984,20 +796,61 @@ msgid "Called by"
 msgstr "Llamado por"
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Localice el archivo XML de Tasker que utilizará para asignar su entorno de Tasker."
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "Directorio (las entradas azules son enlaces directos)"
-
 msgid "(Unnamed)"
 msgstr "(Sin nombre)"
-
-
 msgid "Up One Level to"
 msgstr "Subir un nivel a"
-
-
 msgid "Owner"
 msgstr "Dueño"
-
 msgid "Properties..."
 msgstr "Propiedades..."
+msgid "TaskerNet Description:"
+msgstr "Descripción de TaskerNet:"
+msgid "...with label:"
+msgstr "...con etiqueta:"
+msgid "TaskerNet search on:"
+msgstr "Búsqueda TaskerNet en:"
+msgid "DISABLED]"
+msgstr "DESACTIVADO]"
+msgid "Entry Task"
+msgstr "Tarea de entrada"
+msgid "Exit Task"
+msgstr "Salir de la tarea"
+msgid "description"
+msgstr "descripción"
+msgid "Launcher"
+msgstr "Lanzacohetes"
+msgid "CAVEATS:"
+msgstr "ADVERTENCIAS:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- Esto sólo se ha probado en mi propio archivo backup.xml.  Si hay problemas, repórtelos en"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- Las tareas identificadas como '(Sin nombre)' no tienen nombre y se consideran anónimas.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- Se realizan todos los intentos para conservar el HTML incrustado (por ejemplo, color=...>') en los campos de Tasker.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- Los nombres de perfil que comienzan con '*' son anónimos/sin nombre y el nombre consta de las condiciones del perfil.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- Los nombres de tareas que constan de la primera acción que tiene HTML incrustado tendrán todos los caracteres mayor y menor que convertidos a '{' y '}' respectivamente.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- El formato de las etiquetas y descripciones de TaskerNet con HTML incrustado se muestra lo más parecido posible en la vista de mapa, pero puede no ser exacto.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- ¡Tu clave API de Google se muestra en las preferencias de Tasker!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- La mayoría, pero no todas, las acciones de las tareas se han asignado y se mostrarán como tales.  Lo mismo ocurre con las condiciones del perfil y los complementos.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- Para la opción -d0, las tareas identificadas como 'Sin nombre/Anónimas' solo tendrán su primera acción en la lista...\n tal como lo hace Tasker.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- Las variables inactivas son variables globales utilizadas en una tarea que no se ha ejecutado ni utilizado.\n- Las variables sin referencia son variables globales que pueden haberse utilizado en el pasado, pero a las que no se hace referencia actualmente (por ejemplo, el perfil de la tarea está deshabilitado).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- Los enlaces de videos de YouTube identificados por '[▶️ VIDEO: url...]' son activos/se puede hacer clic solo si se ha instalado 'ffmpeg':\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' y 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Windows a través de Winget: 'winget install ffmpeg'\n"
+msgid "Refer to"
+msgstr "Referirse a"

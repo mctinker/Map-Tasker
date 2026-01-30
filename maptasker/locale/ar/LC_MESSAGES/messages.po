@@ -631,7 +631,6 @@ msgstr "عرض تعليمات الحد"
  # Critical reverse translations needed!
 msgid "ندى"
 msgstr "None"  
-
 msgid "Spanish"
 msgstr "الأسبانية"
 msgid "الأسبانية"
@@ -764,55 +763,81 @@ msgid "Norwegian"
 msgstr "النرويجية"
 msgid "النرويجية"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "لا يوجد ملف شخصي"
-
 msgid "No Project"
 msgstr "لا يوجد مشروع"
-
-
 msgid "Color"
 msgstr "لون"
-
-
 msgid "Debug"
 msgstr "تصحيح"
-
-
 msgid "Colors"
 msgstr "الألوان"
-
 msgid "Calls"
 msgstr "المكالمات"
-
 msgid "Called by"
 msgstr "دعا بواسطة"
-
-
-
 msgid "No projects found"
 msgstr "لم يتم العثور على مشاريع"
-
 msgid "No profiles found"
 msgstr "لم يتم العثور على أي ملفات شخصية"
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "حدد موقع ملف تاسكر XML لاستخدامه لتعيين بيئة تاسكر الخاصة بك"
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "الدليل (الإدخالات الزرقاء هي روابط سريعة)"
-
 msgid "(Unnamed)"
 msgstr "(غير مسمى)"
-
-
 msgid "Up One Level to"
 msgstr "يصل إلى مستوى واحد إلى"
-
-
 msgid "Owner"
 msgstr "مالك"
-
 msgid "Properties..."
 msgstr "ملكيات..."
+msgid "TaskerNet Description:"
+msgstr "وصف تاسكر نت:"
+msgid "...with label:"
+msgstr "...مع التسمية:"
+msgid "TaskerNet search on:"
+msgstr "بحث تاسكر نت على:"
+msgid "DISABLED]"
+msgstr "عاجز]"
+msgid "Entry Task"
+msgstr "مهمة الدخول"
+msgid "Exit Task"
+msgstr "الخروج من المهمة"
+msgid "description"
+msgstr "وصف"
+msgid "Launcher"
+msgstr "قاذفة"
+msgid "CAVEATS:"
+msgstr "التحذيرات:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- تم اختبار هذا فقط على ملف Backup.xml الخاص بي.  بالنسبة للمشاكل، الإبلاغ عنها"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- المهام التي تم تعريفها كـ '(بدون اسم)' ليس لها اسم وتعتبر مجهولة.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- تم إجراء كافة المحاولات للاحتفاظ بـ HTML المضمن (على سبيل المثال، color=...>') في حقول Tasker.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- أسماء ملفات التعريف التي تبدأ بـ '*' تكون مجهولة/غير مسماة، ويتكون الاسم من شروط ملف التعريف.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- أسماء المهام التي تتكون من الإجراء الأول الذي قام بتضمين html ستحتوي على جميع الأحرف الأكبر من والأصغر من التي تم تحويلها إلى '{' و '}' على التوالي.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- يتم عرض تنسيق التسميات وأوصاف TaskerNet باستخدام HTML المضمن في أقرب وقت ممكن في عرض الخريطة، ولكنه قد لا يكون دقيقًا.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- يتم عرض مفتاح Google API الخاص بك في تفضيلات تاسكر!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- تم تعيين معظم إجراءات المهمة وليس كلها وسيتم عرضها على هذا النحو.  وبالمثل بالنسبة لشروط ملف التعريف والمكونات الإضافية.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- بالنسبة للخيار -d0، فإن المهام التي تم تعريفها على أنها 'غير مسماة/مجهولة' سيتم إدراج الإجراء الأول لها فقط....\n تمامًا كما يفعل تاسكر.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- المتغيرات غير النشطة هي متغيرات عمومية تستخدم في مهمة لم يتم تشغيلها/استخدامها.\n- المتغيرات غير المرجعية هي متغيرات عمومية ربما تم استخدامها في الماضي، ولكن لم تتم الإشارة إليها حاليًا (على سبيل المثال، تم تعطيل ملف تعريف المهمة).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- روابط فيديو YouTube التي تم تحديدها بواسطة '[▶️ VIDEO: url...]' تكون نشطة/قابلة للنقر فقط إذا تم تثبيت 'ffmpeg':\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'تثبيت الشراب ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' و'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Windows عبر Winget: 'winget install ffmpeg'\n"
+msgid "Refer to"
+msgstr "الرجوع إلى"

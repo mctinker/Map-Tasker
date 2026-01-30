@@ -675,8 +675,6 @@ msgid "Korean"
 msgstr "Tiếng Hàn"
 msgid "coreano"
 msgstr "cốt lõi"
-  
-
 msgid "tiếng Tây Ban Nha"
 msgstr "Spanish"
 msgid "Tiếng Anh"
@@ -785,55 +783,81 @@ msgid "Norwegian"
 msgstr "người Na Uy"
 msgid "người Na Uy"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "Không có hồ sơ"
-
 msgid "No Project"
 msgstr "Không có dự án"
-
-
 msgid "Color"
 msgstr "Màu sắc"
-
-
 msgid "Debug"
 msgstr "Gỡ lỗi"
-
-
 msgid "Colors"
 msgstr "Màu sắc"
-
 msgid "Calls"
 msgstr "Cuộc gọi"
-
 msgid "Called by"
 msgstr "Được gọi bởi"
-
-
-
 msgid "No projects found"
 msgstr "Không tìm thấy dự án nào"
-
 msgid "No profiles found"
 msgstr "Không tìm thấy hồ sơ nào"
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Xác định vị trí tệp XML của Tác vụ sẽ sử dụng để ánh xạ môi trường Tác vụ của bạn"
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "Thư mục (mục màu xanh là liên kết nóng)"
-
 msgid "(Unnamed)"
 msgstr "(Vô danh)"
-
-
 msgid "Up One Level to"
 msgstr "Lên một cấp để"
-
-
 msgid "Owner"
 msgstr "Người sở hữu"
-
 msgid "Properties..."
 msgstr "Của cải..."
+msgid "TaskerNet Description:"
+msgstr "Mô tả của TaskerNet:"
+msgid "...with label:"
+msgstr "...có nhãn:"
+msgid "TaskerNet search on:"
+msgstr "Tìm kiếm TaskerNet trên:"
+msgid "DISABLED]"
+msgstr "TÀN TẬT]"
+msgid "Entry Task"
+msgstr "Nhiệm vụ đầu vào"
+msgid "Exit Task"
+msgstr "Thoát nhiệm vụ"
+msgid "description"
+msgstr "Sự miêu tả"
+msgid "Launcher"
+msgstr "Trình khởi chạy"
+msgid "CAVEATS:"
+msgstr "LƯU Ý:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- Điều này mới chỉ được thử nghiệm trên tệp backup.xml của riêng tôi.  Đối với các vấn đề, hãy báo cáo chúng trên"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- Nhiệm vụ được xác định là '(Chưa đặt tên)' không có tên và được coi là Ẩn danh.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- Tất cả các nỗ lực được thực hiện để giữ lại HTML được nhúng (ví dụ: color=...>') trong các trường Tác vụ.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- Tên hồ sơ bắt đầu bằng '*' là ẩn danh/không đặt tên và tên bao gồm các điều kiện của Hồ sơ.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- Tên tác vụ bao gồm hành động đầu tiên có nhúng html sẽ có tất cả các ký tự lớn hơn và nhỏ hơn được chuyển đổi tương ứng thành '{' và '}'.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- Định dạng của nhãn và mô tả TaskerNet với HTML nhúng được hiển thị gần nhất có thể trong chế độ xem Bản đồ, nhưng có thể không chính xác.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- Khóa Google API của bạn được hiển thị trong tùy chọn Tác vụ!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- Hầu hết nhưng không phải tất cả các hành động Nhiệm vụ đã được ánh xạ và sẽ hiển thị như vậy.  Tương tự như vậy đối với các điều kiện Cấu hình và Trình cắm.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- Đối với tùy chọn -d0, Nhiệm vụ được xác định là 'Chưa đặt tên/Ẩn danh' sẽ chỉ có Hành động đầu tiên được liệt kê....\n giống như Tasker.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- Biến không hoạt động là các biến toàn cục được sử dụng trong một Tác vụ chưa được chạy/sử dụng.\n- Biến không được tham chiếu là các biến toàn cục có thể đã được sử dụng trong quá khứ nhưng hiện không được tham chiếu (ví dụ: Hồ sơ của Tác vụ bị vô hiệu hóa).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- Các liên kết video YouTube được xác định bởi '[xxx️ VIDEO: url...]' chỉ nóng/có thể nhấp nếu 'ffmpeg' đã được cài đặt:\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew cài đặt ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' và 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Windows thông qua Winget: 'cài đặt cánh ffmpeg'\n"
+msgid "Refer to"
+msgstr "tham khảo"

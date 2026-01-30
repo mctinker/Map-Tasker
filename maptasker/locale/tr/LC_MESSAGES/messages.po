@@ -779,55 +779,81 @@ msgid "Norwegian"
 msgstr "Norveççe"
 msgid "Norveççe"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "Profil Yok"
-
 msgid "No Project"
 msgstr "Proje Yok"
-
-
 msgid "Color"
 msgstr "Renk"
-
-
 msgid "Debug"
 msgstr "Hata ayıklama"
-
-
 msgid "Colors"
 msgstr "Renkler"
-
 msgid "Calls"
 msgstr "Aramalar"
-
 msgid "Called by"
 msgstr "Tarafından arandı"
-
-
-
 msgid "No projects found"
 msgstr "Hiçbir proje bulunamadı"
-
 msgid "No profiles found"
 msgstr "Profil bulunamadı"
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Tasker ortamınızı eşlemek için kullanılacak Tasker XML dosyasını bulun"
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "Dizin (mavi girişler sıcak bağlantılardır)"
-
 msgid "(Unnamed)"
 msgstr "(İsimsiz)"
-
-
 msgid "Up One Level to"
 msgstr "Bir Seviye Yukarıya"
-
-
 msgid "Owner"
 msgstr "Mal sahibi"
-
 msgid "Properties..."
 msgstr "Özellikler..."
+msgid "TaskerNet Description:"
+msgstr "TaskerNet Açıklaması:"
+msgid "...with label:"
+msgstr "...etiketiyle:"
+msgid "TaskerNet search on:"
+msgstr "TaskerNet'te arama:"
+msgid "DISABLED]"
+msgstr "ENGELLİ]"
+msgid "Entry Task"
+msgstr "Giriş Görevi"
+msgid "Exit Task"
+msgstr "Görevden Çık"
+msgid "description"
+msgstr "Tanım"
+msgid "Launcher"
+msgstr "Başlatıcı"
+msgid "CAVEATS:"
+msgstr "UYARILAR:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- Bu yalnızca kendi backup.xml dosyamda test edildi.  Sorunlar için bunları bildirin"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- '(Adsız)' olarak tanımlanan görevlerin adı yoktur ve Anonim olarak kabul edilir.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- Tasker alanlarında gömülü HTML'yi (ör. color=...>') korumak için her türlü girişimde bulunulur.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- '*' ile başlayan profil adları anonimdir/isimsizdir ve ad, Profil koşullarından oluşur.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- HTML içeren ilk eylemden oluşan görev adlarında, büyük ve küçük karakterlerin tümü sırasıyla '{' ve '}' biçimine dönüştürülecektir.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- Gömülü HTML içeren etiketlerin ve TaskerNet açıklamalarının formatı, Harita görünümünde mümkün olduğunca yakın görüntülenir ancak tam olarak aynı olmayabilir.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- Google API anahtarınız Tasker tercihlerinde görüntülenir!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- Görev eylemlerinin tümü olmasa da çoğu eşlendi ve bu şekilde görüntülenecek.  Aynı şekilde Profil koşulları ve Eklentiler için de geçerlidir.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- -d0 seçeneği için, 'Adsız/Anonim' olarak tanımlanan Görevlerin yalnızca ilk Eylemleri listelenir....\n tıpkı Tasker'ın yaptığı gibi.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- Etkin olmayan değişkenler, çalıştırılmamış/kullanılmamış bir Görevde kullanılan genel değişkenlerdir.\n- Referans verilmeyen değişkenler, geçmişte kullanılmış olabilecek ancak şu anda referans verilmeyen genel değişkenlerdir (ör. Görev Profili devre dışı bırakılmıştır).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- '[▶️ VİDEO: url...]' ile tanımlanan YouTube video bağlantıları yalnızca 'ffmpeg' yüklüyse etkin/tıklanabilir:\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' ve 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Winget aracılığıyla Windows: 'winget install ffmpeg'\n"
+msgid "Refer to"
+msgstr "Bakınız"

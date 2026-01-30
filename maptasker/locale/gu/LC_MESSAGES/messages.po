@@ -675,8 +675,6 @@ msgid "Korean"
 msgstr "કોરીઆનો"
 msgid "coreano"
 msgstr "કોરેઆનો"
-  
-
 msgid "સ્પેનિશ"
 msgstr "Spanish"
 msgid "અંગ્રેજી"
@@ -787,55 +785,81 @@ msgid "Norwegian"
 msgstr "નોર્વેજીયન"
 msgid "નોર્વેજીયન"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "કોઈ પ્રોફાઇલ નથી"
-
 msgid "No Project"
 msgstr "કોઈ પ્રોજેક્ટ નથી"
-
-
 msgid "Color"
 msgstr "રંગ"
-
-
 msgid "Debug"
 msgstr "ડીબગ"
-
-
 msgid "Colors"
 msgstr "રંગો"
-
 msgid "Calls"
 msgstr "કૉલ્સ"
-
 msgid "Called by"
 msgstr "દ્વારા બોલાવવામાં આવે છે"
-
-
-
 msgid "No projects found"
 msgstr "કોઈ પ્રોજેક્ટ મળ્યા નથી"
-
 msgid "No profiles found"
 msgstr "કોઈ પ્રોફાઇલ્સ મળી નથી"
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "તમારા Tasker પર્યાવરણને મેપ કરવા માટે ઉપયોગમાં લેવા માટે Tasker XML ફાઇલ શોધો"
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "ડિરેક્ટરી (વાદળી એન્ટ્રીઓ હોટલિંક છે)"
-
 msgid "(Unnamed)"
 msgstr "(અનામી)"
-
-
 msgid "Up One Level to"
 msgstr "એક સ્તર ઉપર"
-
-
 msgid "Owner"
 msgstr "માલિક"
-
 msgid "Properties..."
 msgstr "ગુણધર્મો..."
+msgid "TaskerNet Description:"
+msgstr "TaskerNet વર્ણન:"
+msgid "...with label:"
+msgstr "...લેબલ સાથે:"
+msgid "TaskerNet search on:"
+msgstr "TaskerNet શોધ આના પર:"
+msgid "DISABLED]"
+msgstr "અક્ષમ]"
+msgid "Entry Task"
+msgstr "પ્રવેશ કાર્ય"
+msgid "Exit Task"
+msgstr "કાર્યમાંથી બહાર નીકળો"
+msgid "description"
+msgstr "વર્ણન"
+msgid "Launcher"
+msgstr "લોન્ચર"
+msgid "CAVEATS:"
+msgstr "ચેતવણીઓ:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- આ ફક્ત મારી પોતાની backup.xml ફાઇલ પર જ ચકાસાયેલ છે.  સમસ્યાઓ માટે, તેમને જાણ કરો"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- જે કાર્યોને '(અનામ વિનાનું)' તરીકે ઓળખવામાં આવે છે તેનું કોઈ નામ નથી અને તેને અનામી ગણવામાં આવે છે.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- ટાસ્કર ક્ષેત્રોમાં એમ્બેડેડ HTML (દા.ત. color=...>') જાળવી રાખવા માટેના તમામ પ્રયાસો કરવામાં આવે છે.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- '*' થી શરૂ થતા પ્રોફાઇલ નામો અનામી/અનામી છે, અને નામમાં પ્રોફાઇલ શરતોનો સમાવેશ થાય છે.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- html એમ્બેડ કરેલી પ્રથમ ક્રિયા ધરાવતાં કાર્યના નામોમાં અનુક્રમે '{' અને '}' કરતાં વધુ-મોટા અને ઓછા અક્ષરો હશે.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- એમ્બેડેડ HTML સાથે લેબલ્સ અને TaskerNet વર્ણનોનું ફોર્મેટિંગ નકશા દૃશ્યમાં શક્ય તેટલું નજીક પ્રદર્શિત થાય છે, પરંતુ તે ચોક્કસ ન હોઈ શકે.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- તમારી Google API કી Tasker પસંદગીઓમાં પ્રદર્શિત થાય છે!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- મોટાભાગની પરંતુ તમામ ટાસ્ક ક્રિયાઓ મેપ કરવામાં આવી નથી અને તે આ રીતે પ્રદર્શિત થશે.  તેવી જ રીતે પ્રોફાઇલ શરતો અને પ્લગ-ઇન્સ માટે.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- વિકલ્પ -d0 માટે, 'અનામી/અનામી' તરીકે ઓળખાતા કાર્યોમાં તેમની પ્રથમ ક્રિયા ફક્ત સૂચિબદ્ધ હશે....\n જેમ Tasker કરે છે.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- નિષ્ક્રિય વેરીએબલ્સ એ ટાસ્કમાં ઉપયોગમાં લેવાતા વૈશ્વિક વેરિયેબલ્સ છે જેનો ઉપયોગ કરવામાં આવ્યો નથી.\n- સંદર્ભ વિનાના વેરિયેબલ્સ એ વૈશ્વિક ચલ છે જેનો ભૂતકાળમાં ઉપયોગ કરવામાં આવ્યો હોઈ શકે છે, પરંતુ હાલમાં તે સંદર્ભિત નથી (દા.ત. કાર્યની પ્રોફાઇલ અક્ષમ છે).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- '[▶️ VIDEO: url...]' દ્વારા ઓળખાયેલી YouTube વિડિયો લિંક્સ માત્ર ત્યારે જ હોટ/ક્લિક કરવા યોગ્ય છે જો 'ffmpeg' ઇન્સ્ટોલ કરેલ હોય:\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' અને 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "વિન્ગેટ દ્વારા વિન્ડોઝ: 'વિંગેટ ઇન્સ્ટોલ ffmpeg'\n"
+msgid "Refer to"
+msgstr "નો સંદર્ભ લો"

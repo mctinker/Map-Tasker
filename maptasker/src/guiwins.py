@@ -63,6 +63,7 @@ from maptasker.src.maputils import (
     get_current_local_time_auto_timezone,
     get_first_substring_match,
     is_color_dark,
+    live_translate_text,
     make_hex_color,
 )
 from maptasker.src.primitem import PrimeItems
@@ -446,6 +447,14 @@ class CTkTextview(ctk.CTkFrame):
             "global_variables": translate_string("Project Global Variables"),
             "directory": translate_string(directory_blue_entries),
             "properties": translate_string("Properties..."),
+            "taskernet_description": translate_string("TaskerNet Description:"),
+            "with_labels": translate_string("...with label:"),
+            "taskernet_search": translate_string("TaskerNet search on:"),
+            "launcher_task": translate_string("Launcher"),
+            "disabled": translate_string("DISABLED]"),
+            "entry_task": translate_string("Entry Task"),
+            "exit_task": translate_string("Exit Task"),
+            "unnamed": translate_string("(Unnamed)"),
         }
 
         # Process the data and insert it into the text box.
@@ -1661,7 +1670,7 @@ class CTkTextview(ctk.CTkFrame):
             name,
             line_number,
         )
-        if not dont_got_line and "Launcher Task: " in prev_line:
+        if not dont_got_line and translate_string("Launcher Task: ") in prev_line:
             return ""
 
         # fmt: off
@@ -1705,8 +1714,8 @@ class CTkTextview(ctk.CTkFrame):
             task_item = ""
 
         # Cleanup the text
-        owning_profile_name = owning_profile_name.replace("<<< Owner=", "   ")
-        owning_project_name = owning_project_name.replace("<<< Owner=", "   ")
+        owning_profile_name = owning_profile_name.split("=")[1]
+        owning_project_name = owning_project_name.split("=")[1]
 
         # Cleanup the line and return it for display
         return text + f"\n {owning_profile_name}\n {owning_project_name}{properties}{task_item}"
@@ -1830,10 +1839,10 @@ class CTkTextview(ctk.CTkFrame):
         if pgv == line:
             return f"<<< {owner}={pgv}", "", ""
         owner_keys = [
-            self.translation("task"),
-            self.translation("profile"),
-            self.translation("project"),
-            self.translation("scene"),
+            self.translation["task"],
+            self.translation["profile"],
+            self.translation["project"],
+            self.translation["scene"],
             pgv,
         ]
         invalid_keys = [
@@ -1842,22 +1851,26 @@ class CTkTextview(ctk.CTkFrame):
             " Properties",
         ]
         # Identify the possible owners based on what is in the line.
-        if "Project: " in line:
-            return f"<<< {owner}={translate_string('Project')}", "", ""
-        if "Profile: " in line:
+        if "Project: " in line or self.translation["project"] in line:
+            return f"<<< {owner}={translate_string('project')}", "", ""
+            # search_text = line.replace("Project: ", self.translation["project"])
+        if "Profile: " in line or self.translation["profile"] in line:
             owner_keys.pop(0)  # Remove tasks
             owner_keys.pop(0)  # Remove profiles
-        elif "Scene: " in line:
+            search_text = line.replace("Profile: ", self.translation["profile"])
+        elif "Scene: " in line or self.translation["scene"] in line:
             owner_keys.pop(0)  # Remove tasks
             owner_keys.pop(0)  # Remove profiles
             owner_keys.pop()  # Remove scenes
-        elif "Task: " in line:
+            search_text = line.replace("Scene: ", self.translation["scene"])
+        elif "Task: " in line or self.translation["task"] in line:
             owner_keys.pop(0)  # Remove tasks
+            search_text = line.replace("Task: ", self.translation["task"])
 
         # First make sure we are at the line number that contains the text we are starting from.
         line_to_get, prev_line, dont_got_line = find_the_line(
             textbox,
-            line,
+            search_text,
             text_line_num,
         )
         if dont_got_line:
@@ -1870,6 +1883,9 @@ class CTkTextview(ctk.CTkFrame):
             # Get the line and check for the owner name.
             idx = f"{line_to_get}.0"
             prev_line = textbox.get(idx, idx + " lineend")
+            if self.translation["properties"] in prev_line:  # Ignore properties
+                line_to_get = str(int(line_to_get) - 1)
+                continue
             if tasker_object := _get_first_substring_match(prev_line, owner_keys):
                 if tasker_object != pgv:
                     owner = prev_line.split(":")[1].split("   ")[0].strip()
@@ -3100,26 +3116,37 @@ class CTkTextview(ctk.CTkFrame):
         # Clean up the message content
         message = message.replace("\n\n", "\n").replace("Go to top", "")
 
-        # Translate Tasker object names
-        # 1. Define the mapping of "Search String" : "Replacement String"
-        # Note: We handle the mixed sources (self.translation vs translate_string) here.
-        replacement_map = {
-            "Task: ": self.translation["task"],
-            "Profile: ": self.translation["profile"],
-            "Project: ": self.translation["project"],
-            "Scene: ": self.translation["scene"],
-            "Directory    ": self.translation["directory"] + "\n",
-            "Project Global Variables": self.translation["global_variables"],
-            "Properties...": self.translation["properties"],
-        }
-
         # 2. Iterate through the map and apply replacement
-        for search_term, replacement in replacement_map.items():
-            if search_term in message:
-                message = message.replace(search_term, replacement)
-                # Uncomment the line below if you strictly want the original 'elif' behavior
-        # (stop looking after the first match is found):
-        # break
+        if PrimeItems.program_arguments.get("language") != "English":
+            # Translate Tasker object names
+            # 1. Define the mapping of "Search String" : "Replacement String"
+            # Note: We handle the mixed sources (self.translation vs translate_string) here.
+            replacement_map = {
+                "Task: ": self.translation["task"],
+                "Profile: ": self.translation["profile"],
+                "Project: ": self.translation["project"],
+                "Scene: ": self.translation["scene"],
+                "Directory    ": self.translation["directory"] + "\n",
+                "Project Global Variables": self.translation["global_variables"],
+                "Properties...": self.translation["properties"],
+                "TaskerNet description:": self.translation["taskernet_description"],
+                "...with label:": self.translation["with_labels"],
+                "TaskerNet search on:": self.translation["taskernet_search"],
+                "[Launcher ": f"[{self.translation['launcher_task']} ",
+                "DISABLED]": self.translation["disabled"],
+                "Entry Task": self.translation["entry_task"],
+                "Exit Task": self.translation["exit_task"],
+                "(Unnamed)": self.translation["unnamed"],
+            }
+            for search_term, replacement in replacement_map.items():
+                if search_term in message:
+                    message = message.replace(search_term, replacement)
+                    # (stop looking after the first match is found):
+                    # break
+
+                # Handle Caveats
+                elif "CAVEATS:" in message:
+                    message = message.replace("CAVEATS:", translate_string("CAVEATS:"))
 
         # Handle special case for 'directory'
         if previous_value == "directory" and self.translation["project"] in message:
@@ -3195,9 +3222,6 @@ class CTkTextview(ctk.CTkFrame):
         end_idx = f"{line_num_str}.{char_position + msg_len}"
         translation = self.textview_textbox.master.translation
 
-        if translation["task"] in message or translation["profile"] in message or translation["project"] in message:
-            print("bingo")
-
         # Fast exit: check for task patterns early: 'Task x has x actions\n'
         if not find_task_pattern(message):
             if not self._insert_text_and_tag(start_idx, end_idx, message, tag_id):
@@ -3206,10 +3230,11 @@ class CTkTextview(ctk.CTkFrame):
             if "-text" in tag_id:
                 return char_position + msg_len
             # Tag hover/highlight only if necessary
-            if ": Properties" not in message and any(
+            if translation["properties"] not in message and any(
                 k in message
                 for k in (translation["task"], translation["profile"], translation["project"], translation["scene"])
             ):
+                # Add an <Enter> and <Leave> tag for hover highlighting
                 self.tag_items(tag_id, message)
                 self.textview_textbox.tag_config(tag_id, background=background_color)
             return char_position + msg_len
@@ -3322,12 +3347,12 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None
         """
-        translation = self.translation
+        translation = self.textview_textbox.master.translation
         keywords = {
-            f"{translation['task']}: ": "task",
-            f"{translation['profile']}: ": "profile",
-            f"{translation['project']}: ": "project",
-            f"{translation['scene']}: ": "scene",
+            f"{translation['task']}": "task",
+            f"{translation['profile']}": "profile",
+            f"{translation['project']}": "project",
+            f"{translation['scene']}": "scene",
             "Found:": "found",
         }
         # FIX See if this is working.
@@ -3341,7 +3366,7 @@ class CTkTextview(ctk.CTkFrame):
             (None, None),
         )
         # If we have a valid Tasker item and it isn't a Launcher name.
-        if item and not item.startswith(" [Launcher Task: "):
+        if item and not item.startswith(translate_string(" [Launcher Task: ")):
             self.textview_textbox.tag_bind(tag_id, "<Enter>", self.click_text)
             self.textview_textbox.tag_bind(tag_id, "<Leave>", self.click_name_leave)
 
@@ -4963,9 +4988,10 @@ class ToolTip(object):  # noqa: UP004
             font = "Courier"
 
         foreground_color = "white" if is_color_dark(mygui.saved_background_color) else "black"
+        translated_text = live_translate_text(self.text)
         label = Label(
             tw,
-            text=self.text,
+            text=translated_text,
             justify="left",
             # background="#ffffe0",
             background=mygui.saved_background_color,

@@ -675,8 +675,6 @@ msgid "Korean"
 msgstr "कोरियनो"
 msgid "coreano"
 msgstr "coreano"
-  
-
 msgid "स्पॅनिश"
 msgstr "Spanish"
 msgid "इंग्रजी"
@@ -787,55 +785,81 @@ msgid "Norwegian"
 msgstr "नॉर्वेजियन"
 msgid "नॉर्वेजियन"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "प्रोफाइल नाही"
-
 msgid "No Project"
 msgstr "प्रकल्प नाही"
-
-
 msgid "Color"
 msgstr "रंग"
-
-
 msgid "Debug"
 msgstr "डीबग करा"
-
-
 msgid "Colors"
 msgstr "रंग"
-
 msgid "Calls"
 msgstr "कॉल"
-
 msgid "Called by"
 msgstr "यांनी बोलावले"
-
-
-
 msgid "No projects found"
 msgstr "कोणतेही प्रकल्प आढळले नाहीत"
-
 msgid "No profiles found"
 msgstr "कोणतेही प्रोफाइल आढळले नाहीत"
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "तुमच्या Tasker वातावरणाचा नकाशा तयार करण्यासाठी वापरण्यासाठी Tasker XML फाइल शोधा"
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "निर्देशिका (निळ्या नोंदी हॉटलिंक आहेत)"
-
 msgid "(Unnamed)"
 msgstr "(अनाम)"
-
-
 msgid "Up One Level to"
 msgstr "एक पातळी पर्यंत"
-
-
 msgid "Owner"
 msgstr "मालक"
-
 msgid "Properties..."
 msgstr "गुणधर्म..."
+msgid "TaskerNet Description:"
+msgstr "TaskerNet वर्णन:"
+msgid "...with label:"
+msgstr "...लेबलसह:"
+msgid "TaskerNet search on:"
+msgstr "TaskerNet वर शोध:"
+msgid "DISABLED]"
+msgstr "अक्षम]"
+msgid "Entry Task"
+msgstr "प्रवेश कार्य"
+msgid "Exit Task"
+msgstr "टास्कमधून बाहेर पडा"
+msgid "description"
+msgstr "वर्णन"
+msgid "Launcher"
+msgstr "लाँचर"
+msgid "CAVEATS:"
+msgstr "चेतावणी:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- हे फक्त माझ्या स्वतःच्या backup.xml फाइलवर तपासले गेले आहे.  समस्यांसाठी, त्यांची तक्रार करा"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- '(अनाम)' म्हणून ओळखल्या जाणाऱ्या कार्यांना कोणतेही नाव नाही आणि ते निनावी मानले जातात.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- टास्कर फील्डमध्ये एम्बेडेड एचटीएमएल (उदा. रंग=...>') ठेवण्यासाठी सर्व प्रयत्न केले जातात.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- '*' ने सुरू होणारी प्रोफाईल नावे निनावी/अनाम आहेत आणि नावामध्ये प्रोफाइल अटी असतात.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- html एम्बेड केलेल्या पहिल्या क्रियेचा समावेश असलेल्या टास्कच्या नावांमध्ये अनुक्रमे '{' आणि '}' मध्ये रूपांतरित केलेले सर्व वर्ण असतील.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- एम्बेडेड HTML सह लेबले आणि TaskerNet वर्णनांचे स्वरूपन नकाशा दृश्यात शक्य तितक्या जवळ प्रदर्शित केले जाते, परंतु ते अचूक असू शकत नाही.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- तुमची Google API की Tasker प्राधान्यांमध्ये प्रदर्शित केली जाते!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- बऱ्याच परंतु सर्व कार्य क्रिया मॅप केल्या गेल्या नाहीत आणि त्याप्रमाणे प्रदर्शित केल्या जातील.  त्याचप्रमाणे प्रोफाइल परिस्थिती आणि प्लग-इनसाठी.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- पर्याय -d0 साठी, 'अनामित/निनावी' म्हणून ओळखल्या जाणाऱ्या कार्यांमध्ये त्यांची पहिली क्रिया फक्त सूचीबद्ध असेल....\n जसे Tasker करते.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- निष्क्रिय व्हेरिएबल्स हे टास्कमध्ये वापरले जाणारे ग्लोबल व्हेरिएबल्स आहेत जे रन/वापरले गेले नाहीत.\n- संदर्भ नसलेले व्हेरिएबल्स हे ग्लोबल व्हेरिएबल्स आहेत जे कदाचित भूतकाळात वापरले गेले असतील, परंतु सध्या संदर्भित नाहीत (उदा. टास्कचे प्रोफाइल अक्षम केले आहे).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- '[▶️ VIDEO: url...]' द्वारे ओळखल्या गेलेल्या YouTube व्हिडिओ लिंक्स 'ffmpeg' स्थापित केले असल्यासच हॉट/क्लिक करण्यायोग्य आहेत:\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' आणि 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Winge द्वारे Windows: 'winget install ffmpeg'\n"
+msgid "Refer to"
+msgstr "पहा"

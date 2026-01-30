@@ -783,55 +783,81 @@ msgid "Norwegian"
 msgstr "norjalainen"
 msgid "norjalainen"
 msgstr "Norwegian"
-
 msgid "No Profile"
 msgstr "Ei profiilia"
-
 msgid "No Project"
 msgstr "Ei projektia"
-
-
 msgid "Color"
 msgstr "Väri"
-
-
 msgid "Debug"
 msgstr "Debug"
-
-
 msgid "Colors"
 msgstr "värit"
-
 msgid "Calls"
 msgstr "Puhelut"
-
 msgid "Called by"
 msgstr "Soitti"
-
-
-
 msgid "No projects found"
 msgstr "Projekteja ei löytynyt"
-
 msgid "No profiles found"
 msgstr "Profiilia ei löytynyt"
-
 msgid "Locate the Tasker XML file to use to map your Tasker environment"
 msgstr "Etsi Tasker XML-tiedosto, jota käytetään Tasker-ympäristösi kartoittamiseen"
-
 msgid "Directory    (blue entries are hotlinks)"
 msgstr "Hakemisto (siniset merkinnät ovat pikalinkkejä)"
-
 msgid "(Unnamed)"
 msgstr "(Nimetön)"
-
-
 msgid "Up One Level to"
 msgstr "Yhden tason ylöspäin"
-
-
 msgid "Owner"
 msgstr "Omistaja"
-
 msgid "Properties..."
 msgstr "Ominaisuudet..."
+msgid "TaskerNet Description:"
+msgstr "TaskerNet Kuvaus:"
+msgid "...with label:"
+msgstr "...etiketillä:"
+msgid "TaskerNet search on:"
+msgstr "TaskerNet-haku:"
+msgid "DISABLED]"
+msgstr "POIS KÄYTÖSTÄ]"
+msgid "Entry Task"
+msgstr "Sisääntulotehtävä"
+msgid "Exit Task"
+msgstr "Poistu tehtävästä"
+msgid "description"
+msgstr "kuvaus"
+msgid "Launcher"
+msgstr "Käynnistysohjelma"
+msgid "CAVEATS:"
+msgstr "VAROITUKSET:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- Tämä on testattu vain omalla backup.xml-tiedostollani.  Jos ongelmia ilmenee, ilmoita niistä"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- Tehtävillä, jotka on tunnistettu '(nimeämättömäksi)', ei ole nimeä ja ne katsotaan anonyymeiksi.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- Upotettu HTML-koodi (esim. color=...>') yritetään säilyttää Tasker-kentissä.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- '*':lla alkavat profiilinimet ovat nimettömiä/nimettömiä, ja nimi koostuu profiilin ehdoista.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- Tehtävien nimissä, jotka koostuvat ensimmäisestä toiminnosta, johon on upotettu html, kaikki suurempi kuin- ja pienempi kuin -merkit muunnetaan muotoiksi '{' ja '}'.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- Tarrojen ja TaskerNet-kuvausten muotoilu, joissa on upotettu HTML, näytetään mahdollisimman lähellä karttanäkymää, mutta se ei välttämättä ole tarkka.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- Google API-avaimesi näkyy Tasker-asetuksissa!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- Useimmat mutta eivät kaikki tehtävätoiminnot on kartoitettu, ja ne näkyvät sellaisina.  Samoin profiiliehdoissa ja laajennuksissa.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- Vaihtoehdossa -d0 Tehtävien, jotka on tunnistettu nimellä 'Nimetön/Anonyymi', luettelossa on vain ensimmäinen toiminto....\n aivan kuten Tasker tekee.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- Ei-aktiiviset muuttujat ovat globaaleja muuttujia, joita käytetään tehtävässä, jota ei ole suoritettu/käytetty.\n- Viittauksettomat muuttujat ovat globaaleja muuttujia, joita on saatettu käyttää aiemmin, mutta joihin ei tällä hetkellä viitata (esim. tehtävän profiili on poistettu käytöstä).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- '[▶️ VIDEO: url...]' tunnistavat YouTube-videolinkit ovat kuumia/napsautettavissa vain, jos 'ffmpeg' on asennettu:\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' ja 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Windows Wingetin kautta: 'winget install ffmpeg'\n"
+msgid "Refer to"
+msgstr "Katso"

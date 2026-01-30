@@ -2914,8 +2914,11 @@ class EventHandlers:
         the_view.language = language_to_use
 
         flag_language = language if language in PrimeItems.languages else translate_string(language)
-        flag = f"flag_{PrimeItems.languages[flag_language]}"
-        add_logo(the_view, flag)
+        try:
+            flag = f"flag_{PrimeItems.languages[flag_language]}"
+            add_logo(the_view, flag)
+        except KeyError:
+            pass
 
         # Set the translation function in PrimeItems
         # T.set_language(language_to_use)
@@ -4314,6 +4317,7 @@ class EventHandlers:
             if "Diagram" in textview.title:
                 textview.textview_textbox.see("end-1c")
             else:
+                caveats_translated = translate_string("CAVEATS:")
                 # Go to bottom (first valid non-blank line)
                 line_count = int(
                     textview.textview_textbox.index("end-1c").split(".")[0],
@@ -4324,7 +4328,7 @@ class EventHandlers:
                         f"{line_pos!s}.0",
                         f"{line_pos!s}.end",
                     )
-                    if "CAVEATS:" in line:
+                    if caveats_translated in line:
                         break
                     line_pos -= 1
                 textview.textview_textbox.see(f"{line_pos!s}.0")
