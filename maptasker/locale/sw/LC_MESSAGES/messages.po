@@ -855,3 +855,24 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Windows kupitia Winget: 'winget install ffmpeg'\n"
 msgid "Refer to"
 msgstr "Rejelea"
+
+msgid "Tasker Displayed Totals"
+msgstr "Jumla ya Mfanyakazi Aliyeonyeshwa"
+
+msgid "Total number of Projects:"
+msgstr "Jumla ya idadi ya Miradi:"
+
+msgid "Total number of Profiles:"
+msgstr "Jumla ya idadi ya Wasifu:"
+
+msgid "Total number of Tasks:"
+msgstr "Jumla ya Idadi ya Majukumu:"
+
+msgid "Total number of Scenes:"
+msgstr "Jumla ya Idadi ya Matukio:"
+
+msgid "has"
+msgstr "ina"
+
+msgid "actions"
+msgstr "vitendo"

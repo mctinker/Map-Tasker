@@ -863,3 +863,24 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "ونڈوز وے ونگیٹ: 'ونگیٹ انسٹال FFMPEG' \ n"
 msgid "Refer to"
 msgstr "حوالہ دیں"
+
+msgid "Tasker Displayed Totals"
+msgstr "ٹاسکر نے مجموعی طور پر ظاہر کیا"
+
+msgid "Total number of Projects:"
+msgstr "منصوبوں کی کل تعداد:"
+
+msgid "Total number of Profiles:"
+msgstr "پروفائلز کی کل تعداد:"
+
+msgid "Total number of Tasks:"
+msgstr "کاموں کی کل تعداد:"
+
+msgid "Total number of Scenes:"
+msgstr "مناظر کی کل تعداد:"
+
+msgid "has"
+msgstr "ہے"
+
+msgid "actions"
+msgstr "اعمال"

@@ -861,3 +861,24 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Windows thông qua Winget: 'cài đặt cánh ffmpeg'\n"
 msgid "Refer to"
 msgstr "tham khảo"
+
+msgid "Tasker Displayed Totals"
+msgstr "Tổng số được hiển thị của tác vụ"
+
+msgid "Total number of Projects:"
+msgstr "Tổng số dự án:"
+
+msgid "Total number of Profiles:"
+msgstr "Tổng số hồ sơ:"
+
+msgid "Total number of Tasks:"
+msgstr "Tổng số nhiệm vụ:"
+
+msgid "Total number of Scenes:"
+msgstr "Tổng số Cảnh:"
+
+msgid "has"
+msgstr "có"
+
+msgid "actions"
+msgstr "hành động"

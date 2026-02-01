@@ -854,3 +854,24 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Windows a través de Winget: 'winget install ffmpeg'\n"
 msgid "Refer to"
 msgstr "Referirse a"
+
+msgid "Tasker Displayed Totals"
+msgstr "Totales mostrados por Tasker"
+
+msgid "Total number of Projects:"
+msgstr "Número total de Proyectos:"
+
+msgid "Total number of Profiles:"
+msgstr "Número total de perfiles:"
+
+msgid "Total number of Tasks:"
+msgstr "Número total de tareas:"
+
+msgid "Total number of Scenes:"
+msgstr "Número total de escenas:"
+
+msgid "has"
+msgstr "tiene"
+
+msgid "actions"
+msgstr "comportamiento"

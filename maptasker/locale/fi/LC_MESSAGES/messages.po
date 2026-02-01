@@ -861,3 +861,24 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Windows Wingetin kautta: 'winget install ffmpeg'\n"
 msgid "Refer to"
 msgstr "Katso"
+
+msgid "Tasker Displayed Totals"
+msgstr "Taskerin näyttämät kokonaissummat"
+
+msgid "Total number of Projects:"
+msgstr "Projektien kokonaismäärä:"
+
+msgid "Total number of Profiles:"
+msgstr "Profiilien kokonaismäärä:"
+
+msgid "Total number of Tasks:"
+msgstr "Tehtävien kokonaismäärä:"
+
+msgid "Total number of Scenes:"
+msgstr "Kohtausten kokonaismäärä:"
+
+msgid "has"
+msgstr "on"
+
+msgid "actions"
+msgstr "toimia"

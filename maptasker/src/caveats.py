@@ -21,7 +21,7 @@ def display_caveats() -> None:
     Outputs:
     - None
     """
-    cav1 = "- This has only been tested on my own backup.xml file.  For problems, report them on "
+    cav1 = "- This has only been tested on my own backup.xml file.  For problems, report them on"
     cav2 = "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
     cav3 = "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
     cav4 = "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
@@ -29,8 +29,7 @@ def display_caveats() -> None:
     cav6 = "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
     cav7 = "- Your Google API key is displayed in the Tasker preferences!\n"
     cav8 = "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
-    # FIX From here it is foobared
-    cav9 = "- For option -d0, Tasks that are identified as -Unnamed/Anonymous- will have their first Action only listed....\n  just like Tasker does.\n"
+    cav9 = "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
     cav10 = "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
     cav11 = """
 - YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n
@@ -47,7 +46,7 @@ def display_caveats() -> None:
             f"<br>{translate_string('CAVEATS')}:<br>",
             False,
         ),
-        (f"{translate_string(cav1)}https://github.com/mctinker/Map-Tasker/issues .") + "\n",
+        (f"{translate_string(cav1)} https://github.com/mctinker/Map-Tasker/issues .") + "\n",
         (translate_string(cav2)),
         (translate_string(cav3)),
         (translate_string(cav4)),
@@ -71,9 +70,9 @@ def display_caveats() -> None:
     if (
         PrimeItems.program_arguments["display_detail_level"] >= 4
     ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
-        caveats.extend(translate_string(cav10))
+        caveats.append(translate_string(cav10))
     if PrimeItems.program_arguments["taskernet"]:
-        caveats.extend(f"{cav11} https://www.ffmpeg.org/download.html\n")
+        caveats.append(f"{cav11} https://www.ffmpeg.org/download.html\n")
 
     # Start the output
     PrimeItems.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)

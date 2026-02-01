@@ -455,6 +455,11 @@ class CTkTextview(ctk.CTkFrame):
             "entry_task": translate_string("Entry Task"),
             "exit_task": translate_string("Exit Task"),
             "unnamed": translate_string("(Unnamed)"),
+            "display_totals": translate_string("Tasker Displayed Totals"),
+            "total_projects": translate_string("Total number of Projects:"),
+            "total_profiles": translate_string("Total number of Profiles:"),
+            "total_tasks": translate_string("Total number of Tasks:"),
+            "total_scenes": translate_string("Total number of Scenes:"),
         }
 
         # Process the data and insert it into the text box.
@@ -3137,6 +3142,11 @@ class CTkTextview(ctk.CTkFrame):
                 "Entry Task": self.translation["entry_task"],
                 "Exit Task": self.translation["exit_task"],
                 "(Unnamed)": self.translation["unnamed"],
+                "Tasker Displayed Totals": self.translation["display_totals"],
+                "Total number of Projects:": self.translation["total_projects"],
+                "Total number of Profiles:": self.translation["total_profiles"],
+                "Total number of Tasks:": self.translation["total_tasks"],
+                "Total number of Scenes:": self.translation["total_scenes"],
             }
             for search_term, replacement in replacement_map.items():
                 if search_term in message:
@@ -3355,7 +3365,7 @@ class CTkTextview(ctk.CTkFrame):
             f"{translation['scene']}": "scene",
             "Found:": "found",
         }
-        # FIX See if this is working.
+
         # Find the first matching keyword and corresponding item type
         item, start_position = next(
             (
@@ -3562,10 +3572,6 @@ class CTkTextview(ctk.CTkFrame):
         previous_value: str,
     ) -> tuple:
         """Determine the start and end positions of the highlight text."""
-        # FIX This code never worked correctly.  Leaving it commented out for now.
-        # tags_to_remove = ["<mark>", "</mark>", "<em>", "</em>", "<b>", "</b>"]
-        # for tag in tags_to_remove:
-        #     highlight_text = highlight_text.replace(tag, "")
         start_pos = message.find(highlight_text)
         if start_pos == -1:
             return -1, -1

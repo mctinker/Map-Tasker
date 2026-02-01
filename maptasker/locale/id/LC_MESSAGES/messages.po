@@ -845,3 +845,24 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Windows melalui Winget: 'winget install ffmpeg'\n"
 msgid "Refer to"
 msgstr "Lihat"
+
+msgid "Tasker Displayed Totals"
+msgstr "Total yang Ditampilkan Tasker"
+
+msgid "Total number of Projects:"
+msgstr "Jumlah total Proyek:"
+
+msgid "Total number of Profiles:"
+msgstr "Jumlah total Profil:"
+
+msgid "Total number of Tasks:"
+msgstr "Jumlah total Tugas:"
+
+msgid "Total number of Scenes:"
+msgstr "Jumlah total Adegan:"
+
+msgid "has"
+msgstr "memiliki"
+
+msgid "actions"
+msgstr "tindakan"

@@ -755,3 +755,24 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Windows 通過 Winget: 'winget install ffmpeg'\n"
 msgid "Refer to"
 msgstr "參考"
+
+msgid "Tasker Displayed Totals"
+msgstr "Tasker 顯示總計"
+
+msgid "Total number of Projects:"
+msgstr "項目總數："
+
+msgid "Total number of Profiles:"
+msgstr "配置文件總數："
+
+msgid "Total number of Tasks:"
+msgstr "任務總數："
+
+msgid "Total number of Scenes:"
+msgstr "場景總數："
+
+msgid "has"
+msgstr "有"
+
+msgid "actions"
+msgstr "行動"

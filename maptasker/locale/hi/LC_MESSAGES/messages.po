@@ -843,3 +843,24 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "विंगेट के माध्यम से विंडोज़: 'विंगेट इंस्टॉल एफएफएमपीईजी'\n"
 msgid "Refer to"
 msgstr "को देखें"
+
+msgid "Tasker Displayed Totals"
+msgstr "टास्कर ने कुल प्रदर्शित किया"
+
+msgid "Total number of Projects:"
+msgstr "परियोजनाओं की कुल संख्या:"
+
+msgid "Total number of Profiles:"
+msgstr "प्रोफाइल की कुल संख्या:"
+
+msgid "Total number of Tasks:"
+msgstr "कार्यों की कुल संख्या:"
+
+msgid "Total number of Scenes:"
+msgstr "दृश्यों की कुल संख्या:"
+
+msgid "has"
+msgstr "है"
+
+msgid "actions"
+msgstr "कार्रवाई"

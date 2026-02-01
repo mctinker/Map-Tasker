@@ -842,3 +842,24 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Winget 経由の Windows: 'winget install ffmpeg'\n"
 msgid "Refer to"
 msgstr "参照"
+
+msgid "Tasker Displayed Totals"
+msgstr "Tasker に表示される合計数"
+
+msgid "Total number of Projects:"
+msgstr "プロジェクトの総数:"
+
+msgid "Total number of Profiles:"
+msgstr "プロファイルの総数:"
+
+msgid "Total number of Tasks:"
+msgstr "タスクの総数:"
+
+msgid "Total number of Scenes:"
+msgstr "シーンの総数:"
+
+msgid "has"
+msgstr "もっている"
+
+msgid "actions"
+msgstr "アクション"

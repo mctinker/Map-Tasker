@@ -863,3 +863,24 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Winget வழியாக Windows: 'winget install ffmpeg'\n"
 msgid "Refer to"
 msgstr "பார்க்கவும்"
+
+msgid "Tasker Displayed Totals"
+msgstr "டாஸ்கர் காட்டப்பட்ட மொத்தங்கள்"
+
+msgid "Total number of Projects:"
+msgstr "திட்டங்களின் மொத்த எண்ணிக்கை:"
+
+msgid "Total number of Profiles:"
+msgstr "சுயவிவரங்களின் மொத்த எண்ணிக்கை:"
+
+msgid "Total number of Tasks:"
+msgstr "பணிகளின் மொத்த எண்ணிக்கை:"
+
+msgid "Total number of Scenes:"
+msgstr "காட்சிகளின் மொத்த எண்ணிக்கை:"
+
+msgid "has"
+msgstr "உள்ளது"
+
+msgid "actions"
+msgstr "செயல்கள்"

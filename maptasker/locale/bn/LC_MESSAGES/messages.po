@@ -861,3 +861,24 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "উইনজেটের মাধ্যমে উইন্ডোজ: 'উইংগেট ইন্সটল ffmpeg'\n"
 msgid "Refer to"
 msgstr "পড়ুন"
+
+msgid "Tasker Displayed Totals"
+msgstr "টাস্কর প্রদর্শিত মোট"
+
+msgid "Total number of Projects:"
+msgstr "মোট প্রকল্পের সংখ্যা:"
+
+msgid "Total number of Profiles:"
+msgstr "প্রোফাইলের মোট সংখ্যা:"
+
+msgid "Total number of Tasks:"
+msgstr "মোট কাজের সংখ্যা:"
+
+msgid "Total number of Scenes:"
+msgstr "দৃশ্যের মোট সংখ্যা:"
+
+msgid "has"
+msgstr "আছে"
+
+msgid "actions"
+msgstr "কর্ম"
