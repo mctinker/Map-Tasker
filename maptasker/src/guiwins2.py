@@ -555,6 +555,7 @@ class CTkHyperlinkManager:
         line_pos = first_hit[1]
         # Point to the first hit
         our_view.textview_textbox.see(f"{line_num!s}.{line_pos!s}")
+
         # Highlight the match
         value = {}
         value["highlights"] = [f"mark,{search_string}"]

@@ -460,6 +460,7 @@ class CTkTextview(ctk.CTkFrame):
             "total_profiles": translate_string("Total number of Profiles:"),
             "total_tasks": translate_string("Total number of Tasks:"),
             "total_scenes": translate_string("Total number of Scenes:"),
+            "no_profile": translate_string("The following Tasks in Project 'Chat GPT' are not in any Profile"),
         }
 
         # Process the data and insert it into the text box.
@@ -1615,8 +1616,8 @@ class CTkTextview(ctk.CTkFrame):
         # Add column headings.
         max_profile_length = max((len(s) for s in profiles), default=0)
         max_task_length = max((len(s) for s in tasks), default=0)
-        profile_header = f"{'Profiles'.ljust(max_profile_length, '.')}"
-        task_header = f"{'  Tasks in Project (sorted)'.ljust(max_task_length, '.')}"
+        profile_header = f"{translate_string('Profiles').ljust(max_profile_length, '.')}"
+        task_header = f"{translate_string('  Tasks in Project (sorted)').ljust(max_task_length, '.')}"
         profiles_and_tasks.insert(0, [f"\n\n{profile_header}", task_header])
 
         # Convert to columns.
@@ -1645,7 +1646,7 @@ class CTkTextview(ctk.CTkFrame):
         tasks = get_tasks_in_project(project)
 
         # Can't combine the following into opne large 'f-string' since can not have '\' in f-string.
-        temp = f"\n  In Project: {project}\n Tasks in Project (sorted)...\n"
+        temp = f"\n  {translate_string('In Project:')} {project}\n {translate_string('Tasks in Project (sorted)')}...\n"
         all_tasks = "\n   ".join(tasks)
         return text + f"{temp}   {all_tasks}"
 
@@ -1694,7 +1695,7 @@ class CTkTextview(ctk.CTkFrame):
                 line_found,
             )
             # Check for situation in which there is a Project and no Profile (i.e. the Profile has the Project name).
-            if owning_project_name == "<<< Owner=Project":
+            if owning_project_name == translate_string("<<< Owner=Project"):
                 owning_project_name = owning_profile_name
                 owning_profile_name = ""
         else:
@@ -3147,6 +3148,7 @@ class CTkTextview(ctk.CTkFrame):
                 "Total number of Profiles:": self.translation["total_profiles"],
                 "Total number of Tasks:": self.translation["total_tasks"],
                 "Total number of Scenes:": self.translation["total_scenes"],
+                "The following Tasks in Project 'Chat GPT' are not in any Profile": self.translation["no_profile"],
             }
             for search_term, replacement in replacement_map.items():
                 if search_term in message:
@@ -3227,6 +3229,7 @@ class CTkTextview(ctk.CTkFrame):
             - Applies background color and hover tags to task, profile, project, and scene labels.
             - Safely skips insertion if the task has already been processed.
         """
+        task_translated = translate_string("Task ")
         msg_len = len(message)
         start_idx = f"{line_num_str}.{char_position}"
         end_idx = f"{line_num_str}.{char_position + msg_len}"
@@ -3254,7 +3257,7 @@ class CTkTextview(ctk.CTkFrame):
         task_action_warnings = PrimeItems.task_action_warnings
         track_task_warnings = PrimeItems.track_task_warnings
         task_name = next(
-            (t for t in task_action_warnings if f"Task {t} has" in message),
+            (t for t in task_action_warnings if f"{task_translated} {t} {translate_string('has')}" in message),
             None,
         )
         if not task_name:
@@ -3274,8 +3277,8 @@ class CTkTextview(ctk.CTkFrame):
         task_offset = char_position + taskname_start
 
         # Add "Task " prefix
-        prefix_end = f"{line_num_str}.{char_position + 5}"  # len("Task ")
-        if not self._insert_text_and_tag(start_idx, prefix_end, "Task ", tag_id):
+        prefix_end = f"{line_num_str}.{char_position + len(task_translated) + 1}"
+        if not self._insert_text_and_tag(start_idx, prefix_end, f"{task_translated} ", tag_id):
             return char_position
 
         # Add task name as hyperlink

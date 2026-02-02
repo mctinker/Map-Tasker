@@ -1901,8 +1901,9 @@ def search_substring_in_list(
         list: A list of tuples containing the index of the string and the position of the substring.
     """
     matches = []
+    task_translated = translate_string("Task: ")
     # If this is an Unknown Task or Task in warning dict, we need to search for the Task ID in A Scene as well.
-    if translate_string("Task: ") in substring and "(Unnamed)" in substring:
+    if task_translated in substring and "(Unnamed)" in substring:
         # Get the Task ID.
         task_id = get_taskid_from_unnamed_task(substring)
         second_search_string = f"id:{task_id}"
@@ -1950,6 +1951,10 @@ def search_substring_in_list(
                     if new_lower_substring != lower_substring:
                         break
 
+            # Make sure we are not searching for a task and this is a launcher task
+            if substring.startswith(task_translated) and string.startswith(" [Launcher "):
+                start = pos + 1
+                continue
             # Okay, we have the match!
             matches.append((i, pos))
             if stop_on_first_match:
@@ -2025,8 +2030,21 @@ def search_nextprev_string(
                 )
 
                 # Set the line at the first hit. "See" makes it visible.
-                textview.textview_textbox.see(textview.search_current_line)
-                textview.textview_textbox.focus_set()
+                # textview.textview_textbox.see(textview.search_current_line)
+
+                # Move the window so that the match is in the middle of the screen.
+                # 'end-1c' means 'the end of the text, minus one character'
+                # (this avoids counting the invisible final newline Tkinter adds)
+                last_index = textview.textview_textbox.index("end-1c")
+
+                # The index is returned as a string like "100.5" (Line 100, Column 5)
+                # We split by the dot and take the first part
+                total_lines = int(last_index.split(".")[0])
+
+                pos = int(temp[0]) / total_lines
+                # Move the view to show the found text, adjusting to center it
+                textview.textview_textbox.yview_moveto(float(pos) - 0.02)
+                # textview.textview_textbox.focus_set()
                 break
 
 

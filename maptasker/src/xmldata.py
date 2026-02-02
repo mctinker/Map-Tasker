@@ -11,6 +11,8 @@ import shutil
 
 import defusedxml.ElementTree
 
+from maptasker.src.maputil2 import translate_string
+
 
 # See if the xml tag is one of the predefined types and return result
 def tag_in_type(tag: str, flag: bool) -> bool:
@@ -199,7 +201,7 @@ def is_tasker_object(text: str, blank_trailer: bool) -> bool:
         "Task <a href=#tasks_",
     ]
     if blank_trailer:
-        keywords_nbsp = [keyword.replace("&nbsp;", " ") for keyword in keywords_nbsp]
+        keywords_nbsp = [translate_string(keyword.replace("&nbsp;", " ")) for keyword in keywords_nbsp]
     return any(keyword in text for keyword in keywords_nbsp)
 
 

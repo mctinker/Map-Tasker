@@ -10,11 +10,13 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed: None
+- Changed: The 'Next' and 'Previous' buttons now keep the next or previous item in the middle of the view.
 
 ### Fixed
 
 - Fixed: Task action limit gets reset to 100 in the GUI when changing to another language.
+- Fixed: Clicking on a Task, in the Map view, inadvertantly jumps to the 'Launcher Task' line if there is one rather than to the Task.
+- Fixed: If highlighting Tasker objects (e.g. selecting 'Bold') in trhe Map view, then hotlinks to Tasker objects would result in the error message 'Could not find ...'.
 
 ### Known Issue
 

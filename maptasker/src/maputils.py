@@ -343,11 +343,14 @@ def display_task_warnings() -> None:
     This function goes through the list of tasks with too many actions
     and adds them to the output list.  It then outputs all the warnings.
     """
+    task_translated = translate_string("Task")
+    has_translated = translate_string("has")
+    actions_translated = translate_string("actions")
     warnings = [
         format_html(
             "trailing_comments_color",
             "",
-            f"Tasks With Too Many Actions (Limit is {PrimeItems.program_arguments['task_action_warning_limit']})...",
+            f"{translate_string('Tasks With Too Many Actions (Limit is')} {PrimeItems.program_arguments['task_action_warning_limit']})...",
             False,
         ),
     ]
@@ -360,7 +363,7 @@ def display_task_warnings() -> None:
         href = f"<a href=#tasks_{href_name}>{task_name}</a>"
 
         # Add the warning to the list.
-        warnings.append(f"Task {href} has {value['count']} actions")
+        warnings.append(f"{task_translated} {href} {has_translated} {value['count']} {actions_translated}")
 
     # Start the output
     PrimeItems.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)
@@ -537,7 +540,7 @@ def find_task_pattern(text: str) -> bool:
     # We use re.DOTALL to make '.' match newlines as well, in case 'x' spans multiple lines,
     # though your specific pattern has a newline character.
     # The '\n' at the end of the pattern matches a literal newline character.
-    pattern = f".*?{translate_string('Task')} .*? has .*? actions\n"
+    pattern = f".*?{translate_string('Task')} .*? {translate_string('has')} .*? {translate_string('actions')}\n"
 
     # re.search() scans through the string looking for the first location
     # where the regular expression pattern produces a match.

@@ -13,6 +13,7 @@ import re
 
 from maptasker.src.error import rutroh_error
 from maptasker.src.guiutils import align_text
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import pattern8
 from maptasker.src.xmldata import remove_html_tags
@@ -505,13 +506,14 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
     # Special handling for 'Task xxx has too many actions'.
     # We don't want to strip the html from the Task name.
     # Catch the '>' break before the &gt;' gets replaced.
-    too_many_pos = text_list[0].find("Task <a href=#tasks")
+    to_find = f"{translate_string('Task ')} <a href=#tasks"
+    too_many_pos = text_list[0].find(to_find)
     if too_many_pos != -1:
         # Find the first ">"
         break_pos = text_list[0].find(">")
         if break_pos != -1:
             # Remove everything before the first ">"
-            text_list[0] = f"Task {text_list[0][break_pos + 1 :].replace('</a>', '')}"
+            text_list[0] = f"{translate_string('Task ')} {text_list[0][break_pos + 1 :].replace('</a>', '')}"
             remove_html = False
         else:
             rutroh_error(
@@ -740,8 +742,8 @@ def process_line(
                     else:
                         output_lines[line_num]["highlights"] = highlights
 
-                # Remove HTML tags and replace with spaces
-                raw_text = _remove_html_tags(working_text, "")
+                # Remove HTML tags and replace with spaces as long as not 'href=#'
+                raw_text = _remove_html_tags(working_text, "") if "href=#" not in working_text else working_text
                 if "<span class=" in raw_text:
                     raw_text = raw_text.replace("<span class=", " ")
                 if "\n\n" in raw_text:
@@ -938,7 +940,7 @@ def additional_formatting(
         output_lines[line_num]["highlights"] = [""]
 
     # Build coloring and highlights
-    if "<span class=" in line and "_color" in line:
+    if "<span class=" in line and color_location != -1:
         output_lines = coloring_and_highlights(output_lines, line, line_num)
 
     # If color is already embedded (TaskerNet description or label)...
@@ -986,7 +988,7 @@ def additional_formatting(
         if doing_global_variables:
             spacing = glob_spacing
 
-    # Cleanup the line
+    # Cleanup the new output line
     output_lines = cleanup_text_elements(output_lines, line_num, remove_html)
     texts = output_lines[line_num]["text"]
     for i, text in enumerate(texts):
