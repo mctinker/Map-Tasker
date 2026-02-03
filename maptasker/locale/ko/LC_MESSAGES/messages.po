@@ -841,24 +841,27 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Winget을 통한 Windows: 'winget install ffmpeg'\n"
 msgid "Refer to"
 msgstr "참조"
-
 msgid "Tasker Displayed Totals"
 msgstr "Tasker가 표시한 총계"
-
 msgid "Total number of Projects:"
 msgstr "총 프로젝트 수:"
-
 msgid "Total number of Profiles:"
 msgstr "총 프로필 수:"
-
 msgid "Total number of Tasks:"
 msgstr "총 작업 수:"
-
 msgid "Total number of Scenes:"
 msgstr "총 장면 수:"
-
 msgid "has"
 msgstr "가지다"
-
 msgid "actions"
 msgstr "행위"
+msgid "Tasks With Too Many Actions (Limit is"
+msgstr "작업이 너무 많은 작업(한도는"
+msgid "In Project"
+msgstr "프로젝트 내"
+msgid "The following Tasks in Project 'Chat GPT' are not in any Profile"
+msgstr "'Chat GPT' 프로젝트의 다음 작업은 어떤 프로필에도 없습니다."
+msgid "Actions:"
+msgstr "행위:"
+msgid "Priority:"
+msgstr "우선 사항:"

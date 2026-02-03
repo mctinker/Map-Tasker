@@ -863,24 +863,27 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Winget வழியாக Windows: 'winget install ffmpeg'\n"
 msgid "Refer to"
 msgstr "பார்க்கவும்"
-
 msgid "Tasker Displayed Totals"
 msgstr "டாஸ்கர் காட்டப்பட்ட மொத்தங்கள்"
-
 msgid "Total number of Projects:"
 msgstr "திட்டங்களின் மொத்த எண்ணிக்கை:"
-
 msgid "Total number of Profiles:"
 msgstr "சுயவிவரங்களின் மொத்த எண்ணிக்கை:"
-
 msgid "Total number of Tasks:"
 msgstr "பணிகளின் மொத்த எண்ணிக்கை:"
-
 msgid "Total number of Scenes:"
 msgstr "காட்சிகளின் மொத்த எண்ணிக்கை:"
-
 msgid "has"
 msgstr "உள்ளது"
-
 msgid "actions"
 msgstr "செயல்கள்"
+msgid "Tasks With Too Many Actions (Limit is"
+msgstr "பல செயல்களைக் கொண்ட பணிகள் (வரம்பு"
+msgid "In Project"
+msgstr "திட்டத்தில்"
+msgid "The following Tasks in Project 'Chat GPT' are not in any Profile"
+msgstr "திட்ட 'அரட்டை GPT' இல் பின்வரும் பணிகள் எந்த சுயவிவரத்திலும் இல்லை"
+msgid "Actions:"
+msgstr "செயல்கள்:"
+msgid "Priority:"
+msgstr "முன்னுரிமை:"

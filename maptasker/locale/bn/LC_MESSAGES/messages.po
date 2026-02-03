@@ -861,24 +861,27 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "উইনজেটের মাধ্যমে উইন্ডোজ: 'উইংগেট ইন্সটল ffmpeg'\n"
 msgid "Refer to"
 msgstr "পড়ুন"
-
 msgid "Tasker Displayed Totals"
 msgstr "টাস্কর প্রদর্শিত মোট"
-
 msgid "Total number of Projects:"
 msgstr "মোট প্রকল্পের সংখ্যা:"
-
 msgid "Total number of Profiles:"
 msgstr "প্রোফাইলের মোট সংখ্যা:"
-
 msgid "Total number of Tasks:"
 msgstr "মোট কাজের সংখ্যা:"
-
 msgid "Total number of Scenes:"
 msgstr "দৃশ্যের মোট সংখ্যা:"
-
 msgid "has"
 msgstr "আছে"
-
 msgid "actions"
 msgstr "কর্ম"
+msgid "Tasks With Too Many Actions (Limit is"
+msgstr "অনেকগুলি অ্যাকশন সহ কাজ (সীমা হল"
+msgid "In Project"
+msgstr "প্রকল্পে"
+msgid "The following Tasks in Project 'Chat GPT' are not in any Profile"
+msgstr "প্রকল্প 'চ্যাট জিপিটি'-তে নিম্নলিখিত কাজগুলি কোনও প্রোফাইলে নেই৷"
+msgid "Actions:"
+msgstr "কর্ম:"
+msgid "Priority:"
+msgstr "অগ্রাধিকার:"

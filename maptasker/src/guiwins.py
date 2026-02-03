@@ -1470,6 +1470,7 @@ class CTkTextview(ctk.CTkFrame):
             "project": self.hover_project,
             "found": self.hover_search,
         }
+        prefixes = ["Task: ", "Profile: ", "Project: ", "Scene: "]
         owner_text = ""
 
         # Determine the hover type and get the text associated with it.
@@ -1477,6 +1478,7 @@ class CTkTextview(ctk.CTkFrame):
             # If 'Search' match, get the owner.
             if item_type == "found":
                 text, owner_text, max_len = hover_handlers[item_type](tag_hover_line)
+
                 # Recalculate the max line length based on the window width.
                 char_width_in_pixels = width_and_height_calculator_in_pixel(
                     "m",
@@ -1499,6 +1501,18 @@ class CTkTextview(ctk.CTkFrame):
                 )
         else:
             return
+
+        # Translate hover text as necessary
+        for prefix in prefixes:
+            if text.startswith(prefix):
+                # 3. Use slicing instead of .replace()
+                # text[len(prefix):] gets everything AFTER the prefix
+                text = translate_string(prefix) + text[len(prefix) :]
+                if prefix == "Task: ":
+                    text = text.replace("Actions:\n", f"{translate_string('Actions:')}\n").replace(
+                        "  Tasks in Project (sorted)",
+                        translate_string("  Tasks in Project (sorted)"),
+                    )
 
         # Establish appropriate colors
         background_color, foreground_color1, foreground_color2 = get_foreground_background_colors(self.master.master)
@@ -1622,6 +1636,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Convert to columns.
         results_in_columns = parse_pairs_to_columns(profiles_and_tasks)
+
         return f"{text} {properties}{results_in_columns}"
 
     def hover_profile(self, name: str, text: str) -> str:
@@ -3150,6 +3165,7 @@ class CTkTextview(ctk.CTkFrame):
                 "Total number of Scenes:": self.translation["total_scenes"],
                 "The following Tasks in Project 'Chat GPT' are not in any Profile": self.translation["no_profile"],
             }
+            # Go through all possible strings and perform translation.
             for search_term, replacement in replacement_map.items():
                 if search_term in message:
                     message = message.replace(search_term, replacement)

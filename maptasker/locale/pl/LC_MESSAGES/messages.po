@@ -861,24 +861,27 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Windows przez Winget: 'winget install ffmpeg'\n"
 msgid "Refer to"
 msgstr "Patrz"
-
 msgid "Tasker Displayed Totals"
 msgstr "Tasker wyświetlił sumy"
-
 msgid "Total number of Projects:"
 msgstr "Całkowita liczba projektów:"
-
 msgid "Total number of Profiles:"
 msgstr "Całkowita liczba profili:"
-
 msgid "Total number of Tasks:"
 msgstr "Całkowita liczba zadań:"
-
 msgid "Total number of Scenes:"
 msgstr "Całkowita liczba scen:"
-
 msgid "has"
 msgstr "ma"
-
 msgid "actions"
 msgstr "działania"
+msgid "Tasks With Too Many Actions (Limit is"
+msgstr "Zadania ze zbyt dużą liczbą działań (ograniczenie wynosi"
+msgid "In Project"
+msgstr "W projekcie"
+msgid "The following Tasks in Project 'Chat GPT' are not in any Profile"
+msgstr "Następujące zadania w projekcie „Czat GPT” nie znajdują się w żadnym profilu"
+msgid "Actions:"
+msgstr "Działania:"
+msgid "Priority:"
+msgstr "Priorytet:"

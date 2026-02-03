@@ -847,24 +847,27 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Windows via Winget: 'winget install ffmpeg'\n"
 msgid "Refer to"
 msgstr "Der henvises til"
-
 msgid "Tasker Displayed Totals"
 msgstr "Tasker viste totaler"
-
 msgid "Total number of Projects:"
 msgstr "Samlet antal projekter:"
-
 msgid "Total number of Profiles:"
 msgstr "Samlet antal profiler:"
-
 msgid "Total number of Tasks:"
 msgstr "Samlet antal opgaver:"
-
 msgid "Total number of Scenes:"
 msgstr "Samlet antal scener:"
-
 msgid "has"
 msgstr "har"
-
 msgid "actions"
 msgstr "handlinger"
+msgid "Tasks With Too Many Actions (Limit is"
+msgstr "Opgaver med for mange handlinger (grænsen er"
+msgid "In Project"
+msgstr "I Projekt"
+msgid "The following Tasks in Project 'Chat GPT' are not in any Profile"
+msgstr "Følgende opgaver i Project 'Chat GPT' er ikke i nogen profil"
+msgid "Actions:"
+msgstr "Handlinger:"
+msgid "Priority:"
+msgstr "Prioritet:"
