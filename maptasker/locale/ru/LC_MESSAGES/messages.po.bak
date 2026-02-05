@@ -628,7 +628,8 @@ msgid "Ai Analyze Help"
 msgstr "Помощь в анализе искусственного интеллекта"
 msgid "Views Help"
 msgstr "Просмотры Справка"
-msgid "View Limit Help"msgstr "Посмотреть справку по лимитам"
+msgid "View Limit Help"
+msgstr "Посмотреть справку по лимитам"
  # Critical reverse translations needed!
 msgid "Нада"
 msgstr "None"
@@ -672,7 +673,8 @@ msgid "Russian"
 msgstr "Русский"
 msgid "Русский"
 msgstr "Russian"
-msgid "Korean"msgstr "корейский"
+msgid "Korean"
+msgstr "корейский"
 msgid "корейский"
 msgstr "Korean"
 msgid "Arabic"
@@ -841,42 +843,33 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Windows через Winget: «winget install ffmpeg»\n"
 msgid "Refer to"
 msgstr "Обратитесь к"
-
 msgid "Tasker Displayed Totals"
 msgstr "Итоги, отображаемые Tasker"
-
 msgid "Total number of Projects:"
 msgstr "Общее количество проектов:"
-
 msgid "Total number of Profiles:"
 msgstr "Общее количество профилей:"
-
 msgid "Total number of Tasks:"
 msgstr "Общее количество задач:"
-
 msgid "Total number of Scenes:"
 msgstr "Общее количество сцен:"
-
 msgid "has"
 msgstr "имеет"
-
 msgid "actions"
 msgstr "действия"
-
 msgid "Tasks With Too Many Actions (Limit is"
 msgstr "Задачи со слишком большим количеством действий (ограничение"
-
 msgid "In Project"
 msgstr "В проекте"
-
 msgid "The following Tasks in Project 'Chat GPT' are not in any Profile"
 msgstr "Следующие задачи в проекте «Chat GPT» отсутствуют ни в одном профиле."
-
 msgid "Actions:"
 msgstr "Действия:"
-
 msgid "Priority:"
 msgstr "Приоритет:"
 
-msgid "Project Global Variables"
-msgstr "Глобальные переменные проекта"
+msgid "(entry)"
+msgstr "(вход)"
+
+msgid "(exit)"
+msgstr "(Выход)"

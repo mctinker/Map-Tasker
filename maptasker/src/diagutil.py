@@ -372,7 +372,7 @@ def build_box(name: str, output_lines: list) -> tuple:
     box_line_length = len(name)
     if name == "No Profile" and PrimeItems.program_arguments["language"] not in ("English", "Arabic"):
         name = translate_string(name)
-        box_line_length = PrimeItems.no_profile_translated_length
+        box_line_length = len(name)
         adder_space_name = ""
         adder_space_boxline = ""
 

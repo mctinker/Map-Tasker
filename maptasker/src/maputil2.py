@@ -159,9 +159,6 @@ def translate_string(text: str, set_language: bool = False) -> str:
             if set_language:
                 lang_to_set = PrimeItems._(text) if text not in PrimeItems.languages else text
                 T.set_language(lang_to_set)
-                # Set/reset "No Profile" string length in new language.
-                no_profile_text = PrimeItems._("No Profile")
-                PrimeItems.no_profile_translated_length = len(no_profile_text)
             return PrimeItems._(text)
 
         # If this is a language, then set the language and translate the text.

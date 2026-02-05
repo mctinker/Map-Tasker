@@ -674,7 +674,8 @@ msgid "Russian"
 msgstr "俄語"
 msgid "俄語"
 msgstr "Russian"
-msgid "Korean"msgstr "韓國人"
+msgid "Korean"
+msgstr "韓國人"
 msgid "韓國人"
 msgstr "Korean"
 msgid "No Profile"
@@ -755,42 +756,33 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Windows 通過 Winget: 'winget install ffmpeg'\n"
 msgid "Refer to"
 msgstr "參考"
-
 msgid "Tasker Displayed Totals"
 msgstr "Tasker 顯示總計"
-
 msgid "Total number of Projects:"
 msgstr "項目總數："
-
 msgid "Total number of Profiles:"
 msgstr "配置文件總數："
-
 msgid "Total number of Tasks:"
 msgstr "任務總數："
-
 msgid "Total number of Scenes:"
 msgstr "場景總數："
-
 msgid "has"
 msgstr "有"
-
 msgid "actions"
 msgstr "行動"
-
 msgid "Tasks With Too Many Actions (Limit is"
 msgstr "具有太多操作的任務（限制為"
-
 msgid "In Project"
 msgstr "項目中"
-
 msgid "The following Tasks in Project 'Chat GPT' are not in any Profile"
 msgstr "項目“Chat GPT”中的以下任務不在任何配置文件中"
-
 msgid "Actions:"
 msgstr "行動："
-
 msgid "Priority:"
 msgstr "優先事項："
 
-msgid "Project Global Variables"
-msgstr "項目全局變量"
+msgid "(entry)"
+msgstr "（入口）"
+
+msgid "(exit)"
+msgstr "（出口）"

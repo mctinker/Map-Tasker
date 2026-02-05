@@ -861,42 +861,33 @@ msgid "Windows via Winget: 'winget install ffmpeg'\n"
 msgstr "Windows thông qua Winget: 'cài đặt cánh ffmpeg'\n"
 msgid "Refer to"
 msgstr "tham khảo"
-
 msgid "Tasker Displayed Totals"
 msgstr "Tổng số được hiển thị của tác vụ"
-
 msgid "Total number of Projects:"
 msgstr "Tổng số dự án:"
-
 msgid "Total number of Profiles:"
 msgstr "Tổng số hồ sơ:"
-
 msgid "Total number of Tasks:"
 msgstr "Tổng số nhiệm vụ:"
-
 msgid "Total number of Scenes:"
 msgstr "Tổng số Cảnh:"
-
 msgid "has"
 msgstr "có"
-
 msgid "actions"
 msgstr "hành động"
-
 msgid "Tasks With Too Many Actions (Limit is"
 msgstr "Nhiệm vụ có quá nhiều hành động (Giới hạn là"
-
 msgid "In Project"
 msgstr "Trong dự án"
-
 msgid "The following Tasks in Project 'Chat GPT' are not in any Profile"
 msgstr "Các nhiệm vụ sau trong Dự án 'Chat GPT' không có trong bất kỳ Hồ sơ nào"
-
 msgid "Actions:"
 msgstr "hành động:"
-
 msgid "Priority:"
 msgstr "Sự ưu tiên:"
 
-msgid "Project Global Variables"
-msgstr "Biến toàn cầu của dự án"
+msgid "(entry)"
+msgstr "(lối vào)"
+
+msgid "(exit)"
+msgstr "(ra)"
