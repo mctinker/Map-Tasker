@@ -1574,7 +1574,8 @@ def replace_maintain_column(line: str, target: str, replacement: str) -> str:
             new_content = part.replace(target, replacement)
             current_width = len(new_content)
 
-            if current_width < original_width:
+            # Use the new length if less than original, or if this is the last item in the list=end of line
+            if current_width < original_width or part_no == length_parts - 1:
                 # Case 1: Translation is shorter. Pad with spaces.
                 padding_needed = original_width - current_width
                 new_content += " " * padding_needed
@@ -1584,9 +1585,7 @@ def replace_maintain_column(line: str, target: str, replacement: str) -> str:
                 # We strictly truncate to the original width.
                 # This ensures the extra characters are "ignored" and do not
                 # overwrite the position of the next special character.
-                # FIX This is not working.  It is cutting off the end of the string being replaced.
-                if part_no != length_parts:
-                    new_content = new_content[:original_width]
+                new_content = new_content[:original_width]
 
             new_parts.append(new_content)
         else:
@@ -1641,6 +1640,8 @@ def build_network_map(data: dict) -> None:
         output_list = PrimeItems.netmap_output
 
         for i, line in enumerate(output_list):
+            if "Turn Off Notifications (entry)" in line:
+                print("bingo")
             # Optimization: Only process lines that contain at least one target keyword
             # This skips the 5 function calls for diagram-only or empty lines
             if any(key[0] in line for key in trans.values()):

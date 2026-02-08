@@ -162,7 +162,8 @@ class MyGui(customtkinter.CTk):
         initialize_screen(self)
 
         # Now restore the settings and update the fields if not resetting.
-        default_language = self.language
+        # default_language = self.language
+        default_language = "English"
         if not PrimeItems.program_arguments["reset"]:
             self.event_handlers.restore_settings_event()
         else:
@@ -170,7 +171,10 @@ class MyGui(customtkinter.CTk):
 
         # See if we have a language other than English.  If so, set it and redisplay GUI in the new language.
         if self.language != default_language:
-            self.event_handlers.language_selected_event(self.language)
+            # For for the first time only, make it look like we are coming from 'English'
+            language_to_switch_to = self.language
+            self.language = default_language
+            self.event_handlers.language_selected_event(language_to_switch_to)
 
         # Make sure we have colors
         if self.color_lookup and not PrimeItems.colors_to_use:
@@ -245,9 +249,9 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # FIX: For Development Only!
+        # CHG: For Development Only!
         # The following lines are for testing only.
-        self.event_handlers.diagram_event()
+        # self.event_handlers.diagram_event()
         # self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
@@ -2995,7 +2999,9 @@ class EventHandlers:
         the_view.tabview._segmented_button._buttons_dict["Specific Name"].configure(  # noqa: SLF001
             text=translate_string("Specific Name"),
         )
-        the_view.tabview._segmented_button._buttons_dict["Colors"].configure(text=translate_string("Colors"))  # noqa: SLF001
+        the_view.tabview._segmented_button._buttons_dict["Colors"].configure(
+            text=translate_string("Colors")
+        )  # noqa: SLF001
         the_view.tabview._segmented_button._buttons_dict["Analyze"].configure(  # noqa: SLF001
             text=translate_string("Analyze"),
         )

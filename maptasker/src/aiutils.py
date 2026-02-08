@@ -115,6 +115,7 @@ def get_anthropic_models() -> list:
         "claude-opus-4-0",  # alias
         "claude-opus-4-1",  # alias
         "claude-opus-4-5",  # alias
+        "claude-opus-4-6",
         # "claude-sonnet-4-20250514",
         "claude-sonnet-4-0",  # alias
         "claude-sonnet-4-5",
@@ -123,7 +124,6 @@ def get_anthropic_models() -> list:
         "claude-haiku-4-5",  # alias
         # "claude-3-5-sonnet-20241022",
         "claude-3-5-sonnet-latest",  # alias
-        "claude-3-5-sonnet-20240620",  # previous version
         "claude-sonnet-4-5",  # alias
         # Claude 3 Models
         "claude-3-opus-20240229",
@@ -249,6 +249,7 @@ def get_llama_models() -> list:
         "exaone-deep",
         "deepcoder",
         "devstral",
+        "gemini-3-flash-preview",
         "gemma",
         "gemma2:latest",
         "gemma2:2b",
@@ -257,6 +258,8 @@ def get_llama_models() -> list:
         "gemma3n:latest",
         "gemma3n:e2bllama2",
         "gemma3n:e4b",
+        "glm-4.7",
+        "glm-4.7-flash",
         "gpt-oss:latest",
         "llama2",
         "llama3",
@@ -285,6 +288,7 @@ def get_llama_models() -> list:
         "qwen2.5:latest",
         "qwen3:0.6b",
         "gwen3-coder",
+        "qwen3-coder-next",
         "qwen3:latest",
         "qwen3:1.7b",
         "qwen3:4b",
