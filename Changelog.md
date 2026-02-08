@@ -2,26 +2,33 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.0.5] 29-Jan-2026
+## [10.0.6] 08-Feb-2026
 
 ### Added
 
-- Added: None
+- Added: Multilanguage support in Map view.
 
 ### Changed
 
-- Changed: None
+- Changed: The 'Next' and 'Previous' buttons now keep the next or previous item in the middle of the view.
 
 ### Fixed
 
-- Fixed: Some Tasks may not appear in the Map view when displaying TaskerNet descriptions.
-- Fixed: The Map view (directory) ability to go up one level is not displaying.
+- Fixed: Task action limit gets reset to 100 in the GUI when changing to another language.
+- Fixed: Clicking on a Task, in the Map view, inadvertantly jumps to the 'Launcher Task' line if there is one rather than to the Task.
+- Fixed: If highlighting Tasker objects (e.g. selecting 'Bold') in trhe Map view, then hotlinks to Tasker objects would result in the error message 'Could not find ...'.
+- Fixed: The Diagram view boxes for 'No Profile' tasks are not the proper length if the language is other than English.
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop. Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [10.0.5] 29-Jan-2026
+
+- Fixed: Some Tasks may not appear in the Map view when displaying TaskerNet descriptions.
+- Fixed: The Map view (directory) ability to go up one level is not displaying.
 
 ## [10.0.3-10.0.4] 27-Jan-2026
 
