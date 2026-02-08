@@ -63,6 +63,7 @@ from maptasker.src.maputils import (
     get_current_local_time_auto_timezone,
     get_first_substring_match,
     is_color_dark,
+    live_translate_text,
     make_hex_color,
 )
 from maptasker.src.primitem import PrimeItems
@@ -133,6 +134,7 @@ spacing_by_language = {
     "Vietnamese": -20,
 }
 next_button_spacer = 30
+directory_blue_entries = "Directory    (blue entries are hotlinks)"
 
 
 class CTkTreeview(ctk.CTkFrame):
@@ -436,6 +438,31 @@ class CTkTextview(ctk.CTkFrame):
         # Setup the textbox.
         self._setup_textbox(master)
 
+        # Setup translation text
+        self.translation = {
+            "project": translate_string("Project: "),
+            "profile": translate_string("Profile: "),
+            "task": translate_string("Task: "),
+            "scene": translate_string("Scene: "),
+            "global_variables": translate_string("Project Global Variables"),
+            "directory": translate_string(directory_blue_entries),
+            "properties": translate_string("Properties..."),
+            "taskernet_description": translate_string("TaskerNet Description:"),
+            "with_labels": translate_string("...with label:"),
+            "taskernet_search": translate_string("TaskerNet search on:"),
+            "launcher_task": translate_string("Launcher"),
+            "disabled": translate_string("DISABLED]"),
+            "entry_task": translate_string("Entry Task"),
+            "exit_task": translate_string("Exit Task"),
+            "unnamed": translate_string("(Unnamed)"),
+            "display_totals": translate_string("Tasker Displayed Totals"),
+            "total_projects": translate_string("Total number of Projects:"),
+            "total_profiles": translate_string("Total number of Profiles:"),
+            "total_tasks": translate_string("Total number of Tasks:"),
+            "total_scenes": translate_string("Total number of Scenes:"),
+            "no_profile": translate_string("The following Tasks in Project 'Chat GPT' are not in any Profile"),
+        }
+
         # Process the data and insert it into the text box.
         self.process_data(the_data)
 
@@ -585,9 +612,7 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}"
-                    if len(line) > max_length
-                    else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -1237,8 +1262,8 @@ class CTkTextview(ctk.CTkFrame):
         # print(f"Button number (if mouse event): {event.num}")
         # print(f"State (modifier keys/mouse buttons): {event.state}")
         # print(f"Timestamp: {event.time}")
-        # print(
-        #    f"Widget under pointer: {event.widget.winfo_containing(event.x_root, event.y_root)}",
+        # print(t
+        #    f"Widget under poiner: {event.widget.winfo_containing(event.x_root, event.y_root)}",
         # )
 
         # get the index of the mouse click
@@ -1443,6 +1468,7 @@ class CTkTextview(ctk.CTkFrame):
             "project": self.hover_project,
             "found": self.hover_search,
         }
+        prefixes = ["Task: ", "Profile: ", "Project: ", "Scene: "]
         owner_text = ""
 
         # Determine the hover type and get the text associated with it.
@@ -1450,6 +1476,7 @@ class CTkTextview(ctk.CTkFrame):
             # If 'Search' match, get the owner.
             if item_type == "found":
                 text, owner_text, max_len = hover_handlers[item_type](tag_hover_line)
+
                 # Recalculate the max line length based on the window width.
                 char_width_in_pixels = width_and_height_calculator_in_pixel(
                     "m",
@@ -1472,6 +1499,18 @@ class CTkTextview(ctk.CTkFrame):
                 )
         else:
             return
+
+        # Translate hover text as necessary
+        for prefix in prefixes:
+            if text.startswith(prefix):
+                # 3. Use slicing instead of .replace()
+                # text[len(prefix):] gets everything AFTER the prefix
+                text = translate_string(prefix) + text[len(prefix) :]
+                if prefix == "Task: ":
+                    text = text.replace("Actions:\n", f"{translate_string('Actions:')}\n").replace(
+                        "  Tasks in Project (sorted)",
+                        translate_string("  Tasks in Project (sorted)"),
+                    )
 
         # Establish appropriate colors
         background_color, foreground_color1, foreground_color2 = get_foreground_background_colors(self.master.master)
@@ -1589,12 +1628,13 @@ class CTkTextview(ctk.CTkFrame):
         # Add column headings.
         max_profile_length = max((len(s) for s in profiles), default=0)
         max_task_length = max((len(s) for s in tasks), default=0)
-        profile_header = f"{'Profiles'.ljust(max_profile_length, '.')}"
-        task_header = f"{'  Tasks in Project (sorted)'.ljust(max_task_length, '.')}"
+        profile_header = f"{translate_string('Profiles').ljust(max_profile_length, '.')}"
+        task_header = f"{translate_string('  Tasks in Project (sorted)').ljust(max_task_length, '.')}"
         profiles_and_tasks.insert(0, [f"\n\n{profile_header}", task_header])
 
         # Convert to columns.
         results_in_columns = parse_pairs_to_columns(profiles_and_tasks)
+
         return f"{text} {properties}{results_in_columns}"
 
     def hover_profile(self, name: str, text: str) -> str:
@@ -1619,7 +1659,7 @@ class CTkTextview(ctk.CTkFrame):
         tasks = get_tasks_in_project(project)
 
         # Can't combine the following into opne large 'f-string' since can not have '\' in f-string.
-        temp = f"\n  In Project: {project}\n Tasks in Project (sorted)...\n"
+        temp = f"\n  {translate_string('In Project:')} {project}\n {translate_string('Tasks in Project (sorted)')}...\n"
         all_tasks = "\n   ".join(tasks)
         return text + f"{temp}   {all_tasks}"
 
@@ -1649,7 +1689,7 @@ class CTkTextview(ctk.CTkFrame):
             name,
             line_number,
         )
-        if not dont_got_line and "Launcher Task: " in prev_line:
+        if not dont_got_line and translate_string("Launcher Task: ") in prev_line:
             return ""
 
         # fmt: off
@@ -1668,7 +1708,7 @@ class CTkTextview(ctk.CTkFrame):
                 line_found,
             )
             # Check for situation in which there is a Project and no Profile (i.e. the Profile has the Project name).
-            if owning_project_name == "<<< Owner=Project":
+            if owning_project_name == translate_string("<<< Owner=Project"):
                 owning_project_name = owning_profile_name
                 owning_profile_name = ""
         else:
@@ -1693,8 +1733,8 @@ class CTkTextview(ctk.CTkFrame):
             task_item = ""
 
         # Cleanup the text
-        owning_profile_name = owning_profile_name.replace("<<< Owner=", "   ")
-        owning_project_name = owning_project_name.replace("<<< Owner=", "   ")
+        owning_profile_name = owning_profile_name.split("=")[1]
+        owning_project_name = owning_project_name.split("=")[1]
 
         # Cleanup the line and return it for display
         return text + f"\n {owning_profile_name}\n {owning_project_name}{properties}{task_item}"
@@ -1811,15 +1851,17 @@ class CTkTextview(ctk.CTkFrame):
               format "Owning <owner_type>: <owner_name>  >>> ".
             - If no match is found, the function returns an empty string.
         """
+        # Translation support
         # Global variables are a special case.
-        pgv = "Project Global Variables"
+        pgv = translate_string("Project Global Variables")
+        owner = translate_string("Owner")
         if pgv == line:
-            return f"<<< Owner={pgv}", "", ""
+            return f"<<< {owner}={pgv}", "", ""
         owner_keys = [
-            "Task: ",
-            "Profile: ",
-            "Project: ",
-            "Scene: ",
+            self.translation["task"],
+            self.translation["profile"],
+            self.translation["project"],
+            self.translation["scene"],
             pgv,
         ]
         invalid_keys = [
@@ -1828,22 +1870,26 @@ class CTkTextview(ctk.CTkFrame):
             " Properties",
         ]
         # Identify the possible owners based on what is in the line.
-        if "Project: " in line:
-            return "<<< Owner=Project", "", ""
-        if "Profile: " in line:
+        if "Project: " in line or self.translation["project"] in line:
+            return f"<<< {owner}={translate_string('project')}", "", ""
+            # search_text = line.replace("Project: ", self.translation["project"])
+        if "Profile: " in line or self.translation["profile"] in line:
             owner_keys.pop(0)  # Remove tasks
             owner_keys.pop(0)  # Remove profiles
-        elif "Scene: " in line:
+            search_text = line.replace("Profile: ", self.translation["profile"])
+        elif "Scene: " in line or self.translation["scene"] in line:
             owner_keys.pop(0)  # Remove tasks
             owner_keys.pop(0)  # Remove profiles
             owner_keys.pop()  # Remove scenes
-        elif "Task: " in line:
+            search_text = line.replace("Scene: ", self.translation["scene"])
+        elif "Task: " in line or self.translation["task"] in line:
             owner_keys.pop(0)  # Remove tasks
+            search_text = line.replace("Task: ", self.translation["task"])
 
         # First make sure we are at the line number that contains the text we are starting from.
         line_to_get, prev_line, dont_got_line = find_the_line(
             textbox,
-            line,
+            search_text,
             text_line_num,
         )
         if dont_got_line:
@@ -1856,6 +1902,9 @@ class CTkTextview(ctk.CTkFrame):
             # Get the line and check for the owner name.
             idx = f"{line_to_get}.0"
             prev_line = textbox.get(idx, idx + " lineend")
+            if self.translation["properties"] in prev_line:  # Ignore properties
+                line_to_get = str(int(line_to_get) - 1)
+                continue
             if tasker_object := _get_first_substring_match(prev_line, owner_keys):
                 if tasker_object != pgv:
                     owner = prev_line.split(":")[1].split("   ")[0].strip()
@@ -1865,7 +1914,7 @@ class CTkTextview(ctk.CTkFrame):
                         line_to_get = str(int(line_to_get) - 1)
                         continue
                 return (
-                    f"<<< Owner={tasker_object}{owner.strip()}",
+                    f"<<< {owner}={tasker_object}{owner.strip()}",
                     line_to_get,
                     prev_line,
                 )
@@ -2536,7 +2585,7 @@ class CTkTextview(ctk.CTkFrame):
             )
             # Are we about to do the directory?
             temp = text_content[0]
-            if isinstance(temp, list) and temp[0].startswith("Directory    (blue entries are hotlinks)"):
+            if isinstance(temp, list) and temp[0].startswith(directory_blue_entries):
                 # Handle the hotlink for going up one or more levels.
                 (
                     new_line_num,
@@ -2810,7 +2859,7 @@ class CTkTextview(ctk.CTkFrame):
         for text_linenum, text in enumerate(value["text"]):
             if text == "Directory\n":
                 # Replace text with the formatted directory description
-                value["text"][text_linenum] = ["Directory    (blue entries are hotlinks)\n \n"]
+                value["text"][text_linenum] = [f"{translate_string(directory_blue_entries)}\n\n"]
 
             # Process directory headings (e.g. 'Projects...')
             elif text.startswith("\nn"):
@@ -2830,8 +2879,15 @@ class CTkTextview(ctk.CTkFrame):
                 )
                 line_num += 1
 
-                # Restore original text and color
-                value["text"][text_linenum] = save_text
+                # Translate directory headers and restore original text and color
+                if "Projects..." in save_text:
+                    value["text"][text_linenum] = save_text.replace("Projects...", f"{translate_string('Projects')}...")
+                elif "Profiles..." in save_text:
+                    value["text"][text_linenum] = save_text.replace("Profiles...", f"{translate_string('Profiles')}...")
+                elif "Tasks..." in save_text:
+                    value["text"][text_linenum] = save_text.replace("Tasks...", f"{translate_string('Tasks')}...")
+                elif "Scenes..." in save_text:
+                    value["text"][text_linenum] = save_text.replace("Scenes...", f"{translate_string('Scenes')}...")
                 value["color"][text_linenum] = save_color
 
             # Output the updated text and color
@@ -2885,7 +2941,7 @@ class CTkTextview(ctk.CTkFrame):
         hotlink_name = value["directory"][1]
 
         # Determine the name to go up to, which will be used for the tag id.
-        name_to_go_up = hotlink_name if hotlink_name else "entire configuration"
+        name_to_go_up = hotlink_name if hotlink_name else translate_string("entire configuration")
 
         # Check for special "Up One Level" hotlink and modify the text to be displayed if it is.
         up_one_level = False
@@ -2894,7 +2950,7 @@ class CTkTextview(ctk.CTkFrame):
             up_one_level = True
             directory_type = f"{directory_type[2:]}_up"
             object_name = directory_type[:-3].capitalize() if hotlink_name else ""
-            hotlink_name = f"Up One Level to {object_name}: {name_to_go_up}"
+            hotlink_name = f"{translate_string('Up One Level to')} {object_name}: {name_to_go_up}"
             name_to_insert, spacer = hotlink_name, ""
         else:
             # Normal directory entry.  If name greater than spacing allows, truncate it.
@@ -3033,11 +3089,19 @@ class CTkTextview(ctk.CTkFrame):
             self.out_trace_file.write(formatted_message)
 
         # Pre-check for object labels to reduce substring scans.  Force a newline if it is.
-        if any(x in formatted_message for x in ("Task:", "Profile:", "Project:")):
+        if any(
+            x in formatted_message
+            for x in (self.translation["task"], self.translation["profile"], self.translation["project"])
+        ):
             textview_textbox.insert("end", "\n", tag_id)
             line_num += 1
             char_position = 0
             line_num_str = str(line_num)
+
+        # Remove highlighting indicators
+        formatted_message = (
+            formatted_message.replace("<mark>", "").replace("</mark>", "").replace("<b>", "").replace("</b>", "")
+        )
 
         # Insert formatted message and update char position
         char_position = self._insert_message(
@@ -3071,8 +3135,47 @@ class CTkTextview(ctk.CTkFrame):
         # Clean up the message content
         message = message.replace("\n\n", "\n").replace("Go to top", "")
 
+        # 2. Iterate through the map and apply replacement
+        if PrimeItems.program_arguments.get("language") != "English":
+            # Translate Tasker object names
+            # 1. Define the mapping of "Search String" : "Replacement String"
+            # Note: We handle the mixed sources (self.translation vs translate_string) here.
+            replacement_map = {
+                "Task: ": self.translation["task"],
+                "Profile: ": self.translation["profile"],
+                "Project: ": self.translation["project"],
+                "Scene: ": self.translation["scene"],
+                "Directory    ": self.translation["directory"] + "\n",
+                "Project Global Variables": self.translation["global_variables"],
+                "Properties...": self.translation["properties"],
+                "TaskerNet description:": self.translation["taskernet_description"],
+                "...with label:": self.translation["with_labels"],
+                "TaskerNet search on:": self.translation["taskernet_search"],
+                "[Launcher ": f"[{self.translation['launcher_task']} ",
+                "DISABLED]": self.translation["disabled"],
+                "Entry Task": self.translation["entry_task"],
+                "Exit Task": self.translation["exit_task"],
+                "(Unnamed)": self.translation["unnamed"],
+                "Tasker Displayed Totals": self.translation["display_totals"],
+                "Total number of Projects:": self.translation["total_projects"],
+                "Total number of Profiles:": self.translation["total_profiles"],
+                "Total number of Tasks:": self.translation["total_tasks"],
+                "Total number of Scenes:": self.translation["total_scenes"],
+                "The following Tasks in Project 'Chat GPT' are not in any Profile": self.translation["no_profile"],
+            }
+            # Go through all possible strings and perform translation.
+            for search_term, replacement in replacement_map.items():
+                if search_term in message:
+                    message = message.replace(search_term, replacement)
+                    # (stop looking after the first match is found):
+                    # break
+
+                # Handle Caveats
+                elif "CAVEATS:" in message:
+                    message = message.replace("CAVEATS:", translate_string("CAVEATS:"))
+
         # Handle special case for 'directory'
-        if previous_value == "directory" and "Project:" in message:
+        if previous_value == "directory" and self.translation["project"] in message:
             message = f"\n{message}"
 
         # # Short-circuit for empty messages
@@ -3140,11 +3243,13 @@ class CTkTextview(ctk.CTkFrame):
             - Applies background color and hover tags to task, profile, project, and scene labels.
             - Safely skips insertion if the task has already been processed.
         """
+        task_translated = translate_string("Task ")
         msg_len = len(message)
         start_idx = f"{line_num_str}.{char_position}"
         end_idx = f"{line_num_str}.{char_position + msg_len}"
+        translation = self.textview_textbox.master.translation
 
-        # Fast exit: check for task patterns early
+        # Fast exit: check for task patterns early: 'Task x has x actions\n'
         if not find_task_pattern(message):
             if not self._insert_text_and_tag(start_idx, end_idx, message, tag_id):
                 return char_position
@@ -3152,9 +3257,11 @@ class CTkTextview(ctk.CTkFrame):
             if "-text" in tag_id:
                 return char_position + msg_len
             # Tag hover/highlight only if necessary
-            if ": Properties" not in message and any(
-                k in message for k in ("Task: ", "Profile: ", "Project: ", "Scene: ")
+            if translation["properties"] not in message and any(
+                k in message
+                for k in (translation["task"], translation["profile"], translation["project"], translation["scene"])
             ):
+                # Add an <Enter> and <Leave> tag for hover highlighting
                 self.tag_items(tag_id, message)
                 self.textview_textbox.tag_config(tag_id, background=background_color)
             return char_position + msg_len
@@ -3164,7 +3271,7 @@ class CTkTextview(ctk.CTkFrame):
         task_action_warnings = PrimeItems.task_action_warnings
         track_task_warnings = PrimeItems.track_task_warnings
         task_name = next(
-            (t for t in task_action_warnings if f"Task {t} has" in message),
+            (t for t in task_action_warnings if f"{task_translated} {t} {translate_string('has')}" in message),
             None,
         )
         if not task_name:
@@ -3184,8 +3291,8 @@ class CTkTextview(ctk.CTkFrame):
         task_offset = char_position + taskname_start
 
         # Add "Task " prefix
-        prefix_end = f"{line_num_str}.{char_position + 5}"  # len("Task ")
-        if not self._insert_text_and_tag(start_idx, prefix_end, "Task ", tag_id):
+        prefix_end = f"{line_num_str}.{char_position + len(task_translated) + 1}"
+        if not self._insert_text_and_tag(start_idx, prefix_end, f"{task_translated} ", tag_id):
             return char_position
 
         # Add task name as hyperlink
@@ -3267,13 +3374,15 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             None
         """
+        translation = self.textview_textbox.master.translation
         keywords = {
-            "Task: ": "task",
-            "Profile: ": "profile",
-            "Project: ": "project",
-            "Scene: ": "scene",
+            f"{translation['task']}": "task",
+            f"{translation['profile']}": "profile",
+            f"{translation['project']}": "project",
+            f"{translation['scene']}": "scene",
             "Found:": "found",
         }
+
         # Find the first matching keyword and corresponding item type
         item, start_position = next(
             (
@@ -3284,7 +3393,7 @@ class CTkTextview(ctk.CTkFrame):
             (None, None),
         )
         # If we have a valid Tasker item and it isn't a Launcher name.
-        if item and not item.startswith(" [Launcher Task: "):
+        if item and not item.startswith(translate_string(" [Launcher Task: ")):
             self.textview_textbox.tag_bind(tag_id, "<Enter>", self.click_text)
             self.textview_textbox.tag_bind(tag_id, "<Leave>", self.click_name_leave)
 
@@ -3337,7 +3446,7 @@ class CTkTextview(ctk.CTkFrame):
         # starting_line_to_search = 1
         # Don't addf highlight if this is a label.  We've already added it.
         with contextlib.suppress(KeyError):
-            if text_linenum == 0 and value["highlights"] and "-text" not in tag_id:
+            if text_linenum == 0 and value["highlights"] and value["highlights"][0] and "-text" not in tag_id:
                 tags = self.add_highlights(message, value, text_linenum, previous_value, tag_id, tags)
 
         # Now color the text.
@@ -3387,12 +3496,12 @@ class CTkTextview(ctk.CTkFrame):
             "h5-text": {"font": "h5"},
             "h6-text": {"font": "h6"},
         }
-
+        translation = self.textview_textbox.master.translation
         search_word_mapping = {
-            "Task: ": "Task: ",
-            "Profile: ": "Profile: ",
-            "Project: ": "Project: ",
-            "Scene: ": "Scene: ",
+            "Task: ": translation["task"],
+            "Profile: ": translation["profile"],
+            "Project: ": translation["project"],
+            "Scene: ": translation["scene"],
         }
 
         # # Find the search word context.  Default to text in message if not found.
@@ -3400,6 +3509,7 @@ class CTkTextview(ctk.CTkFrame):
             (word for word in search_word_mapping if word in message),
             message,
         )
+
         # Get the highlight
         highlight = value["highlights"][text_linenum]
         if highlight:
@@ -3479,9 +3589,6 @@ class CTkTextview(ctk.CTkFrame):
         previous_value: str,
     ) -> tuple:
         """Determine the start and end positions of the highlight text."""
-        tags_to_remove = ["<mark>", "</mark>", "<em>", "</em>", "<b>", "</b>"]
-        for tag in tags_to_remove:
-            highlight_text = highlight_text.replace(tag, "")
         start_pos = message.find(highlight_text)
         if start_pos == -1:
             return -1, -1
@@ -3894,7 +4001,8 @@ def initialize_screen(self: object) -> None:
 def _setup_init(self: ctk) -> None:
     """Initialize main GUI window"""
     # self.sidebar_frame = ctk.CTkFrame(master=None)
-    self.task_action_warning_limit = 100
+    if not hasattr(self, "task_action_warning_limit"):
+        self.task_action_warning_limit = 100
     # Setup routine if user deletes the window
     self.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
     # Create textbox for information/feedback: found in userintr
@@ -4903,9 +5011,10 @@ class ToolTip(object):  # noqa: UP004
             font = "Courier"
 
         foreground_color = "white" if is_color_dark(mygui.saved_background_color) else "black"
+        translated_text = live_translate_text(self.text)
         label = Label(
             tw,
-            text=self.text,
+            text=translated_text,
             justify="left",
             # background="#ffffe0",
             background=mygui.saved_background_color,

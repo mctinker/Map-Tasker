@@ -8,6 +8,7 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
 from maptasker.src.format import format_html
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
 
@@ -20,72 +21,58 @@ def display_caveats() -> None:
     Outputs:
     - None
     """
+    cav1 = "- This has only been tested on my own backup.xml file.  For problems, report them on"
+    cav2 = "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+    cav3 = "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+    cav4 = "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+    cav5 = "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+    cav6 = "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+    cav7 = "- Your Google API key is displayed in the Tasker preferences!\n"
+    cav8 = "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+    cav9 = "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+    cav10 = "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+    cav11 = """
+- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n
+   MacOS: 'brew install ffmpeg'\n
+   Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n
+   Windows via Winget: 'winget install ffmpeg'\n
+   Refer to
+"""
 
     caveats = [
         format_html(
             "trailing_comments_color",
             "",
-            "<br>CAVEATS:<br>",
+            f"<br>{translate_string('CAVEATS')}:<br>",
             False,
         ),
-        (
-            "- This has only been tested on my own backup.xml file."
-            "  For problems, report them on https://github.com/mctinker/Map-Tasker/issues .\n"
-        ),
-        ("- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"),
-        ("- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"),
-        ("- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"),
-        (
-            "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters"
-            " converted to '{' and '}' respectively.\n"
-        ),
-        (
-            "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
-        ),
+        (f"{translate_string(cav1)} https://github.com/mctinker/Map-Tasker/issues .") + "\n",
+        (translate_string(cav2)),
+        (translate_string(cav3)),
+        (translate_string(cav4)),
+        (translate_string(cav5)),
+        (translate_string(cav6)),
     ]
-
     # Conditional caveats start here...
 
     # Let 'em know about Google API key
     if PrimeItems.program_arguments["preferences"]:
-        caveats.append(
-            "- Your Google API key is displayed in the Tasker preferences!\n",
-        )
+        caveats.append(translate_string(cav7))
 
     if PrimeItems.program_arguments["display_detail_level"] > 0:  # Caveat about Actions
-        caveats.append(
-            "- Most but not all Task actions have been mapped and will display as such."
-            "  Likewise for Profile conditions and Plug-ins.\n",
-        )
+        caveats.append(translate_string(cav8))
 
     if (
         PrimeItems.program_arguments["display_detail_level"] == 0
     ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
-        caveats.append(
-            '- For option -d0, Tasks that are identified as "Unnamed/Anonymous" will'
-            " have their first Action only listed....\n  just like Tasker does.\n",
-        )
+        caveats.append(translate_string(cav9))
 
     if (
         PrimeItems.program_arguments["display_detail_level"] >= 4
     ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
-        caveats.extend(
-            (
-                "- Inactive variables are global variables used in a Task which has not been run/used.\n",
-                "- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n",
-            ),
-        )
+        caveats.append(translate_string(cav10))
     if PrimeItems.program_arguments["taskernet"]:
-        caveats.extend(
-            (
-                "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n",
-                "   MacOS: 'brew install ffmpeg'\n",
-                "   Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n",
-                "   Windows via Winget: 'winget install ffmpeg'\n",
-                "   Windows via Chocolatey: 'choco install ffmpeg'\n",
-                "  Refer to https://www.ffmpeg.org/download.html\n",
-            ),
-        )
+        caveats.append(f"{cav11} https://www.ffmpeg.org/download.html\n")
 
     # Start the output
     PrimeItems.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)

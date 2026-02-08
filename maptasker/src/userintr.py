@@ -162,7 +162,8 @@ class MyGui(customtkinter.CTk):
         initialize_screen(self)
 
         # Now restore the settings and update the fields if not resetting.
-        default_language = self.language
+        # default_language = self.language
+        default_language = "English"
         if not PrimeItems.program_arguments["reset"]:
             self.event_handlers.restore_settings_event()
         else:
@@ -170,7 +171,10 @@ class MyGui(customtkinter.CTk):
 
         # See if we have a language other than English.  If so, set it and redisplay GUI in the new language.
         if self.language != default_language:
-            self.event_handlers.language_selected_event(self.language)
+            # For for the first time only, make it look like we are coming from 'English'
+            language_to_switch_to = self.language
+            self.language = default_language
+            self.event_handlers.language_selected_event(language_to_switch_to)
 
         # Make sure we have colors
         if self.color_lookup and not PrimeItems.colors_to_use:
@@ -2914,8 +2918,11 @@ class EventHandlers:
         the_view.language = language_to_use
 
         flag_language = language if language in PrimeItems.languages else translate_string(language)
-        flag = f"flag_{PrimeItems.languages[flag_language]}"
-        add_logo(the_view, flag)
+        try:
+            flag = f"flag_{PrimeItems.languages[flag_language]}"
+            add_logo(the_view, flag)
+        except KeyError:
+            pass
 
         # Set the translation function in PrimeItems
         # T.set_language(language_to_use)
@@ -2927,7 +2934,6 @@ class EventHandlers:
 
         # Translate and format message
         message = f"{translate_string('Language set to')} {language_translated}."
-        # message = PrimeItems._(message)
 
         # Display message in the GUI
         the_view.clear_messages = True
@@ -2941,7 +2947,8 @@ class EventHandlers:
             language: The language selected by the user.
         """
         the_view = self if self.__class__.__name__ == "MyGui" else self.parent
-        # the_view.language = language
+        if the_view.language == language:
+            return
 
         # Set the translation function in PrimeItems
         self.language_set_event(translate_string(language))
@@ -2960,6 +2967,7 @@ class EventHandlers:
         for arg in ARGUMENT_NAMES:
             temp_args[arg] = getattr(the_view, arg)
         the_view.extract_settings(temp_args)
+        self.tasklimit_event(self.parent.task_action_warning_limit)
 
         # Reset the single item pulldown (this has to go after reset of labels!).
         set_tasker_object_names(the_view)
@@ -2991,7 +2999,9 @@ class EventHandlers:
         the_view.tabview._segmented_button._buttons_dict["Specific Name"].configure(  # noqa: SLF001
             text=translate_string("Specific Name"),
         )
-        the_view.tabview._segmented_button._buttons_dict["Colors"].configure(text=translate_string("Colors"))  # noqa: SLF001
+        the_view.tabview._segmented_button._buttons_dict["Colors"].configure(
+            text=translate_string("Colors")
+        )  # noqa: SLF001
         the_view.tabview._segmented_button._buttons_dict["Analyze"].configure(  # noqa: SLF001
             text=translate_string("Analyze"),
         )
@@ -4313,6 +4323,7 @@ class EventHandlers:
             if "Diagram" in textview.title:
                 textview.textview_textbox.see("end-1c")
             else:
+                caveats_translated = translate_string("CAVEATS:")
                 # Go to bottom (first valid non-blank line)
                 line_count = int(
                     textview.textview_textbox.index("end-1c").split(".")[0],
@@ -4323,7 +4334,7 @@ class EventHandlers:
                         f"{line_pos!s}.0",
                         f"{line_pos!s}.end",
                     )
-                    if "CAVEATS:" in line:
+                    if caveats_translated in line:
                         break
                     line_pos -= 1
                 textview.textview_textbox.see(f"{line_pos!s}.0")

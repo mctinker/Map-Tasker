@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "10.0.5"
+VERSION = "10.0.6"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -276,7 +276,7 @@ OPENAI_MODELS = [
     "o1-pro",
     "o3",
     "o3-mini",
-    "04-mini",  # Depricated as of 11/27/2025
+    "04-mini",
 ]
 LLAMA_MODELS = [
     "aya",
@@ -302,6 +302,7 @@ ANTHROPIC_MODELS = [
     "claude-sonnet-4-5",
     "claude-haiku-4-5",
     "claude-3-5-haiku-latest",
+    "claude-opus-4-6",
     "claude-opus-4-5",
     "claude-opus-4-0",
     "claude-opus-4-1",
@@ -313,6 +314,7 @@ GEMINI_MODELS = [
     "gemini-3-pro",
     "gemini-3-flash",
     "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
     "gemini-2.5-pro",
 ]
 MODEL_GROUPS = {

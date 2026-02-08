@@ -19,6 +19,7 @@ import requests
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import rutroh_error
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import make_hex_color
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.video import handle_image
@@ -977,7 +978,7 @@ def _get_current_heading(value: dict, inner_num: int) -> str:
 def _handle_taskernet_description(msg: str, its_a_label: bool) -> tuple[str, bool]:
     if "TaskerNet description:" in msg:
         its_a_label = False
-        return msg.replace("TaskerNet description:", "TaskerNet description:\n"), its_a_label
+        return msg.replace("TaskerNet description:", f"TaskerNet {translate_string('description'):}\n"), its_a_label
     return msg, its_a_label
 
 

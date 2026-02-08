@@ -1557,9 +1557,10 @@ def replace_maintain_column(line: str, target: str, replacement: str) -> str:
 
     # Split by the special characters, keeping them in the list
     parts = re.split(r"([│▼▲])", line)
+    length_parts = len(parts)
     new_parts = []
 
-    for part in parts:
+    for part_no, part in enumerate(parts):
         # If this part is one of our special markers, keep it exactly as is
         if part in ["│", "▼", "▲"]:
             new_parts.append(part)
@@ -1573,7 +1574,8 @@ def replace_maintain_column(line: str, target: str, replacement: str) -> str:
             new_content = part.replace(target, replacement)
             current_width = len(new_content)
 
-            if current_width < original_width:
+            # Use the new length if less than original, or if this is the last item in the list=end of line
+            if current_width < original_width or part_no == length_parts - 1:
                 # Case 1: Translation is shorter. Pad with spaces.
                 padding_needed = original_width - current_width
                 new_content += " " * padding_needed
@@ -1624,15 +1626,33 @@ def build_network_map(data: dict) -> None:
 
     # Translate the output lines if needed.  Can't translate anything that has diagram lines
     if PrimeItems.program_arguments["language"] not in ("English", "Arabic"):
-        no_project = translate_string("No Project")
-        calls = translate_string("Calls")
-        called_by = translate_string("Called by")
-        for i, line in enumerate(PrimeItems.netmap_output):
-            # Use the helper function instead of standard .replace()
-            newline = replace_maintain_column(line, "No Project", no_project)
-            newline = replace_maintain_column(newline, "[Calls", f"[{calls}")
-            newline = replace_maintain_column(newline, "[Called by", f"[{called_by}")
-            PrimeItems.netmap_output[i] = newline
+        # Pre-translate once to save resources
+        trans = {
+            "no_proj": ("No Project", translate_string("No Project")),
+            "calls": ("[Calls", f"[{translate_string('Calls')}"),
+            "called": ("[Called by", f"[{translate_string('Called by')}"),
+            "entry": (" (entry)", f" {translate_string('(entry)')}"),
+            "exit": (" (exit)", f" {translate_string('(exit)')}"),
+            "notfound": (" (Not Found!)", f" {translate_string('(Not Found!)')}"),
+        }
+
+        # Store items in a local variable for faster access than repeated attribute lookups
+        output_list = PrimeItems.netmap_output
+
+        for i, line in enumerate(output_list):
+            if "Turn Off Notifications (entry)" in line:
+                print("bingo")
+            # Optimization: Only process lines that contain at least one target keyword
+            # This skips the 5 function calls for diagram-only or empty lines
+            if any(key[0] in line for key in trans.values()):
+                newline = line
+                newline = replace_maintain_column(newline, trans["no_proj"][0], trans["no_proj"][1])
+                newline = replace_maintain_column(newline, trans["calls"][0], trans["calls"][1])
+                newline = replace_maintain_column(newline, trans["called"][0], trans["called"][1])
+                newline = replace_maintain_column(newline, trans["entry"][0], trans["entry"][1])
+                newline = replace_maintain_column(newline, trans["exit"][0], trans["exit"][1])
+                newline = replace_maintain_column(newline, trans["notfound"][0], trans["notfound"][1])
+                output_list[i] = newline
 
 
 # Print the network map.
