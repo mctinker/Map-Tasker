@@ -441,7 +441,15 @@ def remove_the_html_tags(text: str) -> str:
     Removes specific HTML tags efficiently using precompiled regex.
     """
     # sub() is already quite fast in Python's re module (implemented in C)
-    return _REMOVE_HTML_PATTERN.sub("", text)
+    t = False
+    if "href" in text:
+        print("bingo before", text)
+        t = True
+    # return _REMOVE_HTML_PATTERN.sub("", text)
+    t1 = _REMOVE_HTML_PATTERN.sub("", text)
+    if t:
+        print("bingo after", t1)
+    return t1
 
 
 # 1. Create a mapping dictionary
@@ -506,14 +514,16 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
     # Special handling for 'Task xxx has too many actions'.
     # We don't want to strip the html from the Task name.
     # Catch the '>' break before the &gt;' gets replaced.
-    to_find = f"{translate_string('Task ')} <a href=#tasks"
+    task_translated = translate_string("Task ")
+    to_find = f"{task_translated}<a href=#tasks"
+    # FIX
     too_many_pos = text_list[0].find(to_find)
     if too_many_pos != -1:
         # Find the first ">"
         break_pos = text_list[0].find(">")
         if break_pos != -1:
             # Remove everything before the first ">"
-            text_list[0] = f"{translate_string('Task ')} {text_list[0][break_pos + 1 :].replace('</a>', '')}"
+            text_list[0] = f"{task_translated} {text_list[0][break_pos + 1 :].replace('</a>', '')}"
             remove_html = False
         else:
             rutroh_error(

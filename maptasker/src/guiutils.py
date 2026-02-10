@@ -2030,21 +2030,21 @@ def search_nextprev_string(
                 )
 
                 # Set the line at the first hit. "See" makes it visible.
-                # textview.textview_textbox.see(textview.search_current_line)
+                textview.textview_textbox.see(textview.search_current_line)
 
-                # Move the window so that the match is in the middle of the screen.
-                # 'end-1c' means 'the end of the text, minus one character'
-                # (this avoids counting the invisible final newline Tkinter adds)
-                last_index = textview.textview_textbox.index("end-1c")
+                # # Move the window so that the match is in the middle of the screen.
+                # # 'end-1c' means 'the end of the text, minus one character'
+                # # (this avoids counting the invisible final newline Tkinter adds)
+                # last_index = textview.textview_textbox.index("end-1c")
 
-                # The index is returned as a string like "100.5" (Line 100, Column 5)
-                # We split by the dot and take the first part
-                total_lines = int(last_index.split(".")[0])
+                # # The index is returned as a string like "100.5" (Line 100, Column 5)
+                # # We split by the dot and take the first part
+                # total_lines = int(last_index.split(".")[0])
 
-                pos = int(temp[0]) / total_lines
-                # Move the view to show the found text, adjusting to center it
-                textview.textview_textbox.yview_moveto(float(pos) - 0.02)
-                # textview.textview_textbox.focus_set()
+                # pos = int(temp[0]) / total_lines
+                # # Move the view to show the found text, adjusting to center it
+                # textview.textview_textbox.yview_moveto(float(pos) - 0.02)
+                # # textview.textview_textbox.focus_set()
                 break
 
 

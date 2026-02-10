@@ -943,13 +943,6 @@ action_codes = {
         category="105",
         canfail="True",
     ),
-    "1365641317t": ActionCode(
-        redirect="1040876951t",
-        args=[],
-        name="AutoBarcodeLite Messages",
-        category="",
-        canfail="",
-    ),
     "136e": ActionCode(
         redirect="",
         args=[],
@@ -978,6 +971,13 @@ action_codes = {
         name="Sound Effects",
         category="20",
         canfail="False",
+    ),
+    "1365641317t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="AutoBarcodeLite Messages",
+        category="",
+        canfail="",
     ),
     "137t": ActionCode(
         redirect="",
@@ -1211,17 +1211,17 @@ action_codes = {
         category="110",
         canfail="False",
     ),
-    "1494192574t": ActionCode(
-        redirect="1040876951t",
-        args=[],
-        name="AutoMail Get",
-        category="",
-        canfail="",
-    ),
     "149s": ActionCode(
         redirect="",
         args=[],
         name="Pen Menu",
+        category="",
+        canfail="",
+    ),
+    "1494192574t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="AutoMail Get",
         category="",
         canfail="",
     ),
@@ -2036,13 +2036,6 @@ action_codes = {
         category="52",
         canfail="True",
     ),
-    "1887951895t": ActionCode(
-        redirect="1040876951t",
-        args=[],
-        name="AutoMail Send",
-        category="",
-        canfail="",
-    ),
     "188s": ActionCode(
         redirect="",
         args=[],
@@ -2072,6 +2065,13 @@ action_codes = {
         name="Load Image",
         category="52",
         canfail="True",
+    ),
+    "1887951895t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="AutoMail Send",
+        category="",
+        canfail="",
     ),
     "18927444e": ActionCode(
         redirect="",
@@ -3380,17 +3380,17 @@ action_codes = {
         category="",
         canfail="",
     ),
-    "268157305t": ActionCode(
-        redirect="1040876951t",
-        args=[],
-        name="AutoNotification Tiles",
-        category="",
-        canfail="",
-    ),
     "277269574t": ActionCode(
         redirect="1040876951t",
         args=[],
         name="PushBullet Push A Notification",
+        category="",
+        canfail="",
+    ),
+    "268157305t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="AutoNotification Tiles",
         category="",
         canfail="",
     ),
@@ -4416,13 +4416,6 @@ action_codes = {
         name="Notification Settings",
         category="30",
         canfail="False",
-    ),
-    "338313797t": ActionCode(
-        redirect="1040876951t",
-        args=[],
-        name="ADB Shell Install APK",
-        category="",
-        canfail="",
     ),
     "338t": ActionCode(
         redirect="",
@@ -5760,6 +5753,13 @@ action_codes = {
         redirect="1040876951t",
         args=[],
         name="AutoSheets Insert Empty Rows/Columns",
+        category="",
+        canfail="",
+    ),
+    "338313797t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="ADB Shell Install APK",
         category="",
         canfail="",
     ),
@@ -7937,13 +7937,6 @@ action_codes = {
         category="102",
         canfail="True",
     ),
-    "488837120t": ActionCode(
-        redirect="1040876951t",
-        args=[],
-        name="ADB Shell Command",
-        category="",
-        canfail="",
-    ),
     "48t": ActionCode(
         redirect="",
         args=[
@@ -7959,6 +7952,13 @@ action_codes = {
         name="Hide Scene",
         category="102",
         canfail="True",
+    ),
+    "488837120t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="ADB Shell Command",
+        category="",
+        canfail="",
     ),
     "490t": ActionCode(
         redirect="",
@@ -10016,19 +10016,19 @@ action_codes = {
         category="55",
         canfail="True",
     ),
-    "90406179t": ActionCode(
-        redirect="1040876951t",
-        args=[],
-        name="Sleep",
-        category="",
-        canfail="",
-    ),
     "904t": ActionCode(
         redirect="",
         args=[],
         name="Voice Command",
         category="55",
         canfail="False",
+    ),
+    "90406179t": ActionCode(
+        redirect="1040876951t",
+        args=[],
+        name="Sleep",
+        category="",
+        canfail="",
     ),
     "905t": ActionCode(
         redirect="",
