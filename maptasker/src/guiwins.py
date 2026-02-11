@@ -3573,7 +3573,7 @@ class CTkTextview(ctk.CTkFrame):
                 )
 
             # if self.master.master.debug:
-            #    self._debug_highlight(line_to_highlight, start_pos, end_pos, tag_id)
+            # self._debug_highlight(line_to_highlight, start_pos, end_pos, tag_id)
 
         return tags
 
@@ -3678,7 +3678,7 @@ class CTkTextview(ctk.CTkFrame):
 
     def new_tag_config(self, tagName: str, **kwargs: list) -> object:  # noqa: N803
         """
-        A function to override the CustomTkinter tag configuration to allow a font= argument.
+        A function to override the CustomTkinter tag configuration to allow a font= argument in kargs.
 
         Parameters:
             - self: The object instance.
@@ -3688,6 +3688,14 @@ class CTkTextview(ctk.CTkFrame):
         Returns:
             The result of calling tag_config on the _textbox attribute with the provided tagName and keyword arguments.
         """
+        # If tagName is a collection (tuple, list, set),
+
+        # we apply the config to each tag in that collection.
+        if isinstance(tagName, (tuple, list, set)):
+            results = []
+            for tag in tagName:
+                results.append(self._textbox.tag_config(tag, **kwargs))  # noqa: PERF401
+            return results
         return self._textbox.tag_config(tagName, **kwargs)
 
     ctk.CTkTextbox.tag_config = new_tag_config

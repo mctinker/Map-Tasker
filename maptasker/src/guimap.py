@@ -441,15 +441,7 @@ def remove_the_html_tags(text: str) -> str:
     Removes specific HTML tags efficiently using precompiled regex.
     """
     # sub() is already quite fast in Python's re module (implemented in C)
-    t = False
-    if "href" in text:
-        print("bingo before", text)
-        t = True
-    # return _REMOVE_HTML_PATTERN.sub("", text)
-    t1 = _REMOVE_HTML_PATTERN.sub("", text)
-    if t:
-        print("bingo after", t1)
-    return t1
+    return _REMOVE_HTML_PATTERN.sub("", text)
 
 
 # 1. Create a mapping dictionary
