@@ -350,7 +350,7 @@ def display_task_warnings() -> None:
         format_html(
             "trailing_comments_color",
             "",
-            f"{translate_string('Tasks With Too Many Actions (Limit is')} {PrimeItems.program_arguments['task_action_warning_limit']})...",
+            f"\n{translate_string('Tasks With Too Many Actions (Limit is')} {PrimeItems.program_arguments['task_action_warning_limit']})...",
             False,
         ),
     ]

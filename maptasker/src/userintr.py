@@ -174,7 +174,7 @@ class MyGui(customtkinter.CTk):
             # For for the first time only, make it look like we are coming from 'English'
             language_to_switch_to = self.language
             self.language = default_language
-            self.event_handlers.language_selected_echgvent(language_to_switch_to)
+            self.event_handlers.language_selected_event(language_to_switch_to)
 
         # Make sure we have colors
         if self.color_lookup and not PrimeItems.colors_to_use:

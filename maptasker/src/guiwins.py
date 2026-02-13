@@ -2975,6 +2975,7 @@ class CTkTextview(ctk.CTkFrame):
 
         name_to_go_up = name_to_go_up.replace("&gt;", ">").replace("&lt;", "<")
         # Add hyperlink directory entry
+        # FIX Make text normal font
         tag_id = self.textview_hyperlink.add([directory_type, name_to_go_up])
         # Note: If user double-clicks a button, the textbox is not valid on the second click.
         try:
@@ -2989,6 +2990,7 @@ class CTkTextview(ctk.CTkFrame):
         self.textview_textbox.tag_config(
             tag_id[1],
             background=self.master.master.saved_background_color,
+            font=(self.font_name, 12, "normal"),  # Force normal font.  For some reason, it is getting 'bold'.
         )
 
         char_position = 0 if char_position == spacing * columns else char_position + spacing
@@ -3301,6 +3303,7 @@ class CTkTextview(ctk.CTkFrame):
         hyper_tag_id = self.textview_hyperlink.add(["tasks", task_name])
         task_start_idx = f"{line_num_str}.{task_offset}"
         task_end_idx = f"{line_num_str}.{task_offset + len(task_name)}"
+        # FIX We have to tag.config font=(self.font_name, 12, "normal")
         if not self._insert_text_and_tag(task_start_idx, task_end_idx, task_name, hyper_tag_id):
             return char_position
 

@@ -507,8 +507,11 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
     # We don't want to strip the html from the Task name.
     # Catch the '>' break before the &gt;' gets replaced.
     task_translated = translate_string("Task ")
-    to_find = f"{task_translated}<a href=#tasks"
-    # FIX
+    to_find = f"{task_translated} <a href=#tasks"
+    # Fix extra blank if English
+    if to_find.startswith("Task  "):
+        to_find = "Task <a href=#tasks"
+
     too_many_pos = text_list[0].find(to_find)
     if too_many_pos != -1:
         # Find the first ">"
