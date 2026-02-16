@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: 'Next' and 'Prev' buttons not functioning properly.
+- Fixed: The buttons and labels in the Map and Diagram views are not being translated with a change in language.
 
 ### Known Issue
 

@@ -779,10 +779,11 @@ class CTkTextview(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=0)
 
         # Add label
+        drag_msg = translate_string(f"Drag window to desired position and rerun the {title} command.")
         self.text_message_label = add_label(
             self,
             self,
-            f"Drag window to desired position and rerun the {title} command.",
+            drag_msg,
             "Orange",
             12,
             "normal",
@@ -817,7 +818,7 @@ class CTkTextview(ctk.CTkFrame):
         )
 
         # Search button
-        search_button = add_button(
+        self.search_button = add_button(
             self,
             self,
             "#246FB6",
@@ -833,10 +834,10 @@ class CTkTextview(ctk.CTkFrame):
             5,
             "nw",
         )
-        search_button.configure(width=50)
+        self.search_button.configure(width=50)
 
         create_tooltip(
-            search_button,
+            self.search_button,
             text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top.\n\nClick the ? to get more info.",
         )
         # Note: Each button's start x is based on the previous buttons position (previous.next_button_position) and length of its text
@@ -845,7 +846,7 @@ class CTkTextview(ctk.CTkFrame):
         nudge = spacing_by_language.get(PrimeItems.program_arguments["language"], 0)
 
         # Search Here button
-        search_here_button = add_button(
+        self.search_here_button = add_button(
             self,
             self,
             "#246FB6",
@@ -857,18 +858,18 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (search_button.next_button_position + nudge, next_button_spacer),
+            (self.search_button.next_button_position + nudge, next_button_spacer),
             5,
             "nw",
         )
-        search_here_button.configure(width=50)
+        self.search_here_button.configure(width=50)
         create_tooltip(
-            search_here_button,
+            self.search_here_button,
             text="Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top-left corner of the screen.\n\nClick the '?' to get more info.",
         )
 
         # Next search button
-        next_search_button = add_button(
+        self.next_search_button = add_button(
             self,
             self,
             "#246FB6",
@@ -880,17 +881,17 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (search_here_button.next_button_position, next_button_spacer),
+            (self.search_here_button.next_button_position, next_button_spacer),
             5,
             "nw",
         )
-        next_search_button.configure(width=40)
+        self.next_search_button.configure(width=40)
         create_tooltip(
-            next_search_button,
+            self.next_search_button,
             text="Make the next matched string visible.\n\nClick the ? to get more info.",
         )
         # Previous search button
-        prev_search_button = add_button(
+        self.prev_search_button = add_button(
             self,
             self,
             "#246FB6",
@@ -902,13 +903,13 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (next_search_button.next_button_position + nudge, next_button_spacer),
+            (self.next_search_button.next_button_position + nudge, next_button_spacer),
             5,
             "nw",
         )
-        prev_search_button.configure(width=40)
+        self.prev_search_button.configure(width=40)
         create_tooltip(
-            prev_search_button,
+            self.prev_search_button,
             text="Make the previous matched string visible.\n\nClick the ? to get more info.",
         )
         # Clear search button
@@ -924,14 +925,14 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (prev_search_button.next_button_position, next_button_spacer),
+            (self.prev_search_button.next_button_position, next_button_spacer),
             5,
             "nw",
         )
         self.clear_search_button.configure(width=50)
 
         # Word wrap button
-        toggle_wordwrap_button = add_button(
+        self.toggle_wordwrap_button = add_button(
             self,
             self,
             "#246FB6",
@@ -955,7 +956,7 @@ class CTkTextview(ctk.CTkFrame):
             in ("Japanese", "Korean", "Simplified Chinese", "Traditional Chinese")
             else 0
         )
-        top_button = add_button(
+        self.top_button = add_button(
             self,
             self,
             "#246FB6",
@@ -967,14 +968,14 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (toggle_wordwrap_button.next_button_position + nudge, next_button_spacer),
+            (self.toggle_wordwrap_button.next_button_position + nudge, next_button_spacer),
             5,
             "nw",
         )
-        top_button.configure(width=40)
+        self.top_button.configure(width=40)
 
         # Bottom button
-        bottom_button = add_button(
+        self.bottom_button = add_button(
             self,
             self,
             "#246FB6",
@@ -986,13 +987,13 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (top_button.next_button_position - 5, next_button_spacer),
+            (self.top_button.next_button_position - 5, next_button_spacer),
             5,
             "nw",
         )
-        bottom_button.configure(width=50)
+        self.bottom_button.configure(width=50)
         # Display Only button
-        display_only_button = add_button(
+        self.display_only_button = add_button(
             self,
             self,
             "#246FB6",
@@ -1004,18 +1005,18 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (bottom_button.next_button_position, next_button_spacer),
+            (self.bottom_button.next_button_position, next_button_spacer),
             5,
             "nw",
         )
-        display_only_button.configure(width=50)
+        self.display_only_button.configure(width=50)
         create_tooltip(
-            display_only_button,
+            self.display_only_button,
             text="Click this button to search for and display only the lines that match the search string.",
         )
 
         #  Query ? button
-        search_query_button = add_button(
+        self.search_query_button = add_button(
             self,
             self,
             "#246FB6",
@@ -1027,11 +1028,11 @@ class CTkTextview(ctk.CTkFrame):
             1,
             0,
             0,
-            (display_only_button.next_button_position - 10, next_button_spacer),
+            (self.display_only_button.next_button_position - 10, next_button_spacer),
             5,
             "nw",
         )
-        search_query_button.configure(width=20)
+        self.search_query_button.configure(width=20)
 
         # Save the widgets to the correct view: diagram or map
         if "Analysis" in self.textview_textbox.master.title:
@@ -1044,7 +1045,7 @@ class CTkTextview(ctk.CTkFrame):
             gui_view.diagramview.message_label = self.text_message_label
             gui_view.diagramview.search_input = search_input
             # Add label
-            ppl = add_label(
+            self.ppl_label = add_label(
                 self,
                 self,
                 "Profiles Per Line:",
@@ -1053,13 +1054,13 @@ class CTkTextview(ctk.CTkFrame):
                 "normal",
                 0,
                 0,
-                (search_query_button.next_button_position + 20, next_button_spacer),
+                (self.search_query_button.next_button_position + 20, next_button_spacer),
                 5,
                 "nw",
             )
             # Add Profile Level pulldown. Adjust its positionbased on language.
             if PrimeItems.program_arguments["language"] == "Greek":
-                ppl.next_button_position -= 45
+                self.ppl_label.next_button_position -= 45
             elif PrimeItems.program_arguments["language"] in (
                 "Japanese",
                 "Korean",
@@ -1067,9 +1068,9 @@ class CTkTextview(ctk.CTkFrame):
                 "Simplified Chinese",
                 "Ukrainian",
             ):
-                ppl.next_button_position += 25
+                self.ppl_label.next_button_position += 25
             else:
-                ppl.next_button_position -= 75
+                self.ppl_label.next_button_position -= 75
 
             self.profiles_per_line_option = add_option_menu(
                 self,
@@ -1078,7 +1079,7 @@ class CTkTextview(ctk.CTkFrame):
                 ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
                 0,
                 0,
-                (ppl.next_button_position, next_button_spacer),
+                (self.ppl_label.next_button_position, next_button_spacer),
                 5,
                 "nw",
             )
@@ -1097,7 +1098,7 @@ class CTkTextview(ctk.CTkFrame):
                 1,
                 0,
                 0,
-                (ppl.next_button_position + 80, next_button_spacer),
+                (self.ppl_label.next_button_position + 80, next_button_spacer),
                 5,
                 "nw",
             )
@@ -1887,6 +1888,8 @@ class CTkTextview(ctk.CTkFrame):
         elif "Task: " in line or self.translation["task"] in line:
             owner_keys.pop(0)  # Remove tasks
             search_text = line.replace("Task: ", self.translation["task"])
+        else:
+            search_text = ""
 
         # First make sure we are at the line number that contains the text we are starting from.
         line_to_get, prev_line, dont_got_line = find_the_line(
@@ -2975,7 +2978,6 @@ class CTkTextview(ctk.CTkFrame):
 
         name_to_go_up = name_to_go_up.replace("&gt;", ">").replace("&lt;", "<")
         # Add hyperlink directory entry
-        # FIX Make text normal font
         tag_id = self.textview_hyperlink.add([directory_type, name_to_go_up])
         # Note: If user double-clicks a button, the textbox is not valid on the second click.
         try:
@@ -3303,9 +3305,11 @@ class CTkTextview(ctk.CTkFrame):
         hyper_tag_id = self.textview_hyperlink.add(["tasks", task_name])
         task_start_idx = f"{line_num_str}.{task_offset}"
         task_end_idx = f"{line_num_str}.{task_offset + len(task_name)}"
-        # FIX We have to tag.config font=(self.font_name, 12, "normal")
+        # If the insert fails, just return.
         if not self._insert_text_and_tag(task_start_idx, task_end_idx, task_name, hyper_tag_id):
             return char_position
+        # Tag the hyperlink text as normal since something is making it bold by mistake.
+        self.textview_textbox.tag_config(hyper_tag_id, font=(self.font_name, 12, "normal"))
 
         # Add message trailer
         # Remove task delimiter once, avoid repeated replace()

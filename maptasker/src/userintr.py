@@ -11,6 +11,7 @@ import contextlib
 import copy
 import os
 import pickle
+from tkinter import TclError
 import webbrowser
 from tkinter.ttk import *  # noqa: F403
 
@@ -2995,11 +2996,24 @@ class EventHandlers:
         # Redo the labels
         display_selected_object_labels(the_view)
 
+        # Redo the view labels: Map is map view or neither map or disgram view.  Else, diagram view.
+        title = (
+            "Map"
+            if the_view.map_in_progress or (not the_view.map_in_progress and not the_view.doing_diagram)
+            else "Diagram"
+        )
+        # First-time thru, we don't have either the map or diagram view.
+        try:
+            the_view.mapview.add_view_widgets(title)
+        except AttributeError:
+            with contextlib.suppress(AttributeError):
+                the_view.diagramview.add_view_widgets(title)
+
         # Change the name of the tabs
         the_view.tabview._segmented_button._buttons_dict["Specific Name"].configure(  # noqa: SLF001
             text=translate_string("Specific Name"),
         )
-        the_view.tabview._segmented_button._buttons_dict["Colors"].configure(
+        the_view.tabview._segmented_button._buttons_dict["Colors"].configure(  # noqa: SLF001
             text=translate_string("Colors"),
         )
         the_view.tabview._segmented_button._buttons_dict["Analyze"].configure(  # noqa: SLF001
@@ -3063,6 +3077,34 @@ class EventHandlers:
         for button in buttons:
             button_to_clear = getattr(the_view, button)
             button_to_clear.configure(text="")
+        # Ditto mapview top-row buttons
+        with contextlib.suppress(AttributeError):
+            buttons = self.find_variables(the_view.mapview, "_button")
+            for button in buttons:
+                button_to_clear = getattr(the_view.mapview, button)
+                # button_to_clear.configure(text="")
+                button_to_clear.destroy()
+        # Ditto diagramiew top-row buttons
+        with contextlib.suppress(AttributeError):
+            buttons = self.find_variables(the_view.diagramview, "_button")
+            for button in buttons:
+                button_to_clear = getattr(the_view.diagramview, button)
+                # button_to_clear.configure(text="")
+                button_to_clear.destroy()
+        # Ditto mapview top-row labels
+        with contextlib.suppress(AttributeError, TclError):
+            labels = self.find_variables(the_view.mapview, "_label")
+            for label in labels:
+                label_to_clear = getattr(the_view.mapview, label)
+                # label_to_clear.configure(text="")
+                label_to_clear.destroy()
+        # Ditto mapview top-row labels
+        with contextlib.suppress(AttributeError, TclError):
+            labels = self.find_variables(the_view.diagramview, "_label")
+            for label in labels:
+                label_to_clear = getattr(the_view.diagramview, label)
+                # label_to_clear.configure(text="")
+                label_to_clear.destroy()
 
     def find_variables(self, the_view: MyGui, var_to_find: str) -> list:
         """
@@ -4341,7 +4383,8 @@ class EventHandlers:
             display_msg = "Bottom"
 
         # Let the user know.
-        output_label(textview, f"{display_msg} of text view displayed.")
+        text_to_display = translate_string(f"{display_msg} of text view displayed.")
+        output_label(textview, text_to_display)
 
     def jump_topbottom_event(
         self: object,
