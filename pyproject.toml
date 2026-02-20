@@ -1,7 +1,7 @@
 [project]
 name = "maptasker"
 dynamic = [ "version" ]
-version = "10.0.6"
+version = "10.0.7"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 requires-python = ">=3.11,<4.0"
 authors = [
@@ -21,22 +21,22 @@ keywords = [
 
 # Auto-generated updated dependency list
 dependencies = [
-    "anthropic>=0.79.0",
-    "cv3 (>=1.3.2,<2.0.0)",
-    "darkdetect>=0.8.0",
-    "deep_translator>=1.11.4",
-    "defusedxml>=0.7.1",
-    "google-genai>=1.62.0",
-    "ollama>=0.6.1",
-    "openai>=2.17.0",
-    "packaging>=26.0",
-    "pillow==12.1.0",
-    "psutil>=7.2.2",
-    "pytube2 (>=15.0.16,<16.0.0)",
-    "requests>=2.32.5",
-    "tomli_w>=1.2.0",
-    "webcolors>=25.10.0",
-    "yt-dlp (>=2025.10.22,<2026.0.0)",
+    'anthropic>=0.83.0',
+    'cv3 (>=1.3.2,<2.0.0)',
+    'darkdetect>=0.8.0',
+    'deep_translator>=1.11.4',
+    'defusedxml>=0.7.1',
+    'google-genai>=1.64.0',
+    'ollama>=0.6.1',
+    'openai>=2.21.0',
+    'packaging>=26.0',
+    'pillow==12.1.1',
+    'psutil>=7.2.2',
+    'pytube2 (>=15.0.16,<16.0.0)',
+    'requests>=2.32.5',
+    'tomli_w>=1.2.0',
+    'webcolors>=25.10.0',
+    'yt-dlp (>=2025.10.22,<2026.0.0)',
 ]
 
 
@@ -220,6 +220,7 @@ pytest-mock = "*"
 files = ["maptasker/src/sysconst.py"]
 search = 'VERSION = "{current_version}"'
 replace = 'VERSION = "{new_version}"'
+
 
 
 
