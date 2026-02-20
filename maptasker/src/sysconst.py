@@ -262,7 +262,6 @@ OPENAI_MODELS = [
     "gpt-5.2",
     "gpt-5.2-pro",
     "gpt-5.1",
-    "gpt-3.5-turbo",
     "gpt-5",
     "gpt-5-mini",
     "gpt-5-nano",
@@ -308,9 +307,11 @@ ANTHROPIC_MODELS = [
     "claude-opus-4-1",
     "claude-sonnet-4-0",
     "claude-sonnet-4-5",
+    "claude-sonnet-4-6",
 ]
 DEEPSEEK_MODELS = ["deepseek-chat"]
 GEMINI_MODELS = [
+    "gemini-3.1-pro-preview",
     "gemini-3-pro",
     "gemini-3-flash",
     "gemini-2.5-flash",

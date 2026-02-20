@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.0.7] ??-Feb-2026  # FIX
+## [10.0.7] 20-Feb-2026
 
 ### Added
 
@@ -10,11 +10,11 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed:
+- Changed: Updated AI model list.
 
 ### Fixed
 
-- Fixed: 'Next' and 'Prev' buttons not functioning properly.
+- Fixed: 'Next' and 'Prev' buttons are not functioning properly in the Map and Diagram views.
 - Fixed: The buttons and labels in the Map and Diagram views are not being translated with a change in language.
 
 ### Known Issue
