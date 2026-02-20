@@ -119,6 +119,7 @@ def get_anthropic_models() -> list:
         # "claude-sonnet-4-20250514",
         "claude-sonnet-4-0",  # alias
         "claude-sonnet-4-5",
+        "claude-sonnet-4-6",
         # Claude 3.5 Models
         "claude-3-5-haiku-latest",  # alias
         "claude-haiku-4-5",  # alias
@@ -279,19 +280,11 @@ def get_llama_models() -> list:
         "qwen",
         "qwen2",
         "qwen2.5-coder:latest",
-        "qwen2.5-coder:0.5b",
-        "qwen2.5-coder:1.5b",
-        "qwen2.5-coder:3b",
-        "qwen2.5vl:3b",
-        "qwen2.5:0.5b",
-        "qwen2.5:1.5b",
-        "qwen2.5:latest",
-        "qwen3:0.6b",
+        "qwen2.5",
         "gwen3-coder",
         "qwen3-coder-next",
-        "qwen3:latest",
-        "qwen3:1.7b",
-        "qwen3:4b",
+        "qwen3-next",
+        "qwen3.5",
         "starcoder2:latest",
         "tinyllama",
     ]

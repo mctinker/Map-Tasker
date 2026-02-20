@@ -656,7 +656,7 @@ def _insert_and_tag(
     """
     # Optimized version: inserts and tags a message in a custom text widget.
     mygui = self.master.master
-    bg_color = (mygui.saved_background_color,)
+    bg_color = mygui.saved_background_color
 
     # Local vars to avoid repeated dict lookups
     highlights = value["highlights"][inner_num]
@@ -740,8 +740,9 @@ def _insert_and_tag(
             spacing = 0  # Set spacing to 0 for hyperlink part
 
         # Handle href part
+        # Set appropriate color for hyperlink
+        color_val = "LightSkyBlue"
         start_idx = self.textview_textbox.index(tk.END + "-1c")
-        href = temp[1]
         message = temp[2][1 : len(temp[2]) - 4]
         tag_id = self.textview_hyperlink.add(href)
         message_to_display = message if spacing == 0 and char_position == 0 else f"{' ' * spacing}{message}"

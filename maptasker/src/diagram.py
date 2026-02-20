@@ -1640,8 +1640,6 @@ def build_network_map(data: dict) -> None:
         output_list = PrimeItems.netmap_output
 
         for i, line in enumerate(output_list):
-            if "Turn Off Notifications (entry)" in line:
-                print("bingo")
             # Optimization: Only process lines that contain at least one target keyword
             # This skips the 5 function calls for diagram-only or empty lines
             if any(key[0] in line for key in trans.values()):

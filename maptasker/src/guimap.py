@@ -506,14 +506,19 @@ def cleanup_text_elements(output_lines: dict, line_num: int, remove_html: bool) 
     # Special handling for 'Task xxx has too many actions'.
     # We don't want to strip the html from the Task name.
     # Catch the '>' break before the &gt;' gets replaced.
-    to_find = f"{translate_string('Task ')} <a href=#tasks"
+    task_translated = translate_string("Task ")
+    to_find = f"{task_translated} <a href=#tasks"
+    # Fix extra blank if English
+    if to_find.startswith("Task  "):
+        to_find = "Task <a href=#tasks"
+
     too_many_pos = text_list[0].find(to_find)
     if too_many_pos != -1:
         # Find the first ">"
         break_pos = text_list[0].find(">")
         if break_pos != -1:
             # Remove everything before the first ">"
-            text_list[0] = f"{translate_string('Task ')} {text_list[0][break_pos + 1 :].replace('</a>', '')}"
+            text_list[0] = f"{task_translated} {text_list[0][break_pos + 1 :].replace('</a>', '')}"
             remove_html = False
         else:
             rutroh_error(

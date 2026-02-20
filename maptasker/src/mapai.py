@@ -13,6 +13,8 @@ import sys
 import anthropic
 import customtkinter as ctk
 from google import genai
+
+# from google.genai import types
 from openai import OpenAI, OpenAIError
 
 from maptasker.src import cria
@@ -312,6 +314,8 @@ def _process_gemini_response(client: object, query: str) -> str:
     response = client.models.generate_content(
         model=model,
         contents=f"{role}.  {query}",
+        # NOTE: Need to add logic to determine specific model eligability for the following option.
+        # config=types.GenerateContentConfig(thinking_config=types.ThinkingConfig(thinking_level="low")),
     )
     return response.text
 
