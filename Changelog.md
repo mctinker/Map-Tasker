@@ -2,26 +2,35 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.0.7] 20-Feb-2026
+## [10.0.8] 26-Feb-2026
 
 ### Added
 
-- Added: Tasker version 6.6.18 fully supported.
+- Added: No additions.
 
 ### Changed
 
-- Changed: Updated AI model list.
+- Changed: No changes.
 
 ### Fixed
 
-- Fixed: 'Next' and 'Prev' buttons are not functioning properly in the Map and Diagram views.
-- Fixed: The buttons and labels in the Map and Diagram views are not being translated with a change in language.
+- Fixed: Some GUI text translations are missing.
+- Fixed: Changing colors in the GUI with a language other than English causes a program error.
+- Fixed: Program error in guiutil2.
+- Fixed: Hover text fails if the language is traditional or simplfied Chinese.
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop. Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [10.0.7] ??-Feb-2026
+
+- Added: Tasker version 6.6.18 fully supported.
+- Changed: Updated AI model list.
+- Fixed: 'Next' and 'Prev' buttons are not functioning properly in the Map and Diagram views.
+- Fixed: The buttons and labels in the Map and Diagram views are not being translated with a change in language.
 
 ## [10.0.6] 08-Feb-2026
 

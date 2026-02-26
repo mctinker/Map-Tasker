@@ -44,7 +44,11 @@ class CTkTabview(CTkBaseClass):
     ):
         # transfer some functionality to CTkFrame
         super().__init__(
-            master=master, bg_color=bg_color, width=width, height=height, **kwargs
+            master=master,
+            bg_color=bg_color,
+            width=width,
+            height=height,
+            **kwargs,
         )
 
         # color
@@ -57,10 +61,7 @@ class CTkTabview(CTkBaseClass):
         # determine fg_color of frame
         if fg_color is None:
             if isinstance(self.master, (CTkFrame, CTkTabview)):
-                if (
-                    self.master.cget("fg_color")
-                    == ThemeManager.theme["CTkFrame"]["fg_color"]
-                ):
+                if self.master.cget("fg_color") == ThemeManager.theme["CTkFrame"]["fg_color"]:
                     self._fg_color = ThemeManager.theme["CTkFrame"]["top_fg_color"]
                 else:
                     self._fg_color = ThemeManager.theme["CTkFrame"]["fg_color"]
@@ -71,15 +72,9 @@ class CTkTabview(CTkBaseClass):
 
         # shape
         self._corner_radius = (
-            ThemeManager.theme["CTkFrame"]["corner_radius"]
-            if corner_radius is None
-            else corner_radius
+            ThemeManager.theme["CTkFrame"]["corner_radius"] if corner_radius is None else corner_radius
         )
-        self._border_width = (
-            ThemeManager.theme["CTkFrame"]["border_width"]
-            if border_width is None
-            else border_width
-        )
+        self._border_width = ThemeManager.theme["CTkFrame"]["border_width"] if border_width is None else border_width
         self._anchor = anchor
 
         self._canvas = CTkCanvas(
@@ -88,7 +83,7 @@ class CTkTabview(CTkBaseClass):
             highlightthickness=0,
             width=self._apply_widget_scaling(self._desired_width),
             height=self._apply_widget_scaling(
-                self._desired_height - self._outer_spacing - self._outer_button_overhang
+                self._desired_height - self._outer_spacing - self._outer_button_overhang,
             ),
         )
         self._draw_engine = DrawEngine(self._canvas)
@@ -148,7 +143,7 @@ class CTkTabview(CTkBaseClass):
         self._canvas.configure(
             width=self._apply_widget_scaling(self._desired_width),
             height=self._apply_widget_scaling(
-                self._desired_height - self._outer_spacing - self._outer_button_overhang
+                self._desired_height - self._outer_spacing - self._outer_button_overhang,
             ),
         )
         self._configure_grid()
@@ -160,7 +155,7 @@ class CTkTabview(CTkBaseClass):
         self._canvas.configure(
             width=self._apply_widget_scaling(self._desired_width),
             height=self._apply_widget_scaling(
-                self._desired_height - self._outer_spacing - self._outer_button_overhang
+                self._desired_height - self._outer_spacing - self._outer_button_overhang,
             ),
         )
         self._draw()
@@ -175,7 +170,7 @@ class CTkTabview(CTkBaseClass):
                     self._bg_color,
                     self._bg_color,
                     self._bg_color,
-                )
+                ),
             )
         elif self._anchor.lower() in ("center", "w", "nw", "n", "ne", "e", "e"):
             self._segmented_button.configure(
@@ -184,7 +179,7 @@ class CTkTabview(CTkBaseClass):
                     self._bg_color,
                     self._fg_color,
                     self._fg_color,
-                )
+                ),
             )
         else:
             self._segmented_button.configure(
@@ -193,7 +188,7 @@ class CTkTabview(CTkBaseClass):
                     self._fg_color,
                     self._bg_color,
                     self._bg_color,
-                )
+                ),
             )
 
     def _configure_grid(self):
@@ -201,7 +196,9 @@ class CTkTabview(CTkBaseClass):
 
         if self._anchor.lower() in ("center", "w", "nw", "n", "ne", "e", "e"):
             self.grid_rowconfigure(
-                0, weight=0, minsize=self._apply_widget_scaling(self._outer_spacing)
+                0,
+                weight=0,
+                minsize=self._apply_widget_scaling(self._outer_spacing),
             )
             self.grid_rowconfigure(
                 1,
@@ -212,7 +209,7 @@ class CTkTabview(CTkBaseClass):
                 2,
                 weight=0,
                 minsize=self._apply_widget_scaling(
-                    self._button_height - self._outer_button_overhang
+                    self._button_height - self._outer_button_overhang,
                 ),
             )
             self.grid_rowconfigure(3, weight=1)
@@ -222,7 +219,7 @@ class CTkTabview(CTkBaseClass):
                 1,
                 weight=0,
                 minsize=self._apply_widget_scaling(
-                    self._button_height - self._outer_button_overhang
+                    self._button_height - self._outer_button_overhang,
                 ),
             )
             self.grid_rowconfigure(
@@ -231,7 +228,9 @@ class CTkTabview(CTkBaseClass):
                 minsize=self._apply_widget_scaling(self._outer_button_overhang),
             )
             self.grid_rowconfigure(
-                3, weight=0, minsize=self._apply_widget_scaling(self._outer_spacing)
+                3,
+                weight=0,
+                minsize=self._apply_widget_scaling(self._outer_spacing),
             )
 
         self.grid_columnconfigure(0, weight=1)
@@ -281,10 +280,10 @@ class CTkTabview(CTkBaseClass):
                 column=0,
                 sticky="nsew",
                 padx=self._apply_widget_scaling(
-                    max(self._corner_radius, self._border_width)
+                    max(self._corner_radius, self._border_width),
                 ),
                 pady=self._apply_widget_scaling(
-                    max(self._corner_radius, self._border_width)
+                    max(self._corner_radius, self._border_width),
                 ),
             )
         else:
@@ -293,10 +292,10 @@ class CTkTabview(CTkBaseClass):
                 column=0,
                 sticky="nsew",
                 padx=self._apply_widget_scaling(
-                    max(self._corner_radius, self._border_width)
+                    max(self._corner_radius, self._border_width),
                 ),
                 pady=self._apply_widget_scaling(
-                    max(self._corner_radius, self._border_width)
+                    max(self._corner_radius, self._border_width),
                 ),
             )
 
@@ -330,7 +329,7 @@ class CTkTabview(CTkBaseClass):
         requires_recoloring = self._draw_engine.draw_rounded_rect_with_border(
             self._apply_widget_scaling(self._current_width),
             self._apply_widget_scaling(
-                self._current_height - self._outer_spacing - self._outer_button_overhang
+                self._current_height - self._outer_spacing - self._outer_button_overhang,
             ),
             self._apply_widget_scaling(self._corner_radius),
             self._apply_widget_scaling(self._border_width),
@@ -367,7 +366,8 @@ class CTkTabview(CTkBaseClass):
             )
             self._canvas.configure(bg=self._apply_appearance_mode(self._bg_color))
             tkinter.Frame.configure(
-                self, bg=self._apply_appearance_mode(self._bg_color)
+                self,
+                bg=self._apply_appearance_mode(self._bg_color),
             )  # configure bg color of tkinter.Frame, cause canvas does not fill frame
 
     def configure(self, require_redraw=False, **kwargs):
@@ -383,7 +383,8 @@ class CTkTabview(CTkBaseClass):
             require_redraw = True
         if "fg_color" in kwargs:
             self._fg_color = self._check_color_type(
-                kwargs.pop("fg_color"), transparency=True
+                kwargs.pop("fg_color"),
+                transparency=True,
             )
             self._configure_segmented_button_background_corners()
             require_redraw = True
@@ -392,31 +393,31 @@ class CTkTabview(CTkBaseClass):
             require_redraw = True
         if "segmented_button_fg_color" in kwargs:
             self._segmented_button.configure(
-                fg_color=kwargs.pop("segmented_button_fg_color")
+                fg_color=kwargs.pop("segmented_button_fg_color"),
             )
         if "segmented_button_selected_color" in kwargs:
             self._segmented_button.configure(
-                selected_color=kwargs.pop("segmented_button_selected_color")
+                selected_color=kwargs.pop("segmented_button_selected_color"),
             )
         if "segmented_button_selected_hover_color" in kwargs:
             self._segmented_button.configure(
-                selected_hover_color=kwargs.pop("segmented_button_selected_hover_color")
+                selected_hover_color=kwargs.pop("segmented_button_selected_hover_color"),
             )
         if "segmented_button_unselected_color" in kwargs:
             self._segmented_button.configure(
-                unselected_color=kwargs.pop("segmented_button_unselected_color")
+                unselected_color=kwargs.pop("segmented_button_unselected_color"),
             )
         if "segmented_button_unselected_hover_color" in kwargs:
             self._segmented_button.configure(
                 unselected_hover_color=kwargs.pop(
-                    "segmented_button_unselected_hover_color"
-                )
+                    "segmented_button_unselected_hover_color",
+                ),
             )
         if "text_color" in kwargs:
             self._segmented_button.configure(text_color=kwargs.pop("text_color"))
         if "text_color_disabled" in kwargs:
             self._segmented_button.configure(
-                text_color_disabled=kwargs.pop("text_color_disabled")
+                text_color_disabled=kwargs.pop("text_color_disabled"),
             )
 
         if "command" in kwargs:
@@ -465,7 +466,6 @@ class CTkTabview(CTkBaseClass):
 
         if name in self._tab_dict:
             return self._tab_dict[name]
-        # FIX
         raise ValueError(f"CTkTabview has no tab named '{name}'")
 
     def insert(self, index: int, name: str) -> CTkFrame:
@@ -506,7 +506,7 @@ class CTkTabview(CTkBaseClass):
                 raise ValueError(f"CTkTabview has no name '{name}'")
         else:
             raise ValueError(
-                f"CTkTabview new_index {new_index} not in range of name list with len {len(self._name_list)}"
+                f"CTkTabview new_index {new_index} not in range of name list with len {len(self._name_list)}",
             )
 
     def rename(self, old_name: str, new_name: str):

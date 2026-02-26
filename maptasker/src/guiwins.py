@@ -612,7 +612,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -3996,7 +3998,7 @@ def initialize_screen(self: object) -> None:
         _create_name_display_options_section,
         _create_task_action_limit_section,
         _create_indentation_section,
-        _create_appearance_mode_section,
+        create_appearance_mode_section,
         _create_language_selection_section,
         _create_view_buttons_section,
         _create_view_limit_section,
@@ -4269,7 +4271,7 @@ def _create_language_selection_section(self: ctk) -> None:
     self.language_optionmenu.set(translate_string(self.language))
 
 
-def _create_appearance_mode_section(self: ctk) -> None:
+def create_appearance_mode_section(self: ctk) -> None:
     """Creates the appearance mode selection."""
     self.appearance_mode_label = add_label(
         self,

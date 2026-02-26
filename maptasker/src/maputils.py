@@ -848,4 +848,11 @@ def live_translate_text(text: str) -> str:
     target = PrimeItems.program_arguments["language"]
     if target == "English":
         return text
-    return GoogleTranslator(source="auto", target=PrimeItems.languages[target]).translate(text)
+    if target == "Traditional Chinese":
+        target_lang = "chinese (traditional)"
+    elif target == "Simplified Chinese":
+        target_lang = "chinese (simplified)"
+    else:
+        target_lang = PrimeItems.languages[target]
+
+    return GoogleTranslator(source="auto", target=target_lang).translate(text)
